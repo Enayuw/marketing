@@ -87,8 +87,11 @@
                '0'                   as collidingSwitch,
                '0'                   as priority,
                count(dlc.id)         as collidingBackNumber,
+               '-'                   as taskStartTime,
                min(dlc.release_time) as collidingStartTime,
-               max(dlc.release_time) as collidingEndTime
+               max(dlc.release_time) as collidingEndTime,
+               '-'                   as createTime,
+               '-'                   as updateTime
         from b_xiecheng_colliding_data_loop_cycle dlc
                  left join b_marketing_customer bmc on bmc.status = 1
         where dlc.is_delete = 0
