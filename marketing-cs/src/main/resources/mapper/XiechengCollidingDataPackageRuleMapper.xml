@@ -16,6 +16,7 @@
                dpr.colliding_switch      as collidingSwitch,
                pkg.priority              as priority,
                dpr.colliding_back_number as collidingBackNumber,
+               dpr.colliding_times       as collidingTimes,
                dpt.task_start_time       as taskStartTime,
                dpr.colliding_start_time  as collidingStartTime,
                dpr.colliding_end_time    as collidingEndTime,
@@ -32,13 +33,14 @@
         <if test="listParam.apiCode != null and listParam.apiCode != ''">
             and dpr.api_code = #{listParam.apiCode}
         </if>
-        <if test="listParam.collidingSwitch != null and listParam.collidingSwitch != ''">
+        <if test="listParam.collidingSwitch != null">
             and dpr.colliding_switch = #{listParam.collidingSwitch}
         </if>
         <if test="listParam.collidingStartTime != null and listParam.collidingStartTime != '' and listParam.collidingEndTime != null and listParam.collidingEndTime != ''">
             AND (dpr.colliding_start_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime} OR
                  dpr.colliding_end_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime})
         </if>
+        ORDER BY dpr.create_time
     </select>
 
     <select id="getPackageRuleDetail" resultType="com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO">

@@ -179,8 +179,7 @@ public class XiechengCollidingRuleController {
     @PostMapping("/rule/save")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_SAVE_COLLIDING_RULE, extendInfo = "[saveCollidingRuleLog]")
     public ApiResult<Boolean> saveCollidingRule() {
-        ApiResult<Boolean> result = xieChengCollidingRuleService.saveCollidingRule();
-        return result;
+        return xieChengCollidingRuleService.saveCollidingRule();
     }
 
 }

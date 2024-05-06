@@ -47,6 +47,9 @@ public class XiechengCollidingRuleVO implements Serializable {
     @ApiModelProperty("设定撞得量级")
     private Integer collidingBackNumber;
 
+    @ApiModelProperty("每日撞库次数")
+    private Integer collidingTimes;
+
     @ApiModelProperty("数据清洗时间 yyyy-MM-dd HH:mm:ss")
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private Date taskStartTime;

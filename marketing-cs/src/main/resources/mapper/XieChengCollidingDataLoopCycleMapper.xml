@@ -81,6 +81,8 @@
         select bmc.cid               as cid,
                bmc.api_code          as apiCode,
                bmc.short_name        as shortName,
+               '-'                   as packageName,
+               '-'                   as discreetNumber,
                count(dlc.id)         AS remainingNumber,
                '0'                   as collidingSwitch,
                '0'                   as priority,
@@ -88,14 +90,16 @@
                min(dlc.release_time) as collidingStartTime,
                max(dlc.release_time) as collidingEndTime
         from b_xiecheng_colliding_data_loop_cycle dlc
-                 left join b_marketing_customer bmc on bmc.api_code = dlc.api_code and bmc.status = 1
+                 left join b_marketing_customer bmc on bmc.status = 1
         where dlc.is_delete = 0
         <if test="listParam.apiCode != null and listParam.apiCode != ''">
-            and dlc.api_code = #{listParam.apiCode}
+            and bmc.api_code = #{listParam.apiCode}
         </if>
         <if test="listParam.collidingStartTime != null and listParam.collidingStartTime != '' and listParam.collidingEndTime != null and listParam.collidingEndTime != ''">
             AND dlc.release_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime}
         </if>
+        GROUP BY DATE_FORMAT(dlc.release_time, '%Y-%m-%d')
+        ORDER BY DATE_FORMAT(dlc.release_time, '%Y-%m-%d')
     </select>
 
     <select id="selectCycleNumData" resultType="java.util.Map">
