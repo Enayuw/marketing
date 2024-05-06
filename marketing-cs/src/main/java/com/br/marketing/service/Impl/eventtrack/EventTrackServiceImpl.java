@@ -51,7 +51,7 @@ public class EventTrackServiceImpl implements EventTrackService {
         PageHelper.startPage(current, size);
         List<EventTrackingCellReportDetail> cellReportsList = eventTrackingCellReportMapper.selectCellReportDetailListtikv_(startTime
                 , endTime, userNames, apiCodes, orderField, descField);
-        cellReportsList.stream().forEach(a->{
+        cellReportsList.stream().forEach((EventTrackingCellReportDetail a)->{
             String cell = a.getCell();
             if(StringUtils.isNotBlank(cell)){
                 String decodeCell = BrCipherMaker.getInstance().decode(cell);
