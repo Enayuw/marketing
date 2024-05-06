@@ -37,8 +37,8 @@
             and dpr.colliding_switch = #{listParam.collidingSwitch}
         </if>
         <if test="listParam.collidingStartTime != null and listParam.collidingStartTime != '' and listParam.collidingEndTime != null and listParam.collidingEndTime != ''">
-            AND (dpr.colliding_start_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime} OR
-                 dpr.colliding_end_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime})
+            AND dpr.colliding_start_time <![CDATA[ <= ]]> #{listParam.collidingEndTime}
+            AND dpr.colliding_end_time <![CDATA[ >= ]]> #{listParam.collidingStartTime}
         </if>
         ORDER BY dpr.create_time
     </select>
