@@ -91,7 +91,7 @@
                  left join b_marketing_customer bmc on bmc.api_code = dlc.api_code and bmc.status = 1
         where dlc.is_delete = 0
         <if test="listParam.apiCode != null and listParam.apiCode != ''">
-            and dlc.api_code = #{listParam.apiCode}
+            and bmc.api_code = #{listParam.apiCode}
         </if>
         <if test="listParam.collidingStartTime != null and listParam.collidingStartTime != '' and listParam.collidingEndTime != null and listParam.collidingEndTime != ''">
             AND dlc.release_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime}
