@@ -109,11 +109,11 @@ public class PpdAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
         String tcId = tableCreateService.getTcId(apiCode);
         String startDate = LocalDate.now().toString();
         String endDate = LocalDate.now().plusDays(1).toString();
-        if (parameter.getParamMap()!=null
+        if (parameter.getParamMap() != null
                 && parameter.getParamMap().containsKey("transferStartDate")) {
             startDate = (String) parameter.getParamMap().get("transferStartDate");
         }
-        if (parameter.getParamMap()!=null
+        if (parameter.getParamMap() != null
                 && parameter.getParamMap().containsKey("transferEndDate")) {
             endDate = (String) parameter.getParamMap().get("transferEndDate");
         }
@@ -163,7 +163,7 @@ public class PpdAutomatedPushDecisionServiceImpl implements AutomatedPushDecisio
                 String beginDate = periodOfValidityBO.getBeginDateStr();
                 PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
                 pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
-                pushMarketingUserDetailByRuleDTO.setBatchNumber(beginDate.substring(5,7) + "_" + status + "_" + apiCode);
+                pushMarketingUserDetailByRuleDTO.setBatchNumber(beginDate.substring(5, 7) + "_" + status + "_" + apiCode);
                 String cell = syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell();
                 pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
                 pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
