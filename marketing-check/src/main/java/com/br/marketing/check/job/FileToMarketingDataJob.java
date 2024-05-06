@@ -17,6 +17,7 @@ import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
@@ -34,6 +35,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.BufferedReader;
@@ -102,6 +104,8 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
 
     @Resource
     MarketingDataFileConfigMapper marketingDataFileConfigMapper;
+    @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
     LocalFileMapper localFileMapper;
@@ -444,6 +448,13 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         } else {
             Date date = new Date();
             LocalFile localFile = new LocalFile();
+            if(StringUtils.isNotBlank(apiCode)){
+                List<MarketingCustomer> customers = marketingCustomerMapper.getNameByApiCodeList(apiCode);
+                if (!CollectionUtils.isEmpty(customers)) {
+                    MarketingCustomer customer = customers.get(0);
+                    localFile.setCid(customer.getCid());
+                }
+            }
             localFile.setApiCode(apiCode);
             localFile.setFileType("marketingData");
             localFile.setSrcPath(srcPath);
