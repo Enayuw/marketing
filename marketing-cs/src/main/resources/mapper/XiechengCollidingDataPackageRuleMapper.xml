@@ -16,6 +16,7 @@
                dpr.colliding_switch      as collidingSwitch,
                pkg.priority              as priority,
                dpr.colliding_back_number as collidingBackNumber,
+               dpr.colliding_times       as collidingTimes,
                dpt.task_start_time       as taskStartTime,
                dpr.colliding_start_time  as collidingStartTime,
                dpr.colliding_end_time    as collidingEndTime,

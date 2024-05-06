@@ -87,6 +87,7 @@
                '0'                   as collidingSwitch,
                '0'                   as priority,
                count(dlc.id)         as collidingBackNumber,
+               '-'                   as collidingTimes,
                min(dlc.release_time) as collidingStartTime,
                max(dlc.release_time) as collidingEndTime
         from b_xiecheng_colliding_data_loop_cycle dlc
