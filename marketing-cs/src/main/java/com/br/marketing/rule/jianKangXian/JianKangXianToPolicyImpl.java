@@ -67,7 +67,7 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
         varDto.put("taskNum",taskNum);
         varDto.put("fileName",fileName);
         pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_"
-                + marketingCommonConfig.getJianKangXianPushPolicyTargetApiCode());
+                + context.getApiCode());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         return pushMarketingUserDetailByRuleDTO;
