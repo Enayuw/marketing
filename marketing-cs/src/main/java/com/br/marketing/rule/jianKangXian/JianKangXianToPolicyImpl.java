@@ -66,7 +66,8 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
         varDto.put("age",age);
         varDto.put("taskNum",taskNum);
         varDto.put("fileName",fileName);
-        pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + marketingCommonConfig.getJianKangXianPushPolicyTargetApiCode());
+        pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_"
+                + marketingCommonConfig.getJianKangXianPushPolicyTargetApiCode());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         return pushMarketingUserDetailByRuleDTO;
@@ -82,7 +83,7 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
             }
             JSONObject jsonObject = JSON.parseObject(reserveField1);
             String operateType = jsonObject.getString("operateType");
-            if (StringUtils.isNotBlank(operateType) && operateType.equals("1")) {
+            if (StringUtils.isNotBlank(operateType) && "1".equals(operateType)) {
                 return true;
             }
         }
