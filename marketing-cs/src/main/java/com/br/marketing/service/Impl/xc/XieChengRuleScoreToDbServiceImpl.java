@@ -227,6 +227,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         createTidbDDL.append(" extend longtext,")
                 .append(" create_time datetime,")
                 .append(" update_time timestamp null on update CURRENT_TIMESTAMP,")
+                .append(" is_delete int default 0,")
                 .append(" index idx_cell (cell) ")
                 .append("); ");
 
