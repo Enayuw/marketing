@@ -451,7 +451,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                     , appletTimeEnd, apiCode, userTypeList, cell, orderField, descField);
             syncUserListAllApiCode.addAll(syncUsersList);
         }
-        syncUserListAllApiCode.stream().forEach(c ->{
+        syncUserListAllApiCode.stream().forEach((MarketingSyncUserCell c) ->{
             String apiCode = c.getApiCode();
             MarketingCustomer marketingCustomer = customerMap.get(apiCode);
             c.setCid(marketingCustomer.getCid());
