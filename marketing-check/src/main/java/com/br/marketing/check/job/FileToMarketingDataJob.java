@@ -173,6 +173,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
             Matcher matcherWithoutSuccess = pattern.matcher(fileNm);
             if (!matcherWithoutSuccess.matches()) {
                 log.warn("文件名:{};校验规则:{};错误:{};", fileNm, regex, "文件名称校验失败");
+                return;
             }
         }
         // json转化为字段属性list

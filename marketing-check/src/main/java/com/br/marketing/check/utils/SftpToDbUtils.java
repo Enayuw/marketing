@@ -371,7 +371,8 @@ public class SftpToDbUtils {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public static Result statisticsHeadByCommon(String head,HashMap<Integer, String> address,HashSet extra,List<String> baseHeads,Map<String, List<FileToMarketingFieldVO>> fieldVosMap){
+    public static Result statisticsHeadByCommon(String head,HashMap<Integer, String> address,HashSet extra,
+                                                List<String> baseHeads,Map<String, List<FileToMarketingFieldVO>> fieldVosMap){
         List<String> heads = Splitter.on(",").splitToList(head);
         if(heads.size()<=0){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
