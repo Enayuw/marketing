@@ -601,7 +601,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         //与待清洗去重,只与最新一条待清洗条件进行过滤，本质上是递归逻辑
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
-        processTaskExample.createCriteria().andTaskTypeEqualTo(0).andTaskStatusEqualTo(0);
+        processTaskExample.createCriteria().andTaskTypeEqualTo(0).andTaskStatusEqualTo(0).andIsDeleteEqualTo(0);
         processTaskExample.setOrderByClause("create_time desc limit 1");
         List<XiechengCollidingDataProcessTask> processTasks = xiechengCollidingDataProcessTaskMapper.selectByExample(processTaskExample);
         if (!CollectionUtils.isEmpty(processTasks)) {
