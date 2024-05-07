@@ -12,9 +12,14 @@ public class XieChengCollidingDataRob {
     private Long id;
 
     /**
-     * 规则包记录id
+     * 包逐渐id
      */
     private Long packageId;
+
+    /**
+     * 规则主键id
+     */
+    private Long packageRuleId;
 
     /**
      * 数据来源类型：T -周期，F-代表非周期

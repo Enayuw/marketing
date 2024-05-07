@@ -5,6 +5,7 @@
         SELECT rob.id,
                rob.cell_sha256_code_list,
                rob.package_id,
+               #{packageRuleId,jdbcType=BIGINT} as packageRuleId,
                rob.retry_count,
                rob.colliding_count
         FROM b_xiecheng_colliding_data_rob rob

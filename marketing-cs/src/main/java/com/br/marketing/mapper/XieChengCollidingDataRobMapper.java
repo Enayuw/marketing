@@ -10,8 +10,8 @@ import com.br.marketing.entity.XieChengCollidingDataRob;
 public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRobMapperBase {
 
 
-    List<XieChengCollidingDataRob> getRobCollidingDataList(@Param("pageSize") Integer pageSize, @Param("packageId") Long packageId,
-        @Param("collidingTimes")Integer collidingTimes);
+    List<XieChengCollidingDataRob> getRobCollidingDataList(@Param("pageSize") Integer pageSize, @Param("packageRuleId") Long packageRuleId,
+        @Param("packageId") Long packageId, @Param("collidingTimes") Integer collidingTimes);
 
     List<XieChengCollidingDataRob> selectDeleteData(@Param("startTime") String startTime, @Param("size") int size);
 
