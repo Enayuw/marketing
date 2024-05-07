@@ -70,14 +70,14 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         LocalDate localDate = LocalDate.now();
         Date nowDate = Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
-        marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach(apicode -> {
+        marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apicode) -> {
             XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apicode).andIsDeleteEqualTo(0)
                     .andTaskStatusEqualTo(0).andTaskStartTimeEqualTo(nowDate);
             taskExample.setOrderByClause("create_time asc");
             List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(taskExample);
 
-            taskList.forEach(task -> {
+            taskList.forEach((XiechengCollidingDataProcessTask task) -> {
                 if (task.getTaskType() == 0) {
                     // 查询package
                     XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
@@ -179,11 +179,15 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
         // 找到要保留的数据包：旧包优先级大于等于新包优先级&&清洗时间小于等于旧包最大结束时间
         List<Long> priorityPackageIds =
-                oldPackages.stream().filter(t -> t.getPriority() >= newPackage.getPriority()).map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
+                oldPackages.stream().filter((XieChengCollidingDataPackage t) -> t.getPriority() >= newPackage.getPriority())
+                        .map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
 
         List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId = packageRuleMapper.getMaxEndTimeGroupByPackageId(priorityPackageIds);
 
-        List<Long> reserveIds = maxEndTimeGroupByPackageId.stream().filter(t -> t.getCollidingEndTime() != null).filter(t -> {
+        List<Long> reserveIds =
+                maxEndTimeGroupByPackageId.stream()
+                        .filter((XiechengCollidingDataPackageRule t) -> t.getCollidingEndTime() != null)
+                        .filter((XiechengCollidingDataPackageRule t) -> {
             LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
@@ -284,46 +288,9 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
     }
 
-    private void deleteFalseData(XieChengCollidingDataPackage collidingDataPackage, XiechengCollidingDataProcessTask task,
-                                 List<XieChengCollidingDataRobPriority> repeatWithFalseData) {
-        try {
-            // 旧包优先级大于等于新包优先级&&清洗时间小于等于旧包最大结束时间：保留，不从旧包剔除，其余数据从旧包剔除
-            // false表保留数据cell
-            List<String> reserveCells;
-            // 旧包优先级大于等于新包优先级
-            List<String> robPriorityCells =
-                    repeatWithFalseData.stream().filter(rob -> rob.getPriority() >= collidingDataPackage.getPriority())
-                            .map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
-
-            if (!CollectionUtils.isEmpty(robPriorityCells)) {
-                List<XieChengCollidingDataRobPriority> robMaxCollidingEndTimeList = robMapper.selectMaxCollidingEndTimeGroupByCell(robPriorityCells);
-                // 清洗时间小于等于旧包最大结束时间
-                reserveCells = robMaxCollidingEndTimeList.stream().filter(t -> {
-                    LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                    LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-
-                    if (!cleanDate.isAfter(collidingMaxDate)) {
-                        return true;
-                    }
-                    return false;
-                }).map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
-            } else {
-                reserveCells = new ArrayList<>();
-            }
-
-            List<Long> ids =
-                    repeatWithFalseData.stream().filter(t -> !reserveCells.contains(t.getCellSha256CodeList()))
-                            .map(XieChengCollidingDataRob::getId).collect(Collectors.toList());
-
-            robMapper.updateDeleteByIds(ids);
-        } catch (Exception e) {
-            log.error("携程撞库FALSE数据删除，单线程处理异常：" + e.getMessage(), e);
-        }
-    }
-
     private void insertDataToNewPackage(List<XieChengRuleScoreData> ruleScoreData, XieChengCollidingDataPackage collidingDataPackage) {
         try {
-            List<XieChengCollidingDataRob> insertRobList = ruleScoreData.stream().map(t -> {
+            List<XieChengCollidingDataRob> insertRobList = ruleScoreData.stream().map((XieChengRuleScoreData t) -> {
                 XieChengCollidingDataRob rob = new XieChengCollidingDataRob();
                 rob.setPackageId(collidingDataPackage.getId());
                 rob.setCellSha256CodeList(t.getCell());
