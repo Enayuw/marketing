@@ -245,7 +245,8 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         if (headers.length == datas.size()) {
                             // 使用索引来按顺序添加数据到对应的表头中
                             for (int i = 0; i < headers.length; i++) {
-                                tableMap.put(headers[i], datas.get(i)); // 更新map中对应键的值
+                                // 更新map中对应键的值
+                                tableMap.put(headers[i], datas.get(i));
                             }
                         }
                         StringBuilder errorMsg = new StringBuilder();
@@ -287,14 +288,15 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                 // 根据动态配置赋值
                                 if(StringUtils.isNotBlank(fieldVO.getDynamicData())){
                                     value = tableMap.get(fieldVO.getDynamicData());
-                                }else if(StringUtils.isNotBlank(fieldVO.getDefalutValue())) { // 默认值
+                                }else if(StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
                                     value = fieldVO.getDefalutValue();
                                 }
                             }
                             // 字典项不为空 则进行字典项映射
                             if(StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())){
                                 String conversion = fieldVO.getConversion();
-                                ObjectMapper objectMapper = new ObjectMapper(); // 创建ObjectMapper实例
+                                // 创建ObjectMapper实例
+                                ObjectMapper objectMapper = new ObjectMapper();
                                 try {
                                     // 将JSON字符串转换为List<Map<String, String>>
                                     List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
