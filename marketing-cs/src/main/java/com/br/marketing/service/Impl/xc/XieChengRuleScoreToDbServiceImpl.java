@@ -4,7 +4,6 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
@@ -18,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -26,18 +24,15 @@ import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * @Description XieChengRuleScoreToDbServiceImpl
@@ -61,14 +56,11 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     @Autowired
     SyncConfigService syncConfigService;
-    @Resource
-    private AlarmApiClient alarmClient;
 
     @Value("${datasource.database.marketingDoris.replicationAllocation:1}")
     String replicationAllocation;
 
     private static final int BATCH_SIZE = 50;
-
 
     @Override
     public void process() {
@@ -131,7 +123,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 //                    fileName;
 //            File file = new File(path);
             if (!file.exists()) {
-                // todo 是否重新配置告警码
                 String errMsg = "跑分文件不存在，path：" + file.getAbsolutePath();
                 log.error(errMsg);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
@@ -290,10 +281,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     numColumns.add(i);
                 }
             }
-
-//            for (String header : columns) {
-//                insertSql.append(header.trim()).append(", ");
-//            }
 
             insertSql.append("extend,");
             insertSql.append("create_time,");
