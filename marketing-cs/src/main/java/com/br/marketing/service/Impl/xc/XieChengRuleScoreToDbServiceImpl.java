@@ -72,14 +72,17 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     @Override
     public void process() {
-        marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach(apiCode -> {
+        marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) -> {
             LocalDate createTimeStartLocalDate = LocalDate.now().minusDays(marketingCommonConfig.getXieChengRuleScoreToDbLastDays());
             Date createTimeStartDate = Date.from(createTimeStartLocalDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
             StraHisFileExample straHisFileExample = new StraHisFileExample();
-            straHisFileExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo(2).andCreateTimeGreaterThanOrEqualTo(createTimeStartDate).andTypeEqualTo(2);
+            straHisFileExample.createCriteria()
+                    .andApiCodeEqualTo(apiCode).andStatusEqualTo(2)
+                    .andCreateTimeGreaterThanOrEqualTo(createTimeStartDate)
+                    .andTypeEqualTo(2);
             List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-            straHisFiles.forEach(straHisFile -> {
+            straHisFiles.forEach((StraHisFile straHisFile) -> {
                 XieChengRuleScoreRecordExample scoreRecordExample = new XieChengRuleScoreRecordExample();
                 scoreRecordExample.createCriteria().andIsDeleteEqualTo(0).andBatchNumberEqualTo(straHisFile.getBatchNumber());
                 List<XieChengRuleScoreRecord> xieChengRuleScoreRecords = scoreRecordMapper.selectByExample(scoreRecordExample);
@@ -134,6 +137,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
             }
 
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread(),
+                    marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread());
+
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String header = reader.readLine();
                 if (header == null) {
@@ -169,8 +175,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 batchData.add(firstLine);
                 String dataLine;
 
-                ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread(),
-                        marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread());
                 while ((dataLine = reader.readLine()) != null) {
                     batchData.add(dataLine);
                     if (batchData.size() == BATCH_SIZE) {
@@ -183,21 +187,20 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 if (!batchData.isEmpty()) {
                     writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData));
                 }
-
-                threadPool.shutdown();
-                try {
-                    while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                        log.info("携程跑分数据同步作业线程池关闭");
-                    }
-                } catch (InterruptedException ex) {
-                    threadPool.shutdownNow();
-                    log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
-                    Thread.currentThread().interrupt();
-                }
-
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
+            }
+
+            threadPool.shutdown();
+            try {
+                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.info("携程跑分数据同步作业线程池关闭");
+                }
+            } catch (InterruptedException ex) {
+                threadPool.shutdownNow();
+                log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
+                Thread.currentThread().interrupt();
             }
         }
 
@@ -230,20 +233,18 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             }
         }
 
-        createTidbDDL.append(" extend longtext,");
-        createTidbDDL.append(" create_time datetime,");
-        createTidbDDL.append(" update_time timestamp null on update CURRENT_TIMESTAMP,");
-        createTidbDDL.append(" is_delete int default 0,");
-        createTidbDDL.append(" index idx_cell (cell) ");
-
-        createTidbDDL.append("); ");
+        createTidbDDL.append(" extend longtext,")
+                .append(" create_time datetime,")
+                .append(" update_time timestamp null on update CURRENT_TIMESTAMP,")
+                .append(" index idx_cell (cell) ")
+                .append("); ");
 
         ruleScoreRecordMapper.createXieChengScoreTidbTableByBatchNum(createTidbDDL.toString());
 
-        createDorisDDL.append(" extend string,");
-        createDorisDDL.append(" create_time datetime,");
-        createDorisDDL.append(" update_time datetime,");
-        createDorisDDL.append(" is_delete int default '0'");
+        createDorisDDL.append(" extend string,")
+                .append(" create_time datetime,")
+                .append(" update_time datetime,")
+                .append(" is_delete int default '0'");
 
         createDorisDDL.append(") ENGINE=OLAP\n" +
                 "Unique KEY(id)\n" +
