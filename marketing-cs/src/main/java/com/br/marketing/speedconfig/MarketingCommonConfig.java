@@ -1526,9 +1526,5 @@ public class MarketingCommonConfig {
      */
     private String noDesCleanConfig;
 
-    /**
-     * 健康险推决策apicode配置
-     */
-    private String jianKangXianPushPolicyTargetApiCode;
 }
 
