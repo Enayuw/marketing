@@ -21,6 +21,7 @@ import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
 import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
 import com.br.marketing.mapper.XiechengCollidingDataPackageRuleStagingMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingStagingRuleVO;
 import com.br.marketing.vo.xiecheng.XiechengPackageVO;
@@ -49,8 +50,12 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
 
     @Resource
     private XiechengCollidingDataPackageRuleStagingMapper stagingMapper;
+
     @Resource
     private XieChengCollidingDataLoopCycleMapper loopCycleMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 获取调度任务列表-False-分页
@@ -77,6 +82,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
      */
     @Override
     public List<XiechengCollidingRuleVO> getCollidingRuleTrueList(CollidingRuleListParam listParam) {
+        listParam.setApiCode(marketingCommonConfig.getXieChengCustomizeTrueApiCode());
         return loopCycleMapper.getCollidingRuleTrueList(listParam);
     }
 
