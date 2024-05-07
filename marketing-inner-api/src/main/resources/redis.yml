@@ -10,6 +10,6 @@ spring:
       max-attempts: 5
       # codec如果配置jdk.serializer/json.serializer，则需要引入spring-data-redis
       codec: string.utf8
-      proxy-uri: redis://pd1-2-marketing-pre.brapp.com:6400
+      proxy-uri: redis://10.100.123.210:6400
       gray-proxy-uri: redis://pd1-2-marketing-pre.brapp.com:7400
       proxy-id: camellia-ba
