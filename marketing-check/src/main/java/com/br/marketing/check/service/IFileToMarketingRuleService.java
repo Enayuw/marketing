@@ -61,6 +61,9 @@ public interface IFileToMarketingRuleService {
                 case"operateType":
                     reserveFieldJo.put("operateType",vo.getDataValue());
                     break;
+                case"fileName":
+                    reserveFieldJo.put("fileName",vo.getDataValue());
+                    break;
             }
             if(vo.getIsExtend()!=null && vo.getIsExtend()){
                 reserveFieldJo.put(StringUtils.isBlank(vo.getInterfaceField())?vo.getHeadField():vo.getInterfaceField(),vo.getDataValue());

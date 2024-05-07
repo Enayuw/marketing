@@ -330,6 +330,14 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         }
                         //endregion
 
+                        // 增加fileName值
+                        if(StringUtils.isBlank(tableMap.get("fileName"))){
+                            FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                            vo.setInterfaceField("fileName");
+                            vo.setDataValue(fileNm);
+                            dataFieldVOS.add(vo);
+                        }
+
                         if (StringUtils.isNotBlank(errorMsg.toString())) {
                             errorNum++;
                             log.warn("文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
