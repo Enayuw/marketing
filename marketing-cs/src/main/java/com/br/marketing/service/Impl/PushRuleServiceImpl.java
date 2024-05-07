@@ -593,8 +593,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .collect(Collectors.joining(","));
             //清洗时间在撞库区间内，业务应规避此条件
             if (StringUtils.isNotEmpty(packageId)) {
-                String FalseDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where package_id in (" + packageId + ") and " +
-                        "is_delete=0";
+                String FalseDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where package_id in (" +
+                        packageId + ") and " + "is_delete=0";
                 falseAndscoreSql.append("left join (").append(FalseDataSql).append(") rob on score.cell = rob.cell ");
                 whereSql.append(" and rob.id is null");
             }
@@ -653,9 +653,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition);
+                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ")
+                        .concat(sqlCondition);
             } else {
-                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ").concat(sqlCondition).concat(" union all ");
+                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ")
+                        .concat(sqlCondition).concat(" union all ");
             }
 
         }
@@ -718,6 +720,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result collidingDataDelete(PushCustomerDTO dto) {
+        if (!isXieChengData(dto)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("缺失result或clean_time筛选条件");
+        }
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
@@ -734,7 +739,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         xiechengCollidingDataProcessTask.setTaskType(1);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(),
+                collidingFilterDTO.getReleaseTime()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
@@ -743,6 +749,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Override
     public Result collidingDataPachageMake(PushCustomerDTO dto) {
+        if (!isXieChengData(dto)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("缺失result或clean_time筛选条件");
+        }
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);

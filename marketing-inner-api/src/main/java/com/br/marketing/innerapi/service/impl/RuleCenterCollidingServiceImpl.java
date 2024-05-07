@@ -13,6 +13,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -61,16 +62,18 @@ public class RuleCenterCollidingServiceImpl implements RuleCenterCollidingServic
         XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
         packageExample.createCriteria().andIsDeleteEqualTo(0);
         List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
-        XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
-        robExample.createCriteria().andIsDeleteEqualTo(0).andPackageIdIn(packages.stream().map(XieChengCollidingDataPackage::getId)
-                .collect(Collectors.toList()));
-        int robCount = robMapper.countByExample(robExample);
-        XiechengCollidingDataVO falseData = new XiechengCollidingDataVO();
-        falseData.setApiCode(apiCode);
-        falseData.setResultData("False的数据包");
-        falseData.setResultNum(Integer.toString(robCount));
-        falseData.setUpdateTime("-");
-        xiechengCollidingDataVOList.add(falseData);
+        List<Long> ids = packages.stream().map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(ids)) {
+            XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
+            robExample.createCriteria().andIsDeleteEqualTo(0).andPackageIdIn(ids);
+            int robCount = robMapper.countByExample(robExample);
+            XiechengCollidingDataVO falseData = new XiechengCollidingDataVO();
+            falseData.setApiCode(apiCode);
+            falseData.setResultData("False的数据包");
+            falseData.setResultNum(Integer.toString(robCount));
+            falseData.setUpdateTime("-");
+            xiechengCollidingDataVOList.add(falseData);
+        }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(xiechengCollidingDataVOList);
     }
 
