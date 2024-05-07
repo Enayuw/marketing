@@ -340,7 +340,11 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             vo.setDataValue(fileNm);
                             dataFieldVOS.add(vo);
                         }
-
+                        // 身份证号和性别选填二选一
+                        if(StringUtils.isBlank(tableMap.get("id")) && StringUtils.isBlank(tableMap.get("gender"))){
+                            errorMsg.append(String.format("身份证号和性别选填二选一"));
+                            continue;
+                        }
                         if (StringUtils.isNotBlank(errorMsg.toString())) {
                             errorNum++;
                             log.warn("文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
