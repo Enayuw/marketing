@@ -6,7 +6,6 @@ import com.br.marketing.service.FunctionService;
 import com.br.marketing.service.Impl.DefaultFunctionServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import java.util.List;
@@ -16,7 +15,6 @@ import java.util.List;
  * @Author kongbx
  * @Date 2024/4/22 14:45
  */
-@ComponentScan("com.br.marketing")
 @Configuration
 public class LogAutoConfiguration {
     @Bean
