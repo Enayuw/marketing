@@ -21,7 +21,7 @@ public class XieChengCollidingRuleScoreToDbJob extends AbstractSimpleElasticJob 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         long start = System.currentTimeMillis();
-        service.process();
+        service.process(jobExecutionMultipleShardingContext);
         log.warn("携程跑分数据同步作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }

@@ -13,6 +13,7 @@ import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @Description XieChengRuleScoreToDbServiceImpl
@@ -63,7 +65,12 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     private static final int BATCH_SIZE = 50;
 
     @Override
-    public void process() {
+    public void process(JobExecutionMultipleShardingContext context) {
+        // 分片项目
+        List<Integer> shardingItems = context.getShardingItems();
+        // 总分片数
+        int shardingTotalCount = context.getShardingTotalCount();
+
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) -> {
             LocalDate createTimeStartLocalDate = LocalDate.now().minusDays(marketingCommonConfig.getXieChengRuleScoreToDbLastDays());
             Date createTimeStartDate = Date.from(createTimeStartLocalDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
@@ -74,7 +81,12 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     .andCreateTimeGreaterThanOrEqualTo(createTimeStartDate)
                     .andTypeEqualTo(2);
             List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-            straHisFiles.forEach((StraHisFile straHisFile) -> {
+
+            List<Long> Longitems = shardingItems.stream().map(Integer::longValue).collect(Collectors.toList());
+            List<StraHisFile> shardStraHisFiles = straHisFiles.stream().filter((StraHisFile t) -> Longitems.contains(Math.floorMod(t.getId(),
+                    shardingTotalCount))).collect(Collectors.toList());
+
+            shardStraHisFiles.forEach((StraHisFile straHisFile) -> {
                 XieChengRuleScoreRecordExample scoreRecordExample = new XieChengRuleScoreRecordExample();
                 scoreRecordExample.createCriteria().andIsDeleteEqualTo(0).andBatchNumberEqualTo(straHisFile.getBatchNumber());
                 List<XieChengRuleScoreRecord> xieChengRuleScoreRecords = scoreRecordMapper.selectByExample(scoreRecordExample);
