@@ -19,8 +19,8 @@ import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.XieChengCollidingDataLoopCycleExample;
 import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.entity.XieChengCollidingDataRobExample;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
@@ -80,8 +80,8 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             if (Objects.isNull(packageRule)) {
                 break;
             }
-            List<XieChengCollidingDataRob> robDataList =
-                xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageRule.getPackageId(), packageRule.getCollidingTimes());
+            List<XieChengCollidingDataRob> robDataList = xieChengCollidingDataRobMapper.getRobCollidingDataList(pageSize, packageRule.getId(),
+                packageRule.getPackageId(), packageRule.getCollidingTimes());
             if (CollectionUtils.isEmpty(robDataList)) {
                 break;
             }
@@ -116,10 +116,10 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             return count == 0;
         }
         // 查询撞得量级
-        XieChengCollidingDataLoopCycleExample example = new XieChengCollidingDataLoopCycleExample();
-        example.createCriteria().andPackageIdEqualTo(packageRule.getPackageId()).andDataSourceTypeEqualTo("F").andIsDeleteEqualTo(0)
-            .andCreateTimeGreaterThanOrEqualTo(DateUtil.beginOfDay(new Date()));
-        int packageTrueCount = xieChengCollidingDataLoopCycleMapper.countByExample(example);
+        XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
+        example.createCriteria().andPackageRuleIdEqualTo(packageRule.getId()).andDataSourceTypeEqualTo("F").andIsDeleteEqualTo(1)
+            .andPushTimeGreaterThanOrEqualTo(DateUtil.beginOfDay(new Date()));
+        int packageTrueCount = xieChengCollidingDataRobMapper.countByExample(example);
         // 判断是否满足撞得量级和撞库次数的条件
         return packageTrueCount >= collidingBackNumber || count == 0;
     }
