@@ -172,8 +172,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
                 String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
 
+                Map<String, String> fieldMap = marketingCommonConfig.getXieChengCollidingRuleScoreFieldMap();
                 // 创建tidb和doris表结构
-                createTidbAndDorisTable(columns, firstLineList, tableName);
+                createTidbAndDorisTable(columns, firstLineList, tableName, fieldMap);
 
                 List<String> batchData = new ArrayList<>();
                 batchData.add(firstLine);
@@ -183,13 +184,13 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     batchData.add(dataLine);
                     if (batchData.size() == BATCH_SIZE) {
                         ArrayList<String> subList = new ArrayList<>(batchData);
-                        threadPool.submit(() -> writeFileDataToTidb(tableName, columns, subList));
+                        threadPool.submit(() -> writeFileDataToTidb(tableName, columns, subList, fieldMap));
                         batchData.clear();
                     }
                 }
 
                 if (!batchData.isEmpty()) {
-                    writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData));
+                    writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData), fieldMap);
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
@@ -211,9 +212,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private void createTidbAndDorisTable(List<String> columns, List<String> firstLine, String tableName) {
-        Map<String, String> fieldMap = marketingCommonConfig.getXieChengCollidingRuleScoreFieldMap();
-
+    private void createTidbAndDorisTable(List<String> columns, List<String> firstLine, String tableName, Map<String, String> fieldMap) {
         StringBuilder createTidbDDL = new StringBuilder();
         createTidbDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (");
         createTidbDDL.append(" id bigint auto_increment primary key, ");
@@ -292,12 +291,18 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         }
     }
 
-    private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData) {
+    private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData, Map<String, String> fieldMap) {
         try {
             StringBuilder insertSql = new StringBuilder("INSERT INTO ");
             insertSql.append(tableName).append(" (");
             List<Integer> numColumns = new ArrayList<>(columns.size());
             for (int i = 0; i < columns.size(); i++) {
+                if (fieldMap.containsKey(columns.get(i))) {
+                    insertSql.append(fieldMap.get(columns.get(i))).append(", ");
+                } else {
+                    insertSql.append(columns.get(i).trim()).append(", ");
+                }
+
                 insertSql.append(columns.get(i).trim()).append(", ");
 
                 if (columns.get(i).startsWith("score") || columns.get(i).endsWith("age")) {
