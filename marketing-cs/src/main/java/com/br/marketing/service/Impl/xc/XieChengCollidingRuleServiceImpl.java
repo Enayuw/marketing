@@ -68,6 +68,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     public PageResultReturn<XiechengCollidingRuleVO> getCollidingRuleFalseList(CollidingRuleListParam listParam) {
         PageHelper.startPage(listParam.getCurrent(), listParam.getSize());
+        listParam.setApiCode(marketingCommonConfig.getXieChengCustomizeTrueApiCode());
         List<XiechengCollidingRuleVO> packageRuleList = packageRuleMapper.getCollidingRuleFalseList(listParam);
         return PageResultReturn.setPageResult(packageRuleList, listParam.getCurrent(), listParam.getSize());
     }
