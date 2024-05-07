@@ -118,4 +118,10 @@
             #{id}
         </foreach>
     </update>
+
+    <select id="selectCountFromRobByNewPackageId" resultType="java.lang.Long">
+        select count(1)
+        from b_xiecheng_colliding_data_rob
+        where is_delete = 0 and package_id = #{packageId}
+    </select>
 </mapper>

@@ -1,13 +1,11 @@
 package com.br.marketing.service.Impl.xc;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataPackageExample;
 import com.br.marketing.entity.XieChengCollidingDataRob;
-import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import com.br.marketing.entity.XieChengRuleScoreData;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.entity.XiechengCollidingDataProcessTask;
@@ -29,7 +27,6 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +47,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     XiechengCollidingDataProcessTaskMapper taskMapper;
-    @Resource
-    private AlarmApiClient alarmClient;
     @Resource
     XieChengCollidingDataLoopCycleMapper cycleMapper;
     @Resource
@@ -78,6 +73,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(taskExample);
 
             taskList.forEach((XiechengCollidingDataProcessTask task) -> {
+                task.setUpdateTime(new Date());
+                task.setTaskStatus(1);
+                taskMapper.updateByPrimaryKeySelective(task);
+
+                int count = 0;
                 if (task.getTaskType() == 0) {
                     // 查询package
                     XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
@@ -91,23 +91,24 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                     deleteFromOldPackage(newPackage, task);
 
                     insertToNewPackage(newPackage, task);
+
+                    count = robMapper.selectCountFromRobByNewPackageId(newPackage.getId()).intValue();
                 }
 
                 if (task.getTaskType() == 1) {
-                    deleteTrueData(task);
+                    count = deleteTrueData(task);
                 }
 
-                // 更新结束时间
+                task.setActualNumber(count);
+                task.setTaskStatus(2);
                 task.setTaskEndTime(new Date());
                 task.setUpdateTime(new Date());
                 taskMapper.updateByPrimaryKeySelective(task);
             });
         });
-
-
     }
 
-    private void deleteTrueData(XiechengCollidingDataProcessTask task) {
+    private int deleteTrueData(XiechengCollidingDataProcessTask task) {
         AtomicInteger totalDeleteCount = new AtomicInteger(0);
         Long minId = null;
         String conditions = task.getTaskExecutionConditions();
@@ -116,7 +117,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 continue;
             }
 
-            String queryRuleScoreDataSql = "select cell from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
+            String queryRuleScoreDataSql = "select id, cell from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
 
             Integer threadPoolSize = marketingCommonConfig.getXieChengCollidingDataProcessThread();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
@@ -151,14 +152,16 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
 
         // 发送钉钉告警
-        if (totalDeleteCount.get() > 0) {
-            String msg = "携程撞库周期TRUE数据删除量级:" + totalDeleteCount.get();
+        int count = totalDeleteCount.get();
+        if (count > 0) {
+            String msg = "携程撞库周期TRUE数据删除量级:" + count;
             Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
             Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
 
             dingDingRobotHookService.sendDingDingTextMessage(msg, map);
         }
 
+        return count;
     }
 
     /**
@@ -188,14 +191,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 maxEndTimeGroupByPackageId.stream()
                         .filter((XiechengCollidingDataPackageRule t) -> t.getCollidingEndTime() != null)
                         .filter((XiechengCollidingDataPackageRule t) -> {
-            LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                            LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                            LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
-            if (!cleanDate.isAfter(collidingMaxDate)) {
-                return true;
-            }
-            return false;
-        }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
+                            return !cleanDate.isAfter(collidingMaxDate);
+                        }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
 
         // 遍历要剔除的数据包，关联跑分和true表，根据id删除
         List<XieChengCollidingDataPackage> deletePackages =

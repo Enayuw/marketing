@@ -114,8 +114,8 @@
     <select id="selectIdsOfTrueDataProcessTasktikv_" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id
         from b_xiecheng_colliding_data_loop_cycle a
-        join ( ${queryRuleScoreDataSql} ) b on a.cell_sha256_code_list = b.cell
-        where a.is_delete = 0
+        left join ( ${queryRuleScoreDataSql} ) b on a.cell_sha256_code_list = b.cell
+        where a.is_delete = 0 and b.id is null
         <![CDATA[ and a.release_time > curdate()
         and a.release_time < date_sub(curdate(), interval -7 day) ]]>
         <if test="minId != null and minId>0">
