@@ -1059,7 +1059,7 @@
                 cron="0 0 10 * * ? *"
                 description="携程跑分数据同步作业"
                 registry-center-ref="regCenter"
-                sharding-total-count="1"
+                sharding-total-count="9"
                 sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"
