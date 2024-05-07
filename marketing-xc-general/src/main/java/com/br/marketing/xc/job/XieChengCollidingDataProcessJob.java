@@ -1,7 +1,6 @@
 package com.br.marketing.xc.job;
 
 import com.br.marketing.service.Impl.xc.XieChengCollidingDataProcessService;
-import com.br.marketing.service.Impl.xc.XieChengRuleScoreToDbService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
