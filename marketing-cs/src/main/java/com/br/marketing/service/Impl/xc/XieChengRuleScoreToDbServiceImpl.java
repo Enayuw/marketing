@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -211,6 +212,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     }
 
     private void createTidbAndDorisTable(List<String> columns, List<String> firstLine, String tableName) {
+        Map<String, String> fieldMap = marketingCommonConfig.getXieChengCollidingRuleScoreFieldMap();
+
         StringBuilder createTidbDDL = new StringBuilder();
         createTidbDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (");
         createTidbDDL.append(" id bigint auto_increment primary key, ");
@@ -222,8 +225,15 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         for (int i = 0; i < columns.size(); i++) {
             String column = columns.get(i);
             String value = firstLine.get(i);
-            createTidbDDL.append(column.trim());
-            createDorisDDL.append(column.trim());
+
+            if (fieldMap.containsKey(column)) {
+                createTidbDDL.append(fieldMap.get(column));
+                createDorisDDL.append(fieldMap.get(column));
+            } else {
+                createTidbDDL.append(column.trim());
+                createDorisDDL.append(column.trim());
+            }
+
             if (column.startsWith("score") && canConvertToBigdecimal(value)) {
                 createTidbDDL.append(" decimal(12,6), ");
                 createDorisDDL.append(" decimal(12,6), ");

@@ -1542,5 +1542,11 @@ public class MarketingCommonConfig {
      * 携程撞库数据推送决策线程数
      */
     private Integer xieChengCollidingDataPushPolicyThread;
+
+    /**
+     * 携程撞库跑分数据同步文件字段映射
+     * xieChengCollidingRuleScoreFieldMap={"userType":"user_type"}
+     */
+    private Map<String, String> xieChengCollidingRuleScoreFieldMap;
 }
 
