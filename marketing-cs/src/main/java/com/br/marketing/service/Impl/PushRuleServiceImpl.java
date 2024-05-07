@@ -649,6 +649,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             getEsNum = 1;
         }
         Integer realTotalNum = 0;
+        Integer timeOutTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
         ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
@@ -686,7 +687,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 List<Future<Result<Integer>>> futures = actionFuture.get();
                 for (Future<Result<Integer>> pushFuture : futures) {
                     Result<Integer> pushRes = pushFuture.get();
-                    if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                    if(ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())) {
+                        main.setmStatus(PushRuleStatusEnum.CONFIRMED_TIME_OUT.getValue());
+                        timeOutTotalNum += pushRes.getData();
+                    }else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
                     } else {
                         realTotalNum += pushRes.getData();
@@ -710,11 +714,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error(ex.getMessage(), ex);
         }
 
-        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；"
+        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
                 , customerInfoPushMain.getId()
                 , System.currentTimeMillis() - startTime
                 , System.currentTimeMillis() - initTime
-                , customerInfoPushMain.getmRealyNum(), realTotalNum);
+                , customerInfoPushMain.getmRealyNum(), realTotalNum, timeOutTotalNum);
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
@@ -885,7 +889,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         public Result<Integer> call() {
             Result<Integer> result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
                     accessNumber, size);
-            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())
+                    || ResultCode.TIME_OUT.getValue().equals(result.getCode())) {
                 result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
                         accessNumber, size);
             }
@@ -903,7 +908,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         Boolean isContinue = Boolean.FALSE;
 
         ArrayList<String> realStatus = new ArrayList<>();
+        // 数据库字段默认值
         realStatus.add("1");
+        // 900013-数据正在导入
         realStatus.add("900013");
         List<CustomerPushLogVO> customerInfoPushLogs = customerInfoPushLogMapper.getPushLog(mId, realStatus);
         for (CustomerPushLogVO t : customerInfoPushLogs) {
@@ -921,7 +928,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 updateLog.setRealStauts(userStatus.getData());
                 if ("900013".equals(userStatus.getData())) {
                     isContinue = Boolean.TRUE;
-                } else if ("900016".equals(userStatus.getData())) {
+                } else if ("900016".equals(userStatus.getData()) || "900006".equals(userStatus.getData())) {
                     if (StringUtils.isNotBlank(userStatus.getMessage())) {
                         updateLog.setErrorContent(userStatus.getMessage());
                         JSONObject error = JSONObject.parseObject(userStatus.getMessage());

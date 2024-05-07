@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,12 +43,14 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
     }
 
     private void processToBeConfirmedList() {
-        Integer status = PushRuleStatusEnum.TO_BE_CONFIRMED.getValue();
+        ArrayList<Integer> mStatusList = new ArrayList<>();
+        mStatusList.add(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
+        mStatusList.add(PushRuleStatusEnum.CONFIRMED_TIME_OUT.getValue());
         String keyPrefix = RedisKeyConstant.CUSTOMER_PUSH_STATUS_QUERY_LOCK;
 
         CustomerInfoPushMainExample example = new CustomerInfoPushMainExample();
         example.setOrderByClause("id limit 2000");
-        CustomerInfoPushMainExample.Criteria criteria = example.createCriteria().andMStatusEqualTo(status);
+        CustomerInfoPushMainExample.Criteria criteria = example.createCriteria().andMStatusIn(mStatusList);
         Long id = 0L;
         for(;;) {
             criteria.andIdGreaterThan(id);
