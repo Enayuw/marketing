@@ -183,16 +183,16 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
         // 找到要保留的数据包：旧包优先级大于等于新包优先级&&清洗时间小于等于旧包最大结束时间
         List<Long> priorityPackageIds =
-                oldPackages.stream().filter((XieChengCollidingDataPackage t) -> t.getPriority() >= newPackage.getPriority())
+                oldPackages.stream().filter((XieChengCollidingDataPackage t) -> t.getPriority() <= newPackage.getPriority())
                         .map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
 
         List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId = packageRuleMapper.getMaxEndTimeGroupByPackageId(priorityPackageIds);
 
+        LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         List<Long> reserveIds =
                 maxEndTimeGroupByPackageId.stream()
                         .filter((XiechengCollidingDataPackageRule t) -> t.getCollidingEndTime() != null)
                         .filter((XiechengCollidingDataPackageRule t) -> {
-                            LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                             LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
                             return !cleanDate.isAfter(collidingMaxDate);
