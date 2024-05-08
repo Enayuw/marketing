@@ -599,17 +599,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                 whereSql.append(" and rob.id is null");
             }
         }
-        //与待清洗去重,只与最新一条待清洗条件进行过滤，本质上是递归逻辑
+        //与待清洗去重
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria().andTaskTypeEqualTo(0).andTaskStatusEqualTo(0).andIsDeleteEqualTo(0);
-        processTaskExample.setOrderByClause("create_time desc limit 1");
         List<XiechengCollidingDataProcessTask> processTasks = xiechengCollidingDataProcessTaskMapper.selectByExample(processTaskExample);
-        if (!CollectionUtils.isEmpty(processTasks)) {
-            XiechengCollidingDataProcessTask processTask = processTasks.get(0);
+        processTasks.forEach(processTask -> {
             falseAndscoreSql.append(" left join (").append(processTask.getTaskExecutionSql()).append(") d").append(processTask.getId())
                     .append(" on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
             whereSql.append(" and  d").append(processTask.getId()).append(".id is null");
-        }
+        });
         return falseAndscoreSql.append(whereSql).toString();
     }
 
@@ -768,7 +766,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         xiechengCollidingDataProcessTask.setTaskType(0);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(falseDataCondition(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime()));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(falseDataCondition(jsonObject, dto.getBatchNumberList(),
+                collidingFilterDTO.getCleanTime()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
