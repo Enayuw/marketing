@@ -19,12 +19,14 @@ public interface XieChengRuleScoreRecordMapper extends XieChengRuleScoreRecordMa
      * @param queryRuleScoreDataSql
      * @return
      */
-    List<XieChengCollidingDataRob> selectRuleScoreDataRepeatWithFalseDatatikv_(@Param("minId") Long minId, @Param("packageId") Long packageId, @Param(
+    List<XieChengCollidingDataRob> selectRuleScoreDataRepeatWithFalseDatatikv_(@Param("minId") Long minId
+            , @Param("packageId") Long packageId, @Param(
             "queryRuleScoreDataSql") String queryRuleScoreDataSql);
 
     /**
      * @param queryRuleScoreDataSql
      * @return
      */
-    List<XieChengRuleScoreData> selectRuleScoreDataExcludeTrueAndFalseDatatikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql);
+    List<XieChengRuleScoreData> selectRuleScoreDataExcludeTrueAndFalseDatatikv_(@Param("minId") Long minId
+            , @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql);
 }
