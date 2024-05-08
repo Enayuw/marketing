@@ -70,7 +70,7 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
         }
         //callStartTime 取 yyyy-MM-dd
         String bizDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        if(bo.getDetail() != null && bo.getDetail().getCallEndTime() != null){
+        if(bo.getDetail() != null && bo.getDetail().getCallEndTime() != null ){
             try {
                 bizDate = df.format(bo.getDetail().getCallStartTime());
             }catch (Exception e){
