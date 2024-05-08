@@ -170,7 +170,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 String firstLine = reader.readLine();
                 List<String> firstLineList = Arrays.asList(firstLine.split(",", -1));
 
-                String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
+                String batchNumber = straHisFile.getBatchNumber();
+                String tableName = "b_xiecheng_colliding_" + batchNumber;
 
                 Map<String, String> fieldMap = marketingCommonConfig.getXieChengCollidingRuleScoreFieldMap();
                 // 创建tidb和doris表结构
@@ -181,6 +182,10 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 String dataLine;
 
                 while ((dataLine = reader.readLine()) != null) {
+                    if (marketingCommonConfig.getXieChengCollidingRuleScoreStopBatchNums().contains(batchNumber)) {
+                        return result.setCode(ResultCode.FAIL.getValue()).setMessage("手动停止该同步任务");
+                    }
+
                     batchData.add(dataLine);
                     if (batchData.size() == BATCH_SIZE) {
                         ArrayList<String> subList = new ArrayList<>(batchData);

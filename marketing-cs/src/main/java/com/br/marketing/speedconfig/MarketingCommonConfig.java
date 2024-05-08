@@ -1553,5 +1553,11 @@ public class MarketingCommonConfig {
      * 携程定制化页面周期TRUE列表apiCode配置
      */
     private String xieChengCustomizeTrueApiCode;
+
+    /**
+     * 携程撞库停止跑分数据同步，跑分编号配置集合
+     * ["7410950_20240507000000_6334","7410950_20240507000000_6682"]
+     */
+    private List<String> xieChengCollidingRuleScoreStopBatchNums;
 }
 
