@@ -69,21 +69,40 @@ public class LogRecordAspect {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
         Method method = methodSignature.getMethod();
         LogRecordAnnotation annotation = method.getAnnotation(LogRecordAnnotation.class);
-        // 拼接操作日志
-        RequestOperationLog requestOperationLog = this.recordLog(annotation, joinPoint);
+
+        RequestOperationLog requestOperationLog = null;
+        try {
+            // 拼接操作日志
+            requestOperationLog = this.recordLog(annotation, joinPoint);
+        }catch (Exception e) {
+            log.error("生成操作日志异常",e);
+        }
+
         Object proceed = null;
         // 方法执行
         try {
             // 执行被拦截的方法,如果是系统异常那就直接抛出异常也不需要记录日志，但如果是业务异常，那就用记录这个日志是否成功
             proceed = joinPoint.proceed();
-            // 返回值
-            String result = JSONUtil.parseObj(proceed).toString();
-            if(StringUtils.isNotEmpty(result)){
-                requestOperationLog.setResult(result);
+
+            // 仅在requestOperationLog不为null且proceed非空时设置结果
+            if (requestOperationLog != null && proceed != null) {
+                try {
+                    String result = proceed instanceof String ? (String) proceed : JSONUtil.toJsonStr(proceed);
+                    if (StringUtils.isNotEmpty(result)) {
+                        requestOperationLog.setResult(result);
+                    }
+                } catch (Exception e) {
+                    log.error("解析方法返回值并设置操作日志结果时出错", e);
+                }
             }
-            executorService.submit(() -> {
-                logRecordService.insert(requestOperationLog);
-            });
+            // 插入日志
+            if(requestOperationLog != null){
+                RequestOperationLog finalRequestOperationLog = requestOperationLog;
+                executorService.submit(() -> {
+                    logRecordService.insert(finalRequestOperationLog);
+                });
+            }
+
         } catch (Exception e) {
             log.error("目标方法执行异常",e);
         }
