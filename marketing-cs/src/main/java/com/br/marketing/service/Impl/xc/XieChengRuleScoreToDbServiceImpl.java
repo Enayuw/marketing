@@ -303,8 +303,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     insertSql.append(columns.get(i).trim()).append(", ");
                 }
 
-                insertSql.append(columns.get(i).trim()).append(", ");
-
                 if (columns.get(i).startsWith("score") || columns.get(i).endsWith("age")) {
                     numColumns.add(i);
                 }
