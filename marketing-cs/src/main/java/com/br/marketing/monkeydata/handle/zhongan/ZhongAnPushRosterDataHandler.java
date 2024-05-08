@@ -132,8 +132,15 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             conditionParam.setId(null);
             for (; ; ) {
                 // 循环获取条件数据，每次2000条
+                String userType = conditionParam.getUserType();
+                if(conditionParam.getDataSource()==1){
+                    conditionParam.setUserType("");
+                }
+
                 final List<ZhonganRosterLockingData> pageList = zhonganRosterLockingDataMapper.findPartColumnListPage(
                         conditionParam, pageIndex, pageSize);
+                conditionParam.setUserType(userType);
+
                 if (CollectionUtils.isEmpty(pageList)) {
                     break;
                 }
@@ -254,10 +261,10 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
                         "apiCode:" + apiCode + ", bizDate:" + bizDate + ", tag:" + tag+ ", dataSource:" + dataSource
                                 + ", userType:" + userType + "未获取到上传数据或未配置有效期！",
                         "锁定名单推送众安异常"));
-                if(judgeChangeStatus(pageParam)) {
-                    List<Long> ids = pageList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
-                    updatePushStatusById(ids, 4);
-                }
+                // if(judgeChangeStatus(pageParam)) {
+                List<Long> ids = pageList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
+                updatePushStatusById(ids, 4);
+                // }
                 return result;
             }
 
@@ -310,9 +317,9 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             log.warn(TITLE+"hitBlackIds:{}",JSONObject.toJSON(hitBlackIds));
             log.warn(TITLE+"distributeIds:{}",JSONObject.toJSON(distributeIds));
 
-            if(judgeChangeStatus(pageParam)) {
-                updatePushStatusById(notValidityIds, 4);
-            }
+            // if(judgeChangeStatus(pageParam)) {
+            updatePushStatusById(notValidityIds, 4);
+            // }
             updatePushStatusById(notPushIds, 8);
             updatePushStatusById(notMarketingIds, 7);
             updatePushStatusById(hitBlackIds, 5);

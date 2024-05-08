@@ -78,6 +78,11 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
                 log.error("众安拨打明细时间格式转换出错！" + e.getMessage());
             }
         }
+
+        String userProperties = bo.getDetail().getUserProperties();
+        JSONObject jo = JSONObject.parseObject(userProperties);
+        String userType = jo.getString("userType");
+
         ZaRosterLockingDataDTO data = new ZaRosterLockingDataDTO();
         data.setApiCode(bo.getApiCode());
         data.setLocalId(bo.getId());
@@ -85,6 +90,7 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
         data.setBizDate(bizDate);
         data.setTag("MG");
         data.setDataSource(2);
+        data.setUserType(userType);
         return data;
     }
 
