@@ -124,4 +124,12 @@
         from b_xiecheng_colliding_data_rob
         where is_delete = 0 and package_id = #{packageId}
     </select>
+
+    <update id="batchRsetCollidingCount">
+        update b_xiecheng_colliding_data_rob
+        set colliding_count = 0
+        where colliding_count != 0
+          and is_delete = 0
+        limit 500000
+    </update>
 </mapper>

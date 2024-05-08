@@ -167,4 +167,9 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         perMinuteCounts.forEach((Map<String, Object> perMinuteCount) -> redisChgService.hset(key, String.valueOf(perMinuteCount.get("releaseTime")),
             String.valueOf(perMinuteCount.get("counts"))));
     }
+
+    @Override
+    public void resetCollidingCount() {
+        xieChengCollidingDataRobMapper.batchRsetCollidingCount();
+    }
 }
