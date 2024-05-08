@@ -1,6 +1,9 @@
 package com.br.marketing.rule.zhongan;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.zhongan.input.ZaRosterLockingDataDTO;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -9,10 +12,12 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.ZhonganRosterLockingDataExample;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +31,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 众安拨打明细入库规则
@@ -44,6 +49,9 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
 
     @Resource
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     final static DateTimeFormatter YYYYMMDDSHORTDF = DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT);
     final static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
@@ -83,33 +91,48 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
         //1.剔除黑名单（callStatus=12）数据
         //2.到上传表根据caseNum匹配最新手机号
         //3.手机号在 众安明细锁定表 当日去重
-        boolean flag = Boolean.FALSE;
-        if (transmitFact instanceof CallRecordBO){
-            CallRecordBO bo = (CallRecordBO) transmitFact;
-            if(bo.getDetail() != null && bo.getDetail().getCallStatus() != null && 12 == bo.getDetail().getCallStatus()){
-                //黑名单
-                custNumCache(bo.getCaseNum());
-                //Set<String> smembers = redisChgService.smembers(RedisKeyConstant.zhongAnblackCusNumToday);
-                //log.warn("众安拨打明细黑名单redis数据："+ smembers);
-                return flag;
-            }
-            //上传表获取手机号，转为md5加密
-            MarketingSyncUser syncUser = marketingSyncInfoMapper.getNewestByCusnumAndStatus(bo.getApiCode(), bo.getCaseNum());
-            if(syncUser != null && StringUtils.isNotBlank(syncUser.getCell())){
-                String cell = DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(syncUser.getCell()).getBytes());
-                //获取当前日期
-                String today = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().format(YYYYMMDDSHORTDF);
-                Integer createDate = Integer.valueOf(today);
-                ZhonganRosterLockingDataExample example = new ZhonganRosterLockingDataExample();
-                example.createCriteria().andApiCodeEqualTo(bo.getApiCode()).andCreateDateEqualTo(createDate).andMobileMd5EqualTo(cell);
-                int count = zhonganRosterLockingDataMapper.countByExample(example);
-                if(count > 0){
-                    return flag;
-                }
-                flag = Boolean.TRUE;
-            }
+        if (!(transmitFact instanceof CallRecordBO)){
+            return false;
         }
-        return flag;
+
+        CallRecordBO bo = (CallRecordBO) transmitFact;
+        if(bo.getDetail() != null && bo.getDetail().getCallStatus() != null && 12 == bo.getDetail().getCallStatus()){
+            //黑名单
+            custNumCache(bo.getCaseNum());
+            //Set<String> smembers = redisChgService.smembers(RedisKeyConstant.zhongAnblackCusNumToday);
+            //log.warn("众安拨打明细黑名单redis数据："+ smembers);
+            return false;
+        }
+
+        //上传表获取手机号，转为md5加密
+        String userProperties = bo.getDetail().getUserProperties();
+        if(StringUtils.isEmpty(userProperties)){
+            return false;
+        }
+        JSONObject jo = JSONObject.parseObject(userProperties);
+        if(jo == null ){
+            return false;
+        }
+        String userType = jo.getString("userType");
+        if(StringUtils.isEmpty(userType)){
+            return false;
+        }
+
+        Set<String> custNums = new HashSet<>();
+        custNums.add(bo.getCaseNum());
+
+        Map<String, SyncUserValidityPeriodsBO> keyToSyncUserBO = transferDataValidityPeriodService
+                .getValidityPeriodsByCustNumAndUserType(custNums, userType, bo.getApiCode(), new Date());
+
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = keyToSyncUserBO.get(bo.getCaseNum());
+        if(syncUserValidityPeriodsBO == null){
+            return false;
+        }
+        List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
+        if(syncUsers == null || syncUsers.size()<1){
+            return false;
+        }
+        return true;
     }
 
     public void custNumCache(String custNum){
