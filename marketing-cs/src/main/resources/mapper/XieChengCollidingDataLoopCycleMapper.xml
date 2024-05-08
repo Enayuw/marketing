@@ -82,7 +82,6 @@
                bmc.api_code          as apiCode,
                bmc.short_name        as shortName,
                '-'                   as packageName,
-               '-'                   as discreetNumber,
                count(dlc.id)         AS remainingNumber,
                '0'                   as collidingSwitch,
                '0'                   as priority,
