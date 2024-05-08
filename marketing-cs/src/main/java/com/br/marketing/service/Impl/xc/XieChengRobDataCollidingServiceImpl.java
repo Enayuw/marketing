@@ -109,7 +109,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
 
     private Boolean checkPackageRule(XiechengCollidingDataPackageRule packageRule) {
         Integer collidingBackNumber = packageRule.getCollidingBackNumber();
-        // 查询不够撞库次数的量级
+        // 根据撞库次数获取待撞量级
         int count = xieChengCollidingDataRobMapper.countByCollidingCount(packageRule.getPackageId(), packageRule.getCollidingTimes());
         if (collidingBackNumber == null) {
             // 如果不需要判断撞得量级，则只需判断是否有满足撞库次数的记录

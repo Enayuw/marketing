@@ -13,6 +13,7 @@ public interface XieChengCollidingDataLogService {
      *
      * @param id id
      * @param packageId packageId
+     * @param packageRuleId packageRuleId
      * @param dataSourceType 数据源类型 T True数据,F False数据
      * @param returnData 返回数据
      * @param httpcode httpcode
@@ -21,14 +22,15 @@ public interface XieChengCollidingDataLogService {
      * @author senyang.zheng
      * @date 2024/03/23
      */
-    XieChengCollidingDataLog buildSuccessXieChengCollidingDataLog(Long id, Long packageId, String dataSourceType, JSONObject returnData,
-        String httpcode, Integer businessCode);
+    XieChengCollidingDataLog buildSuccessXieChengCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
+        JSONObject returnData, String httpcode, Integer businessCode);
 
     /**
      * 构建失败谢程碰撞数据日志
      *
      * @param id id
      * @param packageId packageId
+     * @param packageRuleId packageRuleId
      * @param dataSourceType 数据源类型 T True数据,F False数据
      * @param cellSha256CodeList 手机号
      * @param resJson res json
@@ -36,8 +38,8 @@ public interface XieChengCollidingDataLogService {
      * @author senyang.zheng
      * @date 2024/03/23
      */
-    XieChengCollidingDataLog buildFailXieChengCollidingDataLog(Long id, Long packageId, String dataSourceType, String cellSha256CodeList,
-        JSONObject resJson);
+    XieChengCollidingDataLog buildFailXieChengCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
+        String cellSha256CodeList, JSONObject resJson);
 
     /**
      * 推送保存log消息

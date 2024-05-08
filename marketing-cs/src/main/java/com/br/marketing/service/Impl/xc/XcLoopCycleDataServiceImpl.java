@@ -77,8 +77,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
                 // 发送mq记录日志
                 List<XieChengCollidingDataLog> collidingLogs =
-                        list.stream().map(t -> logService.buildFailXieChengCollidingDataLog(t.getId(), t.getPackageId(), "T",
-                                t.getCellSha256CodeList(), resMap)).collect(Collectors.toList());
+                        list.stream().map(t -> logService.buildFailXieChengCollidingDataLog(t.getId(), t.getPackageId(), null, "T",
+                                                                                            t.getCellSha256CodeList(), resMap)).collect(Collectors.toList());
 
                 logService.pushLogMessage(collidingLogs);
                 return;
@@ -105,13 +105,10 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             falseHandle(returnDataList, cellMaps);
 
             // 发送mq记录日志
-            List<XieChengCollidingDataLog> collidingLogs =
-                    returnDataList.stream().map(t -> (JSONObject) t)
-                            .map(t -> logService.buildSuccessXieChengCollidingDataLog(cellMaps.get(t.get("sha256Code")).getId()
-                                    , cellMaps.get(t.get("sha256Code")).getPackageId(), "T"
-                                    , t, httpcode,
-                                    businessCode))
-                            .collect(Collectors.toList());
+            List<XieChengCollidingDataLog> collidingLogs = returnDataList.stream().map(t -> (JSONObject)t)
+                .map(t -> logService.buildSuccessXieChengCollidingDataLog(cellMaps.get(t.get("sha256Code")).getId(),
+                    cellMaps.get(t.get("sha256Code")).getPackageId(), null, "T", t, httpcode, businessCode))
+                .collect(Collectors.toList());
 
             logService.pushLogMessage(collidingLogs);
         } catch (Exception e) {

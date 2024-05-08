@@ -131,6 +131,6 @@
         set colliding_count = 0
         where colliding_count != 0
           and is_delete = 0
-        limit 500000
+        limit 20000
     </update>
 </mapper>

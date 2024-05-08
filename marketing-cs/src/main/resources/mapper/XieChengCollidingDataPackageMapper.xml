@@ -7,7 +7,6 @@
         from b_xiecheng_colliding_data_package pkg
                  join b_xiecheng_colliding_data_process_task dpt on pkg.colliding_data_task_id = dpt.id
         where pkg.is_delete = 0
-          and dpt.is_delete = 0
         order by pkg.create_time desc;
     </select>
 
