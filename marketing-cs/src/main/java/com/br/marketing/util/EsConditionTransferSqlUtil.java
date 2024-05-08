@@ -69,23 +69,23 @@ public class EsConditionTransferSqlUtil {
                 break;
             case "between":
                 List<String> betweenList = Arrays.asList(((String) value).split(","));
-                sqlTep = key.concat(" >=\"").concat(betweenList.get(0)).concat("\" and ").concat(key).concat(" <=\"").concat(betweenList.get(1)
-                        .concat("\""));
+                sqlTep = ("(").concat(key).concat(" >=\"").concat(betweenList.get(0)).concat("\" and ").concat(key).concat(" <=\"")
+                        .concat(betweenList.get(1).concat("\")"));
                 break;
             case "between_right":
                 List<String> betweenRightList = Arrays.asList(((String) value).split(","));
-                sqlTep = key.concat(" >=\"").concat(betweenRightList.get(0)).concat("\" and ").concat(key).concat(" <\"").concat(betweenRightList.
-                        get(1).concat("\""));
+                sqlTep = ("(").concat(key).concat(" >=\"").concat(betweenRightList.get(0)).concat("\" and ").concat(key).concat(" <\"")
+                        .concat(betweenRightList.get(1).concat("\")"));
                 break;
             case "between_left":
                 List<String> betweenLeftList = Arrays.asList(((String) value).split(","));
-                sqlTep = key.concat(" >\"").concat(betweenLeftList.get(0)).concat("\" and ").concat(key).concat(" <=\"").concat(betweenLeftList.get(1)
-                        .concat("\""));
+                sqlTep = ("(").concat(key).concat(" >\"").concat(betweenLeftList.get(0)).concat("\" and ").concat(key).concat(" <=\"")
+                        .concat(betweenLeftList.get(1).concat("\")"));
                 break;
             case "between_open":
                 List<String> betweenOpenList = Arrays.asList(((String) value).split(","));
-                sqlTep = key.concat(" >\"").concat(betweenOpenList.get(0)).concat("\" and ").concat(key).concat(" <\"").concat(betweenOpenList.get(1)
-                        .concat("\""));
+                sqlTep = ("(").concat(key).concat(" >\"").concat(betweenOpenList.get(0)).concat("\" and ").concat(key).concat(" <\"")
+                        .concat(betweenOpenList.get(1).concat("\")"));
                 break;
             default:
                 sqlTep = key.concat(operation).concat(value.toString());

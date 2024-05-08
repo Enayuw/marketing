@@ -759,7 +759,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
         xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
         xiechengCollidingDataProcessTask.setTaskStatus(0);
-        xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
+        xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPrePlanNum());
         try {
             xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
         } catch (Exception e) {

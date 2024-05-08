@@ -126,7 +126,7 @@
         where is_delete = 0 and package_id = #{packageId}
     </select>
 
-    <update id="batchRsetCollidingCount">
+    <update id="batchResetCollidingCount">
         update b_xiecheng_colliding_data_rob
         set colliding_count = 0
         where colliding_count != 0
