@@ -51,7 +51,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     List<XieChengCollidingDataRobPriority> selectRobDataByRuleScoreData(@Param("cells") List<String> cells);
     List<XieChengCollidingDataRobPriority> selectMaxCollidingEndTimeGroupByCell(@Param("cells") List<String> cells);
 
-    int updateDeleteByIds(@Param("ids")  List<Long> ids);
+    int updateDeleteByIds(@Param("ids") List<Long> ids, @Param("extend") String extend);
 
     Long selectCountFromRobByNewPackageId(@Param("packageId") Long packageId);
 

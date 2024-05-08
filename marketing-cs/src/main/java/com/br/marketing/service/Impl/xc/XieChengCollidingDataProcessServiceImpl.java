@@ -112,6 +112,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         AtomicInteger totalDeleteCount = new AtomicInteger(0);
         Long minId = null;
         String conditions = task.getTaskExecutionConditions();
+        String extend = "携程撞库数据清洗任务删除，任务id：" + task.getId();
         for (String batchNumber : task.getBatchNumber().split(",")) {
             if (StringUtils.isEmpty(batchNumber)) {
                 continue;
@@ -132,7 +133,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 minId = longs.get(longs.size() - 1);
                 threadPool.submit(() -> {
                     try {
-                        totalDeleteCount.addAndGet(cycleMapper.updateIsDeleteByIds(longs));
+                        totalDeleteCount.addAndGet(cycleMapper.updateIsDeleteByIds(longs, extend));
                     } catch (Exception e) {
                         log.error("携程撞库TRUE数据删除，单线程处理异常：" + e.getMessage(), e);
                     }
@@ -205,6 +206,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
 
         Long minId = null;
+        String extend = "携程撞库数据清洗任务删除，任务id：" + task.getId();
         String conditions = task.getTaskExecutionConditions();
         for (String batchNumber : task.getBatchNumber().split(",")) {
             if (StringUtils.isEmpty(batchNumber)) {
@@ -228,7 +230,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                     modifyThreadPool(threadPool);
                     threadPool.submit(() -> {
                         try {
-                            robMapper.updateDeleteByIds(ids);
+                            robMapper.updateDeleteByIds(ids, extend);
                         } catch (Exception e) {
                             log.error("携程撞库FALSE数据删除，单线程处理异常：" + e.getMessage(), e);
                         }
