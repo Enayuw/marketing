@@ -1548,5 +1548,10 @@ public class MarketingCommonConfig {
      * xieChengCollidingRuleScoreFieldMap={"userType":"user_type"}
      */
     private Map<String, String> xieChengCollidingRuleScoreFieldMap;
+
+    /**
+     * 携程定制化页面周期TRUE列表apiCode配置
+     */
+    private String xieChengCustomizeTrueApiCode;
 }
 

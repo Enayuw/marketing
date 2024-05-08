@@ -24,20 +24,7 @@
                    nested-port="${NESTED_PORT}"
                    nested-data-dir="${NESTED_DATA_DIR}"/>
 
-    <job:simple id="XieChengCollidingDataCleanJob"
-                class="com.br.marketing.xc.job.XieChengCollidingDataCleanJob"
-                cron="0 0 18 29 9 ? 2050-2050"
-                description="携程撞库数据清洗"
-                registry-center-ref="regCenter"
-                sharding-total-count="1"
-                sharding-item-parameters="0=A"
-                monitor-execution="true"
-                failover="false"
-                misfire="false"
-                disabled="true"
-                overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
-    />
+
     <job:simple id="XieChengTableBackupJob"
                 class="com.br.marketing.xc.job.XieChengTableBackupJob"
                 cron="0 0 18 29 9 ? 2050-2050"
