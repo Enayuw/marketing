@@ -46,9 +46,8 @@ public class RuleCenterCollidingServiceImpl implements RuleCenterCollidingServic
     @Override
     public Result<List<XiechengCollidingDataVO>> getCollidingResultData(String apiCode) {
         List<XiechengCollidingDataVO> xiechengCollidingDataVOList = new ArrayList<>();
-
         if (!marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(apiCode)) {
-            return new Result<>().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("非撞库的apiCode，请检查");
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
         //周期数据包
         Map<String, Object> xiechengCycleMap = xieChengCollidingDataLoopCycleMapper.selectCycleNumData();
