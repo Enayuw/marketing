@@ -6,8 +6,6 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -20,7 +18,7 @@ public class DataSourceAspect {
     Logger logger = LoggerFactory.getLogger(DataSourceAspect.class);
     public static final String marketingTikiv = "marketingTikiv";
     public static final String marketingTiFlash = "marketingTiFlash";
-    public static final String marketingDoris = "marketingDoris";
+    public static final String MARKETING_DORIS = "marketingDoris";
 
     /**
      * 切换tikv数据源
@@ -52,7 +50,7 @@ public class DataSourceAspect {
         if(logger.isInfoEnabled()){
             logger.info("切换到数据源{}.......................", "Doris");
         }
-        DbContextHolder.setDbType(marketingDoris);
+        DbContextHolder.setDbType(MARKETING_DORIS);
     }
 
     @After("tiKvOfMarketing()||tiflashOfMarketing()||dorisOfMarketing()")

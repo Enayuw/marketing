@@ -219,12 +219,12 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     private void createTidbAndDorisTable(List<String> columns, List<String> firstLine, String tableName, Map<String, String> fieldMap) {
         StringBuilder createTidbDDL = new StringBuilder();
-        createTidbDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (");
-        createTidbDDL.append(" id bigint auto_increment primary key, ");
+        createTidbDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (")
+                .append(" id bigint auto_increment primary key, ");
 
         StringBuilder createDorisDDL = new StringBuilder();
-        createDorisDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (");
-        createDorisDDL.append(" id bigint, ");
+        createDorisDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (")
+                .append(" id bigint, ");
 
         for (int i = 0; i < columns.size(); i++) {
             String column = columns.get(i);
@@ -262,19 +262,18 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         createDorisDDL.append(" extend string,")
                 .append(" create_time datetime,")
                 .append(" update_time datetime,")
-                .append(" is_delete int default '0'");
+                .append(" is_delete int default '0'")
+                .append(") ENGINE=OLAP\n" +
+                        "Unique KEY(id)\n" +
+                        "DISTRIBUTED BY HASH(id) BUCKETS 16\n" +
+                        "PROPERTIES (\n" +
+                        "'replication_allocation' = '").append(replicationAllocation)
+                .append("',\n" +
+                        "'in_memory' = 'false',\n" +
+                        "'storage_format' = 'V2',\n" +
+                        "'disable_auto_compaction' = 'false'\n" +
+                        ");");
 
-        createDorisDDL.append(") ENGINE=OLAP\n" +
-                "Unique KEY(id)\n" +
-                "DISTRIBUTED BY HASH(id) BUCKETS 16\n" +
-                "PROPERTIES (\n" +
-                "'replication_allocation' = '");
-        createDorisDDL.append(replicationAllocation);
-        createDorisDDL.append("',\n" +
-                "'in_memory' = 'false',\n" +
-                "'storage_format' = 'V2',\n" +
-                "'disable_auto_compaction' = 'false'\n" +
-                ");");
         ruleScoreRecordMapper.createXieChengScoreDorisTableByBatchNumdoris_(createDorisDDL.toString());
     }
 
@@ -313,12 +312,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 }
             }
 
-            insertSql.append("extend,");
-            insertSql.append("create_time,");
-            insertSql.append("update_time,");
-            insertSql.append("is_delete");
-
-            insertSql.append(") VALUES ");
+            insertSql.append("extend,").append("create_time,")
+                    .append("update_time,").append("is_delete").append(") VALUES ");
 
             List<String> dataList;
             for (String dataLine : batchData) {
@@ -333,8 +328,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     }
                 }
 
-                insertSql.append("null, now(), now(), 0");
-                insertSql.append("),");
+                insertSql.append("null, now(), now(), 0").append("),");
             }
 
             insertSql.setLength(insertSql.length() - 1);
