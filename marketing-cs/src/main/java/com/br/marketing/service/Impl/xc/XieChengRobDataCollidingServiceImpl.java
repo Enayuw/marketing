@@ -170,6 +170,12 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
 
     @Override
     public void resetCollidingCount() {
-        xieChengCollidingDataRobMapper.batchRsetCollidingCount();
+        int resetCount = Integer.MAX_VALUE;
+        while (resetCount > 0) {
+            xieChengCollidingDataRobMapper.batchResetCollidingCount();
+            XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
+            example.createCriteria().andIsDeleteEqualTo(0).andCollidingCountNotEqualTo(0);
+            resetCount = xieChengCollidingDataRobMapper.countByExample(example);
+        }
     }
 }
