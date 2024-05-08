@@ -2,11 +2,13 @@ package com.br.marketing.rule.zhongan;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.zhongan.input.ZaRosterLockingDataDTO;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -104,17 +106,31 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
             return false;
         }
 
-        //上传表获取手机号，转为md5加密
         String userProperties = bo.getDetail().getUserProperties();
         if(StringUtils.isEmpty(userProperties)){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHONGAN_CALL_RECORD.getCode(),
+                    AlarmSendCodeEnum.EXCEPTION_ZHONGAN_CALL_RECORD.getMessage()+"userProperties字段为空" +
+                            ", caseNum: " + bo.getCaseNum() +
+                            ", id: " + bo.getId(),
+                    "众安通话明细回调告警"));
             return false;
         }
         JSONObject jo = JSONObject.parseObject(userProperties);
         if(jo == null ){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHONGAN_CALL_RECORD.getCode(),
+                    AlarmSendCodeEnum.EXCEPTION_ZHONGAN_CALL_RECORD.getMessage()+"userProperties格式不正确" +
+                            ", caseNum: " + bo.getCaseNum() +
+                            ", id: " + bo.getId(),
+                    "众安通话明细回调告警"));
             return false;
         }
         String userType = jo.getString("userType");
         if(StringUtils.isEmpty(userType)){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHONGAN_CALL_RECORD.getCode(),
+                    AlarmSendCodeEnum.EXCEPTION_ZHONGAN_CALL_RECORD.getMessage()+"userType字段未传" +
+                            ", caseNum: " + bo.getCaseNum() +
+                            ", id: " + bo.getId(),
+                    "众安通话明细回调告警"));
             return false;
         }
 
@@ -126,10 +142,12 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
 
         SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = keyToSyncUserBO.get(bo.getCaseNum());
         if(syncUserValidityPeriodsBO == null){
+            log.warn("众安通话明细回调, 未匹配到上传数据, caseNum: {}, userType: {}, id: {}", bo.getCaseNum(), userType, bo.getId());
             return false;
         }
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         if(syncUsers == null || syncUsers.size()<1){
+            log.warn("众安通话明细回调, 未匹配到上传数据, caseNum: {}, userType: {}, id: {}", bo.getCaseNum(), userType, bo.getId());
             return false;
         }
         return true;
