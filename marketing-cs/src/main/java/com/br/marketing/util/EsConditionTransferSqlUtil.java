@@ -2,11 +2,13 @@ package com.br.marketing.util;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.DateHelper;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.List;
-
+@Slf4j
 public class EsConditionTransferSqlUtil {
 
     /**
@@ -55,7 +57,15 @@ public class EsConditionTransferSqlUtil {
         List<String> operateList = Lists.newArrayList("=", "!=", "<", "<=", ">", ">=", "in", "not_in", "between", "between_right",
                 "between_left", "between_open");
         if (!operateList.contains(operation)) {
-            System.out.println("操作符异常");
+            log.error("规则中心-携程撞库操作符异常");
+        }
+        //时间格式特殊处理，yyyy-mm-dd转化为区间
+        if ("=".equals(operation)) {
+            String date = (String) value;
+            if (DateHelper.isDate(date)) {
+                return ("(").concat(key).concat(" >=\"").concat(date).concat(" 00:00:00\" and ").concat(key).concat(" <=\"")
+                        .concat(date.concat(" 23:59:59\")"));
+            }
         }
         switch (operation) {
 
@@ -88,11 +98,12 @@ public class EsConditionTransferSqlUtil {
                         .concat(betweenOpenList.get(1).concat("\")"));
                 break;
             default:
-                sqlTep = key.concat(operation).concat(value.toString());
+                sqlTep = key.concat(operation).concat("\"").concat(value.toString()).concat("\"");
 
         }
         return sqlTep;
 
     }
+    
 
 }
