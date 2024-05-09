@@ -446,7 +446,7 @@ public class DateHelper {
      * @return
      */
     public static boolean isDate(String date) {
-        Boolean isDate = Boolean.FALSE;
+        boolean isDate = Boolean.FALSE;
         try {
             DateUtils.parseDateStrictly(date, LINE_DATE_FORMAT);
             isDate = Boolean.TRUE;
