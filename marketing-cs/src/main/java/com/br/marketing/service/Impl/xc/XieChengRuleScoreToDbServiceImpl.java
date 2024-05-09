@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -87,6 +88,13 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             List<StraHisFile> shardStraHisFiles = straHisFiles.stream().filter((StraHisFile t) -> Longitems.contains(Math.floorMod(t.getId(),
                     shardingTotalCount))).collect(Collectors.toList());
 
+            if (CollectionUtils.isEmpty(shardStraHisFiles)) {
+                return;
+            }
+
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread(),
+                    marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread());
+
             shardStraHisFiles.forEach((StraHisFile straHisFile) -> {
                 XieChengRuleScoreRecordExample scoreRecordExample = new XieChengRuleScoreRecordExample();
                 scoreRecordExample.createCriteria().andIsDeleteEqualTo(0).andBatchNumberEqualTo(straHisFile.getBatchNumber());
@@ -103,7 +111,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
                     scoreRecordMapper.insertSelective(scoreRecord);
 
-                    Result<Integer> result = createTableAndInsert(straHisFile);
+                    Result<Integer> result = createTableAndInsert(straHisFile, threadPool);
 
                     if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
@@ -124,10 +132,21 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     }
                 }
             });
+
+            threadPool.shutdown();
+            try {
+                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.info("携程跑分数据同步作业线程池关闭");
+                }
+            } catch (InterruptedException ex) {
+                threadPool.shutdownNow();
+                log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
+                Thread.currentThread().interrupt();
+            }
         });
     }
 
-    private Result<Integer> createTableAndInsert(StraHisFile straHisFile) {
+    private Result<Integer> createTableAndInsert(StraHisFile straHisFile, ThreadPoolExecutor threadPool) {
         Result result = new Result();
         for (String fileName : straHisFile.getFileName().split(",")) {
             File file = new File(straHisFile.getFilePath(), fileName);
@@ -140,9 +159,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 log.error(errMsg);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
             }
-
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread(),
-                    marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread());
 
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String header = reader.readLine();
@@ -181,6 +197,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 batchData.add(firstLine);
                 String dataLine;
 
+                List<CompletableFuture<Void>> futures = new ArrayList<>();
                 while ((dataLine = reader.readLine()) != null) {
                     if (marketingCommonConfig.getXieChengCollidingRuleScoreStopBatchNums().contains(batchNumber)) {
                         return result.setCode(ResultCode.FAIL.getValue()).setMessage("手动停止该同步任务");
@@ -189,10 +206,13 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     batchData.add(dataLine);
                     if (batchData.size() == BATCH_SIZE) {
                         ArrayList<String> subList = new ArrayList<>(batchData);
-                        threadPool.submit(() -> writeFileDataToTidb(tableName, columns, subList, fieldMap));
+                        futures.add(CompletableFuture.runAsync(() -> writeFileDataToTidb(tableName, columns, subList, fieldMap)
+                                , threadPool));
                         batchData.clear();
                     }
                 }
+
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
                 if (!batchData.isEmpty()) {
                     writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData), fieldMap);
@@ -200,17 +220,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
-            }
-
-            threadPool.shutdown();
-            try {
-                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.info("携程跑分数据同步作业线程池关闭");
-                }
-            } catch (InterruptedException ex) {
-                threadPool.shutdownNow();
-                log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
-                Thread.currentThread().interrupt();
             }
         }
 
