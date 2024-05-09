@@ -47,9 +47,9 @@
         LIMIT 2000;
     </select>
 
-    <update id="updateDeleteByIds">
+    <update id="updateDeleteByIdstikv_">
         update ${tableName} set is_delete = 1,update_time = now()
-        where id in
+        where is_delete = 0 and id in
               (SELECT id
                FROM (SELECT id,cell,ROW_NUMBER() OVER (PARTITION BY cell ORDER BY id) AS row_num
                      FROM ${tableName}) AS a

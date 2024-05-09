@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.xc;
 
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -145,6 +144,16 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     private Result<Integer> createTableAndInsert(StraHisFile straHisFile, ThreadPoolExecutor threadPool) {
         Result result = new Result();
+
+        int deleteCount = 0;
+        String batchNumber = straHisFile.getBatchNumber();
+        if (StringUtils.isEmpty(batchNumber)) {
+            String errMsg = "跑分编号为空，跑分id：" + straHisFile.getId();
+            log.error(errMsg);
+            return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
+        }
+        String tableName = "b_xiecheng_colliding_" + batchNumber;
+
         for (String fileName : straHisFile.getFileName().split(",")) {
             File file = new File(straHisFile.getFilePath(), fileName);
 //            String path =
@@ -183,9 +192,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 String firstLine = reader.readLine();
                 List<String> firstLineList = Arrays.asList(firstLine.split(",", -1));
 
-                String batchNumber = straHisFile.getBatchNumber();
-                String tableName = "b_xiecheng_colliding_" + batchNumber;
-
                 Map<String, String> fieldMap = marketingCommonConfig.getXieChengCollidingRuleScoreFieldMap();
                 // 创建tidb和doris表结构
                 createTidbAndDorisTable(columns, firstLineList, tableName, fieldMap);
@@ -216,12 +222,17 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 }
 
                 // 删除重复数据
-                Integer count = scoreRecordMapper.updateDeleteByIds(tableName);
-                log.error("携程跑分数据同步后删除重复数据，表：{}，量级：{}", tableName, count);
+                Integer count = scoreRecordMapper.updateDeleteByIdstikv_(tableName);
+                deleteCount = deleteCount + count;
+
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
             }
+        }
+
+        if (deleteCount > 0) {
+            log.error("携程跑分数据同步后删除重复数据，表：{}，删除量级：{}", tableName, deleteCount);
         }
 
         return result.setCode(ResultCode.SUCCESS.getValue());
