@@ -70,7 +70,7 @@
     <job:simple id="XieChengResetCollidingCountJob"
                 class="com.br.marketing.xc.job.XieChengResetCollidingCountJob"
                 cron="0 0 18 29 9 ? 2050-2050"
-                description="携程非周期数据撞库"
+                description="携程重置撞库次数"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
