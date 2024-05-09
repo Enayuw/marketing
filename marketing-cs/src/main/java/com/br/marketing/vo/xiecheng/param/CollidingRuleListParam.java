@@ -31,6 +31,9 @@ public class CollidingRuleListParam implements Serializable {
     @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
     private String collidingEndTime;
 
+    @ApiModelProperty("排序字段")
+    private String orderByClause;
+
     @ApiModelProperty(value = "当前页数")
     private Integer current = 1;
 

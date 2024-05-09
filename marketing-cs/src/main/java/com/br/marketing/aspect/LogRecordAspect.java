@@ -2,6 +2,7 @@ package com.br.marketing.aspect;
 
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.RequestOperationLog;
@@ -26,9 +27,11 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -46,7 +49,7 @@ public class LogRecordAspect {
     @Autowired
     private LogRecordService logRecordService;
 
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(50);
+    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(50, 50);
 
     @Pointcut("@annotation(com.br.marketing.aspect.LogRecordAnnotation)")
     private void method() {
@@ -98,13 +101,16 @@ public class LogRecordAspect {
             // 插入日志
             if(requestOperationLog != null){
                 RequestOperationLog finalRequestOperationLog = requestOperationLog;
-                executorService.submit(() -> {
-                    logRecordService.insert(finalRequestOperationLog);
+                BR_EXECUTORS.execute(() -> {
+                    try {
+                        logRecordService.insert(finalRequestOperationLog);
+                    } catch (Exception e) {
+                        log.error("目标方法执行异常",e);
+                    }
                 });
             }
-
         } catch (Exception e) {
-            log.error("目标方法执行异常",e);
+            log.error(e.getMessage(), e);
         }
         return proceed;
     }

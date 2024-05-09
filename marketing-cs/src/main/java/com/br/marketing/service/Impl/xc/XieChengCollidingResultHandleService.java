@@ -85,8 +85,8 @@ public class XieChengCollidingResultHandleService {
                     robData.setUpdateTime(new Date());
                     xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
                 }
-                collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(), robData.getPackageRuleId(),"F",
-                    returnData, httpcode, businessCode));
+                collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
+                    robData.getPackageRuleId(), "F", returnData, httpcode, businessCode));
             }
             xieChengCollidingDataLogService.pushLogMessage(collidingLogs);
         } else {
@@ -96,8 +96,8 @@ public class XieChengCollidingResultHandleService {
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
-                collidingLogs.add(xieChengCollidingDataLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),robData.getPackageRuleId(), "F",
-                    robData.getCellSha256CodeList(), resJson));
+                collidingLogs.add(xieChengCollidingDataLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
+                    robData.getPackageRuleId(), "F", robData.getCellSha256CodeList(), resJson));
             }
             xieChengCollidingDataLogService.pushLogMessage(collidingLogs);
         }

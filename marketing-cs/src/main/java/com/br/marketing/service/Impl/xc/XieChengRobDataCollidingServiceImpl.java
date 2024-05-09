@@ -99,10 +99,9 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private XiechengCollidingDataPackageRule getCurrentPackageRule() {
         List<XiechengCollidingDataPackageRule> collidingDataPackageRules = packageRuleMapper.getCollidingPackageRules();
         for (XiechengCollidingDataPackageRule packageRule : collidingDataPackageRules) {
-            if (checkPackageRule(packageRule)) {
-                continue;
+            if (!checkPackageRule(packageRule)) {
+                return packageRule;
             }
-            return packageRule;
         }
         return null;
     }

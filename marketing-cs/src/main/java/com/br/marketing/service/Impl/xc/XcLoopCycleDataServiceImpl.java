@@ -76,9 +76,9 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                 dataLoopCycleMapper.updateBatchByIdOfRetryCount(ids);
 
                 // 发送mq记录日志
-                List<XieChengCollidingDataLog> collidingLogs =
-                        list.stream().map(t -> logService.buildFailXieChengCollidingDataLog(t.getId(), t.getPackageId(), null, "T",
-                                                                                            t.getCellSha256CodeList(), resMap)).collect(Collectors.toList());
+                List<XieChengCollidingDataLog> collidingLogs = list.stream()
+                    .map(t -> logService.buildFailXieChengCollidingDataLog(t.getId(), t.getPackageId(), null, "T", t.getCellSha256CodeList(), resMap))
+                    .collect(Collectors.toList());
 
                 logService.pushLogMessage(collidingLogs);
                 return;

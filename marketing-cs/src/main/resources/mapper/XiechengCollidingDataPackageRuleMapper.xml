@@ -40,7 +40,9 @@
             AND dpr.colliding_start_time <![CDATA[ <= ]]> #{listParam.collidingEndTime}
             AND dpr.colliding_end_time <![CDATA[ >= ]]> #{listParam.collidingStartTime}
         </if>
-        ORDER BY dpr.create_time
+        <if test="listParam.orderByClause != null and listParam.orderByClause != ''">
+            ORDER BY #{listParam.orderByClause}
+        </if>
     </select>
 
     <select id="getPackageRuleDetail" resultType="com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO">
