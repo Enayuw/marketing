@@ -198,17 +198,23 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 oldPackages.stream().filter((XieChengCollidingDataPackage t) -> t.getPriority() <= newPackage.getPriority())
                         .map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
 
-        List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId = packageRuleMapper.getMaxEndTimeGroupByPackageId(priorityPackageIds);
+        List<Long> reserveIds;
+        if (CollectionUtils.isEmpty(priorityPackageIds)) {
+            reserveIds = new ArrayList<>();
+        } else {
+            List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId = packageRuleMapper.getMaxEndTimeGroupByPackageId(priorityPackageIds);
 
-        LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        List<Long> reserveIds =
-                maxEndTimeGroupByPackageId.stream()
-                        .filter((XiechengCollidingDataPackageRule t) -> t.getCollidingEndTime() != null)
-                        .filter((XiechengCollidingDataPackageRule t) -> {
-                            LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            reserveIds =
+                    maxEndTimeGroupByPackageId.stream()
+                            .filter((XiechengCollidingDataPackageRule t) -> t.getCollidingEndTime() != null)
+                            .filter((XiechengCollidingDataPackageRule t) -> {
+                                LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant()
+                                        .atZone(ZoneId.systemDefault()).toLocalDate();
 
-                            return !cleanDate.isAfter(collidingMaxDate);
-                        }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
+                                return !cleanDate.isAfter(collidingMaxDate);
+                            }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
+        }
 
         // 遍历要剔除的数据包，关联跑分和true表，根据id删除
         List<XieChengCollidingDataPackage> deletePackages =

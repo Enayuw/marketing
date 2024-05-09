@@ -217,6 +217,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 if (!batchData.isEmpty()) {
                     writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData), fieldMap);
                 }
+
+                // 删除重复数据
+
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
