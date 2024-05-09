@@ -114,4 +114,28 @@
         </foreach>
         group by package_id;
     </select>
+
+    <update id="updateCollidingRule" parameterType="com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam">
+        update b_xiecheng_colliding_data_package_rule
+        <set>
+            <choose>
+                <when test="collidingBackNumber != null and collidingBackNumber != ''">
+                    colliding_back_number = #{collidingBackNumber,jdbcType=INTEGER},
+                </when>
+                <otherwise>
+                    colliding_back_number = null,
+                </otherwise>
+            </choose>
+            <if test="collidingStartTime != null">
+                colliding_start_time = #{collidingStartTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="collidingEndTime != null">
+                colliding_end_time = #{collidingEndTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="collidingTimes != null">
+                colliding_times = #{collidingTimes,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{dprId,jdbcType=BIGINT}
+    </update>
 </mapper>
