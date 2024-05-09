@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.encryption.BrCipherMaker;
 import com.br.common.mask.DataMask;
 import com.br.common.mask.SensitiveType;
 import com.br.common.util.DateUtils;
@@ -25,6 +26,8 @@ import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.eventtrack.EventTrackingCellReport;
 import com.br.marketing.mapper.*;
+import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.MarketingSyncReportService;
@@ -427,10 +430,20 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         if (StringUtils.isNotEmpty(appletTimeEnd)){
             appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
+        String decodeCell="";
+        decodeCell = BrCipherMaker.getInstance().decode(cell);
         // 1. 明文 cell 需要log加密
-        if(CellUtils.isValidateCell(cell)){
-            cell = DataMask.mask(cell, SensitiveType.LogMask, "");
+        if(CellUtils.isValidateCell(decodeCell)){
+            // do nothing
+        }else if(DecodeGrpcClient.isMd5(decodeCell)){
+            decodeCell = RpcClientProxy.decode(decodeCell, "cell", "md5", "");
+        }else{
+            decodeCell = RpcClientProxy.decode(decodeCell, "cell", "sha", "");
         }
+        if(StringUtils.isBlank(decodeCell)){
+            decodeCell = cell;
+        }
+        decodeCell = DataMask.mask(decodeCell, SensitiveType.LogMask, "");
         List<String> apiCodeList = transformStringToListByComma(apiCodes);
         List<String> userTypeList = transformStringToListByComma(userTypes);
         // 2. 通过 apiCodes 获取客户信息,并将结果填充到响应中
@@ -447,9 +460,21 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         List<MarketingSyncUserCell> syncUserListAllApiCode = new ArrayList<>();
         for (int i = 0; i < apiCodeList.size(); i++) {
             String apiCode = apiCodeList.get(i);
-            List<MarketingSyncUserCell> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikv_(appletTimeStart
-                    , appletTimeEnd, apiCode, userTypeList, cell, orderField, descField);
-            syncUserListAllApiCode.addAll(syncUsersList);
+            try{
+                List<MarketingSyncUserCell> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikv_(appletTimeStart
+                        , appletTimeEnd, apiCode, userTypeList, decodeCell, orderField, descField);
+                syncUserListAllApiCode.addAll(syncUsersList);
+            }catch (Exception e){
+                if(e.getMessage().contains("doesn't exist")){
+                    log.warn("手机号查询表不存在cidOrName:{}-appletTimeStart:{}-appletTimeEnd:{}-apiCode:{}" +
+                                    "-userTypes:{}-cell:{}-orderField:{}-descField:{}"
+                            , cidOrName, appletTimeStart, appletTimeEnd, apiCode, userTypes, cell, orderField, descField);
+                }else{
+                    log.error("cidOrName:{}-appletTimeStart:{}-appletTimeEnd:{}-apiCode:{}" +
+                            "-userTypes:{}-cell:{}-orderField:{}-descField:{}-手机号查询异常--"
+                            , cidOrName, appletTimeStart, appletTimeEnd, apiCode, userTypes, cell, orderField, descField, e);
+                }
+            }
         }
         syncUserListAllApiCode.stream().forEach((MarketingSyncUserCell c) ->{
             String apiCode = c.getApiCode();
