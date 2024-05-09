@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
@@ -68,7 +69,10 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     public PageResultReturn<XiechengCollidingRuleVO> getCollidingRuleFalseList(CollidingRuleListParam listParam) {
         PageHelper.startPage(listParam.getCurrent(), listParam.getSize());
-        List<XiechengCollidingRuleVO> packageRuleList = packageRuleMapper.getCollidingRuleFalseList(listParam);
+        String orderField = marketingCommonConfig.getXieChengCustomizeOrderByClauseConfig().get(listParam.getOrderField());
+        String orderByClause = StringUtils.isEmpty(orderField) ? null
+            : orderField + " " + (StringUtils.isEmpty(listParam.getOrderType()) ? "" : listParam.getOrderType());
+        List<XiechengCollidingRuleVO> packageRuleList = packageRuleMapper.getCollidingRuleFalseList(listParam, orderByClause);
         return PageResultReturn.setPageResult(packageRuleList, listParam.getCurrent(), listParam.getSize());
     }
 

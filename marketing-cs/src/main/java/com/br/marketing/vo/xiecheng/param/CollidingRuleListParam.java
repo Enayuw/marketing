@@ -32,7 +32,10 @@ public class CollidingRuleListParam implements Serializable {
     private String collidingEndTime;
 
     @ApiModelProperty("排序字段")
-    private String orderByClause;
+    private String orderField;
+
+    @ApiModelProperty("排序类型 正序:asc 倒叙:desc")
+    private String orderType;
 
     @ApiModelProperty(value = "当前页数")
     private Integer current = 1;

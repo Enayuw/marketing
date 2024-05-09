@@ -1559,5 +1559,10 @@ public class MarketingCommonConfig {
      * ["7410950_20240507000000_6334","7410950_20240507000000_6682"]
      */
     private List<String> xieChengCollidingRuleScoreStopBatchNums;
+
+    /**
+     * 携程定制化页面列表排序字段配置
+     */
+    private Map<String, String> xieChengCustomizeOrderByClauseConfig;
 }
 
