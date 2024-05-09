@@ -40,8 +40,8 @@
             AND dpr.colliding_start_time <![CDATA[ <= ]]> #{listParam.collidingEndTime}
             AND dpr.colliding_end_time <![CDATA[ >= ]]> #{listParam.collidingStartTime}
         </if>
-        <if test="listParam.orderByClause != null and listParam.orderByClause != ''">
-            ORDER BY #{listParam.orderByClause}
+        <if test="orderByClause != null and orderByClause != ''">
+            ORDER BY ${orderByClause}
         </if>
     </select>
 
@@ -108,7 +108,7 @@
         select package_id, max(colliding_end_time) colliding_end_time
         from b_xiecheng_colliding_data_package_rule
         where is_delete = 0
-        and package_id in
+          and package_id in
         <foreach collection="packageIds" item="packageId" open="(" separator="," close=")">
             #{packageId}
         </foreach>
