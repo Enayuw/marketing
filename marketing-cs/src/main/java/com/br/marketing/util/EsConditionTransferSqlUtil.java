@@ -1,5 +1,6 @@
 package com.br.marketing.util;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.DateHelper;
@@ -23,21 +24,29 @@ public class EsConditionTransferSqlUtil {
         StringBuilder sqlResult = new StringBuilder();
         for (int i = 0; i < dataArray.size(); i++) {
             JSONObject jsonNodeObject = dataArray.getJSONObject(i);
+            //数值操作运算符处理
             if (jsonNodeObject.getString("type").equals("operation")) {
                 String filedDeal = assemblefiled(jsonNodeObject.getString("key"), jsonNodeObject.getString("operation"),
                         jsonNodeObject.get("value"));
                 if (i < dataArray.size() - 1) {
+                    //非最后一位，需拼接逻辑运算符logic
                     sqlResult.append(filedDeal).append(" ").append(logic).append(" ");
                 } else {
                     sqlResult.append(filedDeal).append(" ");
                 }
-            } else if (jsonNodeObject.getString("type").equals("logic")) {
+            } //逻辑运算符处理
+            else if (jsonNodeObject.getString("type").equals("logic")) {
                 //递归处理
                 sqlResult.append(jsonTransferSql(jsonNodeObject, logic));
+                if (i < dataArray.size() - 1) {
+                    //非最后一位，需拼接逻辑运算符logic
+                    sqlResult.append(logic).append(" ");
+                }
             }
         }
+        //内层logic运算用括号括起来
         if (com.br.marketing.common.utils.StringUtils.isNotEmpty(parentLogic)) {
-            sqlResult.insert(0, " (").append(" )");
+            sqlResult.insert(0, " (").append(" ) ");
         }
         return sqlResult.toString();
 
@@ -104,6 +113,15 @@ public class EsConditionTransferSqlUtil {
         return sqlTep;
 
     }
-    
+
+    /*public static void main (String args[]){
+
+        String s = "{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"operation\",\"key\":\"scorencashonxchx\",\"operation\":\"=\",\"value\":\"8\"}]},{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"operation\",\"key\":\"scorencashonxcysxsxtg\",\"operation\":\"=\",\"value\":\"581\"}]}]}";
+
+        JSONObject json = JSON.parseObject(s);
+        System.out.println(jsonTransferSql(json,""));
+
+
+    }*/
 
 }
