@@ -11,4 +11,6 @@ public class FileToMarketingFieldVO {
     private Boolean isExtend;
     private String dynamicData;
     private String conversion;
+    private String groupOptional;
+
 }

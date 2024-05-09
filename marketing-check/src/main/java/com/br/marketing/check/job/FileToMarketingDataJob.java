@@ -28,6 +28,7 @@ import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
@@ -254,6 +255,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                         List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
                         HashMap<String, FileToMarketingDataFieldVO> dataFieldMap = new HashMap<>();
                         HashSet hasSet = new HashSet();
+                        ArrayList<String> list = Lists.newArrayList();
                         String cell = "";
 
                         //region 每列的字段处理逻辑
@@ -282,6 +284,10 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                 }
                             }
                             //endregion
+                            // 选填字段集合
+                            if(StringUtils.isNotBlank(fieldVO.getGroupOptional())){
+                                list.add(fieldVO.getHeadField());
+                            }
 
                             //region 根据配置信息进行处理
                             // 表里没有初始值，需要动态赋值或取默认值（初始数据 > 动态赋值 > 默认值）
@@ -340,10 +346,19 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             vo.setDataValue(fileNm);
                             dataFieldVOS.add(vo);
                         }
-                        // 身份证号和性别选填二选一
-                        if(StringUtils.isBlank(tableMap.get("id")) && StringUtils.isBlank(tableMap.get("gender"))){
-                            errorMsg.append(String.format("身份证号和性别选填二选一"));
-                            continue;
+                        // 选填字段处理：例如身份证号和性别选填二选一
+                        if(!list.isEmpty()){
+                            Boolean b = false;
+                            for (String s : list) {
+                                if(StringUtils.isNotBlank(tableMap.get(s))){
+                                    b = true;
+                                }
+                            }
+                            if(!b){
+                                errorNum++;
+                                log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "选填字段未赋值:"+list);
+                                continue;
+                            }
                         }
                         if (StringUtils.isNotBlank(errorMsg.toString())) {
                             errorNum++;
