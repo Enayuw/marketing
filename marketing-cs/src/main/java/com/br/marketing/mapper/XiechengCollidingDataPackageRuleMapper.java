@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import java.util.List;
 
+import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -23,4 +24,6 @@ public interface XiechengCollidingDataPackageRuleMapper extends XiechengCollidin
     List<XiechengCollidingDataPackageRule> getCollidingPackageRules();
 
     List<XiechengCollidingDataPackageRule> getMaxEndTimeGroupByPackageId(@Param("packageIds") List<Long> packageIds);
+
+    int updateCollidingRule(UpdateCollidingRuleParam param);
 }

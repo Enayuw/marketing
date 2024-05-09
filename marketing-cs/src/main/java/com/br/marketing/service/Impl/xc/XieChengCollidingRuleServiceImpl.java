@@ -135,7 +135,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
         update.setCollidingStartTime(DateUtil.parse(param.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN));
         update.setCollidingEndTime(DateUtil.parse(param.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN));
         update.setId(param.getDprId());
-        return packageRuleMapper.updateByPrimaryKeySelective(update) == 1;
+        return packageRuleMapper.updateCollidingRule(param) == 1;
     }
 
     /**
