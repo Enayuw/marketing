@@ -168,13 +168,12 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
         List<XiechengCollidingDataPackageRule> packageRuleList = packageRuleMapper.listByIds(ids);
         List<Long> packageIds = packageRuleList.stream().map(XiechengCollidingDataPackageRule::getPackageId).distinct().collect(Collectors.toList());
         packageRuleMapper.deleteByIds(ids);
-        packageIds.stream().filter(this::checkPackageId) // 过滤出满足条件的 packageId
-            .forEach(packageId -> {
-                XieChengCollidingDataPackage delete = new XieChengCollidingDataPackage();
-                delete.setIsDelete(1);
-                delete.setId(packageId);
-                packageMapper.updateByPrimaryKeySelective(delete);
-            });
+        packageIds.stream().filter(this::checkPackageId).forEach((Long packageId) -> {
+            XieChengCollidingDataPackage delete = new XieChengCollidingDataPackage();
+            delete.setIsDelete(1);
+            delete.setId(packageId);
+            packageMapper.updateByPrimaryKeySelective(delete);
+        });
         return Boolean.TRUE;
     }
 
