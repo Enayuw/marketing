@@ -81,7 +81,6 @@
         select bmc.cid               as cid,
                bmc.api_code          as apiCode,
                bmc.short_name        as shortName,
-               '-'                   as packageName,
                count(dlc.id)         AS remainingNumber,
                '0'                   as collidingSwitch,
                '0'                   as priority,
@@ -98,7 +97,9 @@
             AND dlc.release_time BETWEEN #{listParam.collidingStartTime} AND #{listParam.collidingEndTime}
         </if>
         GROUP BY DATE_FORMAT(dlc.release_time, '%Y-%m-%d')
-        ORDER BY DATE_FORMAT(dlc.release_time, '%Y-%m-%d')
+        <if test="orderByClause != null and orderByClause != ''">
+            ORDER BY ${orderByClause}
+        </if>
     </select>
 
     <select id="selectCycleNumData" resultType="java.util.Map">

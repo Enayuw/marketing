@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.xc;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -10,6 +11,7 @@ import javax.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -69,7 +71,8 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     public PageResultReturn<XiechengCollidingRuleVO> getCollidingRuleFalseList(CollidingRuleListParam listParam) {
         PageHelper.startPage(listParam.getCurrent(), listParam.getSize());
-        String orderField = marketingCommonConfig.getXieChengCustomizeOrderByClauseConfig().get(listParam.getOrderField());
+        JSONObject orderConfig = marketingCommonConfig.getXieChengCustomizeOrderByClauseConfig().get("falseList");
+        String orderField = orderConfig.getString(listParam.getOrderField());
         String orderByClause = StringUtils.isEmpty(orderField) ? null
             : orderField + " " + (StringUtils.isEmpty(listParam.getOrderType()) ? "" : listParam.getOrderType());
         List<XiechengCollidingRuleVO> packageRuleList = packageRuleMapper.getCollidingRuleFalseList(listParam, orderByClause);
@@ -86,8 +89,12 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
      */
     @Override
     public List<XiechengCollidingRuleVO> getCollidingRuleTrueList(CollidingRuleListParam listParam) {
+        JSONObject orderConfig = marketingCommonConfig.getXieChengCustomizeOrderByClauseConfig().get("trueList");
+        String orderField = orderConfig.getString(listParam.getOrderField());
+        String orderByClause = StringUtils.isEmpty(orderField) ? null
+            : orderField + " " + (StringUtils.isEmpty(listParam.getOrderType()) ? "" : listParam.getOrderType());
         listParam.setApiCode(marketingCommonConfig.getXieChengCustomizeTrueApiCode());
-        return loopCycleMapper.getCollidingRuleTrueList(listParam);
+        return loopCycleMapper.getCollidingRuleTrueList(listParam, orderByClause);
     }
 
     /**

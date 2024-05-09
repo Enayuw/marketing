@@ -1563,6 +1563,6 @@ public class MarketingCommonConfig {
     /**
      * 携程定制化页面列表排序字段配置
      */
-    private Map<String, String> xieChengCustomizeOrderByClauseConfig;
+    private Map<String, JSONObject> xieChengCustomizeOrderByClauseConfig;
 }
 

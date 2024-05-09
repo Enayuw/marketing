@@ -58,12 +58,13 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * 获取调度任务列表-True-不分页
      *
      * @param listParam 列表参数
+     * @param orderByClause 排序参数
      * @return {@link List }<{@link XiechengCollidingRuleVO }>
      * @author senyang.zheng
      * @date 2024/04/24
      */
-    List<XiechengCollidingRuleVO> getCollidingRuleTrueList(@Param("listParam") CollidingRuleListParam listParam);
-
+    List<XiechengCollidingRuleVO> getCollidingRuleTrueList(@Param("listParam") CollidingRuleListParam listParam,
+        @Param("orderByClause") String orderByClause);
 
     /**
      * 查询周期数据量及release_time
