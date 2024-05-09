@@ -557,6 +557,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
+        log.warn("规则中心携程={} 的试算量级sql={}",collidingFilterDTO.getResult(),querySql);
         // 查询Doris
         try {
             total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
@@ -589,9 +590,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             packageRuleExample.createCriteria().andCollidingStartTimeLessThanOrEqualTo(DateHelper.parseDate(cleanTime))
                     .andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.parseDate(cleanTime));
             List<XiechengCollidingDataPackageRule> packageRules = xiechengCollidingDataPackageRuleMapper.selectByExample(packageRuleExample);
-            String packageId = packageRules.stream().map(xiechengCollidingDataPackageRule -> xiechengCollidingDataPackageRule.getPackageId().toString())
-                    .collect(Collectors.joining(","));
-            //清洗时间在撞库区间内，业务应规避此条件
+            String packageId = packageRules.stream().map(xiechengCollidingDataPackageRule -> xiechengCollidingDataPackageRule.getPackageId()
+                    .toString()).collect(Collectors.joining(","));
+            //清洗时间在撞库区间内去重，业务应规避此条件
             if (StringUtils.isNotEmpty(packageId)) {
                 String FalseDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where package_id in (" +
                         packageId + ") and " + "is_delete=0";
@@ -603,7 +604,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria().andTaskTypeEqualTo(0).andTaskStatusEqualTo(0).andIsDeleteEqualTo(0);
         List<XiechengCollidingDataProcessTask> processTasks = xiechengCollidingDataProcessTaskMapper.selectByExample(processTaskExample);
-        processTasks.forEach(processTask -> {
+        processTasks.forEach((XiechengCollidingDataProcessTask processTask) -> {
             falseAndscoreSql.append(" left join (").append(processTask.getTaskExecutionSql()).append(") d").append(processTask.getId())
                     .append(" on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
             whereSql.append(" and  d").append(processTask.getId()).append(".id is null");
@@ -614,12 +615,13 @@ public class PushRuleServiceImpl implements PushRuleService {
     private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, Map<String, String> releaseTime) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
-                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY) and is_delete=0";
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
         //True关联查询
         //传输releaseTime处理
         if (!CollectionUtils.isEmpty(releaseTime)) {
             String releaseTimeSql = EsConditionTransferSqlUtil.assemblefiled("release_time", releaseTime.get("operation"), releaseTime.get("value"));
-            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + releaseTimeSql + " and is_delete=0";
+            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + releaseTimeSql
+                    + " and is_delete=0";
         }
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
@@ -627,10 +629,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         return cycleAndscoreSql.toString();
     }
 
-    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList, Map<String, String> releaseTime) {
+    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
-                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 6 DAY) and is_delete=0";
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time<= DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
         //True关联查询
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle left join (").append(scoreSql).append(") score on " +
@@ -669,6 +671,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!CollectionUtils.isEmpty(datas)) {
             Object result = datas.stream().filter(obj ->
                     ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
+            //api_code为携程且筛选条件传入result
             if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
                 isXieCheng = Boolean.TRUE;
             }
@@ -737,8 +740,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         xiechengCollidingDataProcessTask.setTaskType(1);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(),
-                collidingFilterDTO.getReleaseTime()));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
@@ -776,7 +778,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         xieChengCollidingDataPackage.setCreateTime(new Date());
         xieChengCollidingDataPackage.setUpdateTime(new Date());
         xieChengCollidingDataPackage.setCollidingDataTaskId(xiechengCollidingDataProcessTask.getId());
-        xieChengCollidingDataPackage.setDiscreetNumber(dto.getmPlanNum());
+        xieChengCollidingDataPackage.setDiscreetNumber(dto.getmPrePlanNum());
         xieChengCollidingDataPackageMapper.insertSelective(xieChengCollidingDataPackage);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -787,7 +789,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
-        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime());
+        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList());
         // doris查询
         // 查询Doris
         try {

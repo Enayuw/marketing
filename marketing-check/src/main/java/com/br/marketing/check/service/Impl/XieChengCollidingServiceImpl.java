@@ -80,7 +80,8 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
     /**
      * 携程撞库数据推决策
-     * @param id  CustomerInfoPushMain的id
+     *
+     * @param id CustomerInfoPushMain的id
      */
     @Override
     public Result<Boolean> collidingDataPushPolicy(Long id) {
@@ -127,12 +128,12 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 log.warn("携程撞库推送决策线程调整,corePoolSize={},maxPoolSize={}", threadPool.getCorePoolSize(), threadPool.getMaximumPoolSize());
             }
             //数据切分，为了兼容跑分文件重复数据，业务侧若保证撞库本次跑分文件不重复，该段逻辑去掉
-            List<List<XieChengCollidingDataLoopCycle>> dataLoopCycleLists =  Lists.partition(list, 1000);
-            dataLoopCycleLists.forEach(dataLoopCycleList -> {
+            List<List<XieChengCollidingDataLoopCycle>> dataLoopCycleLists = Lists.partition(list, 1000);
+            dataLoopCycleLists.forEach((List dataLoopCycleList) -> {
                 resList.add(threadPool.submit(() -> pushPolicy(dataLoopCycleList, numList, fileIds, customerInfoPushMain, threeEncrypt)));
             });
         }
-       try {
+        try {
             for (Future<Result<Integer>> pushFuture : resList) {
                 Result<Integer> pushRes = pushFuture.get();
                 if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
@@ -158,7 +159,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         }
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
-        log.warn("携程撞库推送决策完成，推送数据量num={}",realTotalNum);
+        log.warn("携程撞库推送决策完成，推送数据量num={}", realTotalNum);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
@@ -170,7 +171,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
             List<String> logCells = new ArrayList<>();
             //es查询cell为Log加密
-            cells.forEach(cell->{
+            cells.forEach((String cell) -> {
                 logCells.add(EncAndDecUtil.digestToLog(cell, ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.sha256).getData());
             });
             JSONObject jsonRule = JSON.parseObject(customerInfoPushMain.getmRuleCondition());
@@ -191,8 +192,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             queryBaseBean.setJsonData(jsonRule.toString());
             //兼容数据重复的情况
             queryBaseBean.setPageSize(2000);
+            //根据跑分条件查询ES，符合条件的数据即为要推送数据
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-            log.warn("携程撞库查询es匹配数据量num={}",marketingHistories.size());
+            log.warn("携程撞库查询es匹配数据量num={}", marketingHistories.size());
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt);
             //推送任务基础信息
