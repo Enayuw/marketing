@@ -142,10 +142,13 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
 
             Result<?> result4 = action(apiCode, bizDate, "MG", 2, "7", data);
 
+            Result<?> result5 = action(apiCode, bizDate, "MG", 2, "8", data);
+
             if (ResultCode.SUCCESS.getValue().equals(result1.getCode())
                     && ResultCode.SUCCESS.getValue().equals(result2.getCode())
                     && ResultCode.SUCCESS.getValue().equals(result3.getCode())
                     && ResultCode.SUCCESS.getValue().equals(result4.getCode())
+                    && ResultCode.SUCCESS.getValue().equals(result5.getCode())
             ) {
                 yiXinTransferService.updateFrontDataStatus(frontId, 2);
             }
