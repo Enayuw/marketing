@@ -440,6 +440,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         }else{
             decodeCell = RpcClientProxy.decode(decodeCell, "cell", "sha", "");
         }
+        if(StringUtils.isBlank(decodeCell)){
+            decodeCell = cell;
+        }
         decodeCell = DataMask.mask(decodeCell, SensitiveType.LogMask, "");
         List<String> apiCodeList = transformStringToListByComma(apiCodes);
         List<String> userTypeList = transformStringToListByComma(userTypes);
