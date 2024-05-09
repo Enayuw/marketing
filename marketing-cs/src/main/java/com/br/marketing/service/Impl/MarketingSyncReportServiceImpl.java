@@ -430,22 +430,17 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         if (StringUtils.isNotEmpty(appletTimeEnd)){
             appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
-        cell = BrCipherMaker.getInstance().decode(cell);
+        String decodeCell="";
+        decodeCell = BrCipherMaker.getInstance().decode(cell);
         // 1. 明文 cell 需要log加密
-        if(CellUtils.isValidateCell(cell)){
+        if(CellUtils.isValidateCell(decodeCell)){
             // do nothing
-        }else if(DecodeGrpcClient.isMd5(cell)){
-            String decodeCell = RpcClientProxy.decode(cell, "cell", "md5", "");
-            if(StringUtils.isNotBlank(decodeCell)){
-                cell = decodeCell;
-            }
+        }else if(DecodeGrpcClient.isMd5(decodeCell)){
+            decodeCell = RpcClientProxy.decode(decodeCell, "cell", "md5", "");
         }else{
-            String decodeCell = RpcClientProxy.decode(cell, "cell", "sha", "");
-            if(StringUtils.isNotBlank(decodeCell)){
-                cell = decodeCell;
-            }
+            decodeCell = RpcClientProxy.decode(decodeCell, "cell", "sha", "");
         }
-        cell = DataMask.mask(cell, SensitiveType.LogMask, "");
+        decodeCell = DataMask.mask(decodeCell, SensitiveType.LogMask, "");
         List<String> apiCodeList = transformStringToListByComma(apiCodes);
         List<String> userTypeList = transformStringToListByComma(userTypes);
         // 2. 通过 apiCodes 获取客户信息,并将结果填充到响应中
@@ -464,7 +459,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             String apiCode = apiCodeList.get(i);
             try{
                 List<MarketingSyncUserCell> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikv_(appletTimeStart
-                        , appletTimeEnd, apiCode, userTypeList, cell, orderField, descField);
+                        , appletTimeEnd, apiCode, userTypeList, decodeCell, orderField, descField);
                 syncUserListAllApiCode.addAll(syncUsersList);
             }catch (Exception e){
                 if(e.getMessage().contains("doesn't exist")){
