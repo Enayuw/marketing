@@ -14,7 +14,7 @@
     </insert>
 
     <select id="getXieChengScoreTidbTableCount" resultType="java.lang.Long">
-        select count(1) from ${tableName}
+        select count(1) from ${tableName} where is_delete = 0
     </select>
 
 
@@ -25,7 +25,7 @@
     <select id="selectRuleScoreDataRepeatWithFalseDatatikv_" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
         select a.id
         from b_xiecheng_colliding_data_rob a
-        join (${queryRuleScoreDataSql}) AS b on a.cell_sha256_code_list = b.cell
+        join (${queryRuleScoreDataSql}) AS b on a.cell_sha256_code_list = b.cell and b.is_delete = 0
         where a.is_delete = 0 and a.package_id = #{packageId}
         <if test="minId != null and minId>0">
             and a.id > #{minId}
@@ -39,11 +39,20 @@
         FROM (${queryRuleScoreDataSql}) AS a
         LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0
         LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.is_delete = 0
-        WHERE b.id IS NULL AND c.id IS NULL
+        WHERE b.id IS NULL AND c.id IS NULL AND a.is_delete = 0
         <if test="minId != null and minId>0">
             and a.id > #{minId}
         </if>
         order by a.id
         LIMIT 2000;
     </select>
+
+    <update id="updateDeleteByIds">
+        update ${tableName} set is_delete = 1,update_time = now()
+        where id in
+              (SELECT id
+               FROM (SELECT id,cell,ROW_NUMBER() OVER (PARTITION BY cell ORDER BY id) AS row_num
+                     FROM ${tableName}) AS a
+               WHERE row_num > 1);
+    </update>
 </mapper>

@@ -55,9 +55,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     @Resource
     XieChengRuleScoreRecordMapper scoreRecordMapper;
 
-    @Resource
-    XieChengRuleScoreRecordMapper ruleScoreRecordMapper;
-
     @Autowired
     SyncConfigService syncConfigService;
 
@@ -219,7 +216,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 }
 
                 // 删除重复数据
-
+                Integer count = scoreRecordMapper.updateDeleteByIds(tableName);
+                log.error("携程跑分数据同步后删除重复数据，表：{}，量级：{}", tableName, count);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
@@ -269,7 +267,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 .append(" index idx_cell (cell) ")
                 .append("); ");
 
-        ruleScoreRecordMapper.createXieChengScoreTidbTableByBatchNum(createTidbDDL.toString());
+        scoreRecordMapper.createXieChengScoreTidbTableByBatchNum(createTidbDDL.toString());
 
         createDorisDDL.append(" extend string,")
                 .append(" create_time datetime,")
@@ -286,7 +284,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                         "'disable_auto_compaction' = 'false'\n" +
                         ");");
 
-        ruleScoreRecordMapper.createXieChengScoreDorisTableByBatchNumdoris_(createDorisDDL.toString());
+        scoreRecordMapper.createXieChengScoreDorisTableByBatchNumdoris_(createDorisDDL.toString());
     }
 
     private boolean canConvertToBigdecimal(String value) {
@@ -354,7 +352,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     @RetryMethod(retryNowNum = 2)
     public Result insertXieChengScoreTidbTable(String insertSql, List<String> batchData) {
         try {
-            ruleScoreRecordMapper.insertXieChengScoreTidbTable(insertSql);
+            scoreRecordMapper.insertXieChengScoreTidbTable(insertSql);
         } catch (Exception e) {
             log.error("携程跑分数据同步作业,写入数据库异常:" + String.join(";", batchData), e.getMessage(), e);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());

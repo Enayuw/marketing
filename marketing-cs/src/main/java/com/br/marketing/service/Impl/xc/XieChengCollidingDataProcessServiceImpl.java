@@ -230,7 +230,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (XieChengCollidingDataPackage deletePackage : deletePackages) {
-                String queryRuleScoreDataSql = "select cell from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
+                String queryRuleScoreDataSql = "select cell, is_delete from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
 
                 while (true) {
                     List<XieChengCollidingDataRob> repeatWithFalseData = ruleScoreRecordMapper.selectRuleScoreDataRepeatWithFalseDatatikv_(minId,
@@ -267,7 +267,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 continue;
             }
 
-            String queryRuleScoreDataSql = "select id, cell from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
+            String queryRuleScoreDataSql = "select id, cell, is_delete from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
 
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             while (true) {

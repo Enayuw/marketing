@@ -29,4 +29,6 @@ public interface XieChengRuleScoreRecordMapper extends XieChengRuleScoreRecordMa
      */
     List<XieChengRuleScoreData> selectRuleScoreDataExcludeTrueAndFalseDatatikv_(@Param("minId") Long minId
             , @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql);
+
+    Integer updateDeleteByIds(@Param("tableName") String tableName);
 }
