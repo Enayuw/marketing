@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * @Description XieChengRuleScoreToDbServiceImpl
+ * @Description 携程跑分数据同步作业实现类
  * @Author hong.chen
  * @CreateTime 2024/04/22
  */
@@ -70,23 +70,16 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
-        // 分片项目
+        // 获取分片信息
         List<Integer> shardingItems = context.getShardingItems();
-        // 总分片数
         int shardingTotalCount = context.getShardingTotalCount();
+        List<Long> Longitems = shardingItems.stream().map(Integer::longValue).collect(Collectors.toList());
 
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) -> {
-            LocalDate createTimeStartLocalDate = LocalDate.now().minusDays(marketingCommonConfig.getXieChengRuleScoreToDbLastDays());
-            Date createTimeStartDate = Date.from(createTimeStartLocalDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+            // 获取T-n~T日跑分记录表
+            List<StraHisFile> straHisFiles = getStraHisFiles(apiCode);
 
-            StraHisFileExample straHisFileExample = new StraHisFileExample();
-            straHisFileExample.createCriteria()
-                    .andApiCodeEqualTo(apiCode).andStatusEqualTo(2)
-                    .andCreateTimeGreaterThanOrEqualTo(createTimeStartDate)
-                    .andTypeEqualTo(2);
-            List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-
-            List<Long> Longitems = shardingItems.stream().map(Integer::longValue).collect(Collectors.toList());
+            // 获取分片后的跑分记录
             List<StraHisFile> shardStraHisFiles = straHisFiles.stream().filter((StraHisFile t) -> Longitems.contains(Math.floorMod(t.getId(),
                     shardingTotalCount))).collect(Collectors.toList());
 
@@ -94,64 +87,125 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 return;
             }
 
+            // 创建线程池
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread(),
                     marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread());
 
             shardStraHisFiles.forEach((StraHisFile straHisFile) -> {
-                XieChengRuleScoreRecordExample scoreRecordExample = new XieChengRuleScoreRecordExample();
-                scoreRecordExample.createCriteria().andIsDeleteEqualTo(0).andBatchNumberEqualTo(straHisFile.getBatchNumber());
-                List<XieChengRuleScoreRecord> xieChengRuleScoreRecords = scoreRecordMapper.selectByExample(scoreRecordExample);
+                // 根据跑分编号获取携程数据同步记录表
+                List<XieChengRuleScoreRecord> xieChengRuleScoreRecords = getXieChengRuleScoreRecords(straHisFile);
 
                 if (CollectionUtils.isEmpty(xieChengRuleScoreRecords)) {
-                    XieChengRuleScoreRecord scoreRecord = new XieChengRuleScoreRecord();
-                    scoreRecord.setApiCode(apiCode);
-                    scoreRecord.setRecordStatus(1);
-                    scoreRecord.setBatchNumber(straHisFile.getBatchNumber());
-                    scoreRecord.setFileName(straHisFile.getFileName());
-                    scoreRecord.setCreateTime(new Date());
-                    scoreRecord.setUpdateTime(new Date());
+                    // 新增数据同步记录
+                    XieChengRuleScoreRecord scoreRecord = createRuleScoreRecord(apiCode, straHisFile);
 
-                    scoreRecordMapper.insertSelective(scoreRecord);
+                    // 执行数据同步
+                    Result<Integer> result = doProcess(straHisFile, threadPool);
 
-                    Result<Integer> result = createTableAndInsert(straHisFile, threadPool);
-
-                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                        String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
-                        Long actualNumber = scoreRecordMapper.getXieChengScoreTidbTableCount(tableName);
-                        XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
-                        updateRecord.setId(scoreRecord.getId());
-                        updateRecord.setRecordStatus(2);
-                        updateRecord.setUpdateTime(new Date());
-                        updateRecord.setActualNumber(actualNumber.intValue());
-                        scoreRecordMapper.updateByPrimaryKeySelective(updateRecord);
-                    } else if (ResultCode.FAIL.getValue().equals(result.getCode())) {
-                        XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
-                        updateRecord.setId(scoreRecord.getId());
-                        updateRecord.setRecordStatus(3);
-                        updateRecord.setErrorMessage(result.getMessage());
-                        updateRecord.setUpdateTime(new Date());
-                        scoreRecordMapper.updateByPrimaryKeySelective(updateRecord);
-                    }
+                    // 更新数据同步记录
+                    updateRuleScoreRecord(straHisFile, result, scoreRecord);
                 }
             });
 
-            threadPool.shutdown();
-            try {
-                while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.info("携程跑分数据同步作业线程池关闭");
-                }
-            } catch (InterruptedException ex) {
-                threadPool.shutdownNow();
-                log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
-                Thread.currentThread().interrupt();
-            }
+            // 关闭线程池
+            threadPoolShutDown(threadPool);
         });
     }
 
-    private Result<Integer> createTableAndInsert(StraHisFile straHisFile, ThreadPoolExecutor threadPool) {
-        Result result = new Result();
+    private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程跑分数据同步作业线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
+            Thread.currentThread().interrupt();
+        }
+    }
 
+    /**
+     * 更新数据同步记录
+     * @param straHisFile
+     * @param result
+     * @param scoreRecord
+     */
+    private void updateRuleScoreRecord(StraHisFile straHisFile, Result<Integer> result, XieChengRuleScoreRecord scoreRecord) {
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            String tableName = "b_xiecheng_colliding_" + straHisFile.getBatchNumber();
+            Long actualNumber = scoreRecordMapper.getXieChengScoreTidbTableCount(tableName);
+            XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
+            updateRecord.setId(scoreRecord.getId());
+            updateRecord.setRecordStatus(2);
+            updateRecord.setUpdateTime(new Date());
+            updateRecord.setActualNumber(actualNumber.intValue());
+            scoreRecordMapper.updateByPrimaryKeySelective(updateRecord);
+        } else if (ResultCode.FAIL.getValue().equals(result.getCode())) {
+            XieChengRuleScoreRecord updateRecord = new XieChengRuleScoreRecord();
+            updateRecord.setId(scoreRecord.getId());
+            updateRecord.setRecordStatus(3);
+            updateRecord.setErrorMessage(result.getMessage());
+            updateRecord.setUpdateTime(new Date());
+            scoreRecordMapper.updateByPrimaryKeySelective(updateRecord);
+        }
+    }
+
+    /**
+     * 新增数据同步记录
+     * @param apiCode
+     * @param straHisFile
+     * @return
+     */
+    private XieChengRuleScoreRecord createRuleScoreRecord(String apiCode, StraHisFile straHisFile) {
+        XieChengRuleScoreRecord scoreRecord = new XieChengRuleScoreRecord();
+        scoreRecord.setApiCode(apiCode);
+        scoreRecord.setRecordStatus(1);
+        scoreRecord.setBatchNumber(straHisFile.getBatchNumber());
+        scoreRecord.setFileName(straHisFile.getFileName());
+        scoreRecord.setCreateTime(new Date());
+        scoreRecord.setUpdateTime(new Date());
+
+        scoreRecordMapper.insertSelective(scoreRecord);
+        return scoreRecord;
+    }
+
+    /**
+     * 获取T-n~T日跑分记录表
+     * stra_his_file.status=2 && stra_his_file.create_time>=T-n && type = 2(一次性跑分)
+     * @param apiCode
+     * @return
+     */
+    private List<StraHisFile> getStraHisFiles(String apiCode) {
+        LocalDate createTimeStartLocalDate = LocalDate.now().minusDays(marketingCommonConfig.getXieChengRuleScoreToDbLastDays());
+        Date createTimeStartDate = Date.from(createTimeStartLocalDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
+        straHisFileExample.createCriteria()
+                .andApiCodeEqualTo(apiCode).andStatusEqualTo(2)
+                .andCreateTimeGreaterThanOrEqualTo(createTimeStartDate)
+                .andTypeEqualTo(2);
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+        return straHisFiles;
+    }
+
+    /**
+     * 根据跑分编号获取携程数据同步记录表
+     * b_xiecheng_colliding_rule_score_record.is_delete=0 && batch_number='跑分任务编号'
+     * @param straHisFile
+     * @return
+     */
+    private List<XieChengRuleScoreRecord> getXieChengRuleScoreRecords(StraHisFile straHisFile) {
+        XieChengRuleScoreRecordExample scoreRecordExample = new XieChengRuleScoreRecordExample();
+        scoreRecordExample.createCriteria().andIsDeleteEqualTo(0).andBatchNumberEqualTo(straHisFile.getBatchNumber());
+        List<XieChengRuleScoreRecord> xieChengRuleScoreRecords = scoreRecordMapper.selectByExample(scoreRecordExample);
+        return xieChengRuleScoreRecords;
+    }
+
+    private Result doProcess(StraHisFile straHisFile, ThreadPoolExecutor threadPool) {
+        Result result = new Result();
         int deleteCount = 0;
+
         String batchNumber = straHisFile.getBatchNumber();
         if (StringUtils.isEmpty(batchNumber)) {
             String errMsg = "跑分编号为空，跑分id：" + straHisFile.getId();
@@ -159,13 +213,11 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
         }
         String tableName = "b_xiecheng_colliding_" + batchNumber;
+        Map<String, String> fieldMap = marketingCommonConfig.getXieChengCollidingRuleScoreFieldMap();
 
         for (String fileName : straHisFile.getFileName().split(",")) {
             File file = new File(straHisFile.getFilePath(), fileName);
-//            String path =
-//                    "D:\\opt\\data1\\inloan\\download\\marketing\\once\\7410950\\7410950_20240425000000_8332\\2024-04-25" + File.separator +
-//                    fileName;
-//            File file = new File(path);
+
             if (!file.exists()) {
                 String errMsg = "跑分文件不存在，path：" + file.getAbsolutePath();
                 log.error(errMsg);
@@ -173,6 +225,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             }
 
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                // 获取文件表头
                 String header = reader.readLine();
                 if (header == null) {
                     String errMsg = "文件内容为空，path：" + file.getAbsolutePath();
@@ -180,7 +233,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
+                // 将文件字段id替换为t_id
                 String headerColumn = header.replace(",id,", ",t_id,");
+
                 List<String> columns = Arrays.asList(headerColumn.split(",", -1));
                 if (!columns.contains("cell")) {
                     String errMsg = "文件表头缺少cell字段，path：" + file.getAbsolutePath();
@@ -195,55 +250,45 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
-                String firstLine = reader.readLine();
-                List<String> firstLineList = Arrays.asList(firstLine.split(",", -1));
-
-                Map<String, String> fieldMap = marketingCommonConfig.getXieChengCollidingRuleScoreFieldMap();
-
-                // 表头字段映射
+                // 根据配置重新映射表头
                 List<String> transferColumn =
                         columns.stream().map((String column) -> fieldMap.getOrDefault(column, column)).collect(Collectors.toList());
 
-                // 校验是否有驼峰字段
+                // 校验表头是否有驼峰字段
                 checkIsCamelCase(transferColumn, file);
 
-                // 创建tidb和doris表结构
-                createTidbAndDorisTable(transferColumn, firstLineList, tableName, fieldMap);
+                // 获取表头下第一行数据
+                String firstLine = reader.readLine();
+                List<String> firstLineList = Arrays.asList(firstLine.split(",", -1));
 
+                // 创建tidb和doris表结构
+                createTidbAndDorisTable(transferColumn, firstLineList, tableName);
+
+                // 每50行数据1个线程写入tidb
                 List<String> batchData = new ArrayList<>();
                 batchData.add(firstLine);
                 String dataLine;
-
                 List<CompletableFuture<Void>> futures = new ArrayList<>();
                 while ((dataLine = reader.readLine()) != null) {
                     if (marketingCommonConfig.getXieChengCollidingRuleScoreStopBatchNums().contains(batchNumber)) {
                         return result.setCode(ResultCode.FAIL.getValue()).setMessage("手动停止该同步任务");
                     }
-
                     batchData.add(dataLine);
                     if (batchData.size() == BATCH_SIZE) {
                         ArrayList<String> subList = new ArrayList<>(batchData);
-                        futures.add(CompletableFuture.runAsync(() -> writeFileDataToTidb(tableName, transferColumn, subList, fieldMap)
+                        futures.add(CompletableFuture.runAsync(() -> writeFileDataToTidb(tableName, transferColumn, subList)
                                 , threadPool));
                         batchData.clear();
                     }
                 }
-
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
+                // 主线程处理尾量数据
                 if (!batchData.isEmpty()) {
-                    writeFileDataToTidb(tableName, transferColumn, new ArrayList<>(batchData), fieldMap);
+                    writeFileDataToTidb(tableName, transferColumn, new ArrayList<>(batchData));
                 }
 
-                // 删除重复数据
-                String extend = "删除原因:cell重复";
-                while (true) {
-                    Integer count = scoreRecordMapper.updateDeleteByIdstikv_(tableName, extend);
-                    if (count <= 0) {
-                        break;
-                    }
-                    deleteCount += count;
-                }
+                // 删除该表所有重复数据
+                deleteCount = deleteRepeatData(tableName, deleteCount);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
@@ -259,6 +304,18 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
 
+    private int deleteRepeatData(String tableName, int deleteCount) {
+        String extend = "删除原因:cell重复";
+        while (true) {
+            Integer count = scoreRecordMapper.updateDeleteByIdstikv_(tableName, extend);
+            if (count <= 0) {
+                break;
+            }
+            deleteCount += count;
+        }
+        return deleteCount;
+    }
+
     private void checkIsCamelCase(List<String> transferColumn, File file) {
         String regex = "^[a-z]+[A-Z][a-zA-Z0-9]*$";
         for (String column : transferColumn) {
@@ -270,12 +327,15 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         }
     }
 
-    private void createTidbAndDorisTable(List<String> columns, List<String> firstLine, String tableName, Map<String, String> fieldMap) {
+    private void createTidbAndDorisTable(List<String> columns, List<String> firstLine, String tableName) {
+        // tidb建表ddl
         StringBuilder createTidbDDL = new StringBuilder();
+        // doris建表ddl
+        StringBuilder createDorisDDL = new StringBuilder();
+
         createTidbDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (")
                 .append(" id bigint auto_increment primary key, ");
 
-        StringBuilder createDorisDDL = new StringBuilder();
         createDorisDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (")
                 .append(" id bigint, ");
 
@@ -343,7 +403,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         }
     }
 
-    private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData, Map<String, String> fieldMap) {
+    private void writeFileDataToTidb(String tableName, List<String> columns, List<String> batchData) {
         try {
             StringBuilder insertSql = new StringBuilder("INSERT INTO ");
             insertSql.append(tableName).append(" (");
@@ -360,9 +420,11 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     .append("update_time,").append("is_delete").append(") VALUES ");
 
             List<String> dataList;
+            // 遍历每行
             for (String dataLine : batchData) {
                 dataList = Arrays.asList(dataLine.split(",", -1));
                 insertSql.append("(");
+                // 遍历每列
                 for (int i = 0; i < dataList.size(); i++) {
                     String value = dataList.get(i).trim();
                     if (numColumns.contains(i) && StringUtils.isEmpty(value)) {
@@ -377,7 +439,6 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
             insertSql.setLength(insertSql.length() - 1);
             ruleScoreToDbService.insertXieChengScoreTidbTable(insertSql.toString(), batchData);
-
         } catch (Exception e) {
             log.error("携程跑分数据同步作业，子线程异常", e.getMessage(), e);
         }
