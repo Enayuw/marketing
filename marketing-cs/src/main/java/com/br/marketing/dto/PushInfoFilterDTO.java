@@ -1,6 +1,10 @@
 package com.br.marketing.dto;
 
+import com.br.marketing.common.utils.StringUtils;
 import io.swagger.annotations.ApiModelProperty;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class PushInfoFilterDTO {
@@ -18,13 +22,32 @@ public class PushInfoFilterDTO {
     private String pushInfoId;
 
     @ApiModelProperty(value = "推送状态 1-执行中；2-执行成功；3-执行失败")
-    private Integer mStatus;
+    private String mStatus;
+    private List<String> mStatusList;
 
     @ApiModelProperty(value = "页号")
     private Integer current;
 
     @ApiModelProperty(value = "页大小")
     private Integer size;
+
+    public List<String> getmStatusList() {
+        if(mStatusList == null || mStatusList.size()<1){
+            if(StringUtils.isNotBlank(mStatus)){
+                List<String> mStatusList = new ArrayList<>();
+                String[] split = mStatus.split(",");
+                for(String item : split){
+                    mStatusList.add(item);
+                }
+                this.mStatusList = mStatusList;
+            }
+        }
+        return mStatusList;
+    }
+
+    public void setmStatusList(List<String> mStatusList) {
+        this.mStatusList = mStatusList;
+    }
 
     public String getmApiCode() {
         return mApiCode;
@@ -58,11 +81,11 @@ public class PushInfoFilterDTO {
         this.pushInfoId = pushInfoId;
     }
 
-    public Integer getmStatus() {
+    public String getmStatus() {
         return mStatus;
     }
 
-    public void setmStatus(Integer mStatus) {
+    public void setmStatus(String mStatus) {
         this.mStatus = mStatus;
     }
 

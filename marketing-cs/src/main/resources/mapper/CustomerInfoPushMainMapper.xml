@@ -52,8 +52,11 @@
         <if test="pushInfoId !=null and pushInfoId!=''">
             and id = #{pushInfoId}
         </if>
-        <if test="mStatus !=null and mStatus!=''">
-            and m_status = #{mStatus}
+        <if test="mStatusList !=null and mStatusList.size()>0">
+            and m_status in
+            <foreach collection="mStatusList" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
         </if>
         order by create_time desc,update_time desc,id desc
     </select>

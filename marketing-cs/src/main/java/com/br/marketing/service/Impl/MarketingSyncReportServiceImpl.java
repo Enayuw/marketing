@@ -457,8 +457,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             c.setCid(marketingCustomer.getCid());
             c.setShortName(marketingCustomer.getShortName());
         });
-        syncUserListAllApiCode.stream().sorted(Comparator.comparing(MarketingSyncUserCell::getAppletDate)).collect(Collectors.toList());
-        result.put("records", JSON.toJSON(syncUserListAllApiCode));
+        List<MarketingSyncUserCell> collect = syncUserListAllApiCode.stream()
+                .sorted(Comparator.comparing(MarketingSyncUserCell::getAppletDate))
+                .collect(Collectors.toList());
+        result.put("records", JSON.toJSON(collect));
         JSONObject countObject = new JSONObject();
         // 单独计算全部数据的统计总数
         Long normalNumTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getNormalNum).sum();
