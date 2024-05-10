@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -8,10 +9,12 @@ import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.entity.XieChengRuleScoreRecord;
 import com.br.marketing.entity.XieChengRuleScoreRecordExample;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -59,6 +62,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
     @Value("${datasource.database.marketingDoris.replicationAllocation:1}")
     String replicationAllocation;
+
+    @Autowired
+    private DingDingRobotHookService dingDingRobotHookService;
 
     private static final int BATCH_SIZE = 50;
 
@@ -222,17 +228,24 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 }
 
                 // 删除重复数据
-                Integer count = scoreRecordMapper.updateDeleteByIdstikv_(tableName);
-                deleteCount = deleteCount + count;
-
+                String extend = "删除原因:cell重复";
+                while (true) {
+                    Integer count = scoreRecordMapper.updateDeleteByIdstikv_(tableName, extend);
+                    if (count <= 0) {
+                        break;
+                    }
+                    deleteCount += count;
+                }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
             }
         }
 
+        // 发送钉钉告警
         if (deleteCount > 0) {
-            log.error("携程跑分数据同步后删除重复数据，表：{}，删除量级：{}", tableName, deleteCount);
+            String msg = "携程跑分数据同步后删除重复数据,表:" + tableName + ",删除量级:" + deleteCount;
+            sendDingDing(msg);
         }
 
         return result.setCode(ResultCode.SUCCESS.getValue());
@@ -370,5 +383,12 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         }
 
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    private void sendDingDing(String msg) {
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
+
+        dingDingRobotHookService.sendDingDingTextMessage(msg, map);
     }
 }

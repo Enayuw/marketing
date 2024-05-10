@@ -39,6 +39,7 @@
         FROM (${queryRuleScoreDataSql}) AS a
         LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0
         LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.is_delete = 0
+        JOIN b_xiecheng_colliding_data_package d on c.package_id = d.id and d.is_delete = 0
         WHERE b.id IS NULL AND c.id IS NULL AND a.is_delete = 0
         <if test="minId != null and minId>0">
             and a.id > #{minId}
@@ -48,11 +49,11 @@
     </select>
 
     <update id="updateDeleteByIdstikv_">
-        update ${tableName} set is_delete = 1,update_time = now()
-        where is_delete = 0 and id in
+        update ${tableName} set is_delete = 1,update_time = now(),extend = #{extend}
+        where id in
               (SELECT id
                FROM (SELECT id,cell,ROW_NUMBER() OVER (PARTITION BY cell ORDER BY id) AS row_num
-                     FROM ${tableName}) AS a
-               WHERE row_num > 1);
+                     FROM ${tableName} where is_delete = 0) AS a
+               WHERE row_num > 1 limit 2000);
     </update>
 </mapper>
