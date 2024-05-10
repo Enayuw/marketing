@@ -199,8 +199,16 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 List<String> firstLineList = Arrays.asList(firstLine.split(",", -1));
 
                 Map<String, String> fieldMap = marketingCommonConfig.getXieChengCollidingRuleScoreFieldMap();
+
+                // 表头字段映射
+                List<String> transferColumn =
+                        columns.stream().map((String column) -> fieldMap.getOrDefault(column, column)).collect(Collectors.toList());
+
+                // 校验是否有驼峰字段
+                checkIsCamelCase(transferColumn, file);
+
                 // 创建tidb和doris表结构
-                createTidbAndDorisTable(columns, firstLineList, tableName, fieldMap);
+                createTidbAndDorisTable(transferColumn, firstLineList, tableName, fieldMap);
 
                 List<String> batchData = new ArrayList<>();
                 batchData.add(firstLine);
@@ -215,7 +223,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     batchData.add(dataLine);
                     if (batchData.size() == BATCH_SIZE) {
                         ArrayList<String> subList = new ArrayList<>(batchData);
-                        futures.add(CompletableFuture.runAsync(() -> writeFileDataToTidb(tableName, columns, subList, fieldMap)
+                        futures.add(CompletableFuture.runAsync(() -> writeFileDataToTidb(tableName, transferColumn, subList, fieldMap)
                                 , threadPool));
                         batchData.clear();
                     }
@@ -224,7 +232,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
                 if (!batchData.isEmpty()) {
-                    writeFileDataToTidb(tableName, columns, new ArrayList<>(batchData), fieldMap);
+                    writeFileDataToTidb(tableName, transferColumn, new ArrayList<>(batchData), fieldMap);
                 }
 
                 // 删除重复数据
@@ -251,6 +259,17 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         return result.setCode(ResultCode.SUCCESS.getValue());
     }
 
+    private void checkIsCamelCase(List<String> transferColumn, File file) {
+        String regex = "^[a-z]+[A-Z][a-zA-Z0-9]*$";
+        for (String column : transferColumn) {
+            // 驼峰格式的正则表达式
+            if (column.matches(regex)) {
+                String errMsg = "文件表头字段为驼峰格式，文件path：" + file.getAbsolutePath() + "，字段：" + column;
+                log.error(errMsg);
+            }
+        }
+    }
+
     private void createTidbAndDorisTable(List<String> columns, List<String> firstLine, String tableName, Map<String, String> fieldMap) {
         StringBuilder createTidbDDL = new StringBuilder();
         createTidbDDL.append("CREATE TABLE IF NOT EXISTS ").append(tableName).append(" (")
@@ -264,13 +283,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             String column = columns.get(i);
             String value = firstLine.get(i);
 
-            if (fieldMap.containsKey(column)) {
-                createTidbDDL.append(fieldMap.get(column));
-                createDorisDDL.append(fieldMap.get(column));
-            } else {
-                createTidbDDL.append(column.trim());
-                createDorisDDL.append(column.trim());
-            }
+            createTidbDDL.append(column.trim());
+            createDorisDDL.append(column.trim());
 
             if (column.startsWith("score") && canConvertToBigdecimal(value)) {
                 createTidbDDL.append(" decimal(12,6), ");
@@ -335,11 +349,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             insertSql.append(tableName).append(" (");
             List<Integer> numColumns = new ArrayList<>(columns.size());
             for (int i = 0; i < columns.size(); i++) {
-                if (fieldMap.containsKey(columns.get(i))) {
-                    insertSql.append(fieldMap.get(columns.get(i))).append(", ");
-                } else {
-                    insertSql.append(columns.get(i).trim()).append(", ");
-                }
+                insertSql.append(columns.get(i).trim()).append(", ");
 
                 if (columns.get(i).startsWith("score") || columns.get(i).endsWith("age")) {
                     numColumns.add(i);
