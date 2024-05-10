@@ -2,8 +2,10 @@ package com.br.marketing.service.Impl.xc;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -13,15 +15,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.XieChengCollidingDataPackage;
+import com.br.marketing.entity.XieChengCollidingDataRobExample;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
 import com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging;
 import com.br.marketing.entity.XiechengCollidingDataPackageRuleStagingExample;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
+import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
 import com.br.marketing.mapper.XiechengCollidingDataPackageRuleStagingMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -45,6 +52,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleService {
 
+    public static final ThreadPoolExecutor XIECHENG_ROB_DATA_DELETE_THREAD = BrExecutors.getThreadPool(5, 5);
+
     @Resource
     private XiechengCollidingDataPackageRuleMapper packageRuleMapper;
 
@@ -59,6 +68,9 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private XieChengCollidingDataRobMapper robMapper;
 
     /**
      * 获取调度任务列表-False-分页
@@ -184,8 +196,43 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             delete.setIsDelete(1);
             delete.setId(packageId);
             packageMapper.updateByPrimaryKeySelective(delete);
+            ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
+            try {
+                pool.submit(() -> deleteRobDataByPackageId(packageId));
+            } catch (Exception e) {
+                log.error("删除撞库规则，异步删除数据包对应非周期数据异常", e);
+            } finally {
+                pool.shutdown();
+                try {
+                    while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                        log.warn("删除撞库规则，异步删除数据包对应非周期数据，等待线程池结束");
+                    }
+                } catch (InterruptedException e) {
+                    pool.shutdownNow();
+                    log.error("删除撞库规则，异步删除数据包对应非周期数据，线程池关闭异常,直接关闭线程池", e);
+                }
+            }
         });
         return Boolean.TRUE;
+    }
+
+    public Result<Boolean> deleteRobDataByPackageId(Long packageId) {
+        XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
+        example.createCriteria().andIsDeleteEqualTo(0).andPackageIdEqualTo(packageId);
+        int deleteCount = robMapper.countByExample(example);
+        int limit = 10000;
+        try {
+            while (deleteCount > 0) {
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                    robMapper.batchDeleteRobDataByPackageId(packageId, limit);
+                }, XIECHENG_ROB_DATA_DELETE_THREAD);
+                future.get();
+                deleteCount -= limit;
+            }
+        } catch (Exception e) {
+            log.error("异步删除数据包对应非周期数据异常", e);
+        }
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
     private Boolean checkPackageId(Long packageId) {

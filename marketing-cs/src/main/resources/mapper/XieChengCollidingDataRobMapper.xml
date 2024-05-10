@@ -133,4 +133,12 @@
           and is_delete = 0
         limit 20000
     </update>
+
+    <update id="batchDeleteRobDataByPackageId">
+        update b_xiecheng_colliding_data_rob
+        set is_delete = 1
+        where package_id = #{packageId}
+          and is_delete = 0
+        limit #{limit}
+    </update>
 </mapper>
