@@ -60,6 +60,8 @@ public class PushInfoListVO {
             return PushRuleStatusEnum.CONFIRMED_FAIL.getDesc();
         } else if (mStatus.equals(PushRuleStatusEnum.TO_BE_RUNNING.getValue())) {
             return PushRuleStatusEnum.TO_BE_RUNNING.getDesc();
+        } else if (mStatus.equals(PushRuleStatusEnum.CONFIRMED_TIME_OUT.getValue())) {
+            return PushRuleStatusEnum.CONFIRMED_TIME_OUT.getDesc();
         } else {
             return "状态异常";
         }
