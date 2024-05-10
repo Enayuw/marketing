@@ -15,8 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -197,11 +195,12 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             delete.setId(packageId);
             packageMapper.updateByPrimaryKeySelective(delete);
             ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
-            try {
-                pool.submit(() -> deleteRobDataByPackageId(packageId));
-            } catch (Exception e) {
-                log.error("删除撞库规则，异步删除数据包对应非周期数据异常", e);
-            } finally {
+            // 异步删除操作
+            CompletableFuture<Void> deleteFuture = CompletableFuture.runAsync(() -> {
+                deleteRobDataByPackageId(packageId);
+            });
+            // 添加删除操作完成后的回调
+            deleteFuture.thenAccept(result -> {
                 pool.shutdown();
                 try {
                     while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -211,28 +210,34 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
                     pool.shutdownNow();
                     log.error("删除撞库规则，异步删除数据包对应非周期数据，线程池关闭异常,直接关闭线程池", e);
                 }
-            }
+            });
         });
         return Boolean.TRUE;
     }
 
-    public Result<Boolean> deleteRobDataByPackageId(Long packageId) {
-        XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
-        example.createCriteria().andIsDeleteEqualTo(0).andPackageIdEqualTo(packageId);
-        int deleteCount = robMapper.countByExample(example);
-        int limit = 10000;
-        try {
+    public void deleteRobDataByPackageId(Long packageId) {
+        CompletableFuture<Void> deleteFuture = CompletableFuture.runAsync(() -> {
+            XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
+            example.createCriteria().andIsDeleteEqualTo(0).andPackageIdEqualTo(packageId);
+            int deleteCount = robMapper.countByExample(example);
+            int limit = 10000;
             while (deleteCount > 0) {
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    robMapper.batchDeleteRobDataByPackageId(packageId, limit);
-                }, XIECHENG_ROB_DATA_DELETE_THREAD);
-                future.get();
+                robMapper.batchDeleteRobDataByPackageId(packageId, limit);
                 deleteCount -= limit;
             }
-        } catch (Exception e) {
-            log.error("异步删除数据包对应非周期数据异常", e);
-        }
-        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }, XIECHENG_ROB_DATA_DELETE_THREAD);
+        // 添加删除操作完成后的回调
+        deleteFuture.thenAccept(result -> {
+            XIECHENG_ROB_DATA_DELETE_THREAD.shutdown();
+            try {
+                while (!XIECHENG_ROB_DATA_DELETE_THREAD.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.warn("删除撞库规则，XIECHENG_ROB_DATA_DELETE_THREAD等待线程池结束");
+                }
+            } catch (InterruptedException e) {
+                XIECHENG_ROB_DATA_DELETE_THREAD.shutdownNow();
+                log.error("删除撞库规则，XIECHENG_ROB_DATA_DELETE_THREAD线程池关闭异常,直接关闭线程池", e);
+            }
+        });
     }
 
     private Boolean checkPackageId(Long packageId) {
