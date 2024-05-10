@@ -56,4 +56,6 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     Long selectCountFromRobByNewPackageId(@Param("packageId") Long packageId);
 
     int batchResetCollidingCount();
+
+    int batchDeleteRobDataByPackageId(@Param("packageId") Long packageId, @Param("limit") int limit);
 }
