@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
- * @Description XieChengCollidingDataProcessServiceImpl
+ * @Description 携程撞库数据处理作业实现类
  * @Author hong.chen
  * @CreateTime 2024/04/24
  */
@@ -68,11 +68,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         Date nowDate = Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apicode) -> {
-            XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apicode).andIsDeleteEqualTo(0)
-                    .andTaskStatusEqualTo(0).andTaskStartTimeEqualTo(nowDate);
-            taskExample.setOrderByClause("create_time asc");
-            List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(taskExample);
+            List<XiechengCollidingDataProcessTask> taskList = getXiechengCollidingDataProcessTasks(apicode, nowDate);
 
             if (CollectionUtils.isEmpty(taskList)) {
                 return;
@@ -127,6 +123,15 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 Thread.currentThread().interrupt();
             }
         });
+    }
+
+    private List<XiechengCollidingDataProcessTask> getXiechengCollidingDataProcessTasks(String apicode, Date nowDate) {
+        XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
+        taskExample.createCriteria().andApiCodeEqualTo(apicode).andIsDeleteEqualTo(0)
+                .andTaskStatusEqualTo(0).andTaskStartTimeEqualTo(nowDate);
+        taskExample.setOrderByClause("create_time asc");
+        List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(taskExample);
+        return taskList;
     }
 
     private int deleteTrueData(XiechengCollidingDataProcessTask task, ThreadPoolExecutor threadPool) {
