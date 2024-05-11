@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbService {
+    public static String REGEX = "^[a-z]+[A-Z][a-zA-Z0-9]*$";
     @Resource
     private XieChengRuleScoreToDbServiceImpl ruleScoreToDbService;
     @Resource
@@ -317,10 +318,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     }
 
     private void checkIsCamelCase(List<String> transferColumn, File file) {
-        String regex = "^[a-z]+[A-Z][a-zA-Z0-9]*$";
         for (String column : transferColumn) {
             // 驼峰格式的正则表达式
-            if (column.matches(regex)) {
+            if (column.matches(REGEX)) {
                 String errMsg = "文件表头字段为驼峰格式，文件path：" + file.getAbsolutePath() + "，字段：" + column;
                 log.error(errMsg);
             }
