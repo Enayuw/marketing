@@ -328,13 +328,9 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                 vo.setInterfaceField(headNm);
                             }
                             vo.setDataValue(value);
-                            //vo.setIsExtend(extra.contains(headNm) ? Boolean.TRUE : Boolean.FALSE);
                             hasSet.add(vo.getInterfaceField());
                             dataFieldVOS.add(vo);
                             dataFieldMap.put(vo.getHeadField(), vo);
-                            if ("cell".equals(vo.getInterfaceField())) {
-                                cell = vo.getDataValue();
-                            }
                             //endregion
                         }
                         //endregion
@@ -365,29 +361,6 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             log.warn("文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
                             continue;
                         }
-                        //region 非必传并且配置默认值的字段处理
-                        if (_noMustDefaultFieldSet != null) {
-                            HashSet<String> resSet = new HashSet<>();
-                            resSet.addAll(_noMustDefaultFieldSet);
-                            resSet.removeAll(hasSet);
-                            for (String s : resSet) {
-                                List<FileToMarketingFieldVO> fileToMarketingFieldVOS = _noMustDefaultFieldMap.get(s);
-                                if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
-                                    FileToMarketingFieldVO _defField = fileToMarketingFieldVOS.get(0);
-
-                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-                                    BeanUtils.copyProperties(_defField, vo);
-                                    if ("{cell}".equals(_defField.getDefalutValue())) {
-                                        vo.setDataValue(cell);
-                                    } else {
-                                        vo.setDataValue(_defField.getDefalutValue());
-                                    }
-                                    dataFieldVOS.add(vo);
-                                    dataFieldMap.put(vo.getHeadField(), vo);
-                                }
-                            }
-                        }
-                        //endregion
 
                         //region 抽象的剔除方法和组装逻辑的调用,如未实现走默认的service
                         Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
