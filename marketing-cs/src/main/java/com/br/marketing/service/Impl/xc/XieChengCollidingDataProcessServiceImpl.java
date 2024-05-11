@@ -224,7 +224,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      */
     private int deleteTrueData(XiechengCollidingDataProcessTask task, ThreadPoolExecutor threadPool) {
         AtomicInteger totalDeleteCount = new AtomicInteger(0);
-        Long minId = null;
         String conditions = task.getTaskExecutionConditions();
         String extend = "携程撞库数据清洗任务删除，任务id：" + task.getId();
         for (String batchNumber : task.getBatchNumber().split(",")) {
@@ -236,6 +235,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                     + batchNumber + " where " + conditions;
 
             List<CompletableFuture<Void>> futures = new ArrayList<>();
+            Long minId = null;
             while (true) {
                 List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql);
                 if (CollectionUtils.isEmpty(longs)) {
@@ -364,7 +364,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      */
     private void deleteFalseDataByPid(XiechengCollidingDataProcessTask task, ThreadPoolExecutor threadPool,
                                       List<XieChengCollidingDataPackage> deletePackages) {
-        Long minId = null;
         String extend = "携程撞库数据清洗任务删除，任务id：" + task.getId();
         String conditions = task.getTaskExecutionConditions();
         for (String batchNumber : task.getBatchNumber().split(",")) {
@@ -376,6 +375,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             for (XieChengCollidingDataPackage deletePackage : deletePackages) {
                 String queryRuleScoreDataSql = "select cell, is_delete from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
                 log.warn("携程撞库数据清洗任务，旧包剔除数据查询条件:{}", queryRuleScoreDataSql);
+                Long minId = null;
                 while (true) {
                     List<XieChengCollidingDataRob> repeatWithFalseData = ruleScoreRecordMapper.selectRuleScoreDataRepeatWithFalseDatatikv_(minId,
                             deletePackage.getId(),
@@ -421,7 +421,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      */
     private void insertRuleScoreDataToNewPackage(XieChengCollidingDataPackage collidingDataPackage, XiechengCollidingDataProcessTask task,
                                                  ThreadPoolExecutor threadPool) {
-        Long minId = null;
         String conditions = task.getTaskExecutionConditions();
         for (String batchNumber : task.getBatchNumber().split(",")) {
             if (StringUtils.isEmpty(batchNumber)) {
@@ -432,6 +431,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             log.warn("携程撞库数据清洗任务，新包新增数据查询条件:{}", queryRuleScoreDataSql);
 
             List<CompletableFuture<Void>> futures = new ArrayList<>();
+            Long minId = null;
             while (true) {
                 List<XieChengRuleScoreData> ruleScoreData = ruleScoreRecordMapper.selectRuleScoreDataExcludeTrueAndFalseDatatikv_(minId,
                         queryRuleScoreDataSql);
