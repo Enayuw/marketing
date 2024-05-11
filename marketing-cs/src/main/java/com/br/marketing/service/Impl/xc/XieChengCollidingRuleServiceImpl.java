@@ -228,15 +228,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
         }, XIECHENG_ROB_DATA_DELETE_THREAD);
         // 添加删除操作完成后的回调
         deleteFuture.thenAccept(result -> {
-            XIECHENG_ROB_DATA_DELETE_THREAD.shutdown();
-            try {
-                while (!XIECHENG_ROB_DATA_DELETE_THREAD.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.warn("删除撞库规则，XIECHENG_ROB_DATA_DELETE_THREAD等待线程池结束");
-                }
-            } catch (InterruptedException e) {
-                XIECHENG_ROB_DATA_DELETE_THREAD.shutdownNow();
-                log.error("删除撞库规则，XIECHENG_ROB_DATA_DELETE_THREAD线程池关闭异常,直接关闭线程池", e);
-            }
+            log.warn("包规则数据删除完成，packageId:{}", packageId);
         });
     }
 
