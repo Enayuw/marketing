@@ -85,20 +85,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 // 修改任务状态：task_status=1(任务执行中)
                 updateTaskStatus(task);
 
-                // 实际更新量级
-                int actualNumber = 0;
-                if (task.getTaskType() == 0) {
-                    // 根据taskId获取package
-                    List<XieChengCollidingDataPackage> packages = getPackageByTaskId(task);
-                    if (CollectionUtils.isEmpty(packages)) {
-                        return;
-                    }
-                    actualNumber = getFalseCountByNewPackage(task, packages, newTaskIds, threadPool);
-                }
-
-                if (task.getTaskType() == 1) {
-                    actualNumber = deleteTrueData(task, threadPool);
-                }
+                // 执行数据处理
+                int actualNumber = doProcess(task, newTaskIds, threadPool);
 
                 // 更新任务状态和实际数据量级：task_status=2(任务执行完成)
                 updateTaskStatusAndActualNumber(task, actualNumber);
@@ -109,7 +97,27 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         });
     }
 
-    private static void threadPoolShutDown(ThreadPoolExecutor threadPool) {
+    private int doProcess(XiechengCollidingDataProcessTask task, List<Long> newTaskIds, ThreadPoolExecutor threadPool) {
+        // False数据清洗
+        if (task.getTaskType() == 0) {
+            // 根据taskId获取package
+            List<XieChengCollidingDataPackage> packages = getPackageByTaskId(task);
+            if (CollectionUtils.isEmpty(packages)) {
+                return 0;
+            }
+
+            return cleanFalseData(task, packages, newTaskIds, threadPool);
+        }
+
+        // TRUE数据剔除
+        if (task.getTaskType() == 1) {
+            return deleteTrueData(task, threadPool);
+        }
+
+        return 0;
+    }
+
+    private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -147,19 +155,43 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         return packages;
     }
 
-    private int getFalseCountByNewPackage(XiechengCollidingDataProcessTask task, List<XieChengCollidingDataPackage> packages, List<Long> newTaskIds,
-                                          ThreadPoolExecutor threadPool) {
+    /**
+     * 跑分数据清洗
+     * @param task
+     * @param packages
+     * @param newTaskIds
+     * @param threadPool
+     * @return
+     */
+    private int cleanFalseData(XiechengCollidingDataProcessTask task, List<XieChengCollidingDataPackage> packages, List<Long> newTaskIds,
+                               ThreadPoolExecutor threadPool) {
         int actualNumber;
         XieChengCollidingDataPackage newPackage = packages.get(0);
         Long packageId = newPackage.getId();
         log.warn("携程撞库数据清洗任务,当前任务id：{},当前数据包id：{}", task.getId(), packageId);
 
-        deleteFromOldPackage(newPackage, task, newTaskIds, threadPool);
+        // 从老包删除数据并插入新包
+        moveRuleScoreDataFromOldToNew(task, newTaskIds, threadPool, newPackage);
 
-        insertToNewPackage(newPackage, task, threadPool);
-
+        // 获取新数据包量级
         actualNumber = robMapper.selectCountFromRobByNewPackageId(packageId).intValue();
         return actualNumber;
+    }
+
+    /**
+     * 从老包删除数据并插入新包
+     * @param task
+     * @param newTaskIds
+     * @param threadPool
+     * @param newPackage
+     */
+    private void moveRuleScoreDataFromOldToNew(XiechengCollidingDataProcessTask task, List<Long> newTaskIds, ThreadPoolExecutor threadPool,
+                                               XieChengCollidingDataPackage newPackage) {
+        // 找到待删除数据的数据包并删除数据
+        findOldPackagesAndDelete(newPackage, task, newTaskIds, threadPool);
+
+        // 将跑分数据插入新数据包
+        insertRuleScoreDataToNewPackage(newPackage, task, threadPool);
     }
 
     private void updateTaskStatus(XiechengCollidingDataProcessTask task) {
@@ -184,6 +216,12 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         return taskList;
     }
 
+    /**
+     * TRUE数据剔除
+     * @param task
+     * @param threadPool
+     * @return
+     */
     private int deleteTrueData(XiechengCollidingDataProcessTask task, ThreadPoolExecutor threadPool) {
         AtomicInteger totalDeleteCount = new AtomicInteger(0);
         Long minId = null;
@@ -241,12 +279,17 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         pool.setMaximumPoolSize(threadNum);
     }
 
-    private void deleteFromOldPackage(XieChengCollidingDataPackage newPackage, XiechengCollidingDataProcessTask task, List<Long> newTaskIds,
-                                      ThreadPoolExecutor threadPool) {
-        // 找到所有有效的旧数据包
-        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
-        packageExample.createCriteria().andIsDeleteEqualTo(0).andCollidingDataTaskIdNotIn(newTaskIds);
-        List<XieChengCollidingDataPackage> oldPackages = packageMapper.selectByExample(packageExample);
+    /**
+     * 找到待删除数据的数据包并删除数据
+     * @param newPackage
+     * @param task
+     * @param newTaskIds
+     * @param threadPool
+     */
+    private void findOldPackagesAndDelete(XieChengCollidingDataPackage newPackage, XiechengCollidingDataProcessTask task, List<Long> newTaskIds,
+                                          ThreadPoolExecutor threadPool) {
+        // 获取所有有效的旧数据包
+        List<XieChengCollidingDataPackage> oldPackages = getOldPackages(newTaskIds);
         List<Long> oldPackageIds = oldPackages.stream().map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
         log.warn("携程撞库数据清洗任务，旧数据包id:{}", Joiner.on(",").join(oldPackageIds));
 
@@ -277,11 +320,23 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
         log.warn("携程撞库数据清洗任务，旧包优先级大于等于新包优先级&&清洗时间小于等于旧包最大结束时间，数据包id:{}", Joiner.on(",").join(reserveIds));
 
-        // 遍历要剔除的数据包，关联跑分和true表，根据id删除
+        // 获取待删除的数据包id
         List<XieChengCollidingDataPackage> deletePackages =
                 oldPackages.stream().filter(t -> !reserveIds.contains(t.getId())).collect(Collectors.toList());
         log.warn("携程撞库数据清洗任务，旧包待剔除数据的数据包:{}", Joiner.on(",").join(deletePackages));
 
+        // 根据数据包删除false表和跑分结果交集数据
+        deleteFalseDataByPid(task, threadPool, deletePackages);
+    }
+
+    /**
+     * 根据数据包删除false表和跑分结果交集数据
+     * @param task
+     * @param threadPool
+     * @param deletePackages
+     */
+    private void deleteFalseDataByPid(XiechengCollidingDataProcessTask task, ThreadPoolExecutor threadPool,
+                                      List<XieChengCollidingDataPackage> deletePackages) {
         Long minId = null;
         String extend = "携程撞库数据清洗任务删除，任务id：" + task.getId();
         String conditions = task.getTaskExecutionConditions();
@@ -320,8 +375,26 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
     }
 
-    private void insertToNewPackage(XieChengCollidingDataPackage collidingDataPackage, XiechengCollidingDataProcessTask task,
-                                    ThreadPoolExecutor threadPool) {
+    /**
+     * 获取所有有效的旧数据包
+     * @param newTaskIds
+     * @return
+     */
+    private List<XieChengCollidingDataPackage> getOldPackages(List<Long> newTaskIds) {
+        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
+        packageExample.createCriteria().andIsDeleteEqualTo(0).andCollidingDataTaskIdNotIn(newTaskIds);
+        List<XieChengCollidingDataPackage> oldPackages = packageMapper.selectByExample(packageExample);
+        return oldPackages;
+    }
+
+    /**
+     * 将跑分数据插入新数据包
+     * @param collidingDataPackage
+     * @param task
+     * @param threadPool
+     */
+    private void insertRuleScoreDataToNewPackage(XieChengCollidingDataPackage collidingDataPackage, XiechengCollidingDataProcessTask task,
+                                                 ThreadPoolExecutor threadPool) {
         Long minId = null;
         String conditions = task.getTaskExecutionConditions();
         for (String batchNumber : task.getBatchNumber().split(",")) {
@@ -343,14 +416,19 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 minId = ruleScoreData.get(ruleScoreData.size() - 1).getId();
 
                 modifyThreadPool(threadPool);
-                futures.add(CompletableFuture.runAsync(() -> insertDataToNewPackage(ruleScoreData, collidingDataPackage), threadPool));
+                futures.add(CompletableFuture.runAsync(() -> insertData(ruleScoreData, collidingDataPackage), threadPool));
             }
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
     }
 
-    private void insertDataToNewPackage(List<XieChengRuleScoreData> ruleScoreData, XieChengCollidingDataPackage collidingDataPackage) {
+    /**
+     * 数据插入false表新数据包
+     * @param ruleScoreData
+     * @param collidingDataPackage
+     */
+    private void insertData(List<XieChengRuleScoreData> ruleScoreData, XieChengCollidingDataPackage collidingDataPackage) {
         try {
             List<XieChengCollidingDataRob> insertRobList = ruleScoreData.stream().map((XieChengRuleScoreData t) -> {
                 XieChengCollidingDataRob rob = new XieChengCollidingDataRob();
