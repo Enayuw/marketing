@@ -309,7 +309,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             reserveIds = new ArrayList<>();
         } else {
             List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId = packageRuleMapper.getMaxEndTimeGroupByPackageId(priorityPackageIds);
-            log.warn("携程撞库数据清洗任务，大优先级旧包，最大撞库结束时间:{}", Joiner.on(",").join(maxEndTimeGroupByPackageId));
+            log.warn("携程撞库数据清洗任务，大优先级旧包，最大撞库结束时间:{}", Joiner.on(",").join(maxEndTimeGroupByPackageId
+                    .stream().map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList())));
 
             // 获取清洗时间小于等于旧包最大结束时间的数据包
             reserveIds = getReserveIds(task, maxEndTimeGroupByPackageId);
