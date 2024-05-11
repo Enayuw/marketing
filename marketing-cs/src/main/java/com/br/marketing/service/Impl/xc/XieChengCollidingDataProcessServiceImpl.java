@@ -291,6 +291,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                                           ThreadPoolExecutor threadPool) {
         // 获取所有有效的旧数据包
         List<XieChengCollidingDataPackage> oldPackages = getOldPackages(newTaskIds);
+        if (CollectionUtils.isEmpty(oldPackages)) {
+            return;
+        }
+
         List<Long> oldPackageIds = oldPackages.stream().map(XieChengCollidingDataPackage::getId).collect(Collectors.toList());
         log.warn("携程撞库数据清洗任务，旧数据包id:{}", Joiner.on(",").join(oldPackageIds));
 
@@ -307,17 +311,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId = packageRuleMapper.getMaxEndTimeGroupByPackageId(priorityPackageIds);
             log.warn("携程撞库数据清洗任务，大优先级旧包，最大撞库结束时间:{}", Joiner.on(",").join(maxEndTimeGroupByPackageId));
 
-            // 获取当前任务清洗时间
-            LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            reserveIds =
-                    maxEndTimeGroupByPackageId.stream()
-                            .filter((XiechengCollidingDataPackageRule t) -> t.getCollidingEndTime() != null)
-                            .filter((XiechengCollidingDataPackageRule t) -> {
-                                LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant()
-                                        .atZone(ZoneId.systemDefault()).toLocalDate();
-
-                                return !cleanDate.isAfter(collidingMaxDate);
-                            }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
+            // 获取清洗时间小于等于旧包最大结束时间的数据包
+            reserveIds = getReserveIds(task, maxEndTimeGroupByPackageId);
         }
         log.warn("携程撞库数据清洗任务，旧包优先级大于等于新包优先级&&清洗时间小于等于旧包最大结束时间，数据包id:{}", Joiner.on(",").join(reserveIds));
 
@@ -326,8 +321,38 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 oldPackages.stream().filter(t -> !reserveIds.contains(t.getId())).collect(Collectors.toList());
         log.warn("携程撞库数据清洗任务，旧包待剔除数据的数据包:{}", Joiner.on(",").join(deletePackages));
 
+        if (CollectionUtils.isEmpty(deletePackages)) {
+            return;
+        }
+
         // 根据数据包删除false表和跑分结果交集数据
         deleteFalseDataByPid(task, threadPool, deletePackages);
+    }
+
+    /**
+     * 获取清洗时间小于等于旧包最大结束时间的数据包
+     * @param task
+     * @param maxEndTimeGroupByPackageId
+     * @return
+     */
+    private List<Long> getReserveIds(XiechengCollidingDataProcessTask task, List<XiechengCollidingDataPackageRule> maxEndTimeGroupByPackageId) {
+        if (CollectionUtils.isEmpty(maxEndTimeGroupByPackageId)) {
+            return new ArrayList<>();
+        }
+
+        List<Long> reserveIds;
+        // 获取当前任务清洗时间
+        LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        reserveIds =
+                maxEndTimeGroupByPackageId.stream()
+                        .filter((XiechengCollidingDataPackageRule t) -> t.getCollidingEndTime() != null)
+                        .filter((XiechengCollidingDataPackageRule t) -> {
+                            LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant()
+                                    .atZone(ZoneId.systemDefault()).toLocalDate();
+
+                            return !cleanDate.isAfter(collidingMaxDate);
+                        }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
+        return reserveIds;
     }
 
     /**
@@ -384,8 +409,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     private List<XieChengCollidingDataPackage> getOldPackages(List<Long> newTaskIds) {
         XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
         packageExample.createCriteria().andIsDeleteEqualTo(0).andCollidingDataTaskIdNotIn(newTaskIds);
-        List<XieChengCollidingDataPackage> oldPackages = packageMapper.selectByExample(packageExample);
-        return oldPackages;
+        return packageMapper.selectByExample(packageExample);
     }
 
     /**
