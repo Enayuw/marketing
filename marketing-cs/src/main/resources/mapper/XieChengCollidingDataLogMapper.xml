@@ -48,15 +48,26 @@
         from b_xiecheng_colliding_data_log
         where is_delete = 0 and business_code = 707
           and extend -> '$.isAlerted' = true
-            <![CDATA[ and create_time >= #{createTimeStart}]]>
-        limit 1;
+            <![CDATA[ and create_time >= #{createTimeStart}]]> limit 1;
     </select>
 
     <select id="selectByOverCount" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
         select *
         from b_xiecheng_colliding_data_log
-        where is_delete = 0 and business_code = 707
+        where is_delete = 0
+          and business_code = 707
             <![CDATA[ and create_time >= #{createTimeStart}]]>
         order by create_time asc limit 1;
+    </select>
+
+    <select id="selectMaxCreateTimeByCreateTime" resultType="java.util.Date">
+        select max(create_time) as createTime
+        from b_xiecheng_colliding_data_log
+        where is_delete = 0
+          and result = true
+          and business_code = 0
+          and http_code = 200
+            <![CDATA[ and create_time >= #{dateTimeStart}
+          and create_time < #{dateTimeEnd}]]>;
     </select>
 </mapper>

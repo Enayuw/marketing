@@ -1502,6 +1502,12 @@ public class MarketingCommonConfig {
     private List<String> XieChengTwoTransferExecuteTime;
 
     /**
+     * 携程短信撞库数据提取时间范围,索引未知0为开始时间，1为结束时间，key小于0为T-n，等于0为T，大于0为T+1
+     * eg:[{-1:"06:00"},{0:"07:00"}]
+     */
+    private List<Map<Integer, String>> xieChengCallBackResultTimeRange = new ArrayList<>();
+
+    /**
      * 数禾促复借转化数据提取数据提取apicode集合
      */
     private List<String> ShuHeCuFuJieTransferFileApiCodes;
