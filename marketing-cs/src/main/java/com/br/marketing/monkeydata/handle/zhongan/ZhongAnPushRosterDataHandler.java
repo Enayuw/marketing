@@ -132,8 +132,15 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             conditionParam.setId(null);
             for (; ; ) {
                 // 循环获取条件数据，每次2000条
+                String userType = conditionParam.getUserType();
+                if(conditionParam.getDataSource()==1){
+                    conditionParam.setUserType("");
+                }
+
                 final List<ZhonganRosterLockingData> pageList = zhonganRosterLockingDataMapper.findPartColumnListPage(
                         conditionParam, pageIndex, pageSize);
+                conditionParam.setUserType(userType);
+
                 if (CollectionUtils.isEmpty(pageList)) {
                     break;
                 }
@@ -251,12 +258,13 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             // 未获取到上传数据
             if (CollectionUtils.isEmpty(cellToSyncUserBoMap)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
-                        "tag:" + tag + ",apiCode:" + apiCode + "未获取到上传数据或未配置有效期！",
-                        apiCode + "," + tag + "锁定名单推送众安异常"));
-                if(judgeChangeStatus(pageParam)) {
-                    List<Long> ids = pageList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
-                    updatePushStatusById(ids, 4);
-                }
+                        "apiCode:" + apiCode + ", bizDate:" + bizDate + ", tag:" + tag+ ", dataSource:" + dataSource
+                                + ", userType:" + userType + "未获取到上传数据或未配置有效期！",
+                        "锁定名单推送众安异常"));
+                // if(judgeChangeStatus(pageParam)) {
+                List<Long> ids = pageList.parallelStream().map(ZhonganRosterLockingData::getId).collect(Collectors.toList());
+                updatePushStatusById(ids, 4);
+                // }
                 return result;
             }
 
@@ -301,7 +309,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
                     }
             }
             // distribute去重 cell + distribute_date
-            distributeIds = distributeSoleProcessor.process(pushList);
+            distributeIds = distributeSoleProcessor.process(pushList, pageParam);
 
             log.warn(TITLE+"notValidityIds:{}",JSONObject.toJSON(notValidityIds));
             log.warn(TITLE+"notPushIds:{}",JSONObject.toJSON(notPushIds));
@@ -309,9 +317,9 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             log.warn(TITLE+"hitBlackIds:{}",JSONObject.toJSON(hitBlackIds));
             log.warn(TITLE+"distributeIds:{}",JSONObject.toJSON(distributeIds));
 
-            if(judgeChangeStatus(pageParam)) {
-                updatePushStatusById(notValidityIds, 4);
-            }
+            // if(judgeChangeStatus(pageParam)) {
+            updatePushStatusById(notValidityIds, 4);
+            // }
             updatePushStatusById(notPushIds, 8);
             updatePushStatusById(notMarketingIds, 7);
             updatePushStatusById(hitBlackIds, 5);
@@ -428,7 +436,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         Integer dataSource = pageParam.getDataSource();
         boolean a = "CG".equals(tag) && "1".equals(String.valueOf(dataSource)) && "1".equals(userType);
         boolean b = "MG".equals(tag) && "1".equals(String.valueOf(dataSource)) && "1".equals(userType);
-        boolean c = "MG".equals(tag) && "2".equals(String.valueOf(dataSource)) && "7".equals(userType);
+        boolean c = "MG".equals(tag) && "2".equals(String.valueOf(dataSource)) && "8".equals(userType);
         return a || b || c;
     }
 
