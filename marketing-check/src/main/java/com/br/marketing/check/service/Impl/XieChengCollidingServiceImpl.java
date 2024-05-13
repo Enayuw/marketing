@@ -195,6 +195,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             //根据跑分条件查询ES，符合条件的数据即为要推送数据
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
             log.warn("携程撞库查询es匹配数据量num={}", marketingHistories.size());
+            if(CollectionUtils.isEmpty(marketingHistories)){
+                return result.setCode(ResultCode.SUCCESS.getValue()).setDate(0);
+            }
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt);
             //推送任务基础信息
