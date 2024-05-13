@@ -5,11 +5,14 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MarketingTaskExample;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.entity.XieChengRuleScoreRecord;
 import com.br.marketing.entity.XieChengRuleScoreRecordExample;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
+import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
 import com.br.marketing.service.SyncConfigService;
@@ -57,6 +60,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     StraHisFileMapper straHisFileMapper;
     @Resource
     XieChengRuleScoreRecordMapper scoreRecordMapper;
+    @Resource
+    MarketingTaskMapper marketingTaskMapper;
 
     @Autowired
     SyncConfigService syncConfigService;
@@ -88,11 +93,14 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 return;
             }
 
+            // 过滤出类型为一次性查询的记录
+            List<StraHisFile> straHisFileList = getStraHisFiles(apiCode, shardStraHisFiles);
+
             // 创建线程池
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread(),
                     marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread());
 
-            shardStraHisFiles.forEach((StraHisFile straHisFile) -> {
+            straHisFileList.forEach((StraHisFile straHisFile) -> {
                 // 根据跑分编号获取携程数据同步记录表
                 List<XieChengRuleScoreRecord> xieChengRuleScoreRecords = getXieChengRuleScoreRecords(straHisFile);
 
@@ -111,6 +119,27 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             // 关闭线程池
             threadPoolShutDown(threadPool);
         });
+    }
+
+    /**
+     * 过滤出类型为一次性查询的记录
+     * @param apiCode
+     * @param shardStraHisFiles
+     * @return
+     */
+    private List<StraHisFile> getStraHisFiles(String apiCode, List<StraHisFile> shardStraHisFiles) {
+        List<StraHisFile> straHisFileList = shardStraHisFiles.stream().filter(t -> {
+            MarketingTaskExample taskExample = new MarketingTaskExample();
+            taskExample.createCriteria()
+                    .andApiCodeEqualTo(apiCode)
+                    .andBatchNumberEqualTo(t.getBatchNumber())
+                    .andStatusEqualTo(1)
+                    .andMonitorTypeEqualTo(1);
+            List<MarketingTask> marketingTasks = marketingTaskMapper.selectByExample(taskExample);
+
+            return !CollectionUtils.isEmpty(marketingTasks);
+        }).collect(Collectors.toList());
+        return straHisFileList;
     }
 
     private void threadPoolShutDown(ThreadPoolExecutor threadPool) {

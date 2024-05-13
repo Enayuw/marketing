@@ -230,7 +230,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
         // 获取跑分数据查询条件
         String queryRuleScoreDataSql = getQueryRuleScoreDataSql(task, conditions);
-        log.warn("携程撞库数据清洗任务，TRUE数据剔除查询条件:{}", queryRuleScoreDataSql);
+        log.warn("携程撞库数据清洗任务，TRUE数据保留查询条件:{}", queryRuleScoreDataSql);
 
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
@@ -283,10 +283,12 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             }
 
             if (i == batchNumberList.size() - 1) {
-                queryRuleScoreDataSql = queryRuleScoreDataSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumber).concat(" where ")
+                queryRuleScoreDataSql = queryRuleScoreDataSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumber).concat(" " +
+                                "where ")
                         .concat(conditions).concat(" and is_delete=0 ");
             } else {
-                queryRuleScoreDataSql = queryRuleScoreDataSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumber).concat(" where ")
+                queryRuleScoreDataSql = queryRuleScoreDataSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumber).concat(" " +
+                                "where ")
                         .concat(conditions).concat(" and is_delete=0 ").concat(" union all ");
             }
         }
@@ -344,7 +346,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         // 获取待删除的数据包id
         List<XieChengCollidingDataPackage> deletePackages =
                 oldPackages.stream().filter(t -> !reserveIds.contains(t.getId())).collect(Collectors.toList());
-        log.warn("携程撞库数据清洗任务，旧包待剔除数据的数据包:{}", Joiner.on(",").join(deletePackages));
+        log.warn("携程撞库数据清洗任务，旧包待剔除数据的数据包:{}",
+                Joiner.on(",").join(deletePackages.stream().map(XieChengCollidingDataPackage::getId).collect(Collectors.toList())));
 
         if (CollectionUtils.isEmpty(deletePackages)) {
             return;
