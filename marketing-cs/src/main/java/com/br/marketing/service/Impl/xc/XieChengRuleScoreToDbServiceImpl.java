@@ -139,6 +139,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
             return !CollectionUtils.isEmpty(marketingTasks);
         }).collect(Collectors.toList());
+
         return straHisFileList;
     }
 
