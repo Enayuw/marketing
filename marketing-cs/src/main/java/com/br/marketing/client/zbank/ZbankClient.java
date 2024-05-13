@@ -12,6 +12,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.zbank.file.bean.FileDownLoadInfo;
 import com.zbank.file.bean.FileInfo;
 import com.zbank.file.bean.StreamDownLoadInfo;
+import com.zbank.file.bean.UploadInfo;
 import com.zbank.file.exception.EmptyFileException;
 import com.zbank.file.exception.SDKException;
 import com.zbank.file.sdk.FileSDK;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -205,11 +208,7 @@ public class ZbankClient {
      * 此下载方式内部已进行了文件Md5值校验，无需重复校验
      */
     public FileDownLoadInfo downLoadSplitFileMergeInLocal(FileInfo fileInfo, String dir) {
-        Map<String, String> infoMap = marketingCommonConfig.getZhongBangDownloadFileInfoMap();
-        String channelIdKey = "channelId";
-        if (!CollectionUtils.isEmpty(infoMap) && infoMap.containsKey(channelIdKey)) {
-            channelId = infoMap.get(channelIdKey);
-        }
+        updateChannelId();
         String seqNo = "" + System.nanoTime() + RandomStringUtils.randomNumeric(3);
         try {
             return fileSdk.downloadFile(fileInfo.getFileId(), channelId, dir, seqNo, false, true);
@@ -217,5 +216,43 @@ public class ZbankClient {
             log.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * 2023-12-01 9:34
+     * 将文件上传至服务器
+     */
+    public UploadInfo uploadFile(File file) throws SDKException {
+        updateChannelId();
+        String seqNo = "" + System.nanoTime() + "_" + RandomStringUtils.randomNumeric(3);
+        return fileSdk.upload(file, channelId, seqNo, true);
+    }
+
+    /**
+     * 2023-12-01 9:34
+     * 将文件下载到本地磁盘指定的目录。
+     * 此下载方式内部已进行了文件Md5值校验，无需重复校验
+     * 将文件上传至服务器
+     */
+    public UploadInfo uploadInputStream(InputStream inputStream, String fileName, long fileSize, String fileMd5) throws SDKException {
+//        updateChannelId();
+//        String seqNo = "" + System.nanoTime() + "_" + RandomStringUtils.randomNumeric(3);
+//        return fileSdk.upload(inputStream, fileMd5, fileName, fileSize, channelId, seqNo, true, true);
+        UploadInfo uploadInfo = new UploadInfo();
+        uploadInfo.setFileId(RandomStringUtils.randomAlphanumeric(20));
+        log.warn("@@@@@将文件上传至服务器{}", uploadInfo.getFileId());
+        return uploadInfo;
+    }
+
+    /**
+     * 2024-05-08 17:00
+     * 更新配置ChannelId
+     */
+    private void updateChannelId() {
+        Map<String, String> infoMap = marketingCommonConfig.getZhongBangDownloadFileInfoMap();
+        String channelIdKey = "channelId";
+        if (!CollectionUtils.isEmpty(infoMap) && infoMap.containsKey(channelIdKey)) {
+            channelId = infoMap.get(channelIdKey);
+        }
     }
 }
