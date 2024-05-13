@@ -181,12 +181,6 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
         // 根据 headField 字段分组
         Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
-        // 筛选出 非必须且有默认值的数据 并 根据 interfaceField 字段分组
-        Map<String, List<FileToMarketingFieldVO>> _noMustDefaultFieldMap = fieldVos.stream().filter(t -> !t.getIsMust() && StringUtils.isNotBlank(t.getDefalutValue())).collect(Collectors.groupingBy(FileToMarketingFieldVO::getInterfaceField));
-        Set<String> _noMustDefaultFieldSet = null;
-        if (_noMustDefaultFieldMap != null) {
-            _noMustDefaultFieldSet = _noMustDefaultFieldMap.keySet();
-        }
         // 筛选出 必须的字段，根据 headField 字段分组
         List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
         // 定义一个map<表名:字段值>
