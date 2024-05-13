@@ -664,12 +664,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
 
-    private Boolean isXieChengData(PushCustomerDTO dto) {
+    private  Boolean isXieChengData(PushCustomerDTO dto) {
         Boolean isXieCheng = Boolean.FALSE;
         JSONArray datas = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data");
         if (!CollectionUtils.isEmpty(datas)) {
-            Object result = datas.stream().filter(obj ->
-                    ((JSONObject) obj).getString("key").equals("result")).findAny().orElse(null);
+            Object result = datas.stream().filter(obj ->("result").equals(
+                    ((JSONObject) obj).getString("key"))).findAny().orElse(null);
             //api_code为携程且筛选条件传入result
             if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
                 isXieCheng = Boolean.TRUE;
@@ -678,6 +678,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return isXieCheng;
 
     }
+
 
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
