@@ -274,6 +274,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                     if (marketingCommonConfig.getXieChengCollidingRuleScoreStopBatchNums().contains(batchNumber)) {
                         return result.setCode(ResultCode.FAIL.getValue()).setMessage("手动停止该同步任务");
                     }
+
+                    modifyThreadPool(threadPool);
+
                     batchData.add(dataLine);
                     if (batchData.size() == BATCH_SIZE) {
                         ArrayList<String> subList = new ArrayList<>(batchData);
@@ -461,5 +464,15 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
 
         dingDingRobotHookService.sendDingDingTextMessage(msg, map);
+    }
+
+    /**
+     * 修改线程池大小
+     * @param pool
+     */
+    private void modifyThreadPool(ThreadPoolExecutor pool) {
+        Integer threadNum = marketingCommonConfig.getXieChengCollidingRuleScoreToDBThread();
+        pool.setCorePoolSize(threadNum);
+        pool.setMaximumPoolSize(threadNum);
     }
 }
