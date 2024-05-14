@@ -61,6 +61,12 @@ public class ZbankClient {
     private String CMBrScoDaFeBack;
 
     /**
+     * 录音文件回传接口
+     */
+    @Value("${api.zbank.api.serviceId.recodFile:CMBrRecodFileRe}")
+    private String serviceIdRecodFile;
+
+    /**
      * 渠道唯一标识（由众邦银行提供）
      */
     @Value("${api.zbank.file.channelId:2023042701}")
@@ -110,6 +116,19 @@ public class ZbankClient {
     public String cMBrScoDaFeBack(Object obj, String requestId) throws Exception {
 //        return "{\"msg\":\"服务调用异常:106100400008,请查证！\",\"result\":{},\"code\":\"106100720036\"}";
         return apiCall(obj, CMBrScoDaFeBack, requestId);
+    }
+
+    /**
+     * 众邦信贷评分回传接口
+     *
+     * @param obj
+     * @param requestId
+     * @return
+     * @throws Exception
+     */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public String recodFileRe(Object obj, String requestId) throws Exception {
+        return apiCall(obj, serviceIdRecodFile, requestId);
     }
 
     /**

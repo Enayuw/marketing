@@ -255,6 +255,7 @@ api:
       serviceId:
         labelRating: "CMBrLabelRatingRe"
         CMBrScoDaFeBack: "CMBrScoDaFeBack"
+        recodFile: "CMBrRecodFileRe"
     file:
       baseUrl: "https://file.z-bank.com"
       channelId: "1741195375"
