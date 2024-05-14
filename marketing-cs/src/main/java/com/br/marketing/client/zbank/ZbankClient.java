@@ -107,6 +107,7 @@ public class ZbankClient {
 
     /**
      * 众邦信贷评分回传接口
+     *
      * @param obj
      * @param requestId
      * @return
@@ -254,13 +255,9 @@ public class ZbankClient {
      * 将文件上传至服务器
      */
     public UploadInfo uploadInputStream(InputStream inputStream, String fileName, long fileSize, String fileMd5) throws SDKException {
-//        updateChannelId();
-//        String seqNo = "" + System.nanoTime() + "_" + RandomStringUtils.randomNumeric(3);
-//        return fileSdk.upload(inputStream, fileMd5, fileName, fileSize, channelId, seqNo, true, true);
-        UploadInfo uploadInfo = new UploadInfo();
-        uploadInfo.setFileId(RandomStringUtils.randomAlphanumeric(20));
-        log.warn("@@@@@将文件上传至服务器{}", uploadInfo.getFileId());
-        return uploadInfo;
+        updateChannelId();
+        String seqNo = "" + System.nanoTime() + "_" + RandomStringUtils.randomNumeric(3);
+        return fileSdk.upload(inputStream, fileMd5, fileName, fileSize, channelId, seqNo, true, true);
     }
 
     /**
