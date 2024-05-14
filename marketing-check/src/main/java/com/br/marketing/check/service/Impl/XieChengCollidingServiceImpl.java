@@ -100,8 +100,8 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         Result<Integer> integerResult = pushRuleService.checkThreekEnc(fileIds);
         Integer threeEncrypt = integerResult.getData();
         JSONObject jsonRule = JSON.parseObject(customerInfoPushMain.getmRuleCondition());
-        Object releaseTime = jsonRule.getJSONArray("data").stream().filter(obj ->
-                ((JSONObject) obj).getString("key").equals("release_time")).findAny().orElse(null);
+        Object releaseTime = jsonRule.getJSONArray("data").stream().filter(obj ->("release_time").equals(
+                ((JSONObject) obj).getString("key"))).findAny().orElse(null);
         if (ObjectUtils.isEmpty(releaseTime)) {
             log.error("携程撞库推送决策缺少release_time，请检查");
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
