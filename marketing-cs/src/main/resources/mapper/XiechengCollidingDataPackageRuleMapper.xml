@@ -9,10 +9,6 @@
                pkg.id                    as pkgId,
                pkg.package_name          as packageName,
                dpt.discreet_number       as discreetNumber,
-               (SELECT COUNT(*)
-                FROM b_xiecheng_colliding_data_rob
-                WHERE package_id = pkg.id
-                  AND is_delete = 0)     as remainingNumber,
                dpr.colliding_switch      as collidingSwitch,
                pkg.priority              as priority,
                dpr.colliding_back_number as collidingBackNumber,

@@ -2,13 +2,13 @@ package com.br.marketing.mapper;
 
 import java.util.List;
 
-import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
+import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 
 @Mapper
 public interface XiechengCollidingDataPackageRuleMapper extends XiechengCollidingDataPackageRuleMapperBase {
