@@ -719,7 +719,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         /* 2024-05-09 13:31
          * 录音文件目录可配置
          */
-        String filePath = "E:\\项目文档\\智能营销中台\\众邦";
+        String filePath = "";
 //        String filePath = marketingCommonConfig.getZhongBangUploadVoieFileDir();
         BiFunction<List<PushCustomerFileInfo>, Throwable, List<PushCustomerFileInfo>> handle = (fileInfoList, throwable) -> {
             if (throwable != null) {
@@ -730,7 +730,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         // 获取文件
         File directory = new File(filePath);
         if (directory.exists() && directory.isDirectory()) {
-            File[] listFiles = directory.listFiles((dir, name) -> dir.isFile() && name.endsWith(".wav"));
+            File[] listFiles = directory.listFiles((dir, name) -> name.endsWith(".wav"));
             if (listFiles != null && (listFiles.length) > 0) {
                 // 分段
                 List<List<File>> fileListPartition = Lists.partition(Arrays.asList(listFiles), 2000);
@@ -836,7 +836,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                     // 待推送
                                     fileInfo.setPushStatus(0);
                                     infoMap.put(fileName, fileInfo);
-                                    pushCustomerFileInfoMapper.insertSelective(fileInfo);
+//                                    pushCustomerFileInfoMapper.insertSelective(fileInfo);
                                 }
                                 return infoMap;
                             }, mainPool).handle((fileInfoMap, throwable) -> {
@@ -897,12 +897,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                             value.setFileId(fileInfo.getFileId());
                                             value.setPushStatus(fileInfo.getPushStatus());
                                             value.setPushDate(fileInfo.getPushDate());
-                                            pushCustomerFileInfoMapper.insertSelective(value);
+//                                            pushCustomerFileInfoMapper.insertSelective(value);
                                         } else {
                                             fileInfo.setId(value.getId());
                                             fileInfo.setUpdateTime(new Date());
                                             infoList.add(fileInfo);
-                                            pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
+//                                            pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
                                         }
                                     });
                                 } else if (fileInfoMap2 != null) {
@@ -910,12 +910,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                         value.setName(name);
                                         value.setUpdateTime(new Date());
                                         infoList.add(value);
-                                        pushCustomerFileInfoMapper.updateByPrimaryKeySelective(value);
+//                                        pushCustomerFileInfoMapper.updateByPrimaryKeySelective(value);
                                     });
                                 } else if (fileInfoMap != null) {
                                     fileInfoMap.forEach((name, value) -> {
                                         if (value.getId() == null) {
-                                            pushCustomerFileInfoMapper.insertSelective(value);
+//                                            pushCustomerFileInfoMapper.insertSelective(value);
                                         }
                                     });
                                 }
@@ -949,62 +949,5 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             }
         }
         return false;
-    }
-
-
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
-        final CompletableFuture<Integer> future = CompletableFuture.supplyAsync(() -> {
-            return 1;
-        });
-        final CompletableFuture<Integer> future1 = future.thenApply((i) -> {
-            return ++i;
-        });
-
-        final CompletableFuture<Integer> future2 = future1.thenApply((i) -> {
-            int t = i / 0;
-            return i + 10;
-        });
-
-        CompletableFuture<Integer> handle = future2.handle((integer, throwable) -> {
-            if (throwable != null) {
-                System.out.println("handle" + throwable.getMessage() + integer);
-            }
-            System.out.println("handle" + integer);
-            return integer;
-        });
-        CompletableFuture<Boolean> handle23 = future2.handle((integer, throwable) -> {
-            if (throwable != null) {
-                System.out.println("handle" + throwable.getMessage() + integer);
-            }
-            System.out.println("handle" + integer);
-            return false;
-        });
-
-        CompletableFuture<Integer> whenComplete = future2.whenComplete((integer, throwable) -> {
-            if (throwable != null) {
-                System.out.println("whenComplete" + throwable.getMessage() + integer);
-            }
-            System.out.println("whenComplete" + integer);
-        });
-        CompletableFuture<Integer> exceptionally = future2.exceptionally(throwable -> {
-            System.out.println("exceptionally" + throwable.getMessage());
-            return -32;
-        });
-
-        final CompletableFuture<Void> voidCompletableFuture = future2.thenAccept((i) -> {
-            System.out.println(i);
-        });
-        final CompletableFuture<Void> voidCompletableFuture1 = handle.thenAccept((i) -> {
-            System.out.println(i);
-        });
-
-        final CompletableFuture<Void> exceptionally1 = exceptionally.thenAccept((i) -> {
-            System.out.println("exceptionally1:" + i);
-        });
-
-        System.out.println("exceptionally.get()" + exceptionally.get());
-        CompletableFuture.allOf(future, future1, future2, voidCompletableFuture, voidCompletableFuture1, exceptionally1).join();
-
-
     }
 }
