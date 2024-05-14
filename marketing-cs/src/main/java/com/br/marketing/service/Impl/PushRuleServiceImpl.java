@@ -697,6 +697,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
             }
+            if(timeOutTotalNum>0){
+                log.error("推送决策超时任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
+                        , customerInfoPushMain.getId()
+                        , System.currentTimeMillis() - startTime
+                        , System.currentTimeMillis() - initTime
+                        , customerInfoPushMain.getmRealyNum(), realTotalNum, timeOutTotalNum);
+            }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
