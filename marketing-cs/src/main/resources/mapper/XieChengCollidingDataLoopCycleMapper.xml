@@ -104,8 +104,8 @@
 
     <select id="selectCycleNumData" resultType="java.util.Map">
         select count(cell_sha256_code_list) as CellNum
-        ,max(release_time) as requestEndTime
-        ,min(release_time) as requestBeginTime
+        ,DATE_FORMAT(max(release_time),'%Y-%m-%d %H:%i:%S') as requestEndTime
+        ,DATE_FORMAT(min(release_time),'%Y-%m-%d %H:%i:%S') as requestBeginTime
         from b_xiecheng_colliding_data_loop_cycle
         where is_delete = 0
     </select>
