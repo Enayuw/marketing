@@ -141,4 +141,11 @@
           and is_delete = 0
         limit #{limit}
     </update>
+
+    <select id="selectRemainingNumberstiflash_" resultType="java.util.Map">
+        SELECT package_id as packageId, COUNT(*) AS remainingNumber
+        FROM b_xiecheng_colliding_data_rob
+        WHERE is_delete = 0
+        GROUP BY package_id;
+    </select>
 </mapper>

@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.xc;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.google.common.collect.Maps;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,6 +88,13 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
         String orderByClause = StringUtils.isEmpty(orderField) ? null
             : orderField + " " + (StringUtils.isEmpty(listParam.getOrderType()) ? "" : listParam.getOrderType());
         List<XiechengCollidingRuleVO> packageRuleList = packageRuleMapper.getCollidingRuleFalseList(listParam, orderByClause);
+        List<Map<Long, Long>> remainingNumbers = robMapper.selectRemainingNumberstiflash_();
+        Map<Long, String> remainingNumbersMap =
+            remainingNumbers.stream().collect(Collectors.toMap(remainingNumber -> remainingNumber.get("packageId"),
+                remainingNumber -> String.valueOf(remainingNumber.get("remainingNumber")), (existingValue, newValue) -> existingValue));
+        packageRuleList.forEach((XiechengCollidingRuleVO rule) -> {
+            rule.setRemainingNumber(remainingNumbersMap.getOrDefault(rule.getPkgId(), "0"));
+        });
         return PageResultReturn.setPageResult(packageRuleList, listParam.getCurrent(), listParam.getSize());
     }
 

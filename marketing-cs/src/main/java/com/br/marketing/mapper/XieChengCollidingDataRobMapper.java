@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import java.util.List;
+import java.util.Map;
 
 import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import org.apache.ibatis.annotations.Param;
@@ -58,4 +59,6 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     int batchResetCollidingCount();
 
     int batchDeleteRobDataByPackageId(@Param("packageId") Long packageId, @Param("limit") int limit);
+
+    List<Map<Long, Long>> selectRemainingNumberstiflash_();
 }
