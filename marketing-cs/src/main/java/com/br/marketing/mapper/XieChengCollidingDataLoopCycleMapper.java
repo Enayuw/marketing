@@ -63,7 +63,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @author senyang.zheng
      * @date 2024/04/24
      */
-    List<XiechengCollidingRuleVO> getCollidingRuleTrueList(@Param("listParam") CollidingRuleListParam listParam,
+    List<XiechengCollidingRuleVO> getCollidingRuleTrueListtiflash_(@Param("listParam") CollidingRuleListParam listParam,
         @Param("orderByClause") String orderByClause);
 
     /**

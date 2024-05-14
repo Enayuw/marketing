@@ -113,7 +113,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
         String orderByClause = StringUtils.isEmpty(orderField) ? null
             : orderField + " " + (StringUtils.isEmpty(listParam.getOrderType()) ? "" : listParam.getOrderType());
         listParam.setApiCode(marketingCommonConfig.getXieChengCustomizeTrueApiCode());
-        return loopCycleMapper.getCollidingRuleTrueList(listParam, orderByClause);
+        return loopCycleMapper.getCollidingRuleTrueListtiflash_(listParam, orderByClause);
     }
 
     /**

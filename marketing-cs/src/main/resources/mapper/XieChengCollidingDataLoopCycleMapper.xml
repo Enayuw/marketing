@@ -77,7 +77,7 @@
         </foreach>
     </update>
 
-    <select id="getCollidingRuleTrueList" resultType="com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO">
+    <select id="getCollidingRuleTrueListtiflash_" resultType="com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO">
         select bmc.cid               as cid,
                bmc.api_code          as apiCode,
                bmc.short_name        as shortName,
