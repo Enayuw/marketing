@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -202,23 +201,8 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             delete.setIsDelete(1);
             delete.setId(packageId);
             packageMapper.updateByPrimaryKeySelective(delete);
-            ThreadPoolExecutor pool = BrExecutors.getThreadPool(20, 20);
             // 异步删除操作
-            CompletableFuture<Void> deleteFuture = CompletableFuture.runAsync(() -> {
-                deleteRobDataByPackageId(packageId);
-            }, pool);
-            // 添加删除操作完成后的回调
-            deleteFuture.thenAccept(result -> {
-                pool.shutdown();
-                try {
-                    while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                        log.warn("删除撞库规则，异步删除数据包对应非周期数据，等待线程池结束");
-                    }
-                } catch (InterruptedException e) {
-                    pool.shutdownNow();
-                    log.error("删除撞库规则，异步删除数据包对应非周期数据，线程池关闭异常,直接关闭线程池", e);
-                }
-            });
+            CompletableFuture.runAsync(() -> deleteRobDataByPackageId(packageId), XIECHENG_ROB_DATA_DELETE_THREAD);
         });
         return Boolean.TRUE;
     }
