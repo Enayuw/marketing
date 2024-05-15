@@ -128,7 +128,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
      * @return
      */
     private List<StraHisFile> getStraHisFiles(String apiCode, List<StraHisFile> shardStraHisFiles) {
-        List<StraHisFile> straHisFileList = shardStraHisFiles.stream().filter(t -> {
+        List<StraHisFile> straHisFileList = shardStraHisFiles.stream().filter((StraHisFile t) -> {
             MarketingTaskExample taskExample = new MarketingTaskExample();
             taskExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)

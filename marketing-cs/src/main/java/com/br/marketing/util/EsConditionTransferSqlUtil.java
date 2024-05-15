@@ -114,14 +114,5 @@ public class EsConditionTransferSqlUtil {
 
     }
 
-    /*public static void main (String args[]){
-
-        String s = "{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"operation\",\"key\":\"scorencashonxchx\",\"operation\":\"=\",\"value\":\"8\"}]},{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"operation\",\"key\":\"scorencashonxcysxsxtg\",\"operation\":\"=\",\"value\":\"581\"}]}]}";
-
-        JSONObject json = JSON.parseObject(s);
-        System.out.println(jsonTransferSql(json,""));
-
-
-    }*/
 
 }
