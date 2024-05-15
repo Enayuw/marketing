@@ -111,7 +111,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 releaseTimeJson.get("value"));
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
-        Integer pageSize = 2000;
+        Integer pageSize = 3000;
         Long minId = null;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 200);
         List<Future<Result<Integer>>> resList = new ArrayList<>();
@@ -128,7 +128,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 log.warn("携程撞库推送决策线程调整,corePoolSize={},maxPoolSize={}", threadPool.getCorePoolSize(), threadPool.getMaximumPoolSize());
             }
             //数据切分，为了兼容跑分文件重复数据，业务侧若保证撞库本次跑分文件不重复，该段逻辑去掉
-            List<List<XieChengCollidingDataLoopCycle>> dataLoopCycleLists = Lists.partition(list, 1000);
+            List<List<XieChengCollidingDataLoopCycle>> dataLoopCycleLists = Lists.partition(list, 1500);
             dataLoopCycleLists.forEach((List dataLoopCycleList) -> {
                 resList.add(threadPool.submit(() -> pushPolicy(dataLoopCycleList, numList, fileIds, customerInfoPushMain, threeEncrypt)));
             });
@@ -171,9 +171,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
             List<String> logCells = new ArrayList<>();
             //es查询cell为Log加密
+            Long encstart=System.currentTimeMillis();
             cells.forEach((String cell) -> {
                 logCells.add(EncAndDecUtil.digestToLog(cell, ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.sha256).getData());
             });
+            log.warn("【携程撞库推决策解密】，耗时：{}",System.currentTimeMillis()-encstart);
             JSONObject jsonRule = JSON.parseObject(customerInfoPushMain.getmRuleCondition());
             //去除result，release_time
             XieChengEsJsonHandler.handlerJson(jsonRule, new XieChengCollidingFilterDTO());
@@ -193,8 +195,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             //兼容数据重复的情况
             queryBaseBean.setPageSize(2000);
             //根据跑分条件查询ES，符合条件的数据即为要推送数据
+            Long queryStart=System.currentTimeMillis();
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-            log.warn("携程撞库查询es匹配数据量num={}", marketingHistories.size());
+            log.warn("【携程撞库推决策查询es】，耗时：{}，量级={}",System.currentTimeMillis()-queryStart,marketingHistories.size());
             if(CollectionUtils.isEmpty(marketingHistories)){
                 return result.setCode(ResultCode.SUCCESS.getValue()).setDate(0);
             }
