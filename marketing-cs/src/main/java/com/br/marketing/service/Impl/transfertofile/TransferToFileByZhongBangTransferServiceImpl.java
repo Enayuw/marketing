@@ -1,8 +1,6 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
@@ -33,7 +31,6 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -184,10 +181,7 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
         if (CollectionUtil.isEmpty(configList)) {
             return;
         }
-        Set<String> dateSet = computeValidDate(configList, requestDate);
-        if(CollectionUtils.isEmpty(dateSet)){
-            return;
-        }
+        Set<String> dateSet = Collections.singleton(requestDate);
         for(String curDateStr : dateSet) {
             MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
             syncUser.settCid(tCId);
