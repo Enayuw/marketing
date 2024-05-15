@@ -1526,5 +1526,10 @@ public class MarketingCommonConfig {
      */
     private String noDesCleanConfig;
 
+    /**
+     * 推送决策超时后，查询结果要延时的 分钟 数
+     */
+    private Long queryCustomerPushTimeOutDelay;
+
 }
 

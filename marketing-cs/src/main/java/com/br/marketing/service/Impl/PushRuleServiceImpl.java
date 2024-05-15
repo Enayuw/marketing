@@ -697,13 +697,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
             }
-            if(timeOutTotalNum>0){
-                log.error("推送决策超时任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
-                        , customerInfoPushMain.getId()
-                        , System.currentTimeMillis() - startTime
-                        , System.currentTimeMillis() - initTime
-                        , customerInfoPushMain.getmRealyNum(), realTotalNum, timeOutTotalNum);
-            }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
@@ -935,7 +928,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 updateLog.setRealStauts(userStatus.getData());
                 if ("900013".equals(userStatus.getData())) {
                     isContinue = Boolean.TRUE;
-                } else if ("900016".equals(userStatus.getData()) || "900006".equals(userStatus.getData())) {
+                } else if ("900016".equals(userStatus.getData())) {
                     if (StringUtils.isNotBlank(userStatus.getMessage())) {
                         updateLog.setErrorContent(userStatus.getMessage());
                         JSONObject error = JSONObject.parseObject(userStatus.getMessage());
@@ -943,6 +936,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                             updateLog.setFailNum(error.keySet().size());
                         }
                     }
+                } else if("900006".equals(userStatus.getData())){
+                    if (StringUtils.isNotBlank(userStatus.getMessage())) {
+                        updateLog.setErrorContent(userStatus.getMessage());
+                        JSONObject error = JSONObject.parseObject(userStatus.getMessage());
+                        if (error != null && error.keySet() != null) {
+                            updateLog.setFailNum(error.keySet().size());
+                        }
+                    }
+                    log.error("推送决策后，查询决策结果出错，原始参数:{}--查询参数:{}",JSON.toJSONString(t),pushMarketingUserDTO);
                 }
                 if (StringUtils.isNotBlank(userStatus.getMessage())) {
                     updateLog.setErrorContent(userStatus.getMessage());

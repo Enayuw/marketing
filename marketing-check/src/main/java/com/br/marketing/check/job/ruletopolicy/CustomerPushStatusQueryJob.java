@@ -7,6 +7,7 @@ import com.br.marketing.entity.CustomerInfoPushMainExample;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,8 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
     @Resource
     private CustomerInfoPushMainMapper customerInfoPushMainMapper;
     @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+    @Resource
     RedisChgService redisChgService;
 
     @Override
@@ -55,6 +58,7 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
         example.setOrderByClause("id limit 2000");
         CustomerInfoPushMainExample.Criteria criteria = example.createCriteria().andMStatusIn(mStatusList);
         Long id = 0L;
+        Long queryCustomerPushTimeOutDelay = marketingCommonConfig.getQueryCustomerPushTimeOutDelay();
         for(;;) {
             criteria.andIdGreaterThan(id);
             List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(example);
@@ -68,7 +72,7 @@ public class CustomerPushStatusQueryJob extends AbstractSimpleElasticJob {
                 if(PushRuleStatusEnum.CONFIRMED_TIME_OUT.getValue().equals(customerInfoPushMain.getmStatus())){
                     Date createTime = customerInfoPushMain.getCreateTime();
                     LocalDateTime createTimeDateTime = createTime.toInstant()
-                            .atZone(ZoneId.systemDefault()).toLocalDateTime().plusMinutes(5);
+                            .atZone(ZoneId.systemDefault()).toLocalDateTime().plusMinutes(queryCustomerPushTimeOutDelay);
                     LocalDateTime now = LocalDateTime.now();
                     if(createTimeDateTime.isAfter(now)){
                         continue;
