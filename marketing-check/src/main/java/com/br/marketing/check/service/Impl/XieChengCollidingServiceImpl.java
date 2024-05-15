@@ -158,6 +158,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             Thread.currentThread().interrupt();
         }
         main.setId(customerInfoPushMain.getId());
+        main.setmRealyNum(realTotalNum);
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         log.warn("携程撞库推送决策完成，推送数据量num={}", realTotalNum);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
