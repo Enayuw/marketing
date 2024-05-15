@@ -34,12 +34,14 @@ public class PushInfoFilterDTO {
     public List<String> getmStatusList() {
         if(mStatusList == null || mStatusList.size()<1){
             if(StringUtils.isNotBlank(mStatus)){
-                List<String> mStatusList = new ArrayList<>();
+                List<String> mStatusListNew = new ArrayList<>();
                 String[] split = mStatus.split(",");
                 for(String item : split){
-                    mStatusList.add(item);
+                    mStatusListNew.add(item);
                 }
-                this.mStatusList = mStatusList;
+                this.mStatusList = mStatusListNew;
+            }else{
+                // do nothing
             }
         }
         return mStatusList;
