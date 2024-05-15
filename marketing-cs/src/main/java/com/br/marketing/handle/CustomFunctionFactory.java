@@ -13,12 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class CustomFunctionFactory {
 
-    private static final Map<String, CustomFunction> customFunctionMap = new ConcurrentHashMap<>();
+    private static final Map<String, CustomFunction> CUSTOM_FUNCTION_MAPMAP = new ConcurrentHashMap<>();
     
 
     public CustomFunctionFactory(List<CustomFunction> customFunctions) {
         for (CustomFunction customFunction : customFunctions) {
-            customFunctionMap.put(customFunction.functionName(), customFunction);
+            CUSTOM_FUNCTION_MAPMAP.put(customFunction.functionName(), customFunction);
         }
     }
     
@@ -29,7 +29,7 @@ public class CustomFunctionFactory {
      * @return 自定义函数
      */
     public CustomFunction getFunction(String functionName) {
-        return customFunctionMap.get(functionName);
+        return CUSTOM_FUNCTION_MAPMAP.get(functionName);
     }
 
 }
