@@ -458,7 +458,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             c.setShortName(marketingCustomer.getShortName());
         });
         List<MarketingSyncUserCell> collect = syncUserListAllApiCode.stream()
-                .sorted(Comparator.comparing(MarketingSyncUserCell::getAppletDate))
+                .sorted(Comparator.comparing(MarketingSyncUserCell::getAppletDate).reversed())
                 .collect(Collectors.toList());
         result.put("records", JSON.toJSON(collect));
         JSONObject countObject = new JSONObject();
