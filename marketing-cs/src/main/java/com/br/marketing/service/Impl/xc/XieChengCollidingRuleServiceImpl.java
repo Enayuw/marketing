@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import com.google.common.collect.Maps;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -274,7 +273,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
+    public Long confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
         XiechengCollidingDataPackageRuleStagingExample example = new XiechengCollidingDataPackageRuleStagingExample();
         example.createCriteria().andIsDeleteEqualTo(0).andPackageIdNotEqualTo(confirmParam.getPackageId());
         int hisCount = stagingMapper.countByExample(example);
@@ -285,19 +284,20 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             delete.setPackageId(confirmParam.getPackageId());
             stagingMapper.updateByExample(delete, example);
         }
-        XiechengCollidingDataPackageRuleStaging stagingRule = new XiechengCollidingDataPackageRuleStaging();
-        stagingRule.setApiCode(confirmParam.getApiCode());
-        stagingRule.setPackageId(confirmParam.getPackageId());
-        stagingRule.setCollidingDataTaskId(confirmParam.getCollidingDataTaskId());
-        stagingRule.setCollidingBackNumber(confirmParam.getCollidingBackNumber());
-        stagingRule.setCollidingStartTime(DateUtil.parse(confirmParam.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN));
-        stagingRule.setCollidingEndTime(DateUtil.parse(confirmParam.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN));
-        stagingRule.setCollidingTimes(confirmParam.getCollidingTimes());
         if (confirmParam.getPrsId() == null) {
-            return stagingMapper.insertSelective(stagingRule) == 1;
+            XiechengCollidingDataPackageRuleStaging stagingRule = new XiechengCollidingDataPackageRuleStaging();
+            stagingRule.setApiCode(confirmParam.getApiCode());
+            stagingRule.setPackageId(confirmParam.getPackageId());
+            stagingRule.setCollidingDataTaskId(confirmParam.getCollidingDataTaskId());
+            stagingRule.setCollidingBackNumber(confirmParam.getCollidingBackNumber());
+            stagingRule.setCollidingStartTime(DateUtil.parse(confirmParam.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN));
+            stagingRule.setCollidingEndTime(DateUtil.parse(confirmParam.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN));
+            stagingRule.setCollidingTimes(confirmParam.getCollidingTimes());
+            stagingMapper.insertSelective(stagingRule);
+            return stagingRule.getId();
         } else {
-            stagingRule.setId(confirmParam.getPrsId());
-            return stagingMapper.updateByPrimaryKeySelective(stagingRule) == 1;
+            stagingMapper.updateStagingRule(confirmParam);
+            return confirmParam.getPrsId();
         }
     }
 

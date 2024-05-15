@@ -155,12 +155,12 @@ public class XiechengCollidingRuleController {
 
     @ApiOperation(value = "10-确认撞库规则")
     @PostMapping("/rule/staging")
-    public ApiResult<Boolean> confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
+    public ApiResult<Long> confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
         try {
-            return new ApiResult<Boolean>().success(xieChengCollidingRuleService.confirmCollidingRule(confirmParam));
+            return new ApiResult<Long>().success(xieChengCollidingRuleService.confirmCollidingRule(confirmParam));
         } catch (Exception e) {
             log.error("确认撞库规则异常", e);
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<Long>().fail(ServiceResultEnum.FAILED);
         }
     }
 

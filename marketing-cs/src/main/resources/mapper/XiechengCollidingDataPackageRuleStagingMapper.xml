@@ -7,4 +7,28 @@
         where is_delete = 0
         order by create_time desc;
     </select>
+
+    <update id="updateStagingRule" parameterType="com.br.marketing.vo.xiecheng.param.CollidingRuleConfirmParam">
+        update b_xiecheng_colliding_data_package_rule_staging
+        <set>
+            <choose>
+                <when test="collidingBackNumber != null and collidingBackNumber != ''">
+                    colliding_back_number = #{collidingBackNumber,jdbcType=INTEGER},
+                </when>
+                <otherwise>
+                    colliding_back_number = null,
+                </otherwise>
+            </choose>
+            <if test="collidingStartTime != null">
+                colliding_start_time = #{collidingStartTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="collidingEndTime != null">
+                colliding_end_time = #{collidingEndTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="collidingTimes != null">
+                colliding_times = #{collidingTimes,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{prsId,jdbcType=BIGINT}
+    </update>
 </mapper>
