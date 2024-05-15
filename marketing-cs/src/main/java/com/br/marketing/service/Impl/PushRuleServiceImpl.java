@@ -587,10 +587,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         whereSql.append(" where cycle.id is null");
         if (StringUtils.isNotEmpty(cleanTime)) {
             XiechengCollidingDataPackageRuleExample packageRuleExample = new XiechengCollidingDataPackageRuleExample();
-            packageRuleExample.createCriteria().andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.parseDate(cleanTime));
+            packageRuleExample.createCriteria().andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.parseDate(cleanTime)).andIsDeleteEqualTo(0);
             List<XiechengCollidingDataPackageRule> packageRules = xiechengCollidingDataPackageRuleMapper.selectByExample(packageRuleExample);
             String packageId = packageRules.stream().map(xiechengCollidingDataPackageRule -> xiechengCollidingDataPackageRule.getPackageId()
-                    .toString()).collect(Collectors.joining(","));
+                    .toString()).collect(Collectors.toSet()).stream().collect(Collectors.joining(","));
             //清洗时间在撞库区间内去重，业务应规避此条件
             if (StringUtils.isNotEmpty(packageId)) {
                 String FalseDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where package_id in (" +
