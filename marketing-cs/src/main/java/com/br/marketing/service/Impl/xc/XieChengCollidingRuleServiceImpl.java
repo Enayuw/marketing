@@ -202,11 +202,11 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             delete.setIsDelete(1);
             delete.setId(packageId);
             packageMapper.updateByPrimaryKeySelective(delete);
-            ThreadPoolExecutor pool = BrExecutors.getThreadPool(5, 5);
+            ThreadPoolExecutor pool = BrExecutors.getThreadPool(20, 20);
             // 异步删除操作
             CompletableFuture<Void> deleteFuture = CompletableFuture.runAsync(() -> {
                 deleteRobDataByPackageId(packageId);
-            });
+            }, pool);
             // 添加删除操作完成后的回调
             deleteFuture.thenAccept(result -> {
                 pool.shutdown();
@@ -224,20 +224,14 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     }
 
     public void deleteRobDataByPackageId(Long packageId) {
-        CompletableFuture<Void> deleteFuture = CompletableFuture.runAsync(() -> {
-            XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
-            example.createCriteria().andIsDeleteEqualTo(0).andPackageIdEqualTo(packageId);
-            int deleteCount = robMapper.countByExample(example);
-            int limit = 10000;
-            while (deleteCount > 0) {
-                robMapper.batchDeleteRobDataByPackageId(packageId, limit);
-                deleteCount -= limit;
-            }
-        }, XIECHENG_ROB_DATA_DELETE_THREAD);
-        // 添加删除操作完成后的回调
-        deleteFuture.thenAccept(result -> {
-            log.warn("包规则数据删除完成，packageId:{}", packageId);
-        });
+        XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
+        example.createCriteria().andIsDeleteEqualTo(0).andPackageIdEqualTo(packageId);
+        int deleteCount = robMapper.countByExample(example);
+        int limit = 10000;
+        while (deleteCount > 0) {
+            robMapper.batchDeleteRobDataByPackageId(packageId, limit);
+            deleteCount -= limit;
+        }
     }
 
     private Boolean checkPackageId(Long packageId) {
