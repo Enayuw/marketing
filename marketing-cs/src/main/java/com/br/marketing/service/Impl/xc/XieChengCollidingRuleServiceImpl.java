@@ -86,7 +86,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
         String orderByClause = StringUtils.isEmpty(orderField) ? null
             : orderField + " " + (StringUtils.isEmpty(listParam.getOrderType()) ? "" : listParam.getOrderType());
         List<XiechengCollidingRuleVO> packageRuleList = packageRuleMapper.getCollidingRuleFalseList(listParam, orderByClause);
-        List<Map<Long, Long>> remainingNumbers = robMapper.selectRemainingNumberstiflash_();
+        List<Map<String, Long>> remainingNumbers = robMapper.selectRemainingNumberstiflash_();
         Map<Long, String> remainingNumbersMap =
             remainingNumbers.stream().collect(Collectors.toMap(remainingNumber -> remainingNumber.get("packageId"),
                 remainingNumber -> String.valueOf(remainingNumber.get("remainingNumber")), (existingValue, newValue) -> existingValue));

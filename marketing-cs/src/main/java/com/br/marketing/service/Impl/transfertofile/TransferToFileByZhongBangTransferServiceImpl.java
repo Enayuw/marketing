@@ -351,28 +351,4 @@ public class TransferToFileByZhongBangTransferServiceImpl implements ITransferTo
         return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
     }
 
-    private Set<String> computeValidDate(List<MarketingDataValidConfig> configList, String requestDate){
-        Set<String> set = new TreeSet<>();
-        LocalDate nowTime = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        for(MarketingDataValidConfig config : configList){
-            LocalDate startTime = LocalDate.parse(config.getValidStartDate(), YYYYMMDDSHORTLINE);
-            LocalDate endTime = LocalDate.parse(config.getValidEndDate(), YYYYMMDDSHORTLINE);
-            // 当前时间小于开始时间，返回
-            // 当前时间大于等于开始时间，开始时间取开始时间
-            if(nowTime.compareTo(startTime)<0){
-                continue;
-            }
-            // 当前时间小于结束时间 结束时间取当前时间
-            // 当前时间大于结束时间，结束时间取结束时间
-            if(nowTime.compareTo(endTime)<0){
-                endTime = nowTime;
-            }
-            LocalDate cur = startTime;
-            while(cur.compareTo(endTime)<=0){
-                set.add(cur.format(YYYYMMDDSHORTLINE));
-                cur = cur.plusDays(1);
-            }
-        }
-        return set;
-    }
 }
