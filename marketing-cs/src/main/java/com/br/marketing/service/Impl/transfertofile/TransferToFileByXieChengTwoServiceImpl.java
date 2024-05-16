@@ -319,8 +319,9 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                 }
             }
             TransferActionFront actionFront = new TransferActionFront();
+            actionFront.setApiCode(apiCode);
             // 获取截至时间之前最大的时间
-            sDate = getBeforeTime(localDate, apiCode, startDate, startTime, eDate, actionFront);
+            sDate = getBeforeTime(localDate, startDate, startTime, eDate, actionFront);
             Long minId = null;
             Boolean isContiue = Boolean.TRUE;
             final boolean bool = startTime.isBefore(endTime) || startTime.equals(endTime);
@@ -475,7 +476,6 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
      * 2024-05-13 15:49
      * 获取历史提取后的最后日期时间
      *
-     * @param apiCode     编号
      * @param localDate   提取任务的日期
      * @param startDate   开始日期
      * @param startTime   开始时间
@@ -483,12 +483,12 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
      * @param actionFront 任务记录
      * @return 开始日期时间
      */
-    private Date getBeforeTime(LocalDate localDate, String apiCode, LocalDate startDate, LocalTime startTime, Date eDate
+    private Date getBeforeTime(LocalDate localDate, LocalDate startDate, LocalTime startTime, Date eDate
             , TransferActionFront actionFront) {
         Date sDate;
         // 查询上次一次
         String localDateStr = localDate.toString();
-        TransferActionFront frontData = jobManager.getFrontData(apiCode, localDateStr, 1, null);
+        TransferActionFront frontData = jobManager.getFrontData(actionFront.getApiCode(), localDateStr, 1, null);
         if (frontData == null) {
             sDate = Date.from(startDate.atTime(startTime).atZone(ZoneId.systemDefault()).toInstant());
         } else {
@@ -498,7 +498,7 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         // 查询截至时间之前最大的时间
         Date dateMax = xieChengCollidingDataLogMapper.selectMaxCreateTimeByCreateTime(sDate, eDate);
         actionFront.setIsDel(9);
-        jobManager.updateActionFrontInfo(apiCode, localDateStr, 1, null, actionFront);
+        jobManager.updateActionFrontInfo(actionFront.getApiCode(), localDateStr, 1, null, actionFront);
         actionFront.setIsDel(1);
         actionFront.setActionType(1);
         actionFront.setActionData(localDateStr);
