@@ -1526,5 +1526,53 @@ public class MarketingCommonConfig {
      */
     private String noDesCleanConfig;
 
+
+    /**
+     * 携程跑分数据同步、TRUE数据剔除、非TRUE数据清洗apicode集合
+     */
+    private List<String> xieChengCollidingDataProcessApiCodes;
+
+    /**
+     * 携程跑分数据同步 查询T-n~T日跑分记录表
+     * XieChengRuleScoreToDbLastDays=3（T-3~T）
+     */
+    private Integer XieChengRuleScoreToDbLastDays;
+
+    /**
+     * 携程撞库数据清洗线程数
+     */
+    private Integer xieChengCollidingDataProcessThread;
+
+    /**
+     * 携程撞库跑分数据同步线程数
+     */
+    private Integer xieChengCollidingRuleScoreToDBThread;
+
+    /**
+     * 携程撞库数据推送决策线程数
+     */
+    private Integer xieChengCollidingDataPushPolicyThread;
+
+    /**
+     * 携程撞库跑分数据同步文件字段映射
+     * xieChengCollidingRuleScoreFieldMap={"userType":"user_type"}
+     */
+    private Map<String, String> xieChengCollidingRuleScoreFieldMap;
+
+    /**
+     * 携程定制化页面周期TRUE列表apiCode配置
+     */
+    private String xieChengCustomizeTrueApiCode;
+
+    /**
+     * 携程撞库停止跑分数据同步，跑分编号配置集合
+     * ["7410950_20240507000000_6334","7410950_20240507000000_6682"]
+     */
+    private List<String> xieChengCollidingRuleScoreStopBatchNums;
+
+    /**
+     * 携程定制化页面列表排序字段配置
+     */
+    private Map<String, JSONObject> xieChengCustomizeOrderByClauseConfig;
 }
 

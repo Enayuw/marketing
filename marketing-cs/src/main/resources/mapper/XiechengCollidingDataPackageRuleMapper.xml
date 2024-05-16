@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper">
+    <select id="getCollidingRuleFalseList" resultType="com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO">
+        select dpr.id                    as dprId,
+               bmc.cid                   as cid,
+               dpr.api_code              as apiCode,
+               bmc.short_name            as shortName,
+               pkg.id                    as pkgId,
+               pkg.package_name          as packageName,
+               dpt.discreet_number       as discreetNumber,
+               dpr.colliding_switch      as collidingSwitch,
+               pkg.priority              as priority,
+               dpr.colliding_back_number as collidingBackNumber,
+               dpr.colliding_times       as collidingTimes,
+               dpt.task_start_time       as taskStartTime,
+               dpr.colliding_start_time  as collidingStartTime,
+               dpr.colliding_end_time    as collidingEndTime,
+               dpr.create_time           as createTime,
+               dpr.update_time           as updateTime
+        from b_xiecheng_colliding_data_package_rule dpr
+                 left join b_marketing_customer bmc on bmc.api_code = dpr.api_code and bmc.status = 1
+                 left join b_xiecheng_colliding_data_package pkg on pkg.id = dpr.package_id and pkg.is_delete = 0
+                 left join b_xiecheng_colliding_data_process_task dpt on dpt.id = dpr.colliding_data_task_id and dpt.is_delete = 0
+        where dpr.is_delete = 0
+        <if test="listParam.keyword != null and listParam.keyword != ''">
+            and pkg.package_name like '%${listParam.keyword}%'
+        </if>
+        <if test="listParam.apiCode != null and listParam.apiCode != ''">
+            and dpr.api_code = #{listParam.apiCode}
+        </if>
+        <if test="listParam.collidingSwitch != null">
+            and dpr.colliding_switch = #{listParam.collidingSwitch}
+        </if>
+        <if test="listParam.collidingStartTime != null and listParam.collidingStartTime != '' and listParam.collidingEndTime != null and listParam.collidingEndTime != ''">
+            AND dpr.colliding_start_time <![CDATA[ <= ]]> #{listParam.collidingEndTime}
+            AND dpr.colliding_end_time <![CDATA[ >= ]]> #{listParam.collidingStartTime}
+        </if>
+        <if test="orderByClause != null and orderByClause != ''">
+            ORDER BY ${orderByClause}
+        </if>
+    </select>
+
+    <select id="getPackageRuleDetail" resultType="com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO">
+        select dpr.id                    as dprId,
+               bmc.cid                   as cid,
+               dpr.api_code              as apiCode,
+               bmc.short_name            as shortName,
+               pkg.id                    as pkgId,
+               pkg.package_name          as packageName,
+               dpt.discreet_number       as discreetNumber,
+               (SELECT COUNT(*)
+                FROM b_xiecheng_colliding_data_rob
+                WHERE package_id = pkg.id
+                  AND is_delete = 0)     as remainingNumber,
+               dpr.colliding_switch      as collidingSwitch,
+               pkg.priority              as priority,
+               dpr.colliding_back_number as collidingBackNumber,
+               dpt.task_start_time       as taskStartTime,
+               dpr.colliding_start_time  as collidingStartTime,
+               dpr.colliding_end_time    as collidingEndTime,
+               dpr.create_time           as createTime,
+               dpr.update_time           as updateTime
+        from b_xiecheng_colliding_data_package_rule dpr
+                 left join b_marketing_customer bmc on bmc.api_code = dpr.api_code and bmc.status = 1
+                 left join b_xiecheng_colliding_data_package pkg on pkg.id = dpr.package_id and pkg.is_delete = 0
+                 left join b_xiecheng_colliding_data_process_task dpt on dpt.id = dpr.colliding_data_task_id and dpt.is_delete = 0
+        where dpr.is_delete = 0
+          and dpr.id = #{dprId}
+    </select>
+
+    <select id="listByIds" resultType="com.br.marketing.entity.XiechengCollidingDataPackageRule">
+        select *
+        from b_xiecheng_colliding_data_package_rule
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <update id="deleteByIds">
+        update b_xiecheng_colliding_data_package_rule
+        set is_delete = 1
+        where id in
+        <foreach collection="ids" item="id" separator="," close=")" open="(">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="getCollidingPackageRules" resultType="com.br.marketing.entity.XiechengCollidingDataPackageRule">
+        SELECT r.*
+        FROM b_xiecheng_colliding_data_package_rule r
+                 JOIN b_xiecheng_colliding_data_package p ON p.id = r.package_id
+        WHERE p.is_delete = 0
+          AND r.is_delete = 0
+          AND r.colliding_switch = 0
+          AND r.colliding_start_time <![CDATA[ <= ]]> NOW()
+          AND r.colliding_end_time <![CDATA[ >= ]]> NOW()
+        ORDER BY p.priority,
+                 IF(r.colliding_back_number IS NULL, 0, 1);
+    </select>
+
+    <select id="getMaxEndTimeGroupByPackageId" resultType="com.br.marketing.entity.XiechengCollidingDataPackageRule">
+        select package_id, max(colliding_end_time) colliding_end_time
+        from b_xiecheng_colliding_data_package_rule
+        where is_delete = 0
+          and package_id in
+        <foreach collection="packageIds" item="packageId" open="(" separator="," close=")">
+            #{packageId}
+        </foreach>
+        group by package_id;
+    </select>
+
+    <update id="updateCollidingRule" parameterType="com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam">
+        update b_xiecheng_colliding_data_package_rule
+        <set>
+            <choose>
+                <when test="collidingBackNumber != null and collidingBackNumber != ''">
+                    colliding_back_number = #{collidingBackNumber,jdbcType=INTEGER},
+                </when>
+                <otherwise>
+                    colliding_back_number = null,
+                </otherwise>
+            </choose>
+            <if test="collidingStartTime != null">
+                colliding_start_time = #{collidingStartTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="collidingEndTime != null">
+                colliding_end_time = #{collidingEndTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="collidingTimes != null">
+                colliding_times = #{collidingTimes,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{dprId,jdbcType=BIGINT}
+    </update>
+</mapper>

@@ -71,6 +71,7 @@ public class XieChengCollidingResultHandleService {
                 String cell = returnData.getString("sha256Code");
                 Boolean result = returnData.getBoolean("result");
                 XieChengCollidingDataRob robData = cellMap.getOrDefault(cell, new XieChengCollidingDataRob());
+                robData.setCollidingCount(robData.getCollidingCount() + 1);
                 if (result) {
                     // 增加try-catch保证50条一批其他数据正常处理，异常数据单条告警
                     try {
@@ -84,8 +85,8 @@ public class XieChengCollidingResultHandleService {
                     robData.setUpdateTime(new Date());
                     xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
                 }
-                collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(), "F",
-                    returnData, httpcode, businessCode));
+                collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
+                    robData.getPackageRuleId(), "F", returnData, httpcode, businessCode));
             }
             xieChengCollidingDataLogService.pushLogMessage(collidingLogs);
         } else {
@@ -95,8 +96,8 @@ public class XieChengCollidingResultHandleService {
                 robData.setPushTime(new Date());
                 robData.setRetryCount(robData.getRetryCount() + 1);
                 xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
-                collidingLogs.add(xieChengCollidingDataLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(), "F",
-                    robData.getCellSha256CodeList(), resJson));
+                collidingLogs.add(xieChengCollidingDataLogService.buildFailXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
+                    robData.getPackageRuleId(), "F", robData.getCellSha256CodeList(), resJson));
             }
             xieChengCollidingDataLogService.pushLogMessage(collidingLogs);
         }

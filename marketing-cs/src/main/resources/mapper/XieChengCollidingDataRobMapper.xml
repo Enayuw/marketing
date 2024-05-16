@@ -2,22 +2,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataRobMapper">
     <select id="getRobCollidingDataList" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
-        SELECT rob.id, rob.cell_sha256_code_list,rob.package_id,rob.retry_count
+        SELECT rob.id,
+               rob.cell_sha256_code_list,
+               rob.package_id,
+               #{packageRuleId,jdbcType=BIGINT} as packageRuleId,
+               rob.retry_count,
+               rob.colliding_count
         FROM b_xiecheng_colliding_data_rob rob
-                 JOIN b_xiecheng_colliding_data_package pkg ON rob.package_id = pkg.id
-        WHERE pkg.is_delete = 0
-        <if test="packageIds != null and packageIds.size() > 0">
-            AND rob.package_id IN
-            <foreach collection="packageIds" item="id" open="(" separator="," close=")">
-                #{id}
-            </foreach>
-        </if>
-        AND rob.is_delete = 0
-        AND rob.retry_count = 0
-        <![CDATA[ and pkg.colliding_time <= now() ]]>
-        AND (DATE(rob.push_time) != CURDATE() OR rob.push_time IS NULL)
-        ORDER BY pkg.priority desc
-            limit #{pageSize}
+        WHERE rob.package_id = #{packageId,jdbcType=BIGINT}
+          AND rob.is_delete = 0
+          AND rob.colliding_count <![CDATA[ < ]]> #{collidingTimes,jdbcType=INTEGER}
+        ORDER BY IF(rob.push_time IS NULL, 0, 1),
+                 rob.push_time
+        limit #{pageSize,jdbcType=INTEGER}
     </select>
     <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
         select *
@@ -79,5 +76,76 @@
             and id > #{minId}
         </if>
         order by id asc limit #{pageSize};
+    </select>
+
+    <select id="countByCollidingCount" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM b_xiecheng_colliding_data_rob
+        WHERE package_id = #{packageId,jdbcType=BIGINT}
+          AND is_delete = 0
+          AND colliding_count <![CDATA[ < ]]> #{collidingTimes,jdbcType=INTEGER};
+    </select>
+
+    <select id="selectRobDataByRuleScoreData" resultType="com.br.marketing.entity.XieChengCollidingDataRobPriority">
+        select a.id, a.package_id, a.cell_sha256_code_list, b.priority
+        from b_xiecheng_colliding_data_rob a
+        join b_xiecheng_colliding_data_package b on a.package_id = b.id
+        where a.is_delete = 0
+        and b.is_delete = 0
+        and cell_sha256_code_list in
+        <foreach collection="cells" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+    </select>
+
+
+    <select id="selectMaxCollidingEndTimeGroupByCell" resultType="com.br.marketing.entity.XieChengCollidingDataRobPriority">
+        select a.cell_sha256_code_list, max(c.colliding_end_time)
+        from b_xiecheng_colliding_data_rob a
+                 join b_xiecheng_colliding_data_package b on b.id = a.package_id
+                 join b_xiecheng_colliding_data_package_rule c on b.id = c.package_id
+        where a.is_delete = 0 and b.is_delete = 0 and c.is_delete = 0
+        and a.cell_sha256_code_list in
+        <foreach collection="cells" item="cell" open="(" separator="," close=")">
+            #{cell}
+        </foreach>
+        group by a.cell_sha256_code_list
+    </select>
+
+    <update id="updateDeleteByIds">
+        update b_xiecheng_colliding_data_rob set is_delete = 1,update_time = now(),extend = #{extend}
+        where is_delete = 0 and id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="selectCountFromRobByNewPackageId" resultType="java.lang.Long">
+        select count(1)
+        from b_xiecheng_colliding_data_rob
+        where is_delete = 0 and package_id = #{packageId}
+    </select>
+
+    <update id="batchResetCollidingCount">
+        update b_xiecheng_colliding_data_rob
+        set colliding_count = 0
+        where colliding_count != 0
+          and is_delete = 0
+        limit 20000
+    </update>
+
+    <update id="batchDeleteRobDataByPackageId">
+        update b_xiecheng_colliding_data_rob
+        set is_delete = 1
+        where package_id = #{packageId}
+          and is_delete = 0
+        limit #{limit}
+    </update>
+
+    <select id="selectRemainingNumberstiflash_" resultType="java.util.Map">
+        SELECT package_id as packageId, COUNT(*) AS remainingNumber
+        FROM b_xiecheng_colliding_data_rob
+        WHERE is_delete = 0
+        GROUP BY package_id;
     </select>
 </mapper>
