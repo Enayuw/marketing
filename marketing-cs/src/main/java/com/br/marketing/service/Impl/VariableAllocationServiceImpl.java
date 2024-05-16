@@ -65,7 +65,7 @@ public class VariableAllocationServiceImpl implements VariableAllocationService 
                 JSONObject jsonObject = JSON.parseObject(allocationValue);
                 int normalQuantity =  jsonObject.getInteger("trueDataThresholdSize");
                 int abnormalQuantity = jsonObject.getInteger("retryThresholdSize");
-                VariableAllocationVO vo = variableAllocationMapper.getVariableAllocationVO(requestTime);
+                VariableAllocationVO vo = variableAllocationMapper.getVariableAllocationVOtiflash_(requestTime);
                 int releaseTimeNum = vo.getReleaseTimeNum();
                 int falseNum = normalQuantity - releaseTimeNum;
                 allocationVO.setId(variableList.getId().longValue());

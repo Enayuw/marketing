@@ -13,7 +13,7 @@ public class CustomerInfoPushMainExample {
     protected List<Criteria> oredCriteria;
 
     public CustomerInfoPushMainExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -70,7 +70,7 @@ public class CustomerInfoPushMainExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -1445,10 +1445,141 @@ public class CustomerInfoPushMainExample {
             addCriterion("opt_user_name not between", value1, value2, "optUserName");
             return (Criteria) this;
         }
+
+        public Criteria andFilterTypeIsNull() {
+            addCriterion("filter_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeIsNotNull() {
+            addCriterion("filter_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeEqualTo(Integer value) {
+            addCriterion("filter_type =", value, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeNotEqualTo(Integer value) {
+            addCriterion("filter_type <>", value, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeGreaterThan(Integer value) {
+            addCriterion("filter_type >", value, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("filter_type >=", value, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeLessThan(Integer value) {
+            addCriterion("filter_type <", value, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("filter_type <=", value, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeIn(List<Integer> values) {
+            addCriterion("filter_type in", values, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeNotIn(List<Integer> values) {
+            addCriterion("filter_type not in", values, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeBetween(Integer value1, Integer value2) {
+            addCriterion("filter_type between", value1, value2, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilterTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("filter_type not between", value1, value2, "filterType");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIsNull() {
+            addCriterion("extend is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIsNotNull() {
+            addCriterion("extend is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendEqualTo(String value) {
+            addCriterion("extend =", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotEqualTo(String value) {
+            addCriterion("extend <>", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThan(String value) {
+            addCriterion("extend >", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThanOrEqualTo(String value) {
+            addCriterion("extend >=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThan(String value) {
+            addCriterion("extend <", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThanOrEqualTo(String value) {
+            addCriterion("extend <=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLike(String value) {
+            addCriterion("extend like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotLike(String value) {
+            addCriterion("extend not like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIn(List<String> values) {
+            addCriterion("extend in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotIn(List<String> values) {
+            addCriterion("extend not in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendBetween(String value1, String value2) {
+            addCriterion("extend between", value1, value2, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotBetween(String value1, String value2) {
+            addCriterion("extend not between", value1, value2, "extend");
+            return (Criteria) this;
+        }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

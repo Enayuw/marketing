@@ -59,13 +59,13 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_marketing_sync_7410787" domainObjectName="MarketingSyncUser" >
+        <table tableName="b_xiecheng_rule_score_record" domainObjectName="XieChengRuleScoreRecord" >
 <!--            <property name="useActualColumnNames" value="false"/>-->
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
 
-<!--            <columnOverride column="field_mapping" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />
 <!--            <columnOverride column="content_show" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="result_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="error_content" javaType="java.lang.String" jdbcType="VARCHAR" />-->
@@ -73,7 +73,7 @@
 <!--            <columnOverride column="m_rule_condition_show" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="json_data" javaType="java.lang.String" jdbcType="VARCHAR" />-->
-            <columnOverride column="reserve_field1" javaType="java.lang.String" jdbcType="VARCHAR" />
+<!--            <columnOverride column="reserve_field1" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="reserve_field2" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="strategy_product_json" javaType="java.lang.String" jdbcType="VARCHAR" />-->
         </table>

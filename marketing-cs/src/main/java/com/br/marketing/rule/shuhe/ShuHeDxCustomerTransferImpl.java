@@ -132,6 +132,12 @@ public class ShuHeDxCustomerTransferImpl implements AssembleData<ConversionData>
                             break;
                         case "促申完":
                         case "促首登":
+                            /* 2024年5月8日11点14分
+                             * 需求变更：
+                             *【紧急】D20240507数禾电销转化过滤-3710117（营销→外呼）
+                             * https://c.100credit.cn/pages/viewpage.action?pageId=155694316
+                             */
+                        case "重申":
                             String usrCompAplAiClSpUse = reserveFieldObject.getString("usr_comp_apl_ai_cl_sp_use");
                             if (StringUtils.hasText(usrCompAplAiClSpUse)) {
                                 return true;

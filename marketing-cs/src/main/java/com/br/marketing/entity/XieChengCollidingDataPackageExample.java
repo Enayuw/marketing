@@ -12,7 +12,7 @@ public class XieChengCollidingDataPackageExample {
     protected List<Criteria> oredCriteria;
 
     public XieChengCollidingDataPackageExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class XieChengCollidingDataPackageExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -415,6 +415,76 @@ public class XieChengCollidingDataPackageExample {
             return (Criteria) this;
         }
 
+        public Criteria andExtendIsNull() {
+            addCriterion("extend is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIsNotNull() {
+            addCriterion("extend is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendEqualTo(String value) {
+            addCriterion("extend =", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotEqualTo(String value) {
+            addCriterion("extend <>", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThan(String value) {
+            addCriterion("extend >", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThanOrEqualTo(String value) {
+            addCriterion("extend >=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThan(String value) {
+            addCriterion("extend <", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThanOrEqualTo(String value) {
+            addCriterion("extend <=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLike(String value) {
+            addCriterion("extend like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotLike(String value) {
+            addCriterion("extend not like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIn(List<String> values) {
+            addCriterion("extend in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotIn(List<String> values) {
+            addCriterion("extend not in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendBetween(String value1, String value2) {
+            addCriterion("extend between", value1, value2, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotBetween(String value1, String value2) {
+            addCriterion("extend not between", value1, value2, "extend");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;
@@ -534,10 +604,191 @@ public class XieChengCollidingDataPackageExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andActualNumberIsNull() {
+            addCriterion("actual_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberIsNotNull() {
+            addCriterion("actual_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberEqualTo(Integer value) {
+            addCriterion("actual_number =", value, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberNotEqualTo(Integer value) {
+            addCriterion("actual_number <>", value, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberGreaterThan(Integer value) {
+            addCriterion("actual_number >", value, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberGreaterThanOrEqualTo(Integer value) {
+            addCriterion("actual_number >=", value, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberLessThan(Integer value) {
+            addCriterion("actual_number <", value, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberLessThanOrEqualTo(Integer value) {
+            addCriterion("actual_number <=", value, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberIn(List<Integer> values) {
+            addCriterion("actual_number in", values, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberNotIn(List<Integer> values) {
+            addCriterion("actual_number not in", values, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberBetween(Integer value1, Integer value2) {
+            addCriterion("actual_number between", value1, value2, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andActualNumberNotBetween(Integer value1, Integer value2) {
+            addCriterion("actual_number not between", value1, value2, "actualNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberIsNull() {
+            addCriterion("discreet_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberIsNotNull() {
+            addCriterion("discreet_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberEqualTo(Integer value) {
+            addCriterion("discreet_number =", value, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberNotEqualTo(Integer value) {
+            addCriterion("discreet_number <>", value, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberGreaterThan(Integer value) {
+            addCriterion("discreet_number >", value, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberGreaterThanOrEqualTo(Integer value) {
+            addCriterion("discreet_number >=", value, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberLessThan(Integer value) {
+            addCriterion("discreet_number <", value, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberLessThanOrEqualTo(Integer value) {
+            addCriterion("discreet_number <=", value, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberIn(List<Integer> values) {
+            addCriterion("discreet_number in", values, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberNotIn(List<Integer> values) {
+            addCriterion("discreet_number not in", values, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberBetween(Integer value1, Integer value2) {
+            addCriterion("discreet_number between", value1, value2, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscreetNumberNotBetween(Integer value1, Integer value2) {
+            addCriterion("discreet_number not between", value1, value2, "discreetNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdIsNull() {
+            addCriterion("colliding_data_task_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdIsNotNull() {
+            addCriterion("colliding_data_task_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdEqualTo(Long value) {
+            addCriterion("colliding_data_task_id =", value, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdNotEqualTo(Long value) {
+            addCriterion("colliding_data_task_id <>", value, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdGreaterThan(Long value) {
+            addCriterion("colliding_data_task_id >", value, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("colliding_data_task_id >=", value, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdLessThan(Long value) {
+            addCriterion("colliding_data_task_id <", value, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdLessThanOrEqualTo(Long value) {
+            addCriterion("colliding_data_task_id <=", value, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdIn(List<Long> values) {
+            addCriterion("colliding_data_task_id in", values, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdNotIn(List<Long> values) {
+            addCriterion("colliding_data_task_id not in", values, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdBetween(Long value1, Long value2) {
+            addCriterion("colliding_data_task_id between", value1, value2, "collidingDataTaskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCollidingDataTaskIdNotBetween(Long value1, Long value2) {
+            addCriterion("colliding_data_task_id not between", value1, value2, "collidingDataTaskId");
+            return (Criteria) this;
+        }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

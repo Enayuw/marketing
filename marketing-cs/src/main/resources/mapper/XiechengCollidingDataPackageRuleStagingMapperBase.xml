@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XiechengCollidingDataPackageRuleStagingMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="package_id" property="packageId" jdbcType="BIGINT" />
+    <result column="colliding_data_task_id" property="collidingDataTaskId" jdbcType="BIGINT" />
+    <result column="colliding_back_number" property="collidingBackNumber" jdbcType="INTEGER" />
+    <result column="colliding_start_time" property="collidingStartTime" jdbcType="TIMESTAMP" />
+    <result column="colliding_end_time" property="collidingEndTime" jdbcType="TIMESTAMP" />
+    <result column="colliding_times" property="collidingTimes" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, package_id, colliding_data_task_id, colliding_back_number, colliding_start_time, 
+    colliding_end_time, colliding_times, create_time, update_time, is_delete
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStagingExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_xiecheng_colliding_data_package_rule_staging
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_xiecheng_colliding_data_package_rule_staging
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_xiecheng_colliding_data_package_rule_staging
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStagingExample" >
+    delete from b_xiecheng_colliding_data_package_rule_staging
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_xiecheng_colliding_data_package_rule_staging (api_code, package_id, colliding_data_task_id, 
+      colliding_back_number, colliding_start_time, 
+      colliding_end_time, colliding_times, create_time, 
+      update_time, is_delete)
+    values (#{apiCode,jdbcType=VARCHAR}, #{packageId,jdbcType=BIGINT}, #{collidingDataTaskId,jdbcType=BIGINT}, 
+      #{collidingBackNumber,jdbcType=INTEGER}, #{collidingStartTime,jdbcType=TIMESTAMP}, 
+      #{collidingEndTime,jdbcType=TIMESTAMP}, #{collidingTimes,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_xiecheng_colliding_data_package_rule_staging
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="packageId != null" >
+        package_id,
+      </if>
+      <if test="collidingDataTaskId != null" >
+        colliding_data_task_id,
+      </if>
+      <if test="collidingBackNumber != null" >
+        colliding_back_number,
+      </if>
+      <if test="collidingStartTime != null" >
+        colliding_start_time,
+      </if>
+      <if test="collidingEndTime != null" >
+        colliding_end_time,
+      </if>
+      <if test="collidingTimes != null" >
+        colliding_times,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="packageId != null" >
+        #{packageId,jdbcType=BIGINT},
+      </if>
+      <if test="collidingDataTaskId != null" >
+        #{collidingDataTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="collidingBackNumber != null" >
+        #{collidingBackNumber,jdbcType=INTEGER},
+      </if>
+      <if test="collidingStartTime != null" >
+        #{collidingStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="collidingEndTime != null" >
+        #{collidingEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="collidingTimes != null" >
+        #{collidingTimes,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStagingExample" resultType="java.lang.Integer" >
+    select count(*) from b_xiecheng_colliding_data_package_rule_staging
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_xiecheng_colliding_data_package_rule_staging
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.packageId != null" >
+        package_id = #{record.packageId,jdbcType=BIGINT},
+      </if>
+      <if test="record.collidingDataTaskId != null" >
+        colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="record.collidingBackNumber != null" >
+        colliding_back_number = #{record.collidingBackNumber,jdbcType=INTEGER},
+      </if>
+      <if test="record.collidingStartTime != null" >
+        colliding_start_time = #{record.collidingStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.collidingEndTime != null" >
+        colliding_end_time = #{record.collidingEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.collidingTimes != null" >
+        colliding_times = #{record.collidingTimes,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_xiecheng_colliding_data_package_rule_staging
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      package_id = #{record.packageId,jdbcType=BIGINT},
+      colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT},
+      colliding_back_number = #{record.collidingBackNumber,jdbcType=INTEGER},
+      colliding_start_time = #{record.collidingStartTime,jdbcType=TIMESTAMP},
+      colliding_end_time = #{record.collidingEndTime,jdbcType=TIMESTAMP},
+      colliding_times = #{record.collidingTimes,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_delete = #{record.isDelete,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging" >
+    update b_xiecheng_colliding_data_package_rule_staging
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="packageId != null" >
+        package_id = #{packageId,jdbcType=BIGINT},
+      </if>
+      <if test="collidingDataTaskId != null" >
+        colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="collidingBackNumber != null" >
+        colliding_back_number = #{collidingBackNumber,jdbcType=INTEGER},
+      </if>
+      <if test="collidingStartTime != null" >
+        colliding_start_time = #{collidingStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="collidingEndTime != null" >
+        colliding_end_time = #{collidingEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="collidingTimes != null" >
+        colliding_times = #{collidingTimes,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging" >
+    update b_xiecheng_colliding_data_package_rule_staging
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      package_id = #{packageId,jdbcType=BIGINT},
+      colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT},
+      colliding_back_number = #{collidingBackNumber,jdbcType=INTEGER},
+      colliding_start_time = #{collidingStartTime,jdbcType=TIMESTAMP},
+      colliding_end_time = #{collidingEndTime,jdbcType=TIMESTAMP},
+      colliding_times = #{collidingTimes,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_delete = #{isDelete,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
