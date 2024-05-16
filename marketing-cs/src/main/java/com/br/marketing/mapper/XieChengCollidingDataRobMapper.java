@@ -60,5 +60,5 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     int batchDeleteRobDataByPackageId(@Param("packageId") Long packageId, @Param("limit") int limit);
 
-    List<Map<Long, Long>> selectRemainingNumberstiflash_();
+    List<Map<String, Long>> selectRemainingNumberstiflash_();
 }
