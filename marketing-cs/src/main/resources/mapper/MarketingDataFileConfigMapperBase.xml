@@ -9,6 +9,8 @@
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="is_checklist_name" property="isChecklistName" jdbcType="INTEGER" />
+    <result column="validation_rules" property="validationRules" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -69,7 +71,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, field_config, service_name, create_time, update_time, is_del
+    id, api_code, field_config, service_name, create_time, update_time, is_del, is_checklist_name, 
+    validation_rules
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" >
     select
@@ -106,11 +109,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_data_file_config (api_code, field_config, service_name, 
-      create_time, update_time, is_del
-      )
+      create_time, update_time, is_del, 
+      is_checklist_name, validation_rules)
     values (#{apiCode,jdbcType=VARCHAR}, #{fieldConfig,jdbcType=VARCHAR}, #{serviceName,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
-      )
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, 
+      #{isChecklistName,jdbcType=INTEGER}, #{validationRules,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataFileConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -136,6 +139,12 @@
       <if test="isDel != null" >
         is_del,
       </if>
+      <if test="isChecklistName != null" >
+        is_checklist_name,
+      </if>
+      <if test="validationRules != null" >
+        validation_rules,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -155,6 +164,12 @@
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="isChecklistName != null" >
+        #{isChecklistName,jdbcType=INTEGER},
+      </if>
+      <if test="validationRules != null" >
+        #{validationRules,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -188,6 +203,12 @@
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
+      <if test="record.isChecklistName != null" >
+        is_checklist_name = #{record.isChecklistName,jdbcType=INTEGER},
+      </if>
+      <if test="record.validationRules != null" >
+        validation_rules = #{record.validationRules,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -201,7 +222,9 @@
       service_name = #{record.serviceName,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      is_del = #{record.isDel,jdbcType=INTEGER}
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      is_checklist_name = #{record.isChecklistName,jdbcType=INTEGER},
+      validation_rules = #{record.validationRules,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -227,6 +250,12 @@
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
+      <if test="isChecklistName != null" >
+        is_checklist_name = #{isChecklistName,jdbcType=INTEGER},
+      </if>
+      <if test="validationRules != null" >
+        validation_rules = #{validationRules,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -237,7 +266,9 @@
       service_name = #{serviceName,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      is_del = #{isDel,jdbcType=INTEGER}
+      is_del = #{isDel,jdbcType=INTEGER},
+      is_checklist_name = #{isChecklistName,jdbcType=INTEGER},
+      validation_rules = #{validationRules,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

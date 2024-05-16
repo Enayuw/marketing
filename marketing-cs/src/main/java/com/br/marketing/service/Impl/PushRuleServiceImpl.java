@@ -4,6 +4,7 @@ import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
+import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
@@ -1471,6 +1472,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setIdCard(marketingPreUserDetailDTO.getId());
                 marketingSyncUser.setName(marketingPreUserDetailDTO.getName());
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
+                marketingSyncUser.setCellSha256(marketingPreUserDetailDTO.getCellSha256());
+                marketingSyncUser.setCellMd5(marketingPreUserDetailDTO.getCellMd5());
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
                 marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField, finalReserveFileld1Json));
@@ -2391,6 +2394,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (!userValidator.validatePhone(content)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+            }else{
+                user.setCellMd5(Md5Utils.cell32(content));
+                user.setCellSha256(Sha256Util.getSHA256Encrypt(content));
             }
             user.setCell(BrCipherMaker.getInstance().encode(content));
         }

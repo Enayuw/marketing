@@ -28,6 +28,12 @@
             <if test="cell != null">
                 cell,
             </if>
+            <if test="cellMd5 != null" >
+                cell_md5,
+            </if>
+            <if test="cellSha256 != null" >
+                cell_sha256,
+            </if>
             <if test="groupType != null">
                 group_type,
             </if>
@@ -92,6 +98,12 @@
             </if>
             <if test="cell != null">
                 #{cell,jdbcType=VARCHAR},
+            </if>
+            <if test="cellMd5 != null" >
+                #{cellMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="cellSha256 != null" >
+                #{cellSha256,jdbcType=VARCHAR},
             </if>
             <if test="groupType != null">
                 #{groupType,jdbcType=VARCHAR},
@@ -735,6 +747,9 @@
     <update id="updateStatus">
         update b_marketing_sync_${apiCode} set  status = 2,fail_type = concat(ifnull(fail_type,''),',营销失败数据') where cust_num = #{custNum} and applet_date = #{appletDate} and status=1
     </update>
+    <update id="updateSqlByNoDestikv_">
+        ${updateSql}
+    </update>
 
     <select id="findCusBatchByAppletDatePage" resultType="java.lang.String">
         select cus_batch
@@ -838,4 +853,55 @@
         order by user_type,create_time;
     </select>
 
+    <select id="existUploadTable" resultType="java.lang.Integer">
+        select 1
+        from ${tableNm} limit 1
+    </select>
+
+    <select id="noDesUploadByMinIdtikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select `id`,`cell`
+        from b_marketing_sync_${apiCode}
+        where
+            cell_md5 is null and status = 1
+            <if test="minId != null and minId >0">
+             and `id` > #{minId}
+            </if>
+        order by `id` asc limit 2000
+    </select>
+    <select id="noDesUploadByMinIdtiflash_" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where
+        cell_md5 is null and status = 1
+    </select>
+
+    <select id="selectSyncUserByCelltikv_" resultType="com.br.marketing.entity.MarketingSyncUserCell">
+        select applet_date as appletDate ,api_code as apiCode, user_type as userType,
+            count(*) as normalNum, sum(case when is_repeat=3 then 0 else 1 end) as duplicateRemovalNum
+        from b_marketing_sync_${apiCode}
+        where cell=#{cell}
+          <if test="appletTimeStart != null and appletTimeStart != '' and appletTimeEnd != null and appletTimeEnd != ''">
+              <![CDATA[ and applet_date>=#{appletTimeStart} and applet_date<=#{appletTimeEnd} ]]>
+          </if>
+          and status=1
+          <if test="userTypeList != null and userTypeList.size()>0">
+              and user_type in
+              <foreach collection="userTypeList" item="item" open="(" separator="," close=")">
+                  #{item}
+              </foreach>
+          </if>
+        group by applet_date,api_code,user_type
+        <if test="orderField != null and orderField != '' ">
+            order by ${orderField}
+            <if test="descField != null and descField != '' ">
+                ${descField}
+            </if>
+            <if test="descField == null or descField == '' ">
+                desc
+            </if>
+        </if>
+        <if test="orderField == null or orderField == '' ">
+            order by applet_date desc
+        </if>
+    </select>
 </mapper>

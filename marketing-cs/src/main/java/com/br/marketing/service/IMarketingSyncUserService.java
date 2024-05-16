@@ -237,4 +237,12 @@ public interface IMarketingSyncUserService {
      * @return Map key cell; value MarketingTransferSyncUser
      */
     Map<String, MarketingSyncUser> getCellByCellAndMaxAppletTimeMap(String apiCode, Set<String> cellSet);
+
+    Boolean existUploadTable(String apiCode);
+
+    List<MarketingSyncUser> noDesUploadByMinId(String apiCode,Long minId);
+
+    Long noDesUploadOfMinId(String apiCode);
+
+    Integer updateSqlByNoDes(String updateSql);
 }

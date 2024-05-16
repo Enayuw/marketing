@@ -1516,6 +1516,16 @@ public class MarketingCommonConfig {
      * 数禾适配新有效期apiCode与场景信息eg:{apiCode:[场景]}
      */
     private Map<String, JSONArray> shuHeNewPeriodOfValidityMap = new HashMap<>();
+    /**
+     * 修复cell的apiCode前缀集合
+     */
+    private List<String> updateCellApiCodePrefix;
+
+    /**
+     * 无解密清洗配置
+     */
+    private String noDesCleanConfig;
+
 
     /**
      * 携程跑分数据同步、TRUE数据剔除、非TRUE数据清洗apicode集合

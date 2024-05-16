@@ -44,6 +44,16 @@ public class MarketingSyncUser {
     private String cell;
 
     /**
+     * 手机号md5
+     */
+    private String cellMd5;
+
+    /**
+     * 手机号sha256
+     */
+    private String cellSha256;
+
+    /**
      * 场景
      */
     private String groupType;
@@ -62,11 +72,6 @@ public class MarketingSyncUser {
      * 预留字段1
      */
     private String reserveField1;
-
-    /**
-     * 预留字段2
-     */
-    private String reserveField2;
 
     /**
      * 创建时间
@@ -113,30 +118,10 @@ public class MarketingSyncUser {
      */
     private Integer isRepeat;
 
-    public MarketingSyncUser(Long id, String apiCode, String cusBatch, String requestBatch, String custNum, String idCard, String name, String cell, String groupType, String userType, String registerDate, String reserveField1, String reserveField2, Date createTime, Date updateTime, String appletDate, Integer status, String failType, Date appletTime, Integer isTask, Date taskTime, Integer isRepeat) {
-        this.id = id;
-        this.apiCode = apiCode;
-        this.cusBatch = cusBatch;
-        this.requestBatch = requestBatch;
-        this.custNum = custNum;
-        this.idCard = idCard;
-        this.name = name;
-        this.cell = cell;
-        this.groupType = groupType;
-        this.userType = userType;
-        this.registerDate = registerDate;
-        this.reserveField1 = reserveField1;
-        this.reserveField2 = reserveField2;
-        this.createTime = createTime;
-        this.updateTime = updateTime;
-        this.appletDate = appletDate;
-        this.status = status;
-        this.failType = failType;
-        this.appletTime = appletTime;
-        this.isTask = isTask;
-        this.taskTime = taskTime;
-        this.isRepeat = isRepeat;
-    }
+    /**
+     * 预留字段2
+     */
+    private String reserveField2;
 
     public Long getId() {
         return id;
@@ -202,12 +187,36 @@ public class MarketingSyncUser {
         this.cell = cell == null ? null : cell.trim();
     }
 
+    public String getCellMd5() {
+        return cellMd5;
+    }
+
+    public void setCellMd5(String cellMd5) {
+        this.cellMd5 = cellMd5 == null ? null : cellMd5.trim();
+    }
+
+    public String getCellSha256() {
+        return cellSha256;
+    }
+
+    public void setCellSha256(String cellSha256) {
+        this.cellSha256 = cellSha256 == null ? null : cellSha256.trim();
+    }
+
     public String getGroupType() {
         return groupType;
     }
 
     public void setGroupType(String groupType) {
         this.groupType = groupType == null ? null : groupType.trim();
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType == null ? null : userType.trim();
     }
 
     public String getRegisterDate() {
@@ -224,14 +233,6 @@ public class MarketingSyncUser {
 
     public void setReserveField1(String reserveField1) {
         this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
-    }
-
-    public String getReserveField2() {
-        return reserveField2;
-    }
-
-    public void setReserveField2(String reserveField2) {
-        this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
     }
 
     public Date getCreateTime() {
@@ -306,18 +307,11 @@ public class MarketingSyncUser {
         this.isRepeat = isRepeat;
     }
 
-    public String getUserType() {
-        return userType;
+    public String getReserveField2() {
+        return reserveField2;
     }
 
-    public void setUserType(String userType) {
-        this.userType = userType;
-    }
-
-    public MarketingSyncUser() {
-    }
-
-    public MarketingSyncUser(String cell) {
-        this.cell = cell;
+    public void setReserveField2(String reserveField2) {
+        this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
     }
 }

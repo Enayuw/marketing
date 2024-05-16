@@ -80,4 +80,11 @@ public interface MarketingCustomerService {
      * @dateTime 2024/3/12 10:35
      */
     MarketingCustomer getCacheCustomerByApiCode(String apiCode);
+
+    /**
+     * 获取所有正式的apiCode
+     * @return
+     */
+    List<String> getApiCodeByProd(List<String> apiCodePrefix);
+
 }

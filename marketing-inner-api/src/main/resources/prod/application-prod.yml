@@ -11,9 +11,9 @@ datasource:
       isSharding: true
       filters: stat
       maxActive: 300
-      initialSize: 1
+      initialSize: 10
       maxWait: 60000
-      minIdle: 1
+      minIdle: 10
       timeBetweenEvictionRunsMillis: 60000
       minEvictableIdleTimeMillis: 300000
       validationQuery: select 'x'

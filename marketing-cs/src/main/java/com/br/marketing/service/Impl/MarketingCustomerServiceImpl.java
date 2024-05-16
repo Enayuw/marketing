@@ -236,4 +236,11 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             return CollectionUtils.isEmpty(customers) ? null : customers.get(0);
         }
     }
+
+    @Override
+    public List<String> getApiCodeByProd(List<String> apiCodePrefix) {
+        List<String> apiCodeByZs = marketingCustomerMapper.getApiCodeByZs(apiCodePrefix);
+        return apiCodeByZs;
+    }
+
 }

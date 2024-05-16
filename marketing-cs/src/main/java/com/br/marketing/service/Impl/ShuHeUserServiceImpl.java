@@ -104,6 +104,8 @@ public class ShuHeUserServiceImpl {
             List<MarketingPreUserDetailDTO> list = new ArrayList<>();
             MarketingPreUserDetailDTO dto;
             String type = shuheUploadData.getUserType();
+            String groupType = null;
+            boolean isGroupType = taskCode != null && (groupType = taskCode.getString("groupType")) != null;
             JSONObject varData;
             Map<String, Object> reserveField1;
             int size = listInfo.size();
@@ -111,8 +113,8 @@ public class ShuHeUserServiceImpl {
                 JSONObject info = listInfo.getJSONObject(i);
                 reserveField1 = new HashMap<>(32);
                 dto = new MarketingPreUserDetailDTO();
-                if (taskCode != null && taskCode.getString("groupType") != null) {
-                    reserveField1.put("groupTypeNew", taskCode.getString("groupType"));
+                if (isGroupType) {
+                    reserveField1.put("groupTypeNew", groupType);
                 }
                 String mobile = info.getString("mobile");
                 try {
