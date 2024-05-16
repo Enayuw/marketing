@@ -120,7 +120,7 @@ public class ZbankClient {
     }
 
     /**
-     * 众邦信贷评分回传接口
+     * 录音明细回调
      *
      * @param obj
      * @param requestId
