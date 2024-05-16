@@ -8,7 +8,6 @@
         <result column="name" property="name" jdbcType="VARCHAR"/>
         <result column="size" property="size" jdbcType="BIGINT"/>
         <result column="file_md5" property="fileMd5" jdbcType="VARCHAR"/>
-        <result column="file_id" property="fileId" jdbcType="VARCHAR"/>
         <result column="file_directory" property="fileDirectory" jdbcType="VARCHAR"/>
         <result column="last_modified_date" property="lastModifiedDate" jdbcType="DATE"/>
         <result column="last_modified_time" property="lastModifiedTime" jdbcType="TIMESTAMP"/>
@@ -81,7 +80,7 @@
     </sql>
     <sql id="Base_Column_List">
         id
-        , cid, api_code, `name`, `size`, file_md5, file_id, file_directory, last_modified_date,
+        , cid, api_code, `name`, `size`, file_md5, file_directory, last_modified_date,
     last_modified_time, push_date, push_status, create_time, update_time, remark, `status`
     </sql>
     <select id="selectByExample" resultMap="BaseResultMap"
@@ -121,17 +120,15 @@
             SELECT LAST_INSERT_ID()
         </selectKey>
         insert into b_push_customer_file_info (cid, api_code, `name`,
-        `size`, file_md5, file_id,
-        file_directory, last_modified_date, last_modified_time,
-        push_date, push_status, create_time,
-        update_time, remark, `status`
-        )
+        `size`, file_md5, file_directory,
+        last_modified_date, last_modified_time, push_date,
+        push_status, create_time, update_time,
+        remark, `status`)
         values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
-        #{size,jdbcType=BIGINT}, #{fileMd5,jdbcType=VARCHAR}, #{fileId,jdbcType=VARCHAR},
-        #{fileDirectory,jdbcType=VARCHAR}, #{lastModifiedDate,jdbcType=DATE}, #{lastModifiedTime,jdbcType=TIMESTAMP},
-        #{pushDate,jdbcType=DATE}, #{pushStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
-        #{updateTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}
-        )
+        #{size,jdbcType=BIGINT}, #{fileMd5,jdbcType=VARCHAR}, #{fileDirectory,jdbcType=VARCHAR},
+        #{lastModifiedDate,jdbcType=DATE}, #{lastModifiedTime,jdbcType=TIMESTAMP}, #{pushDate,jdbcType=DATE},
+        #{pushStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+        #{remark,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER})
     </insert>
     <insert id="insertSelective" parameterType="com.br.marketing.entity.PushCustomerFileInfo">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
@@ -153,9 +150,6 @@
             </if>
             <if test="fileMd5 != null">
                 file_md5,
-            </if>
-            <if test="fileId != null">
-                file_id,
             </if>
             <if test="fileDirectory != null">
                 file_directory,
@@ -200,9 +194,6 @@
             </if>
             <if test="fileMd5 != null">
                 #{fileMd5,jdbcType=VARCHAR},
-            </if>
-            <if test="fileId != null">
-                #{fileId,jdbcType=VARCHAR},
             </if>
             <if test="fileDirectory != null">
                 #{fileDirectory,jdbcType=VARCHAR},
@@ -261,9 +252,6 @@
             <if test="record.fileMd5 != null">
                 file_md5 = #{record.fileMd5,jdbcType=VARCHAR},
             </if>
-            <if test="record.fileId != null">
-                file_id = #{record.fileId,jdbcType=VARCHAR},
-            </if>
             <if test="record.fileDirectory != null">
                 file_directory = #{record.fileDirectory,jdbcType=VARCHAR},
             </if>
@@ -304,7 +292,6 @@
         `name` = #{record.name,jdbcType=VARCHAR},
         `size` = #{record.size,jdbcType=BIGINT},
         file_md5 = #{record.fileMd5,jdbcType=VARCHAR},
-        file_id = #{record.fileId,jdbcType=VARCHAR},
         file_directory = #{record.fileDirectory,jdbcType=VARCHAR},
         last_modified_date = #{record.lastModifiedDate,jdbcType=DATE},
         last_modified_time = #{record.lastModifiedTime,jdbcType=TIMESTAMP},
@@ -335,9 +322,6 @@
             </if>
             <if test="fileMd5 != null">
                 file_md5 = #{fileMd5,jdbcType=VARCHAR},
-            </if>
-            <if test="fileId != null">
-                file_id = #{fileId,jdbcType=VARCHAR},
             </if>
             <if test="fileDirectory != null">
                 file_directory = #{fileDirectory,jdbcType=VARCHAR},
@@ -376,7 +360,6 @@
             `name`             = #{name,jdbcType=VARCHAR},
             `size`             = #{size,jdbcType=BIGINT},
             file_md5           = #{fileMd5,jdbcType=VARCHAR},
-            file_id            = #{fileId,jdbcType=VARCHAR},
             file_directory     = #{fileDirectory,jdbcType=VARCHAR},
             last_modified_date = #{lastModifiedDate,jdbcType=DATE},
             last_modified_time = #{lastModifiedTime,jdbcType=TIMESTAMP},

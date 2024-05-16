@@ -24,7 +24,7 @@ public class PushCustomerFileInfo {
     private String name;
 
     /**
-     * 文件大小
+     * 文件大小 
      */
     private Long size;
 
@@ -32,11 +32,6 @@ public class PushCustomerFileInfo {
      * 文件MD5
      */
     private String fileMd5;
-
-    /**
-     * 文件唯一标识
-     */
-    private String fileId;
 
     /**
      * 文件目录
@@ -54,7 +49,7 @@ public class PushCustomerFileInfo {
     private Date lastModifiedTime;
 
     /**
-     * 创建日期
+     * 推送日期
      */
     private Date pushDate;
 
@@ -129,14 +124,6 @@ public class PushCustomerFileInfo {
 
     public void setFileMd5(String fileMd5) {
         this.fileMd5 = fileMd5 == null ? null : fileMd5.trim();
-    }
-
-    public String getFileId() {
-        return fileId;
-    }
-
-    public void setFileId(String fileId) {
-        this.fileId = fileId == null ? null : fileId.trim();
     }
 
     public String getFileDirectory() {
