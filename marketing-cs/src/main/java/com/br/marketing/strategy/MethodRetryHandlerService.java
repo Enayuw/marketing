@@ -1183,7 +1183,7 @@ public class MethodRetryHandlerService {
 
 
     /**
-     * 众邦财富推送标签评级
+     * 众邦录音明细回调
      *
      * @param json  封装的数据
      * @param retry 重试切面使用的标记，正常业务调用时赋值null
@@ -1193,7 +1193,7 @@ public class MethodRetryHandlerService {
     public Result<ZbankResponse<ZbankLabelRatingReResultDTO>> pushZbankRecodFileRe(JSONObject json
             , Integer retry) {
         //测试mock
-        if (marketingCommonConfig.getZhongBangCaifuLabelTest()) {
+        if (marketingCommonConfig.getZhongBangRecodFileReTest()) {
             log.warn("测试众邦不真实调用接口");
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
         }
