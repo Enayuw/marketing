@@ -1574,5 +1574,10 @@ public class MarketingCommonConfig {
      * 携程定制化页面列表排序字段配置
      */
     private Map<String, JSONObject> xieChengCustomizeOrderByClauseConfig;
+    /**
+     * 推送决策超时后，查询结果要延时的 分钟 数
+     */
+    private Long queryCustomerPushTimeOutDelay;
+
 }
 

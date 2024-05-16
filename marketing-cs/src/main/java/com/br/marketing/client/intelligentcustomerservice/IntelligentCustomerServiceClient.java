@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
@@ -92,7 +93,26 @@ public class IntelligentCustomerServiceClient {
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
-        } catch (Exception ex) {
+        }catch (ResourceAccessException e){
+//            // 这里捕获超时异常
+//            if (e.getCause() instanceof ConnectTimeoutException) {
+//                // 处理连接超时异常
+//            } else if (e.getCause() instanceof ReadTimeoutException) {
+//                // 处理读取超时异常
+//            }
+//            // 其他异常处理
+            if (e.getMessage().contains("Read timed out")
+//                    || e.getMessage().contains("Connect timed out")
+            ) {
+                // 处理超时异常...
+                result.setCode(ResultCode.TIME_OUT.getValue()).setMessage("Read timed out");
+                log.setErrorContent(e.getMessage());
+            } else {
+                // 处理其他类型的ResourceAccessException...
+                log.setErrorContent(e.getMessage());
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(e.getMessage());
+            }
+        }catch (Exception ex) {
             log.setErrorContent(ex.getMessage());
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
