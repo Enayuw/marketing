@@ -205,6 +205,18 @@ api:
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
     secretKey: 3VMUkXxpauLzA7kzHdq7uCNMFjDUMCgyUzgSe83hdb64QcU2KJT5Rcb7enVtYzR9
     isProxy: true
+  zbank: #众邦财富
+    isPorxy: true
+    api:
+      baseUrl: "https://iopf.z-bank.com"
+      serverPubKey: "04FA9C039AFC14D3F75A3290BB5A698F93316D508D419B73A237F7FCA048A92CE20F3C1B3BE4517E370563DAE64E474840EB2E11FCC011B506D3D1CBEE956BA774"
+      appId: "26cd2e1f_f116_4947_94d9_c68194400186"
+      appSecretKey: "5c995d09-b371-48aa-af63-5e79909e6908"
+      priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
+      serviceId:
+        labelRating: "CMBrLabelRatingRe"
+        CMBrScoDaFeBack: "CMBrScoDaFeBack"
+        recodFile: "CMBrRecodFileRe"
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672

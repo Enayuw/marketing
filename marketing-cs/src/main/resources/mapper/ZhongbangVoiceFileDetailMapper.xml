@@ -2,4 +2,41 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.ZhongbangVoiceFileDetailMapper" >
 
+    <select id="selectPushStatus0Count" resultType="java.lang.Integer">
+        select
+            count(*)
+        from b_zhongbang_voice_file_detail
+        where
+            create_time>=CURDATE() and push_status=0 ;
+    </select>
+
+<!--    <select id="selectPushStatus1Count" resultType="java.lang.Integer">-->
+<!--        select-->
+<!--            count(*)-->
+<!--        from b_zhongbang_voice_file_detail-->
+<!--        where-->
+<!--            create_time>=CURDATE() and push_status=1 ;-->
+<!--    </select>-->
+
+    <select id="selectByPushStatus1" resultType="com.br.marketing.entity.ZhongbangVoiceFileDetail">
+        select
+            *
+        from b_zhongbang_voice_file_detail
+        where
+            create_time>=CURDATE() and push_status=1
+            <if test="detailId != null">
+                and id >#{detailId}
+            </if>
+        order by id,create_time asc limit 500;
+    </select>
+
+    <update id="updateBatchByIds">
+        update b_zhongbang_voice_file_detail
+        set push_status=#{pushStatus}
+        where create_time>=CURDATE() and push_status=1 and id in
+        <foreach collection = 'idList' item='id' open='(' close=')' separator=','>
+            #{id}
+        </foreach>
+    </update>
+
 </mapper>

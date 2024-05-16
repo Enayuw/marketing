@@ -181,6 +181,9 @@ public class MethodRetryHandlerService {
     @Resource
     private PushRuleServiceImpl pushRuleService;
 
+    @Resource
+    private ZhongbangVoiceFileDetailMapper zhongBangVoiceFileDetailMapper;
+
     /**
      * 渠道唯一标识（由众邦银行提供）
      */
@@ -1236,6 +1239,7 @@ public class MethodRetryHandlerService {
                 if (retry != null) {
                     JSONArray ids = json.getJSONArray("ids");
                     // TODO: 2024-05-16  重试回调方法
+                    zhongBangVoiceFileDetailMapper.updateBatchByIds(ids.toJavaList(Long.class),2);
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else {
