@@ -1155,6 +1155,11 @@ public class MarketingCommonConfig {
     private Boolean zhongBangCaifuLabelTest;
 
     /**
+     * 众邦录音明细回调测试
+     */
+    private Boolean zhongBangRecodFileReTest = false;
+
+    /**
      * 众邦财富上传录音文件目录
      */
     private String zhongBangUploadVoieFileDir = "";
