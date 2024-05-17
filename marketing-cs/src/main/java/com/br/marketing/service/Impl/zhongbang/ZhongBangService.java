@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.zhongbang;
 
+import java.time.LocalDate;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -40,9 +41,8 @@ public interface ZhongBangService {
      *
      * @param apiCode   apiCode
      * @param cid       cid
-     * @param beginDate 开始时间
-     * @param endDate   结束时间
+     * @param localDate 日期
      * @return true 文件下载成功
      */
-    boolean voiceFileUpload(String apiCode, String cid, String beginDate, String endDate);
+    boolean voiceFileUpload(String apiCode, String cid, LocalDate localDate);
 }

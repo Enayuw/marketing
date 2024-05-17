@@ -127,4 +127,45 @@ public class JobManager {
         TransferActionFront frontData = getFrontData(apiCode, date, actionType, remark);
         return frontData != null && frontData.getStatus().equals(status);
     }
+
+
+    public enum ActionTypeEnum {
+        /**
+         * 2024-05-16 14:40
+         * 众邦上传录音文件执行类型
+         */
+        ZHONGBANG_PUSH_VOICE_FILE(3, "3710099", "7433800"),
+        ;
+        /**
+         * 2024-05-16 11:38
+         * 执行类型
+         */
+        private int actionType;
+        /**
+         * 2024-05-16 11:39
+         * 使用该类型的集合
+         */
+        private String[] apiCodes;
+
+        ActionTypeEnum(int actionType, String... apiCodes) {
+            this.actionType = actionType;
+            this.apiCodes = apiCodes;
+        }
+
+        public int getActionType() {
+            return actionType;
+        }
+
+        public void setActionType(int actionType) {
+            this.actionType = actionType;
+        }
+
+        public String[] getApiCodes() {
+            return apiCodes;
+        }
+
+        public void setApiCodes(String[] apiCodes) {
+            this.apiCodes = apiCodes;
+        }
+    }
 }

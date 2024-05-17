@@ -1160,9 +1160,9 @@ public class MarketingCommonConfig {
     private Boolean zhongBangRecodFileReTest = false;
 
     /**
-     * 众邦财富上传录音文件目录
+     * 众邦财富上传录音文件明细配置,{"dbName":"fileType"},eg:{"b_zhongbang_voice_file_detail":"zhongbang_voice"}
      */
-    private String zhongBangUploadVoieFileDir = "";
+    private Map<String, String> zhongBangVoieFileConfig = new HashMap<>();
 
 
     /**

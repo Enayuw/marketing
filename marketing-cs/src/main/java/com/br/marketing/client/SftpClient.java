@@ -214,6 +214,26 @@ public class SftpClient extends BaseFtpClient{
      * 获取源目录下需要同步的文件名称和文件属性
      *
      * @param srcPath 原路径
+     * @return 需要同步的文件名称和文件属性
+     * @throws SftpException
+     */
+    public Map<String, SftpATTRS> listFiles(String srcPath, ChannelSftp.LsEntrySelector selector) {
+        Map<String, SftpATTRS> ftpFileMap = new HashMap();
+        if (!isExist(srcPath)) {
+            return ftpFileMap;
+        }
+        try {
+            sftp.ls(srcPath, selector);
+        } catch (SftpException e) {
+            log.error("srcPath:{}", srcPath, e);
+        }
+        return ftpFileMap;
+    }
+
+    /**
+     * 获取源目录下需要同步的文件名称和文件属性
+     *
+     * @param srcPath 原路径
      * @param suffix  文件类型
      * @return 对应文件类型的文件列表
      * @throws SftpException
@@ -375,5 +395,39 @@ public class SftpClient extends BaseFtpClient{
             log.error("接收文件时有I/O异常!", e);
         }
         return success;
+    }
+
+    /**
+     * 下载远程sftp服务器文件
+     *
+     * @param remotePath
+     * @param remoteFilename
+     * @param localFilename
+     * @return File
+     */
+    public File downloadLocalFile(String remotePath, String remoteFilename, String localFilename, SftpATTRS attrs) {
+        File localFile = new File(localFilename);
+        if (localFile.exists() && localFile.isFile()) {
+            long size = attrs.getSize();
+            int mTime = attrs.getMTime();
+            // 大小和最后修改时间相同，则为同一文件，不进行下载
+            if (size == localFile.length() && mTime == localFile.lastModified()) {
+                return localFile;
+            }
+        }
+        try (OutputStream output = Files.newOutputStream(Paths.get(localFile.getPath()))) {
+            if (null != remotePath && !"".equals(remotePath.trim())) {
+                sftp.cd(remotePath);
+            }
+            sftp.get(remoteFilename, output);
+            if (log.isInfoEnabled()) {
+                log.info("成功接收文件,本地路径：{}", localFilename);
+            }
+        } catch (SftpException e) {
+            log.error("接收文件时有SftpException异常!", e);
+        } catch (IOException e) {
+            log.error("接收文件时有I/O异常!", e);
+        }
+        return localFile;
     }
 }

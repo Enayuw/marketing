@@ -9,6 +9,7 @@ import com.br.common.util.MD5Utils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.DaasAndConversionData;
+import com.br.marketing.client.SftpClient;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapSoleDTO;
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
@@ -21,17 +22,15 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.PullCustomerFileDataMapper;
-import com.br.marketing.mapper.PushCustomerFileInfoMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserAndCustomerTransferSoleFacade;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
-import com.google.common.collect.Lists;
+import com.jcraft.jsch.SftpATTRS;
 import com.zbank.file.bean.FileDownLoadInfo;
 import com.zbank.file.bean.FileInfo;
 import com.zbank.file.bean.UploadInfo;
@@ -55,7 +54,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -98,6 +96,18 @@ public class ZhongBangServiceImpl implements ZhongBangService {
 
     @Resource
     private PushCustomerFileInfoMapper pushCustomerFileInfoMapper;
+
+    @Resource
+    private FileDbConfigMapper fileDbConfigMapper;
+
+    @Resource
+    private SyncConfigMapper syncConfigMapper;
+
+    @Resource
+    private SyncConfigService syncConfigService;
+
+    @Resource
+    private ZhongbangVoiceFileDetailMapper zhongbangVoiceFileDetailMapper;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss:SSS");
 
@@ -705,249 +715,190 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     }
 
     @Override
-    public boolean voiceFileUpload(String apiCode, String cid, String beginDate, String endDate) {
+    public boolean voiceFileUpload(String apiCode, String cid, LocalDate localDate) {
         int availableNumber = Runtime.getRuntime().availableProcessors();
         boolean bool = availableNumber > 30;
         int corePoolSize = (availableNumber / 2);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 30
                 : availableNumber + corePoolSize, new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
-        ThreadPoolExecutor mainPool = BrExecutors.getThreadPool(availableNumber / 2, availableNumber
-                , "br-zbank-voiceFile-main");
-        ThreadPoolExecutor apiPool = BrExecutors.getThreadPool(availableNumber / 2, availableNumber * 2
-                , new SynchronousQueue<>(), "br-zbank-voiceFile-fileId-api");
-        Date date = new Date();
-        /* 2024-05-09 13:31
-         * 录音文件目录可配置
-         */
-        String filePath = "";
-//        String filePath = marketingCommonConfig.getZhongBangUploadVoieFileDir();
-        BiFunction<List<PushCustomerFileInfo>, Throwable, List<PushCustomerFileInfo>> handle = (fileInfoList, throwable) -> {
-            if (throwable != null) {
-                log.error(throwable.getMessage(), throwable);
-            }
-            return fileInfoList;
-        };
-        // 获取文件
-        File directory = new File(filePath);
-        if (directory.exists() && directory.isDirectory()) {
-            File[] listFiles = directory.listFiles((dir, name) -> name.endsWith(".wav"));
-            if (listFiles != null && (listFiles.length) > 0) {
-                // 分段
-                List<List<File>> fileListPartition = Lists.partition(Arrays.asList(listFiles), 2000);
-                List<CompletableFuture<List<PushCustomerFileInfo>>> futures = new ArrayList<>();
-                for (List<File> files : fileListPartition) {
-                    // 查询重复数据
-                    CompletableFuture<List<PushCustomerFileInfo>> listCompletableFuture = CompletableFuture.supplyAsync(() -> {
-                        ZonedDateTime zonedDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
-                                .atStartOfDay().atZone(ZoneId.systemDefault());
-                        Date dateStart = Date.from(zonedDateTime.toInstant());
-                        Date dateEnd = Date.from(zonedDateTime.plusDays(1).toInstant());
-                        Set<String> nameSet = files.stream().map(File::getName).collect(Collectors.toSet());
-                        PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
-                        example.createCriteria().andApiCodeEqualTo(apiCode)
-                                .andCidEqualTo(cid).andNameIn(new ArrayList<>(nameSet))
-                                .andCreateTimeGreaterThanOrEqualTo(dateStart)
-                                .andCreateTimeLessThan(dateEnd);
-                        return pushCustomerFileInfoMapper.selectByExample(example);
-                    }, mainPool).exceptionally(throwable -> {
-                        log.error(throwable.getMessage(), throwable);
-                        return null;
-                    });
-
-                    // 失败数据补推
-                    CompletableFuture<List<PushCustomerFileInfo>> failCompletableFuture =
-                            listCompletableFuture.thenApplyAsync((fileInfoList) -> {
-                                if (fileInfoList == null) {
-                                    return null;
-                                }
-                                List<PushCustomerFileInfo> fileInfos = fileInfoList.stream().filter(
-                                        fileInfo -> fileInfo.getPushStatus() == 3).collect(Collectors.toList());
-                                List<PushCustomerFileInfo> updateFileInfoList = new ArrayList<>();
-                                for (PushCustomerFileInfo fileInfo : fileInfos) {
-                                    // 开始补推
-                                    File file = new File(fileInfo.getFileDirectory().concat(File.separator).concat(fileInfo.getName()));
-                                    if (file.exists()) {
-                                        PushCustomerFileInfo newFileInfo = new PushCustomerFileInfo();
-                                        newFileInfo.setId(fileInfo.getId());
-                                        newFileInfo.setUpdateTime(new Date());
-                                        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
-                                            UploadInfo uploadInfo = zBankClient.uploadInputStream(inputStream
-                                                    , fileInfo.getName(), fileInfo.getSize(), fileInfo.getFileMd5());
-                                            newFileInfo.setFileId(uploadInfo.getFileId());
-                                            updateFileInfoList.add(newFileInfo);
-                                            // 推送正常
-                                            newFileInfo.setPushStatus(2);
-                                            pushCustomerFileInfoMapper.updateByPrimaryKeySelective(newFileInfo);
-                                        } catch (SDKException | IOException e) {
-                                            newFileInfo.setRemark(e.getMessage());
-                                            if (e instanceof IOException) {
-                                                // 文件异常
-                                                newFileInfo.setStatus(2);
-                                                updateFileInfoList.add(newFileInfo);
-                                                pushCustomerFileInfoMapper.updateByPrimaryKeySelective(newFileInfo);
-                                            }
-                                            log.error(e.getMessage(), e);
-                                        }
-                                    }
-                                }
-                                return updateFileInfoList;
-                            }, threadPool).handle(handle);
-                    futures.add(failCompletableFuture);
-
-                    // 调用api接口
-                    failCompletableFuture.thenApplyAsync(infoList -> {
-                        // TODO: 2024-05-10 调用api接口
-                        log.warn("异常数据补推,我要调用接口了{}", infoList);
-                        return infoList;
-                    }, apiPool).handle(handle);
-
-                    // 已推送数据去重
-                    CompletableFuture<List<File>> fileCompletableFuture = listCompletableFuture.thenApplyAsync((fileInfoList) -> {
-                        if (fileInfoList == null) {
-                            return null;
-                        }
-                        Set<String> names = fileInfoList.stream().map(PushCustomerFileInfo::getName).collect(Collectors.toSet());
-                        return files.stream().filter(file -> !names.contains(file.getName())).collect(Collectors.toList());
-                    }, mainPool).exceptionally(throwable -> {
-                        log.error(throwable.getMessage(), throwable);
-                        return null;
-                    });
-
-                    // 数据入库
-                    CompletableFuture<Map<String, PushCustomerFileInfo>> saveThenApplyAsync =
-                            fileCompletableFuture.thenApplyAsync(fileSaves -> {
-                                Map<String, PushCustomerFileInfo> infoMap = new HashMap<>(2048);
-                                for (File file : fileSaves) {
-                                    // 文件信息入库
-                                    PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
-                                    Date lastModifiedDate = new Date(file.lastModified());
-                                    String fileName = file.getName();
-                                    String parent = file.getParent();
-                                    long length = file.length();
-                                    fileInfo.setCid(cid);
-                                    fileInfo.setApiCode(apiCode);
-                                    fileInfo.setName(fileName);
-                                    fileInfo.setLastModifiedTime(lastModifiedDate);
-                                    fileInfo.setLastModifiedDate(lastModifiedDate);
-                                    fileInfo.setFileDirectory(parent == null ? filePath : parent);
-                                    fileInfo.setSize(length);
-                                    fileInfo.setCreateTime(new Date());
-                                    fileInfo.setUpdateTime(fileInfo.getCreateTime());
-                                    // 待推送
-                                    fileInfo.setPushStatus(0);
-                                    infoMap.put(fileName, fileInfo);
-//                                    pushCustomerFileInfoMapper.insertSelective(fileInfo);
-                                }
-                                return infoMap;
-                            }, mainPool).handle((fileInfoMap, throwable) -> {
-                                if (throwable != null) {
-                                    log.error(throwable.getMessage(), throwable);
-                                }
-                                return fileInfoMap;
-                            });
-
-                    // 文件推送
-                    CompletableFuture<Map<String, PushCustomerFileInfo>> pushThenApplyAsync =
-                            fileCompletableFuture.thenApplyAsync(filePushs -> {
-                                Map<String, PushCustomerFileInfo> infoMap = new HashMap<>(2048);
-                                for (File file : filePushs) {
-                                    PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
-                                    fileInfo.setPushDate(date);
-                                    if (file.exists() && file.isFile()) {
-                                        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
-                                            String fileMd5 = Md5EncodeUtil.encode(file);
-                                            fileInfo.setFileMd5(fileMd5);
-                                            UploadInfo uploadInfo = zBankClient.uploadInputStream(inputStream
-                                                    , file.getName(), file.length(), fileMd5);
-                                            fileInfo.setFileId(uploadInfo.getFileId());
-                                            // 推送成功
-                                            fileInfo.setPushStatus(2);
-                                        } catch (SDKException | IOException e) {
-                                            log.error(e.getMessage(), e);
-                                            fileInfo.setRemark(e.getMessage());
-                                            if (e instanceof IOException) {
-                                                // 文件异常
-                                                fileInfo.setStatus(2);
-                                            }
-                                            // 推送失败
-                                            fileInfo.setPushStatus(3);
-                                        }
-                                    } else {
+        Map<String, String> zhongBangVoieFileConfig = marketingCommonConfig.getZhongBangVoieFileConfig();
+        if (zhongBangVoieFileConfig.isEmpty()) {
+            zhongBangVoieFileConfig.put("b_zhongbang_voice_file_detail", "zhongbang_voice");
+        }
+        ZonedDateTime zonedDateTime = localDate.atStartOfDay().atZone(ZoneId.systemDefault());
+        Date startDate = Date.from(zonedDateTime.toInstant());
+        Date endDate = Date.from(zonedDateTime.plusDays(1).toInstant());
+        String dateStr = zonedDateTime.format(DateTimeFormatter.BASIC_ISO_DATE);
+        int createDate = Integer.parseInt(dateStr);
+        Set<Map.Entry<String, String>> entrySet = zhongBangVoieFileConfig.entrySet();
+        // 遍历文件配置信息
+        for (Map.Entry<String, String> entry : entrySet) {
+            String fileType = entry.getValue();
+            String tableName = entry.getKey();
+            FileDbConfigExample fileDbConfigExample = new FileDbConfigExample();
+            fileDbConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andDbNameEqualTo(tableName)
+                    .andDelEqualTo(1).andFileTypeEqualTo(fileType);
+            List<FileDbConfig> fileDbConfigs = fileDbConfigMapper.selectByExample(fileDbConfigExample);
+            // 文件服务信息遍历
+            for (FileDbConfig fileDbConfig : fileDbConfigs) {
+                Long sftpConfigId = fileDbConfig.getSftpConfigId();
+                SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(sftpConfigId);
+                LocalFileExample localFileExample = new LocalFileExample();
+                localFileExample.createCriteria().andStatusEqualTo("2").andCompleteEqualTo("1")
+                        .andCidEqualTo(cid).andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType)
+                        .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate)
+                        .andActualNumberGreaterThan(0);
+                List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
+                for (LocalFile localFile : localFiles) {
+                    String fileName = localFile.getFileName();
+                    Long id = localFile.getId();
+                    String localPath = localFile.getLocalPath();
+                    String localDir = localPath.replaceAll("yyyyMMdd", dateStr).concat(File.separator)
+                            .concat(fileName).concat("_voice");
+                    PushCustomerFileInfoExample infoExample = new PushCustomerFileInfoExample();
+                    infoExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andFileDirectoryEqualTo(localDir)
+                            .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate).andPushStatusEqualTo(0);
+                    int countByExample = pushCustomerFileInfoMapper.countByExample(infoExample);
+                    if (countByExample < 1) {
+                        continue;
+                    }
+                    ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
+                    voiceFileDetailExample.createCriteria().andLocalIdEqualTo(id).andStatusEqualTo(1)
+                            .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0);
+                    int count = zhongbangVoiceFileDetailMapper.countByExample(voiceFileDetailExample);
+                    // 下载内容
+                    List<File> fileList = getFromSftpLocalDisk(syncConfig, ".wav", localDir, cid, apiCode
+                            , startDate, endDate, dateStr);
+                    int size = fileList.size();
+                    if (size != count) {
+                        log.warn("众邦录音文件量级与明细量级不匹配，录音文件量级:{},明细量级:{}", size, count);
+                        continue;
+                    }
+                    List<CompletableFuture<Boolean>> futures = new ArrayList<>();
+                    for (File file : fileList) {
+                        // 文件推送
+                        futures.add(CompletableFuture.supplyAsync(() -> {
+                            ZhongbangVoiceFileDetail voiceFileDetail = new ZhongbangVoiceFileDetail();
+                            voiceFileDetail.setCreateDate(createDate);
+                            voiceFileDetail.setFileName(file.getName());
+                            voiceFileDetail.setLocalId(id);
+                            PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
+                            fileInfo.setPushDate(startDate);
+                            fileInfo.setFileDirectory(file.getParent());
+                            fileInfo.setName(file.getName());
+                            if (file.exists() && file.isFile()) {
+                                try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
+                                    String fileMd5 = Md5EncodeUtil.encode(file);
+                                    fileInfo.setFileMd5(fileMd5);
+                                    UploadInfo uploadInfo = zBankClient.uploadInputStream(inputStream
+                                            , file.getName(), file.length(), fileMd5);
+                                    voiceFileDetail.setCustomerFileId(uploadInfo.getFileId());
+                                    // 推送成功
+                                    fileInfo.setPushStatus(2);
+                                } catch (SDKException | IOException e) {
+                                    log.error(e.getMessage(), e);
+                                    fileInfo.setRemark(e.getMessage());
+                                    if (e instanceof IOException) {
+                                        // 文件异常
                                         fileInfo.setStatus(2);
                                     }
-                                    infoMap.put(file.getName(), fileInfo);
+                                    // 推送失败
+                                    fileInfo.setPushStatus(3);
                                 }
-                                return infoMap;
-                            }, threadPool).handle((fileInfoMap, throwable) -> {
-                                if (throwable != null) {
-                                    log.error(throwable.getMessage(), throwable);
-                                }
-                                return fileInfoMap;
-                            });
-
-                    // 结果汇总
-                    CompletableFuture<List<PushCustomerFileInfo>> future = saveThenApplyAsync.thenCombineAsync(
-                            pushThenApplyAsync, (fileInfoMap, fileInfoMap2) -> {
-                                List<PushCustomerFileInfo> infoList = new ArrayList<>();
-                                if (fileInfoMap != null && fileInfoMap2 != null) {
-                                    fileInfoMap.forEach((name, value) -> {
-                                        PushCustomerFileInfo fileInfo = fileInfoMap2.get(name);
-                                        if (value.getId() == null) {
-                                            value.setStatus(fileInfo.getStatus());
-                                            value.setFileId(fileInfo.getFileId());
-                                            value.setPushStatus(fileInfo.getPushStatus());
-                                            value.setPushDate(fileInfo.getPushDate());
-//                                            pushCustomerFileInfoMapper.insertSelective(value);
-                                        } else {
-                                            fileInfo.setId(value.getId());
-                                            fileInfo.setUpdateTime(new Date());
-                                            infoList.add(fileInfo);
-//                                            pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
-                                        }
-                                    });
-                                } else if (fileInfoMap2 != null) {
-                                    fileInfoMap2.forEach((name, value) -> {
-                                        value.setName(name);
-                                        value.setUpdateTime(new Date());
-                                        infoList.add(value);
-//                                        pushCustomerFileInfoMapper.updateByPrimaryKeySelective(value);
-                                    });
-                                } else if (fileInfoMap != null) {
-                                    fileInfoMap.forEach((name, value) -> {
-                                        if (value.getId() == null) {
-//                                            pushCustomerFileInfoMapper.insertSelective(value);
-                                        }
-                                    });
-                                }
-                                return infoList;
-                            }, mainPool).handle(handle);
-                    futures.add(future);
-
-                    // 调用api接口
-                    future.thenApplyAsync(infoList -> {
-                        // TODO: 2024-05-10 调用api接口
-                        log.warn("我要调用接口了，{}", infoList);
-                        return infoList;
-                    }, apiPool).handle(handle);
-                }
-                // 结果转换
-                try {
-                    return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply((v) -> {
-                        for (CompletableFuture<List<PushCustomerFileInfo>> futureList : futures) {
-                            try {
-                                List<PushCustomerFileInfo> infoList = futureList.get(1, TimeUnit.MINUTES);
-                            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                                log.error(e.getMessage());
+                            } else {
+                                fileInfo.setStatus(2);
                             }
-                        }
-                        return false;
-                    }).get(1, TimeUnit.HOURS);
-                } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                    log.error(e.getMessage(), e);
+                            pushCustomerFileInfoMapper.updateFileInfoAndFileDetail(fileInfo, voiceFileDetail, startDate, endDate);
+                            return true;
+                        }, threadPool).exceptionally(throwable -> {
+                            if (throwable != null) {
+                                log.error(throwable.getMessage(), throwable);
+                            }
+                            return false;
+                        }));
+                    }
+                    // 结果转换
+                    try {
+                        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply((v) -> {
+                            boolean b = true;
+                            for (CompletableFuture<Boolean> future : futures) {
+                                try {
+                                    if (!future.get(1, TimeUnit.MINUTES) && b) {
+                                        b = false;
+                                    }
+                                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                                    log.error(e.getMessage());
+                                    b = false;
+                                }
+                            }
+                            return b;
+                        }).get(1, TimeUnit.HOURS);
+                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                        log.error(e.getMessage(), e);
+                    }
                 }
-                return false;
             }
         }
         return false;
     }
+
+    private List<File> getFromSftpLocalDisk(SyncConfig syncConfig, String suffix, String localDri, String cid
+            , String apiCode, Date dateStart,
+                                            Date dateEnd, String dateStr) {
+        SftpClient ftpClient = new SftpClient(syncConfig, true);
+        String srcPath = syncConfig.getSrcPath().replaceAll("yyyyMMdd", dateStr);
+        List<File> fileList = new ArrayList<>();
+        try {
+            if (ftpClient.connect() || ftpClient.isConnected()) {
+                Map<String, SftpATTRS> listFiles = ftpClient.listFiles(srcPath, suffix);
+                Set<Map.Entry<String, SftpATTRS>> entrySet = listFiles.entrySet();
+                File dir = new File(localDri);
+                if (!dir.exists()) {
+                    if (!dir.mkdirs()) {
+                        log.error("本地目录创建失败：{}", localDri);
+                    }
+                }
+                for (Map.Entry<String, SftpATTRS> entry : entrySet) {
+                    String fileName = entry.getKey();
+                    SftpATTRS attrs = entry.getValue();
+                    File file = ftpClient.downloadLocalFile(srcPath, fileName
+                            , localDri.concat(File.separator).concat(fileName), attrs);
+                    fileList.add(file);
+                    PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
+                    example.createCriteria().andApiCodeEqualTo(apiCode)
+                            .andCidEqualTo(cid).andNameEqualTo(fileName)
+                            .andCreateTimeGreaterThanOrEqualTo(dateStart)
+                            .andCreateTimeLessThan(dateEnd);
+                    int count = pushCustomerFileInfoMapper.countByExample(example);
+                    if (count > 0) {
+                        continue;
+                    }
+                    // 文件信息入库
+                    PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
+                    Date lastModifiedDate = new Date(file.lastModified());
+                    String parent = file.getParent();
+                    long length = file.length();
+                    fileInfo.setCid(cid);
+                    fileInfo.setApiCode(apiCode);
+                    fileInfo.setName(fileName);
+                    fileInfo.setLastModifiedTime(lastModifiedDate);
+                    fileInfo.setLastModifiedDate(lastModifiedDate);
+                    fileInfo.setFileDirectory(parent == null ? localDri : parent);
+                    fileInfo.setSize(length);
+                    fileInfo.setCreateTime(new Date());
+                    fileInfo.setUpdateTime(fileInfo.getCreateTime());
+                    // 待推送
+                    fileInfo.setPushStatus(0);
+                    pushCustomerFileInfoMapper.insertSelective(fileInfo);
+                }
+            }
+            if (ftpClient.isConnected()) {
+                ftpClient.disconnect();
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return fileList;
+    }
+
 }
