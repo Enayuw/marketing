@@ -487,9 +487,9 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
             , TransferActionFront actionFront) {
         Date sDate;
         // 查询上次一次
-        String localDateStr = localDate.toString();
-        TransferActionFront frontData = jobManager.getFrontData(actionFront.getApiCode(), localDateStr, 1, null);
-        if (frontData == null) {
+        String startDateStr = startDate.toString();
+        TransferActionFront frontData = jobManager.getFrontData(actionFront.getApiCode(), startDateStr, 1, null);
+        if (frontData == null || StringUtils.isBlank(frontData.getRemark())) {
             sDate = Date.from(startDate.atTime(startTime).atZone(ZoneId.systemDefault()).toInstant());
         } else {
             // 存在就赋值上一次的提取截止最大时间，在原时间增加一秒，规避临界值
@@ -497,12 +497,14 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         }
         // 查询截至时间之前最大的时间
         Date dateMax = xieChengCollidingDataLogMapper.selectMaxCreateTimeByCreateTime(sDate, eDate);
+        String localDateStr = localDate.toString();
         actionFront.setIsDel(9);
         jobManager.updateActionFrontInfo(actionFront.getApiCode(), localDateStr, 1, null, actionFront);
         actionFront.setIsDel(1);
         actionFront.setActionType(1);
         actionFront.setActionData(localDateStr);
-        actionFront.setRemark(dateMax.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        actionFront.setRemark(dateMax == null ? ""
+                : dateMax.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         actionFront.setCreateTime(new Date());
         actionFront.setUpdateTime(actionFront.getCreateTime());
         actionFront.setStatus(1);
