@@ -493,7 +493,7 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
             sDate = Date.from(startDate.atTime(startTime).atZone(ZoneId.systemDefault()).toInstant());
         } else {
             // 存在就赋值上一次的提取截止最大时间，在原时间增加一秒，规避临界值
-            sDate = Date.from(LocalDateTime.parse(frontData.getRemark()).plusSeconds(1).toInstant(ZoneOffset.from(localDate)));
+            sDate = Date.from(LocalDateTime.parse(frontData.getRemark()).plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
         }
         // 查询截至时间之前最大的时间
         Date dateMax = xieChengCollidingDataLogMapper.selectMaxCreateTimeByCreateTime(sDate, eDate);
@@ -539,7 +539,8 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                         .andBusinessCodeEqualTo(0)
                         .andCreateTimeGreaterThanOrEqualTo(sDate)
                         .andResultEqualTo(true)
-                        .andCreateTimeLessThan(Date.from(finalStartDate.atTime(finalEndTime).toInstant(ZoneOffset.from(localTime))));
+                        .andCreateTimeLessThan(Date.from(finalStartDate.atTime(finalEndTime)
+                                .atZone(ZoneId.systemDefault()).toInstant()));
                 int count = xieChengCollidingDataLogMapper.countByExample(countExample);
                 return count > 0;
             }
