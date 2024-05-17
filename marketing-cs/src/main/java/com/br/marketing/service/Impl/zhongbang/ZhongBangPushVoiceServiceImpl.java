@@ -80,8 +80,6 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
                     flObject.put("RcrdTy",t.getCallType());
                     flObject.put("RcrdDt",t.getCallStartTime());
                     if(StringUtils.isNotBlank(marketingSyncUser.getName())){
-//                        JSONObject nameObject = new JSONObject();
-//                        nameObject.put("name",marketingSyncUser.getName());
                         flObject.put("Rmk1",marketingSyncUser.getName());
                     }
                     flArray.add(flObject);
