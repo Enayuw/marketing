@@ -1192,7 +1192,7 @@ public class MethodRetryHandlerService {
      * @param retry 重试切面使用的标记，正常业务调用时赋值null
      * @return 接口响应业务字段
      */
-    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = false)
     public Result<ZbankResponse<ZbankLabelRatingReResultDTO>> pushZbankRecodFileRe(JSONObject json
             , Integer retry) {
         //测试mock
@@ -1236,11 +1236,11 @@ public class MethodRetryHandlerService {
             ZbankLabelRatingReResultDTO result1 = dto.getResult();
             if ("00".equals(result1.getErrCd())) {
                 //重试成功后更新状态
-                if (retry != null) {
-                    JSONArray ids = json.getJSONArray("ids");
-                    // TODO: 2024-05-16  重试回调方法
-                    zhongBangVoiceFileDetailMapper.updateBatchByIds(ids.toJavaList(Long.class),2);
-                }
+//                if (retry != null) {
+//                    JSONArray ids = json.getJSONArray("ids");
+//                    // TODO: 2024-05-16  重试回调方法
+//                    zhongBangVoiceFileDetailMapper.updateBatchByIds(ids.toJavaList(Long.class),2);
+//                }
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else {
                 result.setCode(ResultCode.FAIL.getValue());

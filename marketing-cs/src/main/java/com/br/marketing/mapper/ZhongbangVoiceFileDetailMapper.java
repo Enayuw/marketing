@@ -11,7 +11,9 @@ public interface ZhongbangVoiceFileDetailMapper extends ZhongbangVoiceFileDetail
 
     Integer selectPushStatus0Count();
 
-//    Integer selectPushStatus1Count();
+    Integer selectPushStatusCount(@Param("pushStatus") int pushStatus, @Param("fileId") Long fileId);
+
+    List<Long> selectDistinctLocalIdtikv_();
 
     List<ZhongbangVoiceFileDetail> selectByPushStatus1(@Param("detailId") Long detailId);
     int updateBatchByIds(@Param("idList") List<Long> idList, @Param("pushStatus") int pushStatus);

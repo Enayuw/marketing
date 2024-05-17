@@ -10,13 +10,27 @@
             create_time>=CURDATE() and push_status=0 ;
     </select>
 
-<!--    <select id="selectPushStatus1Count" resultType="java.lang.Integer">-->
-<!--        select-->
-<!--            count(*)-->
-<!--        from b_zhongbang_voice_file_detail-->
-<!--        where-->
-<!--            create_time>=CURDATE() and push_status=1 ;-->
-<!--    </select>-->
+    <select id="selectPushStatusCount" resultType="java.lang.Integer">
+        select
+            count(*)
+        from b_zhongbang_voice_file_detail
+        where
+            create_time>=CURDATE()
+            <if test="pushStatus != null">
+                and push_status=#{pushStatus}
+            </if>
+            <if test="fileId != null">
+                and local_id=#{fileId}
+            </if>
+    </select>
+
+    <select id="selectDistinctLocalIdtikv_" resultType="java.lang.Long">
+        select
+            distinct local_id
+        from b_zhongbang_voice_file_detail
+        where
+            create_time>=CURDATE();
+    </select>
 
     <select id="selectByPushStatus1" resultType="com.br.marketing.entity.ZhongbangVoiceFileDetail">
         select
