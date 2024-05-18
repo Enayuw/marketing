@@ -202,7 +202,7 @@
     <job:simple id="ZhongBangPushVoiceJob"
                 class="com.br.marketing.monkey.job.zhongbang.ZhongBangPushVoiceJob"
                 cron="0 0/5 * * * ? "
-                description="上传数据清洗任务"
+                description="众邦录音文件自动推送"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"

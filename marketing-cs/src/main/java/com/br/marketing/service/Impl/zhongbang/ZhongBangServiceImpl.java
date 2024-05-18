@@ -728,7 +728,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         ZonedDateTime zonedDateTime = localDate.atStartOfDay().atZone(ZoneId.systemDefault());
         Date startDate = Date.from(zonedDateTime.toInstant());
         Date endDate = Date.from(zonedDateTime.plusDays(1).toInstant());
-        String dateStr = zonedDateTime.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String dateStr = localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
         int createDate = Integer.parseInt(dateStr);
         Set<Map.Entry<String, String>> entrySet = zhongBangVoieFileConfig.entrySet();
         // 遍历文件配置信息

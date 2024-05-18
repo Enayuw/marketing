@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +40,6 @@ public class ZhongBangPushVoiceFileJob extends AbstractSimpleElasticJob {
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
-
 
     /**
      * 2024-05-16 10:40
@@ -67,7 +67,13 @@ public class ZhongBangPushVoiceFileJob extends AbstractSimpleElasticJob {
             }
             String apiCode = entry.getKey();
             String cId = tableCreateService.getCId(apiCode);
-            LocalDate value = (LocalDate) entry.getValue();
+            LocalDate value = null;
+            Object entryValue = entry.getValue();
+            if(entryValue instanceof String){
+                value = LocalDate.parse(entryValue.toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            }else if(entryValue instanceof LocalDate){
+                value = (LocalDate) entryValue;
+            }
             TransferActionFront actionFront;
             Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, dateStr
                     , JobManager.ActionTypeEnum.ZHONGBANG_PUSH_VOICE_FILE.getActionType());
