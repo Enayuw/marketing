@@ -76,23 +76,27 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
                 // todo 怎么保证id和cell和name是最新的？
                 Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
                         transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, t.getCreateTime());
-                SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
                 if(null != validityPeriodsByCustNum){
-                    List<MarketingSyncUser> syncUserList = syncUserValidityPeriodsBO.getSyncUsers();
-                    MarketingSyncUser marketingSyncUser = syncUserList.get(0);
-                    JSONObject flObject = new JSONObject();
-                    flObject.put("OpnPltfrmId",t.getCustomerFileId());
-                    flObject.put("CstNo",custNum);
-                    if(StringUtils.isNotBlank(marketingSyncUser.getIdCard())){
-                        flObject.put("IdentNo",marketingSyncUser.getIdCard());
+                    SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
+                    if(null != syncUserValidityPeriodsBO){
+                        List<MarketingSyncUser> syncUserList = syncUserValidityPeriodsBO.getSyncUsers();
+                        MarketingSyncUser marketingSyncUser = syncUserList.get(0);
+                        JSONObject flObject = new JSONObject();
+                        flObject.put("OpnPltfrmId",t.getCustomerFileId());
+                        flObject.put("CstNo",custNum);
+                        if(StringUtils.isNotBlank(marketingSyncUser.getIdCard())){
+                            flObject.put("IdentNo",marketingSyncUser.getIdCard());
+                        }
+                        flObject.put("MblPhnId",marketingSyncUser.getCellMd5().toLowerCase());
+                        flObject.put("RcrdTy",t.getCallType());
+                        flObject.put("RcrdDt",t.getCallStartTime());
+                        if(StringUtils.isNotBlank(marketingSyncUser.getName())){
+                            flObject.put("Rmk1",marketingSyncUser.getName());
+                        }
+                        flArray.add(flObject);
+                    }else{
+                        errorIdList.add(id);
                     }
-                    flObject.put("MblPhnId",marketingSyncUser.getCellMd5().toLowerCase());
-                    flObject.put("RcrdTy",t.getCallType());
-                    flObject.put("RcrdDt",t.getCallStartTime());
-                    if(StringUtils.isNotBlank(marketingSyncUser.getName())){
-                        flObject.put("Rmk1",marketingSyncUser.getName());
-                    }
-                    flArray.add(flObject);
                 }else{
                     errorIdList.add(id);
                 }
