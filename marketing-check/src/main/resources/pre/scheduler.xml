@@ -1019,4 +1019,18 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+    <job:simple id="ZhongBangPushVoiceFileJob"
+                class="com.br.marketing.check.job.zhongbang.ZhongBangPushVoiceFileJob"
+                cron="0 0/11 * * * ?"
+                description="众邦财富fileSDK录音文件上传"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>
