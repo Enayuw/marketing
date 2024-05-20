@@ -3,6 +3,8 @@ package com.br.marketing.service.Impl.zhongbang;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.BrCipherMaker;
+import com.br.common.util.MD5Utils;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.zbank.ZbankResponse;
 import com.br.marketing.common.commondto.Result;
@@ -44,7 +46,7 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
     @Override
     public void pageAndPush() {
         Long detailId = null;
-        //
+        // 是否完成了文件数据上传
         Boolean finishFlag = Boolean.FALSE;
         // 查询 push_status=0 的数量级
         Integer countPushStatus0 = zhongBangVoiceFileDetailMapper.selectPushStatus0Count();
@@ -84,14 +86,18 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
                         JSONObject flObject = new JSONObject();
                         flObject.put("OpnPltfrmId",t.getCustomerFileId());
                         flObject.put("CstNo",custNum);
-                        if(StringUtils.isNotBlank(marketingSyncUser.getIdCard())){
-                            flObject.put("IdentNo",marketingSyncUser.getIdCard());
+                        String idCard = marketingSyncUser.getIdCard();
+                        if(StringUtils.isNotBlank(idCard)){
+                            String md5Id = MD5Utils.cell32(BrCipherMaker.getInstance().decode(idCard));
+                            flObject.put("IdentNo", md5Id);
                         }
                         flObject.put("MblPhnId",marketingSyncUser.getCellMd5().toLowerCase());
                         flObject.put("RcrdTy",t.getCallType());
                         flObject.put("RcrdDt",t.getCallStartTime());
-                        if(StringUtils.isNotBlank(marketingSyncUser.getName())){
-                            flObject.put("Rmk1",marketingSyncUser.getName());
+                        String name = marketingSyncUser.getName();
+                        if(StringUtils.isNotBlank(name)){
+                            String md5Name = MD5Utils.cell32(BrCipherMaker.getInstance().decode(name));
+                            flObject.put("Rmk1", md5Name);
                         }
                         flArray.add(flObject);
                     }else{
