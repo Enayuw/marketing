@@ -78,7 +78,7 @@ public class ZhongBangPushVoiceFileJob extends AbstractSimpleElasticJob {
             TransferActionFront actionFront;
             Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, dateStr
                     , JobManager.ActionTypeEnum.ZHONGBANG_PUSH_VOICE_FILE.getActionType());
-            if (frontData.getCode().equals(ResultCode.SUCCESS.getValue())) {
+            if (frontData.getCode().equals(ResultCode.SUCCESS.getValue()) && frontData.getData() != null) {
                 actionFront = frontData.getData();
                 if (okStatus == actionFront.getStatus()) {
                     continue;

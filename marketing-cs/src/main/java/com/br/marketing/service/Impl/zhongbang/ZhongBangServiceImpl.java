@@ -754,14 +754,15 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     Long id = localFile.getId();
                     String localPath = localFile.getLocalPath();
                     String localDir = localPath.replaceAll("yyyyMMdd", dateStr).concat(File.separator)
-                            .concat(fileName).concat("_voice");
-                    PushCustomerFileInfoExample infoExample = new PushCustomerFileInfoExample();
-                    infoExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andFileDirectoryEqualTo(localDir)
-                            .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate).andPushStatusEqualTo(0);
-                    int countByExample = pushCustomerFileInfoMapper.countByExample(infoExample);
-                    if (countByExample < 1) {
-                        continue;
-                    }
+                            .concat(fileName).concat(File.separator)
+                            .concat("voice");
+//                    PushCustomerFileInfoExample infoExample = new PushCustomerFileInfoExample();
+//                    infoExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andFileDirectoryEqualTo(localDir)
+//                            .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate).andPushStatusEqualTo(0);
+//                    int countByExample = pushCustomerFileInfoMapper.countByExample(infoExample);
+//                    if (countByExample < 1) {
+//                        continue;
+//                    }
                     ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
                     voiceFileDetailExample.createCriteria().andLocalIdEqualTo(id).andStatusEqualTo(1)
                             .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0);
