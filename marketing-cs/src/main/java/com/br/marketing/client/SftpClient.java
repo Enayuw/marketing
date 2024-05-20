@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.jcraft.jsch.ChannelSftp.SSH_FX_NO_SUCH_FILE;
 
@@ -211,24 +212,57 @@ public class SftpClient extends BaseFtpClient{
     }
 
     /**
-     * 获取源目录下需要同步的文件名称和文件属性
+     * 获取源目录下需要同步的文件名称和文件属性（自定义选择器）
      *
-     * @param srcPath 原路径
-     * @return 需要同步的文件名称和文件属性
+     * @param srcPath  源路径
+     * @param selector 选择器
      * @throws SftpException
      */
-    public Map<String, SftpATTRS> listFiles(String srcPath, ChannelSftp.LsEntrySelector selector) {
-        Map<String, SftpATTRS> ftpFileMap = new HashMap();
-        if (!isExist(srcPath)) {
-            return ftpFileMap;
-        }
+    public void listFiles(String srcPath, ChannelSftp.LsEntrySelector selector) {
         try {
             sftp.ls(srcPath, selector);
         } catch (SftpException e) {
             log.error("srcPath:{}", srcPath, e);
         }
-        return ftpFileMap;
     }
+
+    /**
+     * 获取源目录下需要同步的文件名称和文件属性（自定义选择器）
+     *
+     * @param srcPath 源路径
+     * @param suffix  自定义扩展名
+     * @return 远程文件信息
+     * @throws SftpException
+     */
+    public Map<String, SftpATTRS> listFiles(String srcPath, String... suffix) {
+        Vector<ChannelSftp.LsEntry> vector = new Vector<>();
+        try {
+            String currentDir = ".";
+            sftp.ls(srcPath, entry -> {
+                if (suffix == null || suffix.length == 0) {
+                    vector.addElement(entry);
+                    return ChannelSftp.LsEntrySelector.CONTINUE;
+                } else {
+                    String filename = entry.getFilename();
+                    if (currentDir.equals(filename) || (currentDir + currentDir).equals(filename)) {
+                        return ChannelSftp.LsEntrySelector.CONTINUE;
+                    }
+                    for (String s : suffix) {
+                        if (filename.endsWith(s)) {
+                            vector.addElement(entry);
+                            return ChannelSftp.LsEntrySelector.CONTINUE;
+                        }
+                    }
+                }
+                return ChannelSftp.LsEntrySelector.CONTINUE;
+            });
+        } catch (SftpException e) {
+            log.error("srcPath:{}", srcPath, e);
+        }
+        return vector.stream().collect(Collectors.toMap(ChannelSftp.LsEntry::getFilename
+                , ChannelSftp.LsEntry::getAttrs));
+    }
+
 
     /**
      * 获取源目录下需要同步的文件名称和文件属性
