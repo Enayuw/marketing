@@ -23,7 +23,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
             }
             try {
                 SystemExceptionServiceImpl emailService= DataBridgeApplication.ac.getBean(SystemExceptionServiceImpl.class);
-                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "MARKETING-FILE",throwableProxy);
+                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "MARKETING-DATA-BRIDGE",throwableProxy);
             } catch (Exception e) {
                 log.warn("Exception",e);
             }
