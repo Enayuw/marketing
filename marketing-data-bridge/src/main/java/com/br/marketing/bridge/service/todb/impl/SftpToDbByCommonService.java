@@ -2,6 +2,8 @@ package com.br.marketing.bridge.service.todb.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bridge.common.utils.SftpToDbUtils;
+import com.br.marketing.bridge.model.dto.FileContext;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
@@ -14,9 +16,6 @@ import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.FileDbConfig;
 import com.br.marketing.entity.LocalFile;
-import com.br.marketing.bridge.model.dto.FileContext;
-import com.br.marketing.bridge.common.utils.SftpToDbUtils;
-import com.br.marketing.bridge.service.filecheck.FileCheckService;
 import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.PhoneSaleMapper;
@@ -64,11 +63,7 @@ public class SftpToDbByCommonService {
 
     @Resource
     RabbitMqProducter producter;
-    /**
-     * The File ckeck servicce.
-     */
-    @Resource
-    FileCheckService fileCheckService;
+
     /**
      * The Redis chg service.
      */
