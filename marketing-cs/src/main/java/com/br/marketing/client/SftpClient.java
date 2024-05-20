@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import static com.jcraft.jsch.ChannelSftp.SSH_FX_NO_SUCH_FILE;
@@ -222,7 +223,7 @@ public class SftpClient extends BaseFtpClient{
         try {
             sftp.ls(srcPath, selector);
         } catch (SftpException e) {
-            log.error("srcPath:{}", srcPath, e);
+            log.error("srcPath:" + srcPath, e);
         }
     }
 
@@ -235,12 +236,12 @@ public class SftpClient extends BaseFtpClient{
      * @throws SftpException
      */
     public Map<String, SftpATTRS> listFiles(String srcPath, String... suffix) {
-        Vector<ChannelSftp.LsEntry> vector = new Vector<>();
+        CopyOnWriteArrayList<ChannelSftp.LsEntry> vector = new CopyOnWriteArrayList<>();
+        String currentDir = ".";
         try {
-            String currentDir = ".";
-            sftp.ls(srcPath, entry -> {
+            sftp.ls(srcPath, (ChannelSftp.LsEntry entry) -> {
                 if (suffix == null || suffix.length == 0) {
-                    vector.addElement(entry);
+                    vector.add(entry);
                     return ChannelSftp.LsEntrySelector.CONTINUE;
                 } else {
                     String filename = entry.getFilename();
@@ -249,7 +250,7 @@ public class SftpClient extends BaseFtpClient{
                     }
                     for (String s : suffix) {
                         if (filename.endsWith(s)) {
-                            vector.addElement(entry);
+                            vector.add(entry);
                             return ChannelSftp.LsEntrySelector.CONTINUE;
                         }
                     }
@@ -257,10 +258,9 @@ public class SftpClient extends BaseFtpClient{
                 return ChannelSftp.LsEntrySelector.CONTINUE;
             });
         } catch (SftpException e) {
-            log.error("srcPath:{}", srcPath, e);
+            log.error("srcPath:{}" + srcPath, e);
         }
-        return vector.stream().collect(Collectors.toMap(ChannelSftp.LsEntry::getFilename
-                , ChannelSftp.LsEntry::getAttrs));
+        return vector.stream().collect(Collectors.toMap(ChannelSftp.LsEntry::getFilename, ChannelSftp.LsEntry::getAttrs));
     }
 
 

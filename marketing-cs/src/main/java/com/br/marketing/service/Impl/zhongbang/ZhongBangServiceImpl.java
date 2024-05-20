@@ -720,7 +720,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         boolean bool = availableNumber > 30;
         int corePoolSize = (availableNumber / 2);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 30
-                : availableNumber + corePoolSize, new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
+                : (availableNumber + corePoolSize), new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
         Map<String, String> zhongBangVoieFileConfig = marketingCommonConfig.getZhongBangVoieFileConfig();
         if (zhongBangVoieFileConfig.isEmpty()) {
             zhongBangVoieFileConfig.put("b_zhongbang_voice_file_detail", "zhongbang_voice");
@@ -753,15 +753,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     String fileName = localFile.getFileName();
                     Long id = localFile.getId();
                     String localPath = localFile.getLocalPath();
-                    String localDir = localPath.replaceAll("yyyyMMdd", dateStr).concat(fileName)
+                    String localDir = localPath.replaceAll(DateUtils.yyyyMMdd, dateStr).concat(fileName)
                             .concat(File.separator).concat("voice");
-//                    PushCustomerFileInfoExample infoExample = new PushCustomerFileInfoExample();
-//                    infoExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andFileDirectoryEqualTo(localDir)
-//                            .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate).andPushStatusEqualTo(0);
-//                    int countByExample = pushCustomerFileInfoMapper.countByExample(infoExample);
-//                    if (countByExample < 1) {
-//                        continue;
-//                    }
                     ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
                     voiceFileDetailExample.createCriteria().andLocalIdEqualTo(id).andStatusEqualTo(1)
                             .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0);
@@ -771,7 +764,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             , startDate, endDate, dateStr);
                     int size = fileList.size();
                     if (size != count) {
-                        log.warn("众邦录音文件量级与明细量级不匹配，录音文件量级:{},明细量级:{}", size, count);
+                        String msg = "众邦录音文件量级与明细量级不匹配，录音文件量级:" + size + ",明细量级:" + count;
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(), msg
+                                , "众邦录音文件量级与明细量级不匹配"));
                         continue;
                     }
                     List<CompletableFuture<Boolean>> futures = new ArrayList<>();
@@ -811,7 +806,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             }
                             pushCustomerFileInfoMapper.updateFileInfoAndFileDetailtikv_(fileInfo, voiceFileDetail, startDate, endDate);
                             return true;
-                        }, threadPool).exceptionally(throwable -> {
+                        }, threadPool).exceptionally((Throwable throwable) -> {
                             if (throwable != null) {
                                 log.error(throwable.getMessage(), throwable);
                             }
@@ -820,7 +815,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     }
                     // 结果转换
                     try {
-                        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply((v) -> {
+                        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply((Void v) -> {
                             boolean b = true;
                             for (CompletableFuture<Boolean> future : futures) {
                                 try {
@@ -830,6 +825,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 } catch (InterruptedException | ExecutionException | TimeoutException e) {
                                     log.error(e.getMessage());
                                     b = false;
+                                    Thread.currentThread().interrupt();
                                 }
                             }
                             return b;
@@ -850,18 +846,16 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     private List<File> getFromSftpLocalDisk(SyncConfig syncConfig, String[] suffix, String localDri, String cid
             , String apiCode, Date dateStart, Date dateEnd, String dateStr) {
         SftpClient ftpClient = new SftpClient(syncConfig, true);
-        String srcPath = syncConfig.getSrcPath().replaceAll("yyyyMMdd", dateStr);
+        String srcPath = syncConfig.getSrcPath().replaceAll(DateUtils.yyyyMMdd, dateStr);
         List<File> fileList = new ArrayList<>();
         try {
             if (ftpClient.connect() || ftpClient.isConnected()) {
                 Map<String, SftpATTRS> listFiles = ftpClient.listFiles(srcPath, suffix);
                 Set<Map.Entry<String, SftpATTRS>> entrySet = listFiles.entrySet();
                 File dir = new File(localDri);
-                if (!dir.exists()) {
-                    if (!dir.mkdirs()) {
-                        log.error("本地目录创建失败：{}", localDri);
-                        return fileList;
-                    }
+                if (!dir.exists() && !dir.mkdirs()) {
+                    log.error("本地目录创建失败：{}", localDri);
+                    return fileList;
                 }
                 for (Map.Entry<String, SftpATTRS> entry : entrySet) {
                     String fileName = entry.getKey();
