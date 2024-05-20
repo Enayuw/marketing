@@ -2,8 +2,6 @@ package com.br.marketing.check.job.zhongbang;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
@@ -76,10 +74,9 @@ public class ZhongBangPushVoiceFileJob extends AbstractSimpleElasticJob {
                 value = (LocalDate) entryValue;
             }
             TransferActionFront actionFront;
-            Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, dateStr
-                    , JobManager.ActionTypeEnum.ZHONGBANG_PUSH_VOICE_FILE.getActionType());
-            if (frontData.getCode().equals(ResultCode.SUCCESS.getValue()) && frontData.getData() != null) {
-                actionFront = frontData.getData();
+            actionFront = jobManager.getFrontData(apiCode, dateStr
+                    , JobManager.ActionTypeEnum.ZHONGBANG_PUSH_VOICE_FILE.getActionType(), null);
+            if (actionFront != null) {
                 if (okStatus == actionFront.getStatus()) {
                     continue;
                 }
