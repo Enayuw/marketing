@@ -28,7 +28,7 @@ public class TestSre {
     MarketingCommonConfig marketingCommonConfig;
 
     @GetMapping("/testSre")
-    public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){
+    public String testApiToDb(@RequestParam("all") String all, @RequestParam("key") String key){
         boolean allFlag = false;
         if(null != all && "WhoAreYou".equals(all)){
             allFlag = true;
