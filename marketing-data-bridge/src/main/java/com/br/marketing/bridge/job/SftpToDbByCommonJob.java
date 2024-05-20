@@ -1,16 +1,16 @@
 package com.br.marketing.bridge.job;
 
+import com.br.marketing.bridge.DataBridgeApplication;
+import com.br.marketing.bridge.common.enums.FileTypeToAssemblerEnum;
 import com.br.marketing.bridge.common.utils.SftpToDbUtils;
+import com.br.marketing.bridge.model.dto.FileContext;
+import com.br.marketing.bridge.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.bridge.DataBridgeApplication;
-import com.br.marketing.bridge.model.dto.FileContext;
-import com.br.marketing.bridge.common.enums.FileTypeToAssemblerEnum;
-import com.br.marketing.bridge.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.ICompatibleService;

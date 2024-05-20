@@ -11,6 +11,7 @@
     <artifactId>marketing-data-bridge</artifactId>
     <description>营销文件DB数据交互服务</description>
     <dependencies>
+        <!--spring-start-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -39,10 +40,34 @@
             <groupId>com.br.marketing</groupId>
         </dependency>
         <dependency>
+            <groupId>com.br.marketing</groupId>
             <artifactId>marketing-cs</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <groupId>com.br.marketing</groupId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.7</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>asm</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.14.9</version>
+        </dependency>
+
         <dependency>
             <groupId>com.dangdang</groupId>
             <artifactId>br-elastic-job-core</artifactId>
@@ -66,16 +91,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <!-- exporter 监控 http://c.100credit.cn/pages/viewpage.action?pageId=38205220 -->
-       <!-- <dependency>
-            <groupId>com.br.cloud</groupId>
-            <artifactId>spring_boot_exporter</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>-->
     </dependencies>
-
-    <!-- 预发、生产环境打包方式-->
     <build>
         <resources>
             <resource>
@@ -110,5 +126,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
