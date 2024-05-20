@@ -3,6 +3,8 @@ package com.br.marketing.client.intelligentcustomerservice;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.counter.BrCounter;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
@@ -53,8 +56,8 @@ public class IntelligentCustomerServiceClient {
     @Autowired
     ThreadPoolExecutor interfaceLogDbpool;
 
-
-    public Result<Integer> pushUser(PushMarketingUserDTO dto, Long mId, String pushBatch, Integer pushNum) {
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result<Integer> pushRuleCenterToPolicy(PushMarketingUserDTO dto, Long mId, String pushBatch, Integer pushNum) {
         dto.setPlatApiCode(customerServiceApiCode);
         Result result = new Result();
         CustomerInfoPushLog log = new CustomerInfoPushLog();
@@ -77,7 +80,8 @@ public class IntelligentCustomerServiceClient {
             if (transfer.getHttpCode() != 200) {
                 throw new RuntimeException(String.format("接口状态返回非200 是%d", transfer.getHttpCode()));
             }
-            if ("00".equals(jsonObject.getString("code"))) {
+            if ("00".equals(jsonObject.getString("code"))
+                    || "900031".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
                 try {
                     //调用数量监控
@@ -89,7 +93,26 @@ public class IntelligentCustomerServiceClient {
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
-        } catch (Exception ex) {
+        }catch (ResourceAccessException e){
+//            // 这里捕获超时异常
+//            if (e.getCause() instanceof ConnectTimeoutException) {
+//                // 处理连接超时异常
+//            } else if (e.getCause() instanceof ReadTimeoutException) {
+//                // 处理读取超时异常
+//            }
+//            // 其他异常处理
+            if (e.getMessage().contains("Read timed out")
+//                    || e.getMessage().contains("Connect timed out")
+            ) {
+                // 处理超时异常...
+                result.setCode(ResultCode.TIME_OUT.getValue()).setMessage("Read timed out");
+                log.setErrorContent(e.getMessage());
+            } else {
+                // 处理其他类型的ResourceAccessException...
+                log.setErrorContent(e.getMessage());
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(e.getMessage());
+            }
+        }catch (Exception ex) {
             log.setErrorContent(ex.getMessage());
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
@@ -98,6 +121,7 @@ public class IntelligentCustomerServiceClient {
         return result;
     }
 
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushUser(PushMarketingUserDTO dto) {
         Result result = new Result();
         dto.setPlatApiCode(customerServiceApiCode);
@@ -109,7 +133,8 @@ public class IntelligentCustomerServiceClient {
                 result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
                 return result;
             }
-            if ("00".equals(jsonObject.getString("code"))) {
+            if ("00".equals(jsonObject.getString("code"))
+                    || "900031".equals(jsonObject.getString("code"))) {
                 result.setCode(ResultCode.SUCCESS.getValue());
                 try {
                     //监控
@@ -123,7 +148,7 @@ public class IntelligentCustomerServiceClient {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
         } catch (Exception ex) {
-            logger.error(ex.getMessage(),ex);
+            logger.error(ex.getMessage(), ex);
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
         return result;

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
+import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
@@ -29,10 +30,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
-import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.utils.*;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
@@ -41,7 +39,10 @@ import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
+import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.PushRuleStatusEnum;
+import com.br.marketing.enums.CustomerQueueEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
@@ -49,6 +50,7 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
+import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -58,7 +60,10 @@ import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.*;
+import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -97,6 +102,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -118,6 +124,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorCodeHm.put("1006", "参数过长");
     }
 
+    @Resource
+    CaffeineCache caffeineCache;
 
     @Resource
     MarketingTaskMapper marketingTaskMapper;
@@ -177,6 +185,18 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private XiechengCollidingDataPackageRuleMapper xiechengCollidingDataPackageRuleMapper;
+
+    @Resource
+    private XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
+
+    @Resource
+    private XieChengCollidingDataPackageMapper xieChengCollidingDataPackageMapper;
+
+    @Resource
+    private XieChengRuleScoreRecordMapper scoreRecordMapper;
+
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
         String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
@@ -191,8 +211,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         map.put("model", module);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(map).setMessage("查询成功");
     }
+
     @Override
-    public Result<String> getUserType(String apiCode){
+    public Result<String> getUserType(String apiCode) {
         List<String> userTypeList = marketingTaskUserTypeMapper.queryUserTypeByApiCodetikv_(apiCode);
         String userType = userTypeList.stream().collect(Collectors.joining(","));
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(userType).setMessage("查询成功");
@@ -203,7 +224,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         dto = getCustomerBatchNumDTO(dto);
         PageHelper.startPage(dto.getCurrent(), dto.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchs(dto);
-        scoreDetailVos.stream().forEach((ScoreDetailVo t)->{
+        scoreDetailVos.stream().forEach((ScoreDetailVo t) -> {
             String batchNumber = t.getBatchNumber();
             List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(batchNumber);
             String allUserType = batchNumberList.stream().collect(Collectors.joining(","));
@@ -354,6 +375,63 @@ public class PushRuleServiceImpl implements PushRuleService {
     TransferFiledProcessImpl transferFiledProcess;
 
 
+    @Override
+    public Result<CustomerInfoPushMain> getPushTask() {
+        Date date = Date.from(LocalDate.now().minusDays(2L).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        CustomerInfoPushMainExample pushMainExample = new CustomerInfoPushMainExample();
+        pushMainExample.setOrderByClause(" create_time,id limit 1");
+        pushMainExample.createCriteria()
+                .andMStatusEqualTo(PushRuleStatusEnum.TO_BE_RUNNING.getValue())
+                .andCreateTimeGreaterThanOrEqualTo(date);
+        List<CustomerInfoPushMain> customerInfoPushMains = customerInfoPushMainMapper.selectByExample(pushMainExample);
+        if (customerInfoPushMains.size() > 0) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMains.get(0));
+        }
+        return new Result<>().setCode(ResultCode.FAIL.getValue());
+    }
+
+    @Override
+    public Result isCanPushTask(Long taskId) {
+        String lockValue = getCanPushTaskLock(taskId);
+        if (StringUtils.isNotBlank(lockValue)) {
+            CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(taskId);
+            if (!customerInfoPushMain.getmStatus().equals(PushRuleStatusEnum.TO_BE_RUNNING.getValue())) {
+                removeCanPushTaskLock(taskId, lockValue);
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            CustomerInfoPushMain updateEntity = new CustomerInfoPushMain();
+            updateEntity.setId(taskId);
+            updateEntity.setmStatus(PushRuleStatusEnum.RUNNING.getValue());
+            customerInfoPushMainMapper.updateByPrimaryKeySelective(updateEntity);
+            removeCanPushTaskLock(taskId, lockValue);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue());
+    }
+
+    String getCanPushTaskLock(Long taskId) {
+        try {
+            String taskByPushRuleGetLock = RedisKeyConstant.TASK_PUSH_RULE_GET_LOCK.concat(":" + taskId);
+            UUID uuid = UUID.randomUUID();
+            Boolean setnx = redisChgService.setnx(taskByPushRuleGetLock, uuid.toString(), 3);
+            if (!setnx) {
+                return null;
+            }
+            return uuid.toString();
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return null;
+        }
+    }
+
+    void removeCanPushTaskLock(Long taskId, String lockValue) {
+        String taskByPushRuleGetLock = RedisKeyConstant.TASK_PUSH_RULE_GET_LOCK.concat(":" + taskId);
+        String s = redisChgService.get(taskByPushRuleGetLock);
+        if (lockValue.equals(s)) {
+            redisChgService.del(taskByPushRuleGetLock);
+        }
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<String> pushCustomer(PushCustomerDTO dto) {
@@ -372,25 +450,34 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (dto.getmPercentage() != null && dto.getmPercentage().compareTo(new BigDecimal(0)) <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("百分比不能小于等于0");
         }
-
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> files = straHisFileMapper.selectByExample(fileExample);
-
-        Result<Integer> totalRes = getTotal(dto);
-        if (!ResultCode.SUCCESS.getValue().equals(totalRes.getCode())) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(totalRes.getMessage());
+        CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
+        Integer pushNum;
+        //携程撞库，则不再查询Doris，由前端透传
+        //事务@Transactional方法中，切换数据源会失效
+        if (isXieChengData(dto)) {
+            JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+            XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+            XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+            pushNum = dto.getmPrePlanNum();
+            customerInfoPushMain.setFilterType(1);
+            customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
+        } else {
+            Result<PushViewVO> totalRes = getTotal(dto);
+            if (!ResultCode.SUCCESS.getValue().equals(totalRes.getCode())) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage(totalRes.getMessage());
+            }
+            pushNum = totalRes.getData().getTotal();
         }
-        Integer pushNum = totalRes.getData();
         //endregion
 
         //region insert db
-
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
         List<String> showTitles = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
-        CustomerInfoPushMain customerInfoPushMain = new CustomerInfoPushMain();
         customerInfoPushMain.setmApiCode(dto.getApiCode());
         customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
         customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
@@ -401,7 +488,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setCreateTime(date);
         customerInfoPushMain.setUpdateTime(date);
         customerInfoPushMain.setmCusBatchNumberList(Joiner.on(",").join(showTitles));
-        customerInfoPushMain.setmStatus(1);
+        customerInfoPushMain.setmStatus(PushRuleStatusEnum.TO_BE_RUNNING.getValue());
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
@@ -416,24 +503,35 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmFileId(t.getId());
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
         });
+
+        //endregion
+
+        //region push mq
+//        producter.send("Marketing.Push.CustomerService", customerInfoPushMain.getId().toString());
         //endregion
 
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
 
-    private Result<Integer> getTotal(PushCustomerDTO dto) {
-        QueryBaseBean queryBaseBean = new QueryBaseBean();
-        queryBaseBean.setApiCode(dto.getApiCode());
-        queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
-        queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
-        queryBaseBean.setJsonData(dto.getmRuleCondition());
-        if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
-            return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+    private Result<PushViewVO> getTotal(PushCustomerDTO dto) {
+        int total;
+        PushViewVO pushViewVO = new PushViewVO();
+        if (isXieChengData(dto)) {
+            total = getXieChengDataNum(dto.getmRuleCondition(), dto.getBatchNumberList(), pushViewVO);
+        } else {
+            QueryBaseBean queryBaseBean = new QueryBaseBean();
+            queryBaseBean.setApiCode(dto.getApiCode());
+            queryBaseBean.setBatchNumbers(Joiner.on(",").join(dto.getBatchNumberList()));
+            queryBaseBean.setFileIds(Joiner.on(",").join(dto.getFileIdList()));
+            queryBaseBean.setJsonData(dto.getmRuleCondition());
+            if (dto.getmPlanNum() != null && dto.getmPlanNum() <= 0) {
+                return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("推送数量不能小于等于0");
+            }
+            if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
+                queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
+            }
+            total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         }
-        if (dto.getmPlanNum() != null && dto.getmPlanNum() > 0) {
-            queryBaseBean.setAmountTop("0,".concat(dto.getmPlanNum().toString()));
-        }
-        int total = marketingHistoryEsService.builderMarketingWithTotal(queryBaseBean);
         if (total <= 0) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("无符合的数据");
         }
@@ -444,11 +542,147 @@ public class PushRuleServiceImpl implements PushRuleService {
             Integer res = dto.getmPercentage().multiply(new BigDecimal(total)).setScale(0, RoundingMode.UP).intValue();
             return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
         }
-        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(total);
+        pushViewVO.setTotal(total);
+        return new Result<PushViewVO>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushViewVO);
     }
 
+    private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
+        int total = 0;
+        String querySql = "";
+        JSONObject jsonObject = JSON.parseObject(mRuleCondition);
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+        pushViewVO.setResult(collidingFilterDTO.getResult());
+        if ("true".equals(collidingFilterDTO.getResult())) {
+            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getReleaseTime());
+        } else {
+            querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
+        }
+        log.warn("规则中心携程={} 的试算量级sql={}",collidingFilterDTO.getResult(),querySql);
+        // 查询Doris
+        try {
+            total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
+        } catch (Exception e) {
+            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
+        }
+        return total;
+    }
+
+    private String falseDataQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
+        StringBuilder querySql = new StringBuilder();
+        String condition = falseDataCondition(jsonObject, batchNumberList, cleanTime);
+        querySql.append("select count(1) from (").append(condition).append(") a ;");
+        return querySql.toString();
+
+    }
+
+    private String falseDataCondition(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
+        String cycleDataSql = "select  cell_sha256_code_list as cell,id from  b_xiecheng_colliding_data_loop_cycle where is_delete =0";
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        StringBuilder falseAndscoreSql = new StringBuilder();
+        StringBuilder whereSql = new StringBuilder();
+        //与True的全量数据去重
+        falseAndscoreSql.append("select score.cell,score.id from (").append(scoreSql).append(") score left join (").append(cycleDataSql)
+                .append(") cycle on score.cell = cycle.cell ");
+        //where条件拼接
+        whereSql.append(" where cycle.id is null");
+        if (StringUtils.isNotEmpty(cleanTime)) {
+            XiechengCollidingDataPackageRuleExample packageRuleExample = new XiechengCollidingDataPackageRuleExample();
+            packageRuleExample.createCriteria().andCollidingEndTimeGreaterThanOrEqualTo(DateHelper.parseDate(cleanTime)).andIsDeleteEqualTo(0);
+            List<XiechengCollidingDataPackageRule> packageRules = xiechengCollidingDataPackageRuleMapper.selectByExample(packageRuleExample);
+            String packageId = packageRules.stream().map(xiechengCollidingDataPackageRule -> xiechengCollidingDataPackageRule.getPackageId()
+                    .toString()).collect(Collectors.toSet()).stream().collect(Collectors.joining(","));
+            //清洗时间在撞库区间内去重，业务应规避此条件
+            if (StringUtils.isNotEmpty(packageId)) {
+                String FalseDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where package_id in (" +
+                        packageId + ") and " + "is_delete=0";
+                falseAndscoreSql.append("left join (").append(FalseDataSql).append(") rob on score.cell = rob.cell ");
+                whereSql.append(" and rob.id is null");
+            }
+        }
+        //与待清洗去重
+        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
+        processTaskExample.createCriteria().andTaskTypeEqualTo(0).andTaskStatusEqualTo(0).andIsDeleteEqualTo(0);
+        List<XiechengCollidingDataProcessTask> processTasks = xiechengCollidingDataProcessTaskMapper.selectByExample(processTaskExample);
+        processTasks.forEach((XiechengCollidingDataProcessTask processTask) -> {
+            falseAndscoreSql.append(" left join (").append(processTask.getTaskExecutionSql()).append(") d").append(processTask.getId())
+                    .append(" on score.cell = ").append("d").append(processTask.getId()).append(".cell ");
+            whereSql.append(" and  d").append(processTask.getId()).append(".id is null");
+        });
+        return falseAndscoreSql.append(whereSql).toString();
+    }
+
+    private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, Map<String, String> releaseTime) {
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
+        //True关联查询
+        //传输releaseTime处理
+        if (!CollectionUtils.isEmpty(releaseTime)) {
+            String releaseTimeSql = EsConditionTransferSqlUtil.assemblefiled("release_time", releaseTime.get("operation"), releaseTime.get("value"));
+            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + releaseTimeSql
+                    + " and is_delete=0";
+        }
+        StringBuilder cycleAndscoreSql = new StringBuilder();
+        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
+                "score.cell = cycle.cell;");
+        return cycleAndscoreSql.toString();
+    }
+
+    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList) {
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
+        //True关联查询
+        StringBuilder cycleAndscoreSql = new StringBuilder();
+        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle left join (").append(scoreSql).append(") score on " +
+                "score.cell = cycle.cell where score.id is null;");
+        return cycleAndscoreSql.toString();
+    }
+
+    /**
+     * 组装跑分筛选SQL
+     *
+     * @param jsonObject      入参jsonsql
+     * @param batchNumberList batchNumber集合
+     * @return String
+     */
+    private String scoreSql(JSONObject jsonObject, List<String> batchNumberList) {
+
+        String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        String scoreSql = "";
+        for (int i = 0; i < batchNumberList.size(); i++) {
+            if (i == batchNumberList.size() - 1) {
+                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ")
+                        .concat(sqlCondition).concat(" and is_delete=0 ");
+            } else {
+                scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ")
+                        .concat(sqlCondition).concat(" and is_delete=0 ").concat(" union all ");
+            }
+
+        }
+        return scoreSql;
+    }
+
+
+    private  Boolean isXieChengData(PushCustomerDTO dto) {
+        Boolean isXieCheng = Boolean.FALSE;
+        JSONArray datas = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data");
+        if (!CollectionUtils.isEmpty(datas)) {
+            Object result = datas.stream().filter(obj ->("result").equals(
+                    ((JSONObject) obj).getString("key"))).findAny().orElse(null);
+            //api_code为携程且筛选条件传入result
+            if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
+                isXieCheng = Boolean.TRUE;
+            }
+        }
+        return isXieCheng;
+
+    }
+
+
     @Override
-    public Result<Integer> pushPreview(PushCustomerDTO dto) {
+    public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
 
         AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
         return getTotal(dto);
@@ -484,6 +718,87 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("多个跑分记录包含不同的加密类型");
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(encrgyTypes.stream().findFirst().get());
+    }
+
+    @Override
+    public Result collidingDataDelete(PushCustomerDTO dto) {
+        if (!isXieChengData(dto)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("缺失result或clean_time筛选条件");
+        }
+        JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+        XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
+        xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
+        xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
+        xiechengCollidingDataProcessTask.setTaskStatus(0);
+        xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
+        try {
+            xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+        } catch (Exception e) {
+            log.error("clean_time日期格式异常", e.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
+        }
+        xiechengCollidingDataProcessTask.setTaskType(1);
+        xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList()));
+        xiechengCollidingDataProcessTask.setCreateTime(new Date());
+        xiechengCollidingDataProcessTask.setUpdateTime(new Date());
+        xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result collidingDataPachageMake(PushCustomerDTO dto) {
+        if (!isXieChengData(dto)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("缺失result或clean_time筛选条件");
+        }
+        JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+        XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
+        xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
+        xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
+        xiechengCollidingDataProcessTask.setTaskStatus(0);
+        xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPrePlanNum());
+        try {
+            xiechengCollidingDataProcessTask.setTaskStartTime(DateHelper.parseDate(collidingFilterDTO.getCleanTime()));
+        } catch (Exception e) {
+            log.error("clean_time日期格式异常", e.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
+        }
+        xiechengCollidingDataProcessTask.setTaskType(0);
+        xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(falseDataCondition(jsonObject, dto.getBatchNumberList(),
+                collidingFilterDTO.getCleanTime()));
+        xiechengCollidingDataProcessTask.setCreateTime(new Date());
+        xiechengCollidingDataProcessTask.setUpdateTime(new Date());
+        xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
+        XieChengCollidingDataPackage xieChengCollidingDataPackage = new XieChengCollidingDataPackage();
+        xieChengCollidingDataPackage.setPackageName(dto.getDataPackageName());
+        xieChengCollidingDataPackage.setCreateTime(new Date());
+        xieChengCollidingDataPackage.setUpdateTime(new Date());
+        xieChengCollidingDataPackage.setCollidingDataTaskId(xiechengCollidingDataProcessTask.getId());
+        xieChengCollidingDataPackage.setDiscreetNumber(dto.getmPrePlanNum());
+        xieChengCollidingDataPackageMapper.insertSelective(xieChengCollidingDataPackage);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto) {
+        int num = 0;
+        JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList());
+        // doris查询
+        // 查询Doris
+        try {
+            num = scoreRecordMapper.getXieChengDataNumdoris_(deleteSql);
+        } catch (Exception e) {
+            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", deleteSql, e);
+        }
+        return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(num);
     }
 
     public String encrypt3k(Integer type, String content) {
@@ -582,8 +897,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             getEsNum = 1;
         }
         Integer realTotalNum = 0;
+        Integer timeOutTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
-        main.setmStatus(2);
+        main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
         ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
         ThreadPoolExecutor pushJc = BrExecutors.getThreadPool(getJcNum, getJcNum, 50);
         List<Future<List<Future<Result<Integer>>>>> res = new ArrayList<>();
@@ -619,8 +935,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                 List<Future<Result<Integer>>> futures = actionFuture.get();
                 for (Future<Result<Integer>> pushFuture : futures) {
                     Result<Integer> pushRes = pushFuture.get();
-                    if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
-                        main.setmStatus(3);
+                    if(ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())) {
+                        main.setmStatus(PushRuleStatusEnum.CONFIRMED_TIME_OUT.getValue());
+                        timeOutTotalNum += pushRes.getData();
+                    }else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                        main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
                     } else {
                         realTotalNum += pushRes.getData();
                     }
@@ -628,7 +947,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
-            main.setmStatus(3);
+            main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
         try {
             actionEs.shutdown();
@@ -643,18 +962,18 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error(ex.getMessage(), ex);
         }
 
-        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；"
+        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
                 , customerInfoPushMain.getId()
                 , System.currentTimeMillis() - startTime
                 , System.currentTimeMillis() - initTime
-                , customerInfoPushMain.getmRealyNum(), realTotalNum);
+                , customerInfoPushMain.getmRealyNum(), realTotalNum, timeOutTotalNum);
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
 
         //region push mq
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY
-                , customerInfoPushMain.getId().toString());
+//        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY
+//                , customerInfoPushMain.getId().toString());
         //endregion
 
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
@@ -816,10 +1135,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         @Override
         public Result<Integer> call() {
-            Result<Integer> result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
+            Result<Integer> result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
                     accessNumber, size);
-            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO, mainId,
+            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())
+                    || ResultCode.TIME_OUT.getValue().equals(result.getCode())) {
+                result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, mainId,
                         accessNumber, size);
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -831,20 +1151,19 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
-    public Result<Boolean> getCustomerStatus(Long mId) {
-
-        CustomerInfoPushMain main = customerInfoPushMainMapper.selectByPrimaryKey(mId);
-        if (main == null) {
-            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-        }
+    public Result<Boolean> getCustomerStatus(CustomerInfoPushMain customerInfoPushMain) {
+        Long mId = customerInfoPushMain.getId();
         Boolean isContinue = Boolean.FALSE;
+
         ArrayList<String> realStatus = new ArrayList<>();
+        // 数据库字段默认值
         realStatus.add("1");
+        // 900013-数据正在导入
         realStatus.add("900013");
         List<CustomerPushLogVO> customerInfoPushLogs = customerInfoPushLogMapper.getPushLog(mId, realStatus);
         for (CustomerPushLogVO t : customerInfoPushLogs) {
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-            pushMarketingUserDTO.setApiCode(main.getmApiCode());
+            pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
             pushMarketingUserDTO.setPlatApiCode("");
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("method", "uploadResult");
@@ -865,6 +1184,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                             updateLog.setFailNum(error.keySet().size());
                         }
                     }
+                } else if("900006".equals(userStatus.getData())){
+                    if (StringUtils.isNotBlank(userStatus.getMessage())) {
+                        updateLog.setErrorContent(userStatus.getMessage());
+                        JSONObject error = JSONObject.parseObject(userStatus.getMessage());
+                        if (error != null && error.keySet() != null) {
+                            updateLog.setFailNum(error.keySet().size());
+                        }
+                    }
+                    log.error("推送决策后，查询决策结果出错，原始参数:{}--查询参数:{}",JSON.toJSONString(t),pushMarketingUserDTO);
                 }
                 if (StringUtils.isNotBlank(userStatus.getMessage())) {
                     updateLog.setErrorContent(userStatus.getMessage());
@@ -879,7 +1207,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             long count = pushLog.stream().filter(t -> !"00".equals(t.getRealStauts())).count();
             CustomerInfoPushMain updateMain = new CustomerInfoPushMain();
             updateMain.setId(mId);
-            updateMain.setmStatus(count > 0 ? 5 : 4);
+            updateMain.setmStatus(count > 0 ? PushRuleStatusEnum.CONFIRMED_FAIL.getValue() : PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
             customerInfoPushMainMapper.updateByPrimaryKeySelective(updateMain);
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
@@ -1013,26 +1341,44 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendUploadMq(apiCode, syncInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         }
         //endregion
 
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
-    private void sendUploadMq(String apiCode, String syncInfoId) {
+
+    /**
+     * 根据配置表发送到对应MQ
+     * 配置表：b_marketing_customer_routingKey_mapping
+     *
+     * @param apiCode
+     * @param defaultRoutingKey 默认路由键
+     * @param infoId            原始数据表id
+     * @param queueEnum         队列类型
+     */
+    private void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
         try {
             long l3 = System.currentTimeMillis();
-            if (marketingCommonConfig.getShuheApiCode().contains(apiCode)) {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, syncInfoId);
+            // 根据apicode和bizType获取路由键
+            String apiCodeJointBizType = apiCode + "," + queueEnum.getValue();
+            CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCodeJointBizType);
+            if (null == routingKeyConfig) {
+                producter.send(defaultRoutingKey, infoId);
             } else {
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId);
+                // 大队列不支持优先级
+                if (routingKeyConfig.getQueueType() == 1) {
+                    producter.send(routingKeyConfig.getRoutingKey(), infoId);
+                } else {
+                    producter.send(routingKeyConfig.getRoutingKey(), infoId, routingKeyConfig.getPriority());
+                }
             }
             if (log.isInfoEnabled()) {
-                log.info("MQ推送耗时:{}", (System.currentTimeMillis() - l3));
+                log.info("推送" + queueEnum.getDesc() + "队列耗时:{}", (System.currentTimeMillis() - l3));
             }
         } catch (Exception ex) {
-            log.error(String.format("推送MQ失败syncInfoId【%s】", syncInfoId));
+            log.error("推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
         }
     }
 
@@ -1142,6 +1488,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setIdCard(marketingPreUserDetailDTO.getId());
                 marketingSyncUser.setName(marketingPreUserDetailDTO.getName());
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());
+                marketingSyncUser.setCellSha256(marketingPreUserDetailDTO.getCellSha256());
+                marketingSyncUser.setCellMd5(marketingPreUserDetailDTO.getCellMd5());
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
                 marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField, finalReserveFileld1Json));
@@ -1174,7 +1522,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         log.info(String.format("去重数据：%d,数据入库和去重时间耗时：%d，数据去重时间：%d"
                                 , marketingSyncUser.getId(), et1, et2));
                     }
-                    boolean isCreate = (apiCode.startsWith("3") || apiCode.startsWith("4"))
+                    Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
+                    boolean isCreate = startsWith.stream().anyMatch(apiCode::startsWith)
                             && marketingSyncUser.getId() != null && (marketingSyncUser.getIsRepeat() == null
                             || marketingSyncUser.getIsRepeat().equals(2) || marketingSyncUser.getIsRepeat().equals(1));
                     if (isCreate) {
@@ -1245,8 +1594,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
             List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
             dataInfoDTO.setArgList(collections);
+            dataInfoDTO.setRequestId(marketingSyncInfo.getRequestBatch());
             return dataInfoDTO.addUploadMsgSource();
-        });
+        }, MQConstants.ROUTING_KEY_MARKETING_UPLOAD_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
         MarketingSyncInfo updateSyncInfo = new MarketingSyncInfo();
         updateSyncInfo.setId(marketingSyncInfo.getId());
         updateSyncInfo.setStatus(StatusConstants.MarketingPreUserStatus_running);
@@ -1317,16 +1667,14 @@ public class PushRuleServiceImpl implements PushRuleService {
      * 上传数据发送场景消息到收集队列
      */
     private void sendUserTypeCollectionMsg(Map<String, UserTypeCollectionDTO> localUserTypeCache
-            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function) {
+            , Function<Map<String, UserTypeCollectionDTO>, ApiDataInfoDTO<UserTypeCollectionDTO>> function
+            , String routingKey) {
         String msg = "";
         try {
-            msg = JSONArray.toJSONString(function.apply(localUserTypeCache));
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION
-                    , msg);
+            msg = JSONObject.toJSONString(function.apply(localUserTypeCache));
+            producter.send(routingKey, msg);
         } catch (Exception e) {
-            log.error("推送场景信息到队列失败,发送队列"
-                    + MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION + ",消息内容:" + msg
-                    + "\n" + e.getMessage(), e);
+            log.error("推送场景信息到队列失败,发送队列路由键" + routingKey + ",消息内容:" + msg + "\n" + e.getMessage(), e);
         } finally {
             // 辅助gc
             localUserTypeCache.clear();
@@ -1398,7 +1746,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendUploadMq(apiCode, syncInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -1503,7 +1851,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            producter.send("Marketing.Transfer.Receive", transferInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
@@ -1556,7 +1904,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            producter.send("Marketing.Transfer.Receive", transferInfoId);
+            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
         } else {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -1569,7 +1917,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> pushCustomerApiCodes = marketingCommonConfig.getApiCodeOfpushCustomer();
         List<String> haluoApiCodes = marketingCommonConfig.getApiCodeOfpushHaluoByTransfer();
         List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
-        Integer soleNum = 20;
+        Integer soleNumTrans = marketingCommonConfig.getSoleNumTrans();
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
         TransferFieldProcessFactory transferFieldProcessFactory = transferFiledProcess.getTransferFieldProcessFactory(transferInfo.getApiCode());
@@ -1642,10 +1990,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 try {
                     marketingTransferSyncUserMapper.insertSelective(transferSyncUser);
                     String key = transferSyncUser.getUserType();
+                    Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
                     if (StringUtils.isNotBlank(key)
-                            && (transferInfo.getApiCode().startsWith("3") || transferInfo.getApiCode().startsWith("4"))
-                            && transferSyncUser.getId() != null
-                            && !localUserTypeCache.containsKey(key)) {
+                            && startsWith.stream().anyMatch(transferInfo.getApiCode()::startsWith)
+                            && transferSyncUser.getId() != null && !localUserTypeCache.containsKey(key)) {
                         // 入库成功后将userType为key，并且唯一
                         // 缓存场景数据
                         localUserTypeCache.put(key, new UserTypeCollectionDTO(transferSyncUser.getUserType()));
@@ -1670,7 +2018,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         List<MarketingPreUserErrorDetailVO> errorBuild = new ArrayList<>();
         Integer errorSize = 0;
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNum, soleNum);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(soleNumTrans, soleNumTrans);
         List<Future<Result<MarketingPreUserErrorDetailVO>>> futures = null;
         try {
             futures = threadPool.invokeAll(list);
@@ -1736,8 +2084,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             dataInfoDTO.setApiCode(transferInfo.getApiCode());
             dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                     .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            dataInfoDTO.setRequestId(transferInfo.getRequestId());
             return dataInfoDTO.addTransferMsgSource();
-        });
+        }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
     }
 
 
@@ -2061,6 +2410,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (!userValidator.validatePhone(content)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
+            }else{
+                user.setCellMd5(Md5Utils.cell32(content));
+                user.setCellSha256(Sha256Util.getSHA256Encrypt(content));
             }
             user.setCell(BrCipherMaker.getInstance().encode(content));
         }
@@ -2180,10 +2532,10 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @return
      */
     @Override
-    public Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum) {
+    public Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum, String cell) {
         Result<MarketingSyncUser> result = new Result<>();
         //校验
-        if ((StringUtils.isBlank(cid) && StringUtils.isBlank(apiCode)) || StringUtils.isBlank(custNum)) {
+        if ((StringUtils.isBlank(cid) && StringUtils.isBlank(apiCode)) || (StringUtils.isBlank(custNum) && StringUtils.isBlank(cell))) {
             return result.setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数缺失");
         }
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
@@ -2199,7 +2551,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String ac = customer.getApiCode();
                 if (StringUtils.isNotBlank(ac)) {
                     try {
-                        MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum);
+                        MarketingSyncUser vo = marketingUserMapper.selectSyncUserByCustNum(ac, custNum, cell);
                         if (vo != null) {
                             list.add(vo);
                         }

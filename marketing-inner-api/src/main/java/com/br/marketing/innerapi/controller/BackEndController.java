@@ -4,6 +4,8 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.service.Impl.MarketingCustomertestImpl;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @Description 后台接口控制器
@@ -27,6 +31,8 @@ public class BackEndController {
     private static final Logger log = LoggerFactory.getLogger(BackEndController.class);
     @Autowired
     PushRuleService pushRuleService;
+    @Autowired
+    MarketingCustomertestImpl marketingCustomertest;
 
     /**
      * 查询客户信息接口（外呼→营销）
@@ -41,9 +47,9 @@ public class BackEndController {
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
     public Result queryCustInfo(@RequestParam(required = false) String cid,
                                 @RequestParam(required = false) String apiCode,
-                                @RequestParam(required = true) String custNum) {
+                                String custNum, String cell) {
         try {
-            return pushRuleService.queryCustInfo(cid, apiCode, custNum);
+            return pushRuleService.queryCustInfo(cid, apiCode, custNum, cell);
         } catch (Exception ex) {
             log.error("外呼查询营销客户信息接口异常",ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());

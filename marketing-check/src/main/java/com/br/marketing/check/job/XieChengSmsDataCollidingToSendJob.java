@@ -25,7 +25,7 @@ import java.util.List;
  * @Description 回调第三方接口发送不打信息
  * @Date 2022/2/16 10:02 AM
  */
-@Component
+//@Component
 @Slf4j
 public class XieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob {
 

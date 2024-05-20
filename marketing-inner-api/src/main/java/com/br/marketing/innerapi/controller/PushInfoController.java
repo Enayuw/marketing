@@ -1,8 +1,6 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.enums.ServiceResultEnum;
-import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.PushInfoFilterDTO;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;

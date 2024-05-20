@@ -53,4 +53,5 @@ public interface MarketingCustomerMapper extends MarketingCustomerMapperBase {
 
     List<MarketingCustomer> getNameByApiCodeList(@Param("apiCode") String apiCode);
 
+    List<String> getApiCodeByZs(@Param("apiCodePrefix") List<String> apiCodePrefix);
 }

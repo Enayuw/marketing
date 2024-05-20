@@ -16,6 +16,7 @@ import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
@@ -23,11 +24,13 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.dto.ObservedTaskObj;
 import com.br.marketing.task.thread.CoreScoreThread;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.BufferedReader;
@@ -48,6 +52,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -137,6 +142,12 @@ public class TaskScoreServiceImpl {
 
     @Autowired
     RabbitMqProducter producter;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    private DingDingRobotHookService dingDingRobotHookService;
 
     /**
      * 跑分服务
@@ -228,7 +239,23 @@ public class TaskScoreServiceImpl {
                 log.error("重新处理异常数据出错", e);
             }
             //endregion
-
+            //画像返回异常数据统计进行钉钉告警
+            String errorResultKey = RedisKeyConstant.TASKSCORE_HXRESULTERROR.concat(":").concat(apiCode).concat(":").concat(task.getId().toString());
+            List<String> errorkeys = redisChgService.hkeys(errorResultKey);
+            if (!CollectionUtils.isEmpty(errorkeys)) {
+                Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+                Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.TASKSCORE_HXRESULT_ERROR_MESSAGE.toString());
+                if (CollectionUtils.isEmpty(map)) {
+                    log.error("跑分结果异常告警统计，钉钉配置未配置，请检查");
+                }
+                String contentHeld = apiCode + "_" + LocalDate.now().toString()+"_任务编号="+task.getBatchNumber()+"_" + "跑分结果异常统计\n";
+                String content = "跑分总量级:" + task.getTaskNumber() + "\n";
+                Map<String, Object> resultMap = redisChgService.hgetall(errorResultKey);
+                for (Map.Entry<String, Object> entry : resultMap.entrySet()) {
+                    content = content.concat(entry.getKey()).concat(": ").concat(entry.getValue().toString()).concat("条 \n");
+                }
+                dingDingRobotHookService.sendDingDingTextMessage(contentHeld + content, map);
+            }
             //region 任务状态表和任务记录表的更新
             TaskStatus updateStatus = new TaskStatus();
             updateStatus.setId(task.getStatusId());
@@ -265,7 +292,8 @@ public class TaskScoreServiceImpl {
                 sendContent(content, "跑分暂停", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
             }
             //endregion
-
+            //删除告警统计的redis-key
+            redisChgService.del(errorResultKey);
             thread.interrupt();
             removeZk(task);
         } catch (Exception e) {
@@ -290,6 +318,8 @@ public class TaskScoreServiceImpl {
         } else {
             noflagproductlist.add("mappingcust");
             noflagproductlist.add("mappingcust1");
+            noflagproductlist.add("mappingcust2");
+            noflagproductlist.add("mappingcust3");
         }
         List<String> flagproductlist = new ArrayList<>();
         Result<List<String>> flagProduct = iProductResultSimpleService.getFlagProduct();
@@ -505,6 +535,8 @@ public class TaskScoreServiceImpl {
             } else {
                 noflagproductlist.add("mappingcust");
                 noflagproductlist.add("mappingcust1");
+                noflagproductlist.add("mappingcust2");
+                noflagproductlist.add("mappingcust3");
             }
             List<String> flagproductlist = new ArrayList<>();
             Result<List<String>> flagProduct = iProductResultSimpleService.getFlagProduct();

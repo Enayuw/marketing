@@ -6,6 +6,7 @@ public enum ResultCode {
     SUCCESS(1),
     PARAM_ERROR(100003),
     FAIL(0),
+    TIME_OUT(2),
     INTERNAL_SERVER_ERROR(500);
 
     private Integer value;

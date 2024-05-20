@@ -20,7 +20,8 @@ public class XiechengUpdateDataJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         log.warn("开始执行");
-        xiechengPush.pushXieCheng();
+        String date = shardingContext.getJobParameter();
+        xiechengPush.pushXieCheng(date);
         log.warn("执行结束");
     }
 }

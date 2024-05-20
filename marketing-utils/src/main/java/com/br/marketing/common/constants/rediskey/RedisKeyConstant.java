@@ -44,6 +44,8 @@ public class RedisKeyConstant {
 
     public static final String taskGetLock = prefix.concat("tasklock");
 
+    public static final String TASK_PUSH_RULE_GET_LOCK = prefix.concat("pushruletasklock");
+
     /**
      * 任务已经跑分的数量key
      */
@@ -56,6 +58,8 @@ public class RedisKeyConstant {
     public static final String conditionNumber = prefix.concat("conditionnumber");
 
     public static final String offLineLock = prefix.concat("offlinecallback");
+
+    public static final String TASKSCORE_HXRESULTERROR = prefix.concat("taskscore:hxresult:error");
 
     /**
      * 2022/9/1 17:02
@@ -148,6 +152,17 @@ public class RedisKeyConstant {
     public static final String USERTYPE_DICT = prefix.concat("usertype:dict:");
 
     /**
+     * 2023-12-22 15:21
+     * 异步数据统计
+     */
+    public static final String ASYNC_COUNT = prefix.concat("async:count:");
+    /**
+     * 2023-12-22 15:21
+     * 异步数据统计
+     */
+    public static final String CUSTOMER_INFO = prefix.concat("customer:info:");
+
+    /**
      * 众安撞库 cell 今日缓存
      */
     public static final String ZHONGAN_ZK_CELL_TODAY = prefix.concat("zhongan:zk:cell:");
@@ -168,4 +183,20 @@ public class RedisKeyConstant {
      * 得物撞库所
      */
     public static final String PUSH_DEWU_COLLIDING_DATA_LOCK = prefix.concat("dewu:pushDewuCollidingDataLock");
+
+    /**
+     * 客户信息推送状态查询
+     */
+    public static final String CUSTOMER_PUSH_STATUS_QUERY_LOCK = prefix.concat("customerPushStatusQuery:pushMainLock");
+
+    /**
+     * 携程撞库条件开关
+     */
+    public static final String XIECHENG_CONDITIONSWITCH = prefix.concat("xiecheng:conditionSwitch");
+
+    /**
+     * 携程撞库releaseTime
+     */
+    public static final String XIECHENG_RELEASE_TIME = prefix.concat("xiecheng:releaseTime:");
+
 }

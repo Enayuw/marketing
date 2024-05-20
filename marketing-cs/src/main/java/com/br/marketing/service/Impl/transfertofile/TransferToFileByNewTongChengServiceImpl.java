@@ -98,8 +98,8 @@ public class TransferToFileByNewTongChengServiceImpl implements ITransferToFileS
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        String extractTime = StringUtils.isBlank(marketingCommonConfig.getZhongBangTransferExecuteTime())
-                ? EXECUTE_TIME : marketingCommonConfig.getZhongBangTransferExecuteTime();
+        String extractTime = StringUtils.isBlank(marketingCommonConfig.getNewTongChengTransferExecuteTime())
+                ? EXECUTE_TIME : marketingCommonConfig.getNewTongChengTransferExecuteTime();
         LocalTime localTime = LocalTime.parse(extractTime);
         boolean isParam = StringUtils.isNotBlank(myParam);
         if (LocalTime.now().isAfter(localTime) || isParam) {

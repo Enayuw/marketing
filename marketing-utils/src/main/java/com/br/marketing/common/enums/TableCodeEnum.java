@@ -20,7 +20,8 @@ public enum TableCodeEnum {
     MARKETING_TASK("04", "b_marketing_task","MarketingTask"),
     DATA_VALIDITY_PERIOD_CHANGE("05", "b_marketing_data_valid_config","MarketingDataValidConfig"),
     SAVE_OR_UPDATE_VARIABLE_DIC("06","b_variable_dic","VariableDic"),
-    SAVE_OR_UPDATE_DATA_VALID_CONFIG_DEFAULT("07","b_marketing_data_valid_config_default","MarketingDataValidConfigDefault");
+    SAVE_OR_UPDATE_DATA_VALID_CONFIG_DEFAULT("07","b_marketing_data_valid_config_default","MarketingDataValidConfigDefault"),
+    SAVE_OR_UPDATE_DATA_VARIABLE_ALLOCATION("08","variable_allocation","VariableAllocation");
 
     /**
      * 表对应的码值

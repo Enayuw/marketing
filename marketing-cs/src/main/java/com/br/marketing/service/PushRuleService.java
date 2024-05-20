@@ -6,10 +6,13 @@ import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.*;
+import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.*;
+import com.br.marketing.vo.xiecheng.PushViewVO;
+import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -53,6 +56,9 @@ public interface PushRuleService {
      */
     Result<List<PushInfoDetailVO>> getPushInfos(@Valid RequestPushInfoDTO dto);
 
+    Result<CustomerInfoPushMain> getPushTask();
+
+    Result isCanPushTask(Long taskId);
     /**
      * 推送客服
      *
@@ -61,7 +67,7 @@ public interface PushRuleService {
      */
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
 
-    Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
+    Result<PushViewVO> pushPreview(@Valid PushCustomerDTO dto);
 
     String encrypt3k(Integer type, String content);
 
@@ -78,10 +84,10 @@ public interface PushRuleService {
     /**
      * 查询推送结果
      *
-     * @param mId
+     * @param customerInfoPushMain
      * @return
      */
-    Result<Boolean> getCustomerStatus(Long mId);
+    Result<Boolean> getCustomerStatus(CustomerInfoPushMain customerInfoPushMain);
 
 
     /**
@@ -140,7 +146,7 @@ public interface PushRuleService {
      * @param custNum
      * @return
      */
-    Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum);
+    Result<MarketingSyncUser> queryCustInfo(String cid, String apiCode, String custNum, String cell);
 
 
     /**
@@ -201,4 +207,10 @@ public interface PushRuleService {
     Result<Boolean> cunsumerZhongBangLabelData(Long id);
 
     Result<Integer> checkThreekEnc(List<Long> fileIds);
+
+    Result collidingDataDelete(PushCustomerDTO dto);
+
+    Result collidingDataPachageMake(PushCustomerDTO dto);
+
+    Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto);
 }

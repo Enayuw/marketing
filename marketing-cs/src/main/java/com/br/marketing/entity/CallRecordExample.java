@@ -1574,6 +1574,76 @@ public class CallRecordExample {
             addCriterion("create_time not between", value1, value2, "createTime");
             return (Criteria) this;
         }
+
+        public Criteria andLineNameIsNull() {
+            addCriterion("line_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameIsNotNull() {
+            addCriterion("line_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameEqualTo(String value) {
+            addCriterion("line_name =", value, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameNotEqualTo(String value) {
+            addCriterion("line_name <>", value, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameGreaterThan(String value) {
+            addCriterion("line_name >", value, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameGreaterThanOrEqualTo(String value) {
+            addCriterion("line_name >=", value, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameLessThan(String value) {
+            addCriterion("line_name <", value, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameLessThanOrEqualTo(String value) {
+            addCriterion("line_name <=", value, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameLike(String value) {
+            addCriterion("line_name like", value, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameNotLike(String value) {
+            addCriterion("line_name not like", value, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameIn(List<String> values) {
+            addCriterion("line_name in", values, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameNotIn(List<String> values) {
+            addCriterion("line_name not in", values, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameBetween(String value1, String value2) {
+            addCriterion("line_name between", value1, value2, "lineName");
+            return (Criteria) this;
+        }
+
+        public Criteria andLineNameNotBetween(String value1, String value2) {
+            addCriterion("line_name not between", value1, value2, "lineName");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

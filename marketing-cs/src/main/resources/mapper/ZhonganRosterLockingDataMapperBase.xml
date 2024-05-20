@@ -11,14 +11,13 @@
     <result column="tag" property="tag" jdbcType="VARCHAR" />
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="user_type" property="userType" jdbcType="VARCHAR" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_date" property="createDate" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="data_source" property="dataSource" jdbcType="INTEGER" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.ZhonganRosterLockingData" extends="BaseResultMap" >
-    <result column="extend" property="extend" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -79,28 +78,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, type, mobile_md5, biz_date, tag, push_status, status, data_message, 
-    create_date, create_time, update_time, data_source
+    id, api_code, local_id, `type`, mobile_md5, biz_date, tag, push_status, `status`, 
+    user_type, data_message, extend, create_date, create_time, update_time, data_source
   </sql>
-  <sql id="Blob_Column_List" >
-    extend
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.ZhonganRosterLockingDataExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_zhongan_roster_locking_data
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhonganRosterLockingDataExample" >
     select
     <if test="distinct" >
@@ -115,11 +95,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_zhongan_roster_locking_data
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -137,16 +115,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_zhongan_roster_locking_data (api_code, local_id, type, 
+    insert into b_zhongan_roster_locking_data (api_code, local_id, `type`, 
       mobile_md5, biz_date, tag, 
-      push_status, status, data_message, 
-      create_date, create_time, update_time, 
-      data_source, extend)
+      push_status, `status`, user_type, 
+      data_message, extend, create_date, 
+      create_time, update_time, data_source
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
       #{mobileMd5,jdbcType=VARCHAR}, #{bizDate,jdbcType=VARCHAR}, #{tag,jdbcType=VARCHAR}, 
-      #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
-      #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{dataSource,jdbcType=INTEGER}, #{extend,jdbcType=LONGVARCHAR})
+      #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{userType,jdbcType=VARCHAR}, 
+      #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{dataSource,jdbcType=INTEGER}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhonganRosterLockingData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -161,7 +141,7 @@
         local_id,
       </if>
       <if test="type != null" >
-        type,
+        `type`,
       </if>
       <if test="mobileMd5 != null" >
         mobile_md5,
@@ -176,10 +156,16 @@
         push_status,
       </if>
       <if test="status != null" >
-        status,
+        `status`,
+      </if>
+      <if test="userType != null" >
+        user_type,
       </if>
       <if test="dataMessage != null" >
         data_message,
+      </if>
+      <if test="extend != null" >
+        extend,
       </if>
       <if test="createDate != null" >
         create_date,
@@ -192,9 +178,6 @@
       </if>
       <if test="dataSource != null" >
         data_source,
-      </if>
-      <if test="extend != null" >
-        extend,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -222,8 +205,14 @@
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
       </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=VARCHAR},
+      </if>
       <if test="dataMessage != null" >
         #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
       </if>
       <if test="createDate != null" >
         #{createDate,jdbcType=INTEGER},
@@ -236,9 +225,6 @@
       </if>
       <if test="dataSource != null" >
         #{dataSource,jdbcType=INTEGER},
-      </if>
-      <if test="extend != null" >
-        #{extend,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -261,7 +247,7 @@
         local_id = #{record.localId,jdbcType=BIGINT},
       </if>
       <if test="record.type != null" >
-        type = #{record.type,jdbcType=VARCHAR},
+        `type` = #{record.type,jdbcType=VARCHAR},
       </if>
       <if test="record.mobileMd5 != null" >
         mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
@@ -276,10 +262,16 @@
         push_status = #{record.pushStatus,jdbcType=INTEGER},
       </if>
       <if test="record.status != null" >
-        status = #{record.status,jdbcType=INTEGER},
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.userType != null" >
+        user_type = #{record.userType,jdbcType=VARCHAR},
       </if>
       <if test="record.dataMessage != null" >
         data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
       </if>
       <if test="record.createDate != null" >
         create_date = #{record.createDate,jdbcType=INTEGER},
@@ -293,31 +285,7 @@
       <if test="record.dataSource != null" >
         data_source = #{record.dataSource,jdbcType=INTEGER},
       </if>
-      <if test="record.extend != null" >
-        extend = #{record.extend,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_zhongan_roster_locking_data
-    set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      local_id = #{record.localId,jdbcType=BIGINT},
-      type = #{record.type,jdbcType=VARCHAR},
-      mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
-      biz_date = #{record.bizDate,jdbcType=VARCHAR},
-      tag = #{record.tag,jdbcType=VARCHAR},
-      push_status = #{record.pushStatus,jdbcType=INTEGER},
-      status = #{record.status,jdbcType=INTEGER},
-      data_message = #{record.dataMessage,jdbcType=VARCHAR},
-      create_date = #{record.createDate,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      data_source = #{record.dataSource,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -327,13 +295,15 @@
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       local_id = #{record.localId,jdbcType=BIGINT},
-      type = #{record.type,jdbcType=VARCHAR},
+      `type` = #{record.type,jdbcType=VARCHAR},
       mobile_md5 = #{record.mobileMd5,jdbcType=VARCHAR},
       biz_date = #{record.bizDate,jdbcType=VARCHAR},
       tag = #{record.tag,jdbcType=VARCHAR},
       push_status = #{record.pushStatus,jdbcType=INTEGER},
-      status = #{record.status,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
+      user_type = #{record.userType,jdbcType=VARCHAR},
       data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
       create_date = #{record.createDate,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -352,7 +322,7 @@
         local_id = #{localId,jdbcType=BIGINT},
       </if>
       <if test="type != null" >
-        type = #{type,jdbcType=VARCHAR},
+        `type` = #{type,jdbcType=VARCHAR},
       </if>
       <if test="mobileMd5 != null" >
         mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
@@ -367,10 +337,16 @@
         push_status = #{pushStatus,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
-        status = #{status,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="userType != null" >
+        user_type = #{userType,jdbcType=VARCHAR},
       </if>
       <if test="dataMessage != null" >
         data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
       </if>
       <if test="createDate != null" >
         create_date = #{createDate,jdbcType=INTEGER},
@@ -384,41 +360,22 @@
       <if test="dataSource != null" >
         data_source = #{dataSource,jdbcType=INTEGER},
       </if>
-      <if test="extend != null" >
-        extend = #{extend,jdbcType=LONGVARCHAR},
-      </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.ZhonganRosterLockingData" >
-    update b_zhongan_roster_locking_data
-    set api_code = #{apiCode,jdbcType=VARCHAR},
-      local_id = #{localId,jdbcType=BIGINT},
-      type = #{type,jdbcType=VARCHAR},
-      mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
-      biz_date = #{bizDate,jdbcType=VARCHAR},
-      tag = #{tag,jdbcType=VARCHAR},
-      push_status = #{pushStatus,jdbcType=INTEGER},
-      status = #{status,jdbcType=INTEGER},
-      data_message = #{dataMessage,jdbcType=VARCHAR},
-      create_date = #{createDate,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      data_source = #{dataSource,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhonganRosterLockingData" >
     update b_zhongan_roster_locking_data
     set api_code = #{apiCode,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=BIGINT},
-      type = #{type,jdbcType=VARCHAR},
+      `type` = #{type,jdbcType=VARCHAR},
       mobile_md5 = #{mobileMd5,jdbcType=VARCHAR},
       biz_date = #{bizDate,jdbcType=VARCHAR},
       tag = #{tag,jdbcType=VARCHAR},
       push_status = #{pushStatus,jdbcType=INTEGER},
-      status = #{status,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      user_type = #{userType,jdbcType=VARCHAR},
       data_message = #{dataMessage,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
       create_date = #{createDate,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

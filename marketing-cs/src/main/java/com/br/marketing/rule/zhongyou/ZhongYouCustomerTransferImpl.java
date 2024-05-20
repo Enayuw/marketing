@@ -102,7 +102,7 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
                     try {
                         date1 = format.parse(applyLentTime);
                     } catch (Exception e1) {
-                        log.error("中邮推客服转化,applyLentTime日期格式解析失败,转化数据id：{}", transfer.getId());
+                        log.error("中邮推客服转化,applyLentTime日期格式解析失败,转化数据id：{}", transfer.getId(), e1);
                         return false;
                     }
                 }
@@ -116,7 +116,7 @@ public class ZhongYouCustomerTransferImpl implements AssembleData<ConversionData
                     try {
                         date2 = format.parse(pushTime);
                     } catch (Exception e1) {
-                        log.error("中邮推客服转化,pushTime日期格式解析失败,转化数据id：{}", transfer.getId());
+                        log.error("中邮推客服转化,pushTime日期格式解析失败,转化数据id：{}", transfer.getId(), e1);
                         return false;
                     }
                 }

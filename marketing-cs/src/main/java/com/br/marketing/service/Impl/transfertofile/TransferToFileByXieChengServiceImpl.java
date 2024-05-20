@@ -172,7 +172,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
             fw.append("\r\n");
             writeXieChengTransferToFile(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error("携程转化数据提取文件生成错误！", ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
@@ -254,7 +254,7 @@ public class TransferToFileByXieChengServiceImpl implements ITransferToFileServi
             fw.append("\r\n");
             writeZk(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error("携程锁定结果数据提取文件生成错误！", ex);
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(ex.getMessage());
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
