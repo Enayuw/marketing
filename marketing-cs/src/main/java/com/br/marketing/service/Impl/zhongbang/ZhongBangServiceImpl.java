@@ -753,9 +753,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     String fileName = localFile.getFileName();
                     Long id = localFile.getId();
                     String localPath = localFile.getLocalPath();
-                    String localDir = localPath.replaceAll("yyyyMMdd", dateStr).concat(File.separator)
-                            .concat(fileName).concat(File.separator)
-                            .concat("voice");
+                    String localDir = localPath.replaceAll("yyyyMMdd", dateStr).concat(fileName)
+                            .concat(File.separator).concat("voice");
 //                    PushCustomerFileInfoExample infoExample = new PushCustomerFileInfoExample();
 //                    infoExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andFileDirectoryEqualTo(localDir)
 //                            .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate).andPushStatusEqualTo(0);
@@ -768,7 +767,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0);
                     int count = zhongbangVoiceFileDetailMapper.countByExample(voiceFileDetailExample);
                     // 下载内容
-                    List<File> fileList = getFromSftpLocalDisk(syncConfig, ".wav", localDir, cid, apiCode
+                    List<File> fileList = getFromSftpLocalDisk(syncConfig, new String[]{".wav", ".cmq"}, localDir, cid, apiCode
                             , startDate, endDate, dateStr);
                     int size = fileList.size();
                     if (size != count) {
@@ -785,7 +784,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             voiceFileDetail.setLocalId(id);
                             PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
                             fileInfo.setPushDate(startDate);
-                            fileInfo.setFileDirectory(file.getParent());
+//                            fileInfo.setFileDirectory(file.getParent());
                             fileInfo.setName(file.getName());
                             if (file.exists() && file.isFile()) {
                                 try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
@@ -844,9 +843,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return false;
     }
 
-    private List<File> getFromSftpLocalDisk(SyncConfig syncConfig, String suffix, String localDri, String cid
-            , String apiCode, Date dateStart,
-                                            Date dateEnd, String dateStr) {
+    /**
+     * 2024-05-20 19:59
+     * 下载远程文件到本地磁盘
+     */
+    private List<File> getFromSftpLocalDisk(SyncConfig syncConfig, String[] suffix, String localDri, String cid
+            , String apiCode, Date dateStart, Date dateEnd, String dateStr) {
         SftpClient ftpClient = new SftpClient(syncConfig, true);
         String srcPath = syncConfig.getSrcPath().replaceAll("yyyyMMdd", dateStr);
         List<File> fileList = new ArrayList<>();
@@ -858,6 +860,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 if (!dir.exists()) {
                     if (!dir.mkdirs()) {
                         log.error("本地目录创建失败：{}", localDri);
+                        return fileList;
                     }
                 }
                 for (Map.Entry<String, SftpATTRS> entry : entrySet) {
