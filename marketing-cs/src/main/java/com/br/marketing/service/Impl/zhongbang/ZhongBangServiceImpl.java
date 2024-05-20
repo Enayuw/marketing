@@ -751,12 +751,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
                 for (LocalFile localFile : localFiles) {
                     String fileName = localFile.getFileName();
-                    Long id = localFile.getId();
+                    Long localFileId = localFile.getId();
                     String localPath = localFile.getLocalPath();
                     String localDir = localPath.replaceAll(DateUtils.yyyyMMdd, dateStr).concat(
                             fileName.replace(".txt", "")).concat(File.separator).concat("voice");
                     ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
-                    voiceFileDetailExample.createCriteria().andLocalIdEqualTo(id).andStatusEqualTo(1)
+                    voiceFileDetailExample.createCriteria().andLocalIdEqualTo(localFileId).andStatusEqualTo(1)
                             .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0);
                     int count = zhongbangVoiceFileDetailMapper.countByExample(voiceFileDetailExample);
                     // 下载内容
@@ -776,7 +776,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             ZhongbangVoiceFileDetail voiceFileDetail = new ZhongbangVoiceFileDetail();
                             voiceFileDetail.setCreateDate(createDate);
                             voiceFileDetail.setFileName(file.getName());
-                            voiceFileDetail.setLocalId(id);
+                            voiceFileDetail.setLocalId(localFileId);
                             PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
                             fileInfo.setPushDate(startDate);
 //                            fileInfo.setFileDirectory(file.getParent());
@@ -813,6 +813,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             return false;
                         }));
                     }
+                    if (futures.size() == 0) {
+                        return false;
+                    }
                     // 结果转换
                     try {
                         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply((Void v) -> {
@@ -831,6 +834,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             return b;
                         }).get(1, TimeUnit.HOURS);
                     } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                        Thread.currentThread().interrupt();
                         log.error(e.getMessage(), e);
                     }
                 }
