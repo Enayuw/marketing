@@ -745,7 +745,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(sftpConfigId);
                 LocalFileExample localFileExample = new LocalFileExample();
                 localFileExample.createCriteria().andStatusEqualTo("2").andCompleteEqualTo("1")
-                        .andCidEqualTo(cid).andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType)
+                        .andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType)
                         .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate)
                         .andActualNumberGreaterThan(0);
                 List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
@@ -793,6 +793,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                     UploadInfo uploadInfo = zBankClient.uploadInputStream(inputStream
                                             , file.getName(), file.length(), fileMd5);
                                     voiceFileDetail.setCustomerFileId(uploadInfo.getFileId());
+                                    voiceFileDetail.setPushStatus(1);
                                     // 推送成功
                                     fileInfo.setPushStatus(2);
                                 } catch (SDKException | IOException e) {
@@ -808,7 +809,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             } else {
                                 fileInfo.setStatus(2);
                             }
-                            pushCustomerFileInfoMapper.updateFileInfoAndFileDetail(fileInfo, voiceFileDetail, startDate, endDate);
+                            pushCustomerFileInfoMapper.updateFileInfoAndFileDetailtikv_(fileInfo, voiceFileDetail, startDate, endDate);
                             return true;
                         }, threadPool).exceptionally(throwable -> {
                             if (throwable != null) {
