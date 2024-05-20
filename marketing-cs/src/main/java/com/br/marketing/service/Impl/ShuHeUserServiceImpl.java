@@ -10,11 +10,8 @@ import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
-import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
@@ -23,7 +20,6 @@ import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -79,8 +75,6 @@ public class ShuHeUserServiceImpl {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Resource
-    private RabbitMqProducter producter;
 
     DateTimeFormatter ymdhms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -110,6 +104,8 @@ public class ShuHeUserServiceImpl {
             List<MarketingPreUserDetailDTO> list = new ArrayList<>();
             MarketingPreUserDetailDTO dto;
             String type = shuheUploadData.getUserType();
+            String groupType = null;
+            boolean isGroupType = taskCode != null && (groupType = taskCode.getString("groupType")) != null;
             JSONObject varData;
             Map<String, Object> reserveField1;
             int size = listInfo.size();
@@ -117,8 +113,8 @@ public class ShuHeUserServiceImpl {
                 JSONObject info = listInfo.getJSONObject(i);
                 reserveField1 = new HashMap<>(32);
                 dto = new MarketingPreUserDetailDTO();
-                if (taskCode != null && taskCode.getString("groupType") != null) {
-                    reserveField1.put("groupTypeNew", taskCode.getString("groupType"));
+                if (isGroupType) {
+                    reserveField1.put("groupTypeNew", groupType);
                 }
                 String mobile = info.getString("mobile");
                 try {
@@ -226,26 +222,37 @@ public class ShuHeUserServiceImpl {
     @Transactional(rollbackFor = Exception.class)
     public Map saveShTransferData(String apiCode, String jsonData,String requestId, ResponseShuheDTO responseShuheDTO,Date createTime){
         HashMap<String, Object> res = new HashMap<>();
-        String msg="";
+        String msg = "";
         ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {
         }.getType());
         String userType = jsonDTO.getBizType();
         //todo 模拟异常上线后要删除
-        pushRuleService.mockDbOrRedisError(1,apiCode);
+        pushRuleService.mockDbOrRedisError(1, apiCode);
         CaseShuheUser caseShuheUser;
-        if(marketingCommonConfig.getShuheDxApiCodes().contains(apiCode)) {
-            res.put("userTypeUknow", false);
-            caseShuheUser = assembleShuheDxUser(jsonDTO, apiCode, jsonData);
-        }else {
-            // 2、判断场景类型
-            if (StringUtils.isEmpty(userType)) {
-                /*
-                 * 对bizType字段做兜底，对应营销userType,
-                 * 当bizType未传时，需要主动去上传接口中查找，
-                 * 如果未查到需要返回给客户提示信息，并将数据落库到本地
-                 */
-                userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
+        // 2、判断场景类型
+        if (StringUtils.isEmpty(userType)) {
+            /*
+             * 对bizType字段做兜底，对应营销userType,
+             * 当bizType未传时，需要主动去上传接口中查找，
+             * 如果未查到需要返回给客户提示信息，并将数据落库到本地
+             */
+            userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
+            if (userType == null) {
+                userType = jsonDTO.getBizType();
             }
+        }
+        if (marketingCommonConfig.getShuheDxApiCodes().contains(apiCode)) {
+            boolean empty = StringUtils.isEmpty(userType);
+            res.put("userTypeUknow", empty);
+            caseShuheUser = assembleShuheDxUser(jsonDTO, apiCode, jsonData);
+            caseShuheUser.setUserType(userType);
+            if (empty) {
+                msg = "不存在的业务类型电销转化数据，不会触发后续业务流程!";
+                this.sendAlarmMgs("数禾电销全场景数据定制化清洗入库", msg.concat("\napiCode“").concat(apiCode)
+                        .concat("”\n案件编号“").concat(jsonDTO.getOrderId()).concat("”\n")
+                        .concat("请及时跟进或与数禾客户及时沟通^_^"), alarmClient);
+            }
+        } else {
             final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
             caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType
                     , jsonDTO, apiCode, jsonData);
@@ -282,22 +289,12 @@ public class ShuHeUserServiceImpl {
         caseShuheUserMapper.insertSelective(caseShuheUser);
         // 6、转化信息入转化标准库
         Long id = saveTransferNew(apiCode, caseShuheUser, transferSyncUser, createTime);
-        if (StringUtils.hasText(transferSyncUser.getUserType()) && id != null && id > 0) {
-            try {
-                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
-                dataInfoDTO.setApiCode(apiCode);
-                dataInfoDTO.setRawDataSaveTimeStr(transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(transferSyncUser.getUserType())));
-                producter.send(MQConstants.ROUTING_KEY_MARKETING_STANDARD_API_USERTYPE_COLLECTION
-                        , JSONArray.toJSONString(dataInfoDTO.addTransferMsgSource()));
-            } catch (Exception e) {
-                log.error("数禾转化定制接口推送场景信息到队列失败,发送队列"
-                        + MQConstants.MARKETING_STANDARD_API_USERTYPE_COLLECTION + ",消息内容:" + msg
-                        + "\n" + e.getMessage(), e);
-            }
-        }
         res.put("transferInfoId", id);
+        res.put("userType", transferSyncUser.getUserType());
+        res.put("id", transferSyncUser.getId());
+        res.put("cid", transferSyncUser.getCid());
+        res.put("createTime", transferSyncUser.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         return res;
     }
 
@@ -367,7 +364,7 @@ public class ShuHeUserServiceImpl {
 
     void sendAlarmMgs(String title, String error, AlarmApiClient alarmClient) {
         try {
-            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
+            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
         } catch (Exception ignored) {
 
         }

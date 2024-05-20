@@ -49,9 +49,14 @@ public class MarketingCommonConfig {
     private List<String> apiCodeOfRecordTaskTime;
 
     /**
-     * 去重线程数
+     * 原始上传消费端入库线程数
      */
     private Integer soleNum;
+
+    /**
+     * 原始转化消费端入库线程数
+     */
+    private Integer soleNumTrans;
 
     /**
      * 萨摩耶场景
@@ -1379,6 +1384,12 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONObject> dingDingWebHookInfo = new ConcurrentHashMap<>();
 
+    /**
+     * apiCode自动生成场景与统计控制
+     * ["3","4"]
+     */
+    private Set<String> userTypeAndSumRealtimeApiCodeStartsWith = new HashSet<>(Arrays.asList("3", "4"));
+
 
     /**
      * 得物撞库limit 数量降级的量级
@@ -1425,5 +1436,148 @@ public class MarketingCommonConfig {
      */
     private Set<String> shuHeNonBlackListApiCodeSet = new HashSet<>(
             Arrays.asList("3710071", "3710051", "3710023", "3710128", "3710117", "3710123", "7410785"));
+
+    /**
+     * 2024-03-22 16:11
+     * 上传和转化实时统计开关，false 关闭实时统计，true 开启实时统计
+     */
+    private Boolean uploadAndTransferDataRealtimeStatisSwitch = false;
+
+    /**
+     * 携程强制开启撞库开关
+     * true 打开，false 关闭
+     */
+    private Boolean xieChengForceOpenSwitch;
+
+    /**
+     * 携程非周期撞库线程池数
+     */
+    private Integer xiechengRobCollidingThread;
+
+    /**
+     * 携程撞库分钟阈值
+     */
+    private Integer xiechengPerMinuteThreshold;
+
+
+    /**
+     * 携程撞库分页大小
+     */
+    private Integer xiechengCollidingPageSize;
+
+
+    /**
+     * 携程记录撞库日志线程数
+     */
+    private Integer xiechengSaveCollidingLogThread;
+
+    /**
+     * 携程数据清洗线程数
+     */
+    private Integer xieChengCleanThreadCount;
+    /**
+     * 携程数据清洗limit 量级
+     */
+    private Integer xieChengCleanLimitCount;
+
+    /**
+     * 清洗暂停开关 true 开启清洗  false 关闭 清洗
+     */
+    private Boolean xieChengCleanSwitch;
+
+    /**
+     * 携程定制化配置ApiCode
+     */
+    private String xieChengDingZhiApiCode;
+
+    /**
+     * 携程转化数据提取apiCode集合
+     */
+    private List<String> XieChengTwoTransferApiCodes;
+
+
+    /**
+     * 携程转化数据提取执行时间,携程撞库提取时间
+     */
+    private List<String> XieChengTwoTransferExecuteTime;
+
+    /**
+     * 数禾促复借转化数据提取数据提取apicode集合
+     */
+    private List<String> ShuHeCuFuJieTransferFileApiCodes;
+
+    /**
+     * 数禾促复借转化数据提取执行时间
+     */
+    private String ShuHeCuFuJieTransferFileExecuteTime;
+
+    /**
+     * 2024-04-18 10:53
+     * 数禾适配新有效期apiCode与场景信息eg:{apiCode:[场景]}
+     */
+    private Map<String, JSONArray> shuHeNewPeriodOfValidityMap = new HashMap<>();
+    /**
+     * 修复cell的apiCode前缀集合
+     */
+    private List<String> updateCellApiCodePrefix;
+
+    /**
+     * 无解密清洗配置
+     */
+    private String noDesCleanConfig;
+
+
+    /**
+     * 携程跑分数据同步、TRUE数据剔除、非TRUE数据清洗apicode集合
+     */
+    private List<String> xieChengCollidingDataProcessApiCodes;
+
+    /**
+     * 携程跑分数据同步 查询T-n~T日跑分记录表
+     * XieChengRuleScoreToDbLastDays=3（T-3~T）
+     */
+    private Integer XieChengRuleScoreToDbLastDays;
+
+    /**
+     * 携程撞库数据清洗线程数
+     */
+    private Integer xieChengCollidingDataProcessThread;
+
+    /**
+     * 携程撞库跑分数据同步线程数
+     */
+    private Integer xieChengCollidingRuleScoreToDBThread;
+
+    /**
+     * 携程撞库数据推送决策线程数
+     */
+    private Integer xieChengCollidingDataPushPolicyThread;
+
+    /**
+     * 携程撞库跑分数据同步文件字段映射
+     * xieChengCollidingRuleScoreFieldMap={"userType":"user_type"}
+     */
+    private Map<String, String> xieChengCollidingRuleScoreFieldMap;
+
+    /**
+     * 携程定制化页面周期TRUE列表apiCode配置
+     */
+    private String xieChengCustomizeTrueApiCode;
+
+    /**
+     * 携程撞库停止跑分数据同步，跑分编号配置集合
+     * ["7410950_20240507000000_6334","7410950_20240507000000_6682"]
+     */
+    private List<String> xieChengCollidingRuleScoreStopBatchNums;
+
+    /**
+     * 携程定制化页面列表排序字段配置
+     */
+    private Map<String, JSONObject> xieChengCustomizeOrderByClauseConfig;
+    /**
+     * 推送决策超时后，查询结果要延时的 分钟 数
+     */
+    private Long queryCustomerPushTimeOutDelay;
+
 }
 

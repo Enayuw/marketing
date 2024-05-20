@@ -254,4 +254,26 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
         return cellByCellAndMaxAppletTime.parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCell
                 , Function.identity()));
     }
+
+    @Override
+    public Boolean existUploadTable(String apiCode) {
+        Integer res = marketingSyncUserMapper.existUploadTable("b_marketing_sync_".concat(apiCode));
+        return (res != null && res >= 1) ? Boolean.TRUE : Boolean.FALSE;
+    }
+
+    @Override
+    public List<MarketingSyncUser> noDesUploadByMinId(String apiCode,Long minId) {
+        List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.noDesUploadByMinIdtikv_(apiCode, minId);
+        return marketingSyncUsers;
+    }
+
+    @Override
+    public Long noDesUploadOfMinId(String apiCode) {
+        return marketingSyncUserMapper.noDesUploadByMinIdtiflash_(apiCode);
+    }
+
+    @Override
+    public Integer updateSqlByNoDes(String updateSql) {
+        return marketingSyncUserMapper.updateSqlByNoDestikv_(updateSql);
+    }
 }

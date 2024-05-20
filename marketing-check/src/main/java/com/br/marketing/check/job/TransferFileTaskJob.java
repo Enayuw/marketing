@@ -64,6 +64,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByShuHeServiceImpl transferToFileByShuHeService;
 
     /**
+     * 数禾促复借转化数据提取
+     */
+    @Resource
+    private TransferToFileByShuHeCuFuJieServiceImpl transferToFileByShuHeCuFuJieService;
+
+    /**
      * 宜信
      */
     @Resource
@@ -118,6 +124,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
      */
     @Resource
     private NewTransferToFileByXieChengServiceImpl newTransferToFileByXieChengService;
+
+    /**
+     * 携程V2
+     */
+    @Resource
+    private TransferToFileByXieChengTwoServiceImpl transferToFileByXieChengTwoService;
 
     /**
      * 拍拍贷老客
@@ -212,7 +224,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }
                     } catch (Exception e) {
-                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
+                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey, e);
                     } finally {
                         redisChgService.unlock(redisKey, value);
                     }
@@ -275,6 +287,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByShuHeService, ObjectUtil.isEmpty(
                         marketingCommonConfig.getShuHeTransferExtractApiCodes())
                         ? null : marketingCommonConfig.getShuHeTransferExtractApiCodes().keySet())
+                // 数禾促复借转化数据提取
+                .addBind(transferToFileByShuHeCuFuJieService, marketingCommonConfig.getShuHeCuFuJieTransferFileApiCodes())
                 // 宜信实时转化数据提取
                 .addBind(transferToFileByYiXinRealTimeService, marketingCommonConfig.getYinXinTransferRealTimeApiCodes())
                 // 玖富转化数据提取
@@ -295,6 +309,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByXieChengService, marketingCommonConfig.getXieChengTransferApiCodes())
                 // 携程新场景转化数据提取
                 .addBind(newTransferToFileByXieChengService, marketingCommonConfig.getXieChengNewTransferApiCodes())
+                // 携程V2转化数据提取
+                .addBind(transferToFileByXieChengTwoService, marketingCommonConfig.getXieChengTwoTransferApiCodes())
                 // 拍拍贷老客转人工数据提取
                 .addBind(transferToFileByPPDOldService, marketingCommonConfig.getPPDOldTransferFileApiCodes())
                 // 桔子转化数据提取

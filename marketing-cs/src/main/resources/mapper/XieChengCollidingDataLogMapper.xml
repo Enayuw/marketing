@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataLogMapper">
+    <select id="selectDeleteData" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+        select *
+        from b_xiecheng_colliding_data_log
+        where is_delete = 1
+            <![CDATA[ and create_time < #{startTime}]]>
+        order by create_time asc limit #{size};
+    </select>
+
+    <delete id="deleteByIdList">
+        delete
+        from b_xiecheng_colliding_data_log
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        limit #{size};
+    </delete>
+
+    <insert id="batchSave" parameterType="java.util.List">
+        insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id,package_rule_id,data_source_type,
+                                                   cell_sha256_code_list, release_time, org_channel,
+                                                   mkt_level, info, `result`,
+                                                   http_code, business_code, return_content, create_time, update_time)
+        VALUES
+        <foreach collection="collidingLogs" item="item" separator=",">
+            (#{item.smsCollidingDataId},
+             #{item.packageId},
+             #{item.packageRuleId},
+             #{item.dataSourceType},
+             #{item.cellSha256CodeList},
+             #{item.releaseTime},
+             #{item.orgChannel},
+             #{item.mktLevel},
+             #{item.info},
+             #{item.result},
+             #{item.httpCode},
+             #{item.businessCode},
+             #{item.returnContent},
+             now(),
+             now())
+        </foreach>
+    </insert>
+
+    <select id="selectByOverCountAlerted" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+        select *
+        from b_xiecheng_colliding_data_log
+        where is_delete = 0 and business_code = 707
+          and extend -> '$.isAlerted' = true
+            <![CDATA[ and create_time >= #{createTimeStart}]]>
+        limit 1;
+    </select>
+
+    <select id="selectByOverCount" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+        select *
+        from b_xiecheng_colliding_data_log
+        where is_delete = 0 and business_code = 707
+            <![CDATA[ and create_time >= #{createTimeStart}]]>
+        order by create_time asc limit 1;
+    </select>
+</mapper>

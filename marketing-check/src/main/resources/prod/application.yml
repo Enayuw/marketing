@@ -17,6 +17,12 @@ spring:
     # 线程池维护线程所允许的空闲时间
     threadNamePrefix: ThreadPool-Common
     # 线程池所生产的线程名前缀
+  mail:
+    host: mail.brgroup.com
+    port: 25
+    username: marketing-br@brgroup.com
+    password: 1S9D9ocaNwk#
+    default-encoding: UTF-8
 server:
   port: 19707
 

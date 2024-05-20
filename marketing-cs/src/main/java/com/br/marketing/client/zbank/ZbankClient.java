@@ -3,6 +3,8 @@ package com.br.marketing.client.zbank;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
@@ -80,6 +82,7 @@ public class ZbankClient {
      * 2023-11-08 19:42
      * 标签评级
      */
+
     public String labelRatingRe(Object obj) throws Exception {
         return apiCall(obj, serviceIdLabelRating);
     }
@@ -88,6 +91,7 @@ public class ZbankClient {
      * 2023-11-08 19:42
      * 标签评级
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public String labelRatingRe(Object obj, String requestId) throws Exception {
         return apiCall(obj, serviceIdLabelRating, requestId);
     }
@@ -99,6 +103,7 @@ public class ZbankClient {
      * @return
      * @throws Exception
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public String cMBrScoDaFeBack(Object obj, String requestId) throws Exception {
 //        return "{\"msg\":\"服务调用异常:106100400008,请查证！\",\"result\":{},\"code\":\"106100720036\"}";
         return apiCall(obj, CMBrScoDaFeBack, requestId);

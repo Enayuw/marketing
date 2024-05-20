@@ -17,6 +17,7 @@ import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
@@ -26,6 +27,8 @@ import com.br.marketing.vo.FileToMarketingDataFieldVO;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
@@ -33,16 +36,20 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -98,6 +105,8 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
 
     @Resource
     MarketingDataFileConfigMapper marketingDataFileConfigMapper;
+    @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
 
     @Resource
     LocalFileMapper localFileMapper;
@@ -121,6 +130,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                 .andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
         for (SyncConfig syncConfig : syncConfigs) {
+            // 组装本地下载路径
             String targetPath = syncConfigService.getPath().concat("initPath/").concat(syncConfig.getApiCode()).concat("/");
             SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
             Result<List<String>> res = iFileActionService.downSyncFileBySftp(sftpClient, syncConfig, targetPath);
@@ -150,21 +160,32 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
      * @param iFileToMarketingRuleService
      */
     private void fileAction(String apiCode, MarketingDataFileConfig fileConfig, String path, String fileNm, Long localId, IFileToMarketingRuleService iFileToMarketingRuleService) {
-
         LocalFile updateFile = new LocalFile();
         updateFile.setId(localId);
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String tasId = apiCode.concat("_").concat(yyyyMMdd);
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
-        List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
-        Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
-        Map<String, List<FileToMarketingFieldVO>> _noMustDefaultFieldMap = fieldVos.stream().filter(t -> !t.getIsMust() && StringUtils.isNotBlank(t.getDefalutValue())).collect(Collectors.groupingBy(FileToMarketingFieldVO::getInterfaceField));
-        Set<String> _noMustDefaultFieldSet = null;
-        if (_noMustDefaultFieldMap != null) {
-            _noMustDefaultFieldSet = _noMustDefaultFieldMap.keySet();
+        // 校验表名称
+        if(fileConfig.getIsChecklistName() == 0){
+            String regex = fileConfig.getValidationRules();
+            Pattern pattern = Pattern.compile(regex);
+            // 匹配不带 .success 后缀的文件名
+            Matcher matcherWithoutSuccess = pattern.matcher(fileNm);
+            if (!matcherWithoutSuccess.matches()) {
+                log.warn("文件名:{};校验规则:{};错误:{};", fileNm, regex, "文件名称校验失败");
+                return;
+            }
         }
+        // json转化为字段属性list
+        List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfig.getFieldConfig(), FileToMarketingFieldVO.class);
+        // 根据 headField 字段分组
+        Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+        // 筛选出 必须的字段，根据 headField 字段分组
         List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
+        // 定义一个map<表名:字段值>
+        Map<String, String> tableMap = new HashMap<>();
+
         File file = new File(fileStr);
         Integer line = 0;
         Integer errorNum = 0;
@@ -180,6 +201,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
             List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
             Integer headSum = 0;
             Boolean isNotFinal = Boolean.TRUE;
+            String[] headers = new String[0];
             while (isNotFinal) {
                 row = br.readLine();
                 if (row == null) {
@@ -193,9 +215,13 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                 if (isNotFinal) {
                     if (line == 1) {
                         //region 文件头处理
-                        String[] split = row.split(",", -1);
-                        headSum = split.length;
-                        Result result = SftpToDbUtils.statisticsHeadByCommon(row, address, extra, mustHeads);
+                        headers = row.split(",", -1);
+                        // 存储表头信息
+                        for (String header : headers) {
+                            tableMap.put(header, null);
+                        }
+                        headSum = headers.length;
+                        Result result = SftpToDbUtils.statisticsHeadByCommon(row, address, extra, mustHeads,fieldVosMap);
                         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                             updateFile.setComplete("2");
                             localFileMapper.updateByPrimaryKeySelective(updateFile);
@@ -211,15 +237,26 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                             log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "该行与表头列数不一致");
                             continue;
                         }
+                        // 确保表头和数据数量一致
+                        if (headers.length == datas.size()) {
+                            // 使用索引来按顺序添加数据到对应的表头中
+                            for (int i = 0; i < headers.length; i++) {
+                                // 更新map中对应键的值
+                                tableMap.put(headers[i], datas.get(i));
+                            }
+                        }
                         StringBuilder errorMsg = new StringBuilder();
                         List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
                         HashMap<String, FileToMarketingDataFieldVO> dataFieldMap = new HashMap<>();
                         HashSet hasSet = new HashSet();
+                        ArrayList<String> list = Lists.newArrayList();
                         String cell = "";
 
                         //region 每列的字段处理逻辑
                         for (int i = 0; i < datas.size(); i++) {
+                            // 列字段值
                             String value = datas.get(i);
+                            // 列名
                             String headNm = address.get(i);
                             FileToMarketingFieldVO fieldVO = null;
                             //根据当前表头名获取配置信息
@@ -237,14 +274,42 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                     fieldVO.setHeadField(headNm);
                                     fieldVO.setInterfaceField(headNm);
                                     fieldVO.setIsMust(Boolean.FALSE);
+                                    fieldVO.setIsExtend(true);
                                 }
                             }
                             //endregion
+                            // 选填字段集合
+                            if(StringUtils.isNotBlank(fieldVO.getGroupOptional())){
+                                list.add(fieldVO.getHeadField());
+                            }
 
                             //region 根据配置信息进行处理
-                            if (StringUtils.isBlank(value) && StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
-                                value = fieldVO.getDefalutValue();
+                            // 表里没有初始值，需要动态赋值或取默认值（初始数据 > 动态赋值 > 默认值）
+                            if(StringUtils.isBlank(value)){
+                                // 根据动态配置赋值
+                                if(StringUtils.isNotBlank(fieldVO.getDynamicData())){
+                                    value = tableMap.get(fieldVO.getDynamicData());
+                                }else if(StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
+                                    value = fieldVO.getDefalutValue();
+                                }
                             }
+                            // 字典项不为空 则进行字典项映射
+                            if(StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())){
+                                String conversion = fieldVO.getConversion();
+                                // 创建ObjectMapper实例
+                                ObjectMapper objectMapper = new ObjectMapper();
+                                try {
+                                    // 将JSON字符串转换为List<Map<String, String>>
+                                    List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
+                                    if (!genderMappings.isEmpty()) {
+                                        Map<String, String> genderMapping = genderMappings.get(0);
+                                        value = genderMapping.get(value);
+                                    }
+                                } catch (IOException ex) {
+                                    log.error(ex.getMessage(), ex);
+                                }
+                            }
+                            // 必填字段没值 则报错
                             if (fieldVO.getIsMust() && StringUtils.isBlank(value)) {
                                 errorMsg.append(String.format("字段名:%s 未赋值;", fieldVO.getHeadField()));
                                 continue;
@@ -257,45 +322,39 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                 vo.setInterfaceField(headNm);
                             }
                             vo.setDataValue(value);
-                            vo.setIsExtend(extra.contains(headNm) ? Boolean.TRUE : Boolean.FALSE);
                             hasSet.add(vo.getInterfaceField());
                             dataFieldVOS.add(vo);
                             dataFieldMap.put(vo.getHeadField(), vo);
-                            if ("cell".equals(vo.getInterfaceField())) {
-                                cell = vo.getDataValue();
-                            }
                             //endregion
                         }
                         //endregion
 
+                        // 增加fileName值
+                        if(StringUtils.isBlank(tableMap.get("fileName"))){
+                            FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                            vo.setInterfaceField("fileName");
+                            vo.setDataValue(fileNm);
+                            dataFieldVOS.add(vo);
+                        }
+                        // 选填字段处理：例如身份证号和性别选填二选一
+                        if(!list.isEmpty()){
+                            Boolean b = false;
+                            for (String s : list) {
+                                if(StringUtils.isNotBlank(tableMap.get(s))){
+                                    b = true;
+                                }
+                            }
+                            if(!b){
+                                errorNum++;
+                                log.warn("文件名:{};行数:{};错误:{};", fileNm, line, "选填字段未赋值:"+list);
+                                continue;
+                            }
+                        }
                         if (StringUtils.isNotBlank(errorMsg.toString())) {
                             errorNum++;
                             log.warn("文件名:{};行数:{};错误:{};", fileNm, line, errorMsg.toString());
                             continue;
                         }
-                        //region 非必传并且配置默认值的字段处理
-                        if (_noMustDefaultFieldSet != null) {
-                            HashSet<String> resSet = new HashSet<>();
-                            resSet.addAll(_noMustDefaultFieldSet);
-                            resSet.removeAll(hasSet);
-                            for (String s : resSet) {
-                                List<FileToMarketingFieldVO> fileToMarketingFieldVOS = _noMustDefaultFieldMap.get(s);
-                                if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
-                                    FileToMarketingFieldVO _defField = fileToMarketingFieldVOS.get(0);
-
-                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-                                    BeanUtils.copyProperties(_defField, vo);
-                                    if ("{cell}".equals(_defField.getDefalutValue())) {
-                                        vo.setDataValue(cell);
-                                    } else {
-                                        vo.setDataValue(_defField.getDefalutValue());
-                                    }
-                                    dataFieldVOS.add(vo);
-                                    dataFieldMap.put(vo.getHeadField(), vo);
-                                }
-                            }
-                        }
-                        //endregion
 
                         //region 抽象的剔除方法和组装逻辑的调用,如未实现走默认的service
                         Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
@@ -386,6 +445,13 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         } else {
             Date date = new Date();
             LocalFile localFile = new LocalFile();
+            if(StringUtils.isNotBlank(apiCode)){
+                List<MarketingCustomer> customers = marketingCustomerMapper.getNameByApiCodeList(apiCode);
+                if (!CollectionUtils.isEmpty(customers)) {
+                    MarketingCustomer customer = customers.get(0);
+                    localFile.setCid(customer.getCid());
+                }
+            }
             localFile.setApiCode(apiCode);
             localFile.setFileType("marketingData");
             localFile.setSrcPath(srcPath);

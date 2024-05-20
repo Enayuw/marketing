@@ -197,7 +197,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 if (appointTime != null) {
                     // 指定日期
                     fileName = getFileName(userType, apiCode, appointTime.format(DateTimeFormatter.BASIC_ISO_DATE).concat("_")
-                        .concat(dateYyyyMmDdStr), EXTENSION);
+                            .concat(dateYyyyMmDdStr), EXTENSION);
                 } else {
                     // 前一天
                     fileName = getFileName(userType, apiCode, dateYyyyMmDdStr, EXTENSION);

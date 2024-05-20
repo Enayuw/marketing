@@ -1,9 +1,10 @@
 package com.br.marketing.client.xiecheng;
 
-import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.xiecheng.intput.AdReqDTO;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -11,19 +12,19 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.ThirdAdOuterReq;
-import com.br.marketing.entity.XieChengData;
 import com.br.marketing.entity.XieChengSmsCollidingReq;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.velocity.runtime.directive.Foreach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 携程处理
@@ -160,6 +161,7 @@ public class XieChengService {
 
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengData(AdReqDTO xieChengData) {
 
         /**
@@ -176,9 +178,22 @@ public class XieChengService {
         String sKey = "1".equals(xieChengData.getConditionKey()) ? singKey : config.getString("singKey");
         String sourceVt = config.getString("source");
         if ("1".equals(xieChengData.getConditionKey())) {
+            String extendSource = source;
+            try {
+                JSONObject extend = JSONObject.parseObject(xieChengData.getExtend());
+                String sourceStr = extend.getString("source");
+                if (StringUtils.isEmpty(sourceStr)) {
+                    log.warn("携程广告上报接口，source为空:{}，置为默认值:{}", sourceStr, source);
+                } else {
+                    extendSource = sourceStr;
+                }
+            } catch (Exception e) {
+                log.error("携程广告上报接口，source字段解析异常:{}", xieChengData.getExtend(), e);
+            }
+
             thirdAdOuterReq = new ThirdAdOuterReq(
                     timestemp,
-                    source,
+                    extendSource,
                     xieChengData.getClickId(),
                     xieChengData.getActionType(),
                     deviceInfo.toString()
@@ -235,6 +250,7 @@ public class XieChengService {
      * desc：携程短信退订接口
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result sendSmsQuitData(SmsQuitReq smsQuitReq) {
         String timestemp = String.valueOf(System.currentTimeMillis() / 1000);
         Map<String,String> config = marketingCommonConfig.getXieChengSmsQuitConfig().get(smsQuitReq.getApiCode());
@@ -272,6 +288,7 @@ public class XieChengService {
      * @param sha256CodeList
      * @return
      */
+    @RetryMethod(retryNowNum = 3)
     public Result pushXieChengSmsCollidingData(List<String> sha256CodeList) {
         /**
          * data 组装
@@ -316,6 +333,7 @@ public class XieChengService {
      * @return
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> pushXieChengSmsCollidingDataVt(List<String> sha256CodeList) {
         /*
           data 组装

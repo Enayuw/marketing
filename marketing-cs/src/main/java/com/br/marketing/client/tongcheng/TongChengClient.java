@@ -2,6 +2,8 @@ package com.br.marketing.client.tongcheng;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
@@ -44,6 +46,7 @@ public class TongChengClient {
      * 同程不运营名单推送客户接口
      */
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushToTongChengCustomer(JSONObject jsonObject
             , Integer retry) {
         HashMap<String, String> resMap = new HashMap<>();

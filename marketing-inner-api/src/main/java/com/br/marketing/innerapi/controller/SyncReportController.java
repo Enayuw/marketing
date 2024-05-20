@@ -1,11 +1,14 @@
 package com.br.marketing.innerapi.controller;
 
+import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.StringUtils;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingSyncReportService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,13 +36,16 @@ public class SyncReportController {
     @Resource
     private MarketingSyncReportService syncReportService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @PostMapping("/getReportList")
     @ApiOperation(value = "客户上传数据统计报表列表", notes = "客户上传数据统计报表列表", httpMethod = "GET")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
             , @ApiImplicitParam(name = "size", value = "页大小", paramType = "query", dataType = "integer", defaultValue = "10")
-            , @ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号",paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始",paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "appletTimeEnd",value = "上传日期截至", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "appletTimeStart", value = "上传日期开始", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "appletTimeEnd", value = "上传日期截至", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "apiCodes", value = "apiCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
     })
@@ -83,13 +89,16 @@ public class SyncReportController {
 
     @GetMapping("/triggerTaskUploadSyncReportJob")
     @ApiOperation(value = "手动执行上传数据统计报表任务", notes = "手动执行上传数据统计报表任务", httpMethod = "GET")
-    @ApiImplicitParam(name = "uploadDate", value = "当日日期(yyyy-MM-dd)",paramType = "query", dataType = "string")
+    @ApiImplicitParam(name = "uploadDate", value = "当日日期(yyyy-MM-dd)", paramType = "query", dataType = "string")
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = MarketingSyncReport.class)})
     public ApiResult<Boolean> triggerTaskUploadSyncReportJob(@RequestParam(required = false) String uploadDate) {
         try {
-            syncReportService.syncReportProcess(uploadDate);
+            boolean statisSwitch = !marketingCommonConfig.getUploadAndTransferDataRealtimeStatisSwitch();
+            if (statisSwitch) {
+                syncReportService.syncReportProcess(uploadDate);
+            }
             return new ApiResult<Boolean>().success(Boolean.TRUE);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn("手动执行上传数据统计报表任务异常");
             return new ApiResult<Boolean>().fail("手动执行上传数据统计报表任务异常,请稍后再试！");
         }
@@ -115,6 +124,40 @@ public class SyncReportController {
             log.error(ex.getMessage(), ex);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
+    }
+
+    @ApiOperation(value = "统计管理-上传记录-手机号查询列表", notes = "客户上传数据统计报表列表", httpMethod = "POST")
+    @ApiImplicitParams({@ApiImplicitParam(name = "cidOrName", value = "客户名称/客户编号", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "appletTimeStart", value = "查询开始时间", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "appletTimeEnd", value = "查询结束时间", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "apiCodes", value = "piCode筛选,支持多选,逗号分隔", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "userTypes", value = "场景筛选,支持多选,逗号分隔(例：S01,S02,促首登)", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "cell", value = "精确手机号（明文、md5、sha256）", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "orderField", value = "排序字段)", paramType = "query", dataType = "string", defaultValue = "applet_date")
+            , @ApiImplicitParam(name = "descField", value = "升序asc/降序desc)", paramType = "query", dataType = "string", defaultValue = "desc")
+    })
+    @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = JSONObject.class)
+            ,@ApiResponse(code = 5001, message = "服务器正忙，请稍后再试", response = JSONObject.class)
+            ,@ApiResponse(code = 000000, message = "成功", response = JSONObject.class)
+    })
+    @PostMapping("/getReportByCell")
+    public ApiResult<JSONObject> getReportByCell(@RequestParam(required = false) String cidOrName
+            , @RequestParam(required = false) String appletTimeStart
+            , @RequestParam(required = false) String appletTimeEnd
+            , @RequestParam(required = false) String apiCodes
+            , @RequestParam(required = false) String userTypes
+            , @RequestParam(required = false) String cell
+            , @RequestParam(defaultValue = "applet_date") String orderField
+            , @RequestParam(defaultValue = "desc") String descField) {
+        if(StringUtils.isBlank(apiCodes) || StringUtils.isBlank(cell)){
+            return new ApiResult<JSONObject>().fail(ServiceResultEnum.SUCCESS_1);
+        }
+        JSONObject cellList = marketingSyncReportService.getReportByCell(cidOrName, appletTimeStart, appletTimeEnd
+                , apiCodes, userTypes, cell, orderField, descField);
+        if (cellList != null) {
+            return new ApiResult<JSONObject>().success(cellList);
+        }
+        return new ApiResult<JSONObject>().fail(ServiceResultEnum.FAILED);
     }
 
 }

@@ -1,6 +1,8 @@
 package com.br.marketing.client.zhongan;
 
 import com.alibaba.fastjson.JSON;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
 import com.br.marketing.client.zhongan.input.ZaMarketDetail;
@@ -64,12 +66,12 @@ public class ZhongAnClient {
     final static String zanZk = "zanZk";
 
     @Value("${api.zhongAn.xdCode:07brdyy01}")
-    public void setXdCode(String xdCode){
+    public void setXdCode(String xdCode) {
         XdChannelCode = xdCode;
     }
 
     @Value("${api.zhongAn.bxCode:3360001}")
-    public void setBxCode(String bxCode){
+    public void setBxCode(String bxCode) {
         BxChannelCode = bxCode;
     }
 
@@ -83,6 +85,7 @@ public class ZhongAnClient {
      * @param dto
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushDetail(ZaMarketDataDTO dto) {
         try {
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -95,18 +98,18 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(dto), rsapKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,JSON.toJSONString(dto), islogs.get(0), islogs.get(1));
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(dto), islogs.get(0), islogs.get(1));
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-                if(!islogs.get(1)){
-                    log.error("众安推送明细失败-请求参数:{};返回:{}",JSON.toJSONString(dto),JSON.toJSONString(resMap));
+                if (!islogs.get(1)) {
+                    log.error("众安推送明细失败-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
                 }
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             Result result = checkGateWay(resVo);
             if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                if(!islogs.get(1)){
-                    log.error("众安推送明细失败-请求参数:{};返回:{}",JSON.toJSONString(dto),JSON.toJSONString(resMap));
+                if (!islogs.get(1)) {
+                    log.error("众安推送明细失败-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
                 }
                 return result;
             }
@@ -114,8 +117,8 @@ public class ZhongAnClient {
             if ("1".equals(marketDetailVO.getRespCode())) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
-            if(!islogs.get(1)){
-                log.error("众安推送明细失败-请求参数:{};返回:{}",JSON.toJSONString(dto),JSON.toJSONString(resMap));
+            if (!islogs.get(1)) {
+                log.error("众安推送明细失败-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
             }
             if ("0".equals(marketDetailVO.getRespCode())
                     || "3".equals(marketDetailVO.getRespCode())
@@ -123,10 +126,10 @@ public class ZhongAnClient {
                     || "9999".equals(marketDetailVO.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
-            log.error("无需重试 众安推送明细结果：{}",JSON.toJSONString(resVo));
+            log.error("无需重试 众安推送明细结果：{}", JSON.toJSONString(resVo));
             return new Result().setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
-            log.error("众安推送明细异常"+ex.getMessage(),ex);
+            log.error("众安推送明细异常" + ex.getMessage(), ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
@@ -155,6 +158,7 @@ public class ZhongAnClient {
      * @param zkReqDTO
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<ZkReponseVO> zkXd(ZkReqDTO zkReqDTO) {
 //        上线需要去除掉,模拟调用不可营销的数据
        /* if(Arrays.asList("baca0e6571447795d04c60b9388c5a9d","9acb88dc59a878889d25aba379a844c5").contains(zkReqDTO.getCustMobileMd5())){
@@ -168,7 +172,6 @@ public class ZhongAnClient {
         return zk(zkReqDTO, xinDaiZKApiKey);
     }
 
-
     public Result<ZkReponseVO> zk(ZkReqDTO zkReqDTO, String apiKey) {
         try {
             HashMap<String, List<Boolean>> isLog = getIsLog();
@@ -181,18 +184,18 @@ public class ZhongAnClient {
             zhongAnRequestDTO.setBizParam(RSAEncrypt.encrypt(JSON.toJSONString(zkReqDTO), rsapKey));
             BeanMap beanMap = BeanMap.create(zhongAnRequestDTO);
             zhongAnRequestDTO.setSign(getSignature(beanMap, signKey));
-            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE,JSON.toJSONString(zkReqDTO), islogs.get(0), islogs.get(1));
+            HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(zhongAnRequestDTO, url, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(zkReqDTO), islogs.get(0), islogs.get(1));
             if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-                if(!islogs.get(1)){
-                    log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}",JSON.toJSONString(zkReqDTO),apiKey,JSON.toJSONString(resMap));
+                if (!islogs.get(1)) {
+                    log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}", JSON.toJSONString(zkReqDTO), apiKey, JSON.toJSONString(resMap));
                 }
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             ZhongAnResponseVO resVo = JSON.parseObject(resMap.get("content"), ZhongAnResponseVO.class);
             Result result = checkGateWay(resVo);
             if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                if(!islogs.get(1)){
-                    log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}",JSON.toJSONString(zkReqDTO),apiKey,JSON.toJSONString(resMap));
+                if (!islogs.get(1)) {
+                    log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}", JSON.toJSONString(zkReqDTO), apiKey, JSON.toJSONString(resMap));
                 }
                 return result;
             }
@@ -200,23 +203,24 @@ public class ZhongAnClient {
             if ("1".equals(zkVo.getRespCode())) {
                 return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(zkVo);
             }
-            if(!islogs.get(1)){
-                log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}",JSON.toJSONString(zkReqDTO),apiKey,JSON.toJSONString(resMap));
+            if (!islogs.get(1)) {
+                log.error("撞库失败请求参数：zkreq:{},apikey:{};撞库返回:{}", JSON.toJSONString(zkReqDTO), apiKey, JSON.toJSONString(resMap));
             }
             if ("0".equals(zkVo.getRespCode())
                     || "3".equals(zkVo.getRespCode())
                     || "6".equals(zkVo.getRespCode())
                     || "9999".equals(zkVo.getRespCode())
+                    || "0032".equals(zkVo.getRespCode())
             ) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
             if (bXZKApiKey.equals(apiKey) && "9998".equals(zkVo.getRespCode())) {
                 return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
-            log.error("无需重试 众安撞库结果：{}",JSON.toJSONString(resVo));
+            log.error("无需重试 众安撞库结果：{}", JSON.toJSONString(resVo));
             return new Result().setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
-            log.error("众安撞库异常"+ex.getMessage(),ex);
+            log.error("众安撞库异常" + ex.getMessage(), ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }

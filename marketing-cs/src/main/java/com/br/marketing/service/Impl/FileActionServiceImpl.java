@@ -59,6 +59,7 @@ public class FileActionServiceImpl implements IFileActionService {
             String[] split = syncConfig.getSuffix().split(",");
             String fileSuffix = split[0];
             String fileSuccessSuffix = split[1];
+            // 筛选SFTP对应目录下符合条件的所有文件
             Map<String, Set<String>> fileMap = listStpFile(syncConfig.getTargetPath(), client, syncConfig);
             for (String t : fileMap.keySet()) {
                 String path = t;

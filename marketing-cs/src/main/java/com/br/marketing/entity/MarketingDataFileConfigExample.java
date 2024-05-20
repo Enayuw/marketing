@@ -554,6 +554,136 @@ public class MarketingDataFileConfigExample {
             addCriterion("is_del not between", value1, value2, "isDel");
             return (Criteria) this;
         }
+
+        public Criteria andIsChecklistNameIsNull() {
+            addCriterion("is_checklist_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameIsNotNull() {
+            addCriterion("is_checklist_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameEqualTo(Integer value) {
+            addCriterion("is_checklist_name =", value, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameNotEqualTo(Integer value) {
+            addCriterion("is_checklist_name <>", value, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameGreaterThan(Integer value) {
+            addCriterion("is_checklist_name >", value, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_checklist_name >=", value, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameLessThan(Integer value) {
+            addCriterion("is_checklist_name <", value, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameLessThanOrEqualTo(Integer value) {
+            addCriterion("is_checklist_name <=", value, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameIn(List<Integer> values) {
+            addCriterion("is_checklist_name in", values, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameNotIn(List<Integer> values) {
+            addCriterion("is_checklist_name not in", values, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameBetween(Integer value1, Integer value2) {
+            addCriterion("is_checklist_name between", value1, value2, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsChecklistNameNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_checklist_name not between", value1, value2, "isChecklistName");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesIsNull() {
+            addCriterion("validation_rules is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesIsNotNull() {
+            addCriterion("validation_rules is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesEqualTo(String value) {
+            addCriterion("validation_rules =", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesNotEqualTo(String value) {
+            addCriterion("validation_rules <>", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesGreaterThan(String value) {
+            addCriterion("validation_rules >", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesGreaterThanOrEqualTo(String value) {
+            addCriterion("validation_rules >=", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesLessThan(String value) {
+            addCriterion("validation_rules <", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesLessThanOrEqualTo(String value) {
+            addCriterion("validation_rules <=", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesLike(String value) {
+            addCriterion("validation_rules like", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesNotLike(String value) {
+            addCriterion("validation_rules not like", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesIn(List<String> values) {
+            addCriterion("validation_rules in", values, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesNotIn(List<String> values) {
+            addCriterion("validation_rules not in", values, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesBetween(String value1, String value2) {
+            addCriterion("validation_rules between", value1, value2, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesNotBetween(String value1, String value2) {
+            addCriterion("validation_rules not between", value1, value2, "validationRules");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

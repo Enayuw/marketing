@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.TransferSyncReport;
+import com.br.marketing.entity.TransferSyncReportExample;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.TransferSyncReportNumVO;
 import com.br.marketing.vo.TransferSyncReportVO;
@@ -64,4 +65,14 @@ public interface TransferSyncReportMapper extends TransferSyncReportMapperBase {
      */
     @AddDataAuth
     List<TransferSyncReportNumVO> getReportListTotaltiflash_(Map<String, Object> params);
+
+
+    /**
+     * 2024-03-08 9:29
+     * 获取数据量级
+     *
+     * @param example 条件
+     * @return list
+     */
+    List<TransferSyncReport> selectNumberByExample(TransferSyncReportExample example);
 }

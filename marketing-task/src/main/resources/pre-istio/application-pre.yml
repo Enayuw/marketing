@@ -100,6 +100,12 @@ otherConfig:
         ruleList: Rule_W_SpecialList_c_mix_c,Rule_W_InfoRelation_mix_c,Rule_W_ApplyLoanStr_mix_c,Rule_W_ApplyLoanUsury_mix,Rule_W_ExecutionLimited_mix,Rule_W_ApplyLoanStr_autofin
   mom:
       appSecretKey: d42726322ba9bda57b74043be21aa2c4
+  proxy:
+    proxy_host: squid-proxy2.brapp.com
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
 spring:
   rabbitmq:
     zw:

@@ -1,5 +1,7 @@
 package com.br.marketing.service;
 
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 
 import java.util.Map;
@@ -47,6 +49,7 @@ public interface MarketingSyncReportService {
      */
     PageResultReturn getReportList(int current, int size, String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
 
+
     /**
      * 客户上传数据统计报表总计
      * @param cidOrName
@@ -58,6 +61,20 @@ public interface MarketingSyncReportService {
      */
     Map getReportListTotal(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes);
 
+    /**
+     * 客户上传数据统计报表列表
+     * @param cidOrName
+     * @param appletTimeStart
+     * @param appletTimeEnd
+     * @param apiCodes
+     * @param userTypes
+     * @param cell
+     * @param orderField
+     * @param descField
+     * @return
+     */
+    JSONObject getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
+            , String apiCodes, String userTypes, String cell, String orderField, String descField);
 
     /**
      * 根据上传日期和apicode进行删除统计
@@ -67,11 +84,23 @@ public interface MarketingSyncReportService {
 
     /**
      * 修改有效期记录
+     *
      * @param id
      * @param validStartDate
      * @param validEndDate
      * @return
      */
     boolean updateById(Long id, String validStartDate, String validEndDate);
+
+
+    /**
+     * 准实时数据计数碎片统计（上传）
+     *
+     * @param dataCountFragmentsMgs 碎片消息
+     * @return 消费结果
+     * @author Guo Zeqiang
+     * @dateTime 2024-03-06 15:47
+     */
+    Result<Boolean> nearRealtimeDataCountFragmentsStatis(String dataCountFragmentsMgs);
 
 }

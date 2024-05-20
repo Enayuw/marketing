@@ -21,6 +21,8 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
+import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
+import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.shuhe.Response2ShuheDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
@@ -98,6 +100,17 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private final String title = "数禾转化数据定制化清洗入库";
     private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private static final DateTimeFormatter yyMMddHH = DateTimeFormatter.ofPattern("yyMMdd");
+    private static final Map<String, String> USERTYPE_CONTAINS_MAP;
+
+    static {
+        USERTYPE_CONTAINS_MAP = new HashMap<>();
+        USERTYPE_CONTAINS_MAP.put("首登", "促首登");
+        USERTYPE_CONTAINS_MAP.put("申完", "促申完");
+        USERTYPE_CONTAINS_MAP.put("重申", "重申");
+        USERTYPE_CONTAINS_MAP.put("首借", "促首借");
+        USERTYPE_CONTAINS_MAP.put("复借", "促复借");
+        USERTYPE_CONTAINS_MAP.put("轻资产", "轻资产");
+    }
 
     @Autowired
     ShuHeUserServiceImpl shuHeUserService;
@@ -221,7 +234,27 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 .concat("@" + System.currentTimeMillis()).concat("#" + random.nextInt(10000)));
         Map res = null;
         try {
-            res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO,null);
+            res = shuHeUserService.saveShTransferData(apiCode, jsonData, requestId, responseShuheDTO, null);
+            Set<String> startsWith = marketingCommonConfig.getUserTypeAndSumRealtimeApiCodeStartsWith();
+            Object userType = res.get("userType");
+            Object id = res.get("id");
+            if (userType != null && StringUtils.hasText(userType.toString()) && id != null
+                    && Long.parseLong(id.toString()) > 0 && startsWith.stream().anyMatch(apiCode::startsWith)) {
+                try {
+                    ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+                    dataInfoDTO.setApiCode(apiCode);
+                    dataInfoDTO.setCid(res.get("cid").toString());
+                    dataInfoDTO.setRawDataSaveTimeStr(res.get("createTime").toString());
+                    dataInfoDTO.setArgList(Collections.singletonList(new UserTypeCollectionDTO(userType.toString())));
+                    dataInfoDTO.setRequestId(requestId);
+                    producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS
+                            , JSONObject.toJSONString(dataInfoDTO.addTransferMsgSource()));
+                } catch (Exception e) {
+                    log.error("数禾转化定制接口推送场景信息到队列失败,发送队列"
+                            + MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS + ",消息内容:" + msg
+                            + "\n" + e.getMessage(), e);
+                }
+            }
         }catch (Exception ex){
             log.error(ex.getMessage(),ex);
             ProductPulsarProducer producer = null;
@@ -494,10 +527,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             exceptionSave(shuheUploadData, response2ShuheDTO, null);
             return response2ShuheDTO;
         }
-        if (uploadDataDTO.containsKey("extraInfo")) {
-            String userType = uploadDataDTO.getString("extraInfo");
-            shuheUploadData.setUserType(StringUtils.isEmpty(userType) ? "" : userType);
-        }
+        shuheUploadData.setUserType(getUserType(uploadDataDTO));
         Long infoId = null;
         try {
             infoId = shuHeUserService.saveShUploadData(shuheUploadData, uploadDataDTO, listInfo);
@@ -524,11 +554,36 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 return response2ShuheDTO;
             }
         }
-        if(infoId!=null){
+        if (infoId != null) {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
         }
         BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo, apiCode, requestId));
         return response2ShuheDTO.success();
+    }
+
+    /**
+     * 2024-05-08 11:05
+     * 【紧急】D20240507数禾电销上传接口迁移-3710117
+     * https://c.100credit.cn/pages/viewpage.action?pageId=145112459
+     * 兼容场景，简称映射
+     */
+    private String getUserType(JSONObject uploadDataDTO) {
+        if (uploadDataDTO.containsKey("extraInfo")) {
+            String userType = uploadDataDTO.getString("extraInfo");
+            if (StringUtils.hasText(userType)) {
+                return userType;
+            }
+        }
+        String templateName = uploadDataDTO.getString("templateName");
+        if (StringUtils.isEmpty(templateName)) {
+            return "";
+        }
+        for (Map.Entry<String, String> entry : USERTYPE_CONTAINS_MAP.entrySet()) {
+            if (templateName.contains(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return templateName;
     }
 
 
@@ -553,10 +608,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         shuheUploadData.setApiCode(apiCode);
         shuheUploadData.setRequestId(requestId);
         JSONObject uploadDataDTO = JSONObject.parseObject(jsonData);
-        if (uploadDataDTO.containsKey("extraInfo")) {
-            String userType = uploadDataDTO.getString("extraInfo");
-            shuheUploadData.setUserType(StringUtils.isEmpty(userType) ? "" : userType);
-        }
+        shuheUploadData.setUserType(getUserType(uploadDataDTO));
         final JSONArray listInfo = uploadDataDTO.getJSONArray("listInfo");
         Long infoId = null;
         try {

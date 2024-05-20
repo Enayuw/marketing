@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengRuleScoreRecordMapper">
+    <update id="createXieChengScoreTidbTableByBatchNum" parameterType="java.lang.String">
+        ${createTidbDDL}
+    </update>
+
+    <update id="createXieChengScoreDorisTableByBatchNumdoris_" parameterType="java.lang.String">
+        ${createDorisDDL}
+    </update>
+
+    <insert id="insertXieChengScoreTidbTable">
+        ${insertTidbSql}
+    </insert>
+
+    <select id="getXieChengScoreTidbTableCount" resultType="java.lang.Long">
+        select count(1) from ${tableName} where is_delete = 0
+    </select>
+
+
+    <select id="getXieChengDataNumdoris_" resultType="java.lang.Integer">
+        ${querySql}
+    </select>
+
+    <select id="selectRuleScoreDataRepeatWithFalseDatatikv_" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
+        select a.id
+        from b_xiecheng_colliding_data_rob a
+        join (${queryRuleScoreDataSql}) AS b on a.cell_sha256_code_list = b.cell and b.is_delete = 0
+        where a.is_delete = 0 and a.package_id = #{packageId}
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id
+        limit 2000;
+    </select>
+
+    <select id="selectRuleScoreDataExcludeTrueAndFalseDatatikv_" resultType="com.br.marketing.entity.XieChengRuleScoreData">
+        SELECT a.id, a.cell
+        FROM (${queryRuleScoreDataSql}) AS a
+        LEFT JOIN b_xiecheng_colliding_data_loop_cycle AS b ON a.cell = b.cell_sha256_code_list AND b.is_delete = 0
+        LEFT JOIN b_xiecheng_colliding_data_rob AS c ON a.cell = c.cell_sha256_code_list and c.is_delete = 0
+        WHERE b.id IS NULL AND c.id IS NULL AND a.is_delete = 0
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id
+        LIMIT 2000;
+    </select>
+
+    <update id="updateDeleteByIdstikv_">
+        update ${tableName} set is_delete = 1,update_time = now(),extend = #{extend}
+        where id in
+              (SELECT id
+               FROM (SELECT id,cell,ROW_NUMBER() OVER (PARTITION BY cell ORDER BY id) AS row_num
+                     FROM ${tableName} where is_delete = 0) AS a
+               WHERE row_num > 1 limit 2000);
+    </update>
+</mapper>

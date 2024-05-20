@@ -92,7 +92,12 @@
         <dependency>
             <groupId>com.brgroup</groupId>
             <artifactId>br-redis-client</artifactId>
-            <version>1.0.4</version>
+            <version>1.0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>io.etcd</groupId>
+            <artifactId>jetcd-all</artifactId>
+            <version>0.5.11</version>
         </dependency>
         <dependency>
             <groupId>io.projectreactor</groupId>
@@ -274,7 +279,19 @@
             <artifactId>health-endpoint-starter</artifactId>
             <version>1.0.0</version>
         </dependency>
+        <!--caffeine3.0.0及以上版本需要jdk11 -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>2.9.3</version>
+        </dependency>
 
+        <!-- easy excel -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>2.1.4</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

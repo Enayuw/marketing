@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.counter.BrCounter;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
@@ -109,6 +111,7 @@ public class DassServiceClient {
         return postHermesUserData(trueDto);
     }
 
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result postHermesUserData(DassImportAdapDTO dto) {
         Result result = new Result();
         List<DassImportDataDTO> dtos = dto.getList();
@@ -194,6 +197,7 @@ public class DassServiceClient {
      * 黑名单数据推送
      * 批量最大1千条
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<PushBlackListResponse> postBlackList(List<BlackListDTO> list) {
         Result<PushBlackListResponse> result = new Result<>();
         if (list != null && list.size() > size) {
@@ -256,6 +260,7 @@ public class DassServiceClient {
     /**
      * 单条用户数据实时推送
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<JSONObject> postRealTimeUserData(DassSingleImportAdapDTO dto) {
         Result result = new Result();
         DassSingleImportDataDTO dassSingleImportDataDTO = dto.getDassSingleImportDataDTO();
@@ -367,6 +372,7 @@ public class DassServiceClient {
     /**
      * 推送转化数据
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result postTransferData(DassTransferDataAdapDTO dassTransferDataAdapDTO) {
         Result result = new Result();
         List<DassTransferDataDTO> dassTransferDataDTOList = dassTransferDataAdapDTO.getDassTransferDataDTOList();
@@ -439,6 +445,7 @@ public class DassServiceClient {
      *
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushIbuArtificial(List<IbuReqDTO.Datum> datumList) {
         UUID reqId = UUID.randomUUID();
         try {

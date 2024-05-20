@@ -108,20 +108,19 @@ public class ConsumerApp {
         consumerService.consumerRun(channel, message, pushDataService::pushSevenTransferData, o, "");
     }
 
-//    /**
-//     * 消费海尔消转化数据
-//     *
-//     * @param channel 通道
-//     * @param message 消息
-//     */
-//    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_QUEUE_PUSH_TRANSFER_HAIER, durable = "true")
-//            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-//            , key = MQConstants.ROUTING_KEY_MARKETING_QUEUE_PUSH_TRANSFER_HAIER)}, containerFactory = "containerFactory")
-//    public void consumerPushTransferHaier(Channel channel, Message message) {
+    /**
+     * 延迟消费 获取推送客服中心数据状态
+     *
+     * @param channel 通道
+     * @param message 消息体
+     */
+//    @RabbitListener(queues = MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH, containerFactory = "containerFactory")
+//    public void consumerUserStatus(Channel channel, Message message) {
 //        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
 //        }.getType());
-//        consumerService.consumerRun(channel, message, pushDataService::pushHaierTransferData, o, "");
-//    }。
+//        consumerService.consumerRun(channel, message, pushRuleService::getCustomerStatus, o,
+//                MQConstants.MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY);
+//    }
 
     /**
      * 消费sftpToDb数据

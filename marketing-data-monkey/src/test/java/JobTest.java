@@ -33,7 +33,7 @@ public class JobTest implements ApplicationContextAware {
     public void testActionTransferToFile(){
         JobExecutionMultipleShardingContext context = new JobExecutionMultipleShardingContext();
         context.setJobName("zhongAnPushRosterLockingDataJob");
-        context.setJobParameter("7410906");
+        context.setJobParameter("7410906#2024-03-12");
         zhongAnPushRosterLockingDataJob.process(context);
     }
 

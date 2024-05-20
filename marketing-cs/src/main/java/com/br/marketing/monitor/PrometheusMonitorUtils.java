@@ -67,7 +67,10 @@ public class PrometheusMonitorUtils {
     public static final String COUNT_CORE_SCORE_API_METRIC_NAME = "countCoreScoreAPIMetricName";
 
 
-
+    /**
+     * 查询ApiCode
+     */
+    public static final String CUSTOMER_APICODE_METRIC_NAME = "customerApiCodeMetricName";
 
 
 

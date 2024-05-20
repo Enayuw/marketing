@@ -152,11 +152,11 @@ public class ApiDataInfoDTO<T> implements Serializable {
         return this;
     }
 
-    public boolean isUploadMsgSource() {
+    public Boolean uploadMsgSource() {
         return this.getMsgSource() == MsgSourceEnum.UPLOAD.getValue();
     }
 
-    public boolean isTransferMsgSource() {
+    public Boolean transferMsgSource() {
         return this.getMsgSource() == MsgSourceEnum.TRANSFER.getValue();
     }
 
