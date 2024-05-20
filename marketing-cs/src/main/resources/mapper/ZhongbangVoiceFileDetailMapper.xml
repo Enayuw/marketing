@@ -7,7 +7,7 @@
             count(*)
         from b_zhongbang_voice_file_detail
         where
-            create_time>=CURDATE() and push_status=0 ;
+            create_time>=CURDATE() and push_status=0 and is_deleted=0;
     </select>
 
     <select id="selectPushStatusCount" resultType="java.lang.Integer">
@@ -15,7 +15,7 @@
             count(*)
         from b_zhongbang_voice_file_detail
         where
-            create_time>=CURDATE()
+            create_time>=CURDATE() and is_deleted=0
             <if test="pushStatus != null">
                 and push_status=#{pushStatus}
             </if>
@@ -29,7 +29,7 @@
             distinct local_id
         from b_zhongbang_voice_file_detail
         where
-            create_time>=CURDATE();
+            create_time>=CURDATE() and is_deleted=0;
     </select>
 
     <select id="selectByPushStatus1" resultType="com.br.marketing.entity.ZhongbangVoiceFileDetail">
@@ -37,7 +37,7 @@
             *
         from b_zhongbang_voice_file_detail
         where
-            create_time>=CURDATE() and push_status=1
+            create_time>=CURDATE() and push_status=1 and is_deleted=0
             <if test="detailId != null">
                 and id >#{detailId}
             </if>
