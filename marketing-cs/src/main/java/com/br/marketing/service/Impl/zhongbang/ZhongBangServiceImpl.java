@@ -855,7 +855,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 File dir = new File(localDri);
                 if (!dir.exists() && !dir.mkdirs()) {
                     log.error("本地目录创建失败：{}", localDri);
-                    return null;
+                    return fileList;
                 }
                 for (Map.Entry<String, SftpATTRS> entry : entrySet) {
                     String fileName = entry.getKey();
