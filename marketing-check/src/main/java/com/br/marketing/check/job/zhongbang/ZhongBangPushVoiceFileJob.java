@@ -52,6 +52,7 @@ public class ZhongBangPushVoiceFileJob extends AbstractSimpleElasticJob {
         LocalDate localDate = LocalDate.now();
         String parameter = context.getJobParameter();
         JSONObject jsonObject;
+        int okStatus = 2;
         if (JSON.isValid(parameter)) {
             jsonObject = JSONObject.parseObject(parameter);
         } else {
@@ -69,16 +70,19 @@ public class ZhongBangPushVoiceFileJob extends AbstractSimpleElasticJob {
             String cId = tableCreateService.getCId(apiCode);
             LocalDate value = null;
             Object entryValue = entry.getValue();
-            if(entryValue instanceof String){
+            if (entryValue instanceof String) {
                 value = LocalDate.parse(entryValue.toString(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            }else if(entryValue instanceof LocalDate){
+            } else if (entryValue instanceof LocalDate) {
                 value = (LocalDate) entryValue;
             }
             TransferActionFront actionFront;
             Result<TransferActionFront> frontData = jobManager.getFrontData(apiCode, dateStr
                     , JobManager.ActionTypeEnum.ZHONGBANG_PUSH_VOICE_FILE.getActionType());
-            if (frontData.getCode().equals(ResultCode.SUCCESS.getValue())) {
+            if (frontData.getCode().equals(ResultCode.SUCCESS.getValue()) && frontData.getData() != null) {
                 actionFront = frontData.getData();
+                if (okStatus == actionFront.getStatus()) {
+                    continue;
+                }
             } else {
                 actionFront = new TransferActionFront();
                 actionFront.setApiCode(apiCode);
@@ -95,7 +99,7 @@ public class ZhongBangPushVoiceFileJob extends AbstractSimpleElasticJob {
             }
             boolean b = zhongBangService.voiceFileUpload(apiCode, cId, value);
             if (b) {
-                jobManager.updateFrontDataStatus(actionFront.getId(), 2);
+                jobManager.updateFrontDataStatus(actionFront.getId(), okStatus);
             }
         }
     }

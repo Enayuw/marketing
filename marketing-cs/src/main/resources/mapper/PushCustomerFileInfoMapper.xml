@@ -2,26 +2,32 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.PushCustomerFileInfoMapper">
 
-    <update id="updateFileInfoAndFileDetail">
+    <update id="updateFileInfoAndFileDetailtikv_">
         update b_push_customer_file_info t1 inner join b_zhongbang_voice_file_detail t2
         on t1.name = t2.file_name
-            set t2.file_info_id=t1.id,
-                t2.customer_file_id='${fileDetail.customerFileId}',
-                t2.push_status=${fileDetail.pushStatus},
-                t1.push_status=${fileInfo.fileDirectory},
-                t1.file_md5='${fileInfo.fileMd5}',
-                t1.push_date= #{fileDetail.pushDate},
-                t1.remark='${fileInfo.remark}'
+        set
+        t1.push_status=${fileInfo.pushStatus},
+        t1.file_md5='${fileInfo.fileMd5}',
+        t1.push_date= #{fileInfo.pushDate},
+        t1.remark='${fileInfo.remark}',
+        t2.file_info_id=t1.id,
+        t2.customer_file_id='${fileDetail.customerFileId}',
+        t2.push_status=${fileDetail.pushStatus},
         where t2.local_id = #{fileDetail.localId}
         <![CDATA[ and t1.create_time >= #{startDate,jdbcType=TIMESTAMP}
           and t1.create_time
             < #{endDate,jdbcType=TIMESTAMP} ]]>
-          and t2.create_date = #{fileDetail.createDate}
-          and t1.file_directory = '${fileInfo.fileDirectory}'
-          and t1.push_status=0
-          and t2.push_status=0
-          and t1.name='${fileInfo.name}'
-          and t2.file_name='${fileDetail.fileName}'
+        <if test="fileInfo.fileDirectory ! =null ">
+            and t1.file_directory = '${fileInfo.fileDirectory}'
+        </if>
+        and t1.status=1
+        and t1.push_status=0
+        and t1.name='${fileInfo.name}'
+        and t2.create_date = #{fileDetail.createDate}
+        and t2.push_status=0
+        and t2.status=1
+        and t2.is_deleted=0
+        and t2.file_name='${fileDetail.fileName}'
     </update>
 
 </mapper>
