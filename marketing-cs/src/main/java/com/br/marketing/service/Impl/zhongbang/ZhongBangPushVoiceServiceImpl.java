@@ -46,18 +46,19 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
     @Override
     public void pageAndPush() {
         Long detailId = null;
-        // 是否完成了文件数据上传
+        // 是否是最后一批数据或已经完成
         Boolean finishFlag = Boolean.FALSE;
         // 查询 push_status=0 的数量级
         Integer countPushStatus0 = zhongBangVoiceFileDetailMapper.selectPushStatus0Count();
         while(true){
+            Integer countPushStatus1 = zhongBangVoiceFileDetailMapper.selectPushStatusCount(1,null);
+            finishFlag = countPushStatus0==0 && countPushStatus1<=500;
             // 1.查询500个满足条件的数据
             List<ZhongbangVoiceFileDetail> detailList = zhongBangVoiceFileDetailMapper.selectByPushStatus1(detailId);
             boolean breakFlag = (countPushStatus0>0 && detailList.size()<500) || detailList.size()<1;
             if(breakFlag){
                 break;
             }
-            finishFlag = countPushStatus0==0 && detailList.size()<500;
             detailId = detailList.get(detailList.size()-1).getId();
             // 2.参数拼接
             List<Long> idList = new ArrayList<>();
@@ -110,6 +111,7 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
             if(errorIdList.size()>0){
                 log.warn("不在有效期内的b_zhongbang_voice_file_detail数据id是:{}", JSON.toJSONString(idList));
                 zhongBangVoiceFileDetailMapper.updateBatchByIds(idList, 4);
+                continue;
             }
             JSONObject paramJson = new JSONObject();
             paramJson.put("ids",idList);
