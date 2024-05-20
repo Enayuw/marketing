@@ -753,8 +753,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     String fileName = localFile.getFileName();
                     Long id = localFile.getId();
                     String localPath = localFile.getLocalPath();
-                    String localDir = localPath.replaceAll(DateUtils.yyyyMMdd, dateStr).concat(fileName)
-                            .concat(File.separator).concat("voice");
+                    String localDir = localPath.replaceAll(DateUtils.yyyyMMdd, dateStr).concat(
+                            fileName.replace(".txt", "")).concat(File.separator).concat("voice");
                     ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
                     voiceFileDetailExample.createCriteria().andLocalIdEqualTo(id).andStatusEqualTo(1)
                             .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0);
@@ -855,7 +855,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 File dir = new File(localDri);
                 if (!dir.exists() && !dir.mkdirs()) {
                     log.error("本地目录创建失败：{}", localDri);
-                    return fileList;
+                    return null;
                 }
                 for (Map.Entry<String, SftpATTRS> entry : entrySet) {
                     String fileName = entry.getKey();
