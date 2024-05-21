@@ -11,14 +11,12 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * check服务上线时Job开关切面
- *
- * @author zhen.li
+ * 服务上线Job开关切面-Bridge
  */
 @Component
 @Aspect
 @Slf4j
-public class JobSwitchAspect {
+public class JobSwitchBridgeAspect {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
@@ -26,7 +24,7 @@ public class JobSwitchAspect {
     @Around("execution(* com.br.marketing.bridge.job..*.process(..))")
     public void handleJobSwitch(ProceedingJoinPoint jp) throws Throwable {
         //开关默认关闭
-        boolean JobOnlineSwitch = StringUtils.isNotEmpty(marketingCommonConfig.getBridgeJobOnlineSwitch()) ? marketingCommonConfig.getBridgeJobOnlineSwitch() : false;
+        boolean JobOnlineSwitch = StringUtils.isNotEmpty(marketingCommonConfig.getDataBridgeJobOnlineSwitch()) ? marketingCommonConfig.getDataBridgeJobOnlineSwitch() : false;
         //未开启开关，正常执行
         if (!JobOnlineSwitch) {
             jp.proceed();

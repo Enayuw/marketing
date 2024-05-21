@@ -284,7 +284,7 @@ public class MarketingCommonConfig {
     /**
      * check服务job的上线开关
      */
-    private Boolean bridgeJobOnlineSwitch;
+    private Boolean dataBridgeJobOnlineSwitch;
 
     /**
      * 离线跑批入es文件 线程数
