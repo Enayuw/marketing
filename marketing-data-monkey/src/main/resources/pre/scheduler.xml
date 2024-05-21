@@ -202,7 +202,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="[monkey]-TongChengUndoListPushToCustomerJob"
-                class="com.br.marketing.check.job.tongcheng.TongChengUndoListPushToCustomerJob"
+                class="com.br.marketing.monkey.job.tongcheng.TongChengUndoListPushToCustomerJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="同程不运营名单推送客户JOB，每10分钟执行一次"
                 registry-center-ref="regCenter"
@@ -216,7 +216,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
     <job:simple id="[monkey]-ZhongBangCaiFuLabelPushJob"
-                class="com.br.marketing.check.job.zhongbang.ZhongBangCaiFuLabelPushJob"
+                class="com.br.marketing.monkey.job.zhongbang.ZhongBangCaiFuLabelPushJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="众邦财富定制标签推送任务"
                 registry-center-ref="regCenter"
