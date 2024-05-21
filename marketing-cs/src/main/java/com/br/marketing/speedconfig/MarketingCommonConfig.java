@@ -282,6 +282,11 @@ public class MarketingCommonConfig {
     private Boolean checkJobOnlineSwitch;
 
     /**
+     * 服务上线job开关-Monkey
+     */
+    private Boolean dataMonkeyJobOnlineSwitch;
+
+    /**
      * 离线跑批入es文件 线程数
      */
     private Integer OffLineInserEsThreadNum;
