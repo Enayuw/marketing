@@ -214,6 +214,12 @@ api:
         labelRating: "CMBrLabelRatingRe"
         CMBrScoDaFeBack: "CMBrScoDaFeBack"
         recodFile: "CMBrRecodFileRe"
+    file:
+      baseUrl: "https://iodev-uat.z-bank.com"
+      channelId: "2023042701"
+      encryptKey: "0463455a993b27010c80ceaca36f8faddcc5bb942b242faad8196ccda08d9ba556a669d6682d62d5278dbdc7a65d87ea8071635825725c35b92607eb379b369949"
+      cksStr: "YRPZSSUEDOXHGNBYYYDGWPDASZJIIHXMJBZZFZTOSSHWABKGBHSBTUSJAMDFHIRX"
+      slotKey: "rEFhYy7SRHzCrsMnzjqPoQ=="
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
