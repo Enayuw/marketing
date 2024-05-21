@@ -791,6 +791,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                     voiceFileDetail.setPushStatus(1);
                                     // 推送成功
                                     fileInfo.setPushStatus(2);
+                                    fileInfo.setRemark("");
                                 } catch (SDKException | IOException e) {
                                     log.error(e.getMessage(), e);
                                     fileInfo.setRemark(e.getMessage());
