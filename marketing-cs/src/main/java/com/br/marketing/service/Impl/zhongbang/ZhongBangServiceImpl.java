@@ -719,8 +719,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         int availableNumber = Runtime.getRuntime().availableProcessors();
         boolean bool = availableNumber > 30;
         int corePoolSize = (availableNumber / 2);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 30
-                : (availableNumber + corePoolSize), new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
+//        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 30
+//                : (availableNumber + corePoolSize), new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
+//
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(1, 1, new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
         Map<String, String> zhongBangVoieFileConfig = marketingCommonConfig.getZhongBangVoieFileConfig();
         if (zhongBangVoieFileConfig.isEmpty()) {
             zhongBangVoieFileConfig.put("b_zhongbang_voice_file_detail", "zhongbang_voice");
