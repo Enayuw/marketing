@@ -12,7 +12,7 @@
         <if test="fileInfo.fileMd5 != null and fileInfo.fileMd5 !=''">
             ,t1.file_md5='${fileInfo.fileMd5}'
         </if>
-        <if test="fileInfo.remark != null and fileInfo.remark !=''">
+        <if test="fileInfo.remark != null">
             ,t1.remark='${fileInfo.remark}'
         </if>
         <if test="fileDetail.customerFileId != null">
