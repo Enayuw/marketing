@@ -1,6 +1,7 @@
 package com.br.marketing.common.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -437,4 +438,23 @@ public class DateHelper {
         }
         return res;
     }
+
+    /**
+     * 判断string是否为日期yyyy-MM-dd
+     *
+     * @param date
+     * @return
+     */
+    public static boolean isDate(String date) {
+        boolean isDate = Boolean.FALSE;
+        try {
+            DateUtils.parseDateStrictly(date, LINE_DATE_FORMAT);
+            isDate = Boolean.TRUE;
+        } catch (ParseException e) {
+            isDate = Boolean.FALSE;
+
+        }
+        return isDate;
+    }
+
 }

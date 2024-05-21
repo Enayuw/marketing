@@ -17,6 +17,7 @@ public enum DingDingAlarmFunctionEnum {
     USERTYPE_ADD_SENDUSERTYPEADDDINGDINGMGS,
     //跑分结果异常告警
     TASKSCORE_HXRESULT_ERROR_MESSAGE,
+    XIECHENG_TRUE_DELETE_NOTICE,
 
     ;
 }

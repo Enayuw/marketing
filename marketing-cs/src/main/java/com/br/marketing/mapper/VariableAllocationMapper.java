@@ -31,7 +31,7 @@ public interface VariableAllocationMapper extends VariableAllocationMapperBase{
      * @param releaseTime
      * @return
      */
-    VariableAllocationVO getVariableAllocationVO(@Param("releaseTime") String releaseTime);
+    VariableAllocationVO getVariableAllocationVOtiflash_(@Param("releaseTime") String releaseTime);
 
     int updateByPrimaryMutchKeySelective(VariableAllocationVO allocationVO);
 

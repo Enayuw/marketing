@@ -1,11 +1,16 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
-public class XieChengCollidingDataPackage {
-    /**
-     * 
-     */
+/**
+ * b_xiecheng_colliding_data_package
+ * @author :zhen.Li1
+ * @updateTime: 2024-04-25
+ */
+@Data
+public class XieChengCollidingDataPackage implements Serializable {
     private Long id;
 
     /**
@@ -29,6 +34,11 @@ public class XieChengCollidingDataPackage {
     private Integer isDelete;
 
     /**
+     * 扩展字段
+     */
+    private String extend;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -39,71 +49,19 @@ public class XieChengCollidingDataPackage {
     private Date updateTime;
 
     /**
-     * 扩展字段
+     * 撞库包实际数据数量
      */
-    private String extend;
+    private Integer actualNumber;
 
-    public Long getId() {
-        return id;
-    }
+    /**
+     * 撞库包预估数据量级
+     */
+    private Integer discreetNumber;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    /**
+     * 撞库数据清洗任务id
+     */
+    private Long collidingDataTaskId;
 
-    public String getPackageName() {
-        return packageName;
-    }
-
-    public void setPackageName(String packageName) {
-        this.packageName = packageName == null ? null : packageName.trim();
-    }
-
-    public Integer getPriority() {
-        return priority;
-    }
-
-    public void setPriority(Integer priority) {
-        this.priority = priority;
-    }
-
-    public Date getCollidingTime() {
-        return collidingTime;
-    }
-
-    public void setCollidingTime(Date collidingTime) {
-        this.collidingTime = collidingTime;
-    }
-
-    public Integer getIsDelete() {
-        return isDelete;
-    }
-
-    public void setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
-    }
+    private static final long serialVersionUID = 1L;
 }

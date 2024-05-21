@@ -38,6 +38,16 @@ public class MarketingDataFileConfig {
      */
     private Integer isDel;
 
+    /**
+     * 是否校验表名 0校验 1不校验
+     */
+    private Integer isChecklistName;
+
+    /**
+     * 表名校验规则
+     */
+    private String validationRules;
+
     public Long getId() {
         return id;
     }
@@ -92,5 +102,21 @@ public class MarketingDataFileConfig {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public Integer getIsChecklistName() {
+        return isChecklistName;
+    }
+
+    public void setIsChecklistName(Integer isChecklistName) {
+        this.isChecklistName = isChecklistName;
+    }
+
+    public String getValidationRules() {
+        return validationRules;
+    }
+
+    public void setValidationRules(String validationRules) {
+        this.validationRules = validationRules == null ? null : validationRules.trim();
     }
 }

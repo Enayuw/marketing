@@ -11,6 +11,8 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.vo.*;
+import com.br.marketing.vo.xiecheng.PushViewVO;
+import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -54,7 +56,7 @@ public interface PushRuleService {
      */
     Result<List<PushInfoDetailVO>> getPushInfos(@Valid RequestPushInfoDTO dto);
 
-    Result<Long> getPushTask();
+    Result<CustomerInfoPushMain> getPushTask();
 
     Result isCanPushTask(Long taskId);
     /**
@@ -65,7 +67,7 @@ public interface PushRuleService {
      */
     Result<String> pushCustomer(@Valid PushCustomerDTO dto);
 
-    Result<Integer> pushPreview(@Valid PushCustomerDTO dto);
+    Result<PushViewVO> pushPreview(@Valid PushCustomerDTO dto);
 
     String encrypt3k(Integer type, String content);
 
@@ -205,4 +207,10 @@ public interface PushRuleService {
     Result<Boolean> cunsumerZhongBangLabelData(Long id);
 
     Result<Integer> checkThreekEnc(List<Long> fileIds);
+
+    Result collidingDataDelete(PushCustomerDTO dto);
+
+    Result collidingDataPachageMake(PushCustomerDTO dto);
+
+    Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto);
 }

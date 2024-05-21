@@ -36,14 +36,16 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/user/**")
                 .addPathPatterns("/resource/**")
                 .addPathPatterns("/transferFile/**")
-                .addPathPatterns("/role/**");
+                .addPathPatterns("/role/**")
+                .addPathPatterns("/xiecheng/**");
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/rule/**")
                 .addPathPatterns("/pushrulefilter/**")
                 .addPathPatterns("/user/**")
                 .addPathPatterns("/resource/**")
                 .addPathPatterns("/transferFile/**")
-                .addPathPatterns("/role/**");
+                .addPathPatterns("/role/**")
+                .addPathPatterns("/xiecheng/**");
         super.addInterceptors(registry);
     }
 }

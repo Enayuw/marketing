@@ -4,6 +4,8 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.service.Impl.MarketingCustomertestImpl;
 import com.br.marketing.service.PushRuleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * @Description 后台接口控制器
@@ -27,6 +31,8 @@ public class BackEndController {
     private static final Logger log = LoggerFactory.getLogger(BackEndController.class);
     @Autowired
     PushRuleService pushRuleService;
+    @Autowired
+    MarketingCustomertestImpl marketingCustomertest;
 
     /**
      * 查询客户信息接口（外呼→营销）

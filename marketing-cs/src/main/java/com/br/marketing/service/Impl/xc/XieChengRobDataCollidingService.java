@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl.xc;
 
-import java.util.List;
-
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.XieChengCollidingDataRob;
 
 /**
@@ -12,8 +11,9 @@ import com.br.marketing.entity.XieChengCollidingDataRob;
  */
 public interface XieChengRobDataCollidingService extends DataCollidingService<XieChengCollidingDataRob> {
 
-    void collidingData(List<Long> packageIds);
+    void collidingData();
 
     void initializeTodayReleaseTime(String key);
 
+    void resetCollidingCount();
 }
