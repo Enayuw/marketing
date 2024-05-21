@@ -51,7 +51,7 @@ public class ZbankClientConfig {
 
     // api sdk参数
     /**
-     * 访问URL（由众邦银行提供）
+     * 百融代理配置
      */
     @Value("${api.zbank.isPorxy:true}")
     private Boolean isPorxy;
