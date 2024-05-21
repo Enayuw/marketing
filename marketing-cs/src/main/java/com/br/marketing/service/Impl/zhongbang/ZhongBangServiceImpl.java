@@ -801,6 +801,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                     }
                                     // 推送失败
                                     fileInfo.setPushStatus(3);
+                                    // TODO: 2024-05-21 单独更新info 
                                 }
                             } else {
                                 fileInfo.setStatus(2);
