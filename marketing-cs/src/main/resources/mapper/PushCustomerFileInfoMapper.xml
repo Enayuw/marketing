@@ -29,7 +29,7 @@
             and t1.file_directory = '${fileInfo.fileDirectory}'
         </if>
         and t1.status=1
-        and t1.push_status=0
+        and t1.push_status in (0,3)
         and t1.name='${fileInfo.name}'
         and t2.create_date = #{fileDetail.createDate}
         and t2.push_status=0
