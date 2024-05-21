@@ -74,7 +74,7 @@ public interface AutomatedPushDecisionService {
 
     /**
      * 2023-04-13 21:20
-     * 保存任务记录
+     * 获取任务记录
      *
      * @param apiCode      客户编号
      * @param actionType   执行类型
