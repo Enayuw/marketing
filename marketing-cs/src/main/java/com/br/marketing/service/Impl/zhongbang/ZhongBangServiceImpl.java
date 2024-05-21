@@ -719,10 +719,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         int availableNumber = Runtime.getRuntime().availableProcessors();
         boolean bool = availableNumber > 30;
         int corePoolSize = (availableNumber / 2);
-//        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 30
-//                : (availableNumber + corePoolSize), new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
-//
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(1, 1, new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 30
+                : (availableNumber + corePoolSize), new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
         Map<String, String> zhongBangVoieFileConfig = marketingCommonConfig.getZhongBangVoieFileConfig();
         if (zhongBangVoieFileConfig.isEmpty()) {
             zhongBangVoieFileConfig.put("b_zhongbang_voice_file_detail", "zhongbang_voice");
@@ -781,7 +779,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             voiceFileDetail.setLocalId(localFileId);
                             PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
                             fileInfo.setPushDate(startDate);
-//                            fileInfo.setFileDirectory(file.getParent());
+                            fileInfo.setFileDirectory(file.getParent());
                             fileInfo.setName(file.getName());
                             if (file.exists() && file.isFile()) {
                                 try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
@@ -803,10 +801,21 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                     }
                                     // 推送失败
                                     fileInfo.setPushStatus(3);
-                                    // TODO: 2024-05-21 单独更新info 
+                                    PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
+                                    example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andNameEqualTo(file.getName())
+                                            .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate)
+                                            .andStatusEqualTo(1).andFileDirectoryEqualTo(file.getParent());
+                                    pushCustomerFileInfoMapper.updateByExampleSelective(fileInfo, example);
+                                    return false;
                                 }
                             } else {
                                 fileInfo.setStatus(2);
+                                PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
+                                example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andNameEqualTo(file.getName())
+                                        .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate)
+                                        .andStatusEqualTo(1).andFileDirectoryEqualTo(file.getParent());
+                                pushCustomerFileInfoMapper.updateByExampleSelective(fileInfo, example);
+                                return true;
                             }
                             pushCustomerFileInfoMapper.updateFileInfoAndFileDetailtikv_(fileInfo, voiceFileDetail, startDate, endDate);
                             return true;
@@ -820,6 +829,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     if (futures.size() == 0) {
                         return false;
                     }
+                    LocalFile localFileNew = new LocalFile();
+                    localFileNew.setId(localFileId);
+                    localFileNew.setPushStartTime(new Date());
+                    localFileMapper.updateByPrimaryKeySelective(localFileNew);
                     // 结果转换
                     try {
                         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply((Void v) -> {
