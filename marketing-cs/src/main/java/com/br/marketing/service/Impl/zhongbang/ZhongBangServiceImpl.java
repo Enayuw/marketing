@@ -779,7 +779,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             voiceFileDetail.setLocalId(localFileId);
                             PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
                             fileInfo.setPushDate(startDate);
-                            fileInfo.setFileDirectory(file.getParent());
+//                            fileInfo.setFileDirectory(file.getParent());
                             fileInfo.setName(file.getName());
                             if (file.exists() && file.isFile()) {
                                 try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
@@ -804,7 +804,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                     PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
                                     example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andNameEqualTo(file.getName())
                                             .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate)
-                                            .andStatusEqualTo(1).andFileDirectoryEqualTo(file.getParent());
+                                            .andStatusEqualTo(1);
                                     pushCustomerFileInfoMapper.updateByExampleSelective(fileInfo, example);
                                     return false;
                                 }
@@ -813,7 +813,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
                                 example.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid).andNameEqualTo(file.getName())
                                         .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate)
-                                        .andStatusEqualTo(1).andFileDirectoryEqualTo(file.getParent());
+                                        .andStatusEqualTo(1);
                                 pushCustomerFileInfoMapper.updateByExampleSelective(fileInfo, example);
                                 return true;
                             }
