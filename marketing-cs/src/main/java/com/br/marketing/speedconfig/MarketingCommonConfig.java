@@ -1160,6 +1160,17 @@ public class MarketingCommonConfig {
     private Boolean zhongBangCaifuLabelTest;
 
     /**
+     * 众邦录音明细回调测试
+     */
+    private Boolean zhongBangRecodFileReTest = false;
+
+    /**
+     * 众邦财富上传录音文件明细配置,{"dbName":"fileType"},eg:{"b_zhongbang_voice_file_detail":"zhongbang_voice"}
+     */
+    private Map<String, String> zhongBangVoieFileConfig = new HashMap<>();
+
+
+    /**
      * 2023-12-05 10:35
      * 众邦文件下载配置信息
      */
@@ -1344,7 +1355,7 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
 
     /**
-    * 携程撞库异常量级钉钉通知accessToken
+     * 携程撞库异常量级钉钉通知accessToken
      */
     private String xieChengGroupAccessToken;
 
@@ -1490,6 +1501,13 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCleanSwitch;
 
+
+
+    /**
+     * 2024-03-25 14:02
+     * 滴滴场景与媒体名称映射 eg:{"userType":"mediaName"}
+     */
+    private Map<String, String> diDiUserTypeAndMediaNameMapping = new HashMap<>();
     /**
      * 携程定制化配置ApiCode
      */
