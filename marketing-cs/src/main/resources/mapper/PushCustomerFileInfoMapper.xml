@@ -8,7 +8,7 @@
         set
         t1.push_status=${fileInfo.pushStatus}
         ,t2.file_info_id=t1.id
-        ,t1.push_date= #{fileInfo.pushDate},
+        ,t1.push_date= #{fileInfo.pushDate}
         <if test="fileInfo.fileMd5 != null and fileInfo.fileMd5 !=''">
             ,t1.file_md5='${fileInfo.fileMd5}'
         </if>
@@ -29,7 +29,7 @@
             and t1.file_directory = '${fileInfo.fileDirectory}'
         </if>
         and t1.status=1
-        and t1.push_status=0
+        and t1.push_status in (0,3)
         and t1.name='${fileInfo.name}'
         and t2.create_date = #{fileDetail.createDate}
         and t2.push_status=0
