@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -50,6 +52,7 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
         Boolean finishFlag = Boolean.FALSE;
         // 查询 push_status=0 的数量级
         Integer countPushStatus0 = zhongBangVoiceFileDetailMapper.selectPushStatus0Count();
+        String pushDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         while(true){
             Integer countPushStatus1 = zhongBangVoiceFileDetailMapper.selectPushStatusCount(1,null);
             finishFlag = countPushStatus0==0 && countPushStatus1<=500;
@@ -109,9 +112,13 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
                 }
             }
             if(errorIdList.size()>0){
-                log.warn("不在有效期内的b_zhongbang_voice_file_detail数据id是:{}", JSON.toJSONString(idList));
-                zhongBangVoiceFileDetailMapper.updateBatchByIds(idList, 4);
-                continue;
+                log.warn("不在有效期内的b_zhongbang_voice_file_detail数据id是:{}", JSON.toJSONString(errorIdList));
+                zhongBangVoiceFileDetailMapper.updateBatchByIds(errorIdList, 4, pushDate);
+                if(detailList.size() == errorIdList.size()){
+                    continue;
+                }else{
+                    idList.removeAll(errorIdList);
+                }
             }
             JSONObject paramJson = new JSONObject();
             paramJson.put("ids",idList);
@@ -125,7 +132,7 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
                 continue;
             }
             // 4.判断推送结果状态，成功就更新表状态
-            zhongBangVoiceFileDetailMapper.updateBatchByIds(idList, 2);
+            zhongBangVoiceFileDetailMapper.updateBatchByIds(idList, 2, pushDate);
         }
         if(finishFlag){
             List<Long> fileIdList = zhongBangVoiceFileDetailMapper.selectDistinctLocalIdtikv_();

@@ -46,7 +46,7 @@
 
     <update id="updateBatchByIds">
         update b_zhongbang_voice_file_detail
-        set push_status=#{pushStatus}
+        set push_status=#{pushStatus},push_date=#{pushDate}
         where create_time>=CURDATE() and push_status=1 and id in
         <foreach collection = 'idList' item='id' open='(' close=')' separator=','>
             #{id}
