@@ -67,7 +67,7 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
             JSONArray flArray = new JSONArray();
             Set<String> custNumSet = new HashSet<>();
             Iterator<ZhongbangVoiceFileDetail> iterator = detailList.iterator();
-            if(iterator.hasNext()){
+            while(iterator.hasNext()){
                 ZhongbangVoiceFileDetail t = iterator.next();
                 Long id = t.getId();
                 idList.add(id);
