@@ -6,13 +6,21 @@
         update b_push_customer_file_info t1 inner join b_zhongbang_voice_file_detail t2
         on t1.name = t2.file_name
         set
-        t1.push_status=${fileInfo.pushStatus},
-        t1.file_md5='${fileInfo.fileMd5}',
-        t1.push_date= #{fileInfo.pushDate},
-        t1.remark='${fileInfo.remark}',
-        t2.file_info_id=t1.id,
-        t2.customer_file_id='${fileDetail.customerFileId}',
-        t2.push_status=${fileDetail.pushStatus}
+        t1.push_status=${fileInfo.pushStatus}
+        ,t2.file_info_id=t1.id
+        ,t1.push_date= #{fileInfo.pushDate},
+        <if test="fileInfo.fileMd5 != null and fileInfo.fileMd5 !=''">
+            ,t1.file_md5='${fileInfo.fileMd5}'
+        </if>
+        <if test="fileInfo.remark != null and fileInfo.remark !=''">
+            ,t1.remark='${fileInfo.remark}'
+        </if>
+        <if test="fileDetail.customerFileId != null">
+            ,t2.customer_file_id='${fileDetail.customerFileId}'
+        </if>
+        <if test="fileDetail.pushStatus != null">
+            ,t2.push_status=${fileDetail.pushStatus}
+        </if>
         where t2.local_id = #{fileDetail.localId}
         <![CDATA[ and t1.create_time >= #{startDate,jdbcType=TIMESTAMP}
           and t1.create_time
