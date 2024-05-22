@@ -238,28 +238,46 @@ public class SftpClient extends BaseFtpClient{
     public Map<String, SftpATTRS> listFiles(String srcPath, String... suffix) {
         CopyOnWriteArrayList<ChannelSftp.LsEntry> vector = new CopyOnWriteArrayList<>();
         String currentDir = ".";
-        try {
-            sftp.ls(srcPath, (ChannelSftp.LsEntry entry) -> {
-                if (suffix == null || suffix.length == 0) {
-                    vector.add(entry);
+        listFiles(srcPath, (ChannelSftp.LsEntry entry) -> {
+            if (suffix == null || suffix.length == 0) {
+                vector.add(entry);
+                return ChannelSftp.LsEntrySelector.CONTINUE;
+            } else {
+                String filename = entry.getFilename();
+                if (currentDir.equals(filename) || (currentDir + currentDir).equals(filename)) {
                     return ChannelSftp.LsEntrySelector.CONTINUE;
-                } else {
-                    String filename = entry.getFilename();
-                    if (currentDir.equals(filename) || (currentDir + currentDir).equals(filename)) {
+                }
+                for (String s : suffix) {
+                    if (filename.endsWith(s)) {
+                        vector.add(entry);
                         return ChannelSftp.LsEntrySelector.CONTINUE;
                     }
-                    for (String s : suffix) {
-                        if (filename.endsWith(s)) {
-                            vector.add(entry);
-                            return ChannelSftp.LsEntrySelector.CONTINUE;
-                        }
-                    }
                 }
+            }
+            return ChannelSftp.LsEntrySelector.CONTINUE;
+        });
+        return vector.stream().collect(Collectors.toMap(ChannelSftp.LsEntry::getFilename, ChannelSftp.LsEntry::getAttrs));
+    }
+
+    public Map<String, SftpATTRS> listFiles(String srcPath, Set<String> fileNameSet) {
+        CopyOnWriteArrayList<ChannelSftp.LsEntry> vector = new CopyOnWriteArrayList<>();
+        String currentDir = ".";
+        listFiles(srcPath, (ChannelSftp.LsEntry entry) -> {
+            if (fileNameSet == null || fileNameSet.size() == 0) {
+                vector.add(entry);
                 return ChannelSftp.LsEntrySelector.CONTINUE;
-            });
-        } catch (SftpException e) {
-            log.error("srcPath:{}" + srcPath, e);
-        }
+            } else {
+                String filename = entry.getFilename();
+                if (currentDir.equals(filename) || (currentDir + currentDir).equals(filename)) {
+                    return ChannelSftp.LsEntrySelector.CONTINUE;
+                }
+                if (fileNameSet.contains(filename)) {
+                    vector.add(entry);
+                    return ChannelSftp.LsEntrySelector.CONTINUE;
+                }
+            }
+            return ChannelSftp.LsEntrySelector.CONTINUE;
+        });
         return vector.stream().collect(Collectors.toMap(ChannelSftp.LsEntry::getFilename, ChannelSftp.LsEntry::getAttrs));
     }
 
@@ -460,7 +478,31 @@ public class SftpClient extends BaseFtpClient{
         } catch (SftpException e) {
             log.error("接收文件时有SftpException异常!", e);
         } catch (IOException e) {
-            log.error("接收文件时有I/O异常!", e);
+            log.error("接收文件时有I/O异常!" + e.getMessage(), e);
+        }
+        return localFile;
+    }
+
+    public File downloadLocalFile(String remotePath, String remoteFilename, String localFilename)
+            throws SftpException, IOException {
+        File localFile = new File(localFilename);
+        if (localFile.exists() && localFile.isFile()) {
+            SftpATTRS attrs = stats(remotePath.concat("/").concat(remoteFilename));
+            long size = attrs.getSize();
+            int mTime = attrs.getMTime();
+            // 大小和最后修改时间相同，则为同一文件，不进行下载
+            if (size == localFile.length() && mTime == localFile.lastModified()) {
+                return localFile;
+            }
+        }
+        try (OutputStream output = Files.newOutputStream(Paths.get(localFile.getPath()))) {
+            if (null != remotePath && !"".equals(remotePath.trim())) {
+                sftp.cd(remotePath);
+            }
+            sftp.get(remoteFilename, output);
+            if (log.isInfoEnabled()) {
+                log.info("成功接收文件,本地路径：{}", localFilename);
+            }
         }
         return localFile;
     }

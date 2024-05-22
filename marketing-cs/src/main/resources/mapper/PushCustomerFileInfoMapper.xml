@@ -4,33 +4,23 @@
 
     <update id="updateFileInfoAndFileDetailtikv_">
         update b_push_customer_file_info t1 inner join b_zhongbang_voice_file_detail t2
-        on t1.name = t2.file_name
+        on t1.file_name = t2.file_name and t1.local_file_id=t2.local_id
         set
         t1.push_status=${fileInfo.pushStatus}
-        ,t2.file_info_id=t1.id
         ,t1.push_date= #{fileInfo.pushDate}
-        <if test="fileInfo.fileMd5 != null and fileInfo.fileMd5 !=''">
-            ,t1.file_md5='${fileInfo.fileMd5}'
-        </if>
         <if test="fileInfo.remark != null">
             ,t1.remark='${fileInfo.remark}'
         </if>
+        ,t2.file_info_id=t1.id
         <if test="fileDetail.customerFileId != null">
             ,t2.customer_file_id='${fileDetail.customerFileId}'
         </if>
         <if test="fileDetail.pushStatus != null">
             ,t2.push_status=${fileDetail.pushStatus}
         </if>
-        where t2.local_id = #{fileDetail.localId}
-        <![CDATA[ and t1.create_time >= #{startDate,jdbcType=TIMESTAMP}
-          and t1.create_time
-            < #{endDate,jdbcType=TIMESTAMP} ]]>
-        <if test="fileInfo.fileDirectory !=null ">
-            and t1.file_directory = '${fileInfo.fileDirectory}'
-        </if>
-        and t1.status=1
-        and t1.push_status in (0,3)
-        and t1.name='${fileInfo.name}'
+        where
+        t1.id=${fileInfo.id}
+        and t2.local_id = #{fileDetail.localId}
         and t2.create_date = #{fileDetail.createDate}
         and t2.push_status=0
         and t2.status=1

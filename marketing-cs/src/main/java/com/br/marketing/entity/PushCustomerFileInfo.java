@@ -19,16 +19,6 @@ public class PushCustomerFileInfo {
     private String apiCode;
 
     /**
-     * 文件名称
-     */
-    private String name;
-
-    /**
-     * 文件大小 
-     */
-    private Long size;
-
-    /**
      * 文件MD5
      */
     private String fileMd5;
@@ -78,6 +68,21 @@ public class PushCustomerFileInfo {
      */
     private Integer status;
 
+    /**
+     * b_local_file表主键
+     */
+    private Long localFileId;
+
+    /**
+     * 文件名称
+     */
+    private String fileName;
+
+    /**
+     * 文件大小
+     */
+    private Long fileSize;
+
     public Long getId() {
         return id;
     }
@@ -100,22 +105,6 @@ public class PushCustomerFileInfo {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name == null ? null : name.trim();
-    }
-
-    public Long getSize() {
-        return size;
-    }
-
-    public void setSize(Long size) {
-        this.size = size;
     }
 
     public String getFileMd5() {
@@ -196,5 +185,29 @@ public class PushCustomerFileInfo {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Long getLocalFileId() {
+        return localFileId;
+    }
+
+    public void setLocalFileId(Long localFileId) {
+        this.localFileId = localFileId;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName == null ? null : fileName.trim();
+    }
+
+    public Long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
     }
 }

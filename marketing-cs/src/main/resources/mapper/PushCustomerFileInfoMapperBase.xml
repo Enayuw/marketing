@@ -5,8 +5,6 @@
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="cid" property="cid" jdbcType="VARCHAR"/>
         <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
-        <result column="name" property="name" jdbcType="VARCHAR"/>
-        <result column="size" property="size" jdbcType="BIGINT"/>
         <result column="file_md5" property="fileMd5" jdbcType="VARCHAR"/>
         <result column="file_directory" property="fileDirectory" jdbcType="VARCHAR"/>
         <result column="last_modified_date" property="lastModifiedDate" jdbcType="DATE"/>
@@ -17,6 +15,9 @@
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
         <result column="remark" property="remark" jdbcType="VARCHAR"/>
         <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="local_file_id" property="localFileId" jdbcType="BIGINT"/>
+        <result column="file_name" property="fileName" jdbcType="VARCHAR"/>
+        <result column="file_size" property="fileSize" jdbcType="BIGINT"/>
     </resultMap>
     <sql id="Example_Where_Clause">
         <where>
@@ -80,8 +81,9 @@
     </sql>
     <sql id="Base_Column_List">
         id
-        , cid, api_code, `name`, `size`, file_md5, file_directory, last_modified_date,
-    last_modified_time, push_date, push_status, create_time, update_time, remark, `status`
+        , cid, api_code, file_md5, file_directory, last_modified_date, last_modified_time,
+    push_date, push_status, create_time, update_time, remark, `status`, local_file_id,
+    file_name, file_size
     </sql>
     <select id="selectByExample" resultMap="BaseResultMap"
             parameterType="com.br.marketing.entity.PushCustomerFileInfoExample">
@@ -119,16 +121,18 @@
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_push_customer_file_info (cid, api_code, `name`,
-        `size`, file_md5, file_directory,
-        last_modified_date, last_modified_time, push_date,
-        push_status, create_time, update_time,
-        remark, `status`)
-        values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
-        #{size,jdbcType=BIGINT}, #{fileMd5,jdbcType=VARCHAR}, #{fileDirectory,jdbcType=VARCHAR},
-        #{lastModifiedDate,jdbcType=DATE}, #{lastModifiedTime,jdbcType=TIMESTAMP}, #{pushDate,jdbcType=DATE},
-        #{pushStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
-        #{remark,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER})
+        insert into b_push_customer_file_info (cid, api_code, file_md5,
+        file_directory, last_modified_date, last_modified_time,
+        push_date, push_status, create_time,
+        update_time, remark, `status`,
+        local_file_id, file_name, file_size
+        )
+        values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{fileMd5,jdbcType=VARCHAR},
+        #{fileDirectory,jdbcType=VARCHAR}, #{lastModifiedDate,jdbcType=DATE}, #{lastModifiedTime,jdbcType=TIMESTAMP},
+        #{pushDate,jdbcType=DATE}, #{pushStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER},
+        #{localFileId,jdbcType=BIGINT}, #{fileName,jdbcType=VARCHAR}, #{fileSize,jdbcType=BIGINT}
+        )
     </insert>
     <insert id="insertSelective" parameterType="com.br.marketing.entity.PushCustomerFileInfo">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
@@ -141,12 +145,6 @@
             </if>
             <if test="apiCode != null">
                 api_code,
-            </if>
-            <if test="name != null">
-                `name`,
-            </if>
-            <if test="size != null">
-                `size`,
             </if>
             <if test="fileMd5 != null">
                 file_md5,
@@ -178,6 +176,15 @@
             <if test="status != null">
                 `status`,
             </if>
+            <if test="localFileId != null">
+                local_file_id,
+            </if>
+            <if test="fileName != null">
+                file_name,
+            </if>
+            <if test="fileSize != null">
+                file_size,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="cid != null">
@@ -185,12 +192,6 @@
             </if>
             <if test="apiCode != null">
                 #{apiCode,jdbcType=VARCHAR},
-            </if>
-            <if test="name != null">
-                #{name,jdbcType=VARCHAR},
-            </if>
-            <if test="size != null">
-                #{size,jdbcType=BIGINT},
             </if>
             <if test="fileMd5 != null">
                 #{fileMd5,jdbcType=VARCHAR},
@@ -222,6 +223,15 @@
             <if test="status != null">
                 #{status,jdbcType=INTEGER},
             </if>
+            <if test="localFileId != null">
+                #{localFileId,jdbcType=BIGINT},
+            </if>
+            <if test="fileName != null">
+                #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileSize != null">
+                #{fileSize,jdbcType=BIGINT},
+            </if>
         </trim>
     </insert>
     <select id="countByExample" parameterType="com.br.marketing.entity.PushCustomerFileInfoExample"
@@ -242,12 +252,6 @@
             </if>
             <if test="record.apiCode != null">
                 api_code = #{record.apiCode,jdbcType=VARCHAR},
-            </if>
-            <if test="record.name != null">
-                `name` = #{record.name,jdbcType=VARCHAR},
-            </if>
-            <if test="record.size != null">
-                `size` = #{record.size,jdbcType=BIGINT},
             </if>
             <if test="record.fileMd5 != null">
                 file_md5 = #{record.fileMd5,jdbcType=VARCHAR},
@@ -279,6 +283,15 @@
             <if test="record.status != null">
                 `status` = #{record.status,jdbcType=INTEGER},
             </if>
+            <if test="record.localFileId != null">
+                local_file_id = #{record.localFileId,jdbcType=BIGINT},
+            </if>
+            <if test="record.fileName != null">
+                file_name = #{record.fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fileSize != null">
+                file_size = #{record.fileSize,jdbcType=BIGINT},
+            </if>
         </set>
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause"/>
@@ -289,8 +302,6 @@
         set id = #{record.id,jdbcType=BIGINT},
         cid = #{record.cid,jdbcType=VARCHAR},
         api_code = #{record.apiCode,jdbcType=VARCHAR},
-        `name` = #{record.name,jdbcType=VARCHAR},
-        `size` = #{record.size,jdbcType=BIGINT},
         file_md5 = #{record.fileMd5,jdbcType=VARCHAR},
         file_directory = #{record.fileDirectory,jdbcType=VARCHAR},
         last_modified_date = #{record.lastModifiedDate,jdbcType=DATE},
@@ -300,7 +311,10 @@
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
         remark = #{record.remark,jdbcType=VARCHAR},
-        `status` = #{record.status,jdbcType=INTEGER}
+        `status` = #{record.status,jdbcType=INTEGER},
+        local_file_id = #{record.localFileId,jdbcType=BIGINT},
+        file_name = #{record.fileName,jdbcType=VARCHAR},
+        file_size = #{record.fileSize,jdbcType=BIGINT}
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
@@ -313,12 +327,6 @@
             </if>
             <if test="apiCode != null">
                 api_code = #{apiCode,jdbcType=VARCHAR},
-            </if>
-            <if test="name != null">
-                `name` = #{name,jdbcType=VARCHAR},
-            </if>
-            <if test="size != null">
-                `size` = #{size,jdbcType=BIGINT},
             </if>
             <if test="fileMd5 != null">
                 file_md5 = #{fileMd5,jdbcType=VARCHAR},
@@ -350,6 +358,15 @@
             <if test="status != null">
                 `status` = #{status,jdbcType=INTEGER},
             </if>
+            <if test="localFileId != null">
+                local_file_id = #{localFileId,jdbcType=BIGINT},
+            </if>
+            <if test="fileName != null">
+                file_name = #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileSize != null">
+                file_size = #{fileSize,jdbcType=BIGINT},
+            </if>
         </set>
         where id = #{id,jdbcType=BIGINT}
     </update>
@@ -357,8 +374,6 @@
         update b_push_customer_file_info
         set cid                = #{cid,jdbcType=VARCHAR},
             api_code           = #{apiCode,jdbcType=VARCHAR},
-            `name`             = #{name,jdbcType=VARCHAR},
-            `size`             = #{size,jdbcType=BIGINT},
             file_md5           = #{fileMd5,jdbcType=VARCHAR},
             file_directory     = #{fileDirectory,jdbcType=VARCHAR},
             last_modified_date = #{lastModifiedDate,jdbcType=DATE},
@@ -368,7 +383,10 @@
             create_time        = #{createTime,jdbcType=TIMESTAMP},
             update_time        = #{updateTime,jdbcType=TIMESTAMP},
             remark             = #{remark,jdbcType=VARCHAR},
-            `status`           = #{status,jdbcType=INTEGER}
+            `status`           = #{status,jdbcType=INTEGER},
+            local_file_id      = #{localFileId,jdbcType=BIGINT},
+            file_name          = #{fileName,jdbcType=VARCHAR},
+            file_size          = #{fileSize,jdbcType=BIGINT}
         where id = #{id,jdbcType=BIGINT}
     </update>
 </mapper>
