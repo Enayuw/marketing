@@ -1156,8 +1156,12 @@ public class MarketingCommonConfig {
 
     /**
      * 众邦录音明细回调测试
+     * {"open":"true","code":"500"}
+     *      code success:1
+     *      code fail:0
+     *      code 流控:500
      */
-    private Boolean zhongBangRecodFileReTest = false;
+    private String zhongBangRecodFileReTest;
 
     /**
      * 众邦财富上传录音文件明细配置,{"dbName":"fileType"},eg:{"b_zhongbang_voice_file_detail":"zhongbang_voice"}

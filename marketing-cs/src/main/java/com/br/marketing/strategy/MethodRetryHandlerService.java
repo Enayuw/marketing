@@ -1184,7 +1184,6 @@ public class MethodRetryHandlerService {
         return result;
     }
 
-
     /**
      * 众邦录音明细回调
      *
@@ -1196,9 +1195,22 @@ public class MethodRetryHandlerService {
     public Result<ZbankResponse<ZbankLabelRatingReResultDTO>> pushZbankRecodFileRe(JSONObject json
             , Integer retry) {
         //测试mock
-        if (marketingCommonConfig.getZhongBangRecodFileReTest()) {
-            log.warn("测试众邦不真实调用接口");
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        String zhongBangJson = marketingCommonConfig.getZhongBangRecodFileReTest();
+        if(StringUtils.isNotBlank(zhongBangJson)){
+            JSONObject jsonObject = JSON.parseObject(zhongBangJson);
+            if("true".equals(jsonObject.getString("open"))){
+                String code = jsonObject.getString("code");
+                if ("500".equals(code)) {
+                    log.warn("测试众邦[流控]不真实调用接口-{}",code);
+                    return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                } else if("0".equals(code)){
+                    log.warn("测试众邦[失败]不真实调用接口-{}",code);
+                    return new Result<>().setCode(ResultCode.FAIL.getValue());
+                } else {
+                    log.warn("测试众邦[成功]不真实调用接口-{}",code);
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+                }
+            }
         }
         Result<ZbankResponse<ZbankLabelRatingReResultDTO>> result = new Result<>();
         JSONObject jsonData = new JSONObject();

@@ -79,7 +79,6 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
                 String apiCode = t.getApiCode();
                 String custNum = t.getCaseNum();
                 custNumSet.add(custNum);
-                // todo 怎么保证id和cell和name是最新的？
                 Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
                         transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, t.getCreateTime());
                 if(null != validityPeriodsByCustNum){
@@ -126,13 +125,19 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
             // 3.调用推送接口
             Result<ZbankResponse<ZbankLabelRatingReResultDTO>> result =
                     methodRetryHandlerService.pushZbankRecodFileRe(paramJson, null);
-            if(!ResultCode.SUCCESS.getValue().equals(result.getCode())){
+            if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+                // 4.判断推送结果状态，成功就更新表状态
+                zhongBangVoiceFileDetailMapper.updateBatchByIds(idList, 2, pushDate);
+            }else if(ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())){
+                // 4.判断推送需要重试，不处理状态
+                log.warn("众邦录音文件自动推送流控，后续要重试，入参:{}--反参code:{}--message:{}--data:{}"
+                        , paramJson, result.getMessage(), result.getCode(), result.getData());
+            }else{
+                // 4.判断推送结果失败，就更新表状态
                 log.warn("众邦录音文件自动推送异常，入参:{}--反参code:{}--message:{}--data:{}"
                         , paramJson, result.getMessage(), result.getCode(), result.getData());
-                continue;
+                zhongBangVoiceFileDetailMapper.updateBatchByIds(idList, 3, pushDate);
             }
-            // 4.判断推送结果状态，成功就更新表状态
-            zhongBangVoiceFileDetailMapper.updateBatchByIds(idList, 2, pushDate);
         }
         if(finishFlag){
             List<Long> fileIdList = zhongBangVoiceFileDetailMapper.selectDistinctLocalIdtikv_();
