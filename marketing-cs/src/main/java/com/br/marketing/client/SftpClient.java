@@ -463,7 +463,7 @@ public class SftpClient extends BaseFtpClient{
             long size = attrs.getSize();
             int mTime = attrs.getMTime();
             // 大小和最后修改时间相同，则为同一文件，不进行下载
-            if (size == localFile.length() && mTime == localFile.lastModified()) {
+            if (size == localFile.length() && mTime == (localFile.lastModified() / 1000)) {
                 return localFile;
             }
         }
@@ -491,7 +491,7 @@ public class SftpClient extends BaseFtpClient{
             long size = attrs.getSize();
             int mTime = attrs.getMTime();
             // 大小和最后修改时间相同，则为同一文件，不进行下载
-            if (size == localFile.length() && mTime == localFile.lastModified()) {
+            if (size == localFile.length() && mTime == (localFile.lastModified() / 1000)) {
                 return localFile;
             }
         }
