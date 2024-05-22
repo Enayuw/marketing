@@ -30,7 +30,6 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialRealTimeUserAndCustomerTransferSoleFacade;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
-import com.jcraft.jsch.SftpATTRS;
 import com.jcraft.jsch.SftpException;
 import com.zbank.file.bean.FileDownLoadInfo;
 import com.zbank.file.bean.FileInfo;
@@ -724,6 +723,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         int corePoolSize = (availableNumber / 2);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 30
                 : (availableNumber + corePoolSize), new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
+        ThreadPoolExecutor threadPoolGet = BrExecutors.getThreadPool(corePoolSize, availableNumber
+                , new SynchronousQueue<>(), "br-zbank-voiceFile-sftp-get");
         Map<String, JSONObject> zhongBangVoieFileConfig = marketingCommonConfig.getZhongBangVoieFileConfig();
         if (zhongBangVoieFileConfig.isEmpty()) {
             JSONObject jsonObject = new JSONObject();
@@ -736,260 +737,53 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         Date startDate = Date.from(zonedDateTime.toInstant());
         Date endDate = Date.from(zonedDateTime.plusDays(1).toInstant());
         String dateStr = localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
-        int createDate = Integer.parseInt(dateStr);
         Set<Map.Entry<String, JSONObject>> entrySet = zhongBangVoieFileConfig.entrySet();
         // 遍历文件配置信息
         for (Map.Entry<String, JSONObject> entry : entrySet) {
             JSONObject entryValue = entry.getValue();
             String fileType = entryValue.getString("fileType");
             String tableName = entry.getKey();
-            FileDbConfigExample fileDbConfigExample = new FileDbConfigExample();
-            fileDbConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andDbNameEqualTo(tableName)
-                    .andDelEqualTo(1).andFileTypeEqualTo(fileType);
-            List<FileDbConfig> fileDbConfigs = fileDbConfigMapper.selectByExample(fileDbConfigExample);
+            List<FileDbConfig> fileDbConfigs = getFileDbConfig(apiCode, fileType, tableName);
             // 文件服务信息遍历
             for (FileDbConfig fileDbConfig : fileDbConfigs) {
                 Long sftpConfigId = fileDbConfig.getSftpConfigId();
                 SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(sftpConfigId);
-                LocalFileExample localFileExample = new LocalFileExample();
-                localFileExample.createCriteria().andStatusEqualTo("2").andCompleteEqualTo("1")
-                        .andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType)
-                        .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate)
-                        .andActualNumberGreaterThan(0);
-                List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
+                List<LocalFile> localFiles = getLocalFile(apiCode, fileType, startDate, endDate);
                 resultBool = resultBool && localFiles.size() > 0;
+                // 明细文件信息
                 for (LocalFile localFile : localFiles) {
                     String fileName = localFile.getFileName();
                     Long localFileId = localFile.getId();
                     int fileDetailsCount;
                     int fileInfoCount;
                     PushCustomerFileInfoExample exampleInfoCount = new PushCustomerFileInfoExample();
-                    exampleInfoCount.createCriteria().andApiCodeEqualTo(apiCode)
-                            .andCidEqualTo(cid).andStatusEqualTo(1)
-                            .andCreateTimeGreaterThanOrEqualTo(startDate).andPushStatusIn(Arrays.asList(0, 3))
-                            .andCreateTimeLessThan(endDate).andLocalFileIdEqualTo(localFileId);
+                    exampleInfoCount.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(cid)
+                            .andStatusEqualTo(1).andPushStatusIn(Arrays.asList(0, 3)).andLocalFileIdEqualTo(localFileId);
                     fileInfoCount = pushCustomerFileInfoMapper.countByExample(exampleInfoCount);
                     ZhongbangVoiceFileDetailExample exampleDetailCount = new ZhongbangVoiceFileDetailExample();
                     exampleDetailCount.createCriteria().andLocalIdEqualTo(localFileId).andStatusEqualTo(1)
                             .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0);
                     fileDetailsCount = zhongbangVoiceFileDetailMapper.countByExample(exampleDetailCount);
                     if (fileInfoCount != fileDetailsCount) {
-                        fileInfoCount = 0;
-                        fileDetailsCount = 0;
-                        // 获得sftp连接
-                        SftpClient ftpClient = new SftpClient(syncConfig, true);
-                        try {
-                            if (ftpClient.connect()) {
-                                String localPath = localFile.getLocalPath();
-                                String localDir = localPath.replaceAll(DateUtils.yyyyMMdd, dateStr).concat(fileName.replace(".txt", ""))
-                                        .concat(File.separator).concat("voice_" + localFileId).concat(File.separator);
-                                String srcPath = syncConfig.getSrcPath().replaceAll(DateUtils.yyyyMMdd, dateStr);
-                                long maxId = 0;
-                                while (!Thread.currentThread().isInterrupted() && ftpClient.isConnected()) {
-                                    ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
-                                    voiceFileDetailExample.createCriteria().andLocalIdEqualTo(localFileId).andStatusEqualTo(1)
-                                            .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0)
-                                            .andIdGreaterThan(maxId);
-                                    voiceFileDetailExample.setOrderByClause("id limit " + pageSize);
-                                    List<ZhongbangVoiceFileDetail> fileDetails = zhongbangVoiceFileDetailMapper.selectByExample(voiceFileDetailExample);
-                                    if (fileDetails.isEmpty()) {
-                                        break;
-                                    }
-                                    int size = fileDetails.size();
-                                    fileDetailsCount += size;
-                                    maxId = fileDetails.get(size - 1).getId();
-                                    List<String> fileNameList = fileDetails.stream().map(ZhongbangVoiceFileDetail::getFileName).collect(Collectors.toList());
-                                    PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
-                                    example.createCriteria().andApiCodeEqualTo(apiCode)
-                                            .andCidEqualTo(cid).andFileNameIn(fileNameList)
-                                            .andCreateTimeGreaterThanOrEqualTo(startDate)
-                                            .andCreateTimeLessThan(endDate).andLocalFileIdEqualTo(localFileId);
-                                    List<PushCustomerFileInfo> infoList = pushCustomerFileInfoMapper.selectByExample(example);
-                                    Map<String, PushCustomerFileInfo> fileInfoMap = infoList.stream().collect(Collectors.toMap(PushCustomerFileInfo::getFileName, Function.identity()));
-                                    for (ZhongbangVoiceFileDetail detail : fileDetails) {
-                                        if (StringUtils.isBlank(detail.getFileName())) {
-                                            continue;
-                                        }
-                                        try {
-                                            File dir = new File(localDir);
-                                            if (!dir.exists() && !dir.mkdirs()) {
-                                                log.error("众邦下载外呼录音文件，本地目录创建失败：{}", localDir);
-                                                continue;
-                                            }
-                                            File file = ftpClient.downloadLocalFile(srcPath, detail.getFileName(), localDir.concat(detail.getFileName()));
-                                            String fileMd5 = Md5EncodeUtil.encode(file);
-                                            String parent = file.getParent();
-                                            long length = file.length();
-                                            PushCustomerFileInfo fileInfoOld = fileInfoMap.get(detail.getFileName());
-                                            if (fileInfoOld == null) {
-                                                // 文件信息入库
-                                                PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
-                                                Date lastModifiedDate = new Date(file.lastModified());
-                                                fileInfo.setCid(cid);
-                                                fileInfo.setApiCode(apiCode);
-                                                fileInfo.setFileName(file.getName());
-                                                fileInfo.setLastModifiedTime(lastModifiedDate);
-                                                fileInfo.setLastModifiedDate(lastModifiedDate);
-                                                fileInfo.setFileDirectory(parent == null ? localDir : parent);
-                                                fileInfo.setFileSize(length);
-                                                fileInfo.setCreateTime(new Date());
-                                                fileInfo.setUpdateTime(fileInfo.getCreateTime());
-                                                fileInfo.setFileMd5(fileMd5);
-                                                fileInfo.setLocalFileId(localFileId);
-                                                // 待推送
-                                                fileInfo.setPushStatus(0);
-                                                try {
-                                                    pushCustomerFileInfoMapper.insertSelective(fileInfo);
-                                                } catch (Exception e) {
-                                                    log.error("众邦录音文件信息保存失败！" + e.getMessage(), e);
-                                                    resultBool = false;
-                                                }
-                                            } else {
-                                                if (fileInfoOld.getFileMd5().equals(fileMd5)) {
-                                                    continue;
-                                                } else {
-                                                    PushCustomerFileInfo fileInfoUpdate = new PushCustomerFileInfo();
-                                                    Date lastModifiedDate = new Date(file.lastModified());
-                                                    fileInfoUpdate.setId(fileInfoOld.getId());
-                                                    fileInfoUpdate.setLastModifiedTime(lastModifiedDate);
-                                                    fileInfoUpdate.setLastModifiedDate(lastModifiedDate);
-                                                    fileInfoUpdate.setFileDirectory(parent == null ? localDir : parent);
-                                                    fileInfoUpdate.setFileSize(length);
-                                                    fileInfoUpdate.setUpdateTime(new Date());
-                                                    fileInfoUpdate.setFileMd5(fileMd5);
-                                                    pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfoUpdate);
-                                                }
-                                            }
-                                            fileInfoCount++;
-                                        } catch (SftpException | IOException | SDKException e) {
-                                            log.error(e.getMessage() + "录音文件：" + detail.getFileName(), e);
-                                            resultBool = false;
-                                        }
-                                    }
-                                    if (size < pageSize) {
-                                        break;
-                                    }
-                                }
-                            }
-                        } catch (Exception e) {
-                            log.error(e.getMessage(), e);
-                            resultBool = false;
-                        } finally {
-                            if (ftpClient.isConnected()) {
-                                try {
-                                    ftpClient.disconnect();
-                                } catch (Exception e) {
-                                    log.error("众邦录音文件下载sftp关闭异常！" + e.getMessage(), e);
-                                }
-                            }
-                        }
+                        resultBool = resultBool && getFromSftpLocalDisk(localFile, syncConfig, dateStr, apiCode, cid
+                                , pageSize, threadPoolGet, entryValue);
                     }
+                    fileInfoCount = pushCustomerFileInfoMapper.countByExample(exampleInfoCount);
                     if (fileInfoCount == fileDetailsCount) {
                         if (fileDetailsCount > 0) {
-
-                            LocalFile byPrimaryKey = localFileMapper.getByPrimaryKey(localFileId);
-                            if (byPrimaryKey.getPushStartTime() == null) {
-                                LocalFile localFileNew = new LocalFile();
-                                localFileNew.setId(localFileId);
-                                localFileNew.setPushStartTime(new Date());
-                                localFileMapper.updateByPrimaryKeySelective(localFileNew);
-                            }
-                            long maxId = 0L;
-                            // 文件正常下载完成
-                            List<CompletableFuture<Boolean>> futures = new ArrayList<>();
-                            for (; true; ) {
-                                PushCustomerFileInfoExample exampleSelect = new PushCustomerFileInfoExample();
-                                exampleSelect.createCriteria().andApiCodeEqualTo(apiCode)
-                                        .andCidEqualTo(cid).andCreateTimeGreaterThanOrEqualTo(startDate)
-                                        .andCreateTimeLessThan(endDate).andLocalFileIdEqualTo(localFileId)
-                                        .andStatusEqualTo(1).andPushStatusIn(Arrays.asList(0, 3)).andIdGreaterThan(maxId);
-                                exampleSelect.setOrderByClause("id limit " + pageSize);
-                                List<PushCustomerFileInfo> infoList = pushCustomerFileInfoMapper.selectByExample(exampleSelect);
-                                if (infoList.isEmpty()) {
-                                    break;
-                                }
-                                int size = infoList.size();
-                                maxId = infoList.get(size - 1).getId();
-                                for (PushCustomerFileInfo fileInfo : infoList) {
-                                    int poolSize = entryValue.getIntValue("poolSize");
-                                    setThreadPool(poolSize, threadPool);
-                                    // 文件推送
-                                    futures.add(CompletableFuture.supplyAsync(() -> {
-                                        File file = new File(fileInfo.getFileDirectory().concat(File.separator) + fileInfo.getFileName());
-                                        ZhongbangVoiceFileDetail voiceFileDetail = new ZhongbangVoiceFileDetail();
-                                        voiceFileDetail.setCreateDate(createDate);
-                                        voiceFileDetail.setFileName(file.getName());
-                                        voiceFileDetail.setLocalId(localFileId);
-                                        fileInfo.setPushDate(startDate);
-                                        if (file.exists() && file.isFile()) {
-                                            try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
-                                                UploadInfo uploadInfo = zBankClient.uploadInputStream(inputStream
-                                                        , file.getName(), file.length(), fileInfo.getFileMd5());
-                                                voiceFileDetail.setCustomerFileId(uploadInfo.getFileId());
-                                                voiceFileDetail.setPushStatus(1);
-                                                // 推送成功
-                                                fileInfo.setPushStatus(2);
-                                                fileInfo.setRemark("");
-                                            } catch (SDKException | IOException e) {
-                                                log.error(e.getMessage(), e);
-                                                fileInfo.setRemark(e.getMessage());
-                                                if (e instanceof IOException) {
-                                                    // 文件异常
-                                                    fileInfo.setStatus(2);
-                                                }
-                                                // 推送失败
-                                                fileInfo.setPushStatus(3);
-                                                pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
-                                                return false;
-                                            }
-                                        } else {
-                                            fileInfo.setStatus(2);
-                                            pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
-                                            return true;
-                                        }
-                                        int i = pushCustomerFileInfoMapper.updateFileInfoAndFileDetailtikv_(fileInfo, voiceFileDetail, startDate, endDate);
-                                        if (i != 2) {
-                                            String msg = "众邦录音文件上传更新失败:文件：" + fileInfo.getFileName() + ",明细文件：" + fileName;
-                                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(), msg
-                                                    , "众邦录音文件上传更新失败"));
-                                        }
-                                        return true;
-                                    }, threadPool).exceptionally((Throwable throwable) -> {
-                                        if (throwable != null) {
-                                            log.error(throwable.getMessage(), throwable);
-                                        }
-                                        return false;
-                                    }));
-                                }
-                                if (size < pageSize) {
-                                    break;
-                                }
-                            }
+                            // 上传开始时间记录
+                            updateLocalFilePushTime(localFileId);
+                            // 文件下载
+                            List<CompletableFuture<Boolean>> futures = uploadFile(
+                                    cid, apiCode, pageSize, entryValue, threadPool, localFile);
                             // 结果转换
-                            try {
-                                resultBool = resultBool && CompletableFuture.allOf(futures.toArray(
-                                        new CompletableFuture[0])).thenApply((Void v) -> {
-                                    boolean b = true;
-                                    for (CompletableFuture<Boolean> future : futures) {
-                                        try {
-                                            if (!future.get(1, TimeUnit.MINUTES) && b) {
-                                                b = false;
-                                            }
-                                        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                                            log.error(e.getMessage());
-                                            b = false;
-                                            Thread.currentThread().interrupt();
-                                        }
-                                    }
-                                    return b;
-                                }).get(1, TimeUnit.HOURS);
-                            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                                Thread.currentThread().interrupt();
-                                log.error(e.getMessage(), e);
-                            }
+                            resultBool = resultBool && allOf(futures);
                         } else {
-
-                            resultBool = false;
+                            ZhongbangVoiceFileDetailExample countExample = new ZhongbangVoiceFileDetailExample();
+                            exampleDetailCount.createCriteria().andLocalIdEqualTo(localFileId).andApiCodeEqualTo(apiCode)
+                                    .andStatusEqualTo(1).andIsDeletedEqualTo(0);
+                            fileDetailsCount = zhongbangVoiceFileDetailMapper.countByExample(countExample);
+                            resultBool = fileDetailsCount > 0;
                         }
                     } else {
                         String msg = "众邦录音文件量级与明细量级不匹配，录音文件量级:" + fileInfoCount
@@ -1004,6 +798,22 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return resultBool;
     }
 
+    private List<FileDbConfig> getFileDbConfig(String apiCode, String fileType, String tableName) {
+        FileDbConfigExample fileDbConfigExample = new FileDbConfigExample();
+        fileDbConfigExample.createCriteria().andApiCodeEqualTo(apiCode).andDbNameEqualTo(tableName)
+                .andDelEqualTo(1).andFileTypeEqualTo(fileType);
+        return fileDbConfigMapper.selectByExample(fileDbConfigExample);
+    }
+
+    private List<LocalFile> getLocalFile(String apiCode, String fileType, Date startDate, Date endDate) {
+        LocalFileExample localFileExample = new LocalFileExample();
+        localFileExample.createCriteria().andStatusEqualTo("2").andCompleteEqualTo("1")
+                .andApiCodeEqualTo(apiCode).andFileTypeEqualTo(fileType)
+                .andCreateTimeGreaterThanOrEqualTo(startDate).andCreateTimeLessThan(endDate)
+                .andActualNumberGreaterThan(0);
+        return localFileMapper.selectByExample(localFileExample);
+    }
+
     private void setThreadPool(int poolSize, ThreadPoolExecutor poolExecutor) {
         if (poolSize > 0) {
             poolExecutor.setCorePoolSize(poolSize);
@@ -1011,112 +821,245 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         }
     }
 
-
-    /**
-     * 2024-05-20 19:59
-     * 下载远程文件到本地磁盘
-     */
-    private List<File> getFromSftpLocalDisk(SyncConfig syncConfig, String[] suffix, String localDri, String cid
-            , String apiCode, Date dateStart, Date dateEnd, String dateStr) {
-        SftpClient ftpClient = new SftpClient(syncConfig, true);
-        String srcPath = syncConfig.getSrcPath().replaceAll(DateUtils.yyyyMMdd, dateStr);
-        List<File> fileList = new ArrayList<>();
-        try {
-            if (ftpClient.connect() || ftpClient.isConnected()) {
-                Map<String, SftpATTRS> listFiles = ftpClient.listFiles(srcPath, suffix);
-                Set<Map.Entry<String, SftpATTRS>> entrySet = listFiles.entrySet();
-                File dir = new File(localDri);
-                if (!dir.exists() && !dir.mkdirs()) {
-                    log.error("本地目录创建失败：{}", localDri);
-                    return fileList;
-                }
-                for (Map.Entry<String, SftpATTRS> entry : entrySet) {
-                    String fileName = entry.getKey();
-                    SftpATTRS attrs = entry.getValue();
-                    File file = ftpClient.downloadLocalFile(srcPath, fileName
-                            , localDri.concat(File.separator).concat(fileName), attrs);
-                    fileList.add(file);
-                    PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
-                    example.createCriteria().andApiCodeEqualTo(apiCode)
-                            .andCidEqualTo(cid).andFileNameEqualTo(fileName)
-                            .andCreateTimeGreaterThanOrEqualTo(dateStart)
-                            .andCreateTimeLessThan(dateEnd);
-                    int count = pushCustomerFileInfoMapper.countByExample(example);
-                    if (count > 0) {
-                        continue;
-                    }
-                    // 文件信息入库
-                    PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
-                    Date lastModifiedDate = new Date(file.lastModified());
-                    String parent = file.getParent();
-                    long length = file.length();
-                    fileInfo.setCid(cid);
-                    fileInfo.setApiCode(apiCode);
-                    fileInfo.setFileName(fileName);
-                    fileInfo.setLastModifiedTime(lastModifiedDate);
-                    fileInfo.setLastModifiedDate(lastModifiedDate);
-                    fileInfo.setFileDirectory(parent == null ? localDri : parent);
-                    fileInfo.setFileSize(length);
-                    fileInfo.setCreateTime(new Date());
-                    fileInfo.setUpdateTime(fileInfo.getCreateTime());
-                    // 待推送
-                    fileInfo.setPushStatus(0);
-                    pushCustomerFileInfoMapper.insertSelective(fileInfo);
-                }
-            }
-            if (ftpClient.isConnected()) {
-                ftpClient.disconnect();
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
+    private void updateLocalFilePushTime(long localFileId) {
+        LocalFile byPrimaryKey = localFileMapper.getByPrimaryKey(localFileId);
+        if (byPrimaryKey.getPushStartTime() == null) {
+            LocalFile localFileNew = new LocalFile();
+            localFileNew.setId(localFileId);
+            localFileNew.setPushStartTime(new Date());
+            localFileMapper.updateByPrimaryKeySelective(localFileNew);
         }
-        return fileList;
     }
 
-
     /**
      * 2024-05-20 19:59
-     * 下载远程文件到本地磁盘
+     * 下载远程文件到本地磁盘及文件信息保存
      */
-    private List<File> getFromSftpLocalDisk(SyncConfig syncConfig, String[] suffix, String localDri, String cid
-            , String apiCode, Date dateStart, Date dateEnd, String dateStr, List<ZhongbangVoiceFileDetail> fileDetails) {
+    private boolean getFromSftpLocalDisk(LocalFile localFile, SyncConfig syncConfig, String dateStr
+            , String apiCode, String cid, Integer pageSize, ThreadPoolExecutor threadPoolGet
+            , JSONObject entryValue) {
+        // 获得sftp连接
         SftpClient ftpClient = new SftpClient(syncConfig, true);
-        String srcPath = syncConfig.getSrcPath().replaceAll(DateUtils.yyyyMMdd, dateStr);
-        List<File> fileList = new ArrayList<>();
+        long localFileId = localFile.getId();
+        String fileName = localFile.getFileName();
+        List<CompletableFuture<Boolean>> futures = new ArrayList<>();
         try {
-            if (ftpClient.connect() || ftpClient.isConnected()) {
-                Map<String, SftpATTRS> listFiles = ftpClient.listFiles(srcPath, suffix);
-                Set<Map.Entry<String, SftpATTRS>> entrySet = listFiles.entrySet();
-                File dir = new File(localDri);
-                if (!dir.exists() && !dir.mkdirs()) {
-                    log.error("本地目录创建失败：{}", localDri);
-                    return fileList;
-                }
-                for (Map.Entry<String, SftpATTRS> entry : entrySet) {
-                    String fileName = entry.getKey();
-                    SftpATTRS attrs = entry.getValue();
-                    File file = ftpClient.downloadLocalFile(srcPath, fileName
-                            , localDri.concat(File.separator).concat(fileName), attrs);
-                    fileList.add(file);
-                    PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
-                    example.createCriteria().andApiCodeEqualTo(apiCode)
-                            .andCidEqualTo(cid).andFileNameEqualTo(fileName)
-                            .andCreateTimeGreaterThanOrEqualTo(dateStart)
-                            .andCreateTimeLessThan(dateEnd);
-                    int count = pushCustomerFileInfoMapper.countByExample(example);
-                    if (count > 0) {
-                        continue;
+            if (ftpClient.connect()) {
+                String localPath = localFile.getLocalPath();
+                String localDir = localPath.replaceAll(DateUtils.yyyyMMdd, dateStr).concat(fileName.replace(".txt", ""))
+                        .concat(File.separator).concat("voice_" + localFileId).concat(File.separator);
+                String srcPath = syncConfig.getSrcPath().replaceAll(DateUtils.yyyyMMdd, dateStr);
+                long maxId = 0;
+                while (!Thread.currentThread().isInterrupted() && ftpClient.isConnected()) {
+                    int poolSize = entryValue.getIntValue("uploadPoolSize");
+                    ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
+                    voiceFileDetailExample.createCriteria().andLocalIdEqualTo(localFileId).andStatusEqualTo(1)
+                            .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0)
+                            .andIdGreaterThan(maxId);
+                    voiceFileDetailExample.setOrderByClause("id limit " + pageSize);
+                    List<ZhongbangVoiceFileDetail> fileDetails = zhongbangVoiceFileDetailMapper
+                            .selectByExample(voiceFileDetailExample);
+                    if (fileDetails.isEmpty()) {
+                        break;
                     }
-
+                    int size = fileDetails.size();
+                    maxId = fileDetails.get(size - 1).getId();
+                    futures.add(CompletableFuture.supplyAsync(() -> {
+                        boolean bool = true;
+                        List<String> fileNameList = fileDetails.stream().map(ZhongbangVoiceFileDetail::getFileName)
+                                .collect(Collectors.toList());
+                        PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
+                        example.createCriteria().andApiCodeEqualTo(apiCode)
+                                .andCidEqualTo(cid).andFileNameIn(fileNameList).andLocalFileIdEqualTo(localFileId);
+                        List<PushCustomerFileInfo> infoList = pushCustomerFileInfoMapper.selectByExample(example);
+                        Map<String, PushCustomerFileInfo> fileInfoMap = infoList.stream().collect(Collectors.toMap(
+                                PushCustomerFileInfo::getFileName, Function.identity()));
+                        for (ZhongbangVoiceFileDetail detail : fileDetails) {
+                            setThreadPool(poolSize, threadPoolGet);
+                            if (StringUtils.isBlank(detail.getFileName())) {
+                                continue;
+                            }
+                            try {
+                                File dir = new File(localDir);
+                                if (!dir.exists() && !dir.mkdirs()) {
+                                    log.error("众邦下载外呼录音文件，本地目录创建失败：{}", localDir);
+                                    continue;
+                                }
+                                File file = ftpClient.downloadLocalFile(srcPath, detail.getFileName()
+                                        , localDir.concat(detail.getFileName()));
+                                String fileMd5 = Md5EncodeUtil.encode(file);
+                                String parent = file.getParent();
+                                long length = file.length();
+                                PushCustomerFileInfo fileInfoOld = fileInfoMap.get(detail.getFileName());
+                                if (fileInfoOld == null) {
+                                    // 文件信息入库
+                                    PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
+                                    Date lastModifiedDate = new Date(file.lastModified());
+                                    fileInfo.setCid(cid);
+                                    fileInfo.setApiCode(apiCode);
+                                    fileInfo.setFileName(file.getName());
+                                    fileInfo.setLastModifiedTime(lastModifiedDate);
+                                    fileInfo.setLastModifiedDate(lastModifiedDate);
+                                    fileInfo.setFileDirectory(parent == null ? localDir : parent);
+                                    fileInfo.setFileSize(length);
+                                    fileInfo.setCreateTime(new Date());
+                                    fileInfo.setUpdateTime(fileInfo.getCreateTime());
+                                    fileInfo.setFileMd5(fileMd5);
+                                    fileInfo.setLocalFileId(localFileId);
+                                    // 待推送
+                                    fileInfo.setPushStatus(0);
+                                    try {
+                                        pushCustomerFileInfoMapper.insertSelective(fileInfo);
+                                    } catch (Exception e) {
+                                        log.error("众邦录音文件信息保存失败！" + e.getMessage(), e);
+                                        bool = false;
+                                    }
+                                } else {
+                                    if (!fileInfoOld.getFileMd5().equals(fileMd5)) {
+                                        PushCustomerFileInfo fileInfoUpdate = new PushCustomerFileInfo();
+                                        Date lastModifiedDate = new Date(file.lastModified());
+                                        fileInfoUpdate.setId(fileInfoOld.getId());
+                                        fileInfoUpdate.setLastModifiedTime(lastModifiedDate);
+                                        fileInfoUpdate.setLastModifiedDate(lastModifiedDate);
+                                        fileInfoUpdate.setFileDirectory(parent == null ? localDir : parent);
+                                        fileInfoUpdate.setFileSize(length);
+                                        fileInfoUpdate.setUpdateTime(new Date());
+                                        fileInfoUpdate.setFileMd5(fileMd5);
+                                        pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfoUpdate);
+                                    }
+                                }
+                            } catch (SftpException | IOException | SDKException e) {
+                                log.error(e.getMessage() + "录音文件：" + detail.getFileName(), e);
+                                bool = false;
+                            }
+                        }
+                        return bool;
+                    }, threadPoolGet).exceptionally(throwable -> {
+                        if (throwable != null) {
+                            log.error(throwable.getMessage(), throwable);
+                        }
+                        return false;
+                    }));
+                    if (size < pageSize) {
+                        break;
+                    }
                 }
             }
-            if (ftpClient.isConnected()) {
-                ftpClient.disconnect();
-            }
+            return allOf(futures);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
+        } finally {
+            if (ftpClient.isConnected()) {
+                try {
+                    ftpClient.disconnect();
+                } catch (Exception e) {
+                    log.error("众邦录音文件下载sftp关闭异常！" + e.getMessage(), e);
+                }
+            }
         }
-        return fileList;
+        return false;
+    }
+
+    private boolean allOf(List<CompletableFuture<Boolean>> futures) {
+        try {
+            return CompletableFuture.allOf(futures.toArray(
+                    new CompletableFuture[0])).thenApply((Void v) -> {
+                boolean b = true;
+                for (CompletableFuture<Boolean> future : futures) {
+                    try {
+                        if (!future.get(1, TimeUnit.MINUTES) && b) {
+                            b = false;
+                        }
+                    } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                        log.error(e.getMessage());
+                        b = false;
+                        Thread.currentThread().interrupt();
+                    }
+                }
+                return b;
+            }).get(30, TimeUnit.MINUTES);
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            Thread.currentThread().interrupt();
+            log.error(e.getMessage(), e);
+        }
+        return false;
+    }
+
+    private List<CompletableFuture<Boolean>> uploadFile(String cid, String apiCode, int pageSize
+            , JSONObject entryValue, ThreadPoolExecutor threadPool, LocalFile localFile) {
+        List<CompletableFuture<Boolean>> futures = new ArrayList<>();
+        long localFileId = localFile.getId();
+        long maxId = 0L;
+        for (; true; ) {
+            PushCustomerFileInfoExample exampleSelect = new PushCustomerFileInfoExample();
+            exampleSelect.createCriteria().andApiCodeEqualTo(apiCode)
+                    .andCidEqualTo(cid).andLocalFileIdEqualTo(localFileId)
+                    .andStatusEqualTo(1).andPushStatusIn(Arrays.asList(0, 3)).andIdGreaterThan(maxId);
+            exampleSelect.setOrderByClause("id limit " + pageSize);
+            List<PushCustomerFileInfo> infoList = pushCustomerFileInfoMapper.selectByExample(exampleSelect);
+            if (infoList.isEmpty()) {
+                break;
+            }
+            int size = infoList.size();
+            maxId = infoList.get(size - 1).getId();
+            for (PushCustomerFileInfo fileInfo : infoList) {
+                int poolSize = entryValue.getIntValue("uploadPoolSize");
+                setThreadPool(poolSize, threadPool);
+                // 文件推送
+                futures.add(CompletableFuture.supplyAsync(() -> {
+                    File file = new File(fileInfo.getFileDirectory().concat(File.separator)
+                            + fileInfo.getFileName());
+                    ZhongbangVoiceFileDetail voiceFileDetail = new ZhongbangVoiceFileDetail();
+                    voiceFileDetail.setFileName(file.getName());
+                    voiceFileDetail.setLocalId(localFileId);
+                    fileInfo.setPushDate(new Date());
+                    if (file.exists() && file.isFile()) {
+                        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(file))) {
+                            UploadInfo uploadInfo = zBankClient.uploadInputStream(inputStream
+                                    , file.getName(), file.length(), fileInfo.getFileMd5());
+                            voiceFileDetail.setCustomerFileId(uploadInfo.getFileId());
+                            voiceFileDetail.setPushStatus(1);
+                            // 推送成功
+                            fileInfo.setPushStatus(2);
+                            fileInfo.setRemark("");
+                        } catch (SDKException | IOException e) {
+                            log.error(e.getMessage(), e);
+                            fileInfo.setRemark(e.getMessage());
+                            if (e instanceof IOException) {
+                                // 文件异常
+                                fileInfo.setStatus(2);
+                            }
+                            // 推送失败
+                            fileInfo.setPushStatus(3);
+                            pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
+                            return false;
+                        }
+                    } else {
+                        fileInfo.setStatus(2);
+                        pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfo);
+                        return false;
+                    }
+                    int i = pushCustomerFileInfoMapper.updateFileInfoAndFileDetailtikv_(fileInfo, voiceFileDetail);
+                    if (i != 2) {
+                        String msg = "众邦录音文件上传更新失败:文件：" + fileInfo.getFileName()
+                                + ",明细文件：" + localFile.getFileName();
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode()
+                                , msg, "众邦录音文件上传更新失败"));
+                        return false;
+                    }
+                    return true;
+                }, threadPool).exceptionally((Throwable throwable) -> {
+                    if (throwable != null) {
+                        log.error(throwable.getMessage(), throwable);
+                    }
+                    return false;
+                }));
+            }
+            if (size < pageSize) {
+                break;
+            }
+        }
+        return futures;
     }
 
 }

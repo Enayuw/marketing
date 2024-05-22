@@ -21,7 +21,6 @@
         where
         t1.id=${fileInfo.id}
         and t2.local_id = #{fileDetail.localId}
-        and t2.create_date = #{fileDetail.createDate}
         and t2.push_status=0
         and t2.status=1
         and t2.is_deleted=0
