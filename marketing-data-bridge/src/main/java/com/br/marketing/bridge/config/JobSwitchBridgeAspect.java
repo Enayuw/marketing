@@ -24,7 +24,8 @@ public class JobSwitchBridgeAspect {
     @Around("execution(* com.br.marketing.bridge.job..*.process(..))")
     public void handleJobSwitch(ProceedingJoinPoint jp) throws Throwable {
         //开关默认关闭
-        boolean JobOnlineSwitch = StringUtils.isNotEmpty(marketingCommonConfig.getDataBridgeJobOnlineSwitch()) ? marketingCommonConfig.getDataBridgeJobOnlineSwitch() : false;
+        Boolean dataBridgeJobOnlineSwitch = marketingCommonConfig.getDataBridgeJobOnlineSwitch();
+        boolean JobOnlineSwitch = StringUtils.isNotEmpty(dataBridgeJobOnlineSwitch) ? dataBridgeJobOnlineSwitch : false;
         //未开启开关，正常执行
         if (!JobOnlineSwitch) {
             jp.proceed();
