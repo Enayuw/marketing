@@ -24,7 +24,8 @@ public class JobSwitchMonkeyAspect {
     @Around("execution(* com.br.marketing.monkey.job..*.process(..))")
     public void handleJobSwitch(ProceedingJoinPoint jp) throws Throwable {
         //开关默认关闭
-        boolean JobOnlineSwitch = StringUtils.isNotEmpty(marketingCommonConfig.getDataMonkeyJobOnlineSwitch()) ? marketingCommonConfig.getDataMonkeyJobOnlineSwitch() : false;
+        Boolean dataMonkeyJobOnlineSwitch = marketingCommonConfig.getDataMonkeyJobOnlineSwitch();
+        boolean JobOnlineSwitch = StringUtils.isNotEmpty(dataMonkeyJobOnlineSwitch) ? dataMonkeyJobOnlineSwitch : false;
         //未开启开关，正常执行
         if (!JobOnlineSwitch) {
             jp.proceed();
