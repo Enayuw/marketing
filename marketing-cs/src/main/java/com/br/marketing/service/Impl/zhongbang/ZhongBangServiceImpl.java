@@ -1018,8 +1018,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     }
                 }
                 return b;
-            }).get(30, TimeUnit.MINUTES);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            }).get();
+        } catch (InterruptedException | ExecutionException e) {
             Thread.currentThread().interrupt();
             log.error(e.getMessage(), e);
         }
