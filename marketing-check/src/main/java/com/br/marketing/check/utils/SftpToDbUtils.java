@@ -371,6 +371,17 @@ public class SftpToDbUtils {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 
+    /**
+     *
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/5/21 17:47
+     * @param head 文件表头
+     * @param address 空值, <位置,表头字段名>
+     * @param extra 空值, 扩展子段包含的表头字段名
+     * @param baseHeads 必填字段
+     * @param fieldVosMap <表头字段,处理规则配置>
+     * @return Result
+     */
     public static Result statisticsHeadByCommon(String head,HashMap<Integer, String> address,HashSet extra,
                                                 List<String> baseHeads,Map<String, List<FileToMarketingFieldVO>> fieldVosMap){
         List<String> heads = Splitter.on(",").splitToList(head);
