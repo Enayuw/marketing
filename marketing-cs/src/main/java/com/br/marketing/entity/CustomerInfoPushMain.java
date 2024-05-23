@@ -1,12 +1,16 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import lombok.Data;
 
-public class CustomerInfoPushMain {
-    /**
-     * 
-     */
+/**
+ * b_customer_info_push_main
+ * @author 
+ */
+
+public class CustomerInfoPushMain implements Serializable {
     private Long id;
 
     /**
@@ -60,7 +64,7 @@ public class CustomerInfoPushMain {
     private String mCusBatchNumberList;
 
     /**
-     * 执行状态 1-执行中；2-执行成功；3-执行失败
+     * 执行状态 1-执行中;2-待确认;3-推送失败;4-确认成功;5-确认失败
      */
     private Integer mStatus;
 
@@ -109,6 +113,20 @@ public class CustomerInfoPushMain {
      */
     private String optUserName;
 
+    /**
+     * 任务类型 0 跑分数据推决策, 1 跑分及撞库结果筛选推决策
+     */
+    private Integer filterType;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
+
+
+
+    private static final long serialVersionUID = 1L;
+
     public Long getId() {
         return id;
     }
@@ -122,7 +140,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmApiCode(String mApiCode) {
-        this.mApiCode = mApiCode == null ? null : mApiCode.trim();
+        this.mApiCode = mApiCode;
     }
 
     public String getmModel() {
@@ -130,7 +148,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmModel(String mModel) {
-        this.mModel = mModel == null ? null : mModel.trim();
+        this.mModel = mModel;
     }
 
     public String getmModelVersion() {
@@ -138,7 +156,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmModelVersion(String mModelVersion) {
-        this.mModelVersion = mModelVersion == null ? null : mModelVersion.trim();
+        this.mModelVersion = mModelVersion;
     }
 
     public Integer getmNumMin() {
@@ -194,7 +212,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmCusBatchNumberList(String mCusBatchNumberList) {
-        this.mCusBatchNumberList = mCusBatchNumberList == null ? null : mCusBatchNumberList.trim();
+        this.mCusBatchNumberList = mCusBatchNumberList;
     }
 
     public Integer getmStatus() {
@@ -242,7 +260,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmRuleCondition(String mRuleCondition) {
-        this.mRuleCondition = mRuleCondition == null ? null : mRuleCondition.trim();
+        this.mRuleCondition = mRuleCondition;
     }
 
     public String getmRuleConditionShow() {
@@ -250,7 +268,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setmRuleConditionShow(String mRuleConditionShow) {
-        this.mRuleConditionShow = mRuleConditionShow == null ? null : mRuleConditionShow.trim();
+        this.mRuleConditionShow = mRuleConditionShow;
     }
 
     public BigDecimal getmPercentage() {
@@ -266,7 +284,7 @@ public class CustomerInfoPushMain {
     }
 
     public void setOptUserId(String optUserId) {
-        this.optUserId = optUserId == null ? null : optUserId.trim();
+        this.optUserId = optUserId;
     }
 
     public String getOptUserName() {
@@ -274,6 +292,22 @@ public class CustomerInfoPushMain {
     }
 
     public void setOptUserName(String optUserName) {
-        this.optUserName = optUserName == null ? null : optUserName.trim();
+        this.optUserName = optUserName;
+    }
+
+    public Integer getFilterType() {
+        return filterType;
+    }
+
+    public void setFilterType(Integer filterType) {
+        this.filterType = filterType;
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend;
     }
 }

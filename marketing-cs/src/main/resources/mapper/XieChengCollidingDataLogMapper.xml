@@ -20,7 +20,7 @@
     </delete>
 
     <insert id="batchSave" parameterType="java.util.List">
-        insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id, data_source_type,
+        insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id,package_rule_id,data_source_type,
                                                    cell_sha256_code_list, release_time, org_channel,
                                                    mkt_level, info, `result`,
                                                    http_code, business_code, return_content, create_time, update_time)
@@ -28,6 +28,7 @@
         <foreach collection="collidingLogs" item="item" separator=",">
             (#{item.smsCollidingDataId},
              #{item.packageId},
+             #{item.packageRuleId},
              #{item.dataSourceType},
              #{item.cellSha256CodeList},
              #{item.releaseTime},
@@ -48,15 +49,26 @@
         from b_xiecheng_colliding_data_log
         where is_delete = 0 and business_code = 707
           and extend -> '$.isAlerted' = true
-            <![CDATA[ and create_time >= #{createTimeStart}]]>
-        limit 1;
+            <![CDATA[ and create_time >= #{createTimeStart}]]> limit 1;
     </select>
 
     <select id="selectByOverCount" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
         select *
         from b_xiecheng_colliding_data_log
-        where is_delete = 0 and business_code = 707
+        where is_delete = 0
+          and business_code = 707
             <![CDATA[ and create_time >= #{createTimeStart}]]>
         order by create_time asc limit 1;
+    </select>
+
+    <select id="selectMaxCreateTimeByCreateTime" resultType="java.util.Date">
+        select max(create_time) as createTime
+        from b_xiecheng_colliding_data_log
+        where is_delete = 0
+          and result = true
+          and business_code = 0
+          and http_code = 200
+            <![CDATA[ and create_time >= #{dateTimeStart}
+          and create_time < #{dateTimeEnd}]]>;
     </select>
 </mapper>

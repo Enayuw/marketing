@@ -10,6 +10,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.rpcclient.RpcClientProxy;
+import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.google.common.base.Splitter;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
@@ -370,12 +371,12 @@ public class SftpToDbUtils {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public static Result statisticsHeadByCommon(String head,HashMap<Integer, String> address,HashSet extra,List<String> baseHeads){
+    public static Result statisticsHeadByCommon(String head,HashMap<Integer, String> address,HashSet extra,
+                                                List<String> baseHeads,Map<String, List<FileToMarketingFieldVO>> fieldVosMap){
         List<String> heads = Splitter.on(",").splitToList(head);
         if(heads.size()<=0){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
         }
-        Boolean startExt = false;
         if(!heads.containsAll(baseHeads)){
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
         }
@@ -384,10 +385,14 @@ public class SftpToDbUtils {
             if(StringUtils.isBlank(s)){
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不能有空字段");
             }
-            if(s.equals("extend")){
-                startExt = true;
+            FileToMarketingFieldVO fieldVO = null;
+            //根据当前表头名获取配置信息
+            List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(s);
+            if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
+                fieldVO = fileToMarketingFieldVOS.get(0);
             }
-            if(startExt){
+            // 扩展字段
+            if(fieldVO == null || fieldVO.getIsExtend()){
                 extra.add(s);
             }
             address.put(i, s);

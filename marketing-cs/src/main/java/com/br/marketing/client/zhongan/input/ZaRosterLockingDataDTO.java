@@ -40,4 +40,9 @@ public class ZaRosterLockingDataDTO  extends InterfaceParams {
      * 状态 1-sftp文件;2-拨打明细
      */
     private Integer dataSource;
+
+    /**
+     * 机构运营场景
+     */
+    private String userType;
 }

@@ -7,12 +7,12 @@ import java.util.Date;
 @Data
 public class XieChengCollidingDataLog {
     /**
-     * 
+     * 主键id
      */
     private Long id;
 
     /**
-     * 
+     *
      */
     private Long smsCollidingDataId;
 
@@ -20,6 +20,11 @@ public class XieChengCollidingDataLog {
      * 规则包记录id
      */
     private Long packageId;
+
+    /**
+     * 撞库规则id
+     */
+    private Long packageRuleId;
 
     /**
      * 数据来源类型：T -周期，F-代表非周期
@@ -90,140 +95,4 @@ public class XieChengCollidingDataLog {
      * 修改时间
      */
     private Date updateTime;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getSmsCollidingDataId() {
-        return smsCollidingDataId;
-    }
-
-    public void setSmsCollidingDataId(Long smsCollidingDataId) {
-        this.smsCollidingDataId = smsCollidingDataId;
-    }
-
-    public Long getPackageId() {
-        return packageId;
-    }
-
-    public void setPackageId(Long packageId) {
-        this.packageId = packageId;
-    }
-
-    public String getDataSourceType() {
-        return dataSourceType;
-    }
-
-    public void setDataSourceType(String dataSourceType) {
-        this.dataSourceType = dataSourceType == null ? null : dataSourceType.trim();
-    }
-
-    public String getCellSha256CodeList() {
-        return cellSha256CodeList;
-    }
-
-    public void setCellSha256CodeList(String cellSha256CodeList) {
-        this.cellSha256CodeList = cellSha256CodeList == null ? null : cellSha256CodeList.trim();
-    }
-
-    public String getReleaseTime() {
-        return releaseTime;
-    }
-
-    public void setReleaseTime(String releaseTime) {
-        this.releaseTime = releaseTime == null ? null : releaseTime.trim();
-    }
-
-    public String getOrgChannel() {
-        return orgChannel;
-    }
-
-    public void setOrgChannel(String orgChannel) {
-        this.orgChannel = orgChannel == null ? null : orgChannel.trim();
-    }
-
-    public String getMktLevel() {
-        return mktLevel;
-    }
-
-    public void setMktLevel(String mktLevel) {
-        this.mktLevel = mktLevel == null ? null : mktLevel.trim();
-    }
-
-    public String getInfo() {
-        return info;
-    }
-
-    public void setInfo(String info) {
-        this.info = info == null ? null : info.trim();
-    }
-
-    public Boolean getResult() {
-        return result;
-    }
-
-    public void setResult(Boolean result) {
-        this.result = result;
-    }
-
-    public Integer getHttpCode() {
-        return httpCode;
-    }
-
-    public void setHttpCode(Integer httpCode) {
-        this.httpCode = httpCode;
-    }
-
-    public Integer getBusinessCode() {
-        return businessCode;
-    }
-
-    public void setBusinessCode(Integer businessCode) {
-        this.businessCode = businessCode;
-    }
-
-    public String getReturnContent() {
-        return returnContent;
-    }
-
-    public void setReturnContent(String returnContent) {
-        this.returnContent = returnContent == null ? null : returnContent.trim();
-    }
-
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
-    }
-
-    public Integer getIsDelete() {
-        return isDelete;
-    }
-
-    public void setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
 }

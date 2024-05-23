@@ -296,7 +296,7 @@
     order by create_time desc
   </select>
 
-  <select id="getVariableAllocationVO" resultType="com.br.marketing.vo.VariableAllocationVO">
+  <select id="getVariableAllocationVOtiflash_" resultType="com.br.marketing.vo.VariableAllocationVO">
     select count(cell_sha256_code_list) as releaseTimeNum
     ,max(release_time) as requestEndTime
     ,min(release_time) as requestTime

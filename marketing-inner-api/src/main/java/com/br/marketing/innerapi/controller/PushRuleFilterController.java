@@ -1,6 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.aspect.LogAnnotation;
+import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -9,6 +10,8 @@ import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.RequestPushInfoDTO;
 import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.enums.InterfaceOperationsEnum;
+import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.RuleCenterServiceImpl;
@@ -16,8 +19,11 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreConditionDetailVO;
-import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.xiecheng.PushViewVO;
+import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +59,9 @@ public class PushRuleFilterController {
 
     @Autowired
     RuleCenterServiceImpl ruleCenterService;
+
+    @Autowired
+    RuleCenterCollidingService ruleCenterCollidingService;
 
 
 
@@ -139,8 +148,8 @@ public class PushRuleFilterController {
 
     @ApiOperation(value = "推送预览")
     @PostMapping("/pushPreview")
-    public ApiResult<Integer> pushPreview(@RequestBody PushCustomerDTO dto) {
-        return new ApiResult<Integer>().fromResult(pushRuleService.pushPreview(dto), CODE_1);
+    public ApiResult<PushViewVO> pushPreview(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult<PushViewVO>().fromResult(pushRuleService.pushPreview(dto), CODE_1);
     }
 
     @ApiOperation(value = "保存模板")
@@ -167,6 +176,56 @@ public class PushRuleFilterController {
         return new ApiResult<PageResultReturn<ScoreConditionDetailVO>>().fromResult(pushRuleService.getConditionPageData(dto), CODE_1);
     }
 
+    /**
+     * 根据apiCode 查询撞库结果数据
+     * @param apiCode
+     * @return
+     */
+    @ApiOperation(value = "撞库结果数据", notes = "撞库结果数据", httpMethod = "GET")
+    @ApiImplicitParams({@ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")})
+    @GetMapping("/getCollidingResultData")
+    public ApiResult getCollidingResultData(String apiCode) {
+        return new ApiResult<List<XiechengCollidingDataVO>>().fromResult(ruleCenterCollidingService.getCollidingResultData(apiCode), CODE_1);
+    }
+
+
+    /**
+     * 撞库数据剔除
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "撞库数据剔除", notes = "撞库数据剔除", httpMethod = "POST")
+    @PostMapping("/collidingDataDelete")
+    public ApiResult collidingDataDelete(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult().fromResult(pushRuleService.collidingDataDelete(dto), CODE_1);
+    }
+
+    /**
+     * 撞库数据剔除数据量
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "撞库数据剔除数据量", notes = "撞库数据剔除数据量", httpMethod = "POST")
+    @PostMapping("/collidingDataDeleteNum")
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_DELETE_COLLIDING_PACKAGE,
+            extendInfo = "使用{#dto.mRuleCondition}，进行数据量级{#dto.mPlanNum}的数据剔除")
+    public ApiResult collidingDataDeleteNum(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult<Integer>().fromResult(pushRuleService.collidingDataDeleteNum(dto), CODE_1);
+    }
+
+    /**
+     * 撞库数据包生成
+     * @param dto
+     * @return
+     */
+    @ApiOperation(value = "撞库数据包生成", notes = "撞库数据包生成", httpMethod = "POST")
+    @PostMapping("/collidingDataPachageMake")
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_MAKE_COLLIDING_PACKAGE,
+            extendInfo = "使用{#dto.mRuleCondition}，生成数据量级{#dto.mPrePlanNum}的{#dto.dataPackageName}数据包")
+    public ApiResult collidingDataPachageMake(@RequestBody PushCustomerDTO dto) {
+        return new ApiResult().fromResult(pushRuleService.collidingDataPachageMake(dto), CODE_1);
+    }
+
     @ApiOperation(value = "测试消费")
     @GetMapping("/testConsumerCustomer")
     public Result testConsumerCustomer(Long id) {
@@ -187,5 +246,18 @@ public class PushRuleFilterController {
         return "true";
     }
 
+    /**
+     * 测试通用日志
+     */
+    @ApiOperation(value = "测试通用日志")
+    @GetMapping("/testLog")
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_INSERT_DATA,
+            extendInfo= "修改了数据包一中的原开启撞库时间{#dto.apiCode}的设定撞得量级[getUserName{#dto.cell}]修改为{#dto.cell}的设定撞得量级{#dto.dataCode}")
+    //@LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_INSERT_DATA,
+    //        extendInfo= "#dto.custNum == null ? '新增' + #dto.custNum + '用户':'将用户id为' + #dto.custNum + '的用户名更新为' + #dto.custNum")
+    public ApiResult testLog(@RequestBody DataJoinLogDTO dto) {
+        Result<Map<String, Object>> companyAndModule = pushRuleService.getCompanyAndModule("7491630");
+        return new ApiResult().fromResult(companyAndModule, CODE_000000);
+    }
 
 }

@@ -25,8 +25,8 @@ import java.util.List;
  * @Description 携程异常重试job
  * @Date 2024/2/26 10:02 AM
  */
-@Component
-@Slf4j
+//@Component
+//@Slf4j
 public class RetryXieChengSmsDataCollidingToSendJob extends AbstractSimpleElasticJob {
     private final static String XIECHENGSMSCOLLIDING = "xiechengsmscolliding";
     @Resource

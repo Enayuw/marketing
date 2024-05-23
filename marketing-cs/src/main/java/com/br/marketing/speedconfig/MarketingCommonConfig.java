@@ -1517,6 +1517,12 @@ public class MarketingCommonConfig {
     private List<String> XieChengTwoTransferExecuteTime;
 
     /**
+     * 携程短信撞库数据提取时间范围,索引未知0为开始时间，1为结束时间，key小于0为T-n，等于0为T，大于0为T+1
+     * eg:[{-1:"06:00"},{0:"07:00"}]
+     */
+    private List<Map<Integer, String>> xieChengCallBackResultTimeRange = new ArrayList<>();
+
+    /**
      * 数禾促复借转化数据提取数据提取apicode集合
      */
     private List<String> ShuHeCuFuJieTransferFileApiCodes;
@@ -1540,6 +1546,59 @@ public class MarketingCommonConfig {
      * 无解密清洗配置
      */
     private String noDesCleanConfig;
+
+
+    /**
+     * 携程跑分数据同步、TRUE数据剔除、非TRUE数据清洗apicode集合
+     */
+    private List<String> xieChengCollidingDataProcessApiCodes;
+
+    /**
+     * 携程跑分数据同步 查询T-n~T日跑分记录表
+     * XieChengRuleScoreToDbLastDays=3（T-3~T）
+     */
+    private Integer XieChengRuleScoreToDbLastDays;
+
+    /**
+     * 携程撞库数据清洗线程数
+     */
+    private Integer xieChengCollidingDataProcessThread;
+
+    /**
+     * 携程撞库跑分数据同步线程数
+     */
+    private Integer xieChengCollidingRuleScoreToDBThread;
+
+    /**
+     * 携程撞库数据推送决策线程数
+     */
+    private Integer xieChengCollidingDataPushPolicyThread;
+
+    /**
+     * 携程撞库跑分数据同步文件字段映射
+     * xieChengCollidingRuleScoreFieldMap={"userType":"user_type"}
+     */
+    private Map<String, String> xieChengCollidingRuleScoreFieldMap;
+
+    /**
+     * 携程定制化页面周期TRUE列表apiCode配置
+     */
+    private String xieChengCustomizeTrueApiCode;
+
+    /**
+     * 携程撞库停止跑分数据同步，跑分编号配置集合
+     * ["7410950_20240507000000_6334","7410950_20240507000000_6682"]
+     */
+    private List<String> xieChengCollidingRuleScoreStopBatchNums;
+
+    /**
+     * 携程定制化页面列表排序字段配置
+     */
+    private Map<String, JSONObject> xieChengCustomizeOrderByClauseConfig;
+    /**
+     * 推送决策超时后，查询结果要延时的 分钟 数
+     */
+    private Long queryCustomerPushTimeOutDelay;
 
 }
 

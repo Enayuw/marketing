@@ -129,6 +129,27 @@ public class JobManager {
     }
 
 
+    /**
+     * 2024-05-13 13:38
+     * 根据条件更新
+     */
+    public int updateActionFrontInfo(String apiCode, String dateStr
+            , Integer actionType, String remark, TransferActionFront front) {
+        TransferActionFrontExample frontExample = new TransferActionFrontExample();
+        TransferActionFrontExample.Criteria criteria = frontExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andActionDataEqualTo(dateStr)
+                .andIsDelEqualTo(1);
+        if (actionType != null) {
+            criteria.andActionTypeEqualTo(actionType);
+        }
+        if (remark != null) {
+            criteria.andRemarkEqualTo(remark);
+        }
+        return transferActionFrontMapper.updateByExampleSelective(front, frontExample);
+    }
+
+
     public enum ActionTypeEnum {
         /**
          * 2024-05-16 14:40

@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl.xc;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
@@ -20,7 +19,6 @@ import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.collect.Lists;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +46,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
      *
      * @param id id
      * @param packageId packageId
+     * @param packageRuleId packageRuleId
      * @param dataSourceType 数据源类型 T True数据,F False数据
      * @param returnData 返回数据
      * @param httpcode httpcode
@@ -57,8 +56,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
      * @date 2024/03/23
      */
     @Override
-    public XieChengCollidingDataLog buildSuccessXieChengCollidingDataLog(Long id, Long packageId, String dataSourceType, JSONObject returnData,
-        String httpcode, Integer businessCode) {
+    public XieChengCollidingDataLog buildSuccessXieChengCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
+        JSONObject returnData, String httpcode, Integer businessCode) {
         String sha256Code = returnData.getString("sha256Code");
         Boolean result = returnData.getBoolean("result");
         String orgChannel = returnData.getString("orgChannel");
@@ -68,6 +67,9 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
         XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
         xieChengCollidingDataLog.setSmsCollidingDataId(id);
         xieChengCollidingDataLog.setPackageId(packageId);
+        if (packageRuleId != null) {
+            xieChengCollidingDataLog.setPackageRuleId(packageRuleId);
+        }
         xieChengCollidingDataLog.setDataSourceType(dataSourceType);
         xieChengCollidingDataLog.setCellSha256CodeList(sha256Code);
         xieChengCollidingDataLog.setReleaseTime(releaseTime);
@@ -88,6 +90,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
      *
      * @param id id
      * @param packageId packageId
+     * @param packageRuleId packageRuleId
      * @param dataSourceType 数据源类型 T True数据,F False数据
      * @param cellSha256CodeList 手机号
      * @param resJson res json
@@ -96,8 +99,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
      * @date 2024/03/23
      */
     @Override
-    public XieChengCollidingDataLog buildFailXieChengCollidingDataLog(Long id, Long packageId, String dataSourceType, String cellSha256CodeList,
-        JSONObject resJson) {
+    public XieChengCollidingDataLog buildFailXieChengCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
+        String cellSha256CodeList, JSONObject resJson) {
         String httpcode = resJson.getString("httpcode");
         XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
         xieChengCollidingDataLog.setSmsCollidingDataId(id);
@@ -105,10 +108,14 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
         xieChengCollidingDataLog.setDataSourceType(dataSourceType);
         xieChengCollidingDataLog.setCellSha256CodeList(cellSha256CodeList);
         xieChengCollidingDataLog.setHttpCode(StringUtils.isEmpty(httpcode) ? null : Integer.valueOf(httpcode));
-        if (StringUtils.isNotEmpty(resJson.getString("content"))) {
-            JSONObject contentJson = JSONObject.parseObject(resJson.getString("content"));
-            Integer businessCode = contentJson.getInteger("code");
-            xieChengCollidingDataLog.setBusinessCode(businessCode);
+        try {
+            if (StringUtils.isNotEmpty(resJson.getString("content"))) {
+                JSONObject contentJson = JSONObject.parseObject(resJson.getString("content"));
+                Integer businessCode = contentJson.getInteger("code");
+                xieChengCollidingDataLog.setBusinessCode(businessCode);
+            }
+        } catch (Exception e) {
+            log.warn("解析businessCode异常:", e);
         }
         xieChengCollidingDataLog.setReturnContent(resJson.toString(SerializerFeature.WriteMapNullValue));
         xieChengCollidingDataLog.setCreateTime(new Date());

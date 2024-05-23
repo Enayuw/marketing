@@ -285,6 +285,66 @@ public class XieChengCollidingDataLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andPackageRuleIdIsNull() {
+            addCriterion("package_rule_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdIsNotNull() {
+            addCriterion("package_rule_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdEqualTo(Long value) {
+            addCriterion("package_rule_id =", value, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdNotEqualTo(Long value) {
+            addCriterion("package_rule_id <>", value, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdGreaterThan(Long value) {
+            addCriterion("package_rule_id >", value, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("package_rule_id >=", value, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdLessThan(Long value) {
+            addCriterion("package_rule_id <", value, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdLessThanOrEqualTo(Long value) {
+            addCriterion("package_rule_id <=", value, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdIn(List<Long> values) {
+            addCriterion("package_rule_id in", values, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdNotIn(List<Long> values) {
+            addCriterion("package_rule_id not in", values, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdBetween(Long value1, Long value2) {
+            addCriterion("package_rule_id between", value1, value2, "packageRuleId");
+            return (Criteria) this;
+        }
+
+        public Criteria andPackageRuleIdNotBetween(Long value1, Long value2) {
+            addCriterion("package_rule_id not between", value1, value2, "packageRuleId");
+            return (Criteria) this;
+        }
+
         public Criteria andDataSourceTypeIsNull() {
             addCriterion("data_source_type is null");
             return (Criteria) this;

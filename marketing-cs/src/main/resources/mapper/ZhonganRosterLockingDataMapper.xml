@@ -23,7 +23,7 @@
     </select>
 
     <select id="findPartColumnListPage" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
-        select t1.id,mobile_md5,biz_date,tag,data_source,local_id,api_code from b_zhongan_roster_locking_data t1,
+        select t1.id,mobile_md5,biz_date,tag,data_source,local_id,api_code,IF(user_type='', '1', user_type) as userType from b_zhongan_roster_locking_data t1,
         (select id from b_zhongan_roster_locking_data
         <where>
             <if test="data.apiCode!=null and data.apiCode!=''">
@@ -40,6 +40,9 @@
             </if>
             <if test="data.pushStatus!=null and data.pushStatus!=''">
                 and push_status=${data.pushStatus}
+            </if>
+            <if test="data.userType!=null and data.userType!=''">
+                and user_type=${data.userType}
             </if>
             and status=1
             <if test="data.id!=null and data.id!=''">
