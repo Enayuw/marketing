@@ -431,30 +431,30 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
 //    }
 
     public static void main(String[] args) {
-//        System.out.println(switchDateStr("2024-05-22 00:00:00"));
+//        System.out.println(switchDateStr("2024-05-22 12:34:56"));
 
-//        String inputDate = "2023-9-13"; // 假设这是你的未知格式的输入日期
-        String inputDate = "2023/9/13"; // 假设这是你的未知格式的输入日期
-//        String inputDate = "2023-09-13"; // 假设这是你的未知格式的输入日期
-//        String inputDate = "13-09-2023"; // 假设这是你的未知格式的输入日期
+//        String inputDate = "2023-9-13 12:34:56"; // 假设这是你的未知格式的输入日期
+//        String inputDate = "2023/9/13 12:34:56"; // 假设这是你的未知格式的输入日期
+//        String inputDate = "2023-09-13 12:34:56"; // 假设这是你的未知格式的输入日期
+        String inputDate = "13-09-2023 12:34:56"; // 假设这是你的未知格式的输入日期
         List<DateTimeFormatter> parsers = Arrays.asList(
-                DateTimeFormatter.ofPattern("yyyy-MM-dd"),
-                DateTimeFormatter.ofPattern("yyyy/MM/dd"),
-                DateTimeFormatter.ofPattern("yyyy-M-dd"),
-                DateTimeFormatter.ofPattern("yyyy/M/dd"),
-                DateTimeFormatter.ofPattern("MM-dd-yyyy"),
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+                DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
+                DateTimeFormatter.ofPattern("yyyy-M-dd HH:mm:ss"),
+                DateTimeFormatter.ofPattern("yyyy/M/dd HH:mm:ss"),
+                DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss"),
+                DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"),
                 DateTimeFormatter.BASIC_ISO_DATE,
                 DateTimeFormatter.ISO_LOCAL_DATE,
                 DateTimeFormatter.ISO_LOCAL_TIME,
-                DateTimeFormatter.ofPattern("dd-MM-yyyy"),
                 DateTimeFormatter.ISO_LOCAL_DATE_TIME
                 // 可以添加更多可能的格式
         );
 
-        LocalDate date = null;
+        LocalDateTime date = null;
         for (DateTimeFormatter parser : parsers) {
             try {
-                date = LocalDate.parse(inputDate, parser);
+                date = LocalDateTime.parse(inputDate, parser);
                 break; // 如果解析成功，则跳出循环
             } catch (DateTimeParseException e) {
                 // 忽略异常，并尝试下一个解析器
@@ -463,7 +463,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         }
 
         if (date != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             String formattedDate = date.format(formatter);
             System.out.println(formattedDate); // 输出格式化后的日期
         } else {
