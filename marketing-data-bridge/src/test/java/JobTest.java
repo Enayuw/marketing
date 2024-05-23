@@ -1,5 +1,5 @@
-import com.br.marketing.check.CkeckApplication;
-import com.br.marketing.check.job.TransferFileTaskJob;
+import com.br.marketing.bridge.DataBridgeApplication;
+import com.br.marketing.bridge.job.TransferFileTaskJob;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByZhongBangTransferServiceImpl;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import javax.annotation.Resource;
  * JobTest
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {CkeckApplication.class})
+@SpringBootTest(classes = {DataBridgeApplication.class})
 @WebAppConfiguration
 @Slf4j
 public class JobTest implements ApplicationContextAware {
@@ -32,7 +32,7 @@ public class JobTest implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        CkeckApplication.ac = (ConfigurableApplicationContext) applicationContext;
+        DataBridgeApplication.ac = (ConfigurableApplicationContext) applicationContext;
     }
 
     @Test
