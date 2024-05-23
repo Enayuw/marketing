@@ -102,7 +102,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                     // 创建任务记录
                     frontData = newTransferActionFront(local2Date, apiCode, fileNameNew.concat(txtFileExtension));
                     id = jobManager.saveFrontData(frontData);
-                    b = zhongBangService.zhongBangFileQueryAndDownload(apiCode, cId, fileNameNew.concat(okFileExtension)
+                    b = zhongBangService.fileQueryAndDownload(apiCode, cId, fileNameNew.concat(okFileExtension)
                             , tableHead, filePath.concat(fileNameNew).concat(File.separator), beginDateTime, endDateTime
                             , threadPool);
                 } else if (frontData.getStatus().equals(status)) {
@@ -113,7 +113,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                     boolean before = LocalTime.now().isBefore(repeatPullAsOfTime);
                     if (before || getLocalFileCount(apiCode, cId, fileNameNew.concat(txtFileExtension)) < 1) {
                         // 任务未完成且没有到截至时间
-                        b = zhongBangService.zhongBangFileQueryAndDownload(apiCode, cId
+                        b = zhongBangService.fileQueryAndDownload(apiCode, cId
                                 , fileNameNew.concat(okFileExtension), tableHead, filePath.concat(fileNameNew)
                                         .concat(File.separator), beginDateTime, endDateTime, threadPool);
                     } else {

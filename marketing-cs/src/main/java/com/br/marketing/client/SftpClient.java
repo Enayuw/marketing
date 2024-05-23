@@ -12,6 +12,8 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 import static com.jcraft.jsch.ChannelSftp.SSH_FX_NO_SUCH_FILE;
 
@@ -211,6 +213,76 @@ public class SftpClient extends BaseFtpClient{
     }
 
     /**
+     * 获取源目录下需要同步的文件名称和文件属性（自定义选择器）
+     *
+     * @param srcPath  源路径
+     * @param selector 选择器
+     * @throws SftpException
+     */
+    public void listFiles(String srcPath, ChannelSftp.LsEntrySelector selector) {
+        try {
+            sftp.ls(srcPath, selector);
+        } catch (SftpException e) {
+            log.error("srcPath:" + srcPath, e);
+        }
+    }
+
+    /**
+     * 获取源目录下需要同步的文件名称和文件属性（自定义选择器）
+     *
+     * @param srcPath 源路径
+     * @param suffix  自定义扩展名
+     * @return 远程文件信息
+     * @throws SftpException
+     */
+    public Map<String, SftpATTRS> listFiles(String srcPath, String... suffix) {
+        CopyOnWriteArrayList<ChannelSftp.LsEntry> vector = new CopyOnWriteArrayList<>();
+        String currentDir = ".";
+        listFiles(srcPath, (ChannelSftp.LsEntry entry) -> {
+            if (suffix == null || suffix.length == 0) {
+                vector.add(entry);
+                return ChannelSftp.LsEntrySelector.CONTINUE;
+            } else {
+                String filename = entry.getFilename();
+                if (currentDir.equals(filename) || (currentDir + currentDir).equals(filename)) {
+                    return ChannelSftp.LsEntrySelector.CONTINUE;
+                }
+                for (String s : suffix) {
+                    if (filename.endsWith(s)) {
+                        vector.add(entry);
+                        return ChannelSftp.LsEntrySelector.CONTINUE;
+                    }
+                }
+            }
+            return ChannelSftp.LsEntrySelector.CONTINUE;
+        });
+        return vector.stream().collect(Collectors.toMap(ChannelSftp.LsEntry::getFilename, ChannelSftp.LsEntry::getAttrs));
+    }
+
+    public Map<String, SftpATTRS> listFiles(String srcPath, Set<String> fileNameSet) {
+        CopyOnWriteArrayList<ChannelSftp.LsEntry> vector = new CopyOnWriteArrayList<>();
+        String currentDir = ".";
+        listFiles(srcPath, (ChannelSftp.LsEntry entry) -> {
+            if (fileNameSet == null || fileNameSet.size() == 0) {
+                vector.add(entry);
+                return ChannelSftp.LsEntrySelector.CONTINUE;
+            } else {
+                String filename = entry.getFilename();
+                if (currentDir.equals(filename) || (currentDir + currentDir).equals(filename)) {
+                    return ChannelSftp.LsEntrySelector.CONTINUE;
+                }
+                if (fileNameSet.contains(filename)) {
+                    vector.add(entry);
+                    return ChannelSftp.LsEntrySelector.CONTINUE;
+                }
+            }
+            return ChannelSftp.LsEntrySelector.CONTINUE;
+        });
+        return vector.stream().collect(Collectors.toMap(ChannelSftp.LsEntry::getFilename, ChannelSftp.LsEntry::getAttrs));
+    }
+
+
+    /**
      * 获取源目录下需要同步的文件名称和文件属性
      *
      * @param srcPath 原路径
@@ -375,5 +447,63 @@ public class SftpClient extends BaseFtpClient{
             log.error("接收文件时有I/O异常!", e);
         }
         return success;
+    }
+
+    /**
+     * 下载远程sftp服务器文件
+     *
+     * @param remotePath
+     * @param remoteFilename
+     * @param localFilename
+     * @return File
+     */
+    public File downloadLocalFile(String remotePath, String remoteFilename, String localFilename, SftpATTRS attrs) {
+        File localFile = new File(localFilename);
+        if (localFile.exists() && localFile.isFile()) {
+            long size = attrs.getSize();
+            int mTime = attrs.getMTime();
+            // 大小和最后修改时间相同，则为同一文件，不进行下载
+            if (size == localFile.length() && mTime == (localFile.lastModified() / 1000)) {
+                return localFile;
+            }
+        }
+        try (OutputStream output = Files.newOutputStream(Paths.get(localFile.getPath()))) {
+            if (null != remotePath && !"".equals(remotePath.trim())) {
+                sftp.cd(remotePath);
+            }
+            sftp.get(remoteFilename, output);
+            if (log.isInfoEnabled()) {
+                log.info("成功接收文件,本地路径：{}", localFilename);
+            }
+        } catch (SftpException e) {
+            log.error("接收文件时有SftpException异常!", e);
+        } catch (IOException e) {
+            log.error("接收文件时有I/O异常!" + e.getMessage(), e);
+        }
+        return localFile;
+    }
+
+    public File downloadLocalFile(String remotePath, String remoteFilename, String localFilename)
+            throws SftpException, IOException {
+        File localFile = new File(localFilename);
+        if (localFile.exists() && localFile.isFile()) {
+            SftpATTRS attrs = stats(remotePath.concat("/").concat(remoteFilename));
+            long size = attrs.getSize();
+            int mTime = attrs.getMTime();
+            // 大小和最后修改时间相同，则为同一文件，不进行下载
+            if (size == localFile.length() && mTime == (localFile.lastModified() / 1000)) {
+                return localFile;
+            }
+        }
+        try (OutputStream output = Files.newOutputStream(Paths.get(localFile.getPath()))) {
+            if (null != remotePath && !"".equals(remotePath.trim())) {
+                sftp.cd(remotePath);
+            }
+            sftp.get(remoteFilename, output);
+            if (log.isInfoEnabled()) {
+                log.info("成功接收文件,本地路径：{}", localFilename);
+            }
+        }
+        return localFile;
     }
 }
