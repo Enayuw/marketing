@@ -928,6 +928,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 Thread.currentThread().interrupt();
                                 bool = false;
                                 if (e instanceof SftpException) {
+                                    disconnect(ftpClient);
                                     try {
                                         ftpClient = new SftpClient(syncConfig, true);
                                         ftpClient.connect();
@@ -944,13 +945,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     log.error(e.getMessage(), e);
                     bool = false;
                 } finally {
-                    if (ftpClient.isConnected()) {
-                        try {
-                            ftpClient.disconnect();
-                        } catch (Exception e) {
-                            log.error("众邦录音文件下载sftp关闭异常！" + e.getMessage(), e);
-                        }
-                    }
+                    disconnect(ftpClient);
                 }
                 return bool;
             }, threadPoolGet).exceptionally((Throwable throwable) -> {
@@ -964,6 +959,16 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             }
         }
         return allOf(futures);
+    }
+
+    private void disconnect(SftpClient ftpClient) {
+        if (ftpClient.isConnected()) {
+            try {
+                ftpClient.disconnect();
+            } catch (Exception e) {
+                log.error("众邦录音文件下载sftp关闭异常！" + e.getMessage(), e);
+            }
+        }
     }
 
     private boolean saveInfo(String cid, File file, String apiCode, String parent, String localDir
