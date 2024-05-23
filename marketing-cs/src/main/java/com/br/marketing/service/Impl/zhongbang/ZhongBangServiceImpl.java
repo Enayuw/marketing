@@ -725,19 +725,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 : (availableNumber + corePoolSize), new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
         ThreadPoolExecutor threadPoolGet = BrExecutors.getThreadPool(corePoolSize, availableNumber
                 , new SynchronousQueue<>(), "br-zbank-voiceFile-sftp-get");
-        Map<String, JSONObject> zhongBangVoieFileConfig = marketingCommonConfig.getZhongBangVoieFileConfig();
-        if (zhongBangVoieFileConfig.isEmpty()) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("fileType", "zhongbang_voice");
-            jsonObject.put("uploadPoolSize", 5);
-            jsonObject.put("getFilePoolSize", 5);
-            zhongBangVoieFileConfig.put("b_zhongbang_voice_file_detail", jsonObject);
-        }
+        Map<String, JSONObject> zhongBangVoiceFileConfig = getVoiceFileConfig();
         ZonedDateTime zonedDateTime = localDate.atStartOfDay().atZone(ZoneId.systemDefault());
         Date startDate = Date.from(zonedDateTime.toInstant());
         Date endDate = Date.from(zonedDateTime.plusDays(1).toInstant());
         String dateStr = localDate.format(DateTimeFormatter.BASIC_ISO_DATE);
-        Set<Map.Entry<String, JSONObject>> entrySet = zhongBangVoieFileConfig.entrySet();
+        Set<Map.Entry<String, JSONObject>> entrySet = zhongBangVoiceFileConfig.entrySet();
         // 遍历文件配置信息
         for (Map.Entry<String, JSONObject> entry : entrySet) {
             JSONObject entryValue = entry.getValue();
@@ -765,6 +758,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0);
                     fileDetailsCount = zhongbangVoiceFileDetailMapper.countByExample(exampleDetailCount);
                     if (fileInfoCount != fileDetailsCount) {
+                        // 下载远程文件
                         resultBool = resultBool && isFromSftpLocalDisk(localFile, syncConfig, dateStr, apiCode, cid
                                 , pageSize, threadPoolGet, entryValue);
                     }
@@ -773,7 +767,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         if (fileDetailsCount > 0) {
                             // 上传开始时间记录
                             updateLocalFilePushTime(localFileId);
-                            // 文件下载
+                            // 文件上传
                             List<CompletableFuture<Boolean>> futures = uploadFile(
                                     cid, apiCode, pageSize, entryValue, threadPool, localFile);
                             // 结果转换
@@ -796,6 +790,37 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             }
         }
         return resultBool;
+    }
+
+    private Map<String, JSONObject> getVoiceFileConfig() {
+        Map<String, JSONObject> zhongBangVoiceFileConfig = marketingCommonConfig.getZhongBangVoiceFileConfig();
+        if (zhongBangVoiceFileConfig.isEmpty()) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("fileType", "zhongbang_voice");
+            jsonObject.put("uploadPoolSize", 5);
+            jsonObject.put("getFilePoolSize", 5);
+            zhongBangVoiceFileConfig.put("b_zhongbang_voice_file_detail", jsonObject);
+        } else {
+            JSONObject jsonObject = zhongBangVoiceFileConfig.get("b_zhongbang_voice_file_detail");
+            if (jsonObject == null) {
+                JSONObject jo = new JSONObject();
+                jo.put("fileType", "zhongbang_voice");
+                jo.put("uploadPoolSize", 5);
+                jo.put("getFilePoolSize", 5);
+                zhongBangVoiceFileConfig.put("b_zhongbang_voice_file_detail", jo);
+            } else {
+                if (!jsonObject.containsKey("fileType")) {
+                    jsonObject.put("fileType", "zhongbang_voice");
+                }
+                if (!jsonObject.containsKey("uploadPoolSize")) {
+                    jsonObject.put("uploadPoolSize", Runtime.getRuntime().availableProcessors());
+                }
+                if (!jsonObject.containsKey("getFilePoolSize")) {
+                    jsonObject.put("getFilePoolSize", Runtime.getRuntime().availableProcessors());
+                }
+            }
+        }
+        return zhongBangVoiceFileConfig;
     }
 
     private List<FileDbConfig> getFileDbConfig(String apiCode, String fileType, String tableName) {
@@ -893,40 +918,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 PushCustomerFileInfo fileInfoOld = fileInfoMap.get(detail.getFileName());
                                 if (fileInfoOld == null) {
                                     // 文件信息入库
-                                    PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
-                                    Date lastModifiedDate = new Date(file.lastModified());
-                                    fileInfo.setCid(cid);
-                                    fileInfo.setApiCode(apiCode);
-                                    fileInfo.setFileName(file.getName());
-                                    fileInfo.setLastModifiedTime(lastModifiedDate);
-                                    fileInfo.setLastModifiedDate(lastModifiedDate);
-                                    fileInfo.setFileDirectory(parent == null ? localDir : parent);
-                                    fileInfo.setFileSize(length);
-                                    fileInfo.setCreateTime(new Date());
-                                    fileInfo.setUpdateTime(fileInfo.getCreateTime());
-                                    fileInfo.setFileMd5(fileMd5);
-                                    fileInfo.setLocalFileId(localFileId);
-                                    // 待推送
-                                    fileInfo.setPushStatus(0);
-                                    try {
-                                        pushCustomerFileInfoMapper.insertSelective(fileInfo);
-                                    } catch (Exception e) {
-                                        log.error("众邦录音文件信息保存失败！" + e.getMessage(), e);
-                                        bool = false;
-                                    }
+                                    bool = bool && saveInfo(cid, file, apiCode, parent, localDir, length, fileMd5, localFileId);
                                 } else {
-                                    if (!fileInfoOld.getFileMd5().equals(fileMd5)) {
-                                        PushCustomerFileInfo fileInfoUpdate = new PushCustomerFileInfo();
-                                        Date lastModifiedDate = new Date(file.lastModified());
-                                        fileInfoUpdate.setId(fileInfoOld.getId());
-                                        fileInfoUpdate.setLastModifiedTime(lastModifiedDate);
-                                        fileInfoUpdate.setLastModifiedDate(lastModifiedDate);
-                                        fileInfoUpdate.setFileDirectory(parent == null ? localDir : parent);
-                                        fileInfoUpdate.setFileSize(length);
-                                        fileInfoUpdate.setUpdateTime(new Date());
-                                        fileInfoUpdate.setFileMd5(fileMd5);
-                                        pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfoUpdate);
-                                    }
+                                    updateInfo(fileInfoOld, fileMd5, file, parent, localDir, length);
                                 }
                             } catch (SftpException | IOException | SDKException e) {
                                 log.error(e.getMessage() + "录音文件：" + detail.getFileName(), e);
@@ -961,6 +955,49 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             }
         }
         return allOf(futures);
+    }
+
+    private boolean saveInfo(String cid, File file, String apiCode, String parent, String localDir
+            , long length, String fileMd5, long localFileId) {
+        // 文件信息入库
+        PushCustomerFileInfo fileInfo = new PushCustomerFileInfo();
+        Date lastModifiedDate = new Date(file.lastModified());
+        fileInfo.setCid(cid);
+        fileInfo.setApiCode(apiCode);
+        fileInfo.setFileName(file.getName());
+        fileInfo.setLastModifiedTime(lastModifiedDate);
+        fileInfo.setLastModifiedDate(lastModifiedDate);
+        fileInfo.setFileDirectory(parent == null ? localDir : parent);
+        fileInfo.setFileSize(length);
+        fileInfo.setCreateTime(new Date());
+        fileInfo.setUpdateTime(fileInfo.getCreateTime());
+        fileInfo.setFileMd5(fileMd5);
+        fileInfo.setLocalFileId(localFileId);
+        // 待推送
+        fileInfo.setPushStatus(0);
+        try {
+            pushCustomerFileInfoMapper.insertSelective(fileInfo);
+            return true;
+        } catch (Exception e) {
+            log.error("众邦录音文件信息保存失败！" + e.getMessage(), e);
+            return false;
+        }
+    }
+
+    private void updateInfo(PushCustomerFileInfo fileInfoOld, String fileMd5, File file, String parent
+            , String localDir, long length) {
+        if (!fileInfoOld.getFileMd5().equals(fileMd5)) {
+            PushCustomerFileInfo fileInfoUpdate = new PushCustomerFileInfo();
+            Date lastModifiedDate = new Date(file.lastModified());
+            fileInfoUpdate.setId(fileInfoOld.getId());
+            fileInfoUpdate.setLastModifiedTime(lastModifiedDate);
+            fileInfoUpdate.setLastModifiedDate(lastModifiedDate);
+            fileInfoUpdate.setFileDirectory(parent == null ? localDir : parent);
+            fileInfoUpdate.setFileSize(length);
+            fileInfoUpdate.setUpdateTime(new Date());
+            fileInfoUpdate.setFileMd5(fileMd5);
+            pushCustomerFileInfoMapper.updateByPrimaryKeySelective(fileInfoUpdate);
+        }
     }
 
     private boolean allOf(List<CompletableFuture<Boolean>> futures) {
