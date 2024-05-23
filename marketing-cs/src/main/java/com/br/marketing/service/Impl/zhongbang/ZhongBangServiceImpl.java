@@ -760,7 +760,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     if (fileInfoCount != fileDetailsCount) {
                         // 下载远程文件
                         resultBool = resultBool && isFromSftpLocalDisk(localFile, syncConfig, dateStr, apiCode, cid
-                                , pageSize, threadPoolGet, entryValue);
+                                , pageSize, threadPoolGet, tableName);
                     }
                     fileInfoCount = pushCustomerFileInfoMapper.countByExample(exampleInfoCount);
                     if (fileInfoCount == fileDetailsCount) {
@@ -769,7 +769,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             updateLocalFilePushTime(localFileId);
                             // 文件上传
                             List<CompletableFuture<Boolean>> futures = uploadFile(
-                                    cid, apiCode, pageSize, entryValue, threadPool, localFile);
+                                    cid, apiCode, pageSize, tableName, threadPool, localFile);
                             // 结果转换
                             resultBool = resultBool && allOf(futures);
                         } else {
@@ -839,8 +839,10 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return localFileMapper.selectByExample(localFileExample);
     }
 
-    private void setThreadPool(int poolSize, ThreadPoolExecutor poolExecutor) {
+    private void setThreadPool(final String tableName, String poolKey, ThreadPoolExecutor poolExecutor) {
         synchronized (this) {
+            Map<String, JSONObject> voiceFileConfig = getVoiceFileConfig();
+            int poolSize = voiceFileConfig.get(tableName).getIntValue(poolKey);
             if (poolSize > 0 && poolSize != poolExecutor.getCorePoolSize()) {
                 poolExecutor.setCorePoolSize(poolSize);
                 poolExecutor.setMaximumPoolSize(poolSize);
@@ -864,7 +866,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      */
     private boolean isFromSftpLocalDisk(LocalFile localFile, SyncConfig syncConfig, String dateStr
             , String apiCode, String cid, Integer pageSize, ThreadPoolExecutor threadPoolGet
-            , JSONObject entryValue) {
+            , final String tableName) {
         long localFileId = localFile.getId();
         String fileName = localFile.getFileName();
         List<CompletableFuture<Boolean>> futures = new ArrayList<>();
@@ -901,7 +903,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         Map<String, PushCustomerFileInfo> fileInfoMap = infoList.stream().collect(Collectors.toMap(
                                 PushCustomerFileInfo::getFileName, Function.identity()));
                         for (ZhongbangVoiceFileDetail detail : fileDetails) {
-                            setThreadPool(entryValue.getIntValue("getFilePoolSize"), threadPoolGet);
+                            setThreadPool(tableName, "getFilePoolSize", threadPoolGet);
                             if (StringUtils.isBlank(detail.getFileName())) {
                                 continue;
                             }
@@ -1027,7 +1029,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     }
 
     private List<CompletableFuture<Boolean>> uploadFile(String cid, String apiCode, int pageSize
-            , JSONObject entryValue, ThreadPoolExecutor threadPool, LocalFile localFile) {
+            , final String tableName, ThreadPoolExecutor threadPool, LocalFile localFile) {
         List<CompletableFuture<Boolean>> futures = new ArrayList<>();
         long localFileId = localFile.getId();
         long maxId = 0L;
@@ -1044,7 +1046,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             int size = infoList.size();
             maxId = infoList.get(size - 1).getId();
             for (PushCustomerFileInfo fileInfo : infoList) {
-                setThreadPool(entryValue.getIntValue("uploadPoolSize"), threadPool);
+                setThreadPool(tableName, "uploadPoolSize", threadPool);
                 // 文件推送
                 futures.add(CompletableFuture.supplyAsync(() -> {
                     File file = new File(fileInfo.getFileDirectory().concat(File.separator)
