@@ -742,7 +742,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 Long sftpConfigId = fileDbConfig.getSftpConfigId();
                 SyncConfig syncConfig = syncConfigMapper.selectByPrimaryKey(sftpConfigId);
                 List<LocalFile> localFiles = getLocalFile(apiCode, fileType, startDate, endDate);
-                resultBool = resultBool && localFiles.size() > 0;
+                resultBool = localFiles.size() > 0 && resultBool;
                 // 明细文件信息
                 for (LocalFile localFile : localFiles) {
                     String fileName = localFile.getFileName();
@@ -759,8 +759,8 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                     fileDetailsCount = zhongbangVoiceFileDetailMapper.countByExample(exampleDetailCount);
                     if (fileInfoCount != fileDetailsCount) {
                         // 下载远程文件
-                        resultBool = resultBool && isFromSftpLocalDisk(localFile, syncConfig, dateStr, apiCode, cid
-                                , pageSize, threadPoolGet, tableName);
+                        resultBool = isFromSftpLocalDisk(localFile, syncConfig, dateStr, apiCode, cid
+                                , pageSize, threadPoolGet, tableName) && resultBool;
                     }
                     fileInfoCount = pushCustomerFileInfoMapper.countByExample(exampleInfoCount);
                     if (fileInfoCount == fileDetailsCount) {
@@ -771,7 +771,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             List<CompletableFuture<Boolean>> futures = uploadFile(
                                     cid, apiCode, pageSize, tableName, threadPool, localFile);
                             // 结果转换
-                            resultBool = resultBool && allOf(futures);
+                            resultBool = allOf(futures) && resultBool;
                         } else {
                             ZhongbangVoiceFileDetailExample countExample = new ZhongbangVoiceFileDetailExample();
                             exampleDetailCount.createCriteria().andLocalIdEqualTo(localFileId).andApiCodeEqualTo(apiCode)
@@ -919,7 +919,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 PushCustomerFileInfo fileInfoOld = fileInfoMap.get(detail.getFileName());
                                 if (fileInfoOld == null) {
                                     // 文件信息入库
-                                    bool = bool && saveInfo(cid, file, apiCode, parent, localDir, length, fileMd5, localFileId);
+                                    bool = saveInfo(cid, file, apiCode, parent, localDir, length, fileMd5, localFileId) && bool;
                                 } else {
                                     updateInfo(fileInfoOld, fileMd5, file, parent, localDir, length);
                                 }
@@ -927,6 +927,14 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 log.error(e.getMessage() + "录音文件：" + detail.getFileName(), e);
                                 Thread.currentThread().interrupt();
                                 bool = false;
+                                if (e instanceof SftpException) {
+                                    try {
+                                        ftpClient = new SftpClient(syncConfig, true);
+                                        ftpClient.connect();
+                                    } catch (Exception exception) {
+                                        log.error(exception.getMessage());
+                                    }
+                                }
                             }
                         }
                     } else {
