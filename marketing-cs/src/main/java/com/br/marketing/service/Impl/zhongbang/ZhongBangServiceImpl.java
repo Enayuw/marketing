@@ -839,10 +839,12 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         return localFileMapper.selectByExample(localFileExample);
     }
 
-    private synchronized void setThreadPool(int poolSize, ThreadPoolExecutor poolExecutor) {
-        if (poolSize > 0 && poolSize != poolExecutor.getCorePoolSize()) {
-            poolExecutor.setCorePoolSize(poolSize);
-            poolExecutor.setMaximumPoolSize(poolSize);
+    private void setThreadPool(int poolSize, ThreadPoolExecutor poolExecutor) {
+        synchronized (this) {
+            if (poolSize > 0 && poolSize != poolExecutor.getCorePoolSize()) {
+                poolExecutor.setCorePoolSize(poolSize);
+                poolExecutor.setMaximumPoolSize(poolSize);
+            }
         }
     }
 
@@ -872,7 +874,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         String srcPath = syncConfig.getSrcPath().replaceAll(DateUtils.yyyyMMdd, dateStr);
         long maxId = 0;
         while (!Thread.currentThread().isInterrupted()) {
-            int poolSize = entryValue.getIntValue("uploadPoolSize");
             ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
             voiceFileDetailExample.createCriteria().andLocalIdEqualTo(localFileId).andStatusEqualTo(1)
                     .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0)
@@ -900,7 +901,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         Map<String, PushCustomerFileInfo> fileInfoMap = infoList.stream().collect(Collectors.toMap(
                                 PushCustomerFileInfo::getFileName, Function.identity()));
                         for (ZhongbangVoiceFileDetail detail : fileDetails) {
-                            setThreadPool(poolSize, threadPoolGet);
+                            setThreadPool(entryValue.getIntValue("getFilePoolSize"), threadPoolGet);
                             if (StringUtils.isBlank(detail.getFileName())) {
                                 continue;
                             }
@@ -1043,8 +1044,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             int size = infoList.size();
             maxId = infoList.get(size - 1).getId();
             for (PushCustomerFileInfo fileInfo : infoList) {
-                int poolSize = entryValue.getIntValue("uploadPoolSize");
-                setThreadPool(poolSize, threadPool);
+                setThreadPool(entryValue.getIntValue("uploadPoolSize"), threadPool);
                 // 文件推送
                 futures.add(CompletableFuture.supplyAsync(() -> {
                     File file = new File(fileInfo.getFileDirectory().concat(File.separator)
