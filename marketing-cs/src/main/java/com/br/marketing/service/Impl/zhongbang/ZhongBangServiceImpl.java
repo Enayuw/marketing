@@ -1047,8 +1047,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                 setThreadPool(tableName, "uploadPoolSize", threadPool);
                 // 文件推送
                 futures.add(CompletableFuture.supplyAsync(() -> {
-                    File file = new File(fileInfo.getFileDirectory().concat(File.separator)
-                            + fileInfo.getFileName());
+                    File file = new File(fileInfo.getFileDirectory().concat(File.separator) + fileInfo.getFileName());
                     ZhongbangVoiceFileDetail voiceFileDetail = new ZhongbangVoiceFileDetail();
                     voiceFileDetail.setFileName(file.getName());
                     voiceFileDetail.setLocalId(localFileId);
