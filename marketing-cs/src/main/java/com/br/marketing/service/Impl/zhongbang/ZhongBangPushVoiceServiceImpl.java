@@ -68,10 +68,10 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
             List<Long> localIdList = new ArrayList<>();
             List<Long> errorIdList = new ArrayList<>();
             JSONArray flArray = new JSONArray();
-            Set<String> custNumSet = new HashSet<>();
             Iterator<ZhongbangVoiceFileDetail> iterator = detailList.iterator();
             while(iterator.hasNext()){
                 ZhongbangVoiceFileDetail t = iterator.next();
+                Set<String> custNumSet = new HashSet<>();
                 Long id = t.getId();
                 idList.add(id);
                 Long localId = t.getLocalId();
