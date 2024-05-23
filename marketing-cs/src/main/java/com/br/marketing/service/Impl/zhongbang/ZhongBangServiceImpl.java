@@ -719,9 +719,9 @@ public class ZhongBangServiceImpl implements ZhongBangService {
         boolean resultBool = true;
         int pageSize = 2000;
         int availableNumber = Runtime.getRuntime().availableProcessors();
-        boolean bool = availableNumber > 30;
+        boolean bool = availableNumber > 25;
         int corePoolSize = (availableNumber / 2);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 30
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(bool ? 15 : corePoolSize, bool ? 25
                 : (availableNumber + corePoolSize), new SynchronousQueue<>(), "br-zbank-voiceFile-file-upload");
         ThreadPoolExecutor threadPoolGet = BrExecutors.getThreadPool(corePoolSize, availableNumber
                 , new SynchronousQueue<>(), "br-zbank-voiceFile-sftp-get");
