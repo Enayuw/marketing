@@ -840,13 +840,11 @@ public class ZhongBangServiceImpl implements ZhongBangService {
     }
 
     private void setThreadPool(final String tableName, String poolKey, ThreadPoolExecutor poolExecutor) {
-        synchronized (this) {
-            Map<String, JSONObject> voiceFileConfig = getVoiceFileConfig();
-            int poolSize = voiceFileConfig.get(tableName).getIntValue(poolKey);
-            if (poolSize > 0 && poolSize != poolExecutor.getCorePoolSize()) {
-                poolExecutor.setCorePoolSize(poolSize);
-                poolExecutor.setMaximumPoolSize(poolSize);
-            }
+        Map<String, JSONObject> voiceFileConfig = getVoiceFileConfig();
+        int poolSize = voiceFileConfig.get(tableName).getIntValue(poolKey);
+        if (poolSize > 0 && poolSize != poolExecutor.getCorePoolSize()) {
+            poolExecutor.setCorePoolSize(poolSize);
+            poolExecutor.setMaximumPoolSize(poolSize);
         }
     }
 
@@ -888,6 +886,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
             }
             int size = fileDetails.size();
             maxId = fileDetails.get(size - 1).getId();
+            setThreadPool(tableName, "getFilePoolSize", threadPoolGet);
             futures.add(CompletableFuture.supplyAsync(() -> {
                 boolean bool = true;
                 // 获得sftp连接
@@ -903,7 +902,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         Map<String, PushCustomerFileInfo> fileInfoMap = infoList.stream().collect(Collectors.toMap(
                                 PushCustomerFileInfo::getFileName, Function.identity()));
                         for (ZhongbangVoiceFileDetail detail : fileDetails) {
-                            setThreadPool(tableName, "getFilePoolSize", threadPoolGet);
                             if (StringUtils.isBlank(detail.getFileName())) {
                                 continue;
                             }
