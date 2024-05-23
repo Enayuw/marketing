@@ -765,7 +765,7 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                             .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0);
                     fileDetailsCount = zhongbangVoiceFileDetailMapper.countByExample(exampleDetailCount);
                     if (fileInfoCount != fileDetailsCount) {
-                        resultBool = resultBool && getFromSftpLocalDisk(localFile, syncConfig, dateStr, apiCode, cid
+                        resultBool = resultBool && isFromSftpLocalDisk(localFile, syncConfig, dateStr, apiCode, cid
                                 , pageSize, threadPoolGet, entryValue);
                     }
                     fileInfoCount = pushCustomerFileInfoMapper.countByExample(exampleInfoCount);
@@ -835,37 +835,38 @@ public class ZhongBangServiceImpl implements ZhongBangService {
      * 2024-05-20 19:59
      * 下载远程文件到本地磁盘及文件信息保存
      */
-    private boolean getFromSftpLocalDisk(LocalFile localFile, SyncConfig syncConfig, String dateStr
+    private boolean isFromSftpLocalDisk(LocalFile localFile, SyncConfig syncConfig, String dateStr
             , String apiCode, String cid, Integer pageSize, ThreadPoolExecutor threadPoolGet
             , JSONObject entryValue) {
-        // 获得sftp连接
-        SftpClient ftpClient = new SftpClient(syncConfig, true);
         long localFileId = localFile.getId();
         String fileName = localFile.getFileName();
         List<CompletableFuture<Boolean>> futures = new ArrayList<>();
-        try {
-            if (ftpClient.connect()) {
-                String localPath = localFile.getLocalPath();
-                String localDir = localPath.replaceAll(DateUtils.yyyyMMdd, dateStr).concat(fileName.replace(".txt", ""))
-                        .concat(File.separator).concat("voice_" + localFileId).concat(File.separator);
-                String srcPath = syncConfig.getSrcPath().replaceAll(DateUtils.yyyyMMdd, dateStr);
-                long maxId = 0;
-                while (!Thread.currentThread().isInterrupted() && ftpClient.isConnected()) {
-                    int poolSize = entryValue.getIntValue("uploadPoolSize");
-                    ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
-                    voiceFileDetailExample.createCriteria().andLocalIdEqualTo(localFileId).andStatusEqualTo(1)
-                            .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0)
-                            .andIdGreaterThan(maxId);
-                    voiceFileDetailExample.setOrderByClause("id limit " + pageSize);
-                    List<ZhongbangVoiceFileDetail> fileDetails = zhongbangVoiceFileDetailMapper
-                            .selectByExample(voiceFileDetailExample);
-                    if (fileDetails.isEmpty()) {
-                        break;
-                    }
-                    int size = fileDetails.size();
-                    maxId = fileDetails.get(size - 1).getId();
-                    futures.add(CompletableFuture.supplyAsync(() -> {
-                        boolean bool = true;
+        String localPath = localFile.getLocalPath();
+        String localDir = localPath.replaceAll(DateUtils.yyyyMMdd, dateStr).concat(fileName.replace(".txt", ""))
+                .concat(File.separator).concat("voice_" + localFileId).concat(File.separator);
+        String srcPath = syncConfig.getSrcPath().replaceAll(DateUtils.yyyyMMdd, dateStr);
+        long maxId = 0;
+        while (!Thread.currentThread().isInterrupted()) {
+            int poolSize = entryValue.getIntValue("uploadPoolSize");
+            ZhongbangVoiceFileDetailExample voiceFileDetailExample = new ZhongbangVoiceFileDetailExample();
+            voiceFileDetailExample.createCriteria().andLocalIdEqualTo(localFileId).andStatusEqualTo(1)
+                    .andApiCodeEqualTo(apiCode).andPushStatusEqualTo(0).andIsDeletedEqualTo(0)
+                    .andIdGreaterThan(maxId);
+            voiceFileDetailExample.setOrderByClause("id limit " + pageSize);
+            List<ZhongbangVoiceFileDetail> fileDetails = zhongbangVoiceFileDetailMapper
+                    .selectByExample(voiceFileDetailExample);
+            if (fileDetails.isEmpty()) {
+                break;
+            }
+            int size = fileDetails.size();
+            maxId = fileDetails.get(size - 1).getId();
+            setThreadPool(poolSize, threadPoolGet);
+            futures.add(CompletableFuture.supplyAsync(() -> {
+                boolean bool = true;
+                // 获得sftp连接
+                SftpClient ftpClient = new SftpClient(syncConfig, true);
+                try {
+                    if (ftpClient.connect() && ftpClient.isConnected()) {
                         List<String> fileNameList = fileDetails.stream().map(ZhongbangVoiceFileDetail::getFileName)
                                 .collect(Collectors.toList());
                         PushCustomerFileInfoExample example = new PushCustomerFileInfoExample();
@@ -875,7 +876,6 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                         Map<String, PushCustomerFileInfo> fileInfoMap = infoList.stream().collect(Collectors.toMap(
                                 PushCustomerFileInfo::getFileName, Function.identity()));
                         for (ZhongbangVoiceFileDetail detail : fileDetails) {
-                            setThreadPool(poolSize, threadPoolGet);
                             if (StringUtils.isBlank(detail.getFileName())) {
                                 continue;
                             }
@@ -930,34 +930,37 @@ public class ZhongBangServiceImpl implements ZhongBangService {
                                 }
                             } catch (SftpException | IOException | SDKException e) {
                                 log.error(e.getMessage() + "录音文件：" + detail.getFileName(), e);
+                                Thread.currentThread().interrupt();
                                 bool = false;
                             }
                         }
-                        return bool;
-                    }, threadPoolGet).exceptionally(throwable -> {
-                        if (throwable != null) {
-                            log.error(throwable.getMessage(), throwable);
+                    } else {
+                        bool = false;
+                    }
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    bool = false;
+                } finally {
+                    if (ftpClient.isConnected()) {
+                        try {
+                            ftpClient.disconnect();
+                        } catch (Exception e) {
+                            log.error("众邦录音文件下载sftp关闭异常！" + e.getMessage(), e);
                         }
-                        return false;
-                    }));
-                    if (size < pageSize) {
-                        break;
                     }
                 }
-            }
-            return allOf(futures);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        } finally {
-            if (ftpClient.isConnected()) {
-                try {
-                    ftpClient.disconnect();
-                } catch (Exception e) {
-                    log.error("众邦录音文件下载sftp关闭异常！" + e.getMessage(), e);
+                return bool;
+            }, threadPoolGet).exceptionally((Throwable throwable) -> {
+                if (throwable != null) {
+                    log.error(throwable.getMessage(), throwable);
                 }
+                return false;
+            }));
+            if (size < pageSize) {
+                break;
             }
         }
-        return false;
+        return allOf(futures);
     }
 
     private boolean allOf(List<CompletableFuture<Boolean>> futures) {
