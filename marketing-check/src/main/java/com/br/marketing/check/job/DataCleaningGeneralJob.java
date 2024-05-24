@@ -1,8 +1,14 @@
 package com.br.marketing.check.job;
 
+import com.br.marketing.check.beanhadler.DataCleanFactory;
+import com.br.marketing.entity.MarketingCleanDataTask;
+import com.br.marketing.entity.MarketingDataFileConfig;
+import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.service.IDataCleaningGeneralService;
+import com.br.marketing.service.IFileToMarketingRuleService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Resource;
 
@@ -13,17 +19,27 @@ import javax.annotation.Resource;
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-05-24
  */
+@Slf4j
 public class DataCleaningGeneralJob extends AbstractSimpleElasticJob {
 
     @Resource
     IDataCleaningGeneralService dataCleaningGeneralService;
+    @Resource
+    MarketingDataFileConfigMapper marketingDataFileConfigMapper;
+    @Resource
+    DataCleanFactory dataCleanFactory;
+
     @Override
     public void process(JobExecutionMultipleShardingContext jobContext) {
-        String jobParameter = jobContext.getJobParameter();
 
-//        if(dataCleaningGeneralService.isAction()){
-            dataCleaningGeneralService.action();
-//        }
+        String jobParameter = jobContext.getJobParameter();
+        MarketingCleanDataTask task = dataCleaningGeneralService.getAction();
+        if(null != task){
+            Integer configId = task.getConfigId();
+            MarketingDataFileConfig config = marketingDataFileConfigMapper.selectByPrimaryKey(configId.longValue());
+            IFileToMarketingRuleService fileToMarketingRuleService = dataCleanFactory.getFileToMarketingRuleService(config);
+            dataCleaningGeneralService.action(task,fileToMarketingRuleService,config);
+        }
 
     }
 }
