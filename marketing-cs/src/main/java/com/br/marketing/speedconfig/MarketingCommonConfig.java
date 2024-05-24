@@ -1600,5 +1600,15 @@ public class MarketingCommonConfig {
      */
     private Long queryCustomerPushTimeOutDelay;
 
+    /**
+     * 医时转化数据提取apiCode集合
+     */
+    private List<String> YiShiTransferApiCodes;
+
+    /**
+     * 医时转化数据提取执行时间
+     */
+    private String YiShiTransferFileExecuteTime;
+
 }
 
