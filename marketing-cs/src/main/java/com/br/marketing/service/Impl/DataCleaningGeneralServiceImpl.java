@@ -30,7 +30,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -51,7 +53,19 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
     @Resource
     PushInfoService pushInfoService;
 
-
+    public static List<DateTimeFormatter> parsers = Arrays.asList(
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy-M-dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("yyyy/M/dd HH:mm:ss"),
+            DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss"),
+            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"),
+            DateTimeFormatter.BASIC_ISO_DATE,
+            DateTimeFormatter.ISO_LOCAL_DATE,
+            DateTimeFormatter.ISO_LOCAL_TIME,
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME
+            // 可以添加更多可能的格式
+    );
 
     @Override
     public MarketingCleanDataTask getAction() {
@@ -217,6 +231,24 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     }
                                 } catch (IOException ex) {
                                     log.error(ex.getMessage(), ex);
+                                }
+                            }
+                            if(StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()){
+                                LocalDateTime date = null;
+                                for (DateTimeFormatter parser : parsers) {
+                                    try {
+                                        date = LocalDateTime.parse(value, parser);
+                                        break; // 如果解析成功，则跳出循环
+                                    } catch (DateTimeParseException e) {
+                                        // 忽略异常，并尝试下一个解析器
+                                        log.warn("文件名:{};行数:{};错误:{};", fileStr, line, "该行与表头列数不一致");
+                                    }
+                                }
+                                if (date != null) {
+                                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                                    value = date.format(formatter);
+                                } else {
+                                    log.warn("无法解析日期:{}-文件名:{}-行数:{}", value, fileStr, line);
                                 }
                             }
                             // 必填字段没值 则报错
