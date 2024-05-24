@@ -21,7 +21,8 @@ public enum DataTypeEnum {
     ,MARKETINGDATA(8,"原始数据文件")
     ,DXTRANSFER(9,"转化过滤")
     ,DXIBU(10,"ibu电销")
-    ,MARKETINGTRANSFERDATA(11,"转化清洗文件");
+    ,MARKETINGTRANSFERDATA(11,"转化清洗文件")
+    ,MARKETINGUPLOADDATA(12,"上传清洗文件");
     private Integer value;
     private String desc;
 

@@ -4,12 +4,17 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.dataclean.DataCleanConfigDTO;
+import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
+import com.br.marketing.vo.dataclean.DataCleanConfigVO;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 数据清洗配置页面Controller
@@ -25,9 +30,13 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping(value = "/dataclean/config")
+@Api(value = "数据清洗配置页面", tags = "数据清洗配置页面", produces = "application/json", consumes = "application/json", protocols = "http")
 public class DataCleanConfigController {
 
-
+    /**
+     * CODE_1
+     */
+    private static final Integer CODE_1 = Integer.valueOf(1);
     @Autowired
     private DataCleanHandlerService dataCleanHandlerService;
 
@@ -60,6 +69,19 @@ public class DataCleanConfigController {
     @PostMapping("/saveConfig")
     public Result saveConfig(@RequestBody DataCleanConfigDTO dto) {
         return dataCleanHandlerService.saveConfig(dto);
+    }
+
+
+    @ApiOperation(value = "获取匹配规则", notes = "获取匹配规则")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "fileHeader", value = "文件表头", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "apiCode", value = "apiCode", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "fileType", value = "文件类型", paramType = "query", dataType = "string")
+    })
+    @GetMapping("/getfileRules")
+    public ApiResult<List<DataCleanConfigVO>> getfileRules(String fileHeader, String apiCode, String fileType) {
+        return new ApiResult().fromResult(dataCleanHandlerService.getfileRules(fileHeader, apiCode, fileType), CODE_1);
+
     }
 
 }

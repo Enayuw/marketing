@@ -1,12 +1,10 @@
-package com.br.marketing.check.cleandata;
+package com.br.marketing.check.job.dataclean;
 
-import com.br.marketing.check.service.IFileToMarketingRuleService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.entity.MarketingCleanDataFile;
-import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.mapper.MarketingCleanDataFileMapperBase;
@@ -69,9 +67,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         if (StringUtils.isNotBlank(apiCode)) {
             criteria.andApiCodeEqualTo(apiCode);
         }
-        //TODO:需要新增文件类型区分
-        criteria.andStatusEqualTo(1).andTargetPathLike("%upload%")
-                .andDataTypeEqualTo(DataTypeEnum.MARKETINGDATA.getValue())
+        criteria.andStatusEqualTo(1).andDataTypeEqualTo(DataTypeEnum.MARKETINGUPLOADDATA.getValue())
                 .andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
         for (SyncConfig syncConfig : syncConfigs) {
