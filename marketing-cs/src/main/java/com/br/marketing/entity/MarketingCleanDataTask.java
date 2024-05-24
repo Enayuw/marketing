@@ -13,6 +13,11 @@ public class MarketingCleanDataTask implements Serializable {
     private Long id;
 
     /**
+     * apiCode
+     */
+    private String apiCode;
+
+    /**
      * 规则配置id
      */
     private Integer configId;
@@ -42,9 +47,6 @@ public class MarketingCleanDataTask implements Serializable {
      */
     private Date createTime;
 
-    /**
-     * 修改时间
-     */
     private Date updateTime;
 
     /**

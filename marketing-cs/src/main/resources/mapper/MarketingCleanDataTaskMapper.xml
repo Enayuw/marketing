@@ -5,7 +5,7 @@
 
     <select id="getTaskList" resultType="com.br.marketing.vo.dataclean.DataCleanTaskVO">
         SELECT
-        id,api_code,,config_id,file_id,clean_type as fileType,test_result,clean_status,create_time,update_time
+        id,api_code,config_id,file_id,clean_type as fileType,test_result,clean_status,create_time,update_time
         FROM
         b_marketing_clean_data_task
         <where>

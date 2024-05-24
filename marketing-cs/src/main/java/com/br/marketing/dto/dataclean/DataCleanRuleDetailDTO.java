@@ -49,11 +49,11 @@ public class DataCleanRuleDetailDTO {
 
 
     /**
-     * 清洗类型：0上传，1转化
+     * 文件类型：0上传，1转化
      */
-    @ApiModelProperty(value = "清洗类型：0上传，1转化")
+    @ApiModelProperty(value = "文件类型：0上传，1转化")
     @NotEmpty
-    private Integer cleanType;
+    private Integer fileType;
 
 
 }

@@ -165,6 +165,76 @@ public class MarketingCleanDataTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andApiCodeIsNull() {
+            addCriterion("api_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIsNotNull() {
+            addCriterion("api_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeEqualTo(String value) {
+            addCriterion("api_code =", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotEqualTo(String value) {
+            addCriterion("api_code <>", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeGreaterThan(String value) {
+            addCriterion("api_code >", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("api_code >=", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLessThan(String value) {
+            addCriterion("api_code <", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLessThanOrEqualTo(String value) {
+            addCriterion("api_code <=", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLike(String value) {
+            addCriterion("api_code like", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotLike(String value) {
+            addCriterion("api_code not like", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIn(List<String> values) {
+            addCriterion("api_code in", values, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotIn(List<String> values) {
+            addCriterion("api_code not in", values, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeBetween(String value1, String value2) {
+            addCriterion("api_code between", value1, value2, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotBetween(String value1, String value2) {
+            addCriterion("api_code not between", value1, value2, "apiCode");
+            return (Criteria) this;
+        }
+
         public Criteria andConfigIdIsNull() {
             addCriterion("config_id is null");
             return (Criteria) this;

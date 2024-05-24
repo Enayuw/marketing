@@ -56,4 +56,10 @@ public class DataCleanConfigController {
 
     }
 
+    @ApiOperation(value = "保存配置", notes = "保存配置")
+    @PostMapping("/saveConfig")
+    public Result saveConfig(@RequestBody DataCleanConfigDTO dto) {
+        return dataCleanHandlerService.saveConfig(dto);
+    }
+
 }

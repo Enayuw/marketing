@@ -28,4 +28,6 @@ public interface DataCleanHandlerService {
     PageResultReturn configList(int current, int size, String apiCode, String fileType);
 
     Result updateConfig(DataCleanConfigDTO dto);
+
+    Result saveConfig(DataCleanConfigDTO dto);
 }

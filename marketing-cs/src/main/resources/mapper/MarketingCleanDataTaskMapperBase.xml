@@ -3,6 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.MarketingCleanDataTaskMapperBase">
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCleanDataTask">
     <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
     <result column="config_id" jdbcType="INTEGER" property="configId" />
     <result column="file_id" jdbcType="VARCHAR" property="fileId" />
     <result column="clean_type" jdbcType="INTEGER" property="cleanType" />
@@ -71,8 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, config_id, file_id, clean_type, test_result, clean_status, create_time, update_time, 
-    is_del
+    id, api_code, config_id, file_id, clean_type, test_result, clean_status, create_time, 
+    update_time, is_del
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingCleanDataTaskExample" resultMap="BaseResultMap">
     select
@@ -105,16 +106,21 @@
     </if>
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCleanDataTask" useGeneratedKeys="true">
-    insert into b_marketing_clean_data_task (config_id, file_id, clean_type, 
-      test_result, clean_status, create_time, 
-      update_time, is_del)
-    values (#{configId,jdbcType=INTEGER}, #{fileId,jdbcType=VARCHAR}, #{cleanType,jdbcType=INTEGER}, 
-      #{testResult,jdbcType=VARCHAR}, #{cleanStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER})
+    insert into b_marketing_clean_data_task (api_code, config_id, file_id, 
+      clean_type, test_result, clean_status, 
+      create_time, update_time, is_del
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{configId,jdbcType=INTEGER}, #{fileId,jdbcType=VARCHAR}, 
+      #{cleanType,jdbcType=INTEGER}, #{testResult,jdbcType=VARCHAR}, #{cleanStatus,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
+      )
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCleanDataTask" useGeneratedKeys="true">
     insert into b_marketing_clean_data_task
     <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        api_code,
+      </if>
       <if test="configId != null">
         config_id,
       </if>
@@ -141,6 +147,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="configId != null">
         #{configId,jdbcType=INTEGER},
       </if>
@@ -179,6 +188,9 @@
       <if test="record.id != null">
         id = #{record.id,jdbcType=BIGINT},
       </if>
+      <if test="record.apiCode != null">
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="record.configId != null">
         config_id = #{record.configId,jdbcType=INTEGER},
       </if>
@@ -211,6 +223,7 @@
   <update id="updateByExample" parameterType="map">
     update b_marketing_clean_data_task
     set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
       config_id = #{record.configId,jdbcType=INTEGER},
       file_id = #{record.fileId,jdbcType=VARCHAR},
       clean_type = #{record.cleanType,jdbcType=INTEGER},
@@ -226,6 +239,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingCleanDataTask">
     update b_marketing_clean_data_task
     <set>
+      <if test="apiCode != null">
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="configId != null">
         config_id = #{configId,jdbcType=INTEGER},
       </if>
@@ -255,7 +271,8 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCleanDataTask">
     update b_marketing_clean_data_task
-    set config_id = #{configId,jdbcType=INTEGER},
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      config_id = #{configId,jdbcType=INTEGER},
       file_id = #{fileId,jdbcType=VARCHAR},
       clean_type = #{cleanType,jdbcType=INTEGER},
       test_result = #{testResult,jdbcType=VARCHAR},

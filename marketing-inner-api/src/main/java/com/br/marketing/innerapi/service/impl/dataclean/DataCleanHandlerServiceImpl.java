@@ -81,7 +81,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
             //TODO json处理
             marketingDataFileConfig.setFieldConfig(ruleConfig);
             marketingDataFileConfig.setFieldConfigShow(ruleConfig);
-            marketingDataFileConfig.setCleanType(dto.getCleanType());
+            marketingDataFileConfig.setCleanType(dto.getFileType());
             marketingDataFileConfig.setServiceName("defaultFileToMarketingRuleServiceImpl");
             marketingDataFileConfig.setFileId(fileId);
             if (StringUtils.isEmpty(dto.getRuleName())) {
@@ -95,7 +95,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         MarketingCleanDataTask task = new MarketingCleanDataTask();
         task.setConfigId(configId.intValue());
         task.setFileId(dto.getFileIds());
-        task.setCleanType(dto.getCleanType());
+        task.setCleanType(dto.getFileType());
         task.setCreateTime(new Date());
         task.setUpdateTime(new Date());
         marketingCleanDataTaskMapper.insertSelective(task);
@@ -159,6 +159,20 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         marketingDataFileConfig.setRuleName(dto.getRuleName());
         marketingDataFileConfig.setId(dto.getId());
         marketingDataFileConfigMapper.updateByPrimaryKeySelective(marketingDataFileConfig);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result saveConfig(DataCleanConfigDTO dto) {
+
+        MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
+        marketingDataFileConfig.setApiCode(dto.getApiCode());
+        marketingDataFileConfig.setFieldConfigShow(dto.getRuleConfig());
+        marketingDataFileConfig.setCleanType(dto.getFileType());
+        marketingDataFileConfig.setCreateTime(new Date());
+        marketingDataFileConfig.setUpdateTime(new Date());
+        marketingDataFileConfig.setServiceName("defaultFileToMarketingRuleServiceImpl");
+        marketingDataFileConfigMapper.insertSelective(marketingDataFileConfig);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
