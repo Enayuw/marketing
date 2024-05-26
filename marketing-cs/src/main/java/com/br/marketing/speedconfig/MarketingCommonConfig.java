@@ -848,6 +848,15 @@ public class MarketingCommonConfig {
     private Integer yiXinSearchPageSize;
 
     /**
+     * 宜信转化过滤推送百应执行时间
+     */
+    private String yiXinTransferPushBaiYingExecuteTime;
+
+    /**
+     * 宜信转化过滤推送百应线程
+     */
+    private Map<String, Integer> yiXinTransferPushBaiYingThreadPool;
+    /**
      * 滴滴联合建模新接口执行时间
      */
     private String didiModelingNewExecTime;
