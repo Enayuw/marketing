@@ -62,6 +62,7 @@ public class JobManager {
         front.setActionType(actionType);
         front.setActionData(date);
         front.setCreateTime(new Date());
+        front.setUpdateTime(new Date());
         transferActionFrontMapper.insertSelective(front);
         return front.getId();
     }
@@ -156,6 +157,7 @@ public class JobManager {
          * 众邦上传录音文件执行类型
          */
         ZHONGBANG_PUSH_VOICE_FILE(3, "3710099", "7433800"),
+        YIXIN_TRANSFER_PUSH_BAIYING(15, "3710012", "7412003"),
         ;
         /**
          * 2024-05-16 11:38
