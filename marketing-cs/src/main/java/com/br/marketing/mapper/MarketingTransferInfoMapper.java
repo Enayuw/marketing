@@ -52,4 +52,7 @@ public interface MarketingTransferInfoMapper extends MarketingTransferInfoMapper
 
     int getTransferUnresolvedCount(@Param("apiCode") String apiCode, @Param("startDate") String startDate,@Param("endDate") String endDate);
 
+    @Select("SELECT request_id FROM b_marketing_transfer_info WHERE  api_code=#{apiCode} and date_format(create_time,'%Y-%m-%d') = #{bizDate} and last=#{last} limit 1")
+    String  queryByApiCodAndLast(@Param("apiCode") String apiCode, @Param("bizDate") String bizDate, @Param("last") String last);
+
 }
