@@ -1,59 +1,43 @@
 package com.br.marketing.monkey.job.yixin;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
-import com.br.marketing.entity.TransferActionFrontExample;
-import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingTransferInfoMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
-import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
-import com.br.marketing.monkeydata.handle.zhongan.PushRosterLockingDataToZhongAnHandle;
-import com.br.marketing.monkeydata.handle.zhongan.ZhongAnPushRosterDataHandler;
+import com.br.marketing.monkeydata.handle.yixin.YixinTransferPushToBaiYingHandler;
+import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * 名单锁定推送众安
- *
- * @author Guo Zeqiang
- * @dateTime 2022/11/17 17:49
+ * 宜信转化过滤推送百应
  */
 @Component
 @Slf4j
 public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
 
     @Resource
-    private PushRosterLockingDataToZhongAnHandle rosterLockingDataToZhongAn;
-
-    @Resource
-    private ZhongAnPushRosterDataHandler zhongAnPushRosterDataHandler;
-
-    @Resource
-    private ZhonganRosterLockingDataMapper zhonganRosterLockingDataMapper;
-
-    @Resource
     private LocalFileMapper localFileMapper;
 
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private RedisChgService redisChgService;
@@ -64,158 +48,133 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferActionFrontMapper transferActionFrontMapper;
 
+    @Resource
+    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Resource
+    private YixinTransferPushToBaiYingHandler yixinTransferPushToBaiYingHandler;
+
+    @Resource
+    private JobManager jobManager;
+
+    @Resource
+    private MarketingTransferInfoMapper marketingTransferInfoMapper;
+
+
     private final static String EXECUTE_TIME = "21:00:00";
     private final static String CLEAR_REDIS_TIME = "23:40:00";
 
-    private final static String TITLE = "【名单锁定推送众安】";
+    private final static String TITLE = "【宜信转化过滤推送百应】";
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        String zhongAnRosterLockingTime = marketingCommonConfig.getZhongAnRosterLockingTime();
-        LocalTime localTimeLockingTime = LocalTime.parse(StringUtils.isNotBlank(zhongAnRosterLockingTime)
-                ? zhongAnRosterLockingTime : EXECUTE_TIME);
-        if (LocalTime.now().isBefore(localTimeLockingTime)) {
-            log.warn(TITLE+"未到配置的运行时间:{}", zhongAnRosterLockingTime);
-            return;
+        try {
+            log.warn(TITLE + "调度开始");
+            if (!checkExecuteTime()) return;
+            List<Map<String, String>> paramList = processJobParameter(shardingContext.getJobParameter());
+            process(paramList);
+            log.warn(TITLE + "调度开始");
+        } catch (Exception e) {
+            log.error(TITLE + "调度异常", e);
         }
+    }
 
-        String parameter = shardingContext.getJobParameter();
-        long start = System.currentTimeMillis();
-        List<String> list = new ArrayList<>();
-        String bizDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-        List<String> dateList = new ArrayList<>();
-        if (StringUtils.isNotEmpty(parameter)) {
-            StringTokenizer string = new StringTokenizer(parameter, ",");
-            while (string.hasMoreTokens()) {
-                String[] split = string.nextToken().split("#");
-                list.add(split[0]);
-                if (split.length > 1) {
-                    dateList.add(split[1]);
-                    continue;
-                }
-                dateList.add(bizDate);
-            }
-        } else {
-            list.add("3710048");
-            dateList.add(bizDate);
-        }
-        HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
-        if (zhongAnDetailPush == null) {
-            return;
-        }
+    public void process(List<Map<String, String>> paramList) {
+        int actionType = JobManager.ActionTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getActionType();
 
-        log.warn(TITLE+"调度开始apiCodes:{}, bizDate:{}, 耗时:{}", Arrays.toString(list.toArray())
-                , Arrays.toString(dateList.toArray()));
-        Page2Condition<ZhonganRosterLockingData> data = new Page2Condition<>();
-        data.setPageIndex(0);
-        data.setPageSize(2000);
-        int i = 0;
-        for (String apiCode : list) {
-            bizDate = dateList.get(i);
-            ++i;
-            // 查询推送记录
-            List<TransferActionFront> actionFrontList = getActionFront(apiCode, bizDate);
-            Long frontId;
-            if (actionFrontList.size() > 0) {
-                TransferActionFront actionFront = actionFrontList.get(0);
+        for (Map<String, String> param: paramList) {
+            String apiCode = param.get("apiCode");
+            String bizDate = param.get("bizDate");
+
+            long start = System.currentTimeMillis();
+            log.warn(TITLE+"调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
+
+            // actionFront
+            TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionType, null);
+            if (actionFront != null) {
                 if (2 == actionFront.getStatus()) {
                     log.warn(TITLE+"该任务今日已经推送"+"api_code:{}, biz_date:{}", apiCode, bizDate);
                     continue;
-                } else {
-                    frontId = actionFront.getId();
                 }
             } else {
-                frontId = yiXinTransferService.saveFrontData(apiCode, bizDate, 3);
+                jobManager.saveFrontData(apiCode, bizDate, actionType);
+                if (actionFront.getId() == null) {
+                    log.warn(TITLE+ "任务执行记录添加失败, {}, {}", apiCode, bizDate);
+                    continue;
+                }
             }
 
-            List<Long> sftpFileIdList = zhonganRosterLockingDataMapper.getSftpFileIdList(apiCode, bizDate);
-            if (!CollectionUtils.isEmpty(sftpFileIdList)) {
-                localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
+            // check last
+            String requestId = marketingTransferInfoMapper.queryByApiCodAndLast(apiCode, bizDate, "1");
+            if(StringUtils.isEmpty(requestId)){
+                log.warn(TITLE+ "暂无last=1记录, {}, {}", apiCode, bizDate);
+                continue;
             }
 
-            // 优先级分批推送
-            Result<?> result1 = action(apiCode, bizDate, "CG", 1, "1", data);
+            // action transfer
+            Result result = action(apiCode, bizDate);
 
-            Result<?> result2 = action(apiCode, bizDate, "MG", 2, "1", data);
-
-            Result<?> result3 = action(apiCode, bizDate, "MG", 1, "1", data);
-
-            Result<?> result4 = action(apiCode, bizDate, "MG", 2, "7", data);
-
-            Result<?> result5 = action(apiCode, bizDate, "MG", 2, "8", data);
-
-            if (ResultCode.SUCCESS.getValue().equals(result1.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result2.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result3.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result4.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result5.getCode())
-            ) {
-                yiXinTransferService.updateFrontDataStatus(frontId, 2);
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                jobManager.updateFrontDataStatus(actionFront.getId(), 2);
             }
 
-            rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
-        }
-        // 清理缓存
-        if (LocalTime.now().isAfter(LocalTime.parse(CLEAR_REDIS_TIME))) {
-            popCache(RedisKeyConstant.zhongAnblackCusNumToday, 3000);
-        }
-        long end = System.currentTimeMillis();
-        log.warn(TITLE+"调度结束apiCodes:{}, bizDate:{}, 耗时:{}", Arrays.toString(list.toArray())
-                , Arrays.toString(dateList.toArray()), end - start);
-    }
-
-    /**
-     * 2023-05-25 18:03
-     * 清理缓存
-     */
-    private void popCache(String key, int count) {
-        try {
-            Set<String> custNumCache = redisChgService.spop(key, count);
-            if (custNumCache != null && custNumCache.size() > 1) {
-                popCache(key, count);
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            long end = System.currentTimeMillis();
+            log.warn(TITLE+"调度结束, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate, end - start);
         }
     }
 
-    private Result<?> action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {
-        ZhonganRosterLockingData zhonganRosterLockingData = new ZhonganRosterLockingData();
-        zhonganRosterLockingData.setApiCode(apiCode);
-        zhonganRosterLockingData.setTag(tag);
-        zhonganRosterLockingData.setBizDate(bizDate);
-        zhonganRosterLockingData.setPushStatus(1);
-        data.setParam(zhonganRosterLockingData);
-        return rosterLockingDataToZhongAn.action(data);
-    }
-
-    private Result<?> action(String apiCode, String bizDate, String tag, Integer dataSource, String userType,
-                             Page2Condition<ZhonganRosterLockingData> condition) {
-        long start = System.currentTimeMillis();
-        log.warn(TITLE+"action开始"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}",
-                apiCode, bizDate, tag, dataSource, userType);
-        ZhonganRosterLockingData param = new ZhonganRosterLockingData();
+    private Result<?> action(String apiCode, String bizDate) {
+        Page2Condition<MarketingTransferSyncUser> condition = new Page2Condition<>();
+        condition.setPageIndex(0);
+        condition.setPageSize(2000);
+        MarketingTransferSyncUser param = new MarketingTransferSyncUser();
         param.setApiCode(apiCode);
-        param.setBizDate(bizDate);
-        param.setTag(tag);
-        param.setDataSource(dataSource);
-        param.setPushStatus(1);
-        param.setUserType(userType);
+        param.setRequestData(bizDate);
         condition.setParam(param);
-        Result actionResult = zhongAnPushRosterDataHandler.action(condition);
-        long end = System.currentTimeMillis();
-        log.warn(TITLE+"action结束"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}, 耗时:{}",
-                apiCode, bizDate, tag, dataSource, userType, end - start);
+        Result actionResult = yixinTransferPushToBaiYingHandler.action(condition);
         return actionResult;
     }
 
-    private List<TransferActionFront> getActionFront(String apiCode, String bizDate) {
-        TransferActionFrontExample example = new TransferActionFrontExample();
-        TransferActionFrontExample.Criteria criteria = example.createCriteria();
-        criteria.andApiCodeEqualTo(apiCode)
-                .andActionDataEqualTo(bizDate)
-                .andActionTypeEqualTo(3)
-                .andIsDelEqualTo(1);
-        return transferActionFrontMapper.selectByExample(example);
+    /**
+     * checkExecuteTime
+     */
+    private boolean checkExecuteTime(){
+        String executeTimeConfig = marketingCommonConfig.getYiXinTransferPushBaiYingExecuteTime();
+        LocalTime executeLocalTime = LocalTime.parse(StringUtils.isNotBlank(executeTimeConfig)
+                ? executeTimeConfig : EXECUTE_TIME);
+        if (LocalTime.now().isBefore(executeLocalTime)) {
+            log.warn(TITLE+"未到配置的运行时间:{}", executeLocalTime);
+            return false;
+        }
+        return true;
     }
+
+    /**
+     * 解析Job参数，格式如下：
+     * e.g [{"apiCode":"3710012","bizDate":"2024-03-11"},{"apiCode":"3710012","bizDate":"2024-03-12"}]
+     */
+    private List<Map<String, String>> processJobParameter(String parameter) throws Exception {
+        List<Map<String, String>> paramList = new ArrayList<>();
+        String curDate = DateUtils.format(new Date(), "yyyy-MM-dd");
+
+        if (StringUtils.isNotEmpty(parameter)) {
+            paramList = JSONObject.parseObject(parameter, List.class);
+            for(Map<String, String> map : paramList){
+                if(StringUtils.isEmpty(map.get("apiCode"))){
+                    throw new Exception("Job参数格式不正确");
+                }
+                if(StringUtils.isEmpty(map.get("bizDate"))){
+                    map.put("bizDate", curDate);
+                }
+            }
+            return paramList;
+        }
+
+        Map<String, String> map = new HashMap<>();
+        map.put("apiCode", "3710012");
+        map.put("bizDate", curDate);
+        paramList.add(map);
+        return paramList;
+    }
+
 }
