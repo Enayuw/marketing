@@ -856,6 +856,12 @@ public class MarketingCommonConfig {
      * 宜信转化过滤推送百应线程
      */
     private Map<String, Integer> yiXinTransferPushBaiYingThreadPool;
+
+    /**
+     * 宜信转化过滤推送百应推送配置
+     */
+    private Map<String, Object> yiXinTransferPushBaiYingPush;
+
     /**
      * 滴滴联合建模新接口执行时间
      */

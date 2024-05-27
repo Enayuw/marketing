@@ -211,7 +211,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             // distribute去重 custNum + distribute_date
             distributeSoleProcessor.process(pushList, condition);
 
-            Result<?> resultAction = resultAction(pushList, pushPool);
+            Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -224,15 +224,17 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         return null;
     }
 
-    public Result<?> resultAction(List<MarketingTransferSyncUser> outputDataList, ThreadPoolExecutor pushPool) {
+    public Result<?> resultAction(List<MarketingTransferSyncUser> outputDataList, YiXinCondition condition, ThreadPoolExecutor pushPool) {
         Result<Object> result = new Result<>();
         if (CollectionUtils.isEmpty(outputDataList)) {
             result.setCode(ResultCode.FAIL.getValue());
             return result;
         }
 
+        Map<String, Object> pushConfigMap = marketingCommonConfig.getYiXinTransferPushBaiYingPush();
+        int pushSize = pushConfigMap.get("pushPartSize") != null ?
+                Integer.parseInt(String.valueOf(pushConfigMap.get("pushPartSize"))) : 500;
         int size = outputDataList.size();
-        int pushSize = 500;
         int count = 0;
         List<BlacklistDataDTO> pushList = new ArrayList<>();
 
@@ -246,10 +248,9 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 List<BlacklistDataDTO> finalList = pushList;
                 pushPool.execute(() -> {
                     ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
-                    reqBlacklistDTO.setMethod("blackData");
-                    reqBlacklistDTO.setApiCode("apiCode");
+                    reqBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBlacklistDTO.setData(finalList);
-                    //byApiServiceClient.pushBaiying(reqBlacklistDTO);
+                    byApiServiceClient.pushBaiying(reqBlacklistDTO);
                 });
                 pushList = new ArrayList<>();
             }
