@@ -44,14 +44,20 @@ public class ByApiServiceClient {
     @Autowired
     InterfaceLogMapper interfaceLogMapper;
 
+    private final static String TITLE = "【推送百应数据】";
+
     @RetryMethod(retryNowNum = 3)
     public Result pushBaiying(ReqBlacklistDTO dto){
-        log.info("pushBaiying request:{}", JSONObject.toJSONString(dto));
+
+        long start = System.currentTimeMillis();
+        log.warn(TITLE+"调度开始, requestParam{}", JSONObject.toJSONString(dto));
         ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
                 .setUrl(pushBlackDataUrl)
                 .setRequestParam(dto)
                 .setContentType(MediaType.APPLICATION_JSON_UTF8).postTransferStr();
-        log.info("pushBaiying result:{}", JSONObject.toJSONString(transfer));
+        long end = System.currentTimeMillis();
+        log.warn(TITLE+"调度结束, result:{}, 耗时:{}", JSONObject.toJSONString(transfer), end - start);
+
         if (200 == transfer.getHttpCode()) {
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
             if (jsonObject == null) {
