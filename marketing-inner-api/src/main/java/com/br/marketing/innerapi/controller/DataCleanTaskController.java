@@ -41,12 +41,12 @@ public class DataCleanTaskController {
 
     @ApiOperation(value = "获取文件信息", notes = "获取文件信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "fileNames", value = "文件名称集合，多个,号分割", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "fileIds", value = "文件ID集合，多个,号分割", required = true, dataType = "String"),
             @ApiImplicitParam(name = "apiCode", value = "apiCode", required = true, dataType = "String")
     })
     @GetMapping("/getfileMsg")
-    public ApiResult<List<MarketingCleanDataFile>> getfileMsg(String fileNames, String apiCode) {
-        return new ApiResult().fromResult(dataCleanHandlerService.getfileMsg(fileNames, apiCode), CODE_1);
+    public ApiResult<List<MarketingCleanDataFile>> getfileMsg(String fileIds, String apiCode) {
+        return new ApiResult().fromResult(dataCleanHandlerService.getfileMsg(fileIds, apiCode), CODE_1);
 
     }
 
@@ -57,10 +57,10 @@ public class DataCleanTaskController {
             @ApiImplicitParam(name = "apiCode", value = "apiCode", required = true, dataType = "String")
     })
     @GetMapping("/getfileNames")
-    public ApiResult<List> getfileNames(Integer fileType, String apiCode) {
+    public ApiResult<List<MarketingCleanDataFile>> getfileNames(Integer fileType, String apiCode) {
 
-        List<String> fileNames = dataCleanHandlerService.getfileNames(fileType, apiCode);
-        return new ApiResult<List>().setData(fileNames).success();
+        List<MarketingCleanDataFile> fileNames = dataCleanHandlerService.getfileNames(fileType, apiCode);
+        return new ApiResult<List<MarketingCleanDataFile>>().setData(fileNames).success();
 
     }
 

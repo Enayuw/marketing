@@ -55,28 +55,28 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
 
     @Override
-    public Result<List<MarketingCleanDataFile>> getfileMsg(String fileNames, String apiCode) {
+    public Result<List<MarketingCleanDataFile>> getfileMsg(String fileIdList, String apiCode) {
 
-        List<String> fileNameList = Arrays.asList(fileNames.split(","));
+        List<String> fieldIds = Arrays.asList(fileIdList.split(","));
         MarketingCleanDataFileExample cleanDataFileExample = new MarketingCleanDataFileExample();
         MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
-        criteria.andApiCodeEqualTo(apiCode).andFileNameIn(fileNameList);
+        criteria.andApiCodeEqualTo(apiCode).andIdIn(fieldIds.stream().map(Long::valueOf).collect(Collectors.toList()));
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(cleanDataFileExample);
         Set<String> headerSet = cleanDataFiles.stream().map(MarketingCleanDataFile::getFileHeader).collect(Collectors.toSet());
         if (headerSet.size() > 1) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("多个文件存在表头不一致");
         }
-        return new Result<List<MarketingCleanDataFile>>().setCode(ResultCode.SUCCESS.getValue()).setDate(cleanDataFiles);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(cleanDataFiles);
 
     }
 
     @Override
-    public List<String> getfileNames(Integer fileType, String apiCode) {
+    public List<MarketingCleanDataFile> getfileNames(Integer fileType, String apiCode) {
         MarketingCleanDataFileExample cleanDataFileExample = new MarketingCleanDataFileExample();
         MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
         criteria.andApiCodeEqualTo(apiCode).andCleanTypeEqualTo(fileType);
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(cleanDataFileExample);
-        return cleanDataFiles.stream().map(MarketingCleanDataFile::getFileName).collect(Collectors.toList());
+        return cleanDataFiles;
     }
 
     @Override

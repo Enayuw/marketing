@@ -17,7 +17,7 @@ public interface DataCleanHandlerService {
 
     Result<List<MarketingCleanDataFile>> getfileMsg(String fileNames, String apiCode);
 
-    List<String> getfileNames(Integer fileType, String apiCode);
+    List<MarketingCleanDataFile> getfileNames(Integer fileType, String apiCode);
 
     Result<Long> saveOrUpdateTask(DataCleanRuleDetailDTO dto);
 
