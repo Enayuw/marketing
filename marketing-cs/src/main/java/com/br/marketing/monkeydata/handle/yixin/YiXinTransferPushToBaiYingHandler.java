@@ -3,7 +3,6 @@ package com.br.marketing.monkeydata.handle.yixin;
 import cn.hutool.extra.spring.SpringUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.baiying.ByApiServiceClient;
 import com.br.marketing.client.baiying.input.BlacklistDataDTO;
 import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
@@ -13,16 +12,13 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.enums.YxTransferFilterEnum;
-import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -54,25 +50,13 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     private TableCreateServiceImpl tableCreateService;
 
     @Resource
-    private CallRecordMapper callRecordMapper;
-
-    @Resource
-    private MethodRetryHandlerService methodRetryHandlerService;
-
-    @Resource
-    private RedisChgService redisChgService;
-
-    @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
-    @Resource
-    private ZhonganMarketingBanMapper zhonganMarketingBanMapper;
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Resource
-    private YiXinTransferPushBaiYingDistributeSoleProcessor distributeSoleProcessor;
+    private YiXinTransferPushBaiYingDistributeSoleProcessor transferDistributeSoleProcessor;
 
     @Resource
     private ByApiServiceClient byApiServiceClient;
@@ -185,23 +169,32 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         String synApiCode = condition.getSynApiCode();
 
         Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap = transferDataValidityPeriodService
+        Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
                 .getValidityPeriodsByCustNum(custNumSets, apiCode, requestData);
 
         // 未获取到上传数据
-        if (CollectionUtils.isEmpty(cellToSyncUserBoMap)) {
+        if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
                     "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
                     "宜信转化过滤推送百应"));
             return result;
         }
 
+        List<MarketingTransferSyncUser> periodList = pageList.stream().filter(data -> {
+            String custNum = data.getCustNum();
+            if (custNumToSyncUserBoMap.get(custNum) == null) {
+                return false;
+            }
+            return true;
+        }).collect(Collectors.toList());
+
+
         try {
             List<MarketingTransferSyncUser> pushList = new ArrayList<>();
             List<String> filterList = YxTransferFilterEnum.getFilterListOrderByPriority();
             for(String filterName : filterList){
                 YxTransferFilter filter = SpringUtil.getBean(filterName, YxTransferFilter.class);
-                List filteredList = filter.filter(pageList);
+                List filteredList = filter.filter(periodList);
                 if(CollectionUtils.isEmpty(filteredList)){
                     continue;
                 }
@@ -209,7 +202,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             }
 
             // distribute去重 custNum + distribute_date
-            distributeSoleProcessor.process(pushList, condition);
+            transferDistributeSoleProcessor.process(pushList, condition);
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
