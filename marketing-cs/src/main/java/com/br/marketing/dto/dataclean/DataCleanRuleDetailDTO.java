@@ -32,7 +32,6 @@ public class DataCleanRuleDetailDTO {
      * 组装对象
      */
     @ApiModelProperty(value = " 组装对象")
-    @NotEmpty
     private String ruleCondition;
 
     /**
@@ -54,6 +53,12 @@ public class DataCleanRuleDetailDTO {
     @ApiModelProperty(value = "文件类型：0上传，1转化")
     @NotEmpty
     private Integer fileType;
+
+    /**
+     * 任务ID
+     */
+    @ApiModelProperty(value = "任务Id")
+    private Long Id;
 
 
 }

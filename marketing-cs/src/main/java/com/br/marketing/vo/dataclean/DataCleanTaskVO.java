@@ -63,5 +63,11 @@ public class DataCleanTaskVO {
     @ApiModelProperty(value = "修改时间")
     private String updateTime;
 
+    /**
+     * 组装对象
+     */
+    @ApiModelProperty(value = " 组装对象")
+    private String ruleCondition;
+
 
 }

@@ -1,8 +1,11 @@
 package com.br.marketing.innerapi.service.impl.dataclean;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.dataclean.DataCleanConfigDTO;
 import com.br.marketing.dto.dataclean.DataCleanRuleDetailDTO;
 import com.br.marketing.entity.*;
@@ -10,11 +13,15 @@ import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
+import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.br.marketing.vo.dataclean.DataCleanConfigVO;
 import com.br.marketing.vo.dataclean.DataCleanTaskVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.collect.Lists;
+import io.grpc.ClientStreamTracer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,9 +50,12 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
     @Resource
     private MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
 
+    public static final List<String> UPLOAD_FIELD = Lists.newArrayList("custNum", "cell", "id", "name", "userType");
+    public static final List<String> TRANSFER_FIELD = Lists.newArrayList("custNum", "userType");
+
 
     @Override
-    public Result<MarketingCleanDataFile> getfileMsg(String fileNames, String apiCode) {
+    public Result<List<MarketingCleanDataFile>> getfileMsg(String fileNames, String apiCode) {
 
         List<String> fileNameList = Arrays.asList(fileNames.split(","));
         MarketingCleanDataFileExample cleanDataFileExample = new MarketingCleanDataFileExample();
@@ -54,9 +64,9 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(cleanDataFileExample);
         Set<String> headerSet = cleanDataFiles.stream().map(MarketingCleanDataFile::getFileHeader).collect(Collectors.toSet());
         if (headerSet.size() > 1) {
-            return new Result<MarketingCleanDataFile>().setCode(ResultCode.FAIL.getValue()).setMessage("多个文件存在表头不一致");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("多个文件存在表头不一致");
         }
-        return new Result<MarketingCleanDataFile>().setCode(ResultCode.SUCCESS.getValue()).setDate(cleanDataFiles.get(0));
+        return new Result<List<MarketingCleanDataFile>>().setCode(ResultCode.SUCCESS.getValue()).setDate(cleanDataFiles);
 
     }
 
@@ -71,25 +81,30 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Result<Long> saveTask(DataCleanRuleDetailDTO dto) {
+    public Result<Long> saveOrUpdateTask(DataCleanRuleDetailDTO dto) {
         String apiCode = dto.getApiCode();
+        List<String> fieldList = getfieldMap(dto.getFileType());
         Long configId = dto.getRuleId();
+        Integer fileId = Integer.valueOf(Arrays.asList(dto.getFileIds().split(",")).get(0));
+        MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
+        String ruleConfigShow = dto.getRuleCondition();
+        //json处理
+        String ruleConfig = ruleTransferHandler(ruleConfigShow, fieldList);
+        marketingDataFileConfig.setFieldConfig(ruleConfig);
+        marketingDataFileConfig.setFieldConfigShow(ruleConfigShow);
+        marketingDataFileConfig.setCleanType(dto.getFileType());
+        marketingDataFileConfig.setServiceName("defaultFileToMarketingRuleServiceImpl");
+        marketingDataFileConfig.setFileId(fileId);
+        if (StringUtils.isEmpty(dto.getRuleName())) {
+            marketingDataFileConfig.setRuleName(apiCode + "_" + LocalDate.now().toString() + fileId);
+        }
+        marketingDataFileConfig.setApiCode(apiCode);
         if (Objects.isNull(configId)) {
-            Integer fileId = Integer.valueOf(Arrays.asList(dto.getFileIds().split(",")).get(0));
-            MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
-            String ruleConfig = dto.getRuleCondition();
-            //TODO json处理
-            marketingDataFileConfig.setFieldConfig(ruleConfig);
-            marketingDataFileConfig.setFieldConfigShow(ruleConfig);
-            marketingDataFileConfig.setCleanType(dto.getFileType());
-            marketingDataFileConfig.setServiceName("defaultFileToMarketingRuleServiceImpl");
-            marketingDataFileConfig.setFileId(fileId);
-            if (StringUtils.isEmpty(dto.getRuleName())) {
-                marketingDataFileConfig.setRuleName(apiCode + "_" + LocalDate.now().toString() + fileId);
-            }
-            marketingDataFileConfig.setApiCode(apiCode);
             marketingDataFileConfigMapper.insertSelective(marketingDataFileConfig);
             configId = marketingDataFileConfig.getId();
+        } else {
+            marketingDataFileConfig.setId(configId);
+            marketingDataFileConfigMapper.updateByPrimaryKeySelective(marketingDataFileConfig);
         }
         //保存任务
         MarketingCleanDataTask task = new MarketingCleanDataTask();
@@ -98,22 +113,52 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         task.setCleanType(dto.getFileType());
         task.setCreateTime(new Date());
         task.setUpdateTime(new Date());
-        marketingCleanDataTaskMapper.insertSelective(task);
+        task.setCleanStatus(0);
+        if (Objects.isNull(dto.getId())) {
+            marketingCleanDataTaskMapper.insertSelective(task);
+        } else {
+            task.setId(dto.getId());
+            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(task);
+        }
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
+    }
+
+    private String ruleTransferHandler(String ruleConfig, List<String> fieldList) {
+        List<FileToMarketingFieldVO> ruleList = new ArrayList<>();
+        List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfig, new TypeReference<List<FileToMarketingFieldVO>>() {
+        }.getType());
+        marketingFieldVOList.forEach(fileToMarketingFieldVO -> {
+            String interfaceField = fileToMarketingFieldVO.getInterfaceField();
+            if (StringUtils.isBlank(interfaceField)) {
+                FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
+                BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
+                fieldVO.setInterfaceField(fileToMarketingFieldVO.getHeadField());
+                fieldVO.setIsExtend(true);
+                ruleList.add(fieldVO);
+            }
+            List<String> interfaceFields = Arrays.asList(fileToMarketingFieldVO.getInterfaceField().split(","));
+            interfaceFields.forEach(field -> {
+                FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
+                BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
+                fieldVO.setInterfaceField(field);
+                if (fieldList.contains(field)) {
+                    fieldVO.setIsExtend(false);
+                } else {
+                    fieldVO.setIsExtend(true);
+                }
+                ruleList.add(fieldVO);
+            });
+        });
+        return JSON.toJSONString(ruleList);
     }
 
     @Override
     public List<String> getfieldMap(Integer fileType) {
         List<String> fieldList = new ArrayList<>();
         if (fileType.equals(0)) {
-            fieldList.add("custNum");
-            fieldList.add("cell");
-            fieldList.add("id");
-            fieldList.add("name");
-            fieldList.add("userType");
+            fieldList = UPLOAD_FIELD;
         } else {
-            fieldList.add("custNum");
-            fieldList.add("userType");
+            fieldList = TRANSFER_FIELD;
         }
         return fieldList;
     }
@@ -139,6 +184,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         }
         return null;
     }
+
 
     @Override
     public PageResultReturn configList(int page, int pageSize, String apiCode, String fileType) {
@@ -174,6 +220,40 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         marketingDataFileConfig.setServiceName("defaultFileToMarketingRuleServiceImpl");
         marketingDataFileConfigMapper.insertSelective(marketingDataFileConfig);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<Long> runTask(DataCleanRuleDetailDTO dto) {
+        MarketingCleanDataTask task = new MarketingCleanDataTask();
+        task.setUpdateTime(new Date());
+        task.setCleanStatus(1);
+        task.setId(dto.getId());
+        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(task);
+        return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
+    }
+
+    @Override
+    public Result getfileRules(String fileHeader, String apiCode, String fileType) {
+
+        MarketingCleanDataFileExample cleanDataFileExample = new MarketingCleanDataFileExample();
+        MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
+        criteria.andApiCodeEqualTo(apiCode).andFileHeaderEqualTo(fileHeader).andCleanTypeEqualTo(Integer.valueOf(fileType));
+        List<Long> fileIds = marketingCleanDataFileMapper.selectByExample(cleanDataFileExample).stream().map(MarketingCleanDataFile::getId)
+                .collect(Collectors.toList());
+        MarketingDataFileConfigExample configExample = new MarketingDataFileConfigExample();
+        MarketingDataFileConfigExample.Criteria configExampleCriteria = configExample.createCriteria();
+        configExampleCriteria.andApiCodeEqualTo(apiCode).andFileIdIn(fileIds.stream().map(Long::intValue).collect(Collectors.toList()));
+        List<MarketingDataFileConfig> marketingDataFileConfigs = marketingDataFileConfigMapper.selectByExample(configExample);
+        return new Result<List<MarketingDataFileConfig>>().setCode(ResultCode.SUCCESS.getValue()).setDate(marketingDataFileConfigs);
+
+    }
+
+    @Override
+    public Result<Long> testTask(DataCleanRuleDetailDTO dto) {
+        //TODO:试跑
+
+
+        return null;
     }
 
 }

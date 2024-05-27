@@ -15,11 +15,11 @@ import java.util.List;
 public interface DataCleanHandlerService {
 
 
-    Result<MarketingCleanDataFile> getfileMsg(String fileNames, String apiCode);
+    Result<List<MarketingCleanDataFile>> getfileMsg(String fileNames, String apiCode);
 
     List<String> getfileNames(Integer fileType, String apiCode);
 
-    Result<Long> saveTask(DataCleanRuleDetailDTO dto);
+    Result<Long> saveOrUpdateTask(DataCleanRuleDetailDTO dto);
 
     List<String> getfieldMap(Integer fileType);
 
@@ -30,4 +30,10 @@ public interface DataCleanHandlerService {
     Result updateConfig(DataCleanConfigDTO dto);
 
     Result saveConfig(DataCleanConfigDTO dto);
+
+    Result<Long> runTask(DataCleanRuleDetailDTO dto);
+
+    Result getfileRules(String fileHeader, String apiCode,String fileType);
+
+    Result<Long> testTask(DataCleanRuleDetailDTO dto);
 }
