@@ -1,55 +1,43 @@
 package com.br.marketing.monkeydata.handle.yixin;
 
 import cn.hutool.extra.spring.SpringUtil;
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.BrCipherMaker;
-import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.bo.ZaMarketDataBO;
-import com.br.marketing.bo.ZhonganRosterLockingDataBO;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.qifu.BizData;
-import com.br.marketing.client.zhongan.ZhongAnClient;
-import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
-import com.br.marketing.client.zhongan.input.ZaMarketDetail;
+import com.br.marketing.client.baiying.ByApiServiceClient;
+import com.br.marketing.client.baiying.input.BlacklistDataDTO;
+import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.enums.YxTransferFilterEnum;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
-import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
+import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
-import com.br.marketing.monkeydata.query.ZhongAnCellZkDateQuery;
-import com.br.marketing.monkeydata.query.ZhongAnMobileMd5BizDateQuery;
 import com.br.marketing.monkeydata.service.Impl.DistributeSoleProcessor;
-import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
-import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -57,8 +45,8 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class YixinTransferPushToBaiYingHandler extends IMonkeyDataHandle<MarketingTransferSyncUser
-        , MarketingTransferSyncUser, Page2Condition<MarketingTransferSyncUser>> {
+public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<MarketingTransferSyncUser
+        , MarketingTransferSyncUser, YiXinCondition> {
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
@@ -87,28 +75,30 @@ public class YixinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     @Resource
     private DistributeSoleProcessor distributeSoleProcessor;
 
+    @Resource
+    private ByApiServiceClient byApiServiceClient;
+
     private final static String TITLE = "【宜信转化过滤推送百应】";
 
     @Override
-    public Result<IterationResult<MarketingTransferSyncUser, Page2Condition<MarketingTransferSyncUser>>> getInputData(
-            Page2Condition<MarketingTransferSyncUser> condition) {
+    public Result<IterationResult<MarketingTransferSyncUser, YiXinCondition>> getInputData(
+            YiXinCondition condition) {
         return null;
     }
 
     @Override
-    public Result<?> customizedAction(Page2Condition<MarketingTransferSyncUser> condition) {
+    public Result<?> customizedAction(YiXinCondition condition) {
         Result<?> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
 
         ThreadPoolExecutor processPool = BrExecutors.getThreadPool(2, 2, 10);
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
 
-        MarketingTransferSyncUser conditionParam = condition.getParam();
-
         List<Future<Result<List<MarketingTransferSyncUser>>>> futureList = new ArrayList<>();
         Integer pageSize = condition.getPageSize();
-        String apiCode = conditionParam.getApiCode();
-        String requestData = conditionParam.getRequestData();
+        String apiCode = condition.getApiCode();
+        String requestData = condition.getRequestData();
+        String synApiCode = condition.getSynApiCode();
         String tCid = tableCreateService.getTcId(apiCode);
 
         Long indexId = null;
@@ -126,7 +116,7 @@ public class YixinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             setThreadPoolParam(processPool, pushPool);
 
             // 根据规则分类，推送数据
-            futureList.add(processPool.submit(() -> processData(pageList, conditionParam, pushPool)));
+            futureList.add(processPool.submit(() -> processData(pageList, condition, pushPool)));
         }
 
         for (Future<Result<List<MarketingTransferSyncUser>>> future : futureList) {
@@ -186,24 +176,39 @@ public class YixinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     }
 
     public Result<List<MarketingTransferSyncUser>> processData(List<MarketingTransferSyncUser> pageList,
-                MarketingTransferSyncUser pageParam, ThreadPoolExecutor pushPool) {
+                YiXinCondition condition, ThreadPoolExecutor pushPool) {
         Result<List<MarketingTransferSyncUser>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
 
         // pageParam
-        String apiCode = pageParam.getApiCode();
-        String requestData = pageParam.getRequestData();
+        String apiCode = condition.getApiCode();
+        String requestData = condition.getRequestData();
+        String synApiCode = condition.getSynApiCode();
+
+        Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        Map<String, SyncUserValidityPeriodsBO> cellToSyncUserBoMap = transferDataValidityPeriodService
+                .getValidityPeriodsByCustNum(custNumSets, apiCode, requestData);
+
+        // 未获取到上传数据
+        if (CollectionUtils.isEmpty(cellToSyncUserBoMap)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
+                    "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
+                    "宜信转化过滤推送百应"));
+            return result;
+        }
 
         try {
             List<MarketingTransferSyncUser> pushList = new ArrayList<>();
-            Set<String> filterSet = YxTransferFilterEnum.getFilterSetOrderByPriority();
-            for(String filterName : filterSet){
+            List<String> filterList = YxTransferFilterEnum.getFilterListOrderByPriority();
+            for(String filterName : filterList){
                 YxTransferFilter filter = SpringUtil.getBean(filterName, YxTransferFilter.class);
                 List filteredList = filter.filter(pageList);
                 if(CollectionUtils.isEmpty(filteredList)){
                     continue;
                 }
+                pushList.addAll(filteredList);
             }
+
             // distribute去重 custNum + distribute_date
             // distributeIds = distributeSoleProcessor.process(pushList, pageParam);
 
@@ -226,39 +231,28 @@ public class YixinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             result.setCode(ResultCode.FAIL.getValue());
             return result;
         }
-        HashMap<String, JSONObject> zhongAnDetailPush = marketingCommonConfig.getZhongAnDetailPush();
+
         int size = outputDataList.size();
-        int pushSize = 100;
+        int pushSize = 500;
         int count = 0;
-        List<ZaMarketDetail> pushList = new ArrayList<>();
-        List<Long> pushIds = new ArrayList<>();
-        for (ZhonganRosterLockingDataBO bo : outputDataList) {
-            ZaMarketDetail detail = new ZaMarketDetail();
-            ZhonganRosterLockingData data = bo.getData();
-            pushIds.add(data.getId());
-            MarketingSyncUser syncUser = bo.getSyncUser();
-            String channelCode = "MG".equals(data.getTag()) || "CG".equals(data.getTag())
-                    ? zhongAnDetailPush.get(syncUser.getUserType()).getString("channelCode")
-                    : ZhongAnClient.XdChannelCode;
-            detail.setBizDate(data.getBizDate());
-            detail.setTaskId(syncUser.getCusBatch());
-            detail.setChannelCode(channelCode);
-            detail.setTag(data.getTag());
-            detail.setMobileMd5(data.getMobileMd5());
-            pushList.add(detail);
+        List<BlacklistDataDTO> pushList = new ArrayList<>();
+
+        for (MarketingTransferSyncUser transferSyncUser : outputDataList) {
+            BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
+            blacklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
+            pushList.add(blacklistDataDTO);
             count++;
 
             if (pushList.size() == pushSize || size == count) {
-                List<ZaMarketDetail> finalList = pushList;
-                List<Long> finalPushIds = pushIds;
+                List<BlacklistDataDTO> finalList = pushList;
                 pushPool.execute(() -> {
-                    ZaMarketDataDTO dataDTO = new ZaMarketDataDTO();
-                    dataDTO.setData(finalList);
-                    methodRetryHandlerService.callZhongAnData(new ZaMarketDataBO(dataDTO
-                            , bo.getApiCode(), bo.getTag(), finalPushIds), null);
+                    ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
+                    reqBlacklistDTO.setMethod("blackData");
+                    reqBlacklistDTO.setApiCode("apiCode");
+                    reqBlacklistDTO.setData(finalList);
+                    //byApiServiceClient.pushBaiying(reqBlacklistDTO);
                 });
                 pushList = new ArrayList<>();
-                pushIds = new ArrayList<>();
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());
