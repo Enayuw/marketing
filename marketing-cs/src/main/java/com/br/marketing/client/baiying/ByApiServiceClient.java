@@ -42,14 +42,11 @@ public class ByApiServiceClient {
     InterfaceLogMapper interfaceLogMapper;
 
     @RetryMethod(retryNowNum = 3)
-    public Result pushBaiying(List<BlacklistDataDTO> dto){
-        ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
-        reqBlacklistDTO.setMethod("blackData");
-        reqBlacklistDTO.setApiCode("74122992");
-        reqBlacklistDTO.setData(dto);
+    public Result pushBaiying(ReqBlacklistDTO dto){
+        dto.setMethod("blackData");
         ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
                 .setUrl("https://cos.byai.com/api/byai/transform/br/blacklist/import")
-                .setRequestParam(reqBlacklistDTO)
+                .setRequestParam(dto)
                 .setContentType(MediaType.APPLICATION_JSON_UTF8).postTransferStr();
 
         if (200 == transfer.getHttpCode()) {
