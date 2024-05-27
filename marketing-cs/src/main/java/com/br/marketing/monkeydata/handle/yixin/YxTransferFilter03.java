@@ -27,10 +27,12 @@ public class YxTransferFilter03 implements YxTransferFilter<MarketingTransferSyn
             if(!"1".equals(applyLoan)){
                 continue;
             }
+
             String ifLent = next.getIfLent();
             if(!"0".equals(ifLent)){
                 continue;
             }
+
             filteredList.add(next);
             iterator.remove();
         }

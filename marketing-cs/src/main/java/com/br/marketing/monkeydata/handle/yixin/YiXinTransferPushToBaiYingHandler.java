@@ -19,7 +19,6 @@ import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
-import com.br.marketing.monkeydata.service.Impl.DistributeSoleProcessor;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -73,7 +72,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Resource
-    private DistributeSoleProcessor distributeSoleProcessor;
+    private YiXinTransferPushBaiYingDistributeSoleProcessor distributeSoleProcessor;
 
     @Resource
     private ByApiServiceClient byApiServiceClient;
@@ -210,7 +209,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             }
 
             // distribute去重 custNum + distribute_date
-            // distributeIds = distributeSoleProcessor.process(pushList, pageParam);
+            distributeSoleProcessor.process(pushList, condition);
 
             Result<?> resultAction = resultAction(pushList, pushPool);
             result.setCode(resultAction.getCode());
