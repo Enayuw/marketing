@@ -158,6 +158,7 @@ public class JobManager {
          */
         ZHONGBANG_PUSH_VOICE_FILE(3, "3710099", "7433800"),
         YIXIN_TRANSFER_PUSH_BAIYING(15, "3710012", "7412003"),
+        YIXIN_BLACK_PUSH_BAIYING(16, "3710012", "7412003"),
         ;
         /**
          * 2024-05-16 11:38

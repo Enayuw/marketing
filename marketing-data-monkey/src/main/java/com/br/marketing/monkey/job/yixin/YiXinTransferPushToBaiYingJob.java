@@ -2,17 +2,14 @@ package com.br.marketing.monkey.job.yixin;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
+import com.br.marketing.monkeydata.handle.yixin.YiXinBlackPushToBaiYingHandler;
 import com.br.marketing.monkeydata.handle.yixin.YiXinTransferPushToBaiYingHandler;
 import com.br.marketing.service.Impl.JobManager;
-import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -35,19 +32,10 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private RedisChgService redisChgService;
-
-    @Resource
-    private YiXinTransferServiceImpl yiXinTransferService;
-
-    @Resource
-    private TransferActionFrontMapper transferActionFrontMapper;
-
-    @Resource
-    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
-
-    @Resource
     private YiXinTransferPushToBaiYingHandler yiXinTransferPushToBaiYingHandler;
+
+    @Resource
+    private YiXinBlackPushToBaiYingHandler yiXinBlackPushToBaiYingHandler;
 
     @Resource
     private JobManager jobManager;
@@ -82,22 +70,20 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             String synApiCode = param.get("synApiCode");
 
             long start = System.currentTimeMillis();
-            log.warn(TITLE+"调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
+            log.warn(TITLE+"转化数据任务, 调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
 
             // actionFront
             TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionTypeTransfer, null);
             if (actionFront != null) {
                 if (2 == actionFront.getStatus()) {
-                    log.warn(TITLE+"转化数据任务今日已经推送"+"api_code:{}, biz_date:{}", apiCode, bizDate);
-                    // processBlackTask();
-
-
+                    log.warn(TITLE+"转化数据任务, 今日已经推送完成"+"api_code:{}, biz_date:{}", apiCode, bizDate);
+                    processBlackPush(paramList);
                     continue;
                 }
             } else {
                 jobManager.saveFrontData(apiCode, bizDate, actionTypeTransfer);
                 if (actionFront.getId() == null) {
-                    log.warn(TITLE+ "任务执行记录添加失败, {}, {}", apiCode, bizDate);
+                    log.warn(TITLE+ "转化数据任务, 执行记录添加失败, {}, {}", apiCode, bizDate);
                     continue;
                 }
             }
@@ -110,18 +96,18 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             }
 
             // action transfer
-            Result result = action(apiCode, bizDate, synApiCode);
+            Result result = actionTransferPush(apiCode, bizDate, synApiCode);
 
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 jobManager.updateFrontDataStatus(actionFront.getId(), 2);
             }
 
             long end = System.currentTimeMillis();
-            log.warn(TITLE+"调度结束, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate, end - start);
+            log.warn(TITLE+"转化数据任务, 调度结束, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate, end - start);
         }
     }
 
-    private Result<?> action(String apiCode, String bizDate, String synApiCode) {
+    private Result<?> actionTransferPush(String apiCode, String bizDate, String synApiCode) {
         YiXinCondition condition = new YiXinCondition();
         condition.setPageIndex(0);
         condition.setPageSize(2000);
@@ -129,6 +115,17 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         condition.setRequestData(bizDate);
         condition.setSynApiCode(synApiCode);
         Result actionResult = yiXinTransferPushToBaiYingHandler.action(condition);
+        return actionResult;
+    }
+
+    private Result<?> actionBlackPush(String apiCode, String bizDate, String synApiCode) {
+        YiXinCondition condition = new YiXinCondition();
+        condition.setPageIndex(0);
+        condition.setPageSize(2000);
+        condition.setApiCode(apiCode);
+        condition.setRequestData(bizDate);
+        condition.setSynApiCode(synApiCode);
+        Result actionResult = yiXinBlackPushToBaiYingHandler.action(condition);
         return actionResult;
     }
 
@@ -176,6 +173,44 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         map.put("SynApiCode", "3710137");
         paramList.add(map);
         return paramList;
+    }
+
+    public void processBlackPush(List<Map<String, String>> paramList) {
+        int actionTypeBlack = JobManager.ActionTypeEnum.YIXIN_BLACK_PUSH_BAIYING.getActionType();
+
+        for (Map<String, String> param: paramList) {
+            String apiCode = param.get("apiCode");
+            String bizDate = param.get("bizDate");
+            String synApiCode = param.get("synApiCode");
+
+            long start = System.currentTimeMillis();
+            log.warn(TITLE+"黑名单推送任务, 调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
+
+            // actionFront
+            TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionTypeBlack, null);
+            if (actionFront != null) {
+                if (2 == actionFront.getStatus()) {
+                    log.warn(TITLE+"黑名单推送任务, 今日已经推送"+"apiCode:{}, bizDate:{}", apiCode, bizDate);
+                    continue;
+                }
+            } else {
+                jobManager.saveFrontData(apiCode, bizDate, actionTypeBlack);
+                if (actionFront.getId() == null) {
+                    log.warn(TITLE+ "黑名单推送任务, 执行记录添加失败, {}, {}", apiCode, bizDate);
+                    continue;
+                }
+            }
+
+            // actionBlackPush
+            Result result = actionBlackPush(apiCode, bizDate, synApiCode);
+
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                jobManager.updateFrontDataStatus(actionFront.getId(), 2);
+            }
+
+            long end = System.currentTimeMillis();
+            log.warn(TITLE+"黑名单推送任务, 调度结束, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate, end - start);
+        }
     }
 
 }

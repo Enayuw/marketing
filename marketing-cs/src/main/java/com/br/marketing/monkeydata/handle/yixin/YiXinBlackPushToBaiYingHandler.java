@@ -1,22 +1,23 @@
 package com.br.marketing.monkeydata.handle.yixin;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.baiying.ByApiServiceClient;
 import com.br.marketing.client.baiying.input.BlacklistDataDTO;
 import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
+import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
+import com.br.marketing.client.robotaiapi.input.BlackQueryDetailDTO;
+import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.enums.YxTransferFilterEnum;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
-import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +26,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -40,14 +38,11 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<MarketingTransferSyncUser
-        , MarketingTransferSyncUser, YiXinCondition> {
+public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingSyncUser
+        , MarketingSyncUser, YiXinCondition> {
 
     @Resource
-    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
-
-    @Resource
-    private TableCreateServiceImpl tableCreateService;
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -56,15 +51,18 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Resource
-    private YiXinTransferPushDistributeSoleProcessor transferDistributeSoleProcessor;
+    private YiXinBlackPushDistributeSoleProcessor blackDistributeSoleProcessor;
 
     @Resource
     private ByApiServiceClient byApiServiceClient;
 
+    @Resource
+    private RobotaiApiServiceClient robotaiApiServiceClient;
+
     private final static String TITLE = "【宜信转化过滤推送百应】";
 
     @Override
-    public Result<IterationResult<MarketingTransferSyncUser, YiXinCondition>> getInputData(
+    public Result<IterationResult<MarketingSyncUser, YiXinCondition>> getInputData(
             YiXinCondition condition) {
         return null;
     }
@@ -77,18 +75,17 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         ThreadPoolExecutor processPool = BrExecutors.getThreadPool(2, 2, 10);
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
 
-        List<Future<Result<List<MarketingTransferSyncUser>>>> futureList = new ArrayList<>();
+        List<Future<Result<List<MarketingSyncUser>>>> futureList = new ArrayList<>();
         Integer pageSize = condition.getPageSize();
         String apiCode = condition.getApiCode();
         String requestData = condition.getRequestData();
         String synApiCode = condition.getSynApiCode();
-        String tCid = tableCreateService.getTcId(apiCode);
 
         Long indexId = null;
         while(true) {
             // 循环获取条件数据，每次pageSize条
-            final List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper.getYxTransferByRequestDate(
-                    tCid, apiCode, requestData, indexId, pageSize);
+            final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getNewSyncUserByDate(
+                    apiCode, requestData, pageSize, indexId);
 
             if (CollectionUtils.isEmpty(pageList)) {
                 break;
@@ -102,7 +99,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             futureList.add(processPool.submit(() -> processData(pageList, condition, pushPool)));
         }
 
-        for (Future<Result<List<MarketingTransferSyncUser>>> future : futureList) {
+        for (Future<Result<List<MarketingSyncUser>>> future : futureList) {
             try {
                 future.get(1, TimeUnit.MINUTES);
             } catch (Exception e) {
@@ -154,55 +151,56 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     }
 
     @Override
-    public Result<List<MarketingTransferSyncUser>> processData(List<MarketingTransferSyncUser> inList) {
+    public Result<List<MarketingSyncUser>> processData(List<MarketingSyncUser> inList) {
         return null;
     }
 
-    public Result<List<MarketingTransferSyncUser>> processData(List<MarketingTransferSyncUser> pageList,
+    public Result<List<MarketingSyncUser>> processData(List<MarketingSyncUser> pageList,
                 YiXinCondition condition, ThreadPoolExecutor pushPool) {
-        Result<List<MarketingTransferSyncUser>> result = new Result<>();
+        Result<List<MarketingSyncUser>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
-
-        // pageParam
-        String apiCode = condition.getApiCode();
-        String requestData = condition.getRequestData();
-        String synApiCode = condition.getSynApiCode();
-
-        Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
-                .getValidityPeriodsByCustNum(custNumSets, apiCode, requestData);
-
-        // 未获取到上传数据
-        if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
-                    "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
-                    "宜信转化过滤推送百应"));
-            return result;
-        }
-
-        List<MarketingTransferSyncUser> periodList = pageList.stream().filter(data -> {
-            String custNum = data.getCustNum();
-            if (custNumToSyncUserBoMap.get(custNum) == null) {
-                return false;
-            }
-            return true;
-        }).collect(Collectors.toList());
-
-
         try {
-            List<MarketingTransferSyncUser> pushList = new ArrayList<>();
-            List<String> filterList = YxTransferFilterEnum.getFilterListOrderByPriority();
-            for(String filterName : filterList){
-                YxTransferFilter filter = SpringUtil.getBean(filterName, YxTransferFilter.class);
-                List filteredList = filter.filter(periodList);
-                if(CollectionUtils.isEmpty(filteredList)){
-                    continue;
-                }
-                pushList.addAll(filteredList);
+            // pageParam
+            String apiCode = condition.getApiCode();
+            String requestData = condition.getRequestData();
+            String synApiCode = condition.getSynApiCode();
+
+            Set<String> custNumSets = pageList.stream().map(MarketingSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
+                    .getValidityPeriodsByCustNum(custNumSets, apiCode, requestData);
+
+            // 未获取到上传数据
+            if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
+                        "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
+                        "宜信转化过滤推送百应-黑名单推送"));
+                return result;
             }
+
+            List<MarketingSyncUser> periodList = pageList.stream().filter(data -> {
+                String custNum = data.getCustNum();
+                if (custNumToSyncUserBoMap.get(custNum) == null) {
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
+
+            // queryBlack
+            List<MarketingSyncUser> pushList = new ArrayList<>();
+            Result<Map<String, String>> queryBlackResult = getBlackList(periodList, apiCode);
+
+            HashMap<String, String> blackData = new HashMap<>();
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                blackData.putAll(queryBlackResult.getData());
+            }
+
+            List<MarketingSyncUser> blackList = periodList.stream()
+                    .filter(syncUser -> !StringUtils.isBlank(blackData.get(syncUser.getId().toString()))
+                            && blackData.get(syncUser.getId().toString()).equals("Y"))
+                    .collect(Collectors.toList());
 
             // distribute去重 custNum + distribute_date
-            transferDistributeSoleProcessor.process(pushList, condition);
+            blackDistributeSoleProcessor.process(blackList, condition);
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
@@ -213,11 +211,11 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     }
 
     @Override
-    public Result<?> resultAction(List<MarketingTransferSyncUser> outputDataList) {
+    public Result<?> resultAction(List<MarketingSyncUser> outputDataList) {
         return null;
     }
 
-    public Result<?> resultAction(List<MarketingTransferSyncUser> outputDataList, YiXinCondition condition, ThreadPoolExecutor pushPool) {
+    public Result<?> resultAction(List<MarketingSyncUser> outputDataList, YiXinCondition condition, ThreadPoolExecutor pushPool) {
         Result<Object> result = new Result<>();
         if (CollectionUtils.isEmpty(outputDataList)) {
             result.setCode(ResultCode.FAIL.getValue());
@@ -234,9 +232,9 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         int count = 0;
         List<BlacklistDataDTO> pushList = new ArrayList<>();
 
-        for (MarketingTransferSyncUser transferSyncUser : outputDataList) {
+        for (MarketingSyncUser syncUser : outputDataList) {
             BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
-            blacklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
+            blacklistDataDTO.setCaseNum(syncUser.getCustNum());
             pushList.add(blacklistDataDTO);
             count++;
 
@@ -278,5 +276,19 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         pushPool.setMaximumPoolSize(pushPoolSize);
     }
 
+    public Result<Map<String, String>> getBlackList(List<MarketingSyncUser> syncUserList, String apiCode) {
+        List<BlackQueryDetailDTO> blackQueryDetailDTOS = new ArrayList<>();
+        ReqBlackPhoneQueryDTO dto = new ReqBlackPhoneQueryDTO();
+        dto.setApiCode(apiCode);
+        dto.setDetailBlackPhoneDTO(blackQueryDetailDTOS);
+        syncUserList.forEach(syncUser -> {
+            BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
+            blackQueryDetailDTO.setDataId(syncUser.getId().toString());
+            blackQueryDetailDTO.setApiCode(apiCode);
+            blackQueryDetailDTO.setCaseNum(syncUser.getCustNum());
+            blackQueryDetailDTOS.add(blackQueryDetailDTO);
+        });
+        return robotaiApiServiceClient.queryBlackPhone(dto);
+    }
 
 }

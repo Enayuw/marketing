@@ -19,7 +19,7 @@ import java.util.*;
 
 @Service
 @Slf4j
-public class YiXinTransferPushBaiYingDistributeSoleProcessor {
+public class YiXinTransferPushDistributeSoleProcessor {
 
     @Resource
     private RedisChgService redisChgService;
@@ -27,7 +27,7 @@ public class YiXinTransferPushBaiYingDistributeSoleProcessor {
     @Resource
     private DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
 
-    private final static String TITLE = "【宜信转化过滤推送百应】";
+    private final static String TITLE = "【宜信转化过滤推送百应】-转化推送";
 
     public List<MarketingTransferSyncUser> process(List<MarketingTransferSyncUser> pushList, YiXinCondition condition){
         String key = RedisKeyConstant.YIXIN_TRANSFER_PUSH_BAIYING_DISTRIBUTE_DATA_SLOE_LOCK;
