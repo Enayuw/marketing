@@ -1600,5 +1600,9 @@ public class MarketingCommonConfig {
      */
     private Long queryCustomerPushTimeOutDelay;
 
+    /**
+     * 金美鑫黑名单文件校验相关配置
+     */
+    private String jinMeiXinBlackListFileCheckConfig;
 }
 
