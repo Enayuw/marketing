@@ -5,14 +5,12 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferActionFront;
-import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
-import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
-import com.br.marketing.monkeydata.handle.yixin.YixinTransferPushToBaiYingHandler;
+import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
+import com.br.marketing.monkeydata.handle.yixin.YiXinTransferPushToBaiYingHandler;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -34,9 +32,6 @@ import java.util.*;
 public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
 
     @Resource
-    private LocalFileMapper localFileMapper;
-
-    @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
@@ -52,7 +47,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Resource
-    private YixinTransferPushToBaiYingHandler yixinTransferPushToBaiYingHandler;
+    private YiXinTransferPushToBaiYingHandler yiXinTransferPushToBaiYingHandler;
 
     @Resource
     private JobManager jobManager;
@@ -62,7 +57,6 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
 
 
     private final static String EXECUTE_TIME = "21:00:00";
-    private final static String CLEAR_REDIS_TIME = "23:40:00";
 
     private final static String TITLE = "【宜信转化过滤推送百应】";
 
@@ -85,6 +79,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         for (Map<String, String> param: paramList) {
             String apiCode = param.get("apiCode");
             String bizDate = param.get("bizDate");
+            String synApiCode = param.get("synApiCode");
 
             long start = System.currentTimeMillis();
             log.warn(TITLE+"调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
@@ -112,7 +107,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             }
 
             // action transfer
-            Result result = action(apiCode, bizDate);
+            Result result = action(apiCode, bizDate, synApiCode);
 
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 jobManager.updateFrontDataStatus(actionFront.getId(), 2);
@@ -123,15 +118,14 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private Result<?> action(String apiCode, String bizDate) {
-        Page2Condition<MarketingTransferSyncUser> condition = new Page2Condition<>();
+    private Result<?> action(String apiCode, String bizDate, String synApiCode) {
+        YiXinCondition condition = new YiXinCondition();
         condition.setPageIndex(0);
         condition.setPageSize(2000);
-        MarketingTransferSyncUser param = new MarketingTransferSyncUser();
-        param.setApiCode(apiCode);
-        param.setRequestData(bizDate);
-        condition.setParam(param);
-        Result actionResult = yixinTransferPushToBaiYingHandler.action(condition);
+        condition.setApiCode(apiCode);
+        condition.setRequestData(bizDate);
+        condition.setSynApiCode(synApiCode);
+        Result actionResult = yiXinTransferPushToBaiYingHandler.action(condition);
         return actionResult;
     }
 
@@ -151,7 +145,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
 
     /**
      * 解析Job参数，格式如下：
-     * e.g [{"apiCode":"3710012","bizDate":"2024-03-11"},{"apiCode":"3710012","bizDate":"2024-03-12"}]
+     * e.g [{"apiCode":"3710012","bizDate":"2024-03-11","SynApiCode":"3710137"},{"apiCode":"3710012","bizDate":"2024-03-12","SynApiCode":"3710137"}]
      */
     private List<Map<String, String>> processJobParameter(String parameter) throws Exception {
         List<Map<String, String>> paramList = new ArrayList<>();
@@ -161,6 +155,9 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             paramList = JSONObject.parseObject(parameter, List.class);
             for(Map<String, String> map : paramList){
                 if(StringUtils.isEmpty(map.get("apiCode"))){
+                    throw new Exception("Job参数格式不正确");
+                }
+                if(StringUtils.isEmpty(map.get("SynApiCode"))){
                     throw new Exception("Job参数格式不正确");
                 }
                 if(StringUtils.isEmpty(map.get("bizDate"))){
@@ -173,6 +170,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         Map<String, String> map = new HashMap<>();
         map.put("apiCode", "3710012");
         map.put("bizDate", curDate);
+        map.put("SynApiCode", "3710137");
         paramList.add(map);
         return paramList;
     }

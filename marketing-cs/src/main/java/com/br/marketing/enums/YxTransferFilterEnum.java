@@ -2,8 +2,8 @@ package com.br.marketing.enums;
 
 import lombok.Getter;
 
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * YxTransferFilterEnum
@@ -12,10 +12,10 @@ import java.util.TreeSet;
 public enum YxTransferFilterEnum {
 
     YX_TRANSFER_FILTER01("YxTransferFilter01", 1),
-    YX_TRANSFER_FILTER02("YxTransferFilter01", 2),
-    YX_TRANSFER_FILTER03("YxTransferFilter01", 3),
-    YX_TRANSFER_FILTER04("YxTransferFilter01", 4),
-    YX_TRANSFER_FILTER05("YxTransferFilter01", 5),
+    YX_TRANSFER_FILTER02("YxTransferFilter02", 2),
+    YX_TRANSFER_FILTER03("YxTransferFilter03", 3),
+    YX_TRANSFER_FILTER04("YxTransferFilter04", 4),
+    YX_TRANSFER_FILTER05("YxTransferFilter05", 5),
     ;
 
     private String name;
@@ -27,7 +27,7 @@ public enum YxTransferFilterEnum {
         this.priority = priority;
     }
 
-    public static YxTransferFilterEnum getEnumByCode(Integer name) {
+    public static YxTransferFilterEnum getEnumByName(String name) {
         for (YxTransferFilterEnum e : YxTransferFilterEnum.values()) {
             if (e.getName().equals(name)) {
                 return e;
@@ -36,11 +36,17 @@ public enum YxTransferFilterEnum {
         return null;
     }
 
-    public static Set<String> getFilterSetOrderByPriority () {
-        Set set = new TreeSet();
+    public static List<String> getFilterListOrderByPriority () {
+        List<String> list = new ArrayList();
         for (YxTransferFilterEnum e : YxTransferFilterEnum.values()) {
-            set.add(e.getName());
+            list.add(e.getName());
         }
-        return set;
+        list.sort(((name1, name2) -> {
+            Integer priority1 = YxTransferFilterEnum.getEnumByName(name1).getPriority();
+            Integer priority2 = YxTransferFilterEnum.getEnumByName(name2).getPriority();
+            //从小到大
+            return priority1 - priority2;
+        }));
+        return list;
     }
 }
