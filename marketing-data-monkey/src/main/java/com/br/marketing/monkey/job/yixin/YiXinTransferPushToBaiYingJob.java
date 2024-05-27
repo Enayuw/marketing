@@ -93,8 +93,8 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
                     continue;
                 }
             } else {
-                jobManager.saveFrontData(apiCode, bizDate, actionTypeTransfer);
-                if (actionFront.getId() == null) {
+                Long actionFrontId = jobManager.saveFrontData(apiCode, bizDate, actionTypeTransfer);
+                if (actionFrontId == null) {
                     log.warn(TITLE+ "转化数据任务, 执行记录添加失败, {}, {}", apiCode, bizDate);
                     continue;
                 }
@@ -207,8 +207,8 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
                     continue;
                 }
             } else {
-                jobManager.saveFrontData(apiCode, bizDate, actionTypeBlack);
-                if (actionFront.getId() == null) {
+                Long actionFrontId = jobManager.saveFrontData(apiCode, bizDate, actionTypeBlack);
+                if (actionFrontId == null) {
                     log.warn(TITLE+ "黑名单推送任务, 执行记录添加失败, {}, {}", apiCode, bizDate);
                     continue;
                 }
