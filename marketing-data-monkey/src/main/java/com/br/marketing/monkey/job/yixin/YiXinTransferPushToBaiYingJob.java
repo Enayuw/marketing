@@ -10,6 +10,7 @@ import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.yixin.YiXinBlackPushToBaiYingHandler;
 import com.br.marketing.monkeydata.handle.yixin.YiXinTransferPushToBaiYingHandler;
 import com.br.marketing.service.Impl.JobManager;
+import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
@@ -18,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -43,8 +45,11 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingTransferInfoMapper marketingTransferInfoMapper;
 
+    @Resource
+    private ZnkfPushService znkfPushService;
 
-    private final static String EXECUTE_TIME = "21:00:00";
+
+    private final static String EXECUTE_TIME = "06:00:00";
 
     private final static String TITLE = "【宜信转化过滤推送百应】";
 
@@ -72,6 +77,13 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             long start = System.currentTimeMillis();
             log.warn(TITLE+"转化数据任务, 调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
 
+            // check last
+            String requestId = marketingTransferInfoMapper.queryByApiCodAndLast(apiCode, bizDate, "1");
+            if(StringUtils.isEmpty(requestId)){
+                log.warn(TITLE+ "转化数据任务, 暂无last=1记录, {}, {}", apiCode, bizDate);
+                continue;
+            }
+
             // actionFront
             TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionTypeTransfer, null);
             if (actionFront != null) {
@@ -86,13 +98,6 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
                     log.warn(TITLE+ "转化数据任务, 执行记录添加失败, {}, {}", apiCode, bizDate);
                     continue;
                 }
-            }
-
-            // check last
-            String requestId = marketingTransferInfoMapper.queryByApiCodAndLast(apiCode, bizDate, "1");
-            if(StringUtils.isEmpty(requestId)){
-                log.warn(TITLE+ "暂无last=1记录, {}, {}", apiCode, bizDate);
-                continue;
             }
 
             // action transfer
@@ -186,11 +191,19 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             long start = System.currentTimeMillis();
             log.warn(TITLE+"黑名单推送任务, 调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
 
+            // isPushBlackPhoneEnd
+            int hour = LocalDateTime.now().getHour();
+            Boolean pushBlackPhoneEnd = znkfPushService.isPushBlackPhoneEnd(apiCode, bizDate);
+            if (!pushBlackPhoneEnd && hour < 11) {
+                log.warn(TITLE+"黑名单推送任务, 11点前未接收到黑名单标志不推送"+"apiCode:{}, bizDate:{}", apiCode, bizDate);
+                continue;
+            }
+
             // actionFront
             TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionTypeBlack, null);
             if (actionFront != null) {
                 if (2 == actionFront.getStatus()) {
-                    log.warn(TITLE+"黑名单推送任务, 今日已经推送"+"apiCode:{}, bizDate:{}", apiCode, bizDate);
+                    log.warn(TITLE+"黑名单推送任务, 今日已经推送完成"+"apiCode:{}, bizDate:{}", apiCode, bizDate);
                     continue;
                 }
             } else {
