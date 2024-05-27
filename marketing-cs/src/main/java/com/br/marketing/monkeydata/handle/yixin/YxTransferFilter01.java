@@ -1,9 +1,12 @@
 package com.br.marketing.monkeydata.handle.yixin;
 
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+@Service
 public class YxTransferFilter01 implements YxTransferFilter<MarketingTransferSyncUser>{
 
     @Override
@@ -13,12 +16,11 @@ public class YxTransferFilter01 implements YxTransferFilter<MarketingTransferSyn
             return new ArrayList<>();
         }
 
-        List<MarketingTransferSyncUser> filteredList = new ArrayList<>();
-        for (MarketingTransferSyncUser marketingTransferSyncUser : list) {
-            if("1".equals(marketingTransferSyncUser.getIfApply()) && "0".equals(marketingTransferSyncUser.getApplyResult())){
-                filteredList.add(marketingTransferSyncUser);
-            }
-        }
+        List<MarketingTransferSyncUser> filteredList = list.stream()
+                .filter(marketingTransferSyncUser -> "1".equals(marketingTransferSyncUser.getIfApply())
+                        && "0".equals(marketingTransferSyncUser.getApplyResult()))
+                .collect(Collectors.toList());
+
         return filteredList;
     }
 }

@@ -34,6 +34,9 @@ public class ByApiServiceClient {
     @Autowired
     RestTemplate restTemplate;
 
+    @Value(value = "${api.baiying.baseUrl:00}")
+    private String pushBlackDataUrl;
+
     @Qualifier("logDbpool")
     @Autowired
     public ThreadPoolExecutor logDbpool;
@@ -43,12 +46,12 @@ public class ByApiServiceClient {
 
     @RetryMethod(retryNowNum = 3)
     public Result pushBaiying(ReqBlacklistDTO dto){
-        dto.setMethod("blackData");
+        log.info("pushBaiying request:{}", JSONObject.toJSONString(dto));
         ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
-                .setUrl("https://cos.byai.com/api/byai/transform/br/blacklist/import")
+                .setUrl(pushBlackDataUrl)
                 .setRequestParam(dto)
                 .setContentType(MediaType.APPLICATION_JSON_UTF8).postTransferStr();
-
+        log.info("pushBaiying result:{}", JSONObject.toJSONString(transfer));
         if (200 == transfer.getHttpCode()) {
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
             if (jsonObject == null) {
