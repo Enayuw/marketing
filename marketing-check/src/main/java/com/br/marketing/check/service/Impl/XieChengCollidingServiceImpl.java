@@ -12,11 +12,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
-import com.br.marketing.entity.CustomerInfoPushBatch;
-import com.br.marketing.entity.CustomerInfoPushBatchExample;
-import com.br.marketing.entity.CustomerInfoPushMain;
-import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.PushRuleStatusEnum;
+import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.enums.ThreeKeyTypeEnum;
 import com.br.marketing.es.bean.MarketingCondition;
@@ -25,6 +23,7 @@ import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
+import com.br.marketing.mapper.XieChengCollidingDataLogMapper;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -41,6 +40,9 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -77,6 +79,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
     @Autowired
     IntelligentCustomerServiceClient intelligentCustomerServiceClient;
+
+    @Resource
+    XieChengCollidingDataLogMapper xieChengCollidingDataLogMapper;
 
     /**
      * 携程撞库数据推决策
@@ -202,8 +207,15 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             if(CollectionUtils.isEmpty(marketingHistories)){
                 return result.setCode(ResultCode.SUCCESS.getValue()).setDate(0);
             }
+            List<String> sha256Cell = marketingHistories.stream().map(marketingHistory ->
+                    pushRuleService.encrypt3k(ScoreThreeKeyEncryptEnum.sha256.getValue(), marketingHistory.getCell())).collect(Collectors.toList());
+            XieChengCollidingDataLogExample dataLogExample = new XieChengCollidingDataLogExample();
+            XieChengCollidingDataLogExample.Criteria criteria = dataLogExample.createCriteria();
+            criteria.andCellSha256CodeListIn(sha256Cell).andCreateTimeGreaterThanOrEqualTo
+                    (Date.from(LocalDateTime.now().minusDays(7).atZone( ZoneId.systemDefault()).toInstant()));
+            List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataLogExample);
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
-            assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt);
+            assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt,xieChengCollidingDataLogs);
             //推送任务基础信息
             PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
             pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
@@ -232,7 +244,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         return result;
     }
 
-    private void assmbleUserDetail(List<MarketingHistory> marketingHistories, List<PushMarketingUserDetailDTO> userDetailDTOS, Integer threeEncrypt) {
+    private void assmbleUserDetail(List<MarketingHistory> marketingHistories, List<PushMarketingUserDetailDTO> userDetailDTOS, Integer threeEncrypt,
+                                   List<XieChengCollidingDataLog> xieChengCollidingDataLogs) {
+        Map<String, XieChengCollidingDataLog> dataLogMap =getDataLogGroupByCell(xieChengCollidingDataLogs);
         for (int k = 0; k < marketingHistories.size(); k++) {
             MarketingHistory marketingHistory = marketingHistories.get(k);
             //人员信息
@@ -257,8 +271,30 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             varObject.put("taskId", marketingHistory.getTaskId());
             varObject.put("userType", marketingHistory.getUserType());
             varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
+            //携程日志扩展字段
+            XieChengCollidingDataLog xieChengCollidingDataLog = dataLogMap.get(dto1.getPhone());
+            varObject.put("result", xieChengCollidingDataLog.getResult());
+            varObject.put("orgChannel", xieChengCollidingDataLog.getOrgChannel());
+            varObject.put("mktLevel", xieChengCollidingDataLog.getMktLevel());
+            varObject.put("info", xieChengCollidingDataLog.getInfo());
             dto1.setVariables(varObject);
             userDetailDTOS.add(dto1);
         }
     }
+
+    /**
+     * 根据cell分组，按create_time最新一条数据去重
+     *
+     * @param xieChengCollidingDataLogList
+     */
+    private Map<String, XieChengCollidingDataLog> getDataLogGroupByCell(List<XieChengCollidingDataLog> xieChengCollidingDataLogList) {
+        return xieChengCollidingDataLogList.stream().collect(
+                Collectors.groupingBy(XieChengCollidingDataLog::getCellSha256CodeList
+                        , Collectors.collectingAndThen(
+                                Collectors.reducing((v1, v2) ->
+                                        v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
+                                , Optional::get)));
+    }
+
+
 }
