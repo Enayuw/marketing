@@ -234,6 +234,9 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         Map<String, Object> pushConfigMap = marketingCommonConfig.getYiXinTransferPushBaiYingPush();
         int pushSize = pushConfigMap.get("pushPartSize") != null ?
                 Integer.parseInt(String.valueOf(pushConfigMap.get("pushPartSize"))) : 500;
+        String pushMethod = pushConfigMap.get("pushMethod") != null ?
+                String.valueOf(pushConfigMap.get("pushMethod")) : "blackData";
+
         int size = outputDataList.size();
         int count = 0;
         List<BlacklistDataDTO> pushList = new ArrayList<>();
@@ -248,6 +251,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 List<BlacklistDataDTO> finalList = pushList;
                 pushPool.execute(() -> {
                     ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
+                    reqBlacklistDTO.setMethod(pushMethod);
                     reqBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBlacklistDTO.setData(finalList);
                     byApiServiceClient.pushBaiying(reqBlacklistDTO);

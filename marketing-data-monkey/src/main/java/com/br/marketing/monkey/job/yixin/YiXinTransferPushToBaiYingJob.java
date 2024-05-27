@@ -66,15 +66,15 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             log.warn(TITLE + "调度开始");
             if (!checkExecuteTime()) return;
             List<Map<String, String>> paramList = processJobParameter(shardingContext.getJobParameter());
-            process(paramList);
+            processTransfer(paramList);
             log.warn(TITLE + "调度开始");
         } catch (Exception e) {
             log.error(TITLE + "调度异常", e);
         }
     }
 
-    public void process(List<Map<String, String>> paramList) {
-        int actionType = JobManager.ActionTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getActionType();
+    public void processTransfer(List<Map<String, String>> paramList) {
+        int actionTypeTransfer = JobManager.ActionTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getActionType();
 
         for (Map<String, String> param: paramList) {
             String apiCode = param.get("apiCode");
@@ -85,14 +85,17 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             log.warn(TITLE+"调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
 
             // actionFront
-            TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionType, null);
+            TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionTypeTransfer, null);
             if (actionFront != null) {
                 if (2 == actionFront.getStatus()) {
-                    log.warn(TITLE+"该任务今日已经推送"+"api_code:{}, biz_date:{}", apiCode, bizDate);
+                    log.warn(TITLE+"转化数据任务今日已经推送"+"api_code:{}, biz_date:{}", apiCode, bizDate);
+                    // processBlackTask();
+
+
                     continue;
                 }
             } else {
-                jobManager.saveFrontData(apiCode, bizDate, actionType);
+                jobManager.saveFrontData(apiCode, bizDate, actionTypeTransfer);
                 if (actionFront.getId() == null) {
                     log.warn(TITLE+ "任务执行记录添加失败, {}, {}", apiCode, bizDate);
                     continue;
