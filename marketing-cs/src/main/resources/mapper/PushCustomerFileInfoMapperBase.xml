@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PushCustomerFileInfoMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.PushCustomerFileInfo">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="cid" property="cid" jdbcType="VARCHAR"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="file_md5" property="fileMd5" jdbcType="VARCHAR"/>
+        <result column="file_directory" property="fileDirectory" jdbcType="VARCHAR"/>
+        <result column="last_modified_date" property="lastModifiedDate" jdbcType="DATE"/>
+        <result column="last_modified_time" property="lastModifiedTime" jdbcType="TIMESTAMP"/>
+        <result column="push_date" property="pushDate" jdbcType="DATE"/>
+        <result column="push_status" property="pushStatus" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="local_file_id" property="localFileId" jdbcType="BIGINT"/>
+        <result column="file_name" property="fileName" jdbcType="VARCHAR"/>
+        <result column="file_size" property="fileSize" jdbcType="BIGINT"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id
+        , cid, api_code, file_md5, file_directory, last_modified_date, last_modified_time,
+    push_date, push_status, create_time, update_time, remark, `status`, local_file_id,
+    file_name, file_size
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.PushCustomerFileInfoExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_push_customer_file_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from b_push_customer_file_info
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from b_push_customer_file_info
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.br.marketing.entity.PushCustomerFileInfoExample">
+        delete from b_push_customer_file_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.br.marketing.entity.PushCustomerFileInfo">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_push_customer_file_info (cid, api_code, file_md5,
+        file_directory, last_modified_date, last_modified_time,
+        push_date, push_status, create_time,
+        update_time, remark, `status`,
+        local_file_id, file_name, file_size
+        )
+        values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{fileMd5,jdbcType=VARCHAR},
+        #{fileDirectory,jdbcType=VARCHAR}, #{lastModifiedDate,jdbcType=DATE}, #{lastModifiedTime,jdbcType=TIMESTAMP},
+        #{pushDate,jdbcType=DATE}, #{pushStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER},
+        #{localFileId,jdbcType=BIGINT}, #{fileName,jdbcType=VARCHAR}, #{fileSize,jdbcType=BIGINT}
+        )
+    </insert>
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.PushCustomerFileInfo">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_push_customer_file_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cid != null">
+                cid,
+            </if>
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="fileMd5 != null">
+                file_md5,
+            </if>
+            <if test="fileDirectory != null">
+                file_directory,
+            </if>
+            <if test="lastModifiedDate != null">
+                last_modified_date,
+            </if>
+            <if test="lastModifiedTime != null">
+                last_modified_time,
+            </if>
+            <if test="pushDate != null">
+                push_date,
+            </if>
+            <if test="pushStatus != null">
+                push_status,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="remark != null">
+                remark,
+            </if>
+            <if test="status != null">
+                `status`,
+            </if>
+            <if test="localFileId != null">
+                local_file_id,
+            </if>
+            <if test="fileName != null">
+                file_name,
+            </if>
+            <if test="fileSize != null">
+                file_size,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cid != null">
+                #{cid,jdbcType=VARCHAR},
+            </if>
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="fileMd5 != null">
+                #{fileMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="fileDirectory != null">
+                #{fileDirectory,jdbcType=VARCHAR},
+            </if>
+            <if test="lastModifiedDate != null">
+                #{lastModifiedDate,jdbcType=DATE},
+            </if>
+            <if test="lastModifiedTime != null">
+                #{lastModifiedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="pushDate != null">
+                #{pushDate,jdbcType=DATE},
+            </if>
+            <if test="pushStatus != null">
+                #{pushStatus,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="localFileId != null">
+                #{localFileId,jdbcType=BIGINT},
+            </if>
+            <if test="fileName != null">
+                #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileSize != null">
+                #{fileSize,jdbcType=BIGINT},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.br.marketing.entity.PushCustomerFileInfoExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_push_customer_file_info
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update b_push_customer_file_info
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.cid != null">
+                cid = #{record.cid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.apiCode != null">
+                api_code = #{record.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fileMd5 != null">
+                file_md5 = #{record.fileMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fileDirectory != null">
+                file_directory = #{record.fileDirectory,jdbcType=VARCHAR},
+            </if>
+            <if test="record.lastModifiedDate != null">
+                last_modified_date = #{record.lastModifiedDate,jdbcType=DATE},
+            </if>
+            <if test="record.lastModifiedTime != null">
+                last_modified_time = #{record.lastModifiedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.pushDate != null">
+                push_date = #{record.pushDate,jdbcType=DATE},
+            </if>
+            <if test="record.pushStatus != null">
+                push_status = #{record.pushStatus,jdbcType=INTEGER},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.remark != null">
+                remark = #{record.remark,jdbcType=VARCHAR},
+            </if>
+            <if test="record.status != null">
+                `status` = #{record.status,jdbcType=INTEGER},
+            </if>
+            <if test="record.localFileId != null">
+                local_file_id = #{record.localFileId,jdbcType=BIGINT},
+            </if>
+            <if test="record.fileName != null">
+                file_name = #{record.fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="record.fileSize != null">
+                file_size = #{record.fileSize,jdbcType=BIGINT},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update b_push_customer_file_info
+        set id = #{record.id,jdbcType=BIGINT},
+        cid = #{record.cid,jdbcType=VARCHAR},
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+        file_md5 = #{record.fileMd5,jdbcType=VARCHAR},
+        file_directory = #{record.fileDirectory,jdbcType=VARCHAR},
+        last_modified_date = #{record.lastModifiedDate,jdbcType=DATE},
+        last_modified_time = #{record.lastModifiedTime,jdbcType=TIMESTAMP},
+        push_date = #{record.pushDate,jdbcType=DATE},
+        push_status = #{record.pushStatus,jdbcType=INTEGER},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+        remark = #{record.remark,jdbcType=VARCHAR},
+        `status` = #{record.status,jdbcType=INTEGER},
+        local_file_id = #{record.localFileId,jdbcType=BIGINT},
+        file_name = #{record.fileName,jdbcType=VARCHAR},
+        file_size = #{record.fileSize,jdbcType=BIGINT}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.PushCustomerFileInfo">
+        update b_push_customer_file_info
+        <set>
+            <if test="cid != null">
+                cid = #{cid,jdbcType=VARCHAR},
+            </if>
+            <if test="apiCode != null">
+                api_code = #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="fileMd5 != null">
+                file_md5 = #{fileMd5,jdbcType=VARCHAR},
+            </if>
+            <if test="fileDirectory != null">
+                file_directory = #{fileDirectory,jdbcType=VARCHAR},
+            </if>
+            <if test="lastModifiedDate != null">
+                last_modified_date = #{lastModifiedDate,jdbcType=DATE},
+            </if>
+            <if test="lastModifiedTime != null">
+                last_modified_time = #{lastModifiedTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="pushDate != null">
+                push_date = #{pushDate,jdbcType=DATE},
+            </if>
+            <if test="pushStatus != null">
+                push_status = #{pushStatus,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="remark != null">
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                `status` = #{status,jdbcType=INTEGER},
+            </if>
+            <if test="localFileId != null">
+                local_file_id = #{localFileId,jdbcType=BIGINT},
+            </if>
+            <if test="fileName != null">
+                file_name = #{fileName,jdbcType=VARCHAR},
+            </if>
+            <if test="fileSize != null">
+                file_size = #{fileSize,jdbcType=BIGINT},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.PushCustomerFileInfo">
+        update b_push_customer_file_info
+        set cid                = #{cid,jdbcType=VARCHAR},
+            api_code           = #{apiCode,jdbcType=VARCHAR},
+            file_md5           = #{fileMd5,jdbcType=VARCHAR},
+            file_directory     = #{fileDirectory,jdbcType=VARCHAR},
+            last_modified_date = #{lastModifiedDate,jdbcType=DATE},
+            last_modified_time = #{lastModifiedTime,jdbcType=TIMESTAMP},
+            push_date          = #{pushDate,jdbcType=DATE},
+            push_status        = #{pushStatus,jdbcType=INTEGER},
+            create_time        = #{createTime,jdbcType=TIMESTAMP},
+            update_time        = #{updateTime,jdbcType=TIMESTAMP},
+            remark             = #{remark,jdbcType=VARCHAR},
+            `status`           = #{status,jdbcType=INTEGER},
+            local_file_id      = #{localFileId,jdbcType=BIGINT},
+            file_name          = #{fileName,jdbcType=VARCHAR},
+            file_size          = #{fileSize,jdbcType=BIGINT}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

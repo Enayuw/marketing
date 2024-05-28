@@ -1161,13 +1161,17 @@ public class MarketingCommonConfig {
 
     /**
      * 众邦录音明细回调测试
+     * {"open":"true","code":"500"}
+     *      code success:1
+     *      code fail:0
+     *      code 流控:500
      */
-    private Boolean zhongBangRecodFileReTest = false;
+    private String zhongBangRecodFileReTest;
 
     /**
-     * 众邦财富上传录音文件明细配置,{"dbName":"fileType"},eg:{"b_zhongbang_voice_file_detail":"zhongbang_voice"}
+     * 众邦财富上传录音文件明细配置,{"b_zhongbang_voice_file_detail":{"fileType":"zhongbang_voice","uploadPoolSize":5,"getFilePoolSize":5}}
      */
-    private Map<String, String> zhongBangVoieFileConfig = new HashMap<>();
+    private Map<String, JSONObject> zhongBangVoiceFileConfig = new HashMap<>();
 
 
     /**
@@ -1355,7 +1359,7 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
 
     /**
-     * 携程撞库异常量级钉钉通知accessToken
+    * 携程撞库异常量级钉钉通知accessToken
      */
     private String xieChengGroupAccessToken;
 
@@ -1501,13 +1505,6 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCleanSwitch;
 
-
-
-    /**
-     * 2024-03-25 14:02
-     * 滴滴场景与媒体名称映射 eg:{"userType":"mediaName"}
-     */
-    private Map<String, String> diDiUserTypeAndMediaNameMapping = new HashMap<>();
     /**
      * 携程定制化配置ApiCode
      */
@@ -1523,6 +1520,12 @@ public class MarketingCommonConfig {
      * 携程转化数据提取执行时间,携程撞库提取时间
      */
     private List<String> XieChengTwoTransferExecuteTime;
+
+    /**
+     * 携程短信撞库数据提取时间范围,索引未知0为开始时间，1为结束时间，key小于0为T-n，等于0为T，大于0为T+1
+     * eg:[{-1:"06:00"},{0:"07:00"}]
+     */
+    private List<Map<Integer, String>> xieChengCallBackResultTimeRange = new ArrayList<>();
 
     /**
      * 数禾促复借转化数据提取数据提取apicode集合

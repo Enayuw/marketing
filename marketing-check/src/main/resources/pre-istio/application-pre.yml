@@ -273,6 +273,7 @@ api:
       serviceId:
         labelRating: "CMBrLabelRatingRe"
         CMBrScoDaFeBack: "CMBrScoDaFeBack"
+        recodFile: "CMBrRecodFileRe"
     file:
       baseUrl: "https://iodev-uat.z-bank.com"
       channelId: "2023042701"

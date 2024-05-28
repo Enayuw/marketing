@@ -12,6 +12,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.zbank.file.bean.FileDownLoadInfo;
 import com.zbank.file.bean.FileInfo;
 import com.zbank.file.bean.StreamDownLoadInfo;
+import com.zbank.file.bean.UploadInfo;
 import com.zbank.file.exception.EmptyFileException;
 import com.zbank.file.exception.SDKException;
 import com.zbank.file.sdk.FileSDK;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -56,6 +59,12 @@ public class ZbankClient {
      */
     @Value("${api.zbank.api.serviceId.CMBrScoDaFeBack:CMBrScoDaFeBack}")
     private String CMBrScoDaFeBack;
+
+    /**
+     * 录音文件回传接口
+     */
+    @Value("${api.zbank.api.serviceId.recodFile:CMBrRecodFileRe}")
+    private String serviceIdRecodFile;
 
     /**
      * 渠道唯一标识（由众邦银行提供）
@@ -98,6 +107,7 @@ public class ZbankClient {
 
     /**
      * 众邦信贷评分回传接口
+     *
      * @param obj
      * @param requestId
      * @return
@@ -107,6 +117,19 @@ public class ZbankClient {
     public String cMBrScoDaFeBack(Object obj, String requestId) throws Exception {
 //        return "{\"msg\":\"服务调用异常:106100400008,请查证！\",\"result\":{},\"code\":\"106100720036\"}";
         return apiCall(obj, CMBrScoDaFeBack, requestId);
+    }
+
+    /**
+     * 录音明细回调
+     *
+     * @param obj
+     * @param requestId
+     * @return
+     * @throws Exception
+     */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public String recodFileRe(Object obj, String requestId) throws Exception {
+        return apiCall(obj, serviceIdRecodFile, requestId);
     }
 
     /**
@@ -205,11 +228,7 @@ public class ZbankClient {
      * 此下载方式内部已进行了文件Md5值校验，无需重复校验
      */
     public FileDownLoadInfo downLoadSplitFileMergeInLocal(FileInfo fileInfo, String dir) {
-        Map<String, String> infoMap = marketingCommonConfig.getZhongBangDownloadFileInfoMap();
-        String channelIdKey = "channelId";
-        if (!CollectionUtils.isEmpty(infoMap) && infoMap.containsKey(channelIdKey)) {
-            channelId = infoMap.get(channelIdKey);
-        }
+        updateChannelId();
         String seqNo = "" + System.nanoTime() + RandomStringUtils.randomNumeric(3);
         try {
             return fileSdk.downloadFile(fileInfo.getFileId(), channelId, dir, seqNo, false, true);
@@ -217,5 +236,39 @@ public class ZbankClient {
             log.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * 2023-12-01 9:34
+     * 将文件上传至服务器
+     */
+    public UploadInfo uploadFile(File file) throws SDKException {
+        updateChannelId();
+        String seqNo = "" + System.nanoTime() + "_" + RandomStringUtils.randomNumeric(3);
+        return fileSdk.upload(file, channelId, seqNo, true);
+    }
+
+    /**
+     * 2023-12-01 9:34
+     * 将文件下载到本地磁盘指定的目录。
+     * 此下载方式内部已进行了文件Md5值校验，无需重复校验
+     * 将文件上传至服务器
+     */
+    public UploadInfo uploadInputStream(InputStream inputStream, String fileName, long fileSize, String fileMd5) throws SDKException {
+        updateChannelId();
+        String seqNo = "" + System.nanoTime() + "_" + RandomStringUtils.randomNumeric(3);
+        return fileSdk.upload(inputStream, fileMd5, fileName, fileSize, channelId, seqNo, true, true);
+    }
+
+    /**
+     * 2024-05-08 17:00
+     * 更新配置ChannelId
+     */
+    private void updateChannelId() {
+        Map<String, String> infoMap = marketingCommonConfig.getZhongBangDownloadFileInfoMap();
+        String channelIdKey = "channelId";
+        if (!CollectionUtils.isEmpty(infoMap) && infoMap.containsKey(channelIdKey)) {
+            channelId = infoMap.get(channelIdKey);
+        }
     }
 }
