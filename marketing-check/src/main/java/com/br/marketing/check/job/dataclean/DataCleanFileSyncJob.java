@@ -78,7 +78,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             if (ResultCode.SUCCESS.getValue().equals(res.getCode())) {
                 List<String> fileNames = res.getData();
                 for (String fileName : fileNames) {
-                    fileSyncTable(syncConfig.getApiCode(), targetPath, fileName);
+                    fileSyncTable(syncConfig, targetPath, fileName);
 
                 }
             }
@@ -86,7 +86,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
 
     }
 
-    private void fileSyncTable(String apiCode, String path, String fileName) {
+    private void fileSyncTable(SyncConfig syncConfig, String path, String fileName) {
         MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
         String fileStr = path.concat(fileName);
         File file = new File(fileStr);
@@ -105,8 +105,10 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-        dataFile.setApiCode(apiCode);
+        dataFile.setApiCode(syncConfig.getApiCode());
         dataFile.setFileName(fileName);
+        dataFile.setLocalPath(path);
+        dataFile.setTargetSftpPath(syncConfig.getTargetPath());
         dataFile.setCleanType(0);
         dataFile.setCreateTime(new Date());
         dataFile.setUpdateTime(new Date());

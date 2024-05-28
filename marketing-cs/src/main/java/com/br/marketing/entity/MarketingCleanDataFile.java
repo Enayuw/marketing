@@ -38,6 +38,16 @@ public class MarketingCleanDataFile implements Serializable {
     private String fileData;
 
     /**
+     * 目标sftp路径
+     */
+    private String targetSftpPath;
+
+    /**
+     * 本地文件路径
+     */
+    private String localPath;
+
+    /**
      * 状态
      */
     private Integer status;
@@ -47,9 +57,6 @@ public class MarketingCleanDataFile implements Serializable {
      */
     private Date createTime;
 
-    /**
-     * 修改时间
-     */
     private Date updateTime;
 
     /**
