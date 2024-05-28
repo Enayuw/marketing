@@ -5,7 +5,7 @@
 
     <select id="getTaskList" resultType="com.br.marketing.vo.dataclean.DataCleanTaskVO">
         SELECT
-        t.id,t.api_code,t.config_id,t.file_id,t.clean_type as fileType,t.test_result,t.clean_status,t.create_time,t.update_time,c.field_config_show
+        t.id,t.api_code,t.config_id,t.file_id,t.clean_type as fileType,t.test_result,t.clean_status,t.create_time,t.update_time,c.field_config_show as ruleCondition
         FROM
         b_marketing_clean_data_task t
         left join b_marketing_data_file_config c
@@ -21,7 +21,7 @@
                 AND t.api_code=#{apiCode}
             </if>
         </where>
-        order by create_time desc
+        order by t.create_time desc
     </select>
 
 </mapper>
