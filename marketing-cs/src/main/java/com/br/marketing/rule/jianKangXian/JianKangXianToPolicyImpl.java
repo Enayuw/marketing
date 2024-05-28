@@ -31,15 +31,8 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
-        String firstName = jsonObject.getString("firstName");
-        String userType = jsonObject.getString("userType");
-        String gender = jsonObject.getString("gender");
-        String operateType = jsonObject.getString("operateType");
-        String cellProvince = jsonObject.getString("cell_province");
-        String age = jsonObject.getString("age");
-        String taskNum = jsonObject.getString("taskNum");
-        String fileName = jsonObject.getString("fileName");
         String name = BrCipherMaker.getInstance().decode(syncUser.getName());
+        String cell4 = syncUser.getCell().substring(syncUser.getCell().length() - 4);
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(syncUser.getCustNum());
@@ -49,14 +42,8 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
         JSONObject varDto = new JSONObject();
         varDto.put("id", syncUser.getIdCard());
         varDto.put("name", name);
-        varDto.put("userType", userType);
-        varDto.put("firstName", firstName);
-        varDto.put("gender", gender);
-        varDto.put("operateType", operateType);
-        varDto.put("cell_province", cellProvince);
-        varDto.put("age",age);
-        varDto.put("taskNum",taskNum);
-        varDto.put("fileName",fileName);
+        varDto.put("cell4", cell4);
+        varDto.putAll(jsonObject);
         pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_"
                 + context.getApiCode());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
