@@ -2,24 +2,20 @@ package com.br.marketing.client.baiying;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.baiying.input.BlacklistDataDTO;
+import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
-import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
-import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.common.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.HashMap;
 
 /**
  * @ClassName ByApiServiceClient
@@ -34,15 +30,14 @@ public class ByApiServiceClient {
     @Autowired
     RestTemplate restTemplate;
 
+    @Value("${api.zhongAn.isProxy:false}")
+    Boolean isProxy;
+
     @Value(value = "${api.baiying.postBlackList:00}")
     private String pushBlackDataUrl;
 
-    @Qualifier("logDbpool")
     @Autowired
-    public ThreadPoolExecutor logDbpool;
-
-    @Autowired
-    InterfaceLogMapper interfaceLogMapper;
+    HttpProxyClient httpProxyClient;
 
     private final static String TITLE = "【推送百应数据】";
 
@@ -51,24 +46,26 @@ public class ByApiServiceClient {
 
         long start = System.currentTimeMillis();
         log.warn(TITLE+"调度开始, requestParam{}", JSONObject.toJSONString(dto));
-        ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate, interfaceLogMapper, logDbpool)
-                .setUrl(pushBlackDataUrl)
-                .setRequestParam(dto)
-                .setContentType(MediaType.APPLICATION_JSON_UTF8).postTransferStr();
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(dto, pushBlackDataUrl, isProxy,
+                MediaType.APPLICATION_JSON_UTF8_VALUE,
+                JSON.toJSONString(dto), true, true);
         long end = System.currentTimeMillis();
-        log.warn(TITLE+"调度结束, result:{}, 耗时:{}", JSONObject.toJSONString(transfer), end - start);
+        log.warn(TITLE+"调度结束, result:{}, 耗时:{}", resMap, end - start);
 
-        if (200 == transfer.getHttpCode()) {
-            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
-            if (jsonObject == null) {
-                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(transfer.getResult());
-            }
-            if ("000000".equals(jsonObject.getString("code"))) {
-                return new Result().setCode(ResultCode.SUCCESS.getValue());
-            } else {
-                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(transfer.getResult());
-            }
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("调用百应【黑名单】接口异常-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
-        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(transfer.getResult());
+
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        String code = resultJson.getString("code");
+
+        if ("000000".equals(code)) {
+            log.warn("调用同程【待运营】名单接口，返回code为0，请求正常");
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+        }else {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+        }
     }
 }
