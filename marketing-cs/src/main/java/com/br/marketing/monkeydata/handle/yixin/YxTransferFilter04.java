@@ -5,6 +5,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,9 +35,14 @@ public class YxTransferFilter04 implements YxTransferFilter<MarketingTransferSyn
             }
 
             String availableAmount = jo.getString("availableAmount");
-            if(!"1".equals(applyLoan)){
+            if(StringUtils.isEmpty(availableAmount)){
                 continue;
             }
+            BigDecimal availableAmountDec =new BigDecimal(availableAmount);
+            if(!(availableAmountDec.compareTo(new BigDecimal("2000.00"))<0)){
+                continue;
+            }
+
             filteredList.add(next);
             iterator.remove();
         }

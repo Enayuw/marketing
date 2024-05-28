@@ -9,6 +9,7 @@ import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.yixin.YiXinBlackPushToBaiYingHandler;
 import com.br.marketing.monkeydata.handle.yixin.YiXinTransferPushToBaiYingHandler;
+import com.br.marketing.service.IYiXinTransferService;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -48,6 +49,9 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     @Resource
     private ZnkfPushService znkfPushService;
 
+    @Resource
+    private IYiXinTransferService yiXinTransferService;
+
 
     private final static String EXECUTE_TIME = "06:00:00";
 
@@ -60,7 +64,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             if (!checkExecuteTime()) return;
             List<Map<String, String>> paramList = processJobParameter(shardingContext.getJobParameter());
             processTransfer(paramList);
-            log.warn(TITLE + "调度开始");
+            log.warn(TITLE + "调度结束");
         } catch (Exception e) {
             log.error(TITLE + "调度异常", e);
         }
@@ -75,11 +79,11 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             String synApiCode = param.get("synApiCode");
 
             long start = System.currentTimeMillis();
-            log.warn(TITLE+"转化数据任务, 调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
+            log.warn(TITLE+"转化数据任务, 调度开始, apiCode:{}, bizDate:{}", apiCode, bizDate);
 
             // check last
-            String requestId = marketingTransferInfoMapper.queryByApiCodAndLast(apiCode, bizDate, "1");
-            if(StringUtils.isEmpty(requestId)){
+            Result<Date> checkResult = yiXinTransferService.checkPush(apiCode, bizDate);
+            if (!ResultCode.SUCCESS.getValue().equals(checkResult.getCode())) {
                 log.warn(TITLE+ "转化数据任务, 暂无last=1记录, {}, {}", apiCode, bizDate);
                 continue;
             }
@@ -150,7 +154,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
 
     /**
      * 解析Job参数，格式如下：
-     * e.g [{"apiCode":"3710012","bizDate":"2024-03-11","SynApiCode":"3710137"},{"apiCode":"3710012","bizDate":"2024-03-12","SynApiCode":"3710137"}]
+     * e.g [{"apiCode":"3710012","bizDate":"2024-03-11","synApiCode":"3710137"},{"apiCode":"3710012","bizDate":"2024-03-12","synApiCode":"3710137"}]
      */
     private List<Map<String, String>> processJobParameter(String parameter) throws Exception {
         List<Map<String, String>> paramList = new ArrayList<>();
@@ -162,7 +166,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
                 if(StringUtils.isEmpty(map.get("apiCode"))){
                     throw new Exception("Job参数格式不正确");
                 }
-                if(StringUtils.isEmpty(map.get("SynApiCode"))){
+                if(StringUtils.isEmpty(map.get("synApiCode"))){
                     throw new Exception("Job参数格式不正确");
                 }
                 if(StringUtils.isEmpty(map.get("bizDate"))){
@@ -175,7 +179,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         Map<String, String> map = new HashMap<>();
         map.put("apiCode", "3710012");
         map.put("bizDate", curDate);
-        map.put("SynApiCode", "3710137");
+        map.put("synApiCode", "3710137");
         paramList.add(map);
         return paramList;
     }

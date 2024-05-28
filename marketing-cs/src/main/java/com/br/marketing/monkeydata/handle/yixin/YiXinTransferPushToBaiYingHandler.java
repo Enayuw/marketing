@@ -261,7 +261,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
      */
     private void setThreadPoolParam(ThreadPoolExecutor processPool, ThreadPoolExecutor pushPool) {
         Map<String, Integer> threadPoolConfig = marketingCommonConfig.getYiXinTransferPushBaiYingThreadPool();
-        int processPoolSize = threadPoolConfig.get("processPool");
+        int processPoolSize = threadPoolConfig.get("processPoolSize");
         int pushPoolSize = threadPoolConfig.get("pushPoolSize");
 
         if (ObjectUtils.isEmpty(processPoolSize) || processPoolSize < 1) {

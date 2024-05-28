@@ -1002,7 +1002,7 @@
         from b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode}
         and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
-        and request_data = #{requestStartDate}
+        and request_data = #{requestDate}
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>

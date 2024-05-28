@@ -15,7 +15,6 @@ public enum YxTransferFilterEnum {
     YX_TRANSFER_FILTER02("YxTransferFilter02", 2),
     YX_TRANSFER_FILTER03("YxTransferFilter03", 3),
     YX_TRANSFER_FILTER04("YxTransferFilter04", 4),
-    YX_TRANSFER_FILTER05("YxTransferFilter05", 5),
     ;
 
     private String name;
