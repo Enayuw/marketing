@@ -67,6 +67,18 @@ public class JobManager {
         return front.getId();
     }
 
+    public TransferActionFront saveFront(String apiCode, String date, Integer actionType) {
+        TransferActionFront front = new TransferActionFront();
+        front.setApiCode(apiCode);
+        front.setStatus(1);
+        front.setActionType(actionType);
+        front.setActionData(date);
+        front.setCreateTime(new Date());
+        front.setUpdateTime(new Date());
+        transferActionFrontMapper.insertSelective(front);
+        return front;
+    }
+
     public void updateFrontDataStatus(Long id, Integer status) {
         TransferActionFront front = new TransferActionFront();
         front.setId(id);

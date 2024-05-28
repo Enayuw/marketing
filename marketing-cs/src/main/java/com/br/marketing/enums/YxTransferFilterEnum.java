@@ -11,10 +11,10 @@ import java.util.List;
 @Getter
 public enum YxTransferFilterEnum {
 
-    YX_TRANSFER_FILTER01("YxTransferFilter01", 1),
-    YX_TRANSFER_FILTER02("YxTransferFilter02", 2),
-    YX_TRANSFER_FILTER03("YxTransferFilter03", 3),
-    YX_TRANSFER_FILTER04("YxTransferFilter04", 4),
+    YX_TRANSFER_FILTER01("yxTransferFilter01", 1),
+    YX_TRANSFER_FILTER02("yxTransferFilter02", 2),
+    YX_TRANSFER_FILTER03("yxTransferFilter03", 3),
+    YX_TRANSFER_FILTER04("yxTransferFilter04", 4),
     ;
 
     private String name;

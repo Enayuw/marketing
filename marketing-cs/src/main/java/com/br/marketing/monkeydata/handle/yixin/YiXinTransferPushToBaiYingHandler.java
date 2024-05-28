@@ -1,6 +1,5 @@
 package com.br.marketing.monkeydata.handle.yixin;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.baiying.ByApiServiceClient;
@@ -19,6 +18,7 @@ import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -170,7 +170,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
 
         Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
-                .getValidityPeriodsByCustNum(custNumSets, apiCode, requestData);
+                .getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
 
         // 未获取到上传数据
         if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
@@ -193,7 +193,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             List<MarketingTransferSyncUser> pushList = new ArrayList<>();
             List<String> filterList = YxTransferFilterEnum.getFilterListOrderByPriority();
             for(String filterName : filterList){
-                YxTransferFilter filter = SpringUtil.getBean(filterName, YxTransferFilter.class);
+                YxTransferFilter filter = SpringContextUtil.getBean(filterName, YxTransferFilter.class);
                 List filteredList = filter.filter(periodList);
                 if(CollectionUtils.isEmpty(filteredList)){
                     continue;

@@ -97,8 +97,8 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
                     continue;
                 }
             } else {
-                Long actionFrontId = jobManager.saveFrontData(apiCode, bizDate, actionTypeTransfer);
-                if (actionFrontId == null) {
+                actionFront = jobManager.saveFront(apiCode, bizDate, actionTypeTransfer);
+                if (actionFront.getId() == null) {
                     log.warn(TITLE+ "转化数据任务, 执行记录添加失败, {}, {}", apiCode, bizDate);
                     continue;
                 }
@@ -193,7 +193,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             String synApiCode = param.get("synApiCode");
 
             long start = System.currentTimeMillis();
-            log.warn(TITLE+"黑名单推送任务, 调度开始, apiCode:{}, bizDate:{}, 耗时:{}", apiCode, bizDate);
+            log.warn(TITLE+"黑名单推送任务, 调度开始, apiCode:{}, bizDate:{}", apiCode, bizDate);
 
             // isPushBlackPhoneEnd
             int hour = LocalDateTime.now().getHour();
@@ -211,8 +211,8 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
                     continue;
                 }
             } else {
-                Long actionFrontId = jobManager.saveFrontData(apiCode, bizDate, actionTypeBlack);
-                if (actionFrontId == null) {
+                actionFront = jobManager.saveFront(apiCode, bizDate, actionTypeBlack);
+                if (actionFront.getId() == null) {
                     log.warn(TITLE+ "黑名单推送任务, 执行记录添加失败, {}, {}", apiCode, bizDate);
                     continue;
                 }
