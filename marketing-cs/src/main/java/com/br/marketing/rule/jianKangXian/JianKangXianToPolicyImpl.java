@@ -7,28 +7,41 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.PushRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 
 @Service
-@Slf4j
 public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserDetailByRuleDTO> {
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    PushRuleService pushRuleService;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        log.warn("健康险开始推决策！");
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
-        String name = BrCipherMaker.getInstance().decode(syncUser.getName());
+        String firstName = jsonObject.getString("firstName");
+        String userType = jsonObject.getString("userType");
+        String gender = jsonObject.getString("gender");
+        String operateType = jsonObject.getString("operateType");
+        String cellProvince = jsonObject.getString("cell_province");
+        String age = jsonObject.getString("age");
+        String taskNum = jsonObject.getString("taskNum");
+        String cusName = jsonObject.getString("cusName");
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
         String cell4 = cell.substring(cell.length() - 4);
+        String name = BrCipherMaker.getInstance().decode(syncUser.getName());
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(syncUser.getCustNum());
@@ -36,10 +49,17 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
         pushMarketingUserDetailByRuleDTO.setPhone(phone);
         pushMarketingUserDetailByRuleDTO.setCell(cell);
         JSONObject varDto = new JSONObject();
-        varDto.putAll(jsonObject);
         varDto.put("id", syncUser.getIdCard());
         varDto.put("name", name);
-        varDto.put("cell4", cell4);
+        varDto.put("userType", userType);
+        varDto.put("firstName", firstName);
+        varDto.put("gender", gender);
+        varDto.put("operateType", operateType);
+        varDto.put("cell_province", cellProvince);
+        varDto.put("age",age);
+        varDto.put("taskNum",taskNum);
+        varDto.put("fileName",cusName);
+        varDto.put("cell4",cell4);
         pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_"
                 + context.getApiCode());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
@@ -49,7 +69,6 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        log.warn("健康险开始规则判断！");
         if (transmitFact instanceof MarketingSyncUser) {
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String reserveField1 = syncUser.getReserveField1();
