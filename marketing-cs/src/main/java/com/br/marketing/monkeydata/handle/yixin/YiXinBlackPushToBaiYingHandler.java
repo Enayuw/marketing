@@ -190,7 +190,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             Result<Map<String, String>> queryBlackResult = getBlackList(periodList, synApiCode);
 
             HashMap<String, String> blackData = new HashMap<>();
-            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            if (ResultCode.SUCCESS.getValue().equals(queryBlackResult.getCode())) {
                 blackData.putAll(queryBlackResult.getData());
             }
 
@@ -259,7 +259,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
      */
     private void setThreadPoolParam(ThreadPoolExecutor processPool, ThreadPoolExecutor pushPool) {
         Map<String, Integer> threadPoolConfig = marketingCommonConfig.getYiXinTransferPushBaiYingThreadPool();
-        int processPoolSize = threadPoolConfig.get("processPool");
+        int processPoolSize = threadPoolConfig.get("processPoolSize");
         int pushPoolSize = threadPoolConfig.get("pushPoolSize");
 
         if (ObjectUtils.isEmpty(processPoolSize) || processPoolSize < 1) {
