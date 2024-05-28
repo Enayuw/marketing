@@ -36,10 +36,10 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
         pushMarketingUserDetailByRuleDTO.setPhone(phone);
         pushMarketingUserDetailByRuleDTO.setCell(cell);
         JSONObject varDto = new JSONObject();
+        varDto.putAll(jsonObject);
         varDto.put("id", syncUser.getIdCard());
         varDto.put("name", name);
         varDto.put("cell4", cell4);
-        varDto.putAll(jsonObject);
         pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_"
                 + context.getApiCode());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
