@@ -8,29 +8,33 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 
 @Service
+@Slf4j
 public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        log.warn("健康险开始推决策！");
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
         String name = BrCipherMaker.getInstance().decode(syncUser.getName());
         String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
-        String cell4 = cell.substring(syncUser.getCell().length() - 4);
+        String cell4 = cell.substring(cell.length() - 4);
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(syncUser.getCustNum());
         String phone = syncUser.getCellMd5();
         pushMarketingUserDetailByRuleDTO.setPhone(phone);
-        pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(syncUser.getCell()));
+        pushMarketingUserDetailByRuleDTO.setCell(cell);
         JSONObject varDto = new JSONObject();
         varDto.put("id", syncUser.getIdCard());
         varDto.put("name", name);
@@ -45,6 +49,7 @@ public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserD
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        log.warn("健康险开始规则判断！");
         if (transmitFact instanceof MarketingSyncUser) {
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             String reserveField1 = syncUser.getReserveField1();
