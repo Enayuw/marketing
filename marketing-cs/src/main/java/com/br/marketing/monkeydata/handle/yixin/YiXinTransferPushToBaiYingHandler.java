@@ -163,33 +163,33 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         Result<List<MarketingTransferSyncUser>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
 
-        // pageParam
-        String apiCode = condition.getApiCode();
-        String requestData = condition.getRequestData();
-        String synApiCode = condition.getSynApiCode();
-
-        Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
-                .getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
-
-        // 未获取到上传数据
-        if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
-                    "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
-                    "宜信转化过滤推送百应"));
-            return result;
-        }
-
-        List<MarketingTransferSyncUser> periodList = pageList.stream().filter(data -> {
-            String custNum = data.getCustNum();
-            if (custNumToSyncUserBoMap.get(custNum) == null) {
-                return false;
-            }
-            return true;
-        }).collect(Collectors.toList());
-
-
         try {
+            // pageParam
+            String apiCode = condition.getApiCode();
+            String requestData = condition.getRequestData();
+            String synApiCode = condition.getSynApiCode();
+
+            // ValidityPeriod
+            Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
+                    .getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
+
+            // 未获取到上传数据
+            if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
+                        "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
+                        "宜信转化过滤推送百应"));
+                return result;
+            }
+
+            List<MarketingTransferSyncUser> periodList = pageList.stream().filter(data -> {
+                String custNum = data.getCustNum();
+                if (custNumToSyncUserBoMap.get(custNum) == null) {
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
+
             List<MarketingTransferSyncUser> pushList = new ArrayList<>();
             List<String> filterList = YxTransferFilterEnum.getFilterListOrderByPriority();
             for(String filterName : filterList){

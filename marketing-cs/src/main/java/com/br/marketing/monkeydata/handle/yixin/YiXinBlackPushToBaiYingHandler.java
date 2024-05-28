@@ -85,7 +85,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         while(true) {
             // 循环获取条件数据，每次pageSize条
             final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getNewSyncUserByDate(
-                    apiCode, requestData, pageSize, indexId);
+                    synApiCode, requestData, pageSize, indexId);
 
             if (CollectionUtils.isEmpty(pageList)) {
                 break;
@@ -167,7 +167,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
             Set<String> custNumSets = pageList.stream().map(MarketingSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
-                    .getValidityPeriodsByCustNum(custNumSets, apiCode, requestData);
+                    .getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
 
             // 未获取到上传数据
             if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
@@ -187,7 +187,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
             // queryBlack
             List<MarketingSyncUser> pushList = new ArrayList<>();
-            Result<Map<String, String>> queryBlackResult = getBlackList(periodList, apiCode);
+            Result<Map<String, String>> queryBlackResult = getBlackList(periodList, synApiCode);
 
             HashMap<String, String> blackData = new HashMap<>();
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
