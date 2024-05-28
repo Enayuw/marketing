@@ -34,7 +34,7 @@ public class ByApiServiceClient {
     @Autowired
     RestTemplate restTemplate;
 
-    @Value(value = "${api.baiying.baseUrl:00}")
+    @Value(value = "${api.baiying.postBlackList:00}")
     private String pushBlackDataUrl;
 
     @Qualifier("logDbpool")
