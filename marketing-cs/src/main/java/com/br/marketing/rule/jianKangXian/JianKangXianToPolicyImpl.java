@@ -7,11 +7,8 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.PushRuleService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,18 +18,13 @@ import java.time.format.DateTimeFormatter;
 @Service
 public class JianKangXianToPolicyImpl implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
-
-    @Autowired
-    PushRuleService pushRuleService;
-
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
         String name = BrCipherMaker.getInstance().decode(syncUser.getName());
-        String cell4 = syncUser.getCell().substring(syncUser.getCell().length() - 4);
+        String cell = BrCipherMaker.getInstance().decode(syncUser.getCell());
+        String cell4 = cell.substring(syncUser.getCell().length() - 4);
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(syncUser.getCustNum());
