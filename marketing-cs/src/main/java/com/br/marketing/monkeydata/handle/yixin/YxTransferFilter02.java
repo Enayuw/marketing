@@ -4,8 +4,8 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class YxTransferFilter02 implements YxTransferFilter<MarketingTransferSyncUser>{
@@ -17,11 +17,15 @@ public class YxTransferFilter02 implements YxTransferFilter<MarketingTransferSyn
             return new ArrayList<>();
         }
 
-        List<MarketingTransferSyncUser> filteredList = list.stream()
-                .filter(marketingTransferSyncUser -> "1".equals(marketingTransferSyncUser.getIfApply())
-                        && "2".equals(marketingTransferSyncUser.getApplyResult()))
-                .collect(Collectors.toList());
-
+        List<MarketingTransferSyncUser> filteredList = new ArrayList<>();
+        Iterator<MarketingTransferSyncUser> iterator = list.iterator();
+        while(iterator.hasNext()){
+            MarketingTransferSyncUser next = iterator.next();
+            if("1".equals(next.getIfApply()) && "2".equals(next.getApplyResult())){
+                filteredList.add(next);
+                iterator.remove();
+            }
+        }
         return filteredList;
     }
 }
