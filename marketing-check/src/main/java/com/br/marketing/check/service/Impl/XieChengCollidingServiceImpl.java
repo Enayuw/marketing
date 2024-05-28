@@ -212,7 +212,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             XieChengCollidingDataLogExample dataLogExample = new XieChengCollidingDataLogExample();
             XieChengCollidingDataLogExample.Criteria criteria = dataLogExample.createCriteria();
             criteria.andCellSha256CodeListIn(sha256Cell).andCreateTimeGreaterThanOrEqualTo
-                    (Date.from(LocalDateTime.now().minusDays(7).atZone( ZoneId.systemDefault()).toInstant()));
+                    (Date.from(LocalDate.now().minusDays(7).atStartOfDay().atZone( ZoneId.systemDefault()).toInstant()));
             List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataLogExample);
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt,xieChengCollidingDataLogs);
@@ -295,6 +295,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                                         v1.getCreateTime().compareTo(v2.getCreateTime()) > 0 ? v1 : v2)
                                 , Optional::get)));
     }
+
 
 
 }
