@@ -127,4 +127,66 @@ public class JobManager {
         TransferActionFront frontData = getFrontData(apiCode, date, actionType, remark);
         return frontData != null && frontData.getStatus().equals(status);
     }
+
+
+    /**
+     * 2024-05-13 13:38
+     * 根据条件更新
+     */
+    public int updateActionFrontInfo(String apiCode, String dateStr
+            , Integer actionType, String remark, TransferActionFront front) {
+        TransferActionFrontExample frontExample = new TransferActionFrontExample();
+        TransferActionFrontExample.Criteria criteria = frontExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andActionDataEqualTo(dateStr)
+                .andIsDelEqualTo(1);
+        if (actionType != null) {
+            criteria.andActionTypeEqualTo(actionType);
+        }
+        if (remark != null) {
+            criteria.andRemarkEqualTo(remark);
+        }
+        return transferActionFrontMapper.updateByExampleSelective(front, frontExample);
+    }
+
+
+    public enum ActionTypeEnum {
+        /**
+         * 2024-05-16 14:40
+         * 众邦上传录音文件执行类型
+         */
+        ZHONGBANG_PUSH_VOICE_FILE(3, "3710099", "7433800"),
+        ;
+        /**
+         * 2024-05-16 11:38
+         * 执行类型
+         */
+        private int actionType;
+        /**
+         * 2024-05-16 11:39
+         * 使用该类型的集合
+         */
+        private String[] apiCodes;
+
+        ActionTypeEnum(int actionType, String... apiCodes) {
+            this.actionType = actionType;
+            this.apiCodes = apiCodes;
+        }
+
+        public int getActionType() {
+            return actionType;
+        }
+
+        public void setActionType(int actionType) {
+            this.actionType = actionType;
+        }
+
+        public String[] getApiCodes() {
+            return apiCodes;
+        }
+
+        public void setApiCodes(String[] apiCodes) {
+            this.apiCodes = apiCodes;
+        }
+    }
 }
