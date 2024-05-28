@@ -114,6 +114,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         task.setCreateTime(new Date());
         task.setUpdateTime(new Date());
         task.setCleanStatus(0);
+        task.setApiCode(apiCode);
         if (Objects.isNull(dto.getId())) {
             marketingCleanDataTaskMapper.insertSelective(task);
         } else {
