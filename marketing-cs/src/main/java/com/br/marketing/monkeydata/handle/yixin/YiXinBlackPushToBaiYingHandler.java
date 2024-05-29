@@ -187,7 +187,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
             // queryBlack
             List<MarketingSyncUser> pushList = new ArrayList<>();
-            Result<Map<String, String>> queryBlackResult = getBlackList(periodList, synApiCode);
+            Result<Map<String, String>> queryBlackResult = getBlackList(periodList, apiCode);
 
             HashMap<String, String> blackData = new HashMap<>();
             if (ResultCode.SUCCESS.getValue().equals(queryBlackResult.getCode())) {

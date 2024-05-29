@@ -30,7 +30,7 @@ public class YiXinBlackPushDistributeSoleProcessor {
     @Resource
     private DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
 
-    private final static String TITLE = "【宜信转化过滤推送百应】-转化推送";
+    private final static String TITLE = "【宜信转化过滤推送百应】-黑名单推送";
 
     public List<MarketingSyncUser> process(List<MarketingSyncUser> pushList, YiXinCondition condition){
         String key = RedisKeyConstant.YIXIN_TRANSFER_PUSH_BAIYING_DISTRIBUTE_DATA_SLOE_LOCK;
@@ -41,7 +41,7 @@ public class YiXinBlackPushDistributeSoleProcessor {
         long startTime = System.currentTimeMillis();
         while(iterator.hasNext()){
             MarketingSyncUser next = iterator.next();
-            String apiCode = next.getApiCode();
+            String apiCode = condition.getApiCode();
             String custNum = next.getCustNum();
             key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, custNum));
             String lockValue = UUID.randomUUID().toString();
