@@ -133,6 +133,10 @@ public class MarketingCommonConfig {
      * 宜信实时转化数据提取apiCode集合
      */
     private List<String> yinXinTransferRealTimeApiCodes;
+    /**
+     * 宜信转化数据提取V4.0 apiCode集合
+     */
+    private List<String> yinXinTransferV4ApiCodes;
 
     /**
      * 宜信实时转化数据执行时间

@@ -491,7 +491,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      * @param date
      * @return
      */
-    private Result<Date> checkPush(String apiCode, String date) {
+    public Result<Date> checkPush(String apiCode, String date) {
 
         Date startDate = null;
         try {
