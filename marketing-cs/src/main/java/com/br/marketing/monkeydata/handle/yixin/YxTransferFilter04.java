@@ -32,7 +32,7 @@ public class YxTransferFilter04 implements YxTransferFilter<MarketingTransferSyn
             MarketingTransferSyncUser next = iterator.next();
             try {
                 String reserveField1 = next.getReserveField1();
-                if(!StringUtils.isEmpty(reserveField1)){
+                if(StringUtils.isEmpty(reserveField1)){
                     continue;
                 }
                 JSONObject jo = JSONObject.parseObject(reserveField1);

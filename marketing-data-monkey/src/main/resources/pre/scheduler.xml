@@ -243,7 +243,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="YiXinTransferPushToBaiYingJob"
+    <job:simple id="【monkey】-YiXinTransferPushToBaiYingJob"
                 class="com.br.marketing.monkey.job.yixin.YiXinTransferPushToBaiYingJob"
                 cron="0 10 * * * ? "
                 description="宜信转化过滤推送百应"
