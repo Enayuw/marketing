@@ -3,6 +3,7 @@ package com.br.marketing.rule.yixin;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.utils.AESUtil;
@@ -49,10 +50,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
                 (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
         Map<String, List<String>> callRecordMap = ruleNecessaryData.getCallRecordMap();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
+        MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
         if (marketingSyncUser == null) {
             return null;
         }

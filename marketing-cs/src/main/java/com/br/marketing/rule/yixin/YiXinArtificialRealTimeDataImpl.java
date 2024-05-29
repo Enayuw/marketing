@@ -15,14 +15,12 @@ import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -61,9 +59,6 @@ import java.util.*;
 @Slf4j
 public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
-    @Value("${api.dass.aesKey:00}")
-    private String aesKey;
-
     @Resource
     private ZnkfPushService znkfPushService;
 
@@ -72,18 +67,21 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
 
     private final static String CUSTOMER_NUMBER_IS_FIRST = "customer:realtime:first";
 
-    @Resource
-    private TransferDataValidityPeriodService transferDataValidityPeriodService;
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
 
     @Autowired
-    private PushRuleService pushRuleService;
+    PushRuleService pushRuleService;
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
+        Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
+        if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
+            encType = pushCellEncPolicy.get(context.getApiCode());
+        }
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
                 (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
         SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
@@ -96,15 +94,12 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         pushMarketingUserDetailByRuleDTO.setInitId(transfer.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(transfer.getCustNum());
 
-
         PushMarketingUserDetailDTO marketingUserDetailDTO = new PushMarketingUserDetailDTO();
         marketingUserDetailDTO.setCaseNumber(transfer.getCustNum());
-        Map<String, SyncUserValidityPeriodsBO> boMap = transferDataValidityPeriodService
-                .getValidityPeriodsByCustNumAndUserType(Collections.singleton(transfer.getCustNum())
-                        , transfer.getUserType(), transfer.getApiCode(), new Date());
-        String cell = boMap.get(transfer.getCustNum()).getSyncUsers().get(0).getCell();
-        cell = BrCipherMaker.getInstance().decode(cell);
-        pushMarketingUserDetailByRuleDTO.setPhone(cell);
+        String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
+        String phone = pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell));
+        pushMarketingUserDetailByRuleDTO.setPhone(phone);
+        pushMarketingUserDetailByRuleDTO.setCell(cell);
 
         JSONObject parseObject = JSON.parseObject(transfer.getReserveField1());
         String liveType = parseObject.getString("liveType");
@@ -114,7 +109,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         } else if (Arrays.asList(3,8).contains(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" +LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         } else {
-            log.warn("宜信实时促申或促提batchNumber字段非(1、2、3、8 )", liveType);
+            log.warn("宜信实时促申或促提liveType字段非(1、2、3、8 )", liveType);
         }
         String userType = parseObject.getString("userType");
         JSONObject variables = new JSONObject();
