@@ -1203,6 +1203,19 @@ public class MarketingCommonConfig {
     private HashMap<String, Object> tongChengUndoMock;
 
     /**
+     * 推送百应黑名单接口挡板开关 true:开启挡板。false:关闭挡板
+     * baiYingUndoMock={"switch":true,"httpcode":"200","code":"000000"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * httpcode：
+     *      200:请求成功
+     * code：
+     *      000000:调用百应黑名单接口成功
+     */
+    private HashMap<String, Object> baiYingUndoMock;
+
+    /**
      * 同程不运营名单推送客户接口线程数
      */
     private Integer tongChengUndoThreadNum;
