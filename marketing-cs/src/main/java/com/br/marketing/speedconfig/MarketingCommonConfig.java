@@ -1610,5 +1610,10 @@ public class MarketingCommonConfig {
      */
     private Long queryCustomerPushTimeOutDelay;
 
+    /**
+     * 宜信推决策(原转人工数据)的 apiCode
+     */
+    private String yiXinToPolicyApiCode;
+
 }
 
