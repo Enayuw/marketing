@@ -1,13 +1,17 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.AbstractRuleCollectDataService;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.PeriodPushLog;
+import com.br.marketing.mapper.PeriodPushLogMapper;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.InterfaceParams;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -76,6 +80,11 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
     @Resource
     private DataLoadingHandlerService dataLoadingHandlerService;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private PeriodPushLogMapper periodPushLogMapper;
+
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -141,18 +150,44 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
     }
 
     public Map<Integer, List<InterfaceParams>> collectAndAssembleData(MqFact mqFact, ProcessHandlerContext context) {
-
-        OriginDataService originData = originDataMap.get(mqFact.getSource());
+        Integer source = mqFact.getSource();
+        OriginDataService originData = originDataMap.get(source);
         /**
          * 1、根据不同数据来源收集数据信息
          */
         List<Object> transmitFacts = originData.collect(mqFact, context);
 
+        String apiCode = context.getApiCode();
+        // 检查配置是否要给间隔job添加数据以及是否继续往下走
+        Map<String, JSONObject> periodPushConfig = marketingCommonConfig.getPeriodPushConfig();
+        if(null != periodPushConfig){
+            JSONObject config = periodPushConfig.get(apiCode);
+            if(null != config){
+                List<Long> idList = originData.getIdList(transmitFacts);
+                if(null != idList && idList.size()>0){
+                    PeriodPushLog periodPushLog = new PeriodPushLog();
+                    periodPushLog.setApiCode(apiCode);
+                    periodPushLog.setIds(JSON.toJSONString(idList));
+                    periodPushLog.setSource(source);
+                    periodPushLog.setStatus(0);
+                    periodPushLog.setIsDel(1);
+                    periodPushLog.setCreateTime(new Date());
+                    periodPushLogMapper.insert(periodPushLog);
+                    Boolean breakFlag = config.getBoolean("breakFlag");
+                    Integer sourceConfig = config.getInteger("source");
+                    if(sourceConfig == source && breakFlag){
+                        Map<Integer, List<InterfaceParams>> map = new HashMap();
+                        return map;
+                    }
+                }
+            }
+        }
+
         /**
          * 2、根据不同数据来源 匹配出要执行的规则
          * 获取 apiCode获取所需的规则匹配方法
          */
-        Set<String> customerRules = dataLoadingHandlerService.customerRules(context.getApiCode());
+        Set<String> customerRules = dataLoadingHandlerService.customerRules(apiCode);
         Set<String> execRules = new HashSet<>();
         if (!CollectionUtils.isEmpty(mqFact.getIncludeRules())){
             execRules.addAll(mqFact.getIncludeRules());
@@ -162,10 +197,10 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
         }
 
         if (CollectionUtils.isEmpty(execRules)){
-            log.error("customerRuleMapping 该apiCode: {}未配置对应规则",context.getApiCode());
+            log.error("customerRuleMapping 该apiCode: {}未配置对应规则", apiCode);
             return new HashMap<>();
         }
-        log.warn("转化数据apiCode={}，使用规则rules={}", context.getApiCode(), execRules);
+        log.warn("转化数据apiCode={}，使用规则rules={}", apiCode, execRules);
         /**
          * 规则排序
          */
