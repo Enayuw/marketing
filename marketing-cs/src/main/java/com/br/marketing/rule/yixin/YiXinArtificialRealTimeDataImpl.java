@@ -84,11 +84,6 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
-        Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
-        if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
-            encType = pushCellEncPolicy.get(context.getApiCode());
-        }
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
                 (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
         SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
@@ -108,19 +103,23 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
                 .getValidityPeriodsByCustNumAndUserType(Collections.singleton(transfer.getCustNum())
                         , transfer.getUserType(), transfer.getApiCode(), new Date());
         String cell = boMap.get(transfer.getCustNum()).getSyncUsers().get(0).getCell();
-        cell = pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell));
+        cell = BrCipherMaker.getInstance().decode(cell);
         pushMarketingUserDetailByRuleDTO.setPhone(cell);
 
-        String type = transfer.getType();
-        if ("1".equals(type) || "2".equals(type)){
+        JSONObject parseObject = JSON.parseObject(transfer.getReserveField1());
+        String liveType = parseObject.getString("liveType");
+
+        if (Arrays.asList(1,2).contains(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg8_" +LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        } else if ("3".equals(type) || "8".equals(type)){
+        } else if (Arrays.asList(3,8).contains(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" +LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         } else {
-            log.warn("宜信实时促申或促提batchNumber字段非(1、2、3、8 )", type);
+            log.warn("宜信实时促申或促提batchNumber字段非(1、2、3、8 )", liveType);
         }
-        JSONObject parseObject = JSON.parseObject(transfer.getReserveField1());
-        pushMarketingUserDetailByRuleDTO.setVariables(parseObject);
+        String userType = parseObject.getString("userType");
+        JSONObject variables = new JSONObject();
+        variables.put("userType",userType);
+        pushMarketingUserDetailByRuleDTO.setVariables(variables);
         return pushMarketingUserDetailByRuleDTO;
 
     }
@@ -196,7 +195,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.INIT_TO_POLICY_SOLE.getCode();
+        return InterfaceHandlerEnum.YIXIN_REALTIME_TO_POLICY.getCode();
     }
 
     @Override
