@@ -253,7 +253,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
-        Long indexId = 3000l;
+        Long indexId = 3000L;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().minusDays(1).toString();
@@ -365,7 +365,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersL(String actionType, String type, String tcId) {
-        Long indexId = 3000l;
+        Long indexId = 3000L;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().toString();
@@ -488,7 +488,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             pushDataInit(actionType, apiCodeJc, m, logList, pushs);
             // 封装重试参数
             PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, apiCodeJc, logList, pushs);
-                // 推送决策方法
+            // 推送决策方法
             methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
         });
 
