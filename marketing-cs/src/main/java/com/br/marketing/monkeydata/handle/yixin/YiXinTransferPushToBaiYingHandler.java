@@ -201,6 +201,10 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 pushList.addAll(filteredList);
             }
 
+            if (CollectionUtils.isEmpty(pushList)) {
+                return result;
+            }
+
             // distribute去重 custNum + distribute_date
             transferDistributeSoleProcessor.process(pushList, condition);
 

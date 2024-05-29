@@ -199,8 +199,13 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
                             && blackData.get(syncUser.getId().toString()).equals("Y"))
                     .collect(Collectors.toList());
 
+            if (CollectionUtils.isEmpty(blackList)) {
+                return result;
+            }
+            pushList = blackList;
+
             // distribute去重 custNum + distribute_date
-            blackDistributeSoleProcessor.process(blackList, condition);
+            blackDistributeSoleProcessor.process(pushList, condition);
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
