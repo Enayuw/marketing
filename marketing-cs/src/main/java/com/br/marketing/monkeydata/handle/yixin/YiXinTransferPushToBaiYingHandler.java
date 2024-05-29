@@ -193,8 +193,8 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             List<MarketingTransferSyncUser> pushList = new ArrayList<>();
             List<String> filterList = YxTransferFilterEnum.getFilterListOrderByPriority();
             for(String filterName : filterList){
-                YxTransferFilter filter = SpringContextUtil.getBean(filterName, YxTransferFilter.class);
-                List filteredList = filter.filter(periodList);
+                YxTransferFilter transferFilter = SpringContextUtil.getBean(filterName, YxTransferFilter.class);
+                List filteredList = transferFilter.filter(periodList);
                 if(CollectionUtils.isEmpty(filteredList)){
                     continue;
                 }
