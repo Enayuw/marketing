@@ -48,7 +48,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
 
     @Override
     public BatchRealTimeUserDataDTO assemble(Object transmitFact, ProcessHandlerContext context) {
-        YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
+/*        YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
                 (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, List<String>> callRecordMap = ruleNecessaryData.getCallRecordMap();
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -70,7 +70,8 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         BatchRealTimeUserDataDTO batchRealTimeUserDataDTO = new BatchRealTimeUserDataDTO();
         batchRealTimeUserDataDTO.setDassImportDataDTO(packageDassImportData(transfer, syncUser, grade));
         batchRealTimeUserDataDTO.setPhoneSaleExtendInfo(packagePhoneSaleExtendInfo(transfer, syncUser));
-        return batchRealTimeUserDataDTO;
+        */
+        return new BatchRealTimeUserDataDTO();
     }
 
     @Override
