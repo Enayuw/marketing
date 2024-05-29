@@ -130,7 +130,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     private Result<?> actionBlackPush(String apiCode, String bizDate, String synApiCode) {
         YiXinCondition condition = new YiXinCondition();
         condition.setPageIndex(0);
-        condition.setPageSize(2000);
+        condition.setPageSize(500);
         condition.setApiCode(apiCode);
         condition.setRequestData(bizDate);
         condition.setSynApiCode(synApiCode);
