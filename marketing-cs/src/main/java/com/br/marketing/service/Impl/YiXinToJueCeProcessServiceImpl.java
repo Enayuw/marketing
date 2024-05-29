@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -10,6 +11,7 @@ import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.DataJoinLogDTO;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.TransferActionFront;
@@ -27,6 +29,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -365,7 +368,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersL(String actionType, String type, String tcId) {
-        Long indexId = 3000l;
+        Long indexId = 3000L;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().toString();
@@ -428,11 +431,44 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 default:
                     break;
             }
+            excludeRuleValidit(marketingTransferSyncUserList);
             pushToJueCe(actionType, marketingTransferSyncUserList);
         }catch (Exception e){
             log.error(e.getMessage(), e);
         }
 
+    }
+
+    /**
+     * 判断T日每条数据在是否在T-1日有效期内 如果满足 不推
+     * @author guangxiu.li
+     * @date 2024/5/29 9:34
+     * @param marketingTransferSyncUsers
+     */
+    public void excludeRuleValidit(List<MarketingTransferSyncUser> marketingTransferSyncUsers) {
+        log.warn("宜信推送决策,符合剔除条件:不在有效期内的数据的基础数据,剔除前数据量级:{}", marketingTransferSyncUsers.size());
+        long start = System.currentTimeMillis();
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        Set<String> custNumSet = marketingTransferSyncUsers.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        LocalDate requestLocalDate = LocalDate.now();
+        LocalDate invalidDate = requestLocalDate.plusDays(-1);
+        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = transferDataValidityPeriodService
+                .getValidityPeriodsByCustNum(custNumSet, apiCode, invalidDate);
+        List<String> validityCustNums = validityPeriodsByCustNum.values().stream()
+                // 获取Map的values流
+                .filter((SyncUserValidityPeriodsBO validityPeriodsBO) -> validityPeriodsBO != null && validityPeriodsBO.getSyncUsers() != null)
+                // 过滤掉null的value和null的syncUsers
+                .flatMap((SyncUserValidityPeriodsBO validityPeriodsBO) -> validityPeriodsBO.getSyncUsers().stream()
+                        .filter((MarketingSyncUser syncUser) -> syncUser != null) // 过滤掉null的syncUser
+                        .map(MarketingSyncUser::getCustNum) // 映射为custNum流
+                )
+                .collect(Collectors.toList());
+        log.warn("宜信推送决策,不在有效期内的数据。单次处理耗时：{}ms,剔除的数据量级:{}", System.currentTimeMillis() - start,
+                marketingTransferSyncUsers.size() - validityCustNums.size());
+        if (org.springframework.util.CollectionUtils.isEmpty(validityCustNums)) {
+            return;
+        }
+        marketingTransferSyncUsers.removeIf((MarketingTransferSyncUser t) -> !validityCustNums.contains(t.getCustNum()));
     }
 
 
@@ -464,9 +500,24 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @return 最新的数据
      */
     private List<MarketingTransferSyncUserCell> getMarketingTransferSyncUserCells(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        return marketingTransferSyncUserList.stream().map(jc -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jc, null))
-                .collect(Collectors.toList()).stream().filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        LocalDate localDate = LocalDate.now();
+        Set<String> custNumSet = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, localDate);
+        List<MarketingTransferSyncUserCell> marketingTransferSyncUserCellLists = new ArrayList<>();
+        marketingTransferSyncUserList.forEach((MarketingTransferSyncUser jz) -> {
+            SyncUserValidityPeriodsBO userValidityPeriodsBO = validityPeriodsByCustNum.get(jz.getCustNum());
+            if (userValidityPeriodsBO != null) {
+                MarketingSyncUser marketingSyncUser = userValidityPeriodsBO.getSyncUsers().get(0);
+                MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
+                BeanUtils.copyProperties(jz, marketingTransferSyncUserCell);
+                marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
+                marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
+                marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
+                marketingTransferSyncUserCellLists.add(marketingTransferSyncUserCell);
+            }
+        });
+        return marketingTransferSyncUserCellLists;
     }
 
 
