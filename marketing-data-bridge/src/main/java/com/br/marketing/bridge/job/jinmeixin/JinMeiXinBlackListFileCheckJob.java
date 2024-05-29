@@ -1,4 +1,4 @@
-package com.br.marketing.check.job.jinmeixin;
+package com.br.marketing.bridge.job.jinmeixin;
 
 import java.io.BufferedWriter;
 import java.io.File;
