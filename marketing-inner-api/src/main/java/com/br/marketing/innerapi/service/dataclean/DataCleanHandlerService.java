@@ -17,7 +17,7 @@ public interface DataCleanHandlerService {
 
     Result<List<MarketingCleanDataFile>> getfileMsg(String fileNames, String apiCode);
 
-    List<String> getfileNames(Integer fileType, String apiCode);
+    List<MarketingCleanDataFile> getfileNames(Integer fileType, String apiCode);
 
     Result<Long> saveOrUpdateTask(DataCleanRuleDetailDTO dto);
 
@@ -36,4 +36,8 @@ public interface DataCleanHandlerService {
     Result getfileRules(String fileHeader, String apiCode,String fileType);
 
     Result<Long> testTask(DataCleanRuleDetailDTO dto);
+
+    Result getRuleByID(Long id);
+
+    Result getTaskByID(Long id);
 }

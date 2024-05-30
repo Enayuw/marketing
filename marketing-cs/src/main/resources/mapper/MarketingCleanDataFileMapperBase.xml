@@ -8,6 +8,8 @@
     <result column="file_name" jdbcType="VARCHAR" property="fileName" />
     <result column="file_header" jdbcType="VARCHAR" property="fileHeader" />
     <result column="file_data" jdbcType="VARCHAR" property="fileData" />
+    <result column="target_sftp_path" jdbcType="VARCHAR" property="targetSftpPath" />
+    <result column="local_path" jdbcType="VARCHAR" property="localPath" />
     <result column="status" jdbcType="INTEGER" property="status" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
@@ -72,8 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, clean_type, file_name, file_header, file_data, `status`, create_time, 
-    update_time, is_del
+    id, api_code, clean_type, file_name, file_header, file_data, target_sftp_path, local_path, 
+    `status`, create_time, update_time, is_del
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingCleanDataFileExample" resultMap="BaseResultMap">
     select
@@ -107,13 +109,13 @@
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCleanDataFile" useGeneratedKeys="true">
     insert into b_marketing_clean_data_file (api_code, clean_type, file_name, 
-      file_header, file_data, `status`, 
-      create_time, update_time, is_del
-      )
+      file_header, file_data, target_sftp_path, 
+      local_path, `status`, create_time, 
+      update_time, is_del)
     values (#{apiCode,jdbcType=VARCHAR}, #{cleanType,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR}, 
-      #{fileHeader,jdbcType=VARCHAR}, #{fileData,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
-      )
+      #{fileHeader,jdbcType=VARCHAR}, #{fileData,jdbcType=VARCHAR}, #{targetSftpPath,jdbcType=VARCHAR}, 
+      #{localPath,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCleanDataFile" useGeneratedKeys="true">
     insert into b_marketing_clean_data_file
@@ -132,6 +134,12 @@
       </if>
       <if test="fileData != null">
         file_data,
+      </if>
+      <if test="targetSftpPath != null">
+        target_sftp_path,
+      </if>
+      <if test="localPath != null">
+        local_path,
       </if>
       <if test="status != null">
         `status`,
@@ -161,6 +169,12 @@
       </if>
       <if test="fileData != null">
         #{fileData,jdbcType=VARCHAR},
+      </if>
+      <if test="targetSftpPath != null">
+        #{targetSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="localPath != null">
+        #{localPath,jdbcType=VARCHAR},
       </if>
       <if test="status != null">
         #{status,jdbcType=INTEGER},
@@ -203,6 +217,12 @@
       <if test="record.fileData != null">
         file_data = #{record.fileData,jdbcType=VARCHAR},
       </if>
+      <if test="record.targetSftpPath != null">
+        target_sftp_path = #{record.targetSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localPath != null">
+        local_path = #{record.localPath,jdbcType=VARCHAR},
+      </if>
       <if test="record.status != null">
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
@@ -228,6 +248,8 @@
       file_name = #{record.fileName,jdbcType=VARCHAR},
       file_header = #{record.fileHeader,jdbcType=VARCHAR},
       file_data = #{record.fileData,jdbcType=VARCHAR},
+      target_sftp_path = #{record.targetSftpPath,jdbcType=VARCHAR},
+      local_path = #{record.localPath,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -254,6 +276,12 @@
       <if test="fileData != null">
         file_data = #{fileData,jdbcType=VARCHAR},
       </if>
+      <if test="targetSftpPath != null">
+        target_sftp_path = #{targetSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="localPath != null">
+        local_path = #{localPath,jdbcType=VARCHAR},
+      </if>
       <if test="status != null">
         `status` = #{status,jdbcType=INTEGER},
       </if>
@@ -276,6 +304,8 @@
       file_name = #{fileName,jdbcType=VARCHAR},
       file_header = #{fileHeader,jdbcType=VARCHAR},
       file_data = #{fileData,jdbcType=VARCHAR},
+      target_sftp_path = #{targetSftpPath,jdbcType=VARCHAR},
+      local_path = #{localPath,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},

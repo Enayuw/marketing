@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.dataclean.DataCleanRuleDetailDTO;
 import com.br.marketing.entity.MarketingCleanDataFile;
+import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -41,12 +42,12 @@ public class DataCleanTaskController {
 
     @ApiOperation(value = "获取文件信息", notes = "获取文件信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "fileNames", value = "文件名称集合，多个,号分割", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "fileIds", value = "文件ID集合，多个,号分割", required = true, dataType = "String"),
             @ApiImplicitParam(name = "apiCode", value = "apiCode", required = true, dataType = "String")
     })
     @GetMapping("/getfileMsg")
-    public ApiResult<List<MarketingCleanDataFile>> getfileMsg(String fileNames, String apiCode) {
-        return new ApiResult().fromResult(dataCleanHandlerService.getfileMsg(fileNames, apiCode), CODE_1);
+    public ApiResult<List<MarketingCleanDataFile>> getfileMsg(String fileIds, String apiCode) {
+        return new ApiResult().fromResult(dataCleanHandlerService.getfileMsg(fileIds, apiCode), CODE_1);
 
     }
 
@@ -57,10 +58,10 @@ public class DataCleanTaskController {
             @ApiImplicitParam(name = "apiCode", value = "apiCode", required = true, dataType = "String")
     })
     @GetMapping("/getfileNames")
-    public ApiResult<List> getfileNames(Integer fileType, String apiCode) {
+    public ApiResult<List<MarketingCleanDataFile>> getfileNames(Integer fileType, String apiCode) {
 
-        List<String> fileNames = dataCleanHandlerService.getfileNames(fileType, apiCode);
-        return new ApiResult<List>().setData(fileNames).success();
+        List<MarketingCleanDataFile> fileNames = dataCleanHandlerService.getfileNames(fileType, apiCode);
+        return new ApiResult<List<MarketingCleanDataFile>>().setData(fileNames).success();
 
     }
 
@@ -114,6 +115,19 @@ public class DataCleanTaskController {
     @PostMapping("/testTask")
     public ApiResult<Long> testTask(@RequestBody DataCleanRuleDetailDTO dto) {
         return new ApiResult<Long>().fromResult(dataCleanHandlerService.testTask(dto), CODE_1);
+    }
+
+
+
+    @ApiOperation(value = "获取清洗任务", notes = "获取清洗任务")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Id", value = "任务ID", paramType = "query", dataType = "Long")
+    })
+    @GetMapping("/getTaskByID")
+    public ApiResult<MarketingCleanDataTask> getTaskByID(Long Id) {
+
+        return new ApiResult().fromResult(dataCleanHandlerService.getTaskByID(Id), CODE_1);
+
     }
 
 

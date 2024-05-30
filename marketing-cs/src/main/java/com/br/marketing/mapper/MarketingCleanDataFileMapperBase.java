@@ -3,10 +3,7 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataFileExample;
 import java.util.List;
-
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
 
 public interface MarketingCleanDataFileMapperBase {
     long countByExample(MarketingCleanDataFileExample example);
