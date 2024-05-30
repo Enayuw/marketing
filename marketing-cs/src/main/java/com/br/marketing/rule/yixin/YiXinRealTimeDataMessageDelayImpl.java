@@ -109,7 +109,7 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
 
     @Override
     public String label() {
-        return "YiXin_RealTimeData_MessageDelay";
+        return "YiXin_RealTimeData_MessageDelayToPolicyRule";
     }
 
     @Override

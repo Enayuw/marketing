@@ -179,7 +179,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
 
     @Override
     public String label() {
-        return "YiXin_RealTimeData_ArtificialBatchRealTimeData";
+        return "YiXin_RealTimeData_ArtificialToPolicyRule";
     }
 
     @Override
