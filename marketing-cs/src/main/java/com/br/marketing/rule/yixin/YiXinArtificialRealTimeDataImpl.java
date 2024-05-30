@@ -93,12 +93,12 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         JSONObject parseObject = JSON.parseObject(transfer.getReserveField1());
         String liveType = parseObject.getString("liveType");
 
-        if (Arrays.asList(1, 2).contains(liveType)) {
+        if ("1".equals(liveType) || "2".equals(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg8_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        } else if (Arrays.asList(3, 8).contains(liveType)) {
+        } else if ("3".equals(liveType) || "8".equals(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         } else {
-            log.warn("宜信实时促申或促提liveType字段非(1、2、3、8 )", liveType);
+            log.warn("宜信实时推决策liveType字段非(1、2、3、8 )，liveType：{}，custNum：{}", liveType, transfer.getCustNum());
             return null;
         }
         String userType = parseObject.getString("userType");
@@ -135,12 +135,12 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
             MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
             boolean messageDelay = isDelay != null && isDelay == 1;
             if (marketingSyncUser == null) {
-                log.warn("上传表记录不在有效期内 --{} ", transfer.getCustNum());
+                log.warn("宜信实时推决策上传表记录不在有效期内 --{} ", transfer.getCustNum());
                 return false;
             } else {
                 String decode = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
                 if (StringUtils.isEmpty(decode)) {
-                    log.warn("手机号解密失败 --{} ", transfer.getCustNum());
+                    log.warn("宜信实时推决策手机号解密失败 --{} ", transfer.getCustNum());
                     return false;
                 }
             }
@@ -152,22 +152,22 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
                 4、当天该案件编号未被推送
              */
             if (!notBlack) {
-                log.warn("id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
+                log.warn("宜信实时推决策id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
                 return false;
             }
             boolean flag = transformType && (Arrays.asList(1, 2, 3).contains(liveType) || messageDelay);
             if (!flag) {
-                log.warn("id:{} cust_num:{}不满足立即推送条件", transfer.getId(), transfer.getCustNum());
+                log.warn("宜信实时推决策id:{} cust_num:{}不满足立即推送条件", transfer.getId(), transfer.getCustNum());
                 return false;
             }
             if (!znkfPushService.cusNumIsFirstToday(key)) {
-                log.warn("id:{} cust_num:{}不满足当天推送条件", transfer.getId(), transfer.getCustNum());
+                log.warn("宜信实时推决策id:{} cust_num:{}不满足当天推送条件", transfer.getId(), transfer.getCustNum());
                 return false;
             }
             Set<String> custNums = Sets.newHashSet(transfer.getCustNum());
             List caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(tCid, apiCode, custNums);
             if (!CollectionUtils.isEmpty(caseEffectiveCust)) {
-                log.warn("id:{} cust_num:{}caseEffetive=0 剔除", transfer.getId(), transfer.getCustNum());
+                log.warn("宜信实时推决策id:{} cust_num:{}caseEffetive=0 剔除", transfer.getId(), transfer.getCustNum());
                 return false;
             }
 

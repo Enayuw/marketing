@@ -88,17 +88,17 @@ public class YiXinRealTimeDataMessageDelayImpl implements AssembleData<MqFact> {
                 4、不是从延迟队列过来的消息
              */
             if (!notBlack){
-                log.warn("id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
+                log.warn("宜信实时推决策id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
                 return false;
             }
             if (redisChgService.exists(key)){
-                log.warn("id:{} key:{}不满足当天该案件编号未被推送", transfer.getId(), key);
+                log.warn("宜信实时推决策id:{} key:{}不满足当天该案件编号未被推送", transfer.getId(), key);
                 return false;
             }
             /* 2023-03-24 liveType是4,6的数据不进入静置队列 */
             boolean flag = transformType && Arrays.asList(8).contains(liveType) && mqFact.getIsDelay() == null;
             if (!flag){
-                log.warn("id:{} cust_num:{}不满足进入延迟队列", transfer.getId(), transfer.getCustNum());
+                log.warn("宜信实时推决策id:{} cust_num:{}不满足进入延迟队列", transfer.getId(), transfer.getCustNum());
                 return false;
             }
 
