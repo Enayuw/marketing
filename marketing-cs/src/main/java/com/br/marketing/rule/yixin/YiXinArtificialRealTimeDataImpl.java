@@ -101,9 +101,8 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
             log.warn("宜信实时推决策liveType字段非(1、2、3、8 )，liveType：{}，custNum：{}", liveType, transfer.getCustNum());
             return null;
         }
-        String userType = parseObject.getString("userType");
         JSONObject variables = new JSONObject();
-        variables.put("userType", userType);
+        variables.put("userType", transfer.getUserType());
         pushMarketingUserDetailByRuleDTO.setVariables(variables);
         return pushMarketingUserDetailByRuleDTO;
 
