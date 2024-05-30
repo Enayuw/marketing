@@ -1,14 +1,12 @@
 package com.br.marketing.check.job;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.service.IPeriodPushService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Resource;
-import java.util.Map;
+import java.util.UUID;
 
 /**
  * job设计目的是等数据积攒到一个时间周期后集中推送决策
@@ -23,8 +21,12 @@ public class PeriodPushJob extends AbstractSimpleElasticJob {
     IPeriodPushService periodPushService;
 
     @Override
-    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-
+    public void process(JobExecutionMultipleShardingContext context) {
+        String uuid = UUID.randomUUID().toString();
+        String jobParameter = context.getJobParameter();
+        log.warn("PeriodPushJob-start-{}-jobParam:[{}]",uuid,jobParameter);
         periodPushService.handle();
+        log.warn("PeriodPushJob-end-{}", uuid);
+
     }
 }

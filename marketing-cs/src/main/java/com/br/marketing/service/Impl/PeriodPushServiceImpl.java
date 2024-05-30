@@ -72,6 +72,8 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
             Integer source = jsonObject.getInteger("source");
             // 间隔时间（默认分钟）
             Integer intervalTime = jsonObject.getInteger("intervalTime");
+            // TODO 加锁 加线程池
+
             ProcessHandlerContext context = new ProcessHandlerContext();
             context.setApiCode(apiCode);
             MqFact mqFact = new MqFact();
@@ -123,33 +125,11 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                     }
                     return null;
                 }).collect(Collectors.toList());
-                try{
-                    // 调用接口
+                // 调用接口
 //                    policyHandler.call(policyByRuleList,context);
-                    Result result = batchCall(policyByRuleList, context);
-                    int num = policyByRuleList.size();
-                    PeriodPushLogExample example = new PeriodPushLogExample();
-                    example.createCriteria()
-                            .andApiCodeEqualTo(apiCode)
-                            .andIsDelEqualTo(1)
-                            .andStatusEqualTo(1)
-                            .andSourceEqualTo(source);
-                    PeriodPushLog periodPushLog = new PeriodPushLog();
-                    periodPushLog.setPushNum(num);
-                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                        periodPushLog.setStatus(2);
-                        periodPushLog.setFailNum(0);
-                        periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
-                    }else{
-                        periodPushLog.setStatus(3);
-                        periodPushLog.setFailNum(num);
-                        periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
-                    }
-                } catch (Exception e) {
-                    log.error("apiCode:[{}]调用三方接口处理异常,idList[{}]--",apiCode, JSON.toJSONString(idList), e);
-                }
+                batchCall(policyByRuleList, context);
             }else{
-                // 本次暂不处理
+                // 其他类型本次暂不处理
             }
         }
     }
@@ -196,7 +176,9 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
         return pushMarketingUserDetailByRuleDTO;
     }
 
-    public Result batchCall(List<PushMarketingUserDetailByRuleDTO> policyByRuleList, ProcessHandlerContext context) {
+    public void batchCall(List<PushMarketingUserDetailByRuleDTO> policyByRuleList, ProcessHandlerContext context) {
+        String apiCode = context.getApiCode();
+        Integer source = context.getMqFact().getSource();
         ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
         List<Long> sourceIds = new ArrayList<>();
         policyByRuleList.forEach(t->{
@@ -209,17 +191,35 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
         taskInfoDTO.setData(pushs);
         taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
         taskInfoDTO.setMethod("caseAdd");
-        taskInfoDTO.setBatchNumber(context.getApiCode());
+        taskInfoDTO.setBatchNumber(apiCode);
 //        taskInfoDTO.setStrategyCode(strategy);
 
         PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-        pushMarketingUserDTO.setApiCode(context.getApiCode());
+        pushMarketingUserDTO.setApiCode(apiCode);
         pushMarketingUserDTO.setJsonData(taskInfoDTO);
 
         PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
         retryByRuleDTO.setIds(sourceIds);
         retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
         retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-        return methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
+        Result result = methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
+        int num = policyByRuleList.size();
+        PeriodPushLogExample example = new PeriodPushLogExample();
+        example.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andIsDelEqualTo(1)
+                .andStatusEqualTo(1)
+                .andSourceEqualTo(source);
+        PeriodPushLog periodPushLog = new PeriodPushLog();
+        periodPushLog.setPushNum(num);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            periodPushLog.setStatus(2);
+            periodPushLog.setFailNum(0);
+            periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
+        }else{
+            periodPushLog.setStatus(3);
+            periodPushLog.setFailNum(num);
+            periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
+        }
     }
 }
