@@ -21,4 +21,17 @@
            <![CDATA[ AND create_time >= #{startDate} and create_time < #{endDate} ]]>
           and status = 1
     </select>
+
+    <select id="queryByApiCodAndLasttikv_" resultType="String">
+        SELECT
+            request_id
+        FROM
+            b_marketing_transfer_info
+        WHERE
+            `status` in(2, 4)
+          and api_code =#{apiCode}
+          and date_format(create_time, '%Y-%m-%d') = #{bizDate}
+          and last =#{last}
+            limit 1
+    </select>
 </mapper>
