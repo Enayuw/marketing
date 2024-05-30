@@ -6,23 +6,29 @@
         api_code,
         cust_num,
         cell,
+        `status`,
         p_status,
         distribute_date,
         distribute_type,
         success_date,
         create_time,
-        update_time
+        update_time,
+        source_id,
+        source_type
         )values
         <foreach collection="list" item="data" separator=",">
             (#{data.apiCode},
             #{data.custNum},
             #{data.cell},
+            #{status,jdbcType=VARCHAR},
             #{data.pStatus},
             #{data.distributeDate},
             #{data.distributeType},
             #{data.successDate},
             #{data.createTime},
-            #{data.updateTime})
+            #{data.updateTime},
+            #{sourceId,jdbcType=BIGINT},
+            #{sourceType,jdbcType=VARCHAR})
         </foreach>
     </insert>
 
