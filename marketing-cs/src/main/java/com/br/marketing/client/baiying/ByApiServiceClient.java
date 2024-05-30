@@ -77,11 +77,11 @@ public class ByApiServiceClient {
         String code = resultJson.getString("code");
 
         if ("000000".equals(code)) {
-            log.warn("调用百应【黑名单】接口异常，返回code为000000，请求正常");
+            log.warn("调用百应【黑名单】接口，返回code为000000，请求正常");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }else {
-            log.error("调用百应【黑名单】接口异常，返回code非000000,不重试");
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
+            log.error("调用百应【黑名单】接口异常，返回code非000000，最多重试三次");
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
 }
