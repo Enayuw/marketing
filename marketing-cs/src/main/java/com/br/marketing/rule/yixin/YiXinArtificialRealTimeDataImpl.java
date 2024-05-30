@@ -102,7 +102,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
             return null;
         }
         JSONObject variables = new JSONObject();
-        variables.put("userType", transfer.getUserType());
+        variables.put("userType", marketingSyncUser.getUserType());
         pushMarketingUserDetailByRuleDTO.setVariables(variables);
         return pushMarketingUserDetailByRuleDTO;
 
