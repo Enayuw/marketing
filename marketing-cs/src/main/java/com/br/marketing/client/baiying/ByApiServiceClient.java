@@ -45,7 +45,7 @@ public class ByApiServiceClient {
 
     private final static String TITLE = "【推送百应数据】";
 
-    @RetryMethod(retryNowNum = 3)
+    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
     public Result pushBaiying(ReqBlacklistDTO dto){
 
         HashMap<String, String> resMap = new HashMap<>();
@@ -67,7 +67,6 @@ public class ByApiServiceClient {
             log.warn(TITLE+"调度结束, result:{}, 耗时:{}", resMap, end - start);
         }
 
-
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("调用百应【黑名单】接口异常-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
@@ -81,7 +80,7 @@ public class ByApiServiceClient {
             log.warn("调用百应【黑名单】接口异常，返回code为000000，请求正常");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         }else {
-            log.error("调用百应【黑名单】接口异常，返回code非000000。立即重试，最多重试三次");
+            log.error("调用百应【黑名单】接口异常，返回code非000000,不重试");
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage(content);
         }
     }
