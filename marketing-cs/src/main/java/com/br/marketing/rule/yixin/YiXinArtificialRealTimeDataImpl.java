@@ -110,6 +110,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" +LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         } else {
             log.warn("宜信实时促申或促提liveType字段非(1、2、3、8 )", liveType);
+            return null;
         }
         String userType = parseObject.getString("userType");
         JSONObject variables = new JSONObject();
