@@ -46,7 +46,7 @@ public class ByApiServiceClient {
     private final static String TITLE = "【推送百应数据】";
 
     @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
-    public Result pushBaiying(ReqBlacklistDTO dto){
+    public Result pushBaiying(ReqBlacklistDTO dto, Integer retry){
 
         HashMap<String, String> resMap = new HashMap<>();
         // 获取挡板开关
