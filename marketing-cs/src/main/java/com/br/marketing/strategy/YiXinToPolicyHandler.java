@@ -2,6 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.DataDistributeDetailLog;
@@ -70,10 +71,13 @@ public class YiXinToPolicyHandler extends AbstractExternalInterfaceHandler<PushM
         List<DataDistributeDetailLog> detailLogList = new ArrayList<>();
         policyByRuleList.forEach((PushMarketingUserDetailByRuleDTO ruleDTO)->{
             DataDistributeDetailLog detailLog = new DataDistributeDetailLog();
+            detailLog.setSourceId(ruleDTO.getInitId());
+            detailLog.setSourceType(DistributeSourceTypeEnum.TRANSFER.getValue());
             detailLog.setApiCode(marketingCommonConfig.getYiXinToPolicyApiCode());
             detailLog.setCell(BrCipherMaker.getInstance().encode(ruleDTO.getCell()));
             detailLog.setCustNum(ruleDTO.getCaseNumber());
             detailLog.setpStatus(2);
+            detailLog.setStatus(ruleDTO.getStatus());
             detailLog.setDistributeType(DistributeTypeEnum.YIXIN_REALTIME_POLICYDATA.getValue());
             detailLog.setDistributeDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             detailLog.setCreateTime(new Date());
