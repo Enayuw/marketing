@@ -71,7 +71,7 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         pushMarketingUserDetailByRuleDTO.setBatchNumber(getBatchNumber(transfer.getType()));
         JSONObject varDto = new JSONObject();
-        varDto.put("userType", transfer.getUserType());
+        varDto.put("userType", marketingSyncUser.getUserType());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         //去重参数设置
