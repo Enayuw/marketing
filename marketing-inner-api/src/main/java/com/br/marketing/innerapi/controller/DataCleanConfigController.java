@@ -4,7 +4,8 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.dataclean.DataCleanConfigDTO;
-import com.br.marketing.entity.MarketingCleanDataFile;
+import com.br.marketing.entity.MarketingCleanDataTask;
+import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
 import com.br.marketing.vo.dataclean.DataCleanConfigVO;
 import io.swagger.annotations.Api;
@@ -83,5 +84,17 @@ public class DataCleanConfigController {
         return new ApiResult().fromResult(dataCleanHandlerService.getfileRules(fileHeader, apiCode, fileType), CODE_1);
 
     }
+
+    @ApiOperation(value = "获取清洗配置", notes = "获取清洗配置")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Id", value = "配置ID", paramType = "query", dataType = "Long")
+    })
+    @GetMapping("/getRuleByID")
+    public ApiResult<MarketingDataFileConfig> getRuleByID(Long Id) {
+
+        return new ApiResult().fromResult(dataCleanHandlerService.getRuleByID(Id), CODE_1);
+
+    }
+
 
 }

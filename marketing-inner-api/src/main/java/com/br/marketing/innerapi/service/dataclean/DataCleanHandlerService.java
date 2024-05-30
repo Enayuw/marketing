@@ -36,4 +36,8 @@ public interface DataCleanHandlerService {
     Result getfileRules(String fileHeader, String apiCode,String fileType);
 
     Result<Long> testTask(DataCleanRuleDetailDTO dto);
+
+    Result getRuleByID(Long id);
+
+    Result getTaskByID(Long id);
 }

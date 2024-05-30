@@ -257,4 +257,37 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         return null;
     }
 
+    @Override
+    public Result getRuleByID(Long id) {
+
+        MarketingDataFileConfig config = marketingDataFileConfigMapper.selectByPrimaryKey(id);
+        if (Objects.isNull(config)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗配置");
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(config);
+    }
+
+    @Override
+    public Result getTaskByID(Long id) {
+
+        MarketingCleanDataTask task = marketingCleanDataTaskMapper.selectByPrimaryKey(id);
+        if (Objects.isNull(task)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗任务");
+        }
+        MarketingDataFileConfig config = marketingDataFileConfigMapper.selectByPrimaryKey(task.getConfigId().longValue());
+        List<String> fieldIds = Arrays.asList(task.getFileId().split(","));
+        MarketingCleanDataFileExample cleanDataFileExample = new MarketingCleanDataFileExample();
+        MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
+        criteria.andApiCodeEqualTo(task.getApiCode()).andIdIn(fieldIds.stream().map(Long::valueOf).collect(Collectors.toList()));
+        List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(cleanDataFileExample);
+        //组装返参
+        DataCleanTaskVO dataCleanTaskVO = new DataCleanTaskVO();
+        BeanUtils.copyProperties(task, dataCleanTaskVO);
+        dataCleanTaskVO.setFileType(task.getCleanType());
+        dataCleanTaskVO.setRuleCondition(config.getFieldConfigShow());
+        dataCleanTaskVO.setFileName(cleanDataFiles.stream().map(MarketingCleanDataFile::getFileName).collect(Collectors.joining(",")));
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(dataCleanTaskVO);
+
+    }
+
 }

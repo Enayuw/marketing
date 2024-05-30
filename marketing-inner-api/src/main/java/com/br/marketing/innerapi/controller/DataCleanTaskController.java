@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.dataclean.DataCleanRuleDetailDTO;
 import com.br.marketing.entity.MarketingCleanDataFile;
+import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -114,6 +115,19 @@ public class DataCleanTaskController {
     @PostMapping("/testTask")
     public ApiResult<Long> testTask(@RequestBody DataCleanRuleDetailDTO dto) {
         return new ApiResult<Long>().fromResult(dataCleanHandlerService.testTask(dto), CODE_1);
+    }
+
+
+
+    @ApiOperation(value = "获取清洗任务", notes = "获取清洗任务")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Id", value = "任务ID", paramType = "query", dataType = "Long")
+    })
+    @GetMapping("/getTaskByID")
+    public ApiResult<MarketingCleanDataTask> getTaskByID(Long Id) {
+
+        return new ApiResult().fromResult(dataCleanHandlerService.getTaskByID(Id), CODE_1);
+
     }
 
 

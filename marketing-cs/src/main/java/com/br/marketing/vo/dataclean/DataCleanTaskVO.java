@@ -40,6 +40,12 @@ public class DataCleanTaskVO {
     private String fileName;
 
     /**
+     * 规则配置id
+     */
+    @ApiModelProperty(value = "规则ID")
+    private Integer configId;
+
+    /**
      * 任务状态
      */
     @ApiModelProperty(value = "任务状态")
