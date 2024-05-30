@@ -26,6 +26,7 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -61,13 +62,17 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
     DynamicParameterServiceImpl dynamicParameterService;
     @Resource
     private TransferDataValidityPeriodService validityPeriodService;
+    /**
+     * 执行时间
+     */
+    private static final String EXECUTE_TIME = "09:00:00";
 
     /**
      * 宜信转化数据提取V4.0 文件头
      */
-    private final static String TABLE_HEAD_TRANSFER = "id,是否注册,注册渠道,注册时间,是否进件,进件时间,审核结果,授信金额" +
-            ",是否申请放款,是否放款,放款时间,放款金额,注册节点,是否申请大额提额,申请大额提额时间,申请大额提额是否通过,创建时间,红包活动" +
-            ",放款状态,已用额度,剩余额度,申请提大额方式,提大额成功方式,利率,结算费率,推荐提大额方式";
+    private final static String TABLE_HEAD_TRANSFER = "id,是否注册,注册渠道,注册时间,是否进件,进件时间,审核结果,授信金额," +
+            "是否申请放款,是否放款,放款时间,放款金额,注册节点,是否申请大额提额,申请大额提额时间,申请大额提额是否通过,创建时间,红包活动," +
+            "放款状态,申请提大额方式,提额成功方式,利率,已用额度,剩余额度,结算费率,推荐提大额方式";
 
     final static DateTimeFormatter YYYYMMDDSHORTDFLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
@@ -89,42 +94,56 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         // 宜信转化数据提取V4.0-3710012
         List<TransferFileTask> resultList = new ArrayList<>();
-        LocalDate localDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        if(StringUtils.isNotEmpty(myParam)){
-            localDate = LocalDate.parse(myParam, YYYYMMDDSHORTDFLINE);
-        }
-        String today = localDate.format(YYYYMMDDSHORTDFLINE);
-        // 判断数据是否满足 T日 last=1 且数据已经处理完成（由于是异步处理，所以需要做数据处理完成判断）
-        Result<Date> result = yiXinTransferServiceImpl.checkPush(apiCode, today);
-        if (ResultCode.SUCCESS.getValue() == result.getCode()) {
-//            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-            // 当天的记录
-            boolean isParamNotBlack = StringUtils.isNotBlank(myParam);
-            String yyyyMMdd = isParamNotBlack ? myParam.replace("-", "")
-                    : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-            TransferFileTaskExample taskExample = new TransferFileTaskExample();
-            // 宜信转化数据提取V4.0-3710012 fileType 8
-            int fileType = 8;
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd)
-                    .andFileTypeEqualTo(fileType);
-            List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-            if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("宜信转化数据提取V4.0-开始执行,apiCode ={}", apiCode);
-                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                String batchNumber = createBatchNumber(apiCode, transferFileContextId);
-                TransferFileTask transferFileTask = new TransferFileTask();
-                transferFileTask.setApiCode(apiCode);
-                transferFileTask.setFileType(fileType);
-                transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName(String.format("yixin_zhuanhua_%s.txt", yyyyMMdd));
-                transferFileTask.setFileChildDir("data_yixin");
-                transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(yyyyMMdd);
-                transferFileTask.setContextId(transferFileContextId);
-                transferFileTask.setCreateTime(new Date());
-                transferFileTask.setUpdateTime(transferFileTask.getCreateTime());
-                transferFileTaskMapper.insertSelective(transferFileTask);
-                resultList.add(transferFileTask);
+        //执行时间可配置
+        String extractTime = StringUtils.isBlank(marketingCommonConfig.getYiXinV4TransferExecuteTime())
+                ? EXECUTE_TIME : marketingCommonConfig.getYiXinV4TransferExecuteTime();
+        LocalTime jobStartTime = LocalTime.parse(extractTime);
+        boolean isParam = StringUtils.isNotBlank(myParam);
+        // 指定日期提取时不限制时间
+        if (LocalTime.now().isAfter(jobStartTime) || isParam){
+            LocalDate localDate = new Date().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            if(StringUtils.isNotEmpty(myParam)){
+                localDate = LocalDate.parse(myParam, YYYYMMDDSHORTDFLINE);
+            }
+            String today = localDate.format(YYYYMMDDSHORTDFLINE);
+            // 判断数据是否满足 T日 last=1 且数据已经处理完成（由于是异步处理，所以需要做数据处理完成判断）
+            Result<Date> result = yiXinTransferServiceImpl.checkPush(apiCode, today);
+            if (ResultCode.SUCCESS.getValue() == result.getCode()) {
+                // 当天的记录
+                boolean isParamNotBlack = StringUtils.isNotBlank(myParam);
+                String yyyyMMdd = isParamNotBlack ? myParam.replace("-", "")
+                        : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+                String fileDate = isParamNotBlack ? myParam.replace("-", "")
+                        : LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                TransferFileTaskExample taskExample = new TransferFileTaskExample();
+                // 宜信转化数据提取V4.0-3710012 fileType 8
+                int fileType = 8;
+                taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd)
+                        .andFileTypeEqualTo(fileType);
+                List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
+                if (CollectionUtils.isEmpty(transferFileTasks)) {
+                    log.warn("宜信转化数据提取V4.0-开始执行,apiCode ={}", apiCode);
+                    Long transferFileContextId = ruleRedisService.getTransferFileContextId();
+                    String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+                    TransferFileTask transferFileTask = new TransferFileTask();
+                    transferFileTask.setApiCode(apiCode);
+                    transferFileTask.setFileType(fileType);
+                    transferFileTask.setBatchNumber(batchNumber);
+                    List<String> yinXinTransferRealTimeApiCodes = marketingCommonConfig.getYinXinTransferRealTimeApiCodes();
+                    String fileName = String.format("yixinzhuanhua_all_%s.csv", fileDate);
+                    if(null != yinXinTransferRealTimeApiCodes && yinXinTransferRealTimeApiCodes.size()>0){
+                        fileName = String.format(yinXinTransferRealTimeApiCodes.get(0)+"_%s.csv", fileDate);
+                    }
+                    transferFileTask.setFileName(fileName);
+                    transferFileTask.setFileChildDir("data_yixin");
+                    transferFileTask.setTaskNumber(0);
+                    transferFileTask.setStartDate(yyyyMMdd);
+                    transferFileTask.setContextId(transferFileContextId);
+                    transferFileTask.setCreateTime(new Date());
+                    transferFileTask.setUpdateTime(transferFileTask.getCreateTime());
+                    transferFileTaskMapper.insertSelective(transferFileTask);
+                    resultList.add(transferFileTask);
+                }
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultList);
@@ -213,7 +232,7 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                     String raiseLimit = null;
                     String raiseLimitTime = null;
                     String raiseLimitResult = null;
-                    String type = null;
+                    String registerChannel = null;
                     String loantResult = null;
                     String raiseLimiType = null;
                     String raiseLimiSuccess = null;
@@ -226,17 +245,17 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                         JSONObject jsonObject = JSON.parseObject(reserveField1);
                         applyLoan = emptyDefault(jsonObject.getString("applyLoan"));
                         raiseLimit = emptyDefault(jsonObject.getString("raiseLimit"));
-                        raiseLimitTime = jsonObject.getString("raiseLimitTime");
+                        raiseLimitTime = emptyDefault(jsonObject.getString("raiseLimitTime"));
                         raiseLimitResult = emptyDefault(jsonObject.getString("raiseLimitResult"));
-                        type = jsonObject.getString("type");
-                        loantResult = jsonObject.getString("loantResult");
-                        raiseLimiType = jsonObject.getString("raiseLimiType");
-                        raiseLimiSuccess = jsonObject.getString("raiseLimiSuccess");
-                        rate = jsonObject.getString("rate");
-                        usedAmount = jsonObject.getString("usedAmount");
-                        availableAmount = jsonObject.getString("availableAmount");
-                        settleRatio = jsonObject.getString("settleRatio");
-                        recommendType = jsonObject.getString("recommendType");
+                        registerChannel = emptyDefault(jsonObject.getString("registerChannel"));
+                        loantResult = emptyDefault(jsonObject.getString("loantResult"));
+                        raiseLimiType = emptyDefault(jsonObject.getString("raiseLimiType"));
+                        raiseLimiSuccess = emptyDefault(jsonObject.getString("raiseLimiSuccess"));
+                        rate = emptyDefault(jsonObject.getString("rate"));
+                        usedAmount = emptyDefault(jsonObject.getString("usedAmount"));
+                        availableAmount = emptyDefault(jsonObject.getString("availableAmount"));
+                        settleRatio = emptyDefault(jsonObject.getString("settleRatio"));
+                        recommendType = emptyDefault(jsonObject.getString("recommendType"));
                     }
                     StringBuilder sb = new StringBuilder();
                     try {
@@ -255,32 +274,32 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                         ifLent = getMapByList(ifLent,y1n0Key,y1n0Value);
                         raiseLimit = getMapByList(raiseLimit,y1n0Key,y1n0Value);
                         raiseLimitResult = getMapByList(raiseLimitResult,y1n0Key,y1n0Value);
-                        sb.append(emptyDefault(transferFilterData.getCustNum())).append(",")
+                        sb.append(emptyDefault(custNum)).append(",")
                                 .append(ifRegister).append(",")
-                                .append("宜人贷").append(",")
-                                .append(removeMillisecond(emptyDefault(transferFilterData.getRegisterTime()))).append(",")
+                                .append(registerChannel).append(",")
+                                .append(emptyDefault(transferFilterData.getRegisterTime())).append(",")
                                 .append(ifApply).append(",")
-                                .append(removeMillisecond(emptyDefault(transferFilterData.getApplyDt()))).append(",")
+                                .append(emptyDefault(transferFilterData.getApplyDt())).append(",")
                                 .append(applyResult).append(",")
                                 .append(emptyDefault(transferFilterData.getAuditAmount())).append(",")
                                 .append(applyLoan).append(",")
                                 .append(ifLent).append(",")
-                                .append(removeMillisecond(emptyDefault(transferFilterData.getLentTime()))).append(",")
+                                .append(emptyDefault(transferFilterData.getLentTime())).append(",")
                                 .append(emptyDefault(transferFilterData.getLentAmount())).append(",")
                                 .append(emptyDefault(transferFilterData.getUserType())).append(",")
                                 .append(raiseLimit).append(",")
-                                .append(emptyDefault(raiseLimitTime)).append(",")
+                                .append(raiseLimitTime).append(",")
                                 .append(raiseLimitResult).append(",")
-                                .append(removeMillisecond(emptyDefault(transferFilterData.getInsertTime()))).append(",")
-                                .append(emptyDefault(type)).append(",")
-                                .append(emptyDefault(loantResult)).append(",")
-                                .append(emptyDefault(raiseLimiType)).append(",")
-                                .append(emptyDefault(raiseLimiSuccess)).append(",")
-                                .append(emptyDefault(rate)).append(",")
-                                .append(emptyDefault(usedAmount)).append(",")
-                                .append(emptyDefault(availableAmount)).append(",")
-                                .append(emptyDefault(settleRatio)).append(",")
-                                .append(emptyDefault(recommendType)).append(",");
+                                .append(emptyDefault(transferFilterData.getInsertTime())).append(",")
+                                .append(emptyDefault(transferFilterData.getType())).append(",")
+                                .append(loantResult).append(",")
+                                .append(raiseLimiType).append(",")
+                                .append(raiseLimiSuccess).append(",")
+                                .append(rate).append(",")
+                                .append(usedAmount).append(",")
+                                .append(availableAmount).append(",")
+                                .append(settleRatio).append(",")
+                                .append(recommendType).append(",");
                         sb.append("\r\n");
                         fw.append(sb.toString());
                         fw.flush();
