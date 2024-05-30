@@ -95,10 +95,10 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
 
         if ("1".equals(liveType) || "2".equals(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg8_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            pushMarketingUserDetailByRuleDTO.setStatus("8");
+            pushMarketingUserDetailByRuleDTO.setStatus(liveType);
         } else if ("3".equals(liveType) || "8".equals(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-            pushMarketingUserDetailByRuleDTO.setStatus("9");
+            pushMarketingUserDetailByRuleDTO.setStatus(liveType);
         } else {
             log.warn("宜信实时推决策liveType字段非(1、2、3、8 )，liveType：{}，custNum：{}", liveType, transfer.getCustNum());
             return null;
