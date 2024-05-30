@@ -82,7 +82,7 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
             String[] split = jobParameter.split(";");
             for(String s : split){
                 String paramApiCode = s.split("#")[0];
-                if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(paramApiCode)){
+                if(apiCode.equals(paramApiCode)  && marketingCommonConfig.getYinXinTransferV4ApiCodes().contains(paramApiCode)){
                     return s.split("#")[1];
                 }
             }
@@ -113,8 +113,6 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                 boolean isParamNotBlack = StringUtils.isNotBlank(myParam);
                 String yyyyMMdd = isParamNotBlack ? myParam.replace("-", "")
                         : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-                String fileDate = isParamNotBlack ? myParam.replace("-", "")
-                        : LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 TransferFileTaskExample taskExample = new TransferFileTaskExample();
                 // 宜信转化数据提取V4.0-3710012 fileType 8
                 int fileType = 8;
@@ -129,10 +127,12 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                     transferFileTask.setApiCode(apiCode);
                     transferFileTask.setFileType(fileType);
                     transferFileTask.setBatchNumber(batchNumber);
-                    List<String> yinXinTransferRealTimeApiCodes = marketingCommonConfig.getYinXinTransferRealTimeApiCodes();
-                    String fileName = String.format("yixinzhuanhua_all_%s.csv", fileDate);
+                    List<String> yinXinTransferRealTimeApiCodes = marketingCommonConfig.getYinXinTransferV4ApiCodes();
+                    String fileName;
                     if(null != yinXinTransferRealTimeApiCodes && yinXinTransferRealTimeApiCodes.size()>0){
-                        fileName = String.format(yinXinTransferRealTimeApiCodes.get(0)+"_%s.csv", fileDate);
+                        fileName = String.format(yinXinTransferRealTimeApiCodes.get(0)+"_%s.csv", today);
+                    }else{
+                        fileName = String.format("yixinzhuanhua_all_%s.csv", today);
                     }
                     transferFileTask.setFileName(fileName);
                     transferFileTask.setFileChildDir("data_yixin");
@@ -223,7 +223,7 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
                     SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
-                    if (boMap == null && null != boMap.getSyncUsers()) {
+                    if (boMap == null || null == boMap.getSyncUsers()) {
                         log.warn("apiCode[{}]custNum[{}]不满足yixinV4案件编号[有效期内]条件", apiCode, custNum);
                         continue;
                     }
