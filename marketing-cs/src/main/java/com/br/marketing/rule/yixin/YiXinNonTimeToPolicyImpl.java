@@ -73,6 +73,7 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         JSONObject varDto = new JSONObject();
         varDto.put("userType", transfer.getUserType());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
+        pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue());
         pushMarketingUserDetailByRuleDTO.setStatus(transfer.getType());
@@ -110,11 +111,11 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
                 (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
         SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
-        MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
-        if (marketingSyncUser == null) {
+        if (syncUserValidityPeriodsBO == null) {
             log.warn("宜信非实时推决策不在有效期内 --{} ", transfer.getCustNum());
             return false;
         }
+
         String reserveField1 = transfer.getReserveField1();
         if (!StringUtils.isEmpty(reserveField1)) {
             JSONObject json = JSON.parseObject(reserveField1);
