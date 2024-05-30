@@ -22,7 +22,7 @@
             #{data.distributeType},
             #{data.successDate},
             #{data.createTime},
-            #{data.updateTime}
+            #{data.updateTime})
         </foreach>
     </insert>
 
