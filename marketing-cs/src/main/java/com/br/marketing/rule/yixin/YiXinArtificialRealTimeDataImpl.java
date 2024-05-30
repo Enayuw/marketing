@@ -74,10 +74,10 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
             (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)context.getRuleNecessaryData();
         SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
-        MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
-        if (marketingSyncUser == null) {
+        if (syncUserValidityPeriodsBO == null) {
             return null;
         }
+        MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
 
         pushMarketingUserDetailByRuleDTO.setInitId(transfer.getId());
