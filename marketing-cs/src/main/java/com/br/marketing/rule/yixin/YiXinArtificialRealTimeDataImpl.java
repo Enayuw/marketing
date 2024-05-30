@@ -1,5 +1,20 @@
 package com.br.marketing.rule.yixin;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
@@ -19,39 +34,14 @@ import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.google.common.collect.Sets;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * code is far away from bug with the animal protecting
- * ┏┓　　　┏┓
- * ┏┛┻━━━┛┻┓
- * ┃　　　　　　　┃
- * ┃　　　━　　　┃
- * ┃　┳┛　┗┳　┃
- * ┃　　　　　　　┃
- * ┃　　　┻　　　┃
- * ┃　　　　　　　┃
- * ┗━┓　　　┏━┛
- * 　　┃　　　┃神兽保佑
- * 　　┃　　　┃代码无BUG！
- * 　　┃　　　┗━━━┓
- * 　　┃　　　　　　　┣┓
- * 　　┃　　　　　　　┏┛
- * 　　┗┓┓┏━┳┓┏┛
- * 　　　┃┫┫　┃┫┫
- * 　　　┗┻┛　┗┻┛
+ * code is far away from bug with the animal protecting ┏┓ ┏┓ ┏┛┻━━━┛┻┓ ┃ ┃ ┃ ━ ┃ ┃ ┳┛ ┗┳ ┃ ┃ ┃ ┃ ┻ ┃ ┃ ┃ ┗━┓ ┏━┛ ┃ ┃神兽保佑 ┃ ┃代码无BUG！ ┃ ┗━━━┓ ┃ ┣┓ ┃ ┏┛
+ * ┗┓┓┏━┳┓┏┛ ┃┫┫ ┃┫┫ ┗┻┛ ┗┻┛
  *
- * @Description : 宜信实时数据转吊销
- * ---------------------------------
+ * @Description : 宜信实时数据转吊销 ---------------------------------
  * @Author : jilong.xu
  * @Date : Create in 2022/3/28 15:29
  */
@@ -73,17 +63,16 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
     @Autowired
     PushRuleService pushRuleService;
 
-
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
         Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
         if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
             encType = pushCellEncPolicy.get(context.getApiCode());
         }
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
-                (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
+            (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)context.getRuleNecessaryData();
         SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
         MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
         if (marketingSyncUser == null) {
@@ -104,16 +93,16 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         JSONObject parseObject = JSON.parseObject(transfer.getReserveField1());
         String liveType = parseObject.getString("liveType");
 
-        if (Arrays.asList(1,2).contains(liveType)){
-            pushMarketingUserDetailByRuleDTO.setBatchNumber("rg8_" +LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-        } else if (Arrays.asList(3,8).contains(liveType)){
-            pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" +LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        if (Arrays.asList(1, 2).contains(liveType)) {
+            pushMarketingUserDetailByRuleDTO.setBatchNumber("rg8_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+        } else if (Arrays.asList(3, 8).contains(liveType)) {
+            pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         } else {
             log.warn("宜信实时促申或促提liveType字段非(1、2、3、8 )", liveType);
         }
         String userType = parseObject.getString("userType");
         JSONObject variables = new JSONObject();
-        variables.put("userType",userType);
+        variables.put("userType", userType);
         pushMarketingUserDetailByRuleDTO.setVariables(variables);
         return pushMarketingUserDetailByRuleDTO;
 
@@ -121,32 +110,35 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         String tCid = transfer.gettCid();
         String apiCode = transfer.getApiCode();
         String reserveField1 = transfer.getReserveField1();
-        if (StringUtils.hasText(reserveField1)){
+        if (StringUtils.hasText(reserveField1)) {
             YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
-                    (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData) context.getRuleNecessaryData();
+                (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)context.getRuleNecessaryData();
             JSONObject json = JSON.parseObject(reserveField1);
             boolean transformType = "1".equals(json.getString("transformType"));
             Integer liveType = json.getInteger("liveType");
             String key = CUSTOMER_NUMBER_IS_FIRST.concat(":").concat(transfer.getCustNum());
             Map<String, String> blackList = ruleNecessaryData.getBlackList();
             boolean notBlack = true;
-            if (!CollectionUtils.isEmpty(blackList)){
+            if (!CollectionUtils.isEmpty(blackList)) {
                 notBlack = "N".equals(blackList.get(transfer.getId().toString()));
             }
             Integer isDelay = context.getMqFact().getIsDelay();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
-            MarketingSyncUser marketingSyncUser =syncUserValidityPeriodsBO.getSyncUsers().get(0);
-            boolean messageDelay = isDelay != null && isDelay == 1 ;
+            if (syncUserValidityPeriodsBO == null) {
+                return false;
+            }
+            MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
+            boolean messageDelay = isDelay != null && isDelay == 1;
             if (marketingSyncUser == null) {
                 log.warn("上传表记录不在有效期内 --{} ", transfer.getCustNum());
                 return false;
-            }else{
+            } else {
                 String decode = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
-                if (StringUtils.isEmpty(decode)){
+                if (StringUtils.isEmpty(decode)) {
                     log.warn("手机号解密失败 --{} ", transfer.getCustNum());
                     return false;
                 }
@@ -158,27 +150,27 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
                 3、立即推送liveType 1,2,3或者 从延迟队列过来的消息
                 4、当天该案件编号未被推送
              */
-            if (!notBlack){
+            if (!notBlack) {
                 log.warn("id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
                 return false;
             }
-            boolean flag = transformType && (Arrays.asList(1,2,3).contains(liveType) || messageDelay);
-            if (!flag){
+            boolean flag = transformType && (Arrays.asList(1, 2, 3).contains(liveType) || messageDelay);
+            if (!flag) {
                 log.warn("id:{} cust_num:{}不满足立即推送条件", transfer.getId(), transfer.getCustNum());
                 return false;
             }
-            if (!znkfPushService.cusNumIsFirstToday(key)){
+            if (!znkfPushService.cusNumIsFirstToday(key)) {
                 log.warn("id:{} cust_num:{}不满足当天推送条件", transfer.getId(), transfer.getCustNum());
                 return false;
             }
             Set<String> custNums = Sets.newHashSet(transfer.getCustNum());
-            List caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(tCid, apiCode,custNums);
+            List caseEffectiveCust = transferSyncUserMapper.getByInCustAndCaseEffective(tCid, apiCode, custNums);
             if (!CollectionUtils.isEmpty(caseEffectiveCust)) {
                 log.warn("id:{} cust_num:{}caseEffetive=0 剔除", transfer.getId(), transfer.getCustNum());
                 return false;
             }
 
-            return  true;
+            return true;
         }
         return false;
     }
