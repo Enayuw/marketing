@@ -89,7 +89,7 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         String phone = pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell));
         pushMarketingUserDetailByRuleDTO.setPhone(phone);
         pushMarketingUserDetailByRuleDTO.setCell(cell);
-
+        pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         JSONObject parseObject = JSON.parseObject(transfer.getReserveField1());
         String liveType = parseObject.getString("liveType");
 
