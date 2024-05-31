@@ -30,6 +30,8 @@ import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 @Service
 public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<ConversionData> {
 
+    private PeriodOfValidityBO periodOfValidityBO;
+
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
@@ -55,10 +57,8 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
         conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
         conversionData.setSoleType(1);
         // 有效期设置 transformType非1的非实时数据传输生效截止时间点
-        PeriodOfValidityBO periodOfValidityBO = userValidityPeriodsBO.getBuilders().get(0).addDateString().builder();
+        PeriodOfValidityBO periodOfValidityBO = userValidityPeriodsBO.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
-        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
-        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         return conversionData;
     }
 
