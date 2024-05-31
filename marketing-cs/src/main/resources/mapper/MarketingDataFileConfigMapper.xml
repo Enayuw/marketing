@@ -16,6 +16,7 @@
                 AND api_code=#{apiCode}
             </if>
         </where>
+        and is_del = 1
         order by create_time desc
     </select>
 </mapper>

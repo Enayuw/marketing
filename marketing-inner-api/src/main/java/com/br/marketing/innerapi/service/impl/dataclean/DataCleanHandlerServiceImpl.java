@@ -83,12 +83,12 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
     @Transactional(rollbackFor = Exception.class)
     public Result<Long> saveOrUpdateTask(DataCleanRuleDetailDTO dto) {
         String apiCode = dto.getApiCode();
-        List<String> fieldList = getfieldMap(dto.getFileType());
         Long configId = dto.getRuleId();
         Integer fileId = Integer.valueOf(Arrays.asList(dto.getFileIds().split(",")).get(0));
         MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
         String ruleConfigShow = dto.getRuleCondition();
         //json处理
+        List<String> fieldList = getfieldMap(dto.getFileType());
         String ruleConfig = ruleTransferHandler(ruleConfigShow, fieldList);
         marketingDataFileConfig.setFieldConfig(ruleConfig);
         marketingDataFileConfig.setFieldConfigShow(ruleConfigShow);
@@ -202,6 +202,9 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
     @Override
     public Result updateConfig(DataCleanConfigDTO dto) {
         MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
+        List<String> fieldList = getfieldMap(dto.getFileType());
+        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), fieldList);
+        marketingDataFileConfig.setFieldConfig(ruleConfig);
         marketingDataFileConfig.setFieldConfigShow(dto.getRuleConfig());
         marketingDataFileConfig.setRuleName(dto.getRuleName());
         marketingDataFileConfig.setId(dto.getId());
@@ -214,10 +217,14 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
         MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
         marketingDataFileConfig.setApiCode(dto.getApiCode());
+        List<String> fieldList = getfieldMap(dto.getFileType());
+        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), fieldList);
+        marketingDataFileConfig.setFieldConfig(ruleConfig);
         marketingDataFileConfig.setFieldConfigShow(dto.getRuleConfig());
         marketingDataFileConfig.setCleanType(dto.getFileType());
         marketingDataFileConfig.setCreateTime(new Date());
         marketingDataFileConfig.setUpdateTime(new Date());
+        marketingDataFileConfig.setRuleName(dto.getRuleName());
         marketingDataFileConfig.setServiceName("defaultFileToMarketingRuleServiceImpl");
         marketingDataFileConfigMapper.insertSelective(marketingDataFileConfig);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
