@@ -4,6 +4,7 @@ import com.br.marketing.service.IPeriodPushService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
  * @Date: 2024-05-28
  */
 @Slf4j
+@Component
 public class PeriodPushJob extends AbstractSimpleElasticJob {
 
     @Resource

@@ -1606,8 +1606,8 @@ public class MarketingCommonConfig {
      * source：1通用转化流程,2客服拨打数据,3原始数据上传流程,4人工拨打流程,5转化数据集合流程,6初始数据集合流程
      * breakFlag：是否继续走实时流程（true：不走实时流程，false：走实时流程）
      * intervalTime：间隔时间（默认单位：分钟）
-     * 例：["7410086":{"apiCode":"7410086","source":"1","breakFlag":"true","intervalTime":"1"},
-     *      "3010086":{"apiCode":"3010086","source":"3","breakFlag":"false","intervalTime":"2"}]
+     * 例：{"7410086":{"apiCode":"7410086","source":"1","breakFlag":"true","intervalTime":"1"},
+     *      "3010086":{"apiCode":"3010086","source":"3","breakFlag":"false","intervalTime":"2"}}
      */
     private Map<String, JSONObject> periodPushConfig;
 

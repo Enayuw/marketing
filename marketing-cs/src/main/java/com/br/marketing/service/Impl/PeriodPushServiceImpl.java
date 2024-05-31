@@ -18,17 +18,17 @@ import com.br.marketing.service.IPeriodPushService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
-import com.br.marketing.strategy.PolicyHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -43,8 +43,6 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
-    @Resource
-    InitDataToPolicyImpl initDataToPolicyImpl;
 
     @Resource
     MarketingSyncInfoMapper marketingSyncInfoMapper;
@@ -84,39 +82,41 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
             LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(intervalTime);
             ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.systemDefault());
             Date date = Date.from(zonedDateTime.toInstant());
-            PeriodPushLogExample periodPushLogExample = new PeriodPushLogExample();
-            periodPushLogExample.createCriteria()
-                    .andApiCodeEqualTo(apiCode)
-                    .andSourceEqualTo(source)
-                    .andStatusEqualTo(1)
-                    .andIsDelEqualTo(1)
-                    .andCreateTimeLessThanOrEqualTo(date);
-            periodPushLogExample.setOrderByClause(" create_time limit 2000");
-            List<PeriodPushLog> periodPushLogList = periodPushLogMapper.selectByExample(periodPushLogExample);
-            // 获取满足时间间隔的数据并获取不超过2000个id的数据
-            List<Long> idList = new ArrayList<>();
-            periodPushLogList.stream().forEach((PeriodPushLog t)->{
-                String[] split = t.getIds().split(",");
-                int size = idList.size() + split.length;
-                if(size<2001){
-                    List<Long> idLongList = Arrays.stream(split)
-                            .map(Long::parseLong)
-                            .collect(Collectors.toList());
-                    idList.addAll(idLongList);
-                }else{
-                    return;
+            while(true){
+                PeriodPushLogExample periodPushLogExample = new PeriodPushLogExample();
+                periodPushLogExample.createCriteria()
+                        .andApiCodeEqualTo(apiCode)
+                        .andSourceEqualTo(source)
+                        .andStatusEqualTo(1)
+                        .andIsDelEqualTo(1)
+                        .andCreateTimeLessThanOrEqualTo(date);
+                periodPushLogExample.setOrderByClause(" create_time limit 2000");
+                List<PeriodPushLog> periodPushLogList = periodPushLogMapper.selectByExample(periodPushLogExample);
+                if(null == periodPushLogList || periodPushLogList.size()<1){
+                    break;
                 }
-            });
-            // 计算id的数量，保证每次不超过2000个id调用决策接口
-            if(TransferSource.INIT_DATA_SET_PROCESS.getCode() == source){
-                MarketingSyncInfoExample marketingSyncInfoExample = new MarketingSyncInfoExample();
-                marketingSyncInfoExample.createCriteria()
-                        .andApiCodeEqualTo(apiCode).andIdIn(idList);
-                List<MarketingSyncInfo> marketingSyncInfos = marketingSyncInfoMapper.selectByExample(marketingSyncInfoExample);
-                // 是否满足有效期，去重等规则（本次不做）
+                // 获取满足时间间隔的数据并获取不超过2000批的数据
+                List<Long> idList = new ArrayList<>();
+                periodPushLogList.stream().forEach((PeriodPushLog t)->{
+                    String[] split = t.getIds().split(",");
+                    int size = idList.size() + split.length;
+                    if(size<2001){
+                        List<Long> idLongList = Arrays.stream(split)
+                                .map(Long::parseLong)
+                                .collect(Collectors.toList());
+                        idList.addAll(idLongList);
+                    }else{
+                        return;
+                    }
+                });
+                // 每次不超过2000个id调用决策接口
+                List<MarketingSyncUser> syncUserList = marketingSyncInfoMapper.getDataByIdList(apiCode, idList);
 
-                // 参数拼装
-                List<PushMarketingUserDetailByRuleDTO> policyByRuleList = marketingSyncInfos.stream().map((MarketingSyncInfo t) -> {
+                if(null == syncUserList || syncUserList.size()<1){
+                    continue;
+                }
+                // 获取满足条件的数据并进行参数拼装
+                List<PushMarketingUserDetailByRuleDTO> policyByRuleList = syncUserList.stream().map((MarketingSyncUser t) -> {
                     try {
                         return assemble(t, context);
 //                        return initDataToPolicyImpl.assemble(t, context);
@@ -125,101 +125,126 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                     }
                     return null;
                 }).collect(Collectors.toList());
-                // 调用接口
-//                    policyHandler.call(policyByRuleList,context);
-                batchCall(policyByRuleList, context);
-            }else{
-                // 其他类型本次暂不处理
+
+                if(policyByRuleList.size()>0){
+                    // 调用接口
+                    batchCall(policyByRuleList, context, idList);
+                }
             }
         }
     }
 
-    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
-        Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
-        if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
-            encType = pushCellEncPolicy.get(context.getApiCode());
-        }
-        MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
+    public PushMarketingUserDetailByRuleDTO assemble(MarketingSyncUser syncUser, ProcessHandlerContext context) throws Exception {
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
-        pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
-        pushMarketingUserDetailByRuleDTO.setCaseNumber(syncUser.getCustNum());
-        pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getCell())));
-        JSONObject varDto = new JSONObject();
         String reserveField1 = syncUser.getReserveField1();
-        JSONObject reserveField1JSONObject = null;
         if (JSON.isValid(reserveField1)) {
-            reserveField1JSONObject = JSONObject.parseObject(reserveField1);
-        }
-        if(null != reserveField1JSONObject){
-            varDto.putAll(reserveField1JSONObject);
-        }
-        varDto.put("groupType", syncUser.getUserType());
-        varDto.put("id", pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getIdCard())));
-        varDto.put("name", pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getName())));
-        if (StringUtils.isNotBlank(reserveField1)) {
-            JSONObject initJson = JSON.parseObject(reserveField1);
-            for (String s : initJson.keySet()) {
-                varDto.put(s, initJson.getString(s));
-                if (s.toLowerCase().equals("strategycode")) {
-                    pushMarketingUserDetailByRuleDTO.setStrategyCode(initJson.getString(s));
-                }
-                if (s.toLowerCase().equals("batchnumber")) {
-                    pushMarketingUserDetailByRuleDTO.setBatchNumber(initJson.getString(s));
+            pushMarketingUserDetailByRuleDTO.setInitId(syncUser.getId());
+            pushMarketingUserDetailByRuleDTO.setCaseNumber(syncUser.getCustNum());
+            HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
+            Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
+            if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
+                encType = pushCellEncPolicy.get(context.getApiCode());
+            }
+            pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getCell())));
+            JSONObject varDto = new JSONObject();
+            JSONObject reserveField1JSONObject = JSON.parseObject(reserveField1);
+            if(null != reserveField1JSONObject && !reserveField1JSONObject.isEmpty()){
+                String operateType = reserveField1JSONObject.getString("operateType");
+                if("1".equals(operateType)){
+                    varDto.putAll(reserveField1JSONObject);
+                    varDto.put("groupType", syncUser.getUserType());
+                    varDto.put("id", pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getIdCard())));
+                    varDto.put("name", pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getName())));
+                    String apiCode = syncUser.getApiCode();
+                    String nowDay = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                    for (String s : reserveField1JSONObject.keySet()) {
+                        varDto.put(s, reserveField1JSONObject.getString(s));
+                        if (s.toLowerCase().equals("strategycode")) {
+                            pushMarketingUserDetailByRuleDTO.setStrategyCode(reserveField1JSONObject.getString(s));
+                        }
+//                        if (s.toLowerCase().equals("batchnumber")) {
+//                            pushMarketingUserDetailByRuleDTO.setBatchNumber(reserveField1JSONObject.getString(s));
+//                        }
+                    }
+                    if (StringUtils.isBlank(pushMarketingUserDetailByRuleDTO.getStrategyCode())) {
+                        pushMarketingUserDetailByRuleDTO.setStrategyCode("");
+                    }
+                    if (StringUtils.isBlank(pushMarketingUserDetailByRuleDTO.getBatchNumber())) {
+                        pushMarketingUserDetailByRuleDTO.setBatchNumber(nowDay+"_"+apiCode);
+                    }
+                    pushMarketingUserDetailByRuleDTO.setVariables(varDto);
+                    return pushMarketingUserDetailByRuleDTO;
                 }
             }
         }
-        if (StringUtils.isBlank(pushMarketingUserDetailByRuleDTO.getStrategyCode())) {
-            pushMarketingUserDetailByRuleDTO.setStrategyCode("");
-        }
-        pushMarketingUserDetailByRuleDTO.setVariables(varDto);
-        return pushMarketingUserDetailByRuleDTO;
+        return null;
     }
 
-    public void batchCall(List<PushMarketingUserDetailByRuleDTO> policyByRuleList, ProcessHandlerContext context) {
+    /**
+     * 批量推送方法
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/5/31 11:04
+     * @param policyByRuleList 满足条件的数据
+     * @param context context
+     * @param idList 待推送数据在 b_period_push_log 的记录
+     */
+    public void batchCall(List<PushMarketingUserDetailByRuleDTO> policyByRuleList
+            , ProcessHandlerContext context, List<Long> idList) {
         String apiCode = context.getApiCode();
         Integer source = context.getMqFact().getSource();
-        ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
-        List<Long> sourceIds = new ArrayList<>();
-        policyByRuleList.forEach(t->{
-            PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
-            BeanUtils.copyProperties(t, entity);
-            pushs.add(entity);
-            sourceIds.add(t.getInitId());
-        });
-        PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
-        taskInfoDTO.setData(pushs);
-        taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
-        taskInfoDTO.setMethod("caseAdd");
-        taskInfoDTO.setBatchNumber(apiCode);
-//        taskInfoDTO.setStrategyCode(strategy);
+        Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = policyByRuleList.stream()
+                .collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
+        int successNum = 0;
+        int errorNum = 0;
+        for (String strategy : strategyMap.keySet()) {
+            ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
+            List<Long> sourceIds = new ArrayList<>();
+            List<PushMarketingUserDetailByRuleDTO> datas = strategyMap.get(strategy);
+            datas.forEach((PushMarketingUserDetailByRuleDTO t)->{
+                PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
+                BeanUtils.copyProperties(t, entity);
+                pushs.add(entity);
+                sourceIds.add(t.getInitId());
+            });
+            PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
+            taskInfoDTO.setData(pushs);
+            taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
+            taskInfoDTO.setMethod("caseAdd");
+            taskInfoDTO.setBatchNumber(apiCode);
+            taskInfoDTO.setStrategyCode(strategy);
 
-        PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-        pushMarketingUserDTO.setApiCode(apiCode);
-        pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+            pushMarketingUserDTO.setApiCode(apiCode);
+            pushMarketingUserDTO.setJsonData(taskInfoDTO);
 
-        PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
-        retryByRuleDTO.setIds(sourceIds);
-        retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
-        retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-        Result result = methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
+            PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
+            retryByRuleDTO.setIds(sourceIds);
+            retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
+            retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
+            Result result = methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                successNum = successNum + datas.size();
+            }else{
+                errorNum = errorNum + datas.size();
+            }
+        }
         int num = policyByRuleList.size();
         PeriodPushLogExample example = new PeriodPushLogExample();
         example.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andIsDelEqualTo(1)
                 .andStatusEqualTo(1)
-                .andSourceEqualTo(source);
+                .andSourceEqualTo(source)
+                .andIdIn(idList);
         PeriodPushLog periodPushLog = new PeriodPushLog();
         periodPushLog.setPushNum(num);
-        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            periodPushLog.setStatus(2);
-            periodPushLog.setFailNum(0);
-            periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
-        }else{
+        periodPushLog.setFailNum(errorNum);
+        if (errorNum > 0) {
             periodPushLog.setStatus(3);
-            periodPushLog.setFailNum(num);
-            periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
+            log.warn("[{}]间隔推送决策发现推送不成功数据-total:{}-success:{}-error:{}", apiCode, num, successNum, errorNum);
+        }else{
+            periodPushLog.setStatus(2);
         }
+        periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
     }
 }
