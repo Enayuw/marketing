@@ -95,22 +95,23 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                 if(null == periodPushLogList || periodPushLogList.size()<1){
                     break;
                 }
+                List<Long> periodPushLogIdList = periodPushLogList.stream().map(PeriodPushLog::getId).collect(Collectors.toList());
                 // 获取满足时间间隔的数据并获取不超过2000批的数据
-                List<Long> idList = new ArrayList<>();
+                List<Long> idsList = new ArrayList<>();
                 periodPushLogList.stream().forEach((PeriodPushLog t)->{
                     String[] split = t.getIds().split(",");
-                    int size = idList.size() + split.length;
+                    int size = idsList.size() + split.length;
                     if(size<2001){
                         List<Long> idLongList = Arrays.stream(split)
                                 .map(Long::parseLong)
                                 .collect(Collectors.toList());
-                        idList.addAll(idLongList);
+                        idsList.addAll(idLongList);
                     }else{
                         return;
                     }
                 });
                 // 每次不超过2000个id调用决策接口
-                List<MarketingSyncUser> syncUserList = marketingSyncInfoMapper.getDataByIdList(apiCode, idList);
+                List<MarketingSyncUser> syncUserList = marketingSyncInfoMapper.getDataByIdList(apiCode, idsList);
 
                 if(null == syncUserList || syncUserList.size()<1){
                     continue;
@@ -128,7 +129,7 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
 
                 if(policyByRuleList.size()>0){
                     // 调用接口
-                    batchCall(policyByRuleList, context, idList);
+                    batchCall(policyByRuleList, context, periodPushLogIdList);
                 }
             }
         }
