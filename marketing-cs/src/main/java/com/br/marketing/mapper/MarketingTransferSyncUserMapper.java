@@ -548,5 +548,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("userTypeSet") Set<String> userTypeSet
             , @Param("requestDate") String requestDate);
 
+    List<MarketingTransferSyncUser> getYxTransferByRequestDate(
+            @Param("tCid") String tCid,
+            @Param("apiCode") String apiCode,
+            @Param("requestDate") String requestDate,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize);
 
 }

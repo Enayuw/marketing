@@ -866,6 +866,21 @@ public class MarketingCommonConfig {
     private Integer yiXinSearchPageSize;
 
     /**
+     * 宜信转化过滤推送百应执行时间
+     */
+    private String yiXinTransferPushBaiYingExecuteTime;
+
+    /**
+     * 宜信转化过滤推送百应线程
+     */
+    private Map<String, Integer> yiXinTransferPushBaiYingThreadPool;
+
+    /**
+     * 宜信转化过滤推送百应推送配置
+     */
+    private Map<String, Object> yiXinTransferPushBaiYingPush;
+
+    /**
      * 滴滴联合建模新接口执行时间
      */
     private String didiModelingNewExecTime;
@@ -1204,6 +1219,19 @@ public class MarketingCommonConfig {
      * tongChengUndoMock={"switch":false,"httpcode":"200","code":"1001"}
      */
     private HashMap<String, Object> tongChengUndoMock;
+
+    /**
+     * 推送百应黑名单接口挡板开关 true:开启挡板。false:关闭挡板
+     * baiYingUndoMock={"switch":true,"httpcode":"200","code":"000000"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * httpcode：
+     *      200:请求成功
+     * code：
+     *      000000:调用百应黑名单接口成功
+     */
+    private HashMap<String, Object> baiYingUndoMock;
 
     /**
      * 同程不运营名单推送客户接口线程数
@@ -1618,5 +1646,14 @@ public class MarketingCommonConfig {
      */
     private Long queryCustomerPushTimeOutDelay;
 
+    /**
+     * 宜信推决策(原转人工数据)的 apiCode
+     */
+    private String yiXinToPolicyApiCode;
+
+    /**
+     * 金美鑫黑名单文件校验相关配置
+     */
+    private String jinMeiXinBlackListFileCheckConfig;
 }
 
