@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -10,6 +11,7 @@ import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.DataJoinLogDTO;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.TransferActionFront;
@@ -27,6 +29,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -253,7 +256,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersA(String actionType, String type, String tcId) {
-        Long indexId = 3000l;
+        Long indexId = 3000L;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().minusDays(1).toString();
@@ -365,7 +368,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param tcId cid
      */
     private void pushMarketingTransferSyncUsersL(String actionType, String type, String tcId) {
-        Long indexId = 3000l;
+        Long indexId = 3000L;
         // 创建线程池
         ThreadPoolExecutor yiXinToJueCeThread = getYiXinToJueCeThread();
         String requestDate = LocalDate.now().toString();
@@ -449,26 +452,46 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private void pushToJueCe(String actionType, List<MarketingTransferSyncUser> e) {
         if (CollectionUtils.isNotEmpty(e)) {
             if ("L".equals(actionType)) {
-                pushJcOfL(actionType, getMarketingTransferSyncUserCells(e));
+                pushJcOfL(actionType, getMarketingTransferSyncUserCellsByValidityPeriods(e));
             } else {
                 // A->K
-                pushJc(actionType, getMarketingTransferSyncUserCells(e));
+                pushJc(actionType, getMarketingTransferSyncUserCellsByValidityPeriods(e));
             }
         }
     }
 
     /**
-     * 获取上传数据最新的一条数据
-     *
-     * @param marketingTransferSyncUserList 转化数据
-     * @return 最新的数据
+     * 过滤该集合有效期内数据并分别取最新一条
+     * @param marketingTransferSyncUserList
+     * @return 有效数据集合
      */
-    private List<MarketingTransferSyncUserCell> getMarketingTransferSyncUserCells(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
-        return marketingTransferSyncUserList.stream().map(jc -> transferDataValidityPeriodService.getNewValidityPeriodTransferData(jc, null))
-                .collect(Collectors.toList()).stream().filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
+    private List<MarketingTransferSyncUserCell> getMarketingTransferSyncUserCellsByValidityPeriods(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+        String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
+        Set<String> custNums = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        Map<String, SyncUserValidityPeriodsBO> periodsByCustNum = transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNums, apiCode,
+                new Date());
+        return marketingTransferSyncUserList.stream().map(t -> {
+            SyncUserValidityPeriodsBO bo = periodsByCustNum.get(t.getCustNum());
+            if (bo == null) {
+                log.warn("宜信推决策，该custNum{}对应上传数据，不在有效期", t.getCustNum());
+                return null;
+            }
 
+            List<MarketingSyncUser> syncUsers = bo.getSyncUsers();
+            if (CollectionUtils.isEmpty(syncUsers)) {
+                log.warn("宜信推决策，根据该custNum{}未找到上传数据！", t.getCustNum());
+                return null;
+            }
+
+            MarketingSyncUser marketingSyncUser = syncUsers.get(0);
+            MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
+            BeanUtils.copyProperties(t, marketingTransferSyncUserCell);
+            marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
+            marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
+            marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
+            return marketingTransferSyncUserCell;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+    }
 
     /**
      * 情况A-K推送决策逻辑
@@ -488,7 +511,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             pushDataInit(actionType, apiCodeJc, m, logList, pushs);
             // 封装重试参数
             PolicyRetryByRuleSoleDTO retryByRuleDTO = getPolicyRetryByRuleSoleDTO(actionType, apiCodeJc, logList, pushs);
-                // 推送决策方法
+            // 推送决策方法
             methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
         });
 

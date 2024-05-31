@@ -12,6 +12,7 @@ import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
@@ -108,6 +109,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     HaierServiceClient haierServiceClient;
 
     @Resource
+    DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
+
+    @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
     private String secretKey;
@@ -152,6 +156,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         }
         //endregion
         Long frontId = saveFrontData(apiCode, date, 2);
+
         Boolean mark = Boolean.TRUE;
         Integer page = 0;
         //全局去重custNum集合
@@ -204,7 +209,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
             threadPool.submit(() -> {
                 try {
-                    //region 获取7天实时和60天非实时 推送记录
+                    List<MarketingTransferSyncUser> dataFilter2 = new ArrayList<>();
+
+                    /*//region 获取7天实时和60天非实时 推送记录
 
                     // 获取不包含当天的前7天实时推人工的custNum _7filerCustNumSet
                     Set<String> _7filerCustNumSet = iDxService
@@ -318,9 +325,23 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         } else {
                             dataFilter2.add(transferSyncUser);
                         }
-                    }
+                    }*/
                     //endregion
-
+                    //region 剔除实时推决策7天内数据
+                    String startDate = LocalDate.now().minusDays(7).toString();
+                    List<String> custNumList =  dataFilter1.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
+                    DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
+                    DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(marketingCommonConfig.
+                            getYiXinToPolicyApiCode()).andDistributeTypeEqualTo(DistributeTypeEnum.YIXIN_REALTIME_POLICYDATA.getValue())
+                            .andCustNumIn(custNumList).andDistributeDateGreaterThanOrEqualTo(startDate).andDistributeDateLessThan(LocalDate.now().toString());
+                    List<DataDistributeDetailLog> detailLogList = dataDistributeDetailLogMapper.selectByExample(logExample);
+                    List<String> logCustNumList = detailLogList.stream().map(DataDistributeDetailLog::getCustNum).collect(Collectors.toList());
+                    dataFilter1.forEach((MarketingTransferSyncUser transferSyncUser) -> {
+                        if (!logCustNumList.contains(transferSyncUser.getCustNum())) {
+                            dataFilter2.add(transferSyncUser);
+                        }
+                    });
+                    //endregion
                     //region 黑名单查询
                     HashMap<String, String> blackData = new HashMap<>();
                     //todo 上线删除
@@ -356,7 +377,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         jo.put("tcId", tcId);
                         jo.put("ids", longs);
                         HashSet<String> rule = new HashSet<>();
-                        rule.add("YiXin_NonRealTime_Dx");
+                        rule.add("YiXin_NonRealTime_Policy");
                         MqFact mq = new MqFact();
                         mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
                         mq.setIncludeRules(rule);
@@ -365,7 +386,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         String mqStr = JSON.toJSONString(mq);
                         producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
                         if (log.isWarnEnabled()) {
-                            log.warn(String.format("推送非实时电销 pushUid:%s,mq消息：%s", pushUid, mqStr));
+                            log.warn(String.format("推送非实时决策 pushUid:%s,mq消息：%s", pushUid, mqStr));
                         }
                     }
                     //endregion
