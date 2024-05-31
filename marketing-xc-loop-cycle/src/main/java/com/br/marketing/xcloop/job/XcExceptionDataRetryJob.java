@@ -178,6 +178,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         }
 
         if (StringUtils.isEmpty(redisSwitch)) {
+            redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
             return true;
         }
 
