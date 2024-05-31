@@ -74,6 +74,11 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByYiXinRealTimeServiceImpl transferToFileByYiXinRealTimeService;
     /**
+     * 宜信转化数据提取V4.0
+     */
+    @Resource
+    private TransferToFileByYiXinV4ServiceImpl transferToFileByYiXinV4Service;
+    /**
      * 玖富
      */
     @Resource
@@ -290,6 +295,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByShuHeCuFuJieService, marketingCommonConfig.getShuHeCuFuJieTransferFileApiCodes())
                 // 宜信实时转化数据提取
                 .addBind(transferToFileByYiXinRealTimeService, marketingCommonConfig.getYinXinTransferRealTimeApiCodes())
+                // 宜信转化数据提取V4.0
+                .addBind(transferToFileByYiXinV4Service, marketingCommonConfig.getYinXinTransferV4ApiCodes())
                 // 玖富转化数据提取
                 .addBind(transferToFileByJiuFuService, marketingCommonConfig.getJiuFuTransferApiCodes())
                 // 拍拍贷新客实时转化数据提取
@@ -351,6 +358,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             return transferToFileByShuHeService;
         } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
             return transferToFileByYiXinRealTimeService;
+        } else if (marketingCommonConfig.getYinXinTransferV4ApiCodes().contains(customer.getApiCode())) {
+            return transferToFileByYiXinV4Service;
         }
         if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
             return transferToFileByJiuFuService;

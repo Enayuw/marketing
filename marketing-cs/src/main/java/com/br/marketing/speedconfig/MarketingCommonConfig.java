@@ -133,6 +133,12 @@ public class MarketingCommonConfig {
      * 宜信实时转化数据提取apiCode集合
      */
     private List<String> yinXinTransferRealTimeApiCodes;
+    /**
+     * 宜信转化数据提取V4.0 apiCode集合
+     * (list第一个值放文件名称前缀，防止新job覆盖小程序的，文件对比没问题后改成与小程序同名文件，并下掉小程序代码)
+     * yinXinTransferV4ApiCodes=["yixinzhuanhua_all","7411787"]
+     */
+    private List<String> yinXinTransferV4ApiCodes;
 
     /**
      * 宜信实时转化数据执行时间
@@ -349,8 +355,10 @@ public class MarketingCommonConfig {
      * 同程转化数据提取执行时间
      */
     private String TongChengGroupTransferExecuteTime;
-
-
+    /**
+     * 宜信转化数据提取V4.0
+     */
+    private String YiXinV4TransferExecuteTime;
 
     /**
      * 携程数据推送线程数
