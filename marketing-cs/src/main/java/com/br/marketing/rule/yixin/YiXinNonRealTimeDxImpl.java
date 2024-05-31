@@ -126,7 +126,7 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION.getCode();
     }
 
-    private DassImportDataDTO packageDassImportData(MarketingTransferSyncUser transfer
+    /*private DassImportDataDTO packageDassImportData(MarketingTransferSyncUser transfer
             , MarketingSyncUser syncUser, String phoneGrade) {
         DassImportDataDTO batchImportData = new DassImportDataDTO();
         batchImportData.setId(transfer.getId());
@@ -190,10 +190,10 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
             }
         }
         return batchImportData;
-    }
+    }*/
 
 
-    private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(MarketingTransferSyncUser transfer, MarketingSyncUser syncUser) {
+/*    private PhoneSaleExtendInfo packagePhoneSaleExtendInfo(MarketingTransferSyncUser transfer, MarketingSyncUser syncUser) {
         PhoneSaleExtendInfo phoneSaleExtendInfo = new PhoneSaleExtendInfo();
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
@@ -210,5 +210,5 @@ public class YiXinNonRealTimeDxImpl implements AssembleData<BatchRealTimeUserDat
         phoneSaleExtendInfo.setSourceId(transfer.getId());
         phoneSaleExtendInfo.setCell(syncUser.getCell());
         return phoneSaleExtendInfo;
-    }
+    }*/
 }

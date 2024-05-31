@@ -35,15 +35,17 @@ public class YiXinToPolicyHandler extends AbstractExternalInterfaceHandler<PushM
     @Override
     public JSONObject call(List<PushMarketingUserDetailByRuleDTO> policyByRuleList, ProcessHandlerContext context) {
 
-        Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = policyByRuleList.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getBatchNumber));
+        Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = policyByRuleList.stream().collect(Collectors.
+                groupingBy(PushMarketingUserDetailByRuleDTO::getBatchNumber));
         for (String batch : batchMap.keySet()) {
             List<PushMarketingUserDetailByRuleDTO> ruleLists = batchMap.get(batch);
-            Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
+            Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.
+                    groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
             for (String strategy : strategyMap.keySet()) {
                 List<PushMarketingUserDetailByRuleDTO> datas = strategyMap.get(strategy);
                 ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
                 List<Long> sourceIds = new ArrayList<>();
-                datas.forEach(t -> {
+                datas.forEach((PushMarketingUserDetailByRuleDTO t) -> {
                     PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
                     BeanUtils.copyProperties(t, entity);
                     pushs.add(entity);
