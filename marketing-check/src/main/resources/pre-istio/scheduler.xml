@@ -324,7 +324,7 @@
     <job:simple id="YiXinTransferToDxJob"
                 class="com.br.marketing.check.job.YiXinTransferToDxJob"
                 cron="0 0/10 7-12 * * ? *"
-                description="宜信转化数据非实时数据推送电销"
+                description="宜信转化数据非实时数据推送决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"

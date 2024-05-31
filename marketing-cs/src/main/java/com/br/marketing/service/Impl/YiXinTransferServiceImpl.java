@@ -386,7 +386,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         String mqStr = JSON.toJSONString(mq);
                         producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
                         if (log.isWarnEnabled()) {
-                            log.warn(String.format("推送非实时电销 pushUid:%s,mq消息：%s", pushUid, mqStr));
+                            log.warn(String.format("推送非实时决策 pushUid:%s,mq消息：%s", pushUid, mqStr));
                         }
                     }
                     //endregion
