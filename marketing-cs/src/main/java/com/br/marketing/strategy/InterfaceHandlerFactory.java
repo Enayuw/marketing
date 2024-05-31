@@ -167,9 +167,18 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
                 if(null != idList && idList.size()>0){
                     PeriodPushLog periodPushLog = new PeriodPushLog();
                     periodPushLog.setApiCode(apiCode);
-                    periodPushLog.setIds(JSON.toJSONString(idList));
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i <idList.size() ; i++) {
+                        if(i == idList.size()-1){
+                            sb.append(idList.get(i));
+                        }else{
+                            sb.append(idList.get(i)).append(",");
+                        }
+                    }
+                    String idString = sb.toString();
+                    periodPushLog.setIds(idString);
                     periodPushLog.setSource(source);
-                    periodPushLog.setStatus(0);
+                    periodPushLog.setStatus(1);
                     periodPushLog.setIsDel(1);
                     periodPushLog.setCreateTime(new Date());
                     periodPushLogMapper.insert(periodPushLog);
