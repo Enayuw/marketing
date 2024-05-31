@@ -465,12 +465,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
      * @param marketingTransferSyncUserList
      * @return 有效数据集合
      */
-    private List<MarketingTransferSyncUserCell> getMarketingTransferSyncUserCellsByValidityPeriods(List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
+    private List<MarketingTransferSyncUserCell> getMarketingTransferSyncUserCellsByValidityPeriods
+    (List<MarketingTransferSyncUser> marketingTransferSyncUserList) {
         String apiCode = marketingCommonConfig.getYiXinGetTransferToJueCeApiCode();
         Set<String> custNums = marketingTransferSyncUserList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         Map<String, SyncUserValidityPeriodsBO> periodsByCustNum = transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNums, apiCode,
                 new Date());
-        return marketingTransferSyncUserList.stream().map(t -> {
+        return marketingTransferSyncUserList.stream().map((MarketingTransferSyncUser t) -> {
             SyncUserValidityPeriodsBO bo = periodsByCustNum.get(t.getCustNum());
             if (bo == null) {
                 log.warn("宜信推决策，该custNum{}对应上传数据，不在有效期", t.getCustNum());
