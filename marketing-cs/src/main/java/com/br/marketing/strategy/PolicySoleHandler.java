@@ -34,10 +34,12 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
     @Override
     public JSONObject call(List<PushMarketingUserDetailByRuleDTO> policyByRuleList, ProcessHandlerContext context) {
         String pushApiCode = policyByRuleList.get(0).getPushApiCode();
-        Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = policyByRuleList.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getBatchNumber));
+        Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = policyByRuleList.stream().collect(Collectors.
+                groupingBy(PushMarketingUserDetailByRuleDTO::getBatchNumber));
         for (String batch : batchMap.keySet()) {
             List<PushMarketingUserDetailByRuleDTO> ruleLists = batchMap.get(batch);
-            Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
+            Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.
+                    groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
             for (String strategy : strategyMap.keySet()) {
                 //数据日志数组
                 ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
@@ -51,7 +53,8 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                     sourceIds.add(t.getInitId());
                     // 把封装的日志插入到数组中
                     logList.add(methodRetryHandlerService.dataJoinLogFix(entity, DistributeTypeEnum.POLICYDATA
-                            , StringUtils.isEmpty(pushApiCode) ? context.getApiCode() : pushApiCode, t.getCaseNumber(), BrCipherMaker.getInstance().encode(t.getCell())
+                            , StringUtils.isEmpty(pushApiCode) ? context.getApiCode() : pushApiCode, t.getCaseNumber(),
+                            BrCipherMaker.getInstance().encode(t.getCell())
                             , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getStatus(),t.getExpireEndDate()));
 
                 }

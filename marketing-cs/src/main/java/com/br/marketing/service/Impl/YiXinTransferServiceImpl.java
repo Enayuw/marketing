@@ -333,7 +333,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
                     DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(marketingCommonConfig.
                             getYiXinToPolicyApiCode()).andDistributeTypeEqualTo(DistributeTypeEnum.YIXIN_REALTIME_POLICYDATA.getValue())
-                            .andCustNumIn(custNumList).andDistributeDateGreaterThanOrEqualTo(startDate).andDistributeDateLessThan(LocalDate.now().toString());
+                            .andCustNumIn(custNumList).andDistributeDateGreaterThanOrEqualTo(startDate)
+                            .andDistributeDateLessThan(LocalDate.now().toString());
                     List<DataDistributeDetailLog> detailLogList = dataDistributeDetailLogMapper.selectByExample(logExample);
                     List<String> logCustNumList = detailLogList.stream().map(DataDistributeDetailLog::getCustNum).collect(Collectors.toList());
                     dataFilter1.forEach((MarketingTransferSyncUser transferSyncUser) -> {

@@ -30,8 +30,6 @@ import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 @Service
 public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<ConversionData> {
 
-    private PeriodOfValidityBO periodOfValidityBO;
-
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
