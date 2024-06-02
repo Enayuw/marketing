@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.haier.HaierServiceClient;
@@ -23,10 +24,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.IDxService;
-import com.br.marketing.service.IYiXinTransferService;
-import com.br.marketing.service.PushDataService;
-import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.PhoneSaleInfoVO;
@@ -110,6 +108,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
     @Resource
     DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -456,6 +457,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             page++;
             //获取非实时数据
             List<MarketingTransferSyncUser> data = delayData.getData();
+            Set<String> set = data.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> syncUserMap =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, apiCode, new Date());
             for (MarketingTransferSyncUser datum : data) {
                 if (!(StringUtils.isNotBlank(datum.getReserveField1())
                         && datum.getReserveField1().contains("\"transformType\":\"1\""))) {
@@ -472,6 +476,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                             if (!("1".equals(registerChannel) || "2".equals(registerChannel))) {
                                 continue;
                             }
+                        }
+                        //判断数据有效期
+                        SyncUserValidityPeriodsBO userValidityPeriodsBO = syncUserMap.get(datum.getCustNum());
+                        if (userValidityPeriodsBO == null) {
+                            continue;
                         }
                         ids.add(datum.getId());
                     }
@@ -653,11 +662,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         log.warn("宜信非实时数据推送客服时间超过1小时，请检查是否存在异常,apiCode:{},send-receive:{},", apiCode, (i - 1) + "-" + dateCount);
                         StringBuilder content = new StringBuilder();
                         content.append("apiCode：".concat(apiCode).concat("\r\n"))
-                                .append("非实时总量：".concat(String.valueOf(dateCount)).concat("\r\n"))
                                 .append("已发送批次量：".concat(String.valueOf(i - 1)).concat("\r\n"))
                                 .append("接收批次量：".concat(String.valueOf(dateCount)).concat("\r\n"))
                                 .append("非实时数据推客服超过1小时，请检查".concat("\r\n"));
-                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务", AlarmSendCodeEnum.EXCEPTION_YIXIN_PUSH_CUSTOMER.getCode());
                     }
                 }
             } else {

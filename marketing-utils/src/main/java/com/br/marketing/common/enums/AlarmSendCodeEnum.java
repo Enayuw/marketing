@@ -44,7 +44,9 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_ZHONGAN_CALL_RECORD("62008", "众安通话明细回调"),
 
     //数据治理平台调用marketing-inner-api邮件发送接口使用
-    DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送")
+    DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),
+    //宜信非实时推客服告警,立即推送
+    EXCEPTION_YIXIN_PUSH_CUSTOMER("62010", "宜信非实时推客服"),
     ;
 
     /**
