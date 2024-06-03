@@ -95,8 +95,9 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                 if(null == periodPushLogList || periodPushLogList.size()<1){
                     break;
                 }
-                List<Long> periodPushLogIdList = periodPushLogList.stream().map(PeriodPushLog::getId).collect(Collectors.toList());
-                // 获取满足时间间隔的数据并获取不超过2000批的数据
+                List<Long> periodPushLogIdList = new ArrayList<>();
+//                List<Long> periodPushLogIdList = periodPushLogList.stream().map(PeriodPushLog::getId).collect(Collectors.toList());
+                // 获取满足时间间隔的上传详情表数据并获取不超过2000批的数据
                 List<Long> idsList = new ArrayList<>();
                 periodPushLogList.stream().forEach((PeriodPushLog t)->{
                     String[] split = t.getIds().split(",");
@@ -106,6 +107,7 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                                 .map(Long::parseLong)
                                 .collect(Collectors.toList());
                         idsList.addAll(idLongList);
+                        periodPushLogIdList.add(t.getId());
                     }else{
                         return;
                     }
@@ -130,6 +132,20 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                 if(policyByRuleList.size()>0){
                     // 调用接口
                     batchCall(policyByRuleList, context, periodPushLogIdList);
+                }else{
+                    PeriodPushLogExample example = new PeriodPushLogExample();
+                    example.createCriteria()
+                            .andApiCodeEqualTo(apiCode)
+                            .andIsDelEqualTo(1)
+                            .andStatusEqualTo(1)
+                            .andSourceEqualTo(source)
+                            .andIdIn(periodPushLogIdList);
+                    PeriodPushLog periodPushLog = new PeriodPushLog();
+                    periodPushLog.setPushNum(0);
+                    periodPushLog.setFailNum(0);
+                    periodPushLog.setStatus(5);
+                    periodPushLog.setErrorContent("不满足operateType=1筛选数据条件");
+                    periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
                 }
             }
         }
