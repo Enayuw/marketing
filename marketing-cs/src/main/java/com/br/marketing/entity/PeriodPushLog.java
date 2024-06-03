@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class PeriodPushLog {
     /**
-     *
+     * 
      */
     private Long id;
 
@@ -24,29 +24,9 @@ public class PeriodPushLog {
     private Integer source;
 
     /**
-     * 执行状态 0待推送、1推送中、2推送成功、3推送失败、4推送超时
+     * 执行状态 0待推送、1推送中、2推送成功、3推送失败、4推送超时、5数据不满足条件不推送
      */
     private Integer status;
-
-    /**
-     * 结果值
-     */
-    private String resultContent;
-
-    /**
-     * http状态码
-     */
-    private String httpStatus;
-
-    /**
-     * 返回的状态码
-     */
-    private String code;
-
-    /**
-     * 返回的错误信息
-     */
-    private String errorContent;
 
     /**
      * 失败条数
@@ -111,38 +91,6 @@ public class PeriodPushLog {
 
     public void setStatus(Integer status) {
         this.status = status;
-    }
-
-    public String getResultContent() {
-        return resultContent;
-    }
-
-    public void setResultContent(String resultContent) {
-        this.resultContent = resultContent == null ? null : resultContent.trim();
-    }
-
-    public String getHttpStatus() {
-        return httpStatus;
-    }
-
-    public void setHttpStatus(String httpStatus) {
-        this.httpStatus = httpStatus == null ? null : httpStatus.trim();
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code == null ? null : code.trim();
-    }
-
-    public String getErrorContent() {
-        return errorContent;
-    }
-
-    public void setErrorContent(String errorContent) {
-        this.errorContent = errorContent == null ? null : errorContent.trim();
     }
 
     public Integer getFailNum() {

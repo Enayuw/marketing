@@ -11,9 +11,8 @@ import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.PeriodPushLogMapper;
+import com.br.marketing.mapper.PeriodPushStatisticsLogMapper;
 import com.br.marketing.origin.MqFact;
-import com.br.marketing.origin.TransferSource;
-import com.br.marketing.rule.ibu.InitDataToPolicyImpl;
 import com.br.marketing.service.IPeriodPushService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -49,6 +48,8 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
 
     @Resource
     private PeriodPushLogMapper periodPushLogMapper;
+    @Resource
+    private PeriodPushStatisticsLogMapper periodPushStatisticsLogMapper;
 
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
@@ -118,39 +119,65 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                 if(null == syncUserList || syncUserList.size()<1){
                     continue;
                 }
-                // 获取满足条件的数据并进行参数拼装
-                List<PushMarketingUserDetailByRuleDTO> policyByRuleList = syncUserList.stream().map((MarketingSyncUser t) -> {
+                List<PushMarketingUserDetailByRuleDTO> policyByRuleList = new ArrayList<>();
+                List<Long> nullPeriodPushLogId = new ArrayList<>();
+                List<Long> notNullPeriodPushLogId = new ArrayList<>();
+                for (int i = 0; i < syncUserList.size(); i++) {
+                    MarketingSyncUser marketingSyncUser = syncUserList.get(i);
+                    Long id = marketingSyncUser.getId();
                     try {
-                        return assemble(t, context);
-//                        return initDataToPolicyImpl.assemble(t, context);
+                        PushMarketingUserDetailByRuleDTO assemble = assemble(marketingSyncUser, context);
+                        if(null == assemble){
+                            nullPeriodPushLogId.add(id);
+                        }else{
+                            notNullPeriodPushLogId.add(id);
+                            policyByRuleList.add(assemble);
+                        }
                     } catch (Exception e) {
-                        log.warn("按分钟级隔离调用决策参数拼接异常,apiCode:{}-id:{}--", apiCode, t.getId(), e);
+                        log.warn("按分钟级隔离调用决策参数拼接异常,apiCode:{}-MarketingSyncUser-id:{}--", apiCode, id, e);
                     }
-                    return null;
-                }).filter((PushMarketingUserDetailByRuleDTO t) -> t != null).collect(Collectors.toList());
-
+                }
                 if(policyByRuleList.size()>0){
                     // 调用接口
-                    batchCall(policyByRuleList, context, periodPushLogIdList);
+                    batchCall(policyByRuleList, context, periodPushLogIdList, nullPeriodPushLogId, notNullPeriodPushLogId);
                 }else{
-                    PeriodPushLogExample example = new PeriodPushLogExample();
-                    example.createCriteria()
-                            .andApiCodeEqualTo(apiCode)
-                            .andIsDelEqualTo(1)
-                            .andStatusEqualTo(1)
-                            .andSourceEqualTo(source)
-                            .andIdIn(periodPushLogIdList);
-                    PeriodPushLog periodPushLog = new PeriodPushLog();
-                    periodPushLog.setPushNum(0);
-                    periodPushLog.setFailNum(0);
-                    periodPushLog.setStatus(5);
-                    periodPushLog.setErrorContent("不满足operateType=1筛选数据条件");
-                    periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
+                    updatePeriodPushLogStatusTo5(apiCode, source, periodPushLogIdList);
                 }
             }
         }
     }
 
+    /**
+     * 整个批次内没有符合要求的数据
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/6/3 20:21
+     * @param apiCode apiCode
+     * @param source 6
+     * @param periodPushLogIdList 待推送数据
+     */
+    public void updatePeriodPushLogStatusTo5(String apiCode,Integer source, List<Long> periodPushLogIdList){
+        PeriodPushLogExample example = new PeriodPushLogExample();
+        example.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andIsDelEqualTo(1)
+                .andStatusEqualTo(1)
+                .andSourceEqualTo(source)
+                .andIdIn(periodPushLogIdList);
+        PeriodPushLog periodPushLog = new PeriodPushLog();
+        periodPushLog.setPushNum(0);
+        periodPushLog.setFailNum(0);
+        periodPushLog.setStatus(5);
+        periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
+    }
+
+    /**
+     * 参数封装
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/6/3 20:22
+     * @param syncUser 明细表对象
+     * @param context context
+     * @return PushMarketingUserDetailByRuleDTO
+     */
     public PushMarketingUserDetailByRuleDTO assemble(MarketingSyncUser syncUser, ProcessHandlerContext context) throws Exception {
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         String reserveField1 = syncUser.getReserveField1();
@@ -204,11 +231,17 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
      * @param policyByRuleList 满足条件的数据
      * @param context context
      * @param idList 待推送数据在 b_period_push_log 的记录
+     * @param nullPeriodPushLogId 明细表中不满足operateType=1的id集合
+     * @param notNullPeriodPushLogId 明细表中满足operateType=1的id集合
      */
     public void batchCall(List<PushMarketingUserDetailByRuleDTO> policyByRuleList
-            , ProcessHandlerContext context, List<Long> idList) {
+            , ProcessHandlerContext context, List<Long> idList, List<Long> nullPeriodPushLogId
+            , List<Long> notNullPeriodPushLogId) {
         String apiCode = context.getApiCode();
         Integer source = context.getMqFact().getSource();
+        int idSize = idList.size();
+        int notNullPeriodSize = notNullPeriodPushLogId.size();
+        int nullPeriodSize = nullPeriodPushLogId.size();
 //        Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = policyByRuleList.stream()
 //                .collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
         int successNum = 0;
@@ -257,14 +290,57 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                 .andSourceEqualTo(source)
                 .andIdIn(idList);
         PeriodPushLog periodPushLog = new PeriodPushLog();
-        periodPushLog.setPushNum(num);
+        periodPushLog.setPushNum(successNum);
         periodPushLog.setFailNum(errorNum);
+        // 统计对象拼接
+        PeriodPushStatisticsLog periodPushStatisticsLog = new PeriodPushStatisticsLog();
+        periodPushStatisticsLog.setApiCode(apiCode);
+        periodPushStatisticsLog.setIsDel(1);
+        periodPushStatisticsLog.setPushNum(successNum);
+        periodPushStatisticsLog.setFailNum(errorNum);
+        periodPushStatisticsLog.setMeetConditionsNum(notNullPeriodSize);
+        periodPushStatisticsLog.setFailMeetConditionsNum(nullPeriodSize);
         if (errorNum > 0) {
             periodPushLog.setStatus(3);
+            StringBuilder sbF = new StringBuilder();
+            for (int i = 0; i < notNullPeriodSize; i++) {
+                if(i == notNullPeriodSize -1){
+                    sbF.append(notNullPeriodPushLogId.get(i));
+                }else{
+                    sbF.append(notNullPeriodPushLogId.get(i)).append(",");
+                }
+            }
+            periodPushStatisticsLog.setFailIds(sbF.toString());
             log.warn("[{}]间隔推送决策发现推送不成功数据-total:{}-success:{}-error:{}", apiCode, num, successNum, errorNum);
         }else{
             periodPushLog.setStatus(2);
         }
         periodPushLogMapper.updateByExampleSelective(periodPushLog, example);
+
+        periodPushStatisticsLog.setFailNum(errorNum);
+        periodPushStatisticsLog.setPushNum(successNum);
+        periodPushStatisticsLog.setTotalNum(idSize);
+        if(nullPeriodSize >0){
+            StringBuilder sbFM = new StringBuilder();
+            for (int i = 0; i < nullPeriodSize; i++) {
+                if(i == nullPeriodSize -1){
+                    sbFM.append(nullPeriodPushLogId.get(i));
+                }else{
+                    sbFM.append(nullPeriodPushLogId.get(i)).append(",");
+                }
+            }
+            periodPushStatisticsLog.setFailMeetIds(sbFM.toString());
+        }
+        StringBuilder sbPpl = new StringBuilder();
+        for (int i = 0; i < idSize; i++) {
+            if(i == idSize -1){
+                sbPpl.append(idList.get(i));
+            }else{
+                sbPpl.append(idList.get(i)).append(",");
+            }
+        }
+        periodPushStatisticsLog.setPplId(sbPpl.toString());
+        periodPushStatisticsLog.setCreateTime(new Date());
+        periodPushStatisticsLogMapper.insert(periodPushStatisticsLog);
     }
 }
