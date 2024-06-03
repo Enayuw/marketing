@@ -35,7 +35,7 @@ public class DataCleanConfigVO {
      * 规则配置展示
      */
     @ApiModelProperty(value = "规则配置展示")
-    private String field_config_show;
+    private String fieldConfigShow;
 
     /**
      * 创建时间
