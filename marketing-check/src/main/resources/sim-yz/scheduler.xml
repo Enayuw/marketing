@@ -71,7 +71,7 @@
 
     <job:simple id="SftpToDbByResultDataJob"
                 class="com.br.marketing.check.job.SftpToDbByResultDataJob"
-                cron="0 2/30 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="sftp运营结果文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -127,7 +127,7 @@
     />
     <job:simple id="SftpToDbByCommonJob"
                 class="com.br.marketing.check.job.SftpToDbByCommonJob"
-                cron="0 4/20 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="sftp文件数据入库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -187,7 +187,7 @@
     />
     <job:simple id="TransferFileTaskJob"
                 class="com.br.marketing.check.job.TransferFileTaskJob"
-                cron="0 1/10 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="转化数据作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="9"
@@ -300,7 +300,7 @@
     <job:simple id="YiXinTransferToDxJob"
                 class="com.br.marketing.check.job.YiXinTransferToDxJob"
                 cron="0 0/10 7-12 * * ? *"
-                description="宜信转化数据非实时数据推送电销"
+                description="宜信转化数据非实时数据推送决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
@@ -609,7 +609,7 @@
     />
     <job:simple id="ZhongYouDataPullJob"
                 class="com.br.marketing.check.job.zhongyou.ZhongYouDataPullJob"
-                cron="0 30 9 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="中邮数据拉取"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -796,7 +796,7 @@
 
     <job:simple id="check-ZhongBangPullFileDataJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangPullFileDataJob"
-                cron="1 0/15 9-18 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="众邦财富文件拉取,param格式：{'apiCode':'yyyyMMdd,yyyy-MM-dd HH:mm:ss,yyyy-MM-dd HH:mm:ss'}"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -811,7 +811,7 @@
 
     <job:simple id="ZhongBangCaiFuLabelPushJob"
                 class="com.br.marketing.check.job.zhongbang.ZhongBangCaiFuLabelPushJob"
-                cron="0 */5 * ? * *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="众邦财富定制标签推送任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -825,7 +825,7 @@
     />
     <job:simple id="TongChengUndoListPushToCustomerJob"
                 class="com.br.marketing.check.job.tongcheng.TongChengUndoListPushToCustomerJob"
-                cron="0 */10 * ? * *"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="同程不运营名单推送客户JOB，每10分钟执行一次"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

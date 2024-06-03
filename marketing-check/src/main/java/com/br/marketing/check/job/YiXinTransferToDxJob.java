@@ -37,7 +37,7 @@ public class YiXinTransferToDxJob extends AbstractSimpleElasticJob {
                 result = iYiXinTransferService.actionYiXinToDx(null, null);
             }
             if(log.isWarnEnabled()){
-                log.warn(String.format("推送非实时电销状态：%d,信息：%s",result.getCode(),StringUtils.isNotBlank(result.getMessage())?result.getMessage():""));
+                log.warn(String.format("推送非实时推决策状态：%d,信息：%s",result.getCode(),StringUtils.isNotBlank(result.getMessage())?result.getMessage():""));
             }
         }catch (Exception ex){
                 log.error(ex.getMessage(),ex);

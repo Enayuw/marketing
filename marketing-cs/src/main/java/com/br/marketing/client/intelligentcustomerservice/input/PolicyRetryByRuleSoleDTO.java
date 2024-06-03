@@ -2,11 +2,13 @@ package com.br.marketing.client.intelligentcustomerservice.input;
 
 import com.br.marketing.dto.DataDistributeLogBase;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 /**
  * 推决策参数去重DTO
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class PolicyRetryByRuleSoleDTO extends DataDistributeLogBase<PushMarketingUserDetailDTO> {
 
