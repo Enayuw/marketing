@@ -126,7 +126,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
-                                 String updateTimeStart, String updateTimeEnd, Integer taskStatus) {
+                                 String updateTimeStart, String updateTimeEnd, Integer taskStatus, Integer execType) {
 
         if (StringUtils.isNotEmpty(createTimeEnd)) {
             createTimeEnd = DateUtils.format(addDay(createTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
@@ -140,7 +140,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         PageHelper.startPage(current, size);
         List<MarketingTaskVO> fastTaskRuleListVOS = marketingTaskMapper.selectList(search, status,
-                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus, null);
+                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus, null, execType);
 
         return PageResultReturn.setPageResult(fastTaskRuleListVOS, current, size);
     }
@@ -175,7 +175,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public MarketingTaskVO getTask(String id) {
-        List<MarketingTaskVO> marketingTaskVO = marketingTaskMapper.selectList(null, null, null, null, null, null, null, id);
+        List<MarketingTaskVO> marketingTaskVO = marketingTaskMapper.selectList(null, null, null, null, null, null, null, id, null);
         if (marketingTaskVO.size() > 0) {
             return marketingTaskVO.get(0);
         }

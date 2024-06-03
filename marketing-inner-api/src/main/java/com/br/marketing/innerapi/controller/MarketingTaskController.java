@@ -57,6 +57,7 @@ public class MarketingTaskController {
             , @ApiImplicitParam(name = "updateTimeStart", value = "更新时间开始", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "updateTimeEnd", value = "更新时间结束", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
+            , @ApiImplicitParam(name = "execType", value = "任务执行策略 1-一次性全量；2-一次性验证；3-每个任务的周期;4-每日定时", paramType = "query", dataType = "Integer")
     })
     @GetMapping("/list")
     @AddDataAuthBusiness
@@ -69,9 +70,10 @@ public class MarketingTaskController {
             , @RequestParam(required = false) String updateTimeStart
             , @RequestParam(required = false) String updateTimeEnd
             , @RequestParam(required = false) Integer taskStatus
+            , @RequestParam(required = false) Integer execType
     ) {
         PageResultReturn list = marketingTaskService.list(current, size, search, status,
-                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus);
+                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus, execType);
         return new ApiResult<PageResultReturn>().success(list);
     }
 

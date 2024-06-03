@@ -38,9 +38,11 @@ public interface MarketingTaskService {
      * @param updateTimeStart
      * @param updateTimeEnd
      * @param taskStatus
+     * @param execType
      * @return
      */
-    PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd, Integer taskStatus);
+    PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
+                          String updateTimeStart, String updateTimeEnd, Integer taskStatus, Integer execType);
 
     ApiResult<Boolean> editPriority(String id, Integer priority);
 

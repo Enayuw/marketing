@@ -614,6 +614,8 @@
         bmte.condition_type                               as `conditionType`,
         bmte.condition_info_show                          as `conditionInfoShow`,
         bmt.monitor_type                                  as `execType`,
+        shf.create_time                                   as `taskCreateTime`,
+        shf.update_time                                   as `taskUpdateTime`,
         bmt.is_online                                     as `isOnline`,
         case
         when shf.status is null then 0
@@ -688,6 +690,9 @@
         </if>
         <if test="id !=null">
             and bmt.id = #{id}
+        </if>
+        <if test="execType !=null">
+            and bmt.monitor_type = #{execType}
         </if>
         order by bmt.create_time desc,bmt.id desc
     </select>
