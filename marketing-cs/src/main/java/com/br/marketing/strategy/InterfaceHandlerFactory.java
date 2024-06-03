@@ -184,7 +184,7 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
                     periodPushLogMapper.insert(periodPushLog);
                     Boolean breakFlag = config.getBoolean("breakFlag");
                     Integer sourceConfig = config.getInteger("source");
-                    if(sourceConfig == source && breakFlag){
+                    if(sourceConfig.equals(source) && breakFlag){
                         Map<Integer, List<InterfaceParams>> map = new HashMap();
                         return map;
                     }
