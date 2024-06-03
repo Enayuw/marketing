@@ -102,7 +102,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , String jobParameter
             , MethodRetryHandlerService methodRetryHandlerService) {
         if (parameter.getParamList() != null && parameter.getParamList().size() > 0) {
-            buShuData(actionFront, parameter, jobParameter, methodRetryHandlerService);
+            return buShuData(actionFront, parameter, jobParameter, methodRetryHandlerService);
         }
         String apiCode = parameter.getApiCode();
         String tcId = tableCreateService.getTcId(apiCode);
