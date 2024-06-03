@@ -79,7 +79,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 .andCreateTimeGreaterThanOrEqualTo(new Date())
                 .andCleanStatusEqualTo(1)
                 .andIsDelEqualTo(1);
-        example.setOrderByClause("create_time desc");
+        example.setOrderByClause("create_time asc");
         List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
         if(marketingCleanDataTasks.size()>0){
             return marketingCleanDataTasks.get(0);
