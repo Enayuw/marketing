@@ -102,7 +102,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , String jobParameter
             , MethodRetryHandlerService methodRetryHandlerService) {
         if (parameter.getParamList() != null && parameter.getParamList().size() > 0) {
-            buShuData(actionFront,parameter,jobParameter,methodRetryHandlerService);
+            buShuData(actionFront, parameter, jobParameter, methodRetryHandlerService);
         }
         String apiCode = parameter.getApiCode();
         String tcId = tableCreateService.getTcId(apiCode);
@@ -122,7 +122,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                 break;
             }
             page++;
-            sum += checkData(list, apiCode, parameter, methodRetryHandlerService,null);
+            sum += checkData(list, apiCode, parameter, methodRetryHandlerService);
             if (list.size() < offset) {
                 break;
             }
@@ -138,42 +138,42 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , JobPushDecisionParameterBO parameter
             , String jobParameter
             , MethodRetryHandlerService methodRetryHandlerService) {
-            Object o = parameter.getParamList().get(0);
-            String requestDate = (String) o;
-            String apiCode = parameter.getApiCode();
-            String tcId = tableCreateService.getTcId(apiCode);
-            MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
-            syncUser.settCid(tcId);
-            syncUser.setApiCode(apiCode);
-            syncUser.setRequestData(requestDate);
-            int page = 0;
-            int offset = 500;
-            int sum = 0;
-            for (; ; ) {
-                int rowCount = page * offset;
-                List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper
-                        .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, ""
-                                , rowCount, offset);
-                if (CollectionUtils.isEmpty(list)) {
-                    break;
-                }
-                page++;
-                sum += checkData(list, apiCode, parameter, methodRetryHandlerService,null);
-                if (list.size() < offset) {
-                    break;
-                }
+        Object o = parameter.getParamList().get(0);
+        String requestDate = (String) o;
+        String apiCode = parameter.getApiCode();
+        String tcId = tableCreateService.getTcId(apiCode);
+        MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
+        syncUser.settCid(tcId);
+        syncUser.setApiCode(apiCode);
+        syncUser.setRequestData(requestDate);
+        int page = 0;
+        int offset = 500;
+        int sum = 0;
+        for (; ; ) {
+            int rowCount = page * offset;
+            List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper
+                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, ""
+                            , rowCount, offset);
+            if (CollectionUtils.isEmpty(list)) {
+                break;
             }
-            TransferActionFront actionFrontUpdate = new TransferActionFront();
-            actionFrontUpdate.setId(actionFront.getId());
-            actionFrontUpdate.setRemark(String.valueOf(sum));
-            actionFrontUpdate.setStatus(2);
-            return actionFrontUpdate;
+            page++;
+            sum += checkData(list, apiCode, parameter, methodRetryHandlerService);
+            if (list.size() < offset) {
+                break;
+            }
+        }
+        TransferActionFront actionFrontUpdate = new TransferActionFront();
+        actionFrontUpdate.setId(actionFront.getId());
+        actionFrontUpdate.setRemark(String.valueOf(sum));
+        actionFrontUpdate.setStatus(2);
+        return actionFrontUpdate;
     }
 
     private int checkData(List<MarketingTransferSyncUser> list
             , String apiCode
             , JobPushDecisionParameterBO parameter
-            , MethodRetryHandlerService methodRetryHandlerService, String pushDate) {
+            , MethodRetryHandlerService methodRetryHandlerService) {
         Map<String, Object> paramMap = parameter.getParamMap();
         int sum = 0;
         if (CollectionUtils.isEmpty(paramMap)) {
@@ -230,12 +230,8 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                                     pushMarketingUserDetailByRuleDTO.setPhone(cell);
                                     pushMarketingUserDetailByRuleDTO.setCell(decodePhone(cell));
                                     pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
-                                    if (StringUtils.isNotBlank(pushDate)) {
-                                        pushMarketingUserDetailByRuleDTO.setBatchNumber(pushDate + "_" + apiCode + "_" + status);
-                                    } else {
-                                        pushMarketingUserDetailByRuleDTO.setBatchNumber(
-                                                LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
-                                    }
+                                    pushMarketingUserDetailByRuleDTO.setBatchNumber(
+                                            LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
 
                                     pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
                                 }
