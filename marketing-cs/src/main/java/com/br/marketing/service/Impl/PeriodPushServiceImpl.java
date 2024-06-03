@@ -125,7 +125,7 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                         log.warn("按分钟级隔离调用决策参数拼接异常,apiCode:{}-id:{}--", apiCode, t.getId(), e);
                     }
                     return null;
-                }).collect(Collectors.toList());
+                }).filter((PushMarketingUserDetailByRuleDTO t) -> t != null).collect(Collectors.toList());
 
                 if(policyByRuleList.size()>0){
                     // 调用接口
@@ -193,15 +193,15 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
             , ProcessHandlerContext context, List<Long> idList) {
         String apiCode = context.getApiCode();
         Integer source = context.getMqFact().getSource();
-        Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = policyByRuleList.stream()
-                .collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
+//        Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = policyByRuleList.stream()
+//                .collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
         int successNum = 0;
         int errorNum = 0;
-        for (String strategy : strategyMap.keySet()) {
+//        for (String strategy : strategyMap.keySet()) {
             ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
             List<Long> sourceIds = new ArrayList<>();
-            List<PushMarketingUserDetailByRuleDTO> datas = strategyMap.get(strategy);
-            datas.forEach((PushMarketingUserDetailByRuleDTO t)->{
+//            List<PushMarketingUserDetailByRuleDTO> datas = strategyMap.get(strategy);
+        policyByRuleList.forEach((PushMarketingUserDetailByRuleDTO t)->{
                 PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
                 BeanUtils.copyProperties(t, entity);
                 pushs.add(entity);
@@ -212,7 +212,8 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
             taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
             taskInfoDTO.setMethod("caseAdd");
             taskInfoDTO.setBatchNumber(apiCode);
-            taskInfoDTO.setStrategyCode(strategy);
+            // 成熟之后需要根据客户入参字段选择性添加这个字段（加上后决策会走自动流程）
+//            taskInfoDTO.setStrategyCode(strategy);
 
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(apiCode);
@@ -224,11 +225,13 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
             retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
             Result result = methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                successNum = successNum + datas.size();
+                successNum = policyByRuleList.size();
+//                successNum = successNum + datas.size();
             }else{
-                errorNum = errorNum + datas.size();
+                errorNum = policyByRuleList.size();
+//                errorNum = errorNum + datas.size();
             }
-        }
+//        }
         int num = policyByRuleList.size();
         PeriodPushLogExample example = new PeriodPushLogExample();
         example.createCriteria()
