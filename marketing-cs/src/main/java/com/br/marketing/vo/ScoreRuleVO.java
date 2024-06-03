@@ -86,7 +86,7 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "返回用户基本字段表头", dataType = "string", position = 9)
     private String baseInfo;
 
-    @ApiModelProperty(value = "任务执行策略 1-一次性全量；3-每个任务的周期;4-apicode级别统一周期", dataType = "integer", position = 10)
+    @ApiModelProperty(value = "任务执行策略 1-一次性全量；3-每个任务的周期;4-每日定时", dataType = "integer", position = 10)
     private Integer execType;
 
     @ApiModelProperty(value = "周期天数", dataType = "integer", position = 11)
@@ -106,6 +106,9 @@ public class ScoreRuleVO implements Serializable {
 
     @ApiModelProperty(value = "是否是在线跑分 1-在线；2-离线", dataType = "string", position = 15)
     private Integer isOnline;
+
+    @ApiModelProperty(value = "是否叠加有效期数据 0-否，1-是", dataType = "integer", position = 11)
+    private Integer isStackValidity;
 
     public ScoreRuleVO() {
     }

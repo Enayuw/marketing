@@ -113,6 +113,11 @@ public class ScoreRuleConfig {
      */
     private Integer isOnline;
 
+    /**
+     * 是否叠加有效期数据 0-否，1-是
+     */
+    private Integer isStackValidity;
+
     public Long getId() {
         return id;
     }
@@ -287,5 +292,13 @@ public class ScoreRuleConfig {
 
     public void setIsOnline(Integer isOnline) {
         this.isOnline = isOnline;
+    }
+
+    public Integer getIsStackValidity() {
+        return isStackValidity;
+    }
+
+    public void setIsStackValidity(Integer isStackValidity) {
+        this.isStackValidity = isStackValidity;
     }
 }

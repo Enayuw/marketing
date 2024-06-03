@@ -72,10 +72,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     SoleStrategyService soleStrategyService;
 
     @Override
-    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
+    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute, Integer execType) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute);
+            List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute, execType);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -117,6 +117,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
+        rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         rule.setRuleNameShort(createNo());
         int insert1 = scoreRuleConfigMapper.insert(rule);
