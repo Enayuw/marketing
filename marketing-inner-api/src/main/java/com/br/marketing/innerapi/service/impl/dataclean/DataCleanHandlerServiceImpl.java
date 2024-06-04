@@ -88,8 +88,14 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
         String ruleConfigShow = dto.getRuleCondition();
         //json处理
-        List<String> fieldList = getfieldMap(dto.getFileType());
-        String ruleConfig = ruleTransferHandler(ruleConfigShow, fieldList);
+        List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfigShow, new TypeReference<List<FileToMarketingFieldVO>>() {
+        }.getType());
+        List<String> mustFieldList = getInterFaceMustField(dto.getFileType());
+        List<String> interFaceFieldList = marketingFieldVOList.stream().map(FileToMarketingFieldVO::getInterfaceField).collect(Collectors.toList());
+        if (!interFaceFieldList.containsAll(mustFieldList)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("必填字段未配置，请检查");
+        }
+        String ruleConfig = ruleTransferHandler(ruleConfigShow, dto.getFileType());
         marketingDataFileConfig.setFieldConfig(ruleConfig);
         marketingDataFileConfig.setFieldConfigShow(ruleConfigShow);
         marketingDataFileConfig.setCleanType(dto.getFileType());
@@ -97,8 +103,12 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         marketingDataFileConfig.setFileId(fileId);
         if (StringUtils.isEmpty(dto.getRuleName())) {
             marketingDataFileConfig.setRuleName(apiCode + "_" + LocalDate.now().toString() + fileId);
+        }else{
+            marketingDataFileConfig.setRuleName(dto.getRuleName());
         }
         marketingDataFileConfig.setApiCode(apiCode);
+        marketingDataFileConfig.setCreateTime(new Date());
+        marketingDataFileConfig.setUpdateTime(new Date());
         if (Objects.isNull(configId)) {
             marketingDataFileConfigMapper.insertSelective(marketingDataFileConfig);
             configId = marketingDataFileConfig.getId();
@@ -124,34 +134,49 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
     }
 
-    private String ruleTransferHandler(String ruleConfig, List<String> fieldList) {
+
+    private String ruleTransferHandler(String ruleConfig, Integer fileType) {
         List<FileToMarketingFieldVO> ruleList = new ArrayList<>();
         List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfig, new TypeReference<List<FileToMarketingFieldVO>>() {
         }.getType());
         marketingFieldVOList.forEach(fileToMarketingFieldVO -> {
-            String interfaceField = fileToMarketingFieldVO.getInterfaceField();
-            if (StringUtils.isBlank(interfaceField)) {
-                FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
-                BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
-                fieldVO.setInterfaceField(fileToMarketingFieldVO.getHeadField());
-                fieldVO.setIsExtend(true);
-                ruleList.add(fieldVO);
-            }
-            List<String> interfaceFields = Arrays.asList(fileToMarketingFieldVO.getInterfaceField().split(","));
-            interfaceFields.forEach(field -> {
-                FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
-                BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
-                fieldVO.setInterfaceField(field);
-                if (fieldList.contains(field)) {
-                    fieldVO.setIsExtend(false);
-                } else {
-                    fieldVO.setIsExtend(true);
-                }
-                ruleList.add(fieldVO);
-            });
+                List<String> interfaceFields = Arrays.asList(fileToMarketingFieldVO.getInterfaceField().split(","));
+                interfaceFields.forEach(field -> {
+                    FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
+                    BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
+                    if (StringUtils.isBlank(field)) {
+                        fieldVO.setInterfaceField(fileToMarketingFieldVO.getHeadField());
+                    } else {
+                        fieldVO.setInterfaceField(field);
+                    }
+                    fieldVO.setIsExtend(isExtend(fileType, field));
+                    fieldVO.setIsMust(isFileMust(fileType, field));
+                    ruleList.add(fieldVO);
+                });
         });
         return JSON.toJSONString(ruleList);
     }
+
+    private Boolean isFileMust(Integer fileType, String field) {
+        List<String> mustList = new ArrayList<>();
+        if (fileType.equals(0)) {
+            mustList = Lists.newArrayList("custNum", "cell");
+        } else {
+            mustList = Lists.newArrayList("custNum");
+        }
+        return mustList.contains(field);
+
+    }
+
+    private Boolean isExtend(Integer fileType, String field) {
+        List<String> fieldList = getfieldMap(fileType);
+        if (fieldList.contains(field)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
 
     @Override
     public List<String> getfieldMap(Integer fileType) {
@@ -162,6 +187,17 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
             fieldList = TRANSFER_FIELD;
         }
         return fieldList;
+    }
+
+
+    private List<String> getInterFaceMustField(Integer fileType) {
+        List<String> mustfieldList = new ArrayList<>();
+        if (fileType.equals(0)) {
+            mustfieldList = Lists.newArrayList("custNum", "cell", "userType");
+        } else {
+            mustfieldList = Lists.newArrayList("custNum", "userType");
+        }
+        return mustfieldList;
     }
 
     @Override
@@ -201,14 +237,19 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Override
     public Result updateConfig(DataCleanConfigDTO dto) {
-        MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
-        List<String> fieldList = getfieldMap(dto.getFileType());
-        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), fieldList);
-        marketingDataFileConfig.setFieldConfig(ruleConfig);
-        marketingDataFileConfig.setFieldConfigShow(dto.getRuleConfig());
-        marketingDataFileConfig.setRuleName(dto.getRuleName());
-        marketingDataFileConfig.setId(dto.getId());
-        marketingDataFileConfigMapper.updateByPrimaryKeySelective(marketingDataFileConfig);
+
+        MarketingDataFileConfig marketingDataFileConfig  = marketingDataFileConfigMapper.selectByPrimaryKey(dto.getId());
+        if(marketingDataFileConfig==null){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("清洗配置规则不存在");
+        }
+        MarketingDataFileConfig update = new MarketingDataFileConfig();
+        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), marketingDataFileConfig.getCleanType());
+        update.setFieldConfig(ruleConfig);
+        update.setFieldConfigShow(dto.getRuleConfig());
+        update.setRuleName(dto.getRuleName());
+        update.setId(dto.getId());
+        update.setUpdateTime(new Date());
+        marketingDataFileConfigMapper.updateByPrimaryKeySelective(update);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -217,8 +258,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
         MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
         marketingDataFileConfig.setApiCode(dto.getApiCode());
-        List<String> fieldList = getfieldMap(dto.getFileType());
-        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), fieldList);
+        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), dto.getFileType());
         marketingDataFileConfig.setFieldConfig(ruleConfig);
         marketingDataFileConfig.setFieldConfigShow(dto.getRuleConfig());
         marketingDataFileConfig.setCleanType(dto.getFileType());
