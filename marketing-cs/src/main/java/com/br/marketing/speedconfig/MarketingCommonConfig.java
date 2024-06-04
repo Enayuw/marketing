@@ -1655,5 +1655,10 @@ public class MarketingCommonConfig {
      * 金美鑫黑名单文件校验相关配置
      */
     private String jinMeiXinBlackListFileCheckConfig;
+
+    /**
+     * marketing-task跑分服务节点数量
+     */
+    private Integer numberOfScoreTaskNodes;
 }
 

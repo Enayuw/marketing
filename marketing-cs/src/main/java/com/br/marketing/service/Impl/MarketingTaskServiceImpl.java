@@ -9,6 +9,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
@@ -19,11 +20,38 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingSyncInfoExample;
+import com.br.marketing.entity.MarketingSyncReport;
+import com.br.marketing.entity.MarketingSyncReportExample;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MarketingTaskExample;
+import com.br.marketing.entity.MarketingTaskExtend;
+import com.br.marketing.entity.MarketingTaskResultPreview;
+import com.br.marketing.entity.MarketingTaskResultPreviewExample;
+import com.br.marketing.entity.MarketingTaskUserType;
+import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.entity.StraHisFileExample;
+import com.br.marketing.entity.TaskBatchnumberPre;
+import com.br.marketing.entity.TaskBatchnumberPreExample;
 import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.mapper.*;
+import com.br.marketing.enums.ZkScoreStatusEnum;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingSyncReportMapper;
+import com.br.marketing.mapper.MarketingTaskExtendMapper;
+import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.MarketingTaskResultPreviewMapper;
+import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
+import com.br.marketing.mapper.ScoreRuleConfigMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.mapper.TaskBatchnumberPreMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.*;
+import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.IDynamicSqlService;
+import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.MarketingTaskVO;
@@ -31,17 +59,26 @@ import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -123,6 +160,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    private CuratorFramework client;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -610,6 +650,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             scoreRuleConfigMapper.updateByPrimaryKeySelective(scoreRuleConfig);
         }
 
+        // 当任务优先级为0，判断是否需要暂停一个非0的任务
+        getOtherTaskAndPause(task);
+
         //region 发送通知
         StringBuilder content = new StringBuilder();
         content.append("apiCode：".concat(apiCode).concat("\r\n"))
@@ -804,5 +847,63 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             zu++;
         }
         return zu*mo;
+    }
+
+    /**
+     * 暂停正在跑分中的非0优先级任务
+     * @param task
+     */
+    private void getOtherTaskAndPause(MarketingTask task) {
+        if (task.getPriority() == 0) {
+            StraHisFileExample straHisFileExample = new StraHisFileExample();
+            straHisFileExample.createCriteria().andStatusEqualTo(3);
+            List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+
+            if (!CollectionUtils.isEmpty(straHisFiles)) {
+                List<Integer> fileIds = straHisFiles.stream().map(StraHisFile::getId).map(Long::intValue).collect(Collectors.toList());
+                Integer numberOfScoreTaskNodes = marketingCommonConfig.getNumberOfScoreTaskNodes();
+                numberOfScoreTaskNodes = numberOfScoreTaskNodes == null ? 4 : numberOfScoreTaskNodes;
+
+                // 判断跑分中任务数量和分片数是否相等
+                if (straHisFiles.size() == numberOfScoreTaskNodes) {
+                    // 获取正在跑分中的优先级非0的任务
+                    MarketingTaskExample marketingTaskExample = new MarketingTaskExample();
+                    marketingTaskExample.createCriteria().andFileIdIn(fileIds).andPriorityNotEqualTo(0);
+                    marketingTaskExample.setOrderByClause("priority desc, start_date desc");
+                    List<MarketingTask> runningTasks = marketingTaskMapper.selectByExample(marketingTaskExample);
+                    if (!CollectionUtils.isEmpty(runningTasks)) {
+                        MarketingTask taskNeedPause = runningTasks.get(0);
+                        Optional<StraHisFile> first =
+                                straHisFiles.stream().filter((StraHisFile straHisFile) -> straHisFile.getId().equals(taskNeedPause.getFileId())).findFirst();
+
+                        pauseTask(first);
+                    }
+                }
+            }
+        }
+    }
+
+    private void pauseTask(Optional<StraHisFile> first) {
+        if (first.isPresent()) {
+            StraHisFile straHisFileNeedPause = first.get();
+            if (!ScoreStatusEnum.RUNNING.getValue().equals(straHisFileNeedPause.getStatus())) {
+                log.warn("暂停优先级非0任务失败。该跑分任务已结束，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
+            }
+
+            String filePath = ZookeeperPath.marketStatusPath.concat("/").concat(straHisFileNeedPause.getId().toString());
+            try {
+                if (client.checkExists().forPath(filePath) == null) {
+                    log.warn("暂停优先级非0任务失败。该跑分任务正在启动中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
+                }
+                String value = new String(client.getData().forPath(filePath));
+                if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
+                    log.warn("暂停优先级非0任务失败。该跑分任务不在进行中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
+                }
+
+                client.setData().forPath(filePath, ZkScoreStatusEnum.PAUSE.getValue().getBytes(StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                log.error("暂停优先级非0任务失败。跑分编号：{}", straHisFileNeedPause.getBatchNumber(), e);
+            }
+        }
     }
 }
