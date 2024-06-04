@@ -62,7 +62,8 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
     final static String EXECUTE_TIME = "01:00:00";
 
     private final static String FILE_HEADER = "requestId,requestTime,custNum,cell,userType,userType1,registerTime,ifApply,applyDt,applyResult,"
-        + "auditTime,auditAmount,ifLent,lentTime,lentAmount,applyLoan,applyLoanTime,applyLoanAmount,ifActivity,activityTime,unlentAmount,caseEffective";
+        + "auditTime,auditAmount,ifLent,lentTime,lentAmount,applyLoan,applyLoanTime,applyLoanAmount,"
+        + "ifActivity,activityTime,unlentAmount,caseEffective";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -202,6 +203,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                     String applyLoan = null;
                     String applyLoanTime = null;
                     String applyLoanAmount = null;
+                    String unlentAmount = null;
                     if (StringUtils.isNotBlank(reserveField1)) {
                         JSONObject jsonObject = JSON.parseObject(reserveField1);
                         ifActivity = jsonObject.getString("ifActivity");
@@ -209,28 +211,27 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                         applyLoan = jsonObject.getString("applyLoan");
                         applyLoanTime = jsonObject.getString("applyLoanTime");
                         applyLoanAmount = jsonObject.getString("applyLoanAmount");
+                        unlentAmount = jsonObject.getString("unlentAmount");
                     }
-                    sb.append(emptyDefault(transferSyncUser.getRequestId())).append(",");
-                    sb.append(removeMillisecond(emptyDefault(transferSyncUser.getRefuseTime()))).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getCustNum())).append(",");
-                    sb.append(emptyDefault(preUserMap.get(custNum) != null ? preUserMap.get(custNum).getCellMd5() : "")).append(",");
-                    sb.append(emptyDefault(preUserMap.get(custNum) != null ? preUserMap.get(custNum).getUserType() : "")).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getUserType())).append(",");
-                    sb.append(removeMillisecond(emptyDefault(transferSyncUser.getRegisterTime()))).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getIfApply())).append(",");
-                    sb.append(removeMillisecond(emptyDefault(transferSyncUser.getApplyDt()))).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getApplyResult())).append(",");
-                    sb.append(removeMillisecond(emptyDefault(transferSyncUser.getAuditTime()))).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getAuditAmount())).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getIfLent())).append(",");
-                    sb.append(removeMillisecond(emptyDefault(transferSyncUser.getLentTime()))).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getLentAmount())).append(",");
-                    sb.append(emptyDefault(applyLoan)).append(",");
-                    sb.append(removeMillisecond(emptyDefault(applyLoanTime))).append(",");
-                    sb.append(emptyDefault(applyLoanAmount)).append(",");
-                    sb.append(emptyDefault(ifActivity)).append(",");
-                    sb.append(removeMillisecond(emptyDefault(activityTime))).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getUnlentAmount())).append(",");
+                    sb.append(emptyDefault(transferSyncUser.getRequestId())).append(",")
+                        .append(removeMillisecond(emptyDefault(transferSyncUser.getRequestTime()))).append(",")
+                        .append(emptyDefault(transferSyncUser.getCustNum())).append(",")
+                        .append(emptyDefault(preUserMap.get(custNum) != null ? preUserMap.get(custNum).getCellMd5() : "")).append(",")
+                        .append(emptyDefault(preUserMap.get(custNum) != null ? preUserMap.get(custNum).getUserType() : "")).append(",")
+                        .append(emptyDefault(transferSyncUser.getUserType())).append(",")
+                        .append(removeMillisecond(emptyDefault(transferSyncUser.getRegisterTime()))).append(",")
+                        .append(emptyDefault(transferSyncUser.getIfApply())).append(",")
+                        .append(removeMillisecond(emptyDefault(transferSyncUser.getApplyDt()))).append(",")
+                        .append(emptyDefault(transferSyncUser.getApplyResult())).append(",")
+                        .append(removeMillisecond(emptyDefault(transferSyncUser.getAuditTime()))).append(",")
+                        .append(emptyDefault(transferSyncUser.getAuditAmount())).append(",").append(emptyDefault(transferSyncUser.getIfLent()))
+                        .append(",").append(removeMillisecond(emptyDefault(transferSyncUser.getLentTime()))).append(",")
+                        .append(emptyDefault(transferSyncUser.getLentAmount())).append(",").append(emptyDefault(applyLoan)).append(",")
+                        .append(removeMillisecond(emptyDefault(applyLoanTime))).append(",").append(emptyDefault(applyLoanAmount)).append(",")
+                        .append(emptyDefault(ifActivity)).append(",").append(removeMillisecond(emptyDefault(activityTime))).append(",");
+                    String tableFieldUnlentAmount = emptyDefault(transferSyncUser.getUnlentAmount());
+                    String finalAmount = StringUtils.isNotBlank(unlentAmount) ? unlentAmount : tableFieldUnlentAmount;
+                    sb.append(emptyDefault(finalAmount)).append(",");
                     sb.append(emptyDefault(transferSyncUser.getCaseEffective()));
                     sb.append("\r\n");
                     try {
