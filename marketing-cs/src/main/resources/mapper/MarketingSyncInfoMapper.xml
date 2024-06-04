@@ -459,6 +459,7 @@
         <foreach collection="idList" item="id" separator="," open="(" close=")">
             #{id}
         </foreach>
+        and is_repeat in (1,2);
     </select>
 
 </mapper>

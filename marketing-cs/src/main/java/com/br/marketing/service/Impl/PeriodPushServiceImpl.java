@@ -97,7 +97,6 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                     break;
                 }
                 List<Long> periodPushLogIdList = new ArrayList<>();
-//                List<Long> periodPushLogIdList = periodPushLogList.stream().map(PeriodPushLog::getId).collect(Collectors.toList());
                 // 获取满足时间间隔的上传详情表数据并获取不超过2000批的数据
                 List<Long> idsList = new ArrayList<>();
                 periodPushLogList.stream().forEach((PeriodPushLog t)->{
