@@ -199,22 +199,14 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                     varDto.put("groupType", syncUser.getUserType());
                     varDto.put("id", pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getIdCard())));
                     varDto.put("name", pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(syncUser.getName())));
-                    String apiCode = syncUser.getApiCode();
-                    String nowDay = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                     for (String s : reserveField1JSONObject.keySet()) {
                         varDto.put(s, reserveField1JSONObject.getString(s));
                         if (s.toLowerCase().equals("strategycode")) {
                             pushMarketingUserDetailByRuleDTO.setStrategyCode(reserveField1JSONObject.getString(s));
                         }
-//                        if (s.toLowerCase().equals("batchnumber")) {
-//                            pushMarketingUserDetailByRuleDTO.setBatchNumber(reserveField1JSONObject.getString(s));
-//                        }
                     }
                     if (StringUtils.isBlank(pushMarketingUserDetailByRuleDTO.getStrategyCode())) {
                         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
-                    }
-                    if (StringUtils.isBlank(pushMarketingUserDetailByRuleDTO.getBatchNumber())) {
-                        pushMarketingUserDetailByRuleDTO.setBatchNumber(nowDay+"_"+apiCode);
                     }
                     pushMarketingUserDetailByRuleDTO.setVariables(varDto);
                     return pushMarketingUserDetailByRuleDTO;
@@ -242,45 +234,39 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
         int idSize = idList.size();
         int notNullPeriodSize = notNullPeriodPushLogId.size();
         int nullPeriodSize = nullPeriodPushLogId.size();
-//        Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = policyByRuleList.stream()
-//                .collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
         int successNum = 0;
         int errorNum = 0;
-//        for (String strategy : strategyMap.keySet()) {
-            ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
-            List<Long> sourceIds = new ArrayList<>();
-//            List<PushMarketingUserDetailByRuleDTO> datas = strategyMap.get(strategy);
+        String nowDay = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
+        List<Long> sourceIds = new ArrayList<>();
         policyByRuleList.forEach((PushMarketingUserDetailByRuleDTO t)->{
                 PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
                 BeanUtils.copyProperties(t, entity);
                 pushs.add(entity);
                 sourceIds.add(t.getInitId());
-            });
-            PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
-            taskInfoDTO.setData(pushs);
-            taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
-            taskInfoDTO.setMethod("caseAdd");
-            taskInfoDTO.setBatchNumber(apiCode);
+        });
+        PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
+        taskInfoDTO.setData(pushs);
+        taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
+        taskInfoDTO.setMethod("caseAdd");
+        taskInfoDTO.setBatchNumber(nowDay+"_"+apiCode);
             // 成熟之后需要根据客户入参字段选择性添加这个字段（加上后决策会走自动流程）
 //            taskInfoDTO.setStrategyCode(strategy);
 
-            PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-            pushMarketingUserDTO.setApiCode(apiCode);
-            pushMarketingUserDTO.setJsonData(taskInfoDTO);
+        PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+        pushMarketingUserDTO.setApiCode(apiCode);
+        pushMarketingUserDTO.setJsonData(taskInfoDTO);
 
-            PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
-            retryByRuleDTO.setIds(sourceIds);
-            retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
-            retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-            Result result = methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
-            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                successNum = policyByRuleList.size();
-//                successNum = successNum + datas.size();
-            }else{
-                errorNum = policyByRuleList.size();
-//                errorNum = errorNum + datas.size();
-            }
-//        }
+        PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
+        retryByRuleDTO.setIds(sourceIds);
+        retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
+        retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
+        Result result = methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            successNum = policyByRuleList.size();
+        }else{
+            errorNum = policyByRuleList.size();
+        }
         int num = policyByRuleList.size();
         PeriodPushLogExample example = new PeriodPushLogExample();
         example.createCriteria()
