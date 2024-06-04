@@ -40,7 +40,7 @@
     />
     <job:simple id="XcLoopCycleDataJob"
                 class="com.br.marketing.xcloop.job.XcLoopCycleDataJob"
-                cron="0 0/1 * * * ?"
+                cron="0/1 * * * * ?"
                 description="携程TRUE数据撞库作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
