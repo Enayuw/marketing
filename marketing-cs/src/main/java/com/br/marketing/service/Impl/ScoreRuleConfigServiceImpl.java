@@ -271,9 +271,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
-        if(scoreRuleVO.getExecType() == 4){
-            rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
-        }
+        rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
         rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         // 默认开启
         rule.setStatus(1);
