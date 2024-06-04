@@ -33,6 +33,9 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
 
     @Override
     public JSONObject call(List<PushMarketingUserDetailByRuleDTO> policyByRuleList, ProcessHandlerContext context) {
+        if (policyByRuleList.size() <= 0) {
+            return null;
+        }
         String pushApiCode = policyByRuleList.get(0).getPushApiCode();
         Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = policyByRuleList.stream().collect(Collectors.
                 groupingBy(PushMarketingUserDetailByRuleDTO::getBatchNumber));
@@ -55,7 +58,7 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                     logList.add(methodRetryHandlerService.dataJoinLogFix(entity, DistributeTypeEnum.POLICYDATA
                             , StringUtils.isEmpty(pushApiCode) ? context.getApiCode() : pushApiCode, t.getCaseNumber(),
                             BrCipherMaker.getInstance().encode(t.getCell())
-                            , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getStatus(),t.getExpireEndDate()));
+                            , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getStatus(), t.getExpireEndDate()));
 
                 }
                 PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
@@ -69,15 +72,15 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                 //传参去重
                 retryByRuleDTO.setIsSole(true);
                 //去重字段维度,根据传入值赋值，默认为cell维度去重
-                if(datas.get(0).getSoleField()!=null){
+                if (datas.get(0).getSoleField() != null) {
                     retryByRuleDTO.setSoleField(datas.get(0).getSoleField());
-                }else {
+                } else {
                     retryByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
                 }
                 //去重范围,根据传入值赋值，默认当天去重
-                if(datas.get(0).getSoleType()!=null){
+                if (datas.get(0).getSoleType() != null) {
                     retryByRuleDTO.setSoleDay(datas.get(0).getSoleType());
-                }else{
+                } else {
                     retryByRuleDTO.setSoleDay(1);
                 }
                 methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);
