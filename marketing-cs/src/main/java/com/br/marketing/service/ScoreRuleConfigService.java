@@ -36,7 +36,8 @@ public interface ScoreRuleConfigService {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/8/31 14:38
      */
-    PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute, Integer execType);
+    PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts,
+                                  String cte, String uts, String ute, Integer execType);
 
 
 

@@ -72,7 +72,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     SoleStrategyService soleStrategyService;
 
     @Override
-    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute, Integer execType) {
+    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts,
+                                         String cte, String uts, String ute, Integer execType) {
         PageHelper.startPage(page, pageSize);
         try {
             List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute, execType);
