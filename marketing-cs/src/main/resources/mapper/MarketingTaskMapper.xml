@@ -594,7 +594,7 @@
               <![CDATA[ and start_time<=#{hm}  ]]>
           </if>
         and status = 1
-        order by priority desc,start_time asc
+        order by priority, start_time asc
     </select>
     <select id="selectList" resultType="com.br.marketing.vo.MarketingTaskVO">
         select bmt.id,
