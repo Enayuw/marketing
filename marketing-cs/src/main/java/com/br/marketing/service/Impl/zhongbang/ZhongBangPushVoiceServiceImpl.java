@@ -143,12 +143,9 @@ public class ZhongBangPushVoiceServiceImpl implements IZhongBangPushVoiceService
             List<Long> fileIdList = zhongBangVoiceFileDetailMapper.selectDistinctLocalIdtikv_();
             fileIdList.stream().forEach((Long t)->{
                 Integer pushStatus2Total = zhongBangVoiceFileDetailMapper.selectPushStatusCount(2,t);
-                Integer pushStatus3Total = zhongBangVoiceFileDetailMapper.selectPushStatusCount(3,t);
-                Integer pushStatus4Total = zhongBangVoiceFileDetailMapper.selectPushStatusCount(4,t);
                 LocalFile record = new LocalFile();
                 record.setId(t);
                 record.setPushNumber(pushStatus2Total);
-                record.setErrorActualNumber(pushStatus3Total+pushStatus4Total);
                 record.setPushEndTime(new Date());
                 localFileMapper.updatePushNumber(record);
             });
