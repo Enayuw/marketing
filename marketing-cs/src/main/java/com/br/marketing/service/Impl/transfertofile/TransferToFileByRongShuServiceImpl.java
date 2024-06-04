@@ -102,7 +102,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
             StringUtils.isBlank(marketingCommonConfig.getRongShuFileExecTime()) ? EXECUTE_TIME : marketingCommonConfig.getRongShuFileExecTime();
         Date executeTime = DateHelper.getDatePlusHourMinuteSecond(now, " " + execute);
         if (now.after(executeTime)) {
-            String yyyyMMdd = LocalDate.now().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
@@ -135,7 +135,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
     public Result<String> actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
         Result<String> result = new Result<>();
         String apiCode = transferFileTask.getApiCode();
-        String date = LocalDate.now().minusDays(1).format(DateTimeFormatter.BASIC_ISO_DATE);
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
