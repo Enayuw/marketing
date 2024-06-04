@@ -36,9 +36,9 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
         YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
             (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)context.getRuleNecessaryData();
         SyncUserValidityPeriodsBO userValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
-        if (userValidityPeriodsBO == null) {
+        /*if (userValidityPeriodsBO == null) {
             return null;
-        }
+        }*/
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
@@ -78,7 +78,7 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
     }
 
     @Override
