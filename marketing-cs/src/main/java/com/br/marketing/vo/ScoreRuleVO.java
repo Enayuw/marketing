@@ -110,6 +110,9 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "是否叠加有效期数据 0-否，1-是", dataType = "integer", position = 11)
     private Integer isStackValidity;
 
+    @ApiModelProperty(value = "跑分优先级 0~9，0最高，9最小，默认值9", dataType = "integer", position = 11)
+    private Integer priority;
+
     public ScoreRuleVO() {
     }
 

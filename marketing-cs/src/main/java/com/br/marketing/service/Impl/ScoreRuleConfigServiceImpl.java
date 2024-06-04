@@ -117,7 +117,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
-        rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
+        if(scoreRuleVO.getExecType() == 4){
+            rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
+        }
+        rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         rule.setRuleNameShort(createNo());
         int insert1 = scoreRuleConfigMapper.insert(rule);
@@ -223,6 +226,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStrategyProductJson(rule.getStrategyProductJson());
         scoreRuleVO.setThreekEncryptType(rule.getThreekEncryptType());
         scoreRuleVO.setIsOnline(rule.getIsOnline());
+        scoreRuleVO.setPriority(rule.getPriority());
+        scoreRuleVO.setIsStackValidity(rule.getIsStackValidity());
         return scoreRuleVO;
     }
 
@@ -266,6 +271,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
+        if(scoreRuleVO.getExecType() == 4){
+            rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
+        }
+        rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         // 默认开启
         rule.setStatus(1);
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
