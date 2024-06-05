@@ -24,4 +24,9 @@
         order by t.create_time desc
     </select>
 
+    <update id="updateMarketingCleanDataTaskById">
+        update b_marketing_clean_data_task
+        set clean_status=#{cleanStatus},
+        where id=#{id}
+    </update>
 </mapper>

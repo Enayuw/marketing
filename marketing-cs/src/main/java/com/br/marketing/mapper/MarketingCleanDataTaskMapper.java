@@ -12,4 +12,5 @@ public interface MarketingCleanDataTaskMapper extends MarketingCleanDataTaskMapp
     List<DataCleanTaskVO> getTaskList(@Param("apiCode")String apiCode, @Param("fileType")String fileType,@Param("status") String status);
 
 
+    int updateMarketingCleanDataTaskById(@Param("id")Long id, @Param("cleanStatus") Integer cleanStatus);
 }

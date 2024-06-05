@@ -76,7 +76,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         // 查询满足处理条件的清洗任务
         MarketingCleanDataTaskExample example = new MarketingCleanDataTaskExample();
         example.createCriteria()
-                .andCreateTimeGreaterThanOrEqualTo(new Date())
+                .andCreateTimeLessThanOrEqualTo(new Date())
                 .andCleanStatusEqualTo(1)
                 .andIsDelEqualTo(1);
         example.setOrderByClause("create_time asc");
@@ -92,16 +92,19 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
     public void action(MarketingCleanDataTask task, IFileToMarketingRuleService iFileToMarketingRuleService, MarketingDataFileConfig marketingDataFileConfig) {
         String fileIds = task.getFileId();
         String fileStr = "";
+        Long taskId = task.getId();
         if(StringUtils.isNotBlank(fileIds)){
             String[] split = fileIds.split(",");
             for (int j = 0; j < split.length; j++) {
                 MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(Long.parseLong(split[j]));
-                fileStr = marketingCleanDataFile.getLocalPath();
-                String fileName = marketingCleanDataFile.getFileName();
+                fileStr = "D:\\test\\";
+                String fileName = "zhongbangtest.txt";
+//                fileStr = marketingCleanDataFile.getLocalPath();
+//                String fileName = marketingCleanDataFile.getFileName();
                 String apiCode = task.getApiCode();
                 String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 String tasId = apiCode.concat("_").concat(yyyyMMdd);
-                String requestIdPrefix = apiCode.concat("_").concat(fileStr).concat("_");
+                String requestIdPrefix = apiCode.concat("_").concat(fileName).concat("_");
                 String fileConfigString = marketingDataFileConfig.getFieldConfig();
                 // 解析配置的清洗规则
                 List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfigString, FileToMarketingFieldVO.class);
@@ -114,12 +117,12 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 // 定义一个map<表名:字段值>
                 Map<String, String> tableMap = new HashMap<>();
 
-                File file = new File(fileStr);
+                File file = new File(fileStr+fileName);
                 Integer line = 0;
                 Integer errorSum = 0;
                 Integer pushSum = 0;
                 ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5);
-                Date startDate = new Date();
+//                Date startDate = new Date();
                 try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                     String row = "";
                     Integer pushNum = 500;
@@ -151,15 +154,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                 headSum = headers.length;
                                 Result result = statisticsHeadByCommon(row, address, extra, mustHeads,fieldVosMap);
                                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                                    // TODO 表头校验异常
-                                    MarketingCleanDataTaskExample example = new MarketingCleanDataTaskExample();
-                                    Long id = task.getId();
-                                    example.createCriteria().andIdEqualTo(id);
-                                    MarketingCleanDataTask marketingCleanDataTask = new MarketingCleanDataTask();
-                                    marketingCleanDataTask.setCleanStatus(3);
-                                    marketingCleanDataTaskMapper.updateByExample(marketingCleanDataTask,example);
-                                    log.warn("清洗任务处理异常-id:{}-规则id:{}-文件名:{}-异常原因:{}",
-                                            id,task.getConfigId(),fileStr, result.getMessage());
+                                    log.warn("清洗任务表头校验异常-id:{}-规则id:{}-文件名:{}-异常原因:{}",
+                                            taskId,task.getConfigId(),fileName, result.getMessage());
+                                    marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId,3);
                                     return;
                                 }
                             } else {
@@ -167,7 +164,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                 List<String> datas = Splitter.on(",").splitToList(row);
                                 if (!headSum.equals(datas.size())) {
                                     ++errorSum;
-                                    log.warn("文件名:{};行数:{};错误:{};", fileStr, line, "该行与表头列数不一致");
+                                    log.warn("文件名:{};行数:{};错误:{};", fileName, line, "该行与表头列数不一致");
                                     continue;
                                 }
                                 // 确保表头和数据数量一致
@@ -183,7 +180,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                 HashMap<String, FileToMarketingDataFieldVO> dataFieldMap = new HashMap<>();
                                 HashSet hasSet = new HashSet();
                                 ArrayList<String> list = Lists.newArrayList();
-                                String cell = "";
+//                                String cell = "";
 
                                 //region 每列的字段处理逻辑
                                 for (int i = 0; i < datas.size(); i++) {
@@ -250,14 +247,14 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                                 break; // 如果解析成功，则跳出循环
                                             } catch (DateTimeParseException e) {
                                                 // 忽略异常，并尝试下一个解析器
-                                                log.warn("文件名:{};行数:{};错误:{};", fileStr, line, "该行与表头列数不一致");
+                                                log.warn("文件名:{};行数:{};错误:{};", fileName, line, "该行与表头列数不一致");
                                             }
                                         }
                                         if (date != null) {
                                             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
                                             value = date.format(formatter);
                                         } else {
-                                            log.warn("无法解析日期:{}-文件名:{}-行数:{}", value, fileStr, line);
+                                            log.warn("无法解析日期:{}-文件名:{}-行数:{}", value, fileName, line);
                                         }
                                     }
                                     // 必填字段没值 则报错
@@ -284,7 +281,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                 if(StringUtils.isBlank(tableMap.get("fileName"))){
                                     FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
                                     vo.setInterfaceField("fileName");
-                                    vo.setDataValue(fileStr);
+                                    vo.setDataValue(fileName);
                                     dataFieldVOS.add(vo);
                                 }
                                 // 选填字段处理：例如身份证号和性别选填二选一
@@ -297,13 +294,13 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     }
                                     if(!b){
                                         ++errorSum;
-                                        log.warn("文件名:{};行数:{};错误:{};", fileStr, line, "选填字段未赋值:"+list);
+                                        log.warn("文件名:{};行数:{};错误:{};", fileName, line, "选填字段未赋值:"+list);
                                         continue;
                                     }
                                 }
                                 if (StringUtils.isNotBlank(errorMsg.toString())) {
                                     ++errorSum;
-                                    log.warn("文件名:{};行数:{};错误:{};", fileStr, line, errorMsg.toString());
+                                    log.warn("文件名:{};行数:{};错误:{};", fileName, line, errorMsg.toString());
                                     continue;
                                 }
 
@@ -311,7 +308,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                 Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
                                 if (!ResultCode.SUCCESS.getValue().equals(vaild.getCode())) {
                                     ++errorSum;
-                                    log.warn("文件名:{};行数:{};错误:{};", fileStr, line, vaild.getMessage());
+                                    log.warn("文件名:{};行数:{};错误:{};", fileName, line, vaild.getMessage());
                                     continue;
                                 }
                                 MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
@@ -347,10 +344,12 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 } catch (Exception ex) {
                     log.error("[{}]数据清洗文件[{}]清洗失败-文件行数[{}]-推送成功数[{}]-推送失败数[{}]--"
                             , apiCode, fileName, line, pushSum, errorSum, ex);
+                    marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId,3);
                 }
                 // 打印处理正确和不正确的条数以及所在行
                 log.warn("[{}]数据清洗文件[{}]-文件行数[{}]-推送成功数[{}]-推送失败数[{}]"
                         , apiCode, fileName, line, pushSum, errorSum);
+                marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId,2);
             }
         }
     }

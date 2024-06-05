@@ -9,6 +9,7 @@ import com.br.marketing.service.IFileToMarketingRuleService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
@@ -20,6 +21,7 @@ import javax.annotation.Resource;
  * @Date: 2024-05-24
  */
 @Slf4j
+@Component
 public class DataCleaningGeneralJob extends AbstractSimpleElasticJob {
 
     @Resource
