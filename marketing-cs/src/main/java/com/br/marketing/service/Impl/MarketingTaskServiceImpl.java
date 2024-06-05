@@ -72,13 +72,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -874,7 +868,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     if (!CollectionUtils.isEmpty(runningTasks)) {
                         MarketingTask taskNeedPause = runningTasks.get(0);
                         Optional<StraHisFile> first =
-                                straHisFiles.stream().filter((StraHisFile straHisFile) -> straHisFile.getId().equals(taskNeedPause.getFileId())).findFirst();
+                                straHisFiles.stream().filter((StraHisFile straHisFile) -> straHisFile.getId()
+                                        .equals(taskNeedPause.getFileId())).findFirst();
 
                         pauseTask(first);
                     }
@@ -895,7 +890,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 if (client.checkExists().forPath(filePath) == null) {
                     log.warn("暂停优先级非0任务失败。该跑分任务正在启动中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
                 }
-                String value = new String(client.getData().forPath(filePath));
+                String value = Arrays.toString(client.getData().forPath(filePath));
                 if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
                     log.warn("暂停优先级非0任务失败。该跑分任务不在进行中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
                 }
