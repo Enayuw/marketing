@@ -138,6 +138,11 @@ public class StraHisFile {
      */
     private String offlineFilePath;
 
+    /**
+     * 跑分结束时间
+     */
+    private Date runningEndTime;
+
     public Long getId() {
         return id;
     }
@@ -352,5 +357,13 @@ public class StraHisFile {
 
     public void setOfflineFilePath(String offlineFilePath) {
         this.offlineFilePath = offlineFilePath == null ? null : offlineFilePath.trim();
+    }
+
+    public Date getRunningEndTime() {
+        return runningEndTime;
+    }
+
+    public void setRunningEndTime(Date runningEndTime) {
+        this.runningEndTime = runningEndTime;
     }
 }

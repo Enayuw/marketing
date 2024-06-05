@@ -184,10 +184,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         MarketingTask marketingTask = new MarketingTask();
         marketingTask.setPriority(priority);
         marketingTask.setId(Long.valueOf(id));
-        Integer exist = marketingTaskMapper.selectByPriority(priority);
-        if (exist > 0) {
-            return new ApiResult<Boolean>().fail(CodeEnum.TASK_PRIORITY_EXIST.getMessage());
-        }
         marketingTaskMapper.updateByPrimaryKeySelective(marketingTask);
         return new ApiResult<Boolean>().success(true);
     }
@@ -764,6 +760,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         updateEntity.setZipfileName(dto.getFileName());
         updateEntity.setStatus(suc ? ScoreStatusEnum.OFFLINESUCCESS.getValue() : ScoreStatusEnum.OFFLINEFAIL.getValue());
         updateEntity.setOfflineFilePath(dto.getFilePath());
+        updateEntity.setRunningEndTime(new Date());
         straHisFileMapper.updateByPrimaryKeySelective(updateEntity);
         if (suc) {
             producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK, id.toString());
