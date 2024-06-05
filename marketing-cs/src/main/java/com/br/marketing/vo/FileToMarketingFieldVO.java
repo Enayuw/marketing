@@ -7,7 +7,7 @@ public class FileToMarketingFieldVO {
     private String headField;
     private String interfaceField;
     private Boolean isMust;
-    private String defalutValue;
+    private String defaultValue;
     private Boolean isExtend;
     private String dynamicData;
     private String conversion;

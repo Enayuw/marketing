@@ -289,8 +289,8 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                 // 根据动态配置赋值
                                 if(StringUtils.isNotBlank(fieldVO.getDynamicData())){
                                     value = tableMap.get(fieldVO.getDynamicData());
-                                }else if(StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
-                                    value = fieldVO.getDefalutValue();
+                                }else if(StringUtils.isNotBlank(fieldVO.getDefaultValue())) {
+                                    value = fieldVO.getDefaultValue();
                                 }
                             }
                             // 字典项不为空 则进行字典项映射

@@ -345,4 +345,7 @@ public interface MarketingSyncUserMapper {
     Long noDesUploadByMinIdtiflash_(@Param("apiCode") String apiCode);
 
     Integer updateSqlByNoDestikv_(@Param("updateSql") String updateSql);
+
+
+    List<MarketingSyncUser> getSyncUserByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
 }

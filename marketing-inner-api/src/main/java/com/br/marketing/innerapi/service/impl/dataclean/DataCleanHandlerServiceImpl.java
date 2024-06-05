@@ -10,10 +10,7 @@ import com.br.marketing.dto.dataclean.DataCleanConfigDTO;
 import com.br.marketing.dto.dataclean.DataCleanRuleDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
-import com.br.marketing.mapper.MarketingCleanDataFileMapper;
-import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
-import com.br.marketing.mapper.MarketingDataFileConfigMapper;
-import com.br.marketing.mapper.MarketingUserMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.br.marketing.vo.dataclean.DataCleanConfigVO;
@@ -28,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -55,10 +53,13 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
 
     @Resource
-    MarketingUserMapper marketingUserMapper;
+    private MarketingUserMapper marketingUserMapper;
 
     @Autowired
-    PushRuleService pushRuleService;
+    private PushRuleService pushRuleService;
+
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     public static final List<String> UPLOAD_FIELD = Lists.newArrayList("custNum", "cell", "id", "name", "userType");
     public static final List<String> TRANSFER_FIELD = Lists.newArrayList("custNum", "userType");
@@ -143,6 +144,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         }
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
     }
+    
 
 
     private String ruleTransferHandler(String ruleConfig, Integer fileType) {
@@ -159,8 +161,18 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
                     } else {
                         fieldVO.setInterfaceField(field);
                     }
+                    if(StringUtils.isBlank(fieldVO.getHeadField())){
+                        fieldVO.setHeadField(fieldVO.getInterfaceField());
+                    }
                     fieldVO.setIsExtend(isExtend(fileType, field));
                     fieldVO.setIsMust(isFileMust(fileType, field));
+                    String conversion = fieldVO.getConversion();
+                    if(!StringUtils.isBlank(conversion)){
+                        Map mapConversion =JSON.parseObject(conversion, new TypeReference<Map<String, String>>(){});
+                        List<Map<String,String>> listConversion = new ArrayList<>();
+                        listConversion.add(mapConversion);
+                        fieldVO.setConversion(JSON.toJSONString(listConversion));
+                    }
                     ruleList.add(fieldVO);
                 });
         });
@@ -335,7 +347,10 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         //插入上传明细表
         pushRuleService.insertMarketingPreUserSync(syncInfo.getId());
         //查询明细表
-
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(dto.getApiCode(),uploadDataDTO.getRequestId());
+        if(CollectionUtils.isEmpty(syncUserList)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("试跑失败，请检查配置");
+        }
         return null;
     }
 
