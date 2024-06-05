@@ -1657,6 +1657,16 @@ public class MarketingCommonConfig {
     private String jinMeiXinBlackListFileCheckConfig;
 
     /**
+     * 榕树转化数据提取apiCode集合
+     */
+    private List<String> rongShuTransferApiCodes;
+
+    /**
+     * 榕树数据提取时间
+     */
+    private String rongShuFileExecTime;
+
+    /**
      * marketing-task跑分服务节点数量
      */
     private Integer numberOfScoreTaskNodes;
