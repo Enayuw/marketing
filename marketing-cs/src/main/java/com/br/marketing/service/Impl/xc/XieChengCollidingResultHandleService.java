@@ -52,7 +52,7 @@ public class XieChengCollidingResultHandleService {
         robDto.setCreateTime(new Date());
         robDto.setUpdateTime(new Date());
 
-        robDto.setIsDelete(0);
+        robDto.setIsDelete(1);
         robDto.setRetryCount(0);
         xieChengCollidingDataRobMapper.insertSelective(robDto);
     }
