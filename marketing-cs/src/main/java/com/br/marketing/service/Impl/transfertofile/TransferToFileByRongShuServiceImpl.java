@@ -231,9 +231,9 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                         .append(emptyDefault(ifActivity)).append(",").append(removeMillisecond(emptyDefault(activityTime))).append(",");
                     String tableFieldUnlentAmount = emptyDefault(transferSyncUser.getUnlentAmount());
                     String finalAmount = StringUtils.isNotBlank(unlentAmount) ? unlentAmount : tableFieldUnlentAmount;
-                    sb.append(emptyDefault(finalAmount)).append(",");
-                    sb.append(emptyDefault(transferSyncUser.getCaseEffective()));
-                    sb.append("\r\n");
+                    sb.append(emptyDefault(finalAmount)).append(",")
+                    .append(emptyDefault(transferSyncUser.getCaseEffective()))
+                    .append("\r\n");
                     try {
                         fw.append(sb.toString());
                     } catch (IOException e) {
@@ -249,13 +249,13 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("众邦财富转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}", taskCount, completedTaskCount, taskCount - completedTaskCount);
+                    log.info("榕树转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}", taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
             saveUpdateTask(transferFileTask, totalSize);
-            log.warn("众邦财富转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+            log.warn("榕树转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
         } catch (InterruptedException e) {
-            log.error("众邦财富转化数据提取-本地文件生成失败！" + e.getMessage(), e);
+            log.error("榕树转化数据提取-本地文件生成失败！" + e.getMessage(), e);
             threadPool.shutdownNow();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
