@@ -13,6 +13,8 @@ import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
+import com.br.marketing.mapper.MarketingUserMapper;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.br.marketing.vo.dataclean.DataCleanConfigVO;
 import com.br.marketing.vo.dataclean.DataCleanTaskVO;
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +52,13 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Resource
     private MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
+
+
+    @Resource
+    MarketingUserMapper marketingUserMapper;
+
+    @Autowired
+    PushRuleService pushRuleService;
 
     public static final List<String> UPLOAD_FIELD = Lists.newArrayList("custNum", "cell", "id", "name", "userType");
     public static final List<String> TRANSFER_FIELD = Lists.newArrayList("custNum", "userType");
@@ -139,9 +149,9 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         List<FileToMarketingFieldVO> ruleList = new ArrayList<>();
         List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfig, new TypeReference<List<FileToMarketingFieldVO>>() {
         }.getType());
-        marketingFieldVOList.forEach(fileToMarketingFieldVO -> {
+        marketingFieldVOList.forEach((FileToMarketingFieldVO fileToMarketingFieldVO) -> {
                 List<String> interfaceFields = Arrays.asList(fileToMarketingFieldVO.getInterfaceField().split(","));
-                interfaceFields.forEach(field -> {
+                interfaceFields.forEach((String field) -> {
                     FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
                     BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
                     if (StringUtils.isBlank(field)) {
@@ -298,8 +308,33 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Override
     public Result<Long> testTask(DataCleanRuleDetailDTO dto) {
-        //TODO:试跑
-
+        Long fieldId = Long.valueOf(Arrays.asList(dto.getFileIds().split(",")).get(0));
+        MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(fieldId);
+        String data = marketingCleanDataFile.getFileData();
+        MarketingDataFileConfig marketingDataFileConfig =marketingDataFileConfigMapper.selectByPrimaryKey(dto.getRuleId());
+        String ruleConfig = marketingDataFileConfig.getFieldConfig();
+        //组装数据 TODO
+        //插入上传info表
+        MarketingPreUserDTO uploadDataDTO = new MarketingPreUserDTO();
+        MarketingSyncInfo syncInfo = new MarketingSyncInfo();
+        try {
+            syncInfo.setApiCode(dto.getApiCode());
+            syncInfo.setCusBatch(uploadDataDTO.getTaskId());
+            syncInfo.setRequestBatch(uploadDataDTO.getRequestId());
+            syncInfo.setCreateTime(new Date());
+            syncInfo.setJsonData(JSON.toJSONString(uploadDataDTO));
+            syncInfo.setActualNum(uploadDataDTO.getDataItems().size());
+            marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+        } catch (DuplicateKeyException keyException) {
+            log.error("数据清洗上传数据request_batch重复，requestBatch = {}", uploadDataDTO.getRequestId());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("中邮上传数据request_batch重复");
+        } catch (Exception ex) {
+            log.error("中邮上传数据插入异常", ex.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("中邮上传数据插入异常");
+        }
+        //插入上传明细表
+        pushRuleService.insertMarketingPreUserSync(syncInfo.getId());
+        //查询明细表
 
         return null;
     }
