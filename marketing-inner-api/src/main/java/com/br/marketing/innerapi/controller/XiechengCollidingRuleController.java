@@ -110,7 +110,7 @@ public class XiechengCollidingRuleController {
     @ApiOperation(value = "6-变更任务状态")
     @PostMapping("/rule/collidingSwitch")
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_UPDATE_COLLIDING_SWITCH,
-        extendInfo = "将{#param.packageName}{#param.collidingSwitch == 1 ? '启用' : '禁用'}")
+        extendInfo = "将{#param.packageName}{#param.collidingSwitch == 0 ? '启用' : '禁用'}")
     public ApiResult<Boolean> updateCollidingSwitch(UpdateCollidingSwitchParam param) {
         try {
             return new ApiResult<Boolean>().success(xieChengCollidingRuleService.updateCollidingSwitch(param));

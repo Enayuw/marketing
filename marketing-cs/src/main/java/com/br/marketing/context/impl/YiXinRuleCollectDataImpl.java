@@ -1,5 +1,6 @@
 package com.br.marketing.context.impl;
 
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.BlackQueryDetailDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
@@ -9,10 +10,10 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.entity.CallRecord;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
@@ -58,15 +59,19 @@ public class YiXinRuleCollectDataImpl extends CommonMethodHandlerService{
     @Resource
     private CallRecordMapper callRecordMapper;
 
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             YiXinRuleNecessaryData ruleNecessaryData = new YiXinRuleNecessaryData();
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            Map<String, MarketingSyncUser> collect = customerMarketingSyncUser(set, context.getApiCode());
+            Map<String, SyncUserValidityPeriodsBO> syncUser =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, context.getApiCode(), new Date());
+            ruleNecessaryData.setCustomerMap(syncUser);
             Map<String,String> blackList = queryBlackData(transferList,context.getApiCode());
-            ruleNecessaryData.setCustomerMap(collect);
             ruleNecessaryData.setBlackList(blackList);
 
             String cId = tableCreateService.getCId(context.getApiCode());
@@ -125,7 +130,7 @@ public class YiXinRuleCollectDataImpl extends CommonMethodHandlerService{
         /**
          * 宜信实时推电销所需信息
          */
-        private Map<String, MarketingSyncUser> customerMap;
+        private Map<String, SyncUserValidityPeriodsBO> customerMap;
 
         /**
          * 宜信实时推电销黑名单

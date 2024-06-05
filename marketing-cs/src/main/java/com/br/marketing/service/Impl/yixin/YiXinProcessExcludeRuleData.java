@@ -34,9 +34,6 @@ public class YiXinProcessExcludeRuleData {
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSecond(marketingTransferSyncUserList);
         }
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
-            yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUserList);
-        }
-        if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUserList);
         }
     }
@@ -55,9 +52,6 @@ public class YiXinProcessExcludeRuleData {
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUserList);
         }
-        if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
-            yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUserList);
-        }
     }
 
     /**
@@ -71,10 +65,6 @@ public class YiXinProcessExcludeRuleData {
         if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
             yiXinProcessGetBaseExcludeRuleDataService.excludeRuleSixth(marketingTransferSyncUserList);
         }
-        if(CollectionUtils.isNotEmpty(marketingTransferSyncUserList)){
-            yiXinProcessGetBaseExcludeRuleDataService.excludeRuleThird(marketingTransferSyncUserList);
-        }
-
     }
 
     /**

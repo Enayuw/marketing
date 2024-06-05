@@ -11,6 +11,9 @@ public enum DistributeTypeEnum {
     DAAS_REAL_TIME_USER_ONE(3, "人工实时推送用户名单(单条)"),
     DAAS_TRANSFER(4, "人工转化"),
     ZHONGAN_PUSH_DETAIL(5, "众安明细推送"),
+    YIXIN_TRANSFER_PUSH_BAIYING(6, "宜信转化推送百应"),
+    YIXIN_REALTIME_POLICYDATA(7, "宜信实时推决策数据"),
+
     ;
 
     private Integer value;
