@@ -701,6 +701,38 @@ public class MethodRetryHandlerService {
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
+    /**
+     * 推送决策接口（不进行db重试）
+     *
+     * @param dto
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = false)
+    public Result callPolicyDataNoDb(PolicyRetryByRuleDTO dto, Integer retry, String apiCode) {
+        List<Long> ids = dto.getIds();
+        PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        //重试
+        try {
+            if (ObjectUtils.equals(retry,1)) {
+                JSONObject jsonObject = (JSONObject) dto.getPushMarketingUserDTO().getJsonData();
+                PushMarketingUserTaskInfoDTO taskInfoDTO = JSONObject.toJavaObject(jsonObject, PushMarketingUserTaskInfoDTO.class);
+                pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            }
+        } catch (Exception e) {
+            log.error("apiCode{}决策重试接口类型转化失败", apiCode, e);
+        }
+        Long infoId = dto.getInfoId();
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            if (infoId != null) {
+                saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
+            }
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("apiCode:{}调用推送决策接口失败--{}", apiCode,JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 
     /**
      * 宜信情况L调用推送决策接口

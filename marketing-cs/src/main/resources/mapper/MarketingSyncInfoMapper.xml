@@ -453,4 +453,13 @@
         group by cus_batch;
     </select>
 
+    <select id="getDataByIdList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from b_marketing_sync_${apiCode}
+        where id in
+        <foreach collection="idList" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        and status = 1 and is_repeat in (1,2);
+    </select>
+
 </mapper>
