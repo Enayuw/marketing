@@ -193,6 +193,7 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         }else {
             String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
             ruleConfigExample.createCriteria()
+                    .andAutoBuildEqualTo(1)
                     .andStartTimeLessThanOrEqualTo(nowTime)
                     .andIsDelEqualTo(Constants.DATA_VALID)
                     .andStatusEqualTo(Constants.STATUS_START);

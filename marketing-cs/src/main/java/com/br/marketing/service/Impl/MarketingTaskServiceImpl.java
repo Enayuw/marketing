@@ -307,8 +307,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             eTimeStr = validTime.minusDays(1L).format(ymdhms);
 
         }
-        taskStart = LocalDate.now().format(ymd);
-        taskEnd = LocalDate.now().plusDays(1L).format(ymd);
+//        taskStart = LocalDate.now().format(ymd);
+//        taskEnd = LocalDate.now().plusDays(1L).format(ymd);
         String sDate = LocalDateTime.parse(sTimeStr, ymdhms).format(ymd);
         try {
             sTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sTimeStr);
@@ -317,16 +317,22 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             e.printStackTrace();
         }
 
-        Date ruleOpenTime = vo.getUpdateTime();
-        if (ruleOpenTime == null) {
-            ruleOpenTime = vo.getCreateTime();
-        }
-        String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
-        String nowDay = LocalDate.now().format(ymd);
-        // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
-        if (ruleOpenDay.equals(nowDay) && eTime.compareTo(ruleOpenTime) <= 0) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(String.format("概规则的历史数据不予生成 规则id：%d", vo.getId()));
-        }
+        // 每日定时
+        //判断是否达到开始时间、再判断当天此规则是否生成过task
+        //
+        //每个任务的周期
+        //判断是否达到开始时间、再判断是否达到周期天数、再判断当天此规则是否生成过task
+
+//        Date ruleOpenTime = vo.getUpdateTime();
+//        if (ruleOpenTime == null) {
+//            ruleOpenTime = vo.getCreateTime();
+//        }
+//        String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
+//        String nowDay = LocalDate.now().format(ymd);
+//        // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
+//        if (ruleOpenDay.equals(nowDay) && eTime.compareTo(ruleOpenTime) <= 0) {
+//            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(String.format("概规则的历史数据不予生成 规则id：%d", vo.getId()));
+//        }
         //endregion
 
         //region 条件解析

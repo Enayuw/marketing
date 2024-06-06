@@ -234,7 +234,7 @@ public class TaskServiceImpl implements ITaskService {
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
-        // 根据状态表判断任务是否已经跑过
+        // 根据跑分状态表判断任务是否已经跑过
         // 一次行全量、一次性验证判断onceStatus;每个任务的周期、每日定时判断allStatus
         if (task.getMonitorType() >= 1 && task.getMonitorType() <= 4) {
             TaskStatusExample statusExample = new TaskStatusExample();
