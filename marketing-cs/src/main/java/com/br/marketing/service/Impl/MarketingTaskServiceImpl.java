@@ -464,7 +464,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             datum.setConditionInfo(conditionInfo);
             datum.setStartDate(dto.getTaskDate());
             datum.setStartTime(dto.getTaskTime());
-            datum.setPriority(dto.getPriority());
             if (new Integer(1).equals(dto.getIsOrNoScoreVer())) {
                 datum.setExecType(2);
                 datum.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
