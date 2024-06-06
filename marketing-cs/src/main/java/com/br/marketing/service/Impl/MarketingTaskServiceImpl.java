@@ -34,6 +34,8 @@ import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.entity.TaskBatchnumberPre;
 import com.br.marketing.entity.TaskBatchnumberPreExample;
+import com.br.marketing.entity.TaskStatus;
+import com.br.marketing.entity.TaskStatusExample;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -45,6 +47,7 @@ import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskBatchnumberPreMapper;
+import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IDynamicSqlService;
@@ -69,10 +72,18 @@ import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -154,6 +165,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    TaskStatusMapper taskStatusMapper;
 
     @Autowired
     private CuratorFramework client;
@@ -849,6 +863,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
      */
     private void getOtherTaskAndPause(MarketingTask task) {
         if (task.getPriority() == 0) {
+            // 判断该任务开始时间距离当前时间是否在十分钟之内
+            LocalDateTime startTime = LocalDateTime.parse(task.getStartDate() + " " + task.getStartTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+            if (Duration.between(LocalDateTime.now(), startTime).toMinutes() > 10) {
+                return;
+            }
+
             StraHisFileExample straHisFileExample = new StraHisFileExample();
             straHisFileExample.createCriteria().andStatusEqualTo(3);
             List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
@@ -871,14 +891,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                                 straHisFiles.stream().filter((StraHisFile straHisFile) -> straHisFile.getId()
                                         .equals(taskNeedPause.getFileId())).findFirst();
 
-                        pauseTask(first);
+                        pauseTask(first, taskNeedPause);
                     }
                 }
             }
         }
     }
 
-    private void pauseTask(Optional<StraHisFile> first) {
+    private void pauseTask(Optional<StraHisFile> first, MarketingTask taskNeedPause) {
         if (first.isPresent()) {
             StraHisFile straHisFileNeedPause = first.get();
             if (!ScoreStatusEnum.RUNNING.getValue().equals(straHisFileNeedPause.getStatus())) {
@@ -895,7 +915,29 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     log.warn("暂停优先级非0任务失败。该跑分任务不在进行中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
                 }
 
+                TaskStatusExample taskStatusExample = new TaskStatusExample();
+                taskStatusExample.createCriteria().andFileIdEqualTo(straHisFileNeedPause.getId().intValue());
+                List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(taskStatusExample);
+
+                if (CollectionUtils.isEmpty(taskStatuses)) {
+                    log.error("暂停优先级非0任务失败。跑分执行状态表中未找到该跑分任务，fileId：{}",straHisFileNeedPause.getId());
+                }
+
+                // zk节点置为暂停中
                 client.setData().forPath(filePath, ZkScoreStatusEnum.PAUSE.getValue().getBytes(StandardCharsets.UTF_8));
+
+                // b_task_status置为3（待恢复）
+                TaskStatus taskStatus = taskStatuses.get(0);
+                TaskStatus updateStatus = new TaskStatus();
+                updateStatus.setId(taskStatus.getId());
+
+                if (taskNeedPause.getMonitorType().equals(1) || taskNeedPause.getMonitorType().equals(2)) {
+                    updateStatus.setOnceStatus(3);
+                } else {
+                    updateStatus.setAllStatus(3);
+                }
+                taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
+                entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()), updateStatus, taskStatus);
             } catch (Exception e) {
                 log.error("暂停优先级非0任务失败。跑分编号：{}", straHisFileNeedPause.getBatchNumber(), e);
             }
