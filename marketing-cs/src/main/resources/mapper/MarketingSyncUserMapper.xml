@@ -575,6 +575,7 @@
         where applet_date = #{appletDate}
         and status = 1
         and is_repeat in (1,2)
+        and user_type = #{userType}
         <if test="minId !=null and minId >0">
             and id > #{minId}
         </if>
