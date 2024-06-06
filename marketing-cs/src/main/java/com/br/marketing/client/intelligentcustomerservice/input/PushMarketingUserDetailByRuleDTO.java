@@ -50,5 +50,9 @@ public class PushMarketingUserDetailByRuleDTO extends SourceData {
      * 用于存入b_data_distribute_detail_log表cell统一格式
      */
     private String cell;
+    /**
+     * 要推送的apiCode
+     */
+    private String pushApiCode;
 
 }
