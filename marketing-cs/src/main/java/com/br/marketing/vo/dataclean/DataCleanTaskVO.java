@@ -55,7 +55,7 @@ public class DataCleanTaskVO {
      * 试跑结果
      */
     @ApiModelProperty(value = "试跑结果")
-    private Integer testResult;
+    private String testResult;
 
     /**
      * 创建时间
