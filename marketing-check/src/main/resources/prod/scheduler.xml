@@ -5,13 +5,13 @@
        xmlns:job="http://www.dangdang.com/schema/ddframe/job"
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-                        http://www.springframework.org/schema/beans/spring-beans.xsd 
-                        http://www.springframework.org/schema/context 
-                        http://www.springframework.org/schema/context/spring-context.xsd 
-                        http://www.dangdang.com/schema/ddframe/reg 
-                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd 
-                        http://www.dangdang.com/schema/ddframe/job 
-                        http://www.dangdang.com/schema/ddframe/job/job.xsd 
+                        http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context
+                        http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.dangdang.com/schema/ddframe/reg
+                        http://www.dangdang.com/schema/ddframe/reg/reg.xsd
+                        http://www.dangdang.com/schema/ddframe/job
+                        http://www.dangdang.com/schema/ddframe/job/job.xsd
                         ">
     <context:component-scan base-package="com.br.marketing.check.job"/>
 
@@ -342,7 +342,7 @@
     <job:simple id="YiXinTransferToDxJob"
                 class="com.br.marketing.check.job.YiXinTransferToDxJob"
                 cron="0 0 18 29 9 ? 2050-2050"
-                description="宜信转化数据非实时数据推送电销"
+                description="宜信转化数据非实时数据推送决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
@@ -1047,6 +1047,34 @@
                 description="携程跑分数据同步作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="9"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="ZhongBangPushVoiceFileJob"
+                class="com.br.marketing.check.job.zhongbang.ZhongBangPushVoiceFileJob"
+                cron="0 0/11 * * * ?"
+                description="众邦财富fileSDK录音文件上传"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="PeriodPushJob"
+                class="com.br.marketing.check.job.PeriodPushJob"
+                cron="0 0/1 * * * ?"
+                description="数据积攒后周期推送决策"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
                 sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"

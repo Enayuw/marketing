@@ -68,6 +68,7 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -179,6 +180,15 @@ public class MethodRetryHandlerService {
 
     @Resource
     private PushRuleServiceImpl pushRuleService;
+
+    @Resource
+    private ZhongbangVoiceFileDetailMapper zhongBangVoiceFileDetailMapper;
+
+    /**
+     * 渠道唯一标识（由众邦银行提供）
+     */
+    @Value("${api.zbank.file.channelId:2023042701}")
+    private String channelId;
 
     /**
      * @param data                     数据
@@ -691,6 +701,38 @@ public class MethodRetryHandlerService {
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
+    /**
+     * 推送决策接口（不进行db重试）
+     *
+     * @param dto
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = false)
+    public Result callPolicyDataNoDb(PolicyRetryByRuleDTO dto, Integer retry, String apiCode) {
+        List<Long> ids = dto.getIds();
+        PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        //重试
+        try {
+            if (ObjectUtils.equals(retry,1)) {
+                JSONObject jsonObject = (JSONObject) dto.getPushMarketingUserDTO().getJsonData();
+                PushMarketingUserTaskInfoDTO taskInfoDTO = JSONObject.toJavaObject(jsonObject, PushMarketingUserTaskInfoDTO.class);
+                pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            }
+        } catch (Exception e) {
+            log.error("apiCode{}决策重试接口类型转化失败", apiCode, e);
+        }
+        Long infoId = dto.getInfoId();
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            if (infoId != null) {
+                saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
+            }
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("apiCode:{}调用推送决策接口失败--{}", apiCode,JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 
     /**
      * 宜信情况L调用推送决策接口
@@ -1169,6 +1211,92 @@ public class MethodRetryHandlerService {
         } else {
             log.error("众邦财富推送标签评级接口异常,进入重试,响应：{},请求：{}", jsonStr, jsonData.toJSONString());
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        result.setDate(dto);
+        return result;
+    }
+
+    /**
+     * 众邦录音明细回调
+     *
+     * @param json  封装的数据
+     * @param retry 重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = false)
+    public Result<ZbankResponse<ZbankLabelRatingReResultDTO>> pushZbankRecodFileRe(JSONObject json
+            , Integer retry) {
+        //测试mock
+        String zhongBangJson = marketingCommonConfig.getZhongBangRecodFileReTest();
+        if(StringUtils.isNotBlank(zhongBangJson)){
+            JSONObject jsonObject = JSON.parseObject(zhongBangJson);
+            if("true".equals(jsonObject.getString("open"))){
+                String code = jsonObject.getString("code");
+                if ("500".equals(code)) {
+                    log.warn("测试众邦[流控]不真实调用接口-{}",code);
+                    return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                } else if("0".equals(code)){
+                    log.warn("测试众邦[失败]不真实调用接口-{}",code);
+                    return new Result<>().setCode(ResultCode.FAIL.getValue());
+                } else {
+                    log.warn("测试众邦[成功]不真实调用接口-{}",code);
+                    return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+                }
+            }
+        }
+        Result<ZbankResponse<ZbankLabelRatingReResultDTO>> result = new Result<>();
+        JSONObject jsonData = new JSONObject();
+        jsonData.putAll(json);
+        jsonData.remove("ids");
+        JSONObject object = new JSONObject();
+        String requestId = channelId + System.nanoTime() + RandomStringUtils.randomNumeric(8);
+        if (retry == null) {
+            jsonData.put("TxnSrlNo", requestId);
+            jsonData.put("TxnDt", LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+            jsonData.put("TxnTs", LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss[SSS]")));
+        } else {
+            jsonData.put("TxnSrlNo", "r" + requestId);
+        }
+        object.put("request", jsonData);
+        String jsonStr;
+        try {
+            jsonStr = zBankClient.recodFileRe(object, requestId);
+        } catch (Exception e) {
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            log.error(e.getMessage(), e);
+            return result;
+        }
+        ZbankResponse<ZbankLabelRatingReResultDTO> dto;
+        try {
+            dto = JSONObject.parseObject(jsonStr
+                    , new TypeReference<ZbankResponse<ZbankLabelRatingReResultDTO>>() {
+                    });
+        } catch (Exception e) {
+            log.error(e.getMessage() + "响应：" + jsonStr, e);
+            result.setCode(ResultCode.FAIL.getValue());
+            return result;
+        }
+        if ("000000".equals(dto.getCode())) {
+            ZbankLabelRatingReResultDTO result1 = dto.getResult();
+            if ("00".equals(result1.getErrCd())) {
+                //重试成功后更新状态
+//                if (retry != null) {
+//                    JSONArray ids = json.getJSONArray("ids");
+//                    // TODO: 2024-05-16  重试回调方法
+//                    zhongBangVoiceFileDetailMapper.updateBatchByIds(ids.toJavaList(Long.class),2);
+//                }
+                result.setCode(ResultCode.SUCCESS.getValue());
+            } else {
+                result.setCode(ResultCode.FAIL.getValue());
+                log.error("众邦录音明细回调接口未知错误,不会重试,响应：{}", jsonStr);
+            }
+        } else if ("OPENAPI-I-00019".equals(dto.getCode())) {
+            // 流控 需要重试
+            log.warn("众邦录音明细回调接口出现流控,进入重试,响应：{}", jsonStr);
+            result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        } else {
+            log.error("众邦录音明细回调接口异常,不重试,响应：{},请求：{}", jsonStr, jsonData.toJSONString());
+            result.setCode(ResultCode.FAIL.getValue());
         }
         result.setDate(dto);
         return result;

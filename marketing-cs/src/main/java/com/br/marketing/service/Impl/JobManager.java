@@ -62,8 +62,21 @@ public class JobManager {
         front.setActionType(actionType);
         front.setActionData(date);
         front.setCreateTime(new Date());
+        front.setUpdateTime(new Date());
         transferActionFrontMapper.insertSelective(front);
         return front.getId();
+    }
+
+    public TransferActionFront saveFront(String apiCode, String date, Integer actionType) {
+        TransferActionFront front = new TransferActionFront();
+        front.setApiCode(apiCode);
+        front.setStatus(1);
+        front.setActionType(actionType);
+        front.setActionData(date);
+        front.setCreateTime(new Date());
+        front.setUpdateTime(new Date());
+        transferActionFrontMapper.insertSelective(front);
+        return front;
     }
 
     public void updateFrontDataStatus(Long id, Integer status) {
@@ -147,5 +160,48 @@ public class JobManager {
             criteria.andRemarkEqualTo(remark);
         }
         return transferActionFrontMapper.updateByExampleSelective(front, frontExample);
+    }
+
+
+    public enum ActionTypeEnum {
+        /**
+         * 2024-05-16 14:40
+         * 众邦上传录音文件执行类型
+         */
+        ZHONGBANG_PUSH_VOICE_FILE(3, "3710099", "7433800"),
+        YIXIN_TRANSFER_PUSH_BAIYING(15, "3710012", "7412003"),
+        YIXIN_BLACK_PUSH_BAIYING(16, "3710012", "7412003"),
+        ;
+        /**
+         * 2024-05-16 11:38
+         * 执行类型
+         */
+        private int actionType;
+        /**
+         * 2024-05-16 11:39
+         * 使用该类型的集合
+         */
+        private String[] apiCodes;
+
+        ActionTypeEnum(int actionType, String... apiCodes) {
+            this.actionType = actionType;
+            this.apiCodes = apiCodes;
+        }
+
+        public int getActionType() {
+            return actionType;
+        }
+
+        public void setActionType(int actionType) {
+            this.actionType = actionType;
+        }
+
+        public String[] getApiCodes() {
+            return apiCodes;
+        }
+
+        public void setApiCodes(String[] apiCodes) {
+            this.apiCodes = apiCodes;
+        }
     }
 }

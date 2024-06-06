@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PeriodPushStatisticsLogMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.PeriodPushStatisticsLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="ppl_id" property="pplId" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="result_content" property="resultContent" jdbcType="VARCHAR" />
+    <result column="fail_num" property="failNum" jdbcType="INTEGER" />
+    <result column="fail_ids" property="failIds" jdbcType="VARCHAR" />
+    <result column="push_num" property="pushNum" jdbcType="INTEGER" />
+    <result column="total_num" property="totalNum" jdbcType="INTEGER" />
+    <result column="meet_conditions_num" property="meetConditionsNum" jdbcType="INTEGER" />
+    <result column="fail_meet_conditions_num" property="failMeetConditionsNum" jdbcType="INTEGER" />
+    <result column="fail_meet_ids" property="failMeetIds" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, ppl_id, api_code, result_content, fail_num, fail_ids, push_num, total_num, meet_conditions_num, 
+    fail_meet_conditions_num, fail_meet_ids, is_del, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PeriodPushStatisticsLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_period_push_statistics_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_period_push_statistics_log
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_period_push_statistics_log
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.PeriodPushStatisticsLogExample" >
+    delete from b_period_push_statistics_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.PeriodPushStatisticsLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_period_push_statistics_log (ppl_id, api_code, result_content, 
+      fail_num, fail_ids, push_num, 
+      total_num, meet_conditions_num, fail_meet_conditions_num, 
+      fail_meet_ids, is_del, create_time, 
+      update_time)
+    values (#{pplId,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{resultContent,jdbcType=VARCHAR}, 
+      #{failNum,jdbcType=INTEGER}, #{failIds,jdbcType=VARCHAR}, #{pushNum,jdbcType=INTEGER}, 
+      #{totalNum,jdbcType=INTEGER}, #{meetConditionsNum,jdbcType=INTEGER}, #{failMeetConditionsNum,jdbcType=INTEGER}, 
+      #{failMeetIds,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.PeriodPushStatisticsLog" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_period_push_statistics_log
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="pplId != null" >
+        ppl_id,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="resultContent != null" >
+        result_content,
+      </if>
+      <if test="failNum != null" >
+        fail_num,
+      </if>
+      <if test="failIds != null" >
+        fail_ids,
+      </if>
+      <if test="pushNum != null" >
+        push_num,
+      </if>
+      <if test="totalNum != null" >
+        total_num,
+      </if>
+      <if test="meetConditionsNum != null" >
+        meet_conditions_num,
+      </if>
+      <if test="failMeetConditionsNum != null" >
+        fail_meet_conditions_num,
+      </if>
+      <if test="failMeetIds != null" >
+        fail_meet_ids,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="pplId != null" >
+        #{pplId,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="resultContent != null" >
+        #{resultContent,jdbcType=VARCHAR},
+      </if>
+      <if test="failNum != null" >
+        #{failNum,jdbcType=INTEGER},
+      </if>
+      <if test="failIds != null" >
+        #{failIds,jdbcType=VARCHAR},
+      </if>
+      <if test="pushNum != null" >
+        #{pushNum,jdbcType=INTEGER},
+      </if>
+      <if test="totalNum != null" >
+        #{totalNum,jdbcType=INTEGER},
+      </if>
+      <if test="meetConditionsNum != null" >
+        #{meetConditionsNum,jdbcType=INTEGER},
+      </if>
+      <if test="failMeetConditionsNum != null" >
+        #{failMeetConditionsNum,jdbcType=INTEGER},
+      </if>
+      <if test="failMeetIds != null" >
+        #{failMeetIds,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.PeriodPushStatisticsLogExample" resultType="java.lang.Integer" >
+    select count(*) from b_period_push_statistics_log
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_period_push_statistics_log
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.pplId != null" >
+        ppl_id = #{record.pplId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.resultContent != null" >
+        result_content = #{record.resultContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.failNum != null" >
+        fail_num = #{record.failNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.failIds != null" >
+        fail_ids = #{record.failIds,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushNum != null" >
+        push_num = #{record.pushNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.totalNum != null" >
+        total_num = #{record.totalNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.meetConditionsNum != null" >
+        meet_conditions_num = #{record.meetConditionsNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.failMeetConditionsNum != null" >
+        fail_meet_conditions_num = #{record.failMeetConditionsNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.failMeetIds != null" >
+        fail_meet_ids = #{record.failMeetIds,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_period_push_statistics_log
+    set id = #{record.id,jdbcType=BIGINT},
+      ppl_id = #{record.pplId,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      result_content = #{record.resultContent,jdbcType=VARCHAR},
+      fail_num = #{record.failNum,jdbcType=INTEGER},
+      fail_ids = #{record.failIds,jdbcType=VARCHAR},
+      push_num = #{record.pushNum,jdbcType=INTEGER},
+      total_num = #{record.totalNum,jdbcType=INTEGER},
+      meet_conditions_num = #{record.meetConditionsNum,jdbcType=INTEGER},
+      fail_meet_conditions_num = #{record.failMeetConditionsNum,jdbcType=INTEGER},
+      fail_meet_ids = #{record.failMeetIds,jdbcType=VARCHAR},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.PeriodPushStatisticsLog" >
+    update b_period_push_statistics_log
+    <set >
+      <if test="pplId != null" >
+        ppl_id = #{pplId,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="resultContent != null" >
+        result_content = #{resultContent,jdbcType=VARCHAR},
+      </if>
+      <if test="failNum != null" >
+        fail_num = #{failNum,jdbcType=INTEGER},
+      </if>
+      <if test="failIds != null" >
+        fail_ids = #{failIds,jdbcType=VARCHAR},
+      </if>
+      <if test="pushNum != null" >
+        push_num = #{pushNum,jdbcType=INTEGER},
+      </if>
+      <if test="totalNum != null" >
+        total_num = #{totalNum,jdbcType=INTEGER},
+      </if>
+      <if test="meetConditionsNum != null" >
+        meet_conditions_num = #{meetConditionsNum,jdbcType=INTEGER},
+      </if>
+      <if test="failMeetConditionsNum != null" >
+        fail_meet_conditions_num = #{failMeetConditionsNum,jdbcType=INTEGER},
+      </if>
+      <if test="failMeetIds != null" >
+        fail_meet_ids = #{failMeetIds,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.PeriodPushStatisticsLog" >
+    update b_period_push_statistics_log
+    set ppl_id = #{pplId,jdbcType=VARCHAR},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      result_content = #{resultContent,jdbcType=VARCHAR},
+      fail_num = #{failNum,jdbcType=INTEGER},
+      fail_ids = #{failIds,jdbcType=VARCHAR},
+      push_num = #{pushNum,jdbcType=INTEGER},
+      total_num = #{totalNum,jdbcType=INTEGER},
+      meet_conditions_num = #{meetConditionsNum,jdbcType=INTEGER},
+      fail_meet_conditions_num = #{failMeetConditionsNum,jdbcType=INTEGER},
+      fail_meet_ids = #{failMeetIds,jdbcType=VARCHAR},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

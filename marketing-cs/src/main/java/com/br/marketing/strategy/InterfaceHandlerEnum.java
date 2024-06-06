@@ -31,6 +31,7 @@ public enum InterfaceHandlerEnum {
     CUSTOMER_TRANSFER_SOLE_QIFU(27, "客服转化去重（奇富360专用）"),
 
     CUSTOMER_TRANSFER_SOLE_STATUS(28, "客服转化去重+场景"),
+    YIXIN_REALTIME_TO_POLICY(29, "宜信实时数据推送决策接口(定制)"),
     ;
 
 
