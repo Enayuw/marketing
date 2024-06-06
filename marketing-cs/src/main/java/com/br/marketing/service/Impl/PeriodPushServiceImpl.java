@@ -119,7 +119,7 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                 List<MarketingSyncUser> syncUserList = marketingSyncInfoMapper.getDataByIdList(apiCode, idsList);
 
                 if(null == syncUserList || syncUserList.size()<1){
-                    updatePeriodPushLogStatusTo5(apiCode, source, periodPushLogIdList);
+                    updatePeriodPushLogStatusTo5(periodPushLogIdList);
                     continue;
                 }
                 List<PushMarketingUserDetailByRuleDTO> policyByRuleList = new ArrayList<>();
@@ -144,7 +144,7 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                     // 调用接口
                     batchCall(policyByRuleList, context, periodPushLogIdList, nullPeriodPushLogId, notNullPeriodPushLogId);
                 }else{
-                    updatePeriodPushLogStatusTo5(apiCode, source, periodPushLogIdList);
+                    updatePeriodPushLogStatusTo5(periodPushLogIdList);
                 }
             }
         }
@@ -154,17 +154,11 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
      * 整个批次内没有符合要求的数据
      * @Author yu.xia@brgroup.com
      * @Date 2024/6/3 20:21
-     * @param apiCode apiCode
-     * @param source 6
      * @param periodPushLogIdList 待推送数据
      */
-    public void updatePeriodPushLogStatusTo5(String apiCode,Integer source, List<Long> periodPushLogIdList){
+    public void updatePeriodPushLogStatusTo5(List<Long> periodPushLogIdList){
         PeriodPushLogExample example = new PeriodPushLogExample();
         example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andIsDelEqualTo(1)
-                .andStatusEqualTo(1)
-                .andSourceEqualTo(source)
                 .andIdIn(periodPushLogIdList);
         PeriodPushLog periodPushLog = new PeriodPushLog();
         periodPushLog.setPushNum(0);
@@ -273,10 +267,6 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
         int num = policyByRuleList.size();
         PeriodPushLogExample example = new PeriodPushLogExample();
         example.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andIsDelEqualTo(1)
-                .andStatusEqualTo(1)
-                .andSourceEqualTo(source)
                 .andIdIn(idList);
         PeriodPushLog periodPushLog = new PeriodPushLog();
         periodPushLog.setPushNum(successNum);
