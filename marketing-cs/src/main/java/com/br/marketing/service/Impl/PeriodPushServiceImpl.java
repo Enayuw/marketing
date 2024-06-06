@@ -85,10 +85,13 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
             Date date = Date.from(zonedDateTime.toInstant());
             while(true){
                 PeriodPushLogExample periodPushLogExample = new PeriodPushLogExample();
+                List<Integer> statusList = new ArrayList<>();
+                statusList.add(1);
+                statusList.add(3);
                 periodPushLogExample.createCriteria()
                         .andApiCodeEqualTo(apiCode)
                         .andSourceEqualTo(source)
-                        .andStatusEqualTo(1)
+                        .andStatusIn(statusList)
                         .andIsDelEqualTo(1)
                         .andCreateTimeLessThanOrEqualTo(date);
                 periodPushLogExample.setOrderByClause(" create_time limit 2000");
@@ -116,6 +119,7 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                 List<MarketingSyncUser> syncUserList = marketingSyncInfoMapper.getDataByIdList(apiCode, idsList);
 
                 if(null == syncUserList || syncUserList.size()<1){
+                    updatePeriodPushLogStatusTo5(apiCode, source, periodPushLogIdList);
                     continue;
                 }
                 List<PushMarketingUserDetailByRuleDTO> policyByRuleList = new ArrayList<>();
@@ -260,7 +264,7 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
         retryByRuleDTO.setIds(sourceIds);
         retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
         retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-        Result result = methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
+        Result result = methodRetryHandlerService.callPolicyDataNoDb(retryByRuleDTO, null, apiCode);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             successNum = policyByRuleList.size();
         }else{
