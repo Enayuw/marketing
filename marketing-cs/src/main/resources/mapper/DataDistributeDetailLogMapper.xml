@@ -1,6 +1,36 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.DataDistributeDetailLogMapper" >
+<mapper namespace="com.br.marketing.mapper.DataDistributeDetailLogMapper">
+    <insert id="insertBatch" parameterType="list">
+    INSERT INTO b_data_distribute_detail_log (
+        api_code,
+        cust_num,
+        cell,
+        `status`,
+        p_status,
+        distribute_date,
+        distribute_type,
+        success_date,
+        create_time,
+        update_time,
+        source_id,
+        source_type
+        )values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode},
+            #{data.custNum},
+            #{data.cell},
+            #{data.status,jdbcType=VARCHAR},
+            #{data.pStatus},
+            #{data.distributeDate},
+            #{data.distributeType},
+            #{data.successDate},
+            #{data.createTime},
+            #{data.updateTime},
+            #{data.sourceId,jdbcType=BIGINT},
+            #{data.sourceType,jdbcType=VARCHAR})
+        </foreach>
+    </insert>
 
     <select id="getToDataDistributeInfoList" resultType="java.lang.String">
         select
@@ -11,6 +41,6 @@
         <foreach collection="cells" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>
-        and DATE_FORMAT(now(),"%Y-%m-%d") =  date_format(create_time,"%Y-%m-%d")
+        and DATE_FORMAT(now(),"%Y-%m-%d") = date_format(create_time,"%Y-%m-%d")
     </select>
 </mapper>

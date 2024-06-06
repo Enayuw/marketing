@@ -116,7 +116,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         int trueDataCount = loopCycleMapper.countByExample(cycleExample);
         boolean b = trueDataCount >= trueDataThresholdSize;
         if (b) {
-            String msg = "携程撞库暂停通知:今天撞得总量级" + trueDataCount + ",已超过设定阈值" + trueDataThresholdSize;
+            String msg = "携程撞库暂停通知:今天撞得总量级" + trueDataCount + ",已达到设定阈值" + trueDataThresholdSize;
             return new Pair<>(2, msg);
         }
 
@@ -143,7 +143,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         int count = cycleCount + robCount;
         boolean c = count >= retryThresholdSize;
         if (c) {
-            String msg = "携程撞库暂停通知:今天异常数据堆积总量级" + count + "已超过设定阈值" + retryThresholdSize;
+            String msg = "携程撞库暂停通知:今天异常数据堆积总量级" + count + "已达到设定阈值" + retryThresholdSize;
             return new Pair<>(3, msg);
         }
 
@@ -178,6 +178,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         }
 
         if (StringUtils.isEmpty(redisSwitch)) {
+            log.warn("携程异常重试作业，重置条件开关状态为开启");
+            redisChgService.set(RedisKeyConstant.XIECHENG_CONDITIONSWITCH, "true");
             return true;
         }
 

@@ -2,7 +2,6 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -13,7 +12,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -31,16 +30,19 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
     @Resource
     private MethodRetryHandlerService methodRetryHandlerService;
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public JSONObject call(List<PushMarketingUserDetailByRuleDTO> policyByRuleList, ProcessHandlerContext context) {
-
-        Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = policyByRuleList.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getBatchNumber));
+        if (policyByRuleList.size() <= 0) {
+            return null;
+        }
+        String pushApiCode = policyByRuleList.get(0).getPushApiCode();
+        Map<String, List<PushMarketingUserDetailByRuleDTO>> batchMap = policyByRuleList.stream().collect(Collectors.
+                groupingBy(PushMarketingUserDetailByRuleDTO::getBatchNumber));
         for (String batch : batchMap.keySet()) {
             List<PushMarketingUserDetailByRuleDTO> ruleLists = batchMap.get(batch);
-            Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
+            Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.
+                    groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
             for (String strategy : strategyMap.keySet()) {
                 //数据日志数组
                 ArrayList<DataJoinLogDTO> logList = new ArrayList<>();
@@ -54,12 +56,13 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                     sourceIds.add(t.getInitId());
                     // 把封装的日志插入到数组中
                     logList.add(methodRetryHandlerService.dataJoinLogFix(entity, DistributeTypeEnum.POLICYDATA
-                            , context.getApiCode(), t.getCaseNumber(), BrCipherMaker.getInstance().encode(t.getCell())
-                            , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getStatus(),t.getExpireEndDate()));
+                            , StringUtils.isEmpty(pushApiCode) ? context.getApiCode() : pushApiCode, t.getCaseNumber(),
+                            BrCipherMaker.getInstance().encode(t.getCell())
+                            , Long.valueOf(t.getInitId()), DistributeSourceTypeEnum.TRANSFER, t.getStatus(), t.getExpireEndDate()));
 
                 }
                 PolicyRetryByRuleSoleDTO retryByRuleDTO = new PolicyRetryByRuleSoleDTO();
-                retryByRuleDTO.setApiCode(context.getApiCode());
+                retryByRuleDTO.setApiCode(StringUtils.isEmpty(pushApiCode) ? context.getApiCode() : pushApiCode);
                 retryByRuleDTO.setBatchNumber(batch);
                 retryByRuleDTO.setStrategyCode(strategy);
                 retryByRuleDTO.setIds(sourceIds);
@@ -69,15 +72,15 @@ public class PolicySoleHandler extends AbstractExternalInterfaceHandler<PushMark
                 //传参去重
                 retryByRuleDTO.setIsSole(true);
                 //去重字段维度,根据传入值赋值，默认为cell维度去重
-                if(datas.get(0).getSoleField()!=null){
+                if (datas.get(0).getSoleField() != null) {
                     retryByRuleDTO.setSoleField(datas.get(0).getSoleField());
-                }else {
+                } else {
                     retryByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
                 }
                 //去重范围,根据传入值赋值，默认当天去重
-                if(datas.get(0).getSoleType()!=null){
+                if (datas.get(0).getSoleType() != null) {
                     retryByRuleDTO.setSoleDay(datas.get(0).getSoleType());
-                }else{
+                } else {
                     retryByRuleDTO.setSoleDay(1);
                 }
                 methodRetryHandlerService.callPolicySoleData(retryByRuleDTO, 0);

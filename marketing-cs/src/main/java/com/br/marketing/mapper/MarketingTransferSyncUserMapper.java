@@ -72,6 +72,22 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("rowCount") int rowCount,
                                                                  @Param("offset") int offset);
 
+    /**
+     * 查询
+     * @param transferSyncUser transferSyncUser
+     * @param requestDate requestDate
+     * @param transformType transformType
+     * @param orderByClause orderByClause
+     * @param rowCount rowCount
+     * @param offset offset
+     * @return java.util.List<com.br.marketing.entity.MarketingTransferSyncUser> 查询到的MarketingTransferSyncUser集合
+     */
+    List<MarketingTransferSyncUser> getTransferByStartAndEndDateYiXinV4(@Param("transferSyncUser") MarketingTransferSyncUser transferSyncUser
+            , @Param("requestDate") String requestDate
+            , @Param("transformType") String transformType , @Param("orderByClause") String orderByClause
+            , @Param("rowCount") int rowCount
+            , @Param("offset") int offset);
+
 
     List<MarketingTransferSyncUser> getTransferData(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
@@ -532,5 +548,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("userTypeSet") Set<String> userTypeSet
             , @Param("requestDate") String requestDate);
 
+    List<MarketingTransferSyncUser> getYxTransferByRequestDate(
+            @Param("tCid") String tCid,
+            @Param("apiCode") String apiCode,
+            @Param("requestDate") String requestDate,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize);
 
 }

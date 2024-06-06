@@ -238,6 +238,7 @@
         <module>marketing-cs</module>
         <module>marketing-check</module>
         <module>marketing-sync</module>
+        <module>marketing-data-bridge</module>
         <module>mybatis-generator</module>
         <module>marketing-tools</module>
         <module>marketing-mq-consumer</module>

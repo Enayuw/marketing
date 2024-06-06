@@ -4,6 +4,7 @@ import com.br.marketing.dto.DataDistributeLogBase;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
@@ -13,6 +14,7 @@ import java.util.List;
  * @author zeqiang.guo
  * @dateTime 2023/08/23 17:13
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class DassTransferDataAdapSoleDTO extends DataDistributeLogBase<DassAssembleTransferDataSoleDTO> {
 

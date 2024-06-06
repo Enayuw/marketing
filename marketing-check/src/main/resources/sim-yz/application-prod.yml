@@ -143,10 +143,10 @@ api:
   customerService:
     apiCode: 4000296
   intelligentCustomerService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    baseUrl: http://pdai.brapp.com/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    baseUrl: http://pdai.brapp.com/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   yiQianBao:
     baseUrl: https://pmgw.yqb.com
@@ -168,6 +168,9 @@ api:
     batchHermesUserData: ${api.dass.ibuBaseUrl}/ibu-daas/api/batchHermesUserData
     ibuAk: d87a6e0ab4dc2903
     ibuSk: fbd1478a51d88954
+  baiying:
+    baseUrl: https://cos.byai.com
+    postBlackList: ${api.baiying.baseUrl}/api/byai/transform/br/blacklist/import
   twoSeven:
     baseUrl: http://8.129.19.178:8888
     zhuangku: ${api.twoSeven.baseUrl}/zhuangku

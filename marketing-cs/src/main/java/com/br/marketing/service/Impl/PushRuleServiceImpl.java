@@ -1143,7 +1143,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         accessNumber, size);
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error("推送决策重试失败 accessNumber:{}", accessNumber);
+                log.error("推送决策重试失败 accessNumber:{}-{}", accessNumber, JSON.toJSONString(result));
             }
             result.setDate(size);
             return result;
