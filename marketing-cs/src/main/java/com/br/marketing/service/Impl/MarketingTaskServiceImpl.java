@@ -464,6 +464,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             datum.setConditionInfo(conditionInfo);
             datum.setStartDate(dto.getTaskDate());
             datum.setStartTime(dto.getTaskTime());
+            datum.setPriority(dto.getPriority());
             if (new Integer(1).equals(dto.getIsOrNoScoreVer())) {
                 datum.setExecType(2);
                 datum.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
@@ -567,6 +568,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         task.setCusBatch(ruleVO.getId().toString());
         task.setMonitorType(ruleVO.getExecType());
         task.setIsOnline(ruleVO.getIsOnline());
+        if(ruleVO.getPriority() != null){
+            task.setPriority(ruleVO.getPriority());
+        }
         if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
             MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
             if (task1 != null) {

@@ -14,6 +14,7 @@
         , src.task_type as taskType
         , src.product_info as productInfo
         , src.is_online as isOnline
+        , src.priority as priority
         , bmc.cid
         , bmc.api_code
         , case src.status
@@ -70,6 +71,7 @@
         , src.rule_name as ruleName
         , src.rule_name_short as ruleNameShort
         , src.strategy_id as strategyId
+        , src.priority as priority
         , bmc.cid
         , bmc.api_code as apiCode
         , bcr.id as crId

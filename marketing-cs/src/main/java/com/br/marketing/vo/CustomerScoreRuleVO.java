@@ -12,4 +12,5 @@ public class CustomerScoreRuleVO extends ScoreRuleConfig {
     private String startDate;
     private Integer dataLimit;
     private Integer isOrNoScoreVer;
+    private Integer priority;
 }
