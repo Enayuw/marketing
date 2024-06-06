@@ -87,7 +87,7 @@ public class PeriodPushServiceImpl implements IPeriodPushService {
                 PeriodPushLogExample periodPushLogExample = new PeriodPushLogExample();
                 List<Integer> statusList = new ArrayList<>();
                 statusList.add(1);
-                statusList.add(3);
+//                statusList.add(3);
                 periodPushLogExample.createCriteria()
                         .andApiCodeEqualTo(apiCode)
                         .andSourceEqualTo(source)
