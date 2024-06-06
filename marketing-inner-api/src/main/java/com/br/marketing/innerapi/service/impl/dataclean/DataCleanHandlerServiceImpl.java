@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.service.impl.dataclean;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -63,6 +64,16 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     public static final List<String> UPLOAD_FIELD = Lists.newArrayList("custNum", "cell", "id", "name", "userType");
     public static final List<String> TRANSFER_FIELD = Lists.newArrayList("custNum", "userType");
+
+
+    public static void main(String args[]){
+
+         Date createTime = new Date();
+         System.out.println( JSON.toJSONStringWithDateFormat(createTime,"yyyy-MM-dd HH:mm:ss", SerializerFeature.WriteDateUseDateFormat));
+
+
+    }
+
 
 
     @Override
@@ -339,10 +350,10 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
             marketingUserMapper.insertMarketingPreUserByText(syncInfo);
         } catch (DuplicateKeyException keyException) {
             log.error("数据清洗上传数据request_batch重复，requestBatch = {}", uploadDataDTO.getRequestId());
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("中邮上传数据request_batch重复");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("数据清洗上传数据request_batch重复");
         } catch (Exception ex) {
-            log.error("中邮上传数据插入异常", ex.getMessage());
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("中邮上传数据插入异常");
+            log.error("数据清洗上传数据插入异常", ex.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("数据清洗上传数据插入异常");
         }
         //插入上传明细表
         pushRuleService.insertMarketingPreUserSync(syncInfo.getId());
@@ -351,7 +362,13 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         if(CollectionUtils.isEmpty(syncUserList)){
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("试跑失败，请检查配置");
         }
-        return null;
+        //更新试跑结果到任务表
+        MarketingCleanDataTask task = new MarketingCleanDataTask();
+        task.setUpdateTime(new Date());
+        task.setTestResult(JSON.toJSONStringWithDateFormat(syncUserList.get(0),"yyyy-MM-dd HH:mm:ss", SerializerFeature.WriteDateUseDateFormat));
+        task.setId(dto.getId());
+        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(task);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     @Override
