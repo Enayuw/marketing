@@ -849,7 +849,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
      * @param task
      */
     private void getOtherTaskAndPause(MarketingTask task) {
-        if (task.getPriority() == 0) {
+        if (task.getPriority() != null && task.getPriority() == 0) {
             StraHisFileExample straHisFileExample = new StraHisFileExample();
             straHisFileExample.createCriteria().andStatusEqualTo(3);
             List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
