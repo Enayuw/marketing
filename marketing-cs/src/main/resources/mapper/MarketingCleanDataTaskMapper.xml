@@ -26,7 +26,7 @@
 
     <update id="updateMarketingCleanDataTaskById">
         update b_marketing_clean_data_task
-        set clean_status=#{cleanStatus},
+        set clean_status=#{cleanStatus}
         where id=#{id}
     </update>
 </mapper>

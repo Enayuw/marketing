@@ -97,10 +97,10 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             String[] split = fileIds.split(",");
             for (int j = 0; j < split.length; j++) {
                 MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(Long.parseLong(split[j]));
-                fileStr = "D:\\test\\";
-                String fileName = "zhongbangtest.txt";
-//                fileStr = marketingCleanDataFile.getLocalPath();
-//                String fileName = marketingCleanDataFile.getFileName();
+//                fileStr = "D:\\test\\";
+//                String fileName = "zhongbangtest-1.txt";
+                fileStr = marketingCleanDataFile.getLocalPath();
+                String fileName = marketingCleanDataFile.getFileName();
                 String apiCode = task.getApiCode();
                 String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 String tasId = apiCode.concat("_").concat(yyyyMMdd);
@@ -122,7 +122,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 Integer errorSum = 0;
                 Integer pushSum = 0;
                 ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5);
-//                Date startDate = new Date();
                 try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                     String row = "";
                     Integer pushNum = 500;
@@ -328,6 +327,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                             UploadDataDTO uploadDataDTO = new UploadDataDTO();
                             uploadDataDTO.setApiCode(apiCode);
                             uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+//                            log.warn("调用接口前参数信息:{}",JSON.toJSONString(uploadDataDTO));
                             pushPool.submit(() -> {
                                 pushInfoService.pushUploadByRetry(uploadDataDTO, null);
                             });
