@@ -23,20 +23,19 @@ import com.google.common.base.Function;
 import com.jcraft.jsch.JSchException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
 @Component
 @Slf4j
 public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
-    @Autowired
+    @Resource
     SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
@@ -46,31 +45,26 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
     private String sftpUsername;
     @Value("${otherConfig.warning.sftpPwd:00}")
     private String sftpPwd;
-    @Autowired
+
+    @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
-    @Autowired
+    @Resource
     IApiToDbService iApiToDbService;
-    @Autowired
+    @Resource
     MarketingCustomerMapper marketingCustomerMapper;
-    
-    @Autowired
+    @Resource
     SyncConfigMapper syncConfigMapper;
-
-
-    @Autowired
+    @Resource
     SftpToDbByCommonService sftpToDbByCommonService;
-
-    @Autowired
+    @Resource
     LocalFileMapper localFileMapper;
-
-    @Autowired
+    @Resource
     FileDbConfigMapper fileDbConfigMapper;
-
-    @Autowired
+    @Resource
     ITxtToDbService iTxtToDbService;
-
-    @Autowired
+    @Resource
     ICompatibleService iCompatibleService;
+
     /**
      *  1、先从customer读取客户
      *  2、再从sftp配置表读取路径
@@ -184,11 +178,8 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
                             sftpClient.rename(srcPath + fileName, srcPath + fileName+"_"+yyyyMMddHHmmss+ ".bak");
                             ArrayList<String> baseHeads = new ArrayList<String>();
 
-                            Function<TxtToDbDTO, Result> function = getFunByFileType(fileType);
-                            sftpToDbByCommonService.actionTxtFile(context
-                                    , localFile
-                                    , fileDbConfig
-                                    ,function);
+                            Function<TxtToDbDTO, Result> function = getFunctionByFileType(fileType);
+                            sftpToDbByCommonService.actionTxtFile(context, localFile, fileDbConfig, function);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
                             try {
@@ -206,7 +197,7 @@ public class SftpToDbByCommonJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private Function<TxtToDbDTO, Result> getFunByFileType(String fileType){
+    private Function<TxtToDbDTO, Result> getFunctionByFileType(String fileType){
         log.info("fileType: " + fileType);
         if(StringUtils.isEmpty(fileType)){
             return iTxtToDbService::toDbByCommon;

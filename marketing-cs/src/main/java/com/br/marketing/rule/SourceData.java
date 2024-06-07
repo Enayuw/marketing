@@ -3,12 +3,15 @@ package com.br.marketing.rule;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 /**
  * @Description :去重参数构建
  * ---------------------------------
  * @Author : zhen.Li
  * @Date : Create in 2023/3/21 14:11
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class SourceData extends InterfaceParams{
     /**

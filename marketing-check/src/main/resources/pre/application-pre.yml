@@ -163,6 +163,9 @@ api:
     batchHermesUserData: ${api.dass.ibuBaseUrl}/ibu-daas/api/batchHermesUserData
     ibuAk: d87a6e0ab4dc2903
     ibuSk: fbd1478a51d88954
+  baiying:
+    baseUrl: https://cos.byai.com
+    postBlackList: ${api.baiying.baseUrl}/api/byai/transform/br/blacklist/import
   twoSeven:
     baseUrl: http://8.129.19.178:8888
     zhuangku: ${api.twoSeven.baseUrl}/zhuangku
@@ -272,6 +275,7 @@ api:
       serviceId:
         labelRating: "CMBrLabelRatingRe"
         CMBrScoDaFeBack: "CMBrScoDaFeBack"
+        recodFile: "CMBrRecodFileRe"
     file:
       baseUrl: "https://iodev-uat.z-bank.com"
       channelId: "2023042701"

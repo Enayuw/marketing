@@ -80,4 +80,10 @@ public interface LocalFileMapper extends LocalFileMapperBase {
      * @return java.util.List<com.br.marketing.entity.LocalFile> 查询到的结果
      */
     List<LocalFile> getNotPushLocalFileByFileTypeAndFileName(@Param("fileName") String fileName,@Param("fileType") String fileType);
+
+    /**
+     * 更新
+     * @param localFile localFile
+     */
+    void updatePushNumber(@Param("localFile") LocalFile localFile);
 }

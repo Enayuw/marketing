@@ -1,5 +1,5 @@
-import com.br.marketing.check.CkeckApplication;
-import com.br.marketing.check.job.SftpToDbByCommonJob;
+import com.br.marketing.bridge.DataBridgeApplication;
+import com.br.marketing.bridge.job.SftpToDbByCommonJob;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -17,7 +17,7 @@ import org.springframework.test.context.web.WebAppConfiguration;
  * SftpToDbTest
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {CkeckApplication.class})
+@SpringBootTest(classes = {DataBridgeApplication.class})
 @WebAppConfiguration
 @Slf4j
 public class SftpToDbTest implements ApplicationContextAware {
@@ -27,7 +27,7 @@ public class SftpToDbTest implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        CkeckApplication.ac = (ConfigurableApplicationContext) applicationContext;
+        DataBridgeApplication.ac = (ConfigurableApplicationContext) applicationContext;
     }
     @Test
     public void testActionTransferToFile(){

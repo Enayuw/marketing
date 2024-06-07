@@ -133,6 +133,12 @@ public class MarketingCommonConfig {
      * 宜信实时转化数据提取apiCode集合
      */
     private List<String> yinXinTransferRealTimeApiCodes;
+    /**
+     * 宜信转化数据提取V4.0 apiCode集合
+     * (list第一个值放文件名称前缀，防止新job覆盖小程序的，文件对比没问题后改成与小程序同名文件，并下掉小程序代码)
+     * yinXinTransferV4ApiCodes=["yixinzhuanhua_all","7411787"]
+     */
+    private List<String> yinXinTransferV4ApiCodes;
 
     /**
      * 宜信实时转化数据执行时间
@@ -282,6 +288,16 @@ public class MarketingCommonConfig {
     private Boolean checkJobOnlineSwitch;
 
     /**
+     * check服务job的上线开关
+     */
+    private Boolean dataBridgeJobOnlineSwitch;
+
+    /**
+     * 服务上线job开关-Monkey
+     */
+    private Boolean dataMonkeyJobOnlineSwitch;
+
+    /**
      * 离线跑批入es文件 线程数
      */
     private Integer OffLineInserEsThreadNum;
@@ -339,8 +355,10 @@ public class MarketingCommonConfig {
      * 同程转化数据提取执行时间
      */
     private String TongChengGroupTransferExecuteTime;
-
-
+    /**
+     * 宜信转化数据提取V4.0
+     */
+    private String YiXinV4TransferExecuteTime;
 
     /**
      * 携程数据推送线程数
@@ -848,6 +866,21 @@ public class MarketingCommonConfig {
     private Integer yiXinSearchPageSize;
 
     /**
+     * 宜信转化过滤推送百应执行时间
+     */
+    private String yiXinTransferPushBaiYingExecuteTime;
+
+    /**
+     * 宜信转化过滤推送百应线程
+     */
+    private Map<String, Integer> yiXinTransferPushBaiYingThreadPool;
+
+    /**
+     * 宜信转化过滤推送百应推送配置
+     */
+    private Map<String, Object> yiXinTransferPushBaiYingPush;
+
+    /**
      * 滴滴联合建模新接口执行时间
      */
     private String didiModelingNewExecTime;
@@ -1155,6 +1188,21 @@ public class MarketingCommonConfig {
     private Boolean zhongBangCaifuLabelTest;
 
     /**
+     * 众邦录音明细回调测试
+     * {"open":"true","code":"500"}
+     *      code success:1
+     *      code fail:0
+     *      code 流控:500
+     */
+    private String zhongBangRecodFileReTest;
+
+    /**
+     * 众邦财富上传录音文件明细配置,{"b_zhongbang_voice_file_detail":{"fileType":"zhongbang_voice","uploadPoolSize":5,"getFilePoolSize":5}}
+     */
+    private Map<String, JSONObject> zhongBangVoiceFileConfig = new HashMap<>();
+
+
+    /**
      * 2023-12-05 10:35
      * 众邦文件下载配置信息
      */
@@ -1171,6 +1219,19 @@ public class MarketingCommonConfig {
      * tongChengUndoMock={"switch":false,"httpcode":"200","code":"1001"}
      */
     private HashMap<String, Object> tongChengUndoMock;
+
+    /**
+     * 推送百应黑名单接口挡板开关 true:开启挡板。false:关闭挡板
+     * baiYingUndoMock={"switch":true,"httpcode":"200","code":"000000"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * httpcode：
+     *      200:请求成功
+     * code：
+     *      000000:调用百应黑名单接口成功
+     */
+    private HashMap<String, Object> baiYingUndoMock;
 
     /**
      * 同程不运营名单推送客户接口线程数
@@ -1584,6 +1645,36 @@ public class MarketingCommonConfig {
      * 推送决策超时后，查询结果要延时的 分钟 数
      */
     private Long queryCustomerPushTimeOutDelay;
+
+    /**
+     * 宜信推决策(原转人工数据)的 apiCode
+     */
+    private String yiXinToPolicyApiCode;
+
+    /**
+     * 金美鑫黑名单文件校验相关配置
+     */
+    private String jinMeiXinBlackListFileCheckConfig;
+
+    /**
+     * 榕树转化数据提取apiCode集合
+     */
+    private List<String> rongShuTransferApiCodes;
+
+    /**
+     * 榕树数据提取时间
+     */
+    private String rongShuFileExecTime;
+    /**
+     * 间隔几分钟后调用决策配置
+     * apiCode：客户编号
+     * source：1通用转化流程,2客服拨打数据,3原始数据上传流程,4人工拨打流程,5转化数据集合流程,6初始数据集合流程
+     * breakFlag：是否继续走实时流程（true：不走实时流程，false：走实时流程）
+     * intervalTime：间隔时间（默认单位：分钟）
+     * 例：{"7410086":{"apiCode":"7410086","source":"1","breakFlag":"true","intervalTime":"1"},
+     *      "3010086":{"apiCode":"3010086","source":"3","breakFlag":"false","intervalTime":"2"}}
+     */
+    private Map<String, JSONObject> periodPushConfig;
 
 }
 

@@ -80,7 +80,7 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
                 set.add("PPD_TransferData_ArtificialBatch");
             }else{
                 //宜信处理规则
-                set.add("YiXin_RealTimeData_ArtificialBatchRealTimeData");
+                set.add("YiXin_RealTimeData_ArtificialToPolicyRule");
             }
         }
         JSONObject jsonObject = new JSONObject();

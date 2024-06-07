@@ -100,6 +100,27 @@
         limit ${rowCount},${offset}
         ) as t1 where t1.id = t2.id
     </select>
+    <select id="getTransferByStartAndEndDateYiXinV4" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select t2.* from b_marketing_transfer_sync_${transferSyncUser.tCid} t2,(select id from
+        b_marketing_transfer_sync_${transferSyncUser.tCid}
+        where
+            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+                api_code=#{transferSyncUser.apiCode}
+            </if>
+            <![CDATA[ and request_data = #{requestDate} ]]>
+            and (json_extract(reserve_field1, '$.transformType') != #{transformType} or json_extract(reserve_field1,'$.transformType') is null)
+        order by
+        <choose>
+            <when test="orderByClause != null and orderByClause.trim() neq ''">
+                ${orderByClause}
+            </when>
+            <otherwise>
+                id
+            </otherwise>
+        </choose>
+        limit ${rowCount},${offset}
+        ) as t1 where t1.id = t2.id
+    </select>
 
     <select id="getTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
@@ -995,5 +1016,17 @@
             </foreach>
         </if>
         group by user_type
+    </select>
+
+    <select id="getYxTransferByRequestDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select *
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode}
+        and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
+        and request_data = #{requestDate}
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit #{pageSize}
     </select>
 </mapper>

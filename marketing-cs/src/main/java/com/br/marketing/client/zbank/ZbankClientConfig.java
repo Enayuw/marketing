@@ -47,11 +47,11 @@ public class ZbankClientConfig {
     /**
      * 文件请求响应超时时间，单位ms
      */
-    private static final int FILE_SOCKET_TIMEOUT = 120000;
+    private static final int FILE_SOCKET_TIMEOUT = 60000;
 
     // api sdk参数
     /**
-     * 访问URL（由众邦银行提供）
+     * 百融代理配置
      */
     @Value("${api.zbank.isPorxy:true}")
     private Boolean isPorxy;
@@ -105,6 +105,12 @@ public class ZbankClientConfig {
     @Value("${api.zbank.api.serviceId.CMBrScoDaFeBack:CMBrScoDaFeBack}")
     private String CMBrScoDaFeBack;
 
+    /**
+     * 录音文件回传接口
+     */
+    @Value("${api.zbank.api.serviceId.recodFile:CMBrRecodFileRe}")
+    private String serviceIdRecodFile;
+
     // 文件sdk参数
 
     /**
@@ -146,6 +152,7 @@ public class ZbankClientConfig {
             // 开启记录接口日志
             sdk.getConfig().getInterfaceLogServiceIdList().add(serviceIdLabelRating);
             sdk.getConfig().getInterfaceLogServiceIdList().add(CMBrScoDaFeBack);
+            sdk.getConfig().getInterfaceLogServiceIdList().add(serviceIdRecodFile);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

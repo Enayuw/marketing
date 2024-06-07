@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PushCustomerFileInfoMapper">
+
+    <update id="updateFileInfoAndFileDetailtikv_">
+        update b_push_customer_file_info t1 inner join b_zhongbang_voice_file_detail t2
+        on t1.file_name = t2.file_name and t1.local_file_id=t2.local_id
+        set
+        t1.push_status=${fileInfo.pushStatus}
+        ,t1.push_date= #{fileInfo.pushDate}
+        <if test="fileInfo.remark != null">
+            ,t1.remark='${fileInfo.remark}'
+        </if>
+        ,t2.file_info_id=t1.id
+        <if test="fileDetail.customerFileId != null">
+            ,t2.customer_file_id='${fileDetail.customerFileId}'
+        </if>
+        <if test="fileDetail.pushStatus != null">
+            ,t2.push_status=${fileDetail.pushStatus}
+        </if>
+        where
+        t1.id=${fileInfo.id}
+        and t2.local_id = #{fileDetail.localId}
+        and t2.push_status=0
+        and t2.status=1
+        and t2.is_deleted=0
+        and t2.file_name='${fileDetail.fileName}'
+    </update>
+
+</mapper>

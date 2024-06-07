@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.zhongbang;
 
+import java.time.LocalDate;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -28,8 +29,20 @@ public interface ZhongBangService {
      * @param filePath  文件路径
      * @param beginDate 开始时间
      * @param endDate   结束时间
+     * @param threadPool 线程池
      * @return true 文件下载成功
      */
-    boolean zhongBangFileQueryAndDownload(String apiCode, String cid, String fileName
+    boolean fileQueryAndDownload(String apiCode, String cid, String fileName
             , String tableHead, String filePath, String beginDate, String endDate, ThreadPoolExecutor threadPool);
+
+    /**
+     * 2024-05-09 10:36
+     * 上传语音文件
+     *
+     * @param apiCode   apiCode
+     * @param cid       cid
+     * @param localDate 日期
+     * @return true 文件下载成功
+     */
+    boolean voiceFileUpload(String apiCode, String cid, LocalDate localDate);
 }

@@ -116,10 +116,10 @@ otherConfig:
     destinationName: marketing_query_log
 api:
   intelligentCustomerService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    baseUrl: http://pdai.brapp.com/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    baseUrl: http://pdai.brapp.com/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   yiQianBao:
     baseUrl: https://pmgw.yqb.com
@@ -137,6 +137,9 @@ api:
     aesKey: MgoTm8GxuxTUc6y5
     SecretKey: MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAKm7vv0ZdB36H8sGL2YZWAPM3sQ+tMbfoPp71KncNzOzMMqd9KiK9tPrfeoApo+xXBZFvid8f+1BxiyU7/bHrxiIFvawfzTt0PTj/gYcM9k0gMMUmomGNir9PMzV2WWBDpvSLUSoWX56yk3LhUB4rHXrj5pUIpO0pEr5b9cPQbZBAgMBAAECgYEAkSXIkdBuiCQZhBjp97m8lqNf7RpipZ8fnpS+q/NyEXgvRVYGnwsXQOqlZrLfvQnC4hkKH+JL06znt8A15SemB0NizbDmFvtsi+tQQm9qK8jvMkdo6zVeXlNjJ2kDVu98WFDK3EEukWTQXiYTdX6paKiFQnWQwV/EKlb/Bi3lfEECQQDclPdFCptoKDv52HEqs4UbsGY/yO4ZbZXTPst1w0EKjhFIn9jcoFPBoO3o4URPM8ENeBZv8bpU0djGO2nCfAGFAkEAxPymAEbUmtHH893JILrfo65O85K5MmGNR/NSdn4uBjD9E0R1cWB3SHlfDUv9+r0GtuQasLSp3cvJI5OY2sdgjQJBALmurHfx9eA3/kTTbnADrokgdPI8sjG1jenFcoAvXREFhoccB/GxBNB6J8th1Z7Wcixkan7RfYjpHRHB8cVFngECQFy0tn8s1oPiNKMtfql7qSKENz3kkGoIhRAWkHmZmplpVsFJl6f7CUg/bp94Yxgs+8r5ASKmc8chUBEBNo/IA0UCQQCt75iTugjsjbZUvoYHwZ9A7Bf7vfG7sOI3cismFzARUpSUPN6dEht4X4Z2AdC9HXXS+Mb3vFaCIK+h3WDZeZJt
     isProxy: 1
+  baiying:
+    baseUrl: https://cos.byai.com
+    postBlackList: ${api.baiying.baseUrl}/api/byai/transform/br/blacklist/import
   twoSeven:
     baseUrl: http://8.129.19.178:8888
     zhuangku: ${api.twoSeven.baseUrl}/zhuangku
@@ -205,6 +208,24 @@ api:
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
     secretKey: 3VMUkXxpauLzA7kzHdq7uCNMFjDUMCgyUzgSe83hdb64QcU2KJT5Rcb7enVtYzR9
     isProxy: true
+  zbank: #众邦财富
+    isPorxy: true
+    api:
+      baseUrl: "https://iopf.z-bank.com"
+      serverPubKey: "04FA9C039AFC14D3F75A3290BB5A698F93316D508D419B73A237F7FCA048A92CE20F3C1B3BE4517E370563DAE64E474840EB2E11FCC011B506D3D1CBEE956BA774"
+      appId: "26cd2e1f_f116_4947_94d9_c68194400186"
+      appSecretKey: "5c995d09-b371-48aa-af63-5e79909e6908"
+      priKey: "3B82FE82D970F247C391358D360DA50486FE2266D5919028BD26A3AC4940E845"
+      serviceId:
+        labelRating: "CMBrLabelRatingRe"
+        CMBrScoDaFeBack: "CMBrScoDaFeBack"
+        recodFile: "CMBrRecodFileRe"
+    file:
+      baseUrl: "https://file.z-bank.com"
+      channelId: "1741195375"
+      encryptKey: "0496a17bc0917d63e02b2e09b75d3ae6c496a8efc053c722123744dd094227254404006e9a23509deaeeb9f543158bd30483ef39d5a7fdf41c1e40a0a2a603ef2b"
+      cksStr: "87522C1758A0493D99BD05FE9300DDEA"
+      slotKey: "AJJouRpxr9dw0ldw/ZoMpw=="
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672

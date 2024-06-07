@@ -195,7 +195,7 @@
     </select>
 
     <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
+        select cus_batch, cust_num, id_card, name, cell,cell_md5,cell_sha256, user_type, reserve_field1, reserve_field2, create_time,
         update_time,applet_date,applet_time
         from b_marketing_sync_${apiCode}
         <where>
@@ -451,6 +451,15 @@
         select cus_batch from b_marketing_sync_${apiCode}
         where applet_date = #{appletDate}
         group by cus_batch;
+    </select>
+
+    <select id="getDataByIdList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from b_marketing_sync_${apiCode}
+        where id in
+        <foreach collection="idList" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        and status = 1 and is_repeat in (1,2);
     </select>
 
 </mapper>

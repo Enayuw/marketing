@@ -15,7 +15,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.CallRecord;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -308,6 +307,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
                         pushList.add(new ZhonganRosterLockingDataBO(next, user, apiCode, tag));
                     }
             }
+
             // distribute去重 cell + distribute_date
             distributeIds = distributeSoleProcessor.process(pushList, pageParam);
 
