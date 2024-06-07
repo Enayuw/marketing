@@ -49,7 +49,7 @@ public class DataCleanTaskVO {
      * 规则配置id
      */
     @ApiModelProperty(value = "规则名称")
-    private String configName;
+    private String ruleName;
 
     /**
      * 任务状态

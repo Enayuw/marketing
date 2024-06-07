@@ -408,7 +408,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         BeanUtils.copyProperties(task, dataCleanTaskVO);
         dataCleanTaskVO.setFileType(task.getCleanType());
         dataCleanTaskVO.setRuleCondition(config.getFieldConfigShow());
-        dataCleanTaskVO.setConfigName(config.getRuleName());
+        dataCleanTaskVO.setRuleName(config.getRuleName());
         dataCleanTaskVO.setFileName(cleanDataFiles.stream().map(MarketingCleanDataFile::getFileName).collect(Collectors.joining(",")));
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(dataCleanTaskVO);
 
