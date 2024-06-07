@@ -56,6 +56,7 @@ public interface MarketingTaskService {
 
     void addTaskPercent(Long fileId, Long number);
 
+    Result<Long> buildScoreTaskOfAutoBuild(CustomerScoreRuleVO vo);
     Result<Long> buildScoreTaskOfAuto(CustomerScoreRuleVO vo);
 
     Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo, List<String> userTypeList);

@@ -126,7 +126,7 @@ public class TaskServiceImpl implements ITaskService {
                 continue;
             }
 //            if (datum.getParentId() <= 0) {
-                marketingTaskService.buildScoreTaskOfAuto(datum);
+                marketingTaskService.buildScoreTaskOfAutoBuild(datum);
 //            } else {
 //                buildScoreTaskOfSelect(datum);
 //            }

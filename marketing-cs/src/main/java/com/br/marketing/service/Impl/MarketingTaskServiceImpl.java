@@ -26,6 +26,7 @@ import com.br.marketing.entity.MarketingSyncReportExample;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingTaskExample;
 import com.br.marketing.entity.MarketingTaskExtend;
+import com.br.marketing.entity.MarketingTaskExtendExample;
 import com.br.marketing.entity.MarketingTaskResultPreview;
 import com.br.marketing.entity.MarketingTaskResultPreviewExample;
 import com.br.marketing.entity.MarketingTaskUserType;
@@ -75,6 +76,7 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -278,6 +280,131 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         redisChgService.incrBy(key, number);
     }
 
+    private static final DateTimeFormatter YMD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    @Override
+    public Result<Long> buildScoreTaskOfAutoBuild(CustomerScoreRuleVO vo) {
+        // 获取当前时间和日期
+        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDate nowDate = LocalDate.now();
+        Date nowDateStart = Date.from(nowDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date nowDateEnd = Date.from(nowDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        // 解析和构建有效时间
+        String startTime = vo.getStartTime();
+        String validTimeStr = nowDate.format(YMD) + " " + startTime + ":00";
+        LocalDateTime validTime = LocalDateTime.parse(validTimeStr, ymdhms);
+        // 判断是否达到开始时间
+        if (nowTime.isBefore(validTime)) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则没达到开始时间，暂不生成任务");
+        }
+
+        String apiCode = vo.getApiCode();
+        // 判断当天此规则是否生成过task
+        MarketingTaskExtendExample marketingTaskExtendExample = new MarketingTaskExtendExample();
+        marketingTaskExtendExample.createCriteria().andIsDelEqualTo(1)
+                .andRuleIdEqualTo(vo.getId())
+                .andCreateTimeGreaterThanOrEqualTo(nowDateStart)
+                .andCreateTimeLessThan(nowDateEnd);
+        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(marketingTaskExtendExample);
+        if (!CollectionUtils.isEmpty(marketingTaskExtends)) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则当天已自动生成任务");
+        }
+
+        //region 条件解析
+        Result<String> conditionRes = soleStrategyService.analysisCondition(vo.getConditionInfo());
+        if (!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
+            String errorMsg = String.format("自动规则生成任务 数据范围解析有误;" + warnTemp, vo.getApiCode(), vo.getId(), conditionRes.getMessage());
+            log.warn(errorMsg);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+        }
+
+        // 是否存在T日上传完成、T-1未上传完成的情况
+        MarketingSyncInfoExample syncInfoIngExample = new MarketingSyncInfoExample();
+        syncInfoIngExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andCreateTimeGreaterThanOrEqualTo(nowDateStart)
+                .andCreateTimeLessThan(nowDateEnd)
+                .andStatusEqualTo(1);
+//                .andIsUploadEqualTo(1);
+        int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
+        if (isUploadCount > 0) {
+            String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(), "");
+            log.warn(errorMsg);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+        }
+
+        Integer execType = vo.getExecType();
+        // 每个任务的周期
+        if (execType == 3) {
+
+        }
+
+        // 每日定时
+        if (execType == 4) {
+            // 是否叠加有效期数据
+            Integer isStackValidity = vo.getIsStackValidity();
+            if (isStackValidity == 0) {
+                Long minId = syncInfoMapper
+                        .getMinIdByRuleScoreWithDate(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
+
+                if (minId == null || minId <= 0) {
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
+                }
+
+                String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                // 生成跑分批次号
+                Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
+                        , vo.getId().toString(), vo.getRuleNameShort()
+                        , time, null);
+                if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
+                    String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
+                    log.warn(errorMsg);
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+                }
+                String batchNumber = batchNumberRes.getData();
+
+                // 查询符合跑分数据的场景
+                List<String> userTypeList = syncInfoMapper
+                        .queryUserTypeListWithDatetikv_(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
+
+                //跑分条件转化
+                Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), nowDate.toString(),
+                        validTimeStr);
+
+                if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
+                }
+
+                String transferData = conditionTransferRes.getData();
+                //获取查询sql条件
+                Result<List<String>> transferWhereRes = soleStrategyService.analysisConditions(transferData);
+                if (!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())) {
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(transferWhereRes.getMessage());
+                }
+                StringBuilder showStr = new StringBuilder();
+                Integer count = 0;
+                for (int i = 0; i < transferWhereRes.getData().size(); i++) {
+                    String datum = transferWhereRes.getData().get(i);
+                    String s = whereSqlToShow(datum);
+                    Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
+                    count += integer;
+                    showStr.append(s).append("总数据" + integer);
+                    if (i < transferWhereRes.getData().size() - 1) {
+                        showStr.append(",");
+                    }
+                }
+                vo.setConditionInfo(transferData);
+                return saveTask(apiCode, batchNumber, vo, nowDate.toString(), count, 1, showStr.toString(), userTypeList);
+            }
+            if (isStackValidity == 1) {
+
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public Result<Long> buildScoreTaskOfAuto(CustomerScoreRuleVO vo) {
         String apiCode = vo.getApiCode();
@@ -307,8 +434,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             eTimeStr = validTime.minusDays(1L).format(ymdhms);
 
         }
-//        taskStart = LocalDate.now().format(ymd);
-//        taskEnd = LocalDate.now().plusDays(1L).format(ymd);
+        taskStart = LocalDate.now().format(ymd);
+        taskEnd = LocalDate.now().plusDays(1L).format(ymd);
         String sDate = LocalDateTime.parse(sTimeStr, ymdhms).format(ymd);
         try {
             sTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(sTimeStr);
@@ -317,22 +444,16 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             e.printStackTrace();
         }
 
-        // 每日定时
-        //判断是否达到开始时间、再判断当天此规则是否生成过task
-        //
-        //每个任务的周期
-        //判断是否达到开始时间、再判断是否达到周期天数、再判断当天此规则是否生成过task
-
-//        Date ruleOpenTime = vo.getUpdateTime();
-//        if (ruleOpenTime == null) {
-//            ruleOpenTime = vo.getCreateTime();
-//        }
-//        String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
-//        String nowDay = LocalDate.now().format(ymd);
-//        // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
-//        if (ruleOpenDay.equals(nowDay) && eTime.compareTo(ruleOpenTime) <= 0) {
-//            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(String.format("概规则的历史数据不予生成 规则id：%d", vo.getId()));
-//        }
+        Date ruleOpenTime = vo.getUpdateTime();
+        if (ruleOpenTime == null) {
+            ruleOpenTime = vo.getCreateTime();
+        }
+        String ruleOpenDay = new SimpleDateFormat("yyyy-MM-dd").format(ruleOpenTime);
+        String nowDay = LocalDate.now().format(ymd);
+        // 规则启用日期和生成任务日期相同 需要比较 生效时间是小于等于规则开启时间 认为历史的任务不予生成
+        if (ruleOpenDay.equals(nowDay) && eTime.compareTo(ruleOpenTime) <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(String.format("概规则的历史数据不予生成 规则id：%d", vo.getId()));
+        }
         //endregion
 
         //region 条件解析
@@ -592,20 +713,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         task.setMonitorType(ruleVO.getExecType());
         task.setIsOnline(ruleVO.getIsOnline());
         if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
-            MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
-            if (task1 != null) {
-                task.setStartDate(task1.getStartDate());
-                task.setCloseDate(task1.getCloseDate());
-            } else {
-                task.setStartDate(taskStart);
-                task.setCloseDate(ruleVO.getCycleEndDay());
-            }
-            task.setCycleDay(ruleVO.getCycleDay().toString());
+            task.setMonitorType(4);
+            task.setStartDate(taskStart);
+            task.setCloseDate(taskStart);
         } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
             task.setMonitorType(3);
             task.setStartDate(taskStart);
-            task.setCloseDate(ruleVO.getCycleEndDay());
-            task.setCycleDay(ruleVO.getCycleDay().toString());
+            task.setCloseDate(taskStart);
         } else {
             String taskEnd = LocalDate.parse(taskStart, ymd)
                     .plusDays(1L).format(ymd);
@@ -663,9 +777,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             scoreRuleConfig.setId(ruleVO.getId());
             scoreRuleConfigMapper.updateByPrimaryKeySelective(scoreRuleConfig);
         }
-
-        // 当任务优先级为0，判断是否需要暂停一个非0的任务
-        getOtherTaskAndPause(task);
 
         //region 发送通知
         StringBuilder content = new StringBuilder();
