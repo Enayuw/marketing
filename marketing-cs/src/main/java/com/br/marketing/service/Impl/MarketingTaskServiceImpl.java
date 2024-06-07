@@ -20,6 +20,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
+import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncInfoExample;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
@@ -39,6 +40,7 @@ import com.br.marketing.entity.TaskStatus;
 import com.br.marketing.entity.TaskStatusExample;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
@@ -172,6 +174,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     TaskStatusMapper taskStatusMapper;
 
     @Autowired
+    MarketingDataValidConfigMapper marketingDataValidConfigMapper;
+
+    @Autowired
     private CuratorFramework client;
 
     @Override
@@ -287,8 +292,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         // 获取当前时间和日期
         LocalDateTime nowTime = LocalDateTime.now();
         LocalDate nowDate = LocalDate.now();
+        LocalDate plusDays = nowDate.plusDays(1);
         Date nowDateStart = Date.from(nowDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date nowDateEnd = Date.from(nowDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+        Date nowDateEnd = Date.from(plusDays.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         // 解析和构建有效时间
         String startTime = vo.getStartTime();
@@ -397,8 +403,66 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 vo.setConditionInfo(transferData);
                 return saveTask(apiCode, batchNumber, vo, nowDate.toString(), count, 1, showStr.toString(), userTypeList);
             }
-            if (isStackValidity == 1) {
 
+            if (isStackValidity == 1) {
+                List<MarketingDataValidConfig> configList = marketingDataValidConfigMapper
+                        .findListByApiCodeAndUserTypeSetPagetikv_(
+                                apiCode, nowDate.toString(), null, null, null);
+
+                Long minId = syncInfoMapper
+                        .getMinIdByRuleScoreWithValidConfig(apiCode, configList,conditionRes.getData(), validTimeStr);
+
+                if (minId == null || minId <= 0) {
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
+                }
+
+                String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                // 生成跑分批次号
+                Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
+                        , vo.getId().toString(), vo.getRuleNameShort()
+                        , time, null);
+                if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
+                    String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
+                    log.warn(errorMsg);
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+                }
+                String batchNumber = batchNumberRes.getData();
+                // 查询符合跑分数据的场景
+                List<String> userTypeList = syncInfoMapper
+                        .queryUserTypeListWithValidConfigtikv_(apiCode, configList, conditionRes.getData(), validTimeStr);
+
+                //跑分条件转化
+                Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditionsByValidConfig(vo.getConditionInfo(), configList,
+                        validTimeStr);
+
+                if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
+                }
+
+                if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
+                }
+
+                String transferData = conditionTransferRes.getData();
+                //获取查询sql条件
+                Result<List<String>> transferWhereRes = soleStrategyService.analysisConditions(transferData);
+                if (!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())) {
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(transferWhereRes.getMessage());
+                }
+                StringBuilder showStr = new StringBuilder();
+                Integer count = 0;
+                for (int i = 0; i < transferWhereRes.getData().size(); i++) {
+                    String datum = transferWhereRes.getData().get(i);
+                    String s = whereSqlToShow(datum);
+                    Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
+                    count += integer;
+                    showStr.append(s).append("总数据" + integer);
+                    if (i < transferWhereRes.getData().size() - 1) {
+                        showStr.append(",");
+                    }
+                }
+                vo.setConditionInfo(transferData);
+                return saveTask(apiCode, batchNumber, vo, nowDate.toString(), count, 1, showStr.toString(), userTypeList);
             }
         }
 

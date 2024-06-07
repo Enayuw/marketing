@@ -1,6 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.CustomerSoleRuleVO;
@@ -26,4 +27,5 @@ public interface SoleStrategyService {
     Result<List<String>> analysisConditions(String conditionVo);
 
     Result<String> analysisTransferConditions(String conditionStr,String date,String time);
+    Result<String> analysisTransferConditionsByValidConfig(String conditionStr, List<MarketingDataValidConfig> configList, String time);
 }

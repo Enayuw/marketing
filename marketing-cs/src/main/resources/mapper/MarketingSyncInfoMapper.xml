@@ -100,6 +100,23 @@
             and (${whereStr})
     </select>
 
+    <select id="getMinIdByRuleScoreWithValidConfig" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where status=1
+        <if test="configList != null and configList.size() > 0">
+            and (applet_date, user_type) in
+            <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                (#{item.appletDate}, #{item.userType})
+            </foreach>
+        </if>
+        <if test="validTimeStr != null and validTimeStr !=''">
+            <![CDATA[ and applet_time < #{validTimeStr} ]]>
+        </if>
+        and is_repeat in (1,2)
+        and (${whereStr})
+    </select>
+
     <select id="queryUserTypeListWithDatetikv_" resultType="java.lang.String">
         select distinct(user_type)
         from b_marketing_sync_${apiCode}
@@ -112,6 +129,23 @@
                 <![CDATA[ and applet_time < #{eTimeStr} ]]>
             </if>
             and (${whereStr})
+    </select>
+
+    <select id="queryUserTypeListWithValidConfigtikv_" resultType="java.lang.String">
+        select distinct(user_type)
+        from b_marketing_sync_${apiCode}
+        where is_repeat in (1,2)
+        and status = 1
+        <if test="configList != null and configList.size() > 0">
+            and (applet_date, user_type) in
+            <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                (#{item.appletDate}, #{item.userType})
+            </foreach>
+        </if>
+        <if test="validTimeStr != null and validTimeStr !=''">
+            <![CDATA[ and applet_time < #{validTimeStr} ]]>
+        </if>
+        and (${whereStr})
     </select>
 
     <select id="countByRuleScoreWithDate" resultType="java.lang.Integer">
