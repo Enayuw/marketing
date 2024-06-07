@@ -1039,6 +1039,21 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="DataCleanFileSyncJob"
+                class="com.br.marketing.check.job.dataclean.DataCleanFileSyncJob"
+                cron="0 0/5 * * * ? "
+                description="数据清洗文件同步"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
     <job:simple id="DataCleaningGeneralJob"
                 class="com.br.marketing.check.job.DataCleaningGeneralJob"
                 cron="0 0 18 29 9 ? 2050-2050"

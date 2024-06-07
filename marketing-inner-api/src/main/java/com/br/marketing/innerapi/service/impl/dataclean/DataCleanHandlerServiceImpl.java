@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.service.impl.dataclean;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -10,9 +11,8 @@ import com.br.marketing.dto.dataclean.DataCleanConfigDTO;
 import com.br.marketing.dto.dataclean.DataCleanRuleDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
-import com.br.marketing.mapper.MarketingCleanDataFileMapper;
-import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
-import com.br.marketing.mapper.MarketingDataFileConfigMapper;
+import com.br.marketing.mapper.*;
+import com.br.marketing.service.PushRuleService;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.br.marketing.vo.dataclean.DataCleanConfigVO;
 import com.br.marketing.vo.dataclean.DataCleanTaskVO;
@@ -23,12 +23,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +54,16 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Resource
     private MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
+
+
+    @Resource
+    private MarketingUserMapper marketingUserMapper;
+
+    @Autowired
+    private PushRuleService pushRuleService;
+
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     public static final List<String> UPLOAD_FIELD = Lists.newArrayList("custNum", "cell", "id", "name", "userType");
     public static final List<String> TRANSFER_FIELD = Lists.newArrayList("custNum", "userType");
@@ -88,8 +103,14 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
         String ruleConfigShow = dto.getRuleCondition();
         //json处理
-        List<String> fieldList = getfieldMap(dto.getFileType());
-        String ruleConfig = ruleTransferHandler(ruleConfigShow, fieldList);
+        List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfigShow, new TypeReference<List<FileToMarketingFieldVO>>() {
+        }.getType());
+        List<String> mustFieldList = getInterFaceMustField(dto.getFileType());
+        List<String> interFaceFieldList = marketingFieldVOList.stream().map(FileToMarketingFieldVO::getInterfaceField).collect(Collectors.toList());
+        if (!interFaceFieldList.containsAll(mustFieldList)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("必填字段未配置，请检查");
+        }
+        String ruleConfig = ruleTransferHandler(ruleConfigShow, dto.getFileType());
         marketingDataFileConfig.setFieldConfig(ruleConfig);
         marketingDataFileConfig.setFieldConfigShow(ruleConfigShow);
         marketingDataFileConfig.setCleanType(dto.getFileType());
@@ -97,9 +118,13 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         marketingDataFileConfig.setFileId(fileId);
         if (StringUtils.isEmpty(dto.getRuleName())) {
             marketingDataFileConfig.setRuleName(apiCode + "_" + LocalDate.now().toString() + fileId);
+        }else{
+            marketingDataFileConfig.setRuleName(dto.getRuleName());
         }
         marketingDataFileConfig.setApiCode(apiCode);
+        marketingDataFileConfig.setUpdateTime(new Date());
         if (Objects.isNull(configId)) {
+            marketingDataFileConfig.setCreateTime(new Date());
             marketingDataFileConfigMapper.insertSelective(marketingDataFileConfig);
             configId = marketingDataFileConfig.getId();
         } else {
@@ -111,11 +136,11 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         task.setConfigId(configId.intValue());
         task.setFileId(dto.getFileIds());
         task.setCleanType(dto.getFileType());
-        task.setCreateTime(new Date());
         task.setUpdateTime(new Date());
         task.setCleanStatus(0);
         task.setApiCode(apiCode);
         if (Objects.isNull(dto.getId())) {
+            task.setCreateTime(new Date());
             marketingCleanDataTaskMapper.insertSelective(task);
         } else {
             task.setId(dto.getId());
@@ -123,35 +148,68 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         }
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
     }
+    
 
-    private String ruleTransferHandler(String ruleConfig, List<String> fieldList) {
+
+    private String ruleTransferHandler(String ruleConfig, Integer fileType) {
         List<FileToMarketingFieldVO> ruleList = new ArrayList<>();
         List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfig, new TypeReference<List<FileToMarketingFieldVO>>() {
         }.getType());
-        marketingFieldVOList.forEach(fileToMarketingFieldVO -> {
-            String interfaceField = fileToMarketingFieldVO.getInterfaceField();
-            if (StringUtils.isBlank(interfaceField)) {
-                FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
-                BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
-                fieldVO.setInterfaceField(fileToMarketingFieldVO.getHeadField());
-                fieldVO.setIsExtend(true);
-                ruleList.add(fieldVO);
-            }
-            List<String> interfaceFields = Arrays.asList(fileToMarketingFieldVO.getInterfaceField().split(","));
-            interfaceFields.forEach(field -> {
-                FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
-                BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
-                fieldVO.setInterfaceField(field);
-                if (fieldList.contains(field)) {
-                    fieldVO.setIsExtend(false);
-                } else {
-                    fieldVO.setIsExtend(true);
-                }
-                ruleList.add(fieldVO);
-            });
+        //interfaceField有多个
+        marketingFieldVOList.forEach((FileToMarketingFieldVO fileToMarketingFieldVO) -> {
+                List<String> interfaceFields = Arrays.asList(fileToMarketingFieldVO.getInterfaceField().split(","));
+                interfaceFields.forEach((String field) -> {
+                    FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
+                    BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
+                    if (StringUtils.isBlank(field)) {
+                        fieldVO.setInterfaceField(fileToMarketingFieldVO.getHeadField());
+                    } else {
+                        fieldVO.setInterfaceField(field);
+                    }
+                    //headField为空，赋值InterfaceField
+                    if(StringUtils.isBlank(fieldVO.getHeadField())){
+                        fieldVO.setHeadField(fieldVO.getInterfaceField());
+                    }
+                    fieldVO.setIsExtend(isExtend(fileType, field));
+                    fieldVO.setIsMust(isFileMust(fileType, field));
+                    String conversion = fieldVO.getConversion();
+                    //字典映射兼容，转化为List<Map<String,String>>,后期可统一修改为Map类型
+                    if(!StringUtils.isBlank(conversion)){
+                        Map mapConversion =JSON.parseObject(conversion, new TypeReference<Map<String, String>>(){});
+                        if(CollectionUtils.isEmpty(mapConversion)) {
+                            fieldVO.setConversion("");
+                        }else {
+                            List<Map<String, String>> listConversion = new ArrayList<>();
+                            listConversion.add(mapConversion);
+                            fieldVO.setConversion(JSON.toJSONString(listConversion));
+                        }
+                    }
+                    ruleList.add(fieldVO);
+                });
         });
         return JSON.toJSONString(ruleList);
     }
+
+    private Boolean isFileMust(Integer fileType, String field) {
+        List<String> mustList = new ArrayList<>();
+        if (fileType.equals(0)) {
+            mustList = Lists.newArrayList("custNum", "cell");
+        } else {
+            mustList = Lists.newArrayList("custNum");
+        }
+        return mustList.contains(field);
+
+    }
+
+    private Boolean isExtend(Integer fileType, String field) {
+        List<String> fieldList = getfieldMap(fileType);
+        if (fieldList.contains(field)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
 
     @Override
     public List<String> getfieldMap(Integer fileType) {
@@ -162,6 +220,17 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
             fieldList = TRANSFER_FIELD;
         }
         return fieldList;
+    }
+
+
+    private List<String> getInterFaceMustField(Integer fileType) {
+        List<String> mustfieldList = new ArrayList<>();
+        if (fileType.equals(0)) {
+            mustfieldList = Lists.newArrayList("custNum", "cell", "userType");
+        } else {
+            mustfieldList = Lists.newArrayList("custNum", "userType");
+        }
+        return mustfieldList;
     }
 
     @Override
@@ -201,14 +270,19 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Override
     public Result updateConfig(DataCleanConfigDTO dto) {
-        MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
-        List<String> fieldList = getfieldMap(dto.getFileType());
-        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), fieldList);
-        marketingDataFileConfig.setFieldConfig(ruleConfig);
-        marketingDataFileConfig.setFieldConfigShow(dto.getRuleConfig());
-        marketingDataFileConfig.setRuleName(dto.getRuleName());
-        marketingDataFileConfig.setId(dto.getId());
-        marketingDataFileConfigMapper.updateByPrimaryKeySelective(marketingDataFileConfig);
+
+        MarketingDataFileConfig marketingDataFileConfig  = marketingDataFileConfigMapper.selectByPrimaryKey(dto.getId());
+        if(marketingDataFileConfig==null){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("清洗配置规则不存在");
+        }
+        MarketingDataFileConfig update = new MarketingDataFileConfig();
+        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), marketingDataFileConfig.getCleanType());
+        update.setFieldConfig(ruleConfig);
+        update.setFieldConfigShow(dto.getRuleConfig());
+        update.setRuleName(dto.getRuleName());
+        update.setId(dto.getId());
+        update.setUpdateTime(new Date());
+        marketingDataFileConfigMapper.updateByPrimaryKeySelective(update);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
@@ -217,8 +291,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
         MarketingDataFileConfig marketingDataFileConfig = new MarketingDataFileConfig();
         marketingDataFileConfig.setApiCode(dto.getApiCode());
-        List<String> fieldList = getfieldMap(dto.getFileType());
-        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), fieldList);
+        String ruleConfig = ruleTransferHandler(dto.getRuleConfig(), dto.getFileType());
         marketingDataFileConfig.setFieldConfig(ruleConfig);
         marketingDataFileConfig.setFieldConfigShow(dto.getRuleConfig());
         marketingDataFileConfig.setCleanType(dto.getFileType());
@@ -232,6 +305,10 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Override
     public Result<Long> runTask(DataCleanRuleDetailDTO dto) {
+        MarketingCleanDataTask marketingCleanDataTask =marketingCleanDataTaskMapper.selectByPrimaryKey(dto.getId());
+        if(StringUtils.isBlank(marketingCleanDataTask.getTestResult())){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未试跑，请先进行试跑");
+        }
         MarketingCleanDataTask task = new MarketingCleanDataTask();
         task.setUpdateTime(new Date());
         task.setCleanStatus(1);
@@ -258,10 +335,49 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Override
     public Result<Long> testTask(DataCleanRuleDetailDTO dto) {
-        //TODO:试跑
+        MarketingCleanDataTask task = marketingCleanDataTaskMapper.selectByPrimaryKey(dto.getId());
+        if (Objects.isNull(task)) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗任务");
+        }
+        Long fieldId = Long.valueOf(Arrays.asList(task.getFileId().split(",")).get(0));
+        MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(fieldId);
+        String data = marketingCleanDataFile.getFileData();
+        MarketingDataFileConfig marketingDataFileConfig =marketingDataFileConfigMapper.selectByPrimaryKey(Long.valueOf(task.getConfigId()));
+        String ruleConfig = marketingDataFileConfig.getFieldConfig();
+        //组装数据 TODO
 
-
-        return null;
+        //插入上传info表
+        MarketingPreUserDTO uploadDataDTO = new MarketingPreUserDTO();
+        MarketingSyncInfo syncInfo = new MarketingSyncInfo();
+        try {
+            syncInfo.setApiCode("7410666");
+            syncInfo.setCusBatch(uploadDataDTO.getTaskId());
+            syncInfo.setRequestBatch(uploadDataDTO.getRequestId());
+            syncInfo.setCreateTime(new Date());
+            syncInfo.setJsonData(JSON.toJSONString(uploadDataDTO));
+            syncInfo.setActualNum(uploadDataDTO.getDataItems().size());
+            marketingUserMapper.insertMarketingPreUserByText(syncInfo);
+        } catch (DuplicateKeyException keyException) {
+            log.error("数据清洗上传数据request_batch重复，requestBatch = {}", uploadDataDTO.getRequestId());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("数据清洗上传数据request_batch重复");
+        } catch (Exception ex) {
+            log.error("数据清洗上传数据插入异常", ex.getMessage());
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("数据清洗上传数据插入异常");
+        }
+        //插入上传明细表
+        pushRuleService.insertMarketingPreUserSync(syncInfo.getId());
+        //查询明细表
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(dto.getApiCode(),uploadDataDTO.getRequestId());
+        if(CollectionUtils.isEmpty(syncUserList)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("试跑失败，请检查配置");
+        }
+        //更新试跑结果到任务表
+        MarketingCleanDataTask cleanDataTask = new MarketingCleanDataTask();
+        cleanDataTask.setUpdateTime(new Date());
+        cleanDataTask.setTestResult(JSON.toJSONStringWithDateFormat(syncUserList.get(0),"yyyy-MM-dd HH:mm:ss", SerializerFeature.WriteDateUseDateFormat));
+        cleanDataTask.setId(dto.getId());
+        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(task);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     @Override
@@ -292,8 +408,41 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         BeanUtils.copyProperties(task, dataCleanTaskVO);
         dataCleanTaskVO.setFileType(task.getCleanType());
         dataCleanTaskVO.setRuleCondition(config.getFieldConfigShow());
+        dataCleanTaskVO.setConfigName(config.getRuleName());
         dataCleanTaskVO.setFileName(cleanDataFiles.stream().map(MarketingCleanDataFile::getFileName).collect(Collectors.joining(",")));
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(dataCleanTaskVO);
+
+    }
+
+
+    public static void main(String args[]){
+        List<FileToMarketingFieldVO> ruleList = new ArrayList<>();
+        String ruleConfig = "[{\"headField\":\"cell\",\"interfaceField\":\"cell\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":false},{\"headField\":\"custNum\",\"interfaceField\":\"custNum\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":false},{\"headField\":\"rmk\",\"interfaceField\":\"\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":false},{\"headField\":\"test\",\"interfaceField\":\"test001\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":false},{\"headField\":\"sex\",\"interfaceField\":\"\",\"defaultValue\":\"\",\"conversion\":{\"男\":\"0\",\"女\":\"1\"},\"isDateTransform\":false},{\"headField\":\"sletTime\",\"interfaceField\":\"\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":true},{\"headField\":\"\",\"interfaceField\":\"userType\",\"defaultValue\":\"07\",\"conversion\":{},\"isDateTransform\":false}]";
+        List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfig, new TypeReference<List<FileToMarketingFieldVO>>() {
+        }.getType());
+        marketingFieldVOList.forEach((FileToMarketingFieldVO fileToMarketingFieldVO) -> {
+
+            FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
+            BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
+            String conversion = fieldVO.getConversion();
+            //字典映射兼容，转化为List<Map<String,String>>,后期可统一修改为Map类型
+            if(!StringUtils.isBlank(conversion)){
+                Map mapConversion =JSON.parseObject(conversion, new TypeReference<Map<String, String>>(){});
+                if(CollectionUtils.isEmpty(mapConversion)) {
+                    fieldVO.setConversion("");
+                }else{
+                    List<Map<String, String>> listConversion = new ArrayList<>();
+                    listConversion.add(mapConversion);
+                    fieldVO.setConversion(JSON.toJSONString(listConversion));
+                }
+                System.out.println("fieldVO的conversion"+"------"+fieldVO.getConversion());
+            }
+            ruleList.add(fieldVO);
+            });
+
+        System.out.println("fieldVO的json"+"------"+JSON.toJSONString(ruleList));
+
+
 
     }
 

@@ -20,7 +20,7 @@ public class FileToMarketingFieldVO {
      * 默认值
      * 赋值优先级： 初始数据 > 动态赋值 > 默认值
      */
-    private String defalutValue;
+    private String defaultValue;
     /**
      * 是否属于扩展字段标识: true/false
      */
