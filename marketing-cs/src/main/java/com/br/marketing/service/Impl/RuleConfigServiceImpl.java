@@ -181,6 +181,7 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         return getScoreConfigNow(null);
     }
 
+
     @Override
     public Result<List<CustomerScoreRuleVO>> getScoreConfigNow(List<Long> ids) {
         ScoreRuleConfigExample ruleConfigExample = new ScoreRuleConfigExample();
@@ -244,5 +245,4 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerScoreRuleVOS);
     }
-
 }

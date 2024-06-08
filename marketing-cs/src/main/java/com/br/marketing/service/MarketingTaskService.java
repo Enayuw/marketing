@@ -78,4 +78,6 @@ public interface MarketingTaskService {
     Integer getPart(Integer index);
 
     Integer getPartNum(Integer sum);
+
+    Result buildCycleTask(String startDate, String startTime, List<Long> syncReportIds, CustomerScoreRuleVO datum, String conditionInfo);
 }

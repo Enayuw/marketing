@@ -1,0 +1,638 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingTaskAutoBuildConfigMapper">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="score_rule_id" jdbcType="INTEGER" property="scoreRuleId" />
+    <result column="sync_report_id" jdbcType="VARCHAR" property="syncReportId" />
+    <result column="data_condition" jdbcType="VARCHAR" property="dataCondition" />
+    <result column="start_date" jdbcType="VARCHAR" property="startDate" />
+    <result column="start_time" jdbcType="VARCHAR" property="startTime" />
+    <result column="close_date" jdbcType="VARCHAR" property="closeDate" />
+    <result column="cycle_day" jdbcType="INTEGER" property="cycleDay" />
+    <result column="extend" jdbcType="VARCHAR" property="extend" />
+    <result column="is_deleted" jdbcType="INTEGER" property="isDeleted" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, score_rule_id, sync_report_id, data_condition, start_date, start_time, close_date, 
+    cycle_day, extend, is_deleted, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfigExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_task_auto_build_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_task_auto_build_config
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_marketing_task_auto_build_config
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfigExample">
+    delete from b_marketing_task_auto_build_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_task_auto_build_config (score_rule_id, sync_report_id, data_condition, 
+      start_date, start_time, close_date, 
+      cycle_day, extend, is_deleted, 
+      create_time, update_time)
+    values (#{scoreRuleId,jdbcType=INTEGER}, #{syncReportId,jdbcType=VARCHAR}, #{dataCondition,jdbcType=VARCHAR}, 
+      #{startDate,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, #{closeDate,jdbcType=VARCHAR}, 
+      #{cycleDay,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_task_auto_build_config
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="scoreRuleId != null">
+        score_rule_id,
+      </if>
+      <if test="syncReportId != null">
+        sync_report_id,
+      </if>
+      <if test="dataCondition != null">
+        data_condition,
+      </if>
+      <if test="startDate != null">
+        start_date,
+      </if>
+      <if test="startTime != null">
+        start_time,
+      </if>
+      <if test="closeDate != null">
+        close_date,
+      </if>
+      <if test="cycleDay != null">
+        cycle_day,
+      </if>
+      <if test="extend != null">
+        extend,
+      </if>
+      <if test="isDeleted != null">
+        is_deleted,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="scoreRuleId != null">
+        #{scoreRuleId,jdbcType=INTEGER},
+      </if>
+      <if test="syncReportId != null">
+        #{syncReportId,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCondition != null">
+        #{dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="startDate != null">
+        #{startDate,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=VARCHAR},
+      </if>
+      <if test="closeDate != null">
+        #{closeDate,jdbcType=VARCHAR},
+      </if>
+      <if test="cycleDay != null">
+        #{cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null">
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDeleted != null">
+        #{isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfigExample" resultType="java.lang.Integer">
+    select count(*) from b_marketing_task_auto_build_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_marketing_task_auto_build_config
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.scoreRuleId != null">
+        score_rule_id = #{record.scoreRuleId,jdbcType=INTEGER},
+      </if>
+      <if test="record.syncReportId != null">
+        sync_report_id = #{record.syncReportId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dataCondition != null">
+        data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.startDate != null">
+        start_date = #{record.startDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.startTime != null">
+        start_time = #{record.startTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.closeDate != null">
+        close_date = #{record.closeDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cycleDay != null">
+        cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="record.extend != null">
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDeleted != null">
+        is_deleted = #{record.isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_marketing_task_auto_build_config
+    set id = #{record.id,jdbcType=BIGINT},
+      score_rule_id = #{record.scoreRuleId,jdbcType=INTEGER},
+      sync_report_id = #{record.syncReportId,jdbcType=VARCHAR},
+      data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+      start_date = #{record.startDate,jdbcType=VARCHAR},
+      start_time = #{record.startTime,jdbcType=VARCHAR},
+      close_date = #{record.closeDate,jdbcType=VARCHAR},
+      cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      is_deleted = #{record.isDeleted,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    update b_marketing_task_auto_build_config
+    <set>
+      <if test="scoreRuleId != null">
+        score_rule_id = #{scoreRuleId,jdbcType=INTEGER},
+      </if>
+      <if test="syncReportId != null">
+        sync_report_id = #{syncReportId,jdbcType=VARCHAR},
+      </if>
+      <if test="dataCondition != null">
+        data_condition = #{dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="startDate != null">
+        start_date = #{startDate,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=VARCHAR},
+      </if>
+      <if test="closeDate != null">
+        close_date = #{closeDate,jdbcType=VARCHAR},
+      </if>
+      <if test="cycleDay != null">
+        cycle_day = #{cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null">
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDeleted != null">
+        is_deleted = #{isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    update b_marketing_task_auto_build_config
+    set score_rule_id = #{scoreRuleId,jdbcType=INTEGER},
+      sync_report_id = #{syncReportId,jdbcType=VARCHAR},
+      data_condition = #{dataCondition,jdbcType=VARCHAR},
+      start_date = #{startDate,jdbcType=VARCHAR},
+      start_time = #{startTime,jdbcType=VARCHAR},
+      close_date = #{closeDate,jdbcType=VARCHAR},
+      cycle_day = #{cycleDay,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR},
+      is_deleted = #{isDeleted,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="score_rule_id" jdbcType="INTEGER" property="scoreRuleId" />
+    <result column="sync_report_id" jdbcType="INTEGER" property="syncReportId" />
+    <result column="data_condition" jdbcType="VARCHAR" property="dataCondition" />
+    <result column="start_date" jdbcType="VARCHAR" property="startDate" />
+    <result column="start_time" jdbcType="VARCHAR" property="startTime" />
+    <result column="close_date" jdbcType="VARCHAR" property="closeDate" />
+    <result column="cycle_day" jdbcType="INTEGER" property="cycleDay" />
+    <result column="extend" jdbcType="VARCHAR" property="extend" />
+    <result column="is_deleted" jdbcType="INTEGER" property="isDeleted" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, score_rule_id, sync_report_id, data_condition, start_date, start_time, close_date, 
+    cycle_day, extend, is_deleted, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfigExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_task_auto_build_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_task_auto_build_config
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_marketing_task_auto_build_config
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfigExample">
+    delete from b_marketing_task_auto_build_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_task_auto_build_config (score_rule_id, sync_report_id, data_condition, 
+      start_date, start_time, close_date, 
+      cycle_day, extend, is_deleted, 
+      create_time, update_time)
+    values (#{scoreRuleId,jdbcType=INTEGER}, #{syncReportId,jdbcType=INTEGER}, #{dataCondition,jdbcType=VARCHAR}, 
+      #{startDate,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, #{closeDate,jdbcType=VARCHAR}, 
+      #{cycleDay,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_task_auto_build_config
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="scoreRuleId != null">
+        score_rule_id,
+      </if>
+      <if test="syncReportId != null">
+        sync_report_id,
+      </if>
+      <if test="dataCondition != null">
+        data_condition,
+      </if>
+      <if test="startDate != null">
+        start_date,
+      </if>
+      <if test="startTime != null">
+        start_time,
+      </if>
+      <if test="closeDate != null">
+        close_date,
+      </if>
+      <if test="cycleDay != null">
+        cycle_day,
+      </if>
+      <if test="extend != null">
+        extend,
+      </if>
+      <if test="isDeleted != null">
+        is_deleted,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="scoreRuleId != null">
+        #{scoreRuleId,jdbcType=INTEGER},
+      </if>
+      <if test="syncReportId != null">
+        #{syncReportId,jdbcType=INTEGER},
+      </if>
+      <if test="dataCondition != null">
+        #{dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="startDate != null">
+        #{startDate,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        #{startTime,jdbcType=VARCHAR},
+      </if>
+      <if test="closeDate != null">
+        #{closeDate,jdbcType=VARCHAR},
+      </if>
+      <if test="cycleDay != null">
+        #{cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null">
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDeleted != null">
+        #{isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfigExample" resultType="java.lang.Integer">
+    select count(*) from b_marketing_task_auto_build_config
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_marketing_task_auto_build_config
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.scoreRuleId != null">
+        score_rule_id = #{record.scoreRuleId,jdbcType=INTEGER},
+      </if>
+      <if test="record.syncReportId != null">
+        sync_report_id = #{record.syncReportId,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataCondition != null">
+        data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.startDate != null">
+        start_date = #{record.startDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.startTime != null">
+        start_time = #{record.startTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.closeDate != null">
+        close_date = #{record.closeDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cycleDay != null">
+        cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="record.extend != null">
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDeleted != null">
+        is_deleted = #{record.isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_marketing_task_auto_build_config
+    set id = #{record.id,jdbcType=BIGINT},
+      score_rule_id = #{record.scoreRuleId,jdbcType=INTEGER},
+      sync_report_id = #{record.syncReportId,jdbcType=INTEGER},
+      data_condition = #{record.dataCondition,jdbcType=VARCHAR},
+      start_date = #{record.startDate,jdbcType=VARCHAR},
+      start_time = #{record.startTime,jdbcType=VARCHAR},
+      close_date = #{record.closeDate,jdbcType=VARCHAR},
+      cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      is_deleted = #{record.isDeleted,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    update b_marketing_task_auto_build_config
+    <set>
+      <if test="scoreRuleId != null">
+        score_rule_id = #{scoreRuleId,jdbcType=INTEGER},
+      </if>
+      <if test="syncReportId != null">
+        sync_report_id = #{syncReportId,jdbcType=INTEGER},
+      </if>
+      <if test="dataCondition != null">
+        data_condition = #{dataCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="startDate != null">
+        start_date = #{startDate,jdbcType=VARCHAR},
+      </if>
+      <if test="startTime != null">
+        start_time = #{startTime,jdbcType=VARCHAR},
+      </if>
+      <if test="closeDate != null">
+        close_date = #{closeDate,jdbcType=VARCHAR},
+      </if>
+      <if test="cycleDay != null">
+        cycle_day = #{cycleDay,jdbcType=INTEGER},
+      </if>
+      <if test="extend != null">
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDeleted != null">
+        is_deleted = #{isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTaskAutoBuildConfig">
+    update b_marketing_task_auto_build_config
+    set score_rule_id = #{scoreRuleId,jdbcType=INTEGER},
+      sync_report_id = #{syncReportId,jdbcType=INTEGER},
+      data_condition = #{dataCondition,jdbcType=VARCHAR},
+      start_date = #{startDate,jdbcType=VARCHAR},
+      start_time = #{startTime,jdbcType=VARCHAR},
+      close_date = #{closeDate,jdbcType=VARCHAR},
+      cycle_day = #{cycleDay,jdbcType=INTEGER},
+      extend = #{extend,jdbcType=VARCHAR},
+      is_deleted = #{isDeleted,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
