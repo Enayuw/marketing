@@ -615,7 +615,7 @@
         bmte.condition_info_show                          as `conditionInfoShow`,
         bmt.monitor_type                                  as `execType`,
         shf.create_time                                   as `taskCreateTime`,
-        shf.update_time                                   as `taskUpdateTime`,
+        shf.running_end_time                              as `taskUpdateTime`,
         bmt.is_online                                     as `isOnline`,
         case
         when shf.status is null then 0

@@ -9,26 +9,23 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
-import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncInfoExample;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
 import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskAutoBuildConfig;
-import com.br.marketing.entity.MarketingTaskAutoBuildConfigExample;
+import com.br.marketing.entity.MarketingTaskExample;
 import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.MarketingTaskExtendExample;
 import com.br.marketing.entity.MarketingTaskResultPreview;
 import com.br.marketing.entity.MarketingTaskResultPreviewExample;
 import com.br.marketing.entity.MarketingTaskUserType;
@@ -38,10 +35,9 @@ import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.entity.TaskBatchnumberPre;
 import com.br.marketing.entity.TaskBatchnumberPreExample;
 import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.mapper.MarketingDataValidConfigMapper;
+import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
-import com.br.marketing.mapper.MarketingTaskAutoBuildConfigMapper;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingTaskResultPreviewMapper;
@@ -49,7 +45,6 @@ import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskBatchnumberPreMapper;
-import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IDynamicSqlService;
@@ -661,30 +656,30 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         if(null == userTypeList || userTypeList.size()<1){
             userTypeFromConditionInfosFlag = true;
             userTypeList = new ArrayList<>();
-            for (int i = 0; i < data.size(); i++) {
-                if (isVer && preMaxNum <= 0) {
-                    continue;
-                }
-                String whereStr = data.get(i);
-                String s = whereSqlToShow(whereStr);
-                Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
-                if (isVer) {
-                    integer = integer >= preMaxNum ? preMaxNum : integer;
-                    preMaxNum = preMaxNum - integer;
-                }
-                count += integer;
-                showStr.append(s).append("总数据" + integer);
-                if (i < data.size() - 1) {
-                    showStr.append(",");
-                }
-                if(userTypeFromConditionInfosFlag){
-                    List<String> userTypeByList;
-                    // 查询符合跑分数据的场景
-                    userTypeByList = syncInfoMapper
-                            .queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
-                    if(null != userTypeByList && userTypeByList.size() > 0){
-                        userTypeList.addAll(userTypeByList);
-                    }
+        }
+        for (int i = 0; i < data.size(); i++) {
+            if (isVer && preMaxNum <= 0) {
+                continue;
+            }
+            String whereStr = data.get(i);
+            String s = whereSqlToShow(whereStr);
+            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
+            if (isVer) {
+                integer = integer >= preMaxNum ? preMaxNum : integer;
+                preMaxNum = preMaxNum - integer;
+            }
+            count += integer;
+            showStr.append(s).append("总数据" + integer);
+            if (i < data.size() - 1) {
+                showStr.append(",");
+            }
+            if(userTypeFromConditionInfosFlag){
+                List<String> userTypeByList;
+                // 查询符合跑分数据的场景
+                userTypeByList = syncInfoMapper
+                        .queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
+                if(null != userTypeByList && userTypeByList.size() > 0){
+                    userTypeList.addAll(userTypeByList);
                 }
             }
         }
@@ -861,6 +856,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         task.setCusBatch(ruleVO.getId().toString());
         task.setMonitorType(ruleVO.getExecType());
         task.setIsOnline(ruleVO.getIsOnline());
+        if(ruleVO.getPriority() != null){
+            task.setPriority(ruleVO.getPriority());
+        }
         if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
             task.setMonitorType(4);
         } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {

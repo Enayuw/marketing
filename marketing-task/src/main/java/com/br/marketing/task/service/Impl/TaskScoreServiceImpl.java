@@ -274,6 +274,7 @@ public class TaskScoreServiceImpl {
                     updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
                 }
                 updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
+                updateFile.setRunningEndTime(new Date());
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 MarketingTask updateTask = new MarketingTask();
                 updateTask.setId(task.getId());
