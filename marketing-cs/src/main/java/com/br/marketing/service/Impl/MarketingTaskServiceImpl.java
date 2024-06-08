@@ -9,7 +9,6 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
@@ -28,7 +27,6 @@ import com.br.marketing.entity.MarketingSyncReportExample;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingTaskAutoBuildConfig;
 import com.br.marketing.entity.MarketingTaskAutoBuildConfigExample;
-import com.br.marketing.entity.MarketingTaskExample;
 import com.br.marketing.entity.MarketingTaskExtend;
 import com.br.marketing.entity.MarketingTaskExtendExample;
 import com.br.marketing.entity.MarketingTaskResultPreview;
@@ -39,10 +37,7 @@ import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.entity.TaskBatchnumberPre;
 import com.br.marketing.entity.TaskBatchnumberPreExample;
-import com.br.marketing.entity.TaskStatus;
-import com.br.marketing.entity.TaskStatusExample;
 import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
@@ -70,17 +65,14 @@ import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -183,9 +175,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Autowired
     MarketingTaskAutoBuildConfigMapper buildConfigMapper;
-
-    @Autowired
-    private CuratorFramework client;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -768,14 +757,18 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         buildConfig.setStartTime(startTime);
         buildConfig.setCloseDate(datum.getCycleEndDay());
         buildConfig.setCycleDay(datum.getCycleDay());
-        buildConfigMapper.insertSelective(buildConfig);
+        int insert = buildConfigMapper.insertSelective(buildConfig);
 
         ScoreRuleConfig scoreRuleConfig = new ScoreRuleConfig();
         scoreRuleConfig.setAutoBuild(1);
         scoreRuleConfig.setId(datum.getId());
         scoreRuleConfig.setUpdateTime(new Date());
-        scoreRuleConfigMapper.updateByPrimaryKeySelective(scoreRuleConfig);
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        int update = scoreRuleConfigMapper.updateByPrimaryKeySelective(scoreRuleConfig);
+
+        if (insert > 0 && update > 0) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 
     /**
@@ -1123,92 +1116,5 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             zu++;
         }
         return zu*mo;
-    }
-
-    /**
-     * 暂停正在跑分中的非0优先级任务
-     * @param task
-     */
-    private void getOtherTaskAndPause(MarketingTask task) {
-        if (task.getPriority() == 0) {
-            // 判断该任务开始时间距离当前时间是否在十分钟之内
-            LocalDateTime startTime = LocalDateTime.parse(task.getStartDate() + " " + task.getStartTime(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            if (Duration.between(LocalDateTime.now(), startTime).toMinutes() > 10) {
-                return;
-            }
-
-            StraHisFileExample straHisFileExample = new StraHisFileExample();
-            straHisFileExample.createCriteria().andStatusEqualTo(3);
-            List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-
-            if (!CollectionUtils.isEmpty(straHisFiles)) {
-                List<Integer> fileIds = straHisFiles.stream().map(StraHisFile::getId).map(Long::intValue).collect(Collectors.toList());
-                Integer numberOfScoreTaskNodes = marketingCommonConfig.getNumberOfScoreTaskNodes();
-                numberOfScoreTaskNodes = numberOfScoreTaskNodes == null ? 4 : numberOfScoreTaskNodes;
-
-                // 判断跑分中任务数量和分片数是否相等
-                if (straHisFiles.size() == numberOfScoreTaskNodes) {
-                    // 获取正在跑分中的优先级非0的任务
-                    MarketingTaskExample marketingTaskExample = new MarketingTaskExample();
-                    marketingTaskExample.createCriteria().andFileIdIn(fileIds).andPriorityNotEqualTo(0);
-                    marketingTaskExample.setOrderByClause("priority desc, start_date desc");
-                    List<MarketingTask> runningTasks = marketingTaskMapper.selectByExample(marketingTaskExample);
-                    if (!CollectionUtils.isEmpty(runningTasks)) {
-                        MarketingTask taskNeedPause = runningTasks.get(0);
-                        Optional<StraHisFile> first =
-                                straHisFiles.stream().filter((StraHisFile straHisFile) -> straHisFile.getId()
-                                        .equals(taskNeedPause.getFileId())).findFirst();
-
-                        pauseTask(first, taskNeedPause);
-                    }
-                }
-            }
-        }
-    }
-
-    private void pauseTask(Optional<StraHisFile> first, MarketingTask taskNeedPause) {
-        if (first.isPresent()) {
-            StraHisFile straHisFileNeedPause = first.get();
-            if (!ScoreStatusEnum.RUNNING.getValue().equals(straHisFileNeedPause.getStatus())) {
-                log.warn("暂停优先级非0任务失败。该跑分任务已结束，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
-            }
-
-            String filePath = ZookeeperPath.marketStatusPath.concat("/").concat(straHisFileNeedPause.getId().toString());
-            try {
-                if (client.checkExists().forPath(filePath) == null) {
-                    log.warn("暂停优先级非0任务失败。该跑分任务正在启动中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
-                }
-                String value = Arrays.toString(client.getData().forPath(filePath));
-                if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
-                    log.warn("暂停优先级非0任务失败。该跑分任务不在进行中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
-                }
-
-                TaskStatusExample taskStatusExample = new TaskStatusExample();
-                taskStatusExample.createCriteria().andFileIdEqualTo(straHisFileNeedPause.getId().intValue());
-                List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(taskStatusExample);
-
-                if (CollectionUtils.isEmpty(taskStatuses)) {
-                    log.error("暂停优先级非0任务失败。跑分执行状态表中未找到该跑分任务，fileId：{}",straHisFileNeedPause.getId());
-                }
-
-                // zk节点置为暂停中
-                client.setData().forPath(filePath, ZkScoreStatusEnum.PAUSE.getValue().getBytes(StandardCharsets.UTF_8));
-
-                // b_task_status置为3（待恢复）
-                TaskStatus taskStatus = taskStatuses.get(0);
-                TaskStatus updateStatus = new TaskStatus();
-                updateStatus.setId(taskStatus.getId());
-
-                if (taskNeedPause.getMonitorType().equals(1) || taskNeedPause.getMonitorType().equals(2)) {
-                    updateStatus.setOnceStatus(3);
-                } else {
-                    updateStatus.setAllStatus(3);
-                }
-                taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-                entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()), updateStatus, taskStatus);
-            } catch (Exception e) {
-                log.error("暂停优先级非0任务失败。跑分编号：{}", straHisFileNeedPause.getBatchNumber(), e);
-            }
-        }
     }
 }
