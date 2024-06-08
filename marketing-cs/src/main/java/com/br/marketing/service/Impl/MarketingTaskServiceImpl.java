@@ -9,23 +9,26 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
+import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncInfoExample;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
 import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskExample;
+import com.br.marketing.entity.MarketingTaskAutoBuildConfig;
+import com.br.marketing.entity.MarketingTaskAutoBuildConfigExample;
 import com.br.marketing.entity.MarketingTaskExtend;
+import com.br.marketing.entity.MarketingTaskExtendExample;
 import com.br.marketing.entity.MarketingTaskResultPreview;
 import com.br.marketing.entity.MarketingTaskResultPreviewExample;
 import com.br.marketing.entity.MarketingTaskUserType;
@@ -35,9 +38,10 @@ import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.entity.TaskBatchnumberPre;
 import com.br.marketing.entity.TaskBatchnumberPreExample;
 import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.enums.ZkScoreStatusEnum;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncReportMapper;
+import com.br.marketing.mapper.MarketingTaskAutoBuildConfigMapper;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.MarketingTaskResultPreviewMapper;
@@ -45,6 +49,7 @@ import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskBatchnumberPreMapper;
+import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IDynamicSqlService;
@@ -277,8 +282,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         redisChgService.incrBy(key, number);
     }
 
-    private static final DateTimeFormatter YMD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
     @Override
     public Result<Long> buildScoreTaskOfAutoBuild(CustomerScoreRuleVO vo) {
         // 获取当前时间和日期
@@ -290,7 +293,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         // 解析和构建有效时间
         String startTime = vo.getStartTime();
-        String validTimeStr = nowDate.format(YMD) + " " + startTime + ":00";
+        String validTimeStr = nowDate.format(ymd) + " " + startTime + ":00";
         LocalDateTime validTime = LocalDateTime.parse(validTimeStr, ymdhms);
         // 判断是否达到开始时间
         if (nowTime.isBefore(validTime)) {
