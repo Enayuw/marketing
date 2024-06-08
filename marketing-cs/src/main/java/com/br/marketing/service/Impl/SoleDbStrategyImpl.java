@@ -540,36 +540,34 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         }
         JSONArray resObj = new JSONArray();
         RuleConditionVo finalConditionVo = conditionVo;
-        configList.forEach((MarketingDataValidConfig config) -> {
-            finalConditionVo.getOperationFactor().forEach(t -> {
-                JSONObject simpleCondition = new JSONObject();
-                JSONArray simpleConditionDetail = new JSONArray();
-                JSONObject jsonDate = new JSONObject();
-                JSONObject jsonTime = new JSONObject();
-                JSONObject jsonOr = new JSONObject();
-                simpleConditionDetail.add(jsonDate);
-                simpleConditionDetail.add(jsonTime);
-                simpleConditionDetail.add(jsonOr);
-                simpleCondition.put("logicalOperation", "and");
-                simpleCondition.put("operationFactor", simpleConditionDetail);
+        configList.forEach((MarketingDataValidConfig config) -> finalConditionVo.getOperationFactor().forEach(t -> {
+            JSONObject simpleCondition = new JSONObject();
+            JSONArray simpleConditionDetail = new JSONArray();
+            JSONObject jsonDate = new JSONObject();
+            JSONObject jsonTime = new JSONObject();
+            JSONObject jsonOr = new JSONObject();
+            simpleConditionDetail.add(jsonDate);
+            simpleConditionDetail.add(jsonTime);
+            simpleConditionDetail.add(jsonOr);
+            simpleCondition.put("logicalOperation", "and");
+            simpleCondition.put("operationFactor", simpleConditionDetail);
 
-                jsonDate.put("fieldName", "appletDate");
-                jsonDate.put("fieldValue", config.getAppletDate());
-                jsonDate.put("operation", "=");
+            jsonDate.put("fieldName", "appletDate");
+            jsonDate.put("fieldValue", config.getAppletDate());
+            jsonDate.put("operation", "=");
 
-                if (config.getAppletDate().equals(LocalDate.now().toString())) {
-                    jsonTime.put("fieldName", "appletTime");
-                    jsonTime.put("fieldValue", time);
-                    jsonTime.put("operation", "<=");
-                }
+            if (config.getAppletDate().equals(LocalDate.now().toString())) {
+                jsonTime.put("fieldName", "appletTime");
+                jsonTime.put("fieldValue", time);
+                jsonTime.put("operation", "<=");
+            }
 
-                jsonOr.put("fieldName", t.getFieldName());
-                jsonOr.put("fieldValue", t.getFieldValue());
-                jsonOr.put("operation", t.getOperation());
+            jsonOr.put("fieldName", t.getFieldName());
+            jsonOr.put("fieldValue", t.getFieldValue());
+            jsonOr.put("operation", t.getOperation());
 
-                resObj.add(simpleCondition);
-            });
-        });
+            resObj.add(simpleCondition);
+        }));
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(JSON.toJSONString(resObj));
     }
