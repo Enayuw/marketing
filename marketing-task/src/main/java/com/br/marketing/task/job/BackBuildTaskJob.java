@@ -51,6 +51,10 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds());
         AssertResult.assertResult(scoreConfigNow);
         for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {
+            if (datum.getExecType() == 4) {
+                continue;
+            }
+
             if (datum.getExecType() == 3) {
                 Result result = marketingTaskService.buildCycleTask(dto.getStartDate(), dto.getTaskTime(), new ArrayList<>(), datum, datum.getConditionInfo());
                 if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {

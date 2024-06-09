@@ -344,7 +344,7 @@ public class TaskServiceImpl implements ITaskService {
             TaskStatus updateStatus = new TaskStatus();
             updateStatus.setId(taskStatus.getId());
 
-            if (taskNeedPause.getMonitorType().equals(1) || taskNeedPause.getMonitorType().equals(2)) {
+            if (taskNeedPause.getMonitorType().equals(1)) {
                 updateStatus.setOnceStatus(3);
             } else {
                 updateStatus.setAllStatus(3);

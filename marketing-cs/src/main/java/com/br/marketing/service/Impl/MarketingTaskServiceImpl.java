@@ -301,7 +301,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
 
         String apiCode = vo.getApiCode();
-        // 判断当天此规则是否生成过task
+        // todo 判断当天此规则是否生成过task：如果该规则当天手动生成过任务（页面或者JOB生成），则不会自动生成
         MarketingTaskExtendExample marketingTaskExtendExample = new MarketingTaskExtendExample();
         marketingTaskExtendExample.createCriteria().andIsDelEqualTo(1)
                 .andRuleIdEqualTo(vo.getId())
