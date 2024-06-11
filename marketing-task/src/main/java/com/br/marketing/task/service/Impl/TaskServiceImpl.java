@@ -49,6 +49,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -192,7 +193,7 @@ public class TaskServiceImpl implements ITaskService {
                 continue;
             }
 
-            Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay,jobNm);
+            Result<TaskStatus> taskStatusResult = canScore(scoreTask,jobNm);
             if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
                 removeTaskLock(scoreTask, s);
                 continue;
@@ -259,6 +260,7 @@ public class TaskServiceImpl implements ITaskService {
             return;
         }
 
+        // todo 条件缺失
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andStatusEqualTo(3);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
@@ -362,7 +364,7 @@ public class TaskServiceImpl implements ITaskService {
      * @param task
      * @return
      */
-    private Result<TaskStatus> canScore(MarketingTask task, String nowDay,String jobNm) {
+    private Result<TaskStatus> canScore(MarketingTask task, String jobNm) {
 
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(task.getApiCode()).andStatusEqualTo(new Byte("1"));
@@ -382,7 +384,7 @@ public class TaskServiceImpl implements ITaskService {
             TaskStatusExample statusExample = new TaskStatusExample();
             statusExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
             List<TaskStatus> bts = taskStatusMapper.selectByExample(statusExample);
-            if (bts.size() > 0 && (bts.get(0).getOnceStatus().equals(3) || bts.get(0).getAllStatus().equals(3))) {
+            if (bts.size() > 0 && ((Objects.equals(3,bts.get(0).getOnceStatus())) || (Objects.equals(3,bts.get(0).getAllStatus())))) {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(bts.get(0));
             }
             if (bts.size() > 0) {
