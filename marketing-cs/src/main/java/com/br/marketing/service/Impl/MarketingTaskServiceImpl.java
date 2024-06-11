@@ -300,16 +300,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
 
         String apiCode = vo.getApiCode();
-//        // todo 判断当天此规则是否生成过task：如果该规则当天手动生成过任务（页面或者JOB生成），则不会自动生成
-//        MarketingTaskExtendExample marketingTaskExtendExample = new MarketingTaskExtendExample();
-//        marketingTaskExtendExample.createCriteria().andIsDelEqualTo(1)
-//                .andRuleIdEqualTo(vo.getId())
-//                .andCreateTimeGreaterThanOrEqualTo(nowDateStart)
-//                .andCreateTimeLessThan(nowDateEnd);
-//        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(marketingTaskExtendExample);
-//        if (!CollectionUtils.isEmpty(marketingTaskExtends)) {
-//            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则当天已自动生成任务");
-//        }
 
         Integer execType = vo.getExecType();
         // 每个任务的周期
@@ -423,30 +413,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), nowDate.toString(),
                         validTimeStr);
 
-                if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
-                }
-
-                String transferData = conditionTransferRes.getData();
-                //获取查询sql条件
-                Result<List<String>> transferWhereRes = soleStrategyService.analysisConditions(transferData);
-                if (!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())) {
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(transferWhereRes.getMessage());
-                }
-                StringBuilder showStr = new StringBuilder();
-                Integer count = 0;
-                for (int i = 0; i < transferWhereRes.getData().size(); i++) {
-                    String datum = transferWhereRes.getData().get(i);
-                    String s = whereSqlToShow(datum);
-                    Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
-                    count += integer;
-                    showStr.append(s).append("总数据" + integer);
-                    if (i < transferWhereRes.getData().size() - 1) {
-                        showStr.append(",");
-                    }
-                }
-                vo.setConditionInfo(transferData);
-                return saveTask(apiCode, batchNumber, vo, nowDate.toString(), count, 1, showStr.toString(), userTypeList);
+                return getResult(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
             }
 
             if (isStackValidity == 1) {
@@ -480,38 +447,38 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditionsByValidConfig(vo.getConditionInfo(), configList,
                         validTimeStr);
 
-                if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
-                }
-
-                if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
-                }
-
-                String transferData = conditionTransferRes.getData();
-                //获取查询sql条件
-                Result<List<String>> transferWhereRes = soleStrategyService.analysisConditions(transferData);
-                if (!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())) {
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(transferWhereRes.getMessage());
-                }
-                StringBuilder showStr = new StringBuilder();
-                Integer count = 0;
-                for (int i = 0; i < transferWhereRes.getData().size(); i++) {
-                    String datum = transferWhereRes.getData().get(i);
-                    String s = whereSqlToShow(datum);
-                    Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
-                    count += integer;
-                    showStr.append(s).append("总数据" + integer);
-                    if (i < transferWhereRes.getData().size() - 1) {
-                        showStr.append(",");
-                    }
-                }
-                vo.setConditionInfo(transferData);
-                return saveTask(apiCode, batchNumber, vo, nowDate.toString(), count, 1, showStr.toString(), userTypeList);
+                return getResult(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
             }
         }
 
         return null;
+    }
+
+    private Result getResult(CustomerScoreRuleVO vo, Result<String> conditionTransferRes, String apiCode, String batchNumber, LocalDate nowDate, List<String> userTypeList) {
+        if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
+        }
+
+        String transferData = conditionTransferRes.getData();
+        //获取查询sql条件
+        Result<List<String>> transferWhereRes = soleStrategyService.analysisConditions(transferData);
+        if (!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(transferWhereRes.getMessage());
+        }
+        StringBuilder showStr = new StringBuilder();
+        Integer count = 0;
+        for (int i = 0; i < transferWhereRes.getData().size(); i++) {
+            String datum = transferWhereRes.getData().get(i);
+            String s = whereSqlToShow(datum);
+            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
+            count += integer;
+            showStr.append(s).append("总数据").append(integer.toString());
+            if (i < transferWhereRes.getData().size() - 1) {
+                showStr.append(",");
+            }
+        }
+        vo.setConditionInfo(transferData);
+        return saveTask(apiCode, batchNumber, vo, nowDate.toString(), count, 1, showStr.toString(), userTypeList);
     }
 
     @Override
@@ -673,7 +640,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 preMaxNum = preMaxNum - integer;
             }
             count += integer;
-            showStr.append(s).append("总数据" + integer);
+            showStr.append(s).append("总数据").append(integer.toString());
             if (i < data.size() - 1) {
                 showStr.append(",");
             }

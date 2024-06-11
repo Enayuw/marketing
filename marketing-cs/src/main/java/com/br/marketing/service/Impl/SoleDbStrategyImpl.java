@@ -540,7 +540,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         }
         JSONArray resObj = new JSONArray();
         RuleConditionVo finalConditionVo = conditionVo;
-        configList.forEach((MarketingDataValidConfig config) -> finalConditionVo.getOperationFactor().forEach(t -> {
+        configList.forEach((MarketingDataValidConfig config) -> finalConditionVo.getOperationFactor().forEach((RuleConditionFactorVo t) -> {
             JSONObject simpleCondition = new JSONObject();
             JSONArray simpleConditionDetail = new JSONArray();
             JSONObject jsonDate = new JSONObject();
