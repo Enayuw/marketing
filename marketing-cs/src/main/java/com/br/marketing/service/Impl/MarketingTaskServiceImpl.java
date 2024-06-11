@@ -454,7 +454,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         return null;
     }
 
-    private Result getResult(CustomerScoreRuleVO vo, Result<String> conditionTransferRes, String apiCode, String batchNumber, LocalDate nowDate, List<String> userTypeList) {
+    private Result getResult(CustomerScoreRuleVO vo, Result<String> conditionTransferRes, String apiCode, String batchNumber, LocalDate nowDate,
+                             List<String> userTypeList) {
         if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
         }
