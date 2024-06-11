@@ -119,7 +119,9 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     private Result<?> actionTransferPush(String apiCode, String bizDate, String synApiCode) {
         YiXinCondition condition = new YiXinCondition();
         condition.setPageIndex(0);
-        condition.setPageSize(2000);
+        Map<String, Integer> pageConfig = marketingCommonConfig.getYiXinTransferPushBaiYingPageConfig();
+        Integer transferPushPageSize = pageConfig.getOrDefault("transferPushPageSize", 2000);
+        condition.setPageSize(transferPushPageSize);
         condition.setApiCode(apiCode);
         condition.setRequestData(bizDate);
         condition.setSynApiCode(synApiCode);
@@ -130,7 +132,9 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     private Result<?> actionBlackPush(String apiCode, String bizDate, String synApiCode) {
         YiXinCondition condition = new YiXinCondition();
         condition.setPageIndex(0);
-        condition.setPageSize(500);
+        Map<String, Integer> pageConfig = marketingCommonConfig.getYiXinTransferPushBaiYingPageConfig();
+        Integer blackPushPageSize = pageConfig.getOrDefault("blackPushPageSize", 500);
+        condition.setPageSize(blackPushPageSize);
         condition.setApiCode(apiCode);
         condition.setRequestData(bizDate);
         condition.setSynApiCode(synApiCode);
