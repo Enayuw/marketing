@@ -78,7 +78,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         Result<?> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
 
-        ThreadPoolExecutor processPool = BrExecutors.getThreadPool(2, 2, 10);
+        ThreadPoolExecutor processPool = BrExecutors.getThreadPool(12, 12, 20);
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
 
         List<Future<Result<List<MarketingSyncUser>>>> futureList = new ArrayList<>();
