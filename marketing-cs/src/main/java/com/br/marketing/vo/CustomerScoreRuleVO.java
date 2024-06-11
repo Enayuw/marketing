@@ -1,10 +1,7 @@
 package com.br.marketing.vo;
 
 import com.br.marketing.entity.ScoreRuleConfig;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
-import javax.validation.constraints.Size;
 
 @Data
 public class CustomerScoreRuleVO extends ScoreRuleConfig {
@@ -13,4 +10,6 @@ public class CustomerScoreRuleVO extends ScoreRuleConfig {
     private Integer dataLimit;
     private Integer isOrNoScoreVer;
     private Integer priority;
+    // 生成方式 1：手动 2：自动
+    private Integer buildType;
 }

@@ -28,7 +28,6 @@ import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingTaskAutoBuildConfig;
 import com.br.marketing.entity.MarketingTaskAutoBuildConfigExample;
 import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.MarketingTaskExtendExample;
 import com.br.marketing.entity.MarketingTaskResultPreview;
 import com.br.marketing.entity.MarketingTaskResultPreviewExample;
 import com.br.marketing.entity.MarketingTaskUserType;
@@ -301,16 +300,16 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
 
         String apiCode = vo.getApiCode();
-        // todo 判断当天此规则是否生成过task：如果该规则当天手动生成过任务（页面或者JOB生成），则不会自动生成
-        MarketingTaskExtendExample marketingTaskExtendExample = new MarketingTaskExtendExample();
-        marketingTaskExtendExample.createCriteria().andIsDelEqualTo(1)
-                .andRuleIdEqualTo(vo.getId())
-                .andCreateTimeGreaterThanOrEqualTo(nowDateStart)
-                .andCreateTimeLessThan(nowDateEnd);
-        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(marketingTaskExtendExample);
-        if (!CollectionUtils.isEmpty(marketingTaskExtends)) {
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则当天已自动生成任务");
-        }
+//        // todo 判断当天此规则是否生成过task：如果该规则当天手动生成过任务（页面或者JOB生成），则不会自动生成
+//        MarketingTaskExtendExample marketingTaskExtendExample = new MarketingTaskExtendExample();
+//        marketingTaskExtendExample.createCriteria().andIsDelEqualTo(1)
+//                .andRuleIdEqualTo(vo.getId())
+//                .andCreateTimeGreaterThanOrEqualTo(nowDateStart)
+//                .andCreateTimeLessThan(nowDateEnd);
+//        List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(marketingTaskExtendExample);
+//        if (!CollectionUtils.isEmpty(marketingTaskExtends)) {
+//            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则当天已自动生成任务");
+//        }
 
         Integer execType = vo.getExecType();
         // 每个任务的周期
@@ -360,6 +359,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     }
                 }
 
+                vo.setBuildType(2);
                 Result<Long> result = buildScoreTaskOfSelect(vo, userTypeList);
                 if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -394,6 +394,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
             // 是否叠加有效期数据
             Integer isStackValidity = vo.getIsStackValidity();
+            vo.setBuildType(2);
             if (isStackValidity == 0) {
                 Long minId = syncInfoMapper
                         .getMinIdByRuleScoreWithDate(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
@@ -694,9 +695,24 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         String number = "";
         if (count > 0) {
-            String concatTime = vo.getStartDate().concat(" ").concat(vo.getStartTime() + ":00");
-            String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-            number = createMarketingTaskBatchNumber(apiCode, time);
+            if (vo.getBuildType() == 2) {
+                // 生成跑分批次号
+                String validTimeStr = LocalDate.now() + " " + vo.getStartTime() + ":00";
+                String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
+                        , vo.getId().toString(), vo.getRuleNameShort()
+                        , time, null);
+                if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
+                    String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
+                    log.warn(errorMsg);
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+                }
+                number = batchNumberRes.getData();
+            } else {
+                String concatTime = vo.getStartDate().concat(" ").concat(vo.getStartTime() + ":00");
+                String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                number = createMarketingTaskBatchNumber(apiCode, time);
+            }
         }
         return saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString(), userTypeList);
 
@@ -726,6 +742,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 datum.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
                 datum.setDataLimit(dto.getDataLimit());
             }
+            datum.setBuildType(1);
 
             Result<Long> result = buildScoreTaskOfSelect(datum, userTypeList);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
