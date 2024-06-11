@@ -11,6 +11,7 @@ import com.br.marketing.mapper.DataDistributeDetailLogMapper;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -34,7 +35,12 @@ public class YiXinTransferPushDistributeSoleProcessor {
         Integer distributeType = DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getValue();
         Integer soleDay = 1;
 
+        if(CollectionUtils.isEmpty(pushList)){
+            return pushList;
+        }
+
         Iterator<MarketingTransferSyncUser> iterator = pushList.iterator();
+        int beforePushSize = pushList.size();
         long startTime = System.currentTimeMillis();
         while(iterator.hasNext()){
             MarketingTransferSyncUser next = iterator.next();
@@ -80,7 +86,7 @@ public class YiXinTransferPushDistributeSoleProcessor {
             }
         }
         long endTime = System.currentTimeMillis();
-        log.warn(TITLE+"去重耗时："+(endTime-startTime));
+        log.warn(TITLE+"去重量级{}，去重耗时{}", beforePushSize, (endTime-startTime));
         return pushList;
     }
 

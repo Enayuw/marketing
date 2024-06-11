@@ -1,0 +1,60 @@
+package com.br.marketing.monkeydata.handle.yixin;
+
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
+import java.util.List;
+
+@Service
+@Slf4j
+public class YiXinTransferPushRedisSoleProcessor {
+
+    @Resource
+    private RedisChgService redisChgService;
+
+    private final static String TITLE = "【宜信转化过滤推送百应】-转化推送-REDIS去重";
+
+    public List<MarketingTransferSyncUser> process(List<MarketingTransferSyncUser> pushList, YiXinCondition condition){
+        if(CollectionUtils.isEmpty(pushList)){
+            return pushList;
+        }
+
+        String apiCode = condition.getApiCode();
+        Integer distributeType = DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getValue();
+        String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        Integer soleDay = 1;
+        String key = RedisKeyConstant.YIXIN_TRANSFER_PUSH_BAIYING_REDIS_SLOE;
+        key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, distributeDate));
+
+        Iterator<MarketingTransferSyncUser> iterator = pushList.iterator();
+        int beforePushSize = pushList.size();
+        long startTime = System.currentTimeMillis();
+        while(iterator.hasNext()){
+            MarketingTransferSyncUser next = iterator.next();
+            String custNum = next.getCustNum();
+            try {
+                Long successQuantity = redisChgService.saddMember(key, custNum);
+                if(successQuantity == null || successQuantity != 1L) {
+                    iterator.remove();
+                }
+            }catch (Exception e){
+                iterator.remove();
+                log.warn(TITLE+"去重异常，{}", custNum);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        log.warn(TITLE+"去重量级{}，去重耗时{}", beforePushSize, (endTime-startTime));
+        return pushList;
+    }
+
+}
