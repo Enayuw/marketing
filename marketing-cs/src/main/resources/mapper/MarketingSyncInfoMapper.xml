@@ -100,7 +100,7 @@
             and (${whereStr})
     </select>
 
-    <select id="getMinIdByRuleScoreWithValidConfig" resultType="com.br.marketing.entity.MarketingSyncUser">
+    <select id="getMinIdByRuleScoreWithValidConfig" resultType="java.lang.Long">
         select min(id)
         from b_marketing_sync_${apiCode}
         where status=1

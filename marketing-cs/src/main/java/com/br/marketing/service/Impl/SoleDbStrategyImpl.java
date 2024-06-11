@@ -547,7 +547,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
             JSONObject jsonTime = new JSONObject();
             JSONObject jsonOr = new JSONObject();
             simpleConditionDetail.add(jsonDate);
-            simpleConditionDetail.add(jsonTime);
+
             simpleConditionDetail.add(jsonOr);
             simpleCondition.put("logicalOperation", "and");
             simpleCondition.put("operationFactor", simpleConditionDetail);
@@ -560,6 +560,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 jsonTime.put("fieldName", "appletTime");
                 jsonTime.put("fieldValue", time);
                 jsonTime.put("operation", "<=");
+                simpleConditionDetail.add(jsonTime);
             }
 
             jsonOr.put("fieldName", t.getFieldName());
