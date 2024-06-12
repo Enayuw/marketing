@@ -64,7 +64,7 @@ public class ScoreRuleConfig {
     private Date createTime;
 
     /**
-     * 任务执行策略 1-一次性全量；2-每个任务的周期；3-每日定时
+     * 任务执行策略 1-一次性全量；2-一次性验证；3-每个任务的周期；4-每日定时
      */
     private Integer execType;
 
