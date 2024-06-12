@@ -49,7 +49,7 @@ public class YiXinTransferPushRedisSoleProcessor {
                 }
             }catch (Exception e){
                 iterator.remove();
-                log.warn(TITLE+"去重异常，{}", custNum);
+                log.error(TITLE+"去重异常"+custNum, e);
             }
         }
         long endTime = System.currentTimeMillis();
