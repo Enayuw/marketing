@@ -1033,7 +1033,7 @@
     </select>
 
     <select id="getYxCustNumsByRequestDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select cust_num
+        select id, cust_num
         from b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode}
         and request_data = #{requestDate}
