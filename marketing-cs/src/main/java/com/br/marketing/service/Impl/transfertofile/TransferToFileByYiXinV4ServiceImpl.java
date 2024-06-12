@@ -194,7 +194,6 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                 ? LocalDate.now().toString() : jobParameter;
         long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
-        int page = 0;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         LocalDate dateToday = LocalDate.parse(requestDate, YYYYMMDDSHORTDFLINE);
@@ -202,20 +201,38 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
         String requestDataMinusOne = dateToday.minusDays(1L).format(YYYYMMDDSHORTDFLINE);
         // 创建线程池
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 10000);
-        Integer pageSize = dynamicParameterService.getPageSize("YiXinV4Get");
-        MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
-        syncUser.settCid(tcId);
-        syncUser.setApiCode(apiCode);
+        Integer pageSize = null;
+        Long id = null;
         for (; ; ) {
-            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                    .getTransferByStartAndEndDateYiXinV4(syncUser, requestDate
-                            , "1",null, page * pageSize, pageSize);
-            if (CollectionUtils.isEmpty(transferData)) {
+            pageSize = dynamicParameterService.getPageSize("YiXinV4Get");
+            List<MarketingTransferSyncUser> transferDataOriginal = marketingTransferSyncUserMapper
+                    .getTransferByStartAndEndDateYiXinV4(tcId, apiCode, requestDate
+                            , "1", id, pageSize);
+            if (CollectionUtils.isEmpty(transferDataOriginal)) {
                 break;
             }
-            page++;
-            Set<String> custNumSet = transferData.parallelStream()
-                    .map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            List<MarketingTransferSyncUser> transferData = new ArrayList<>();
+            Set<String> custNumSet = new HashSet<>();
+            id = transferDataOriginal.get(transferDataOriginal.size() - 1).getId();
+            for(MarketingTransferSyncUser syncUser : transferDataOriginal){
+                String reserveField1 = syncUser.getReserveField1();
+                if(StringUtils.isNotBlank(reserveField1)){
+                    JSONObject field1 = JSON.parseObject(reserveField1);
+                    boolean transformType1 = "1".equals(field1.getString("transformType"));
+                    if(transformType1){
+                        // 需求是要获取 transformType!=1 的数据
+                        continue;
+                    }else{
+                        // do nothing
+                    }
+                }else{
+                    // do nothing
+                }
+                // 保留 transformType!=1 的数据
+                String custNum = syncUser.getCustNum();
+                custNumSet.add(custNum);
+                transferData.add(syncUser);
+            }
             //判断转化数据是否在有效期内
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
                     .getValidityPeriodsByCustNum(custNumSet, apiCode, requestDataMinusOne);
@@ -248,7 +265,7 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                         raiseLimitTime = emptyDefault(jsonObject.getString("raiseLimitTime"));
                         raiseLimitResult = emptyDefault(jsonObject.getString("raiseLimitResult"));
                         registerChannel = emptyDefault(jsonObject.getString("registerChannel"));
-                        loantResult = emptyDefault(jsonObject.getString("loantResult"));
+                        loantResult = emptyDefault(jsonObject.getString("loanResult"));
                         raiseLimiType = emptyDefault(jsonObject.getString("raiseLimiType"));
                         raiseLimiSuccess = emptyDefault(jsonObject.getString("raiseLimiSuccess"));
                         rate = emptyDefault(jsonObject.getString("rate"));
@@ -302,11 +319,15 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                                 .append(recommendType).append(",");
                         sb.append("\r\n");
                         fw.append(sb.toString());
-                        fw.flush();
                         totalSize.incrementAndGet();
                     } catch (IOException e) {
                         log.error("[{}]yixinV4转化数据[{}]提取程序异常", apiCode, custNum, e);
                     }
+                }
+                try {
+                    fw.flush();
+                } catch (IOException e) {
+                    log.error("[{}]yixinV4转化数据flush异常-", apiCode, e);
                 }
             });
         }
