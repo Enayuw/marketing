@@ -21,6 +21,8 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.handle.yixin.sole.YiXinBlackPushDistributeSoleProcessor;
+import com.br.marketing.monkeydata.handle.yixin.sole.YiXinBlackPushRedisSoleProcessor;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +57,9 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
     @Resource
     private YiXinBlackPushDistributeSoleProcessor blackDistributeSoleProcessor;
+
+    @Resource
+    private YiXinBlackPushRedisSoleProcessor blackPushRedisSoleProcessor;
 
     @Resource
     private ByApiServiceClient byApiServiceClient;
@@ -189,9 +194,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
             // 未获取到上传数据
             if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
-                        "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
-                        "宜信转化过滤推送百应-黑名单推送"));
+                log.warn(TITLE+"未获取到上传数据或未配置有效期, apiCode: {}, requestData: {}", apiCode, requestData);
                 return result;
             }
 
@@ -223,7 +226,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             pushList = blackList;
 
             // distribute去重 custNum + distribute_date
-            blackDistributeSoleProcessor.process(pushList, condition);
+            blackPushRedisSoleProcessor.process(pushList, condition);
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());

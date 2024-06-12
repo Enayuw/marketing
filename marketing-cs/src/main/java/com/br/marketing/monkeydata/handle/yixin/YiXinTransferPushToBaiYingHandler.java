@@ -1,6 +1,5 @@
 package com.br.marketing.monkeydata.handle.yixin;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.baiying.ByApiServiceClient;
@@ -10,17 +9,15 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.enums.YxTransferFilterEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.handle.yixin.sole.YiXinTransferPushRedisSoleProcessor;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -84,13 +81,15 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         String apiCode = condition.getApiCode();
         String requestData = condition.getRequestData();
         String synApiCode = condition.getSynApiCode();
+        String priority = condition.getPriority();
+        String extendSql = assembleExtendSql(priority);
         String tCid = tableCreateService.getTcId(apiCode);
 
         Long indexId = null;
         while(true) {
             // 循环获取条件数据，每次pageSize条
-            final List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper.getYxTransferByRequestDate(
-                    tCid, apiCode, requestData, indexId, pageSize);
+            final List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper.getYxCustNumsByRequestDate(
+                    tCid, apiCode, requestData, extendSql, indexId, pageSize);
 
             if (CollectionUtils.isEmpty(pageList)) {
                 break;
@@ -176,41 +175,18 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             String requestData = condition.getRequestData();
             String synApiCode = condition.getSynApiCode();
 
-            // valid transformType
-            List<MarketingTransferSyncUser> transformList = pageList.stream().filter(data -> {
-                String reserveField1 = data.getReserveField1();
-                if (StringUtils.isEmpty(reserveField1)) {
-                    return false;
-                }
-                JSONObject jo = JSONObject.parseObject(reserveField1);
-                if(jo == null){
-                    return false;
-                }
-                String transformType = jo.getString("transformType");
-                if (!"1".equals(transformType)) {
-                    return true;
-                }
-                return false;
-            }).collect(Collectors.toList());
-
-            if (CollectionUtils.isEmpty(transformList)) {
-                return result;
-            }
-
             // valid period
-            Set<String> custNumSets = transformList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
                     .getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
 
             // 未获取到上传数据
             if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
-                        "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
-                        "宜信转化过滤推送百应"));
+                log.warn(TITLE+"未获取到上传数据或未配置有效期, apiCode: {}, requestData: {}", apiCode, requestData);
                 return result;
             }
 
-            List<MarketingTransferSyncUser> periodList = transformList.stream().filter(data -> {
+            List<MarketingTransferSyncUser> periodList = pageList.stream().filter(data -> {
                 String custNum = data.getCustNum();
                 if (custNumToSyncUserBoMap.get(custNum) == null) {
                     return false;
@@ -218,17 +194,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 return true;
             }).collect(Collectors.toList());
 
-            List<MarketingTransferSyncUser> pushList = new ArrayList<>();
-            List<String> filterList = YxTransferFilterEnum.getFilterListOrderByPriority();
-            for(String filterName : filterList){
-                YxTransferFilter transferFilter = SpringContextUtil.getBean(filterName, YxTransferFilter.class);
-                List filteredList = transferFilter.filter(periodList);
-                if(CollectionUtils.isEmpty(filteredList)){
-                    continue;
-                }
-                pushList.addAll(filteredList);
-            }
-
+            List<MarketingTransferSyncUser> pushList = periodList;
             if (CollectionUtils.isEmpty(pushList)) {
                 return result;
             }
@@ -325,5 +291,24 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         }
     }
 
-
+    private String assembleExtendSql(String priority){
+        String extendSql = "";
+        switch (priority){
+            case "1": extendSql = "and if_apply ='1' and apply_result ='0' " +
+                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL)";
+                break;
+            case "2": extendSql = "and if_apply ='1' and apply_result ='2' " +
+                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL)";
+                break;
+            case "3": extendSql = "and if_lent ='0' " +
+                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) " +
+                    "AND reserve_field1->'$.applyLoan' = '1'";
+                break;
+            case "4": extendSql = "and if_lent ='1' " +
+                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) " +
+                    "AND reserve_field1->'$.applyLoan' = '1' and reserve_field1 ->> '$.availableAmount' < 2000.00";
+                break;
+        }
+        return extendSql;
+    }
 }
