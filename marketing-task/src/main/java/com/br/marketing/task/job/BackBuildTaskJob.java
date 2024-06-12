@@ -56,7 +56,8 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
             }
 
             if (datum.getExecType() == 3) {
-                Result result = marketingTaskService.buildCycleTask(dto.getStartDate(), dto.getTaskTime(), new ArrayList<>(), datum, datum.getConditionInfo());
+                Result result = marketingTaskService.buildCycleTask(dto.getStartDate(), dto.getTaskTime(),
+                        new ArrayList<>(), datum, datum.getConditionInfo());
                 if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     continue;
                 }
