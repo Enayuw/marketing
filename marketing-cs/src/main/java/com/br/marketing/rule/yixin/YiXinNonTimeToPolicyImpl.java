@@ -134,6 +134,15 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         if (!context.getMqFact().getSource().equals(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode())) {
             return Boolean.FALSE;
         }
+        Map<String, String> blackList = ruleNecessaryData.getBlackList();
+        boolean notBlack = true;
+        if (!CollectionUtils.isEmpty(blackList)){
+            notBlack = "N".equals(blackList.get(transfer.getId().toString()));
+        }
+        if (!notBlack){
+            log.warn("宜信实时推决策id:{} cust_num:{}不满足黑名单条件", transfer.getId(), transfer.getCustNum());
+            return false;
+        }
         String tCid = transfer.gettCid();
         String apiCode = transfer.getApiCode();
         Set<String> custNums = Sets.newHashSet(transfer.getCustNum());
