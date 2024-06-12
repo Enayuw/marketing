@@ -4,7 +4,6 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.mapper.CustomerMapper;
@@ -73,6 +72,7 @@ public class TaskScoreStartJob extends AbstractSimpleElasticJob {
             }
         }
         Result<MarketingTask> scoreTask = iTaskService.getScoreTask(date, taskId, isTimeLimit, context.getJobName());
+        log.warn("跑分任务，本次调度任务id：{}",scoreTask.getData().getId());
         if (ResultCode.SUCCESS.getValue().equals(scoreTask.getCode())) {
             MarketingTask marketingTask = scoreTask.getData();
             marketingTask.setIndex(context.getShardingItems().get(0));

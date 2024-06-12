@@ -183,6 +183,7 @@ public class TaskScoreServiceImpl {
 
             //线程池运行情况报告
             Thread thread = threadReport(warrningExecutor, customer);
+            log.warn("跑分任务generateTask，本次调度任务id：{}",task.getId());
 
             //region 跑分
             this.generateTask(observedTaskObj, customer, day);
@@ -424,7 +425,7 @@ public class TaskScoreServiceImpl {
             updateStatus.setId(blt.getStatusId());
             updateStatus.setFileId(file.getId());
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-
+            log.warn("跑分任务TaskStatus写入完成，本次调度任务id：{}",blt.getId());
 
             //region 记录跑分产品
             JSONArray pList = JSONArray.parseArray(productJson);
