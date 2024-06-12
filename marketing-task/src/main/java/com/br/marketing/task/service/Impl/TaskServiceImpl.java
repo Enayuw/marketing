@@ -1,5 +1,6 @@
 package com.br.marketing.task.service.Impl;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -370,11 +371,13 @@ public class TaskServiceImpl implements ITaskService {
         customerExample.createCriteria().andApiCodeEqualTo(task.getApiCode()).andStatusEqualTo(new Byte("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         if(marketingCustomers.size()<=0){
+            log.warn("跑分任务执行，marketingCustomers为空，{}", JSON.toJSONString(task));
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         MarketingCustomer customer = marketingCustomers.get(0);
         Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobNm);
         if(!action){
+            log.warn("跑分任务执行，!action，{}", JSON.toJSONString(task));
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
 
@@ -388,6 +391,7 @@ public class TaskServiceImpl implements ITaskService {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(bts.get(0));
             }
             if (bts.size() > 0) {
+                log.warn("跑分任务执行，task_status已存在，{}", JSON.toJSONString(task));
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
             }
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
