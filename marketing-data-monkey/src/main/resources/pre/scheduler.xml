@@ -245,7 +245,7 @@
     />
     <job:simple id="【monkey】-YiXinTransferPushToBaiYingJob"
                 class="com.br.marketing.monkey.job.yixin.YiXinTransferPushToBaiYingJob"
-                cron="0 10 * * * ? "
+                cron="0 0/10 * * * ? "
                 description="宜信转化过滤推送百应"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
