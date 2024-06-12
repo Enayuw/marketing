@@ -1,9 +1,9 @@
-package com.br.marketing.monkeydata.handle.yixin;
+package com.br.marketing.monkeydata.handle.yixin.sole;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeTypeEnum;
-import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,14 +17,14 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class YiXinTransferPushRedisSoleProcessor {
+public class YiXinBlackPushRedisSoleProcessor {
 
     @Resource
     private RedisChgService redisChgService;
 
-    private final static String TITLE = "【宜信转化过滤推送百应】-转化推送-REDIS去重";
+    private final static String TITLE = "【宜信转化过滤推送百应】-黑名单推送-REDIS去重";
 
-    public List<MarketingTransferSyncUser> process(List<MarketingTransferSyncUser> pushList, YiXinCondition condition){
+    public List<MarketingSyncUser> process(List<MarketingSyncUser> pushList, YiXinCondition condition){
         if(CollectionUtils.isEmpty(pushList)){
             return pushList;
         }
@@ -36,11 +36,11 @@ public class YiXinTransferPushRedisSoleProcessor {
         String key = RedisKeyConstant.YIXIN_TRANSFER_PUSH_BAIYING_REDIS_SLOE;
         key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, distributeDate));
 
-        Iterator<MarketingTransferSyncUser> iterator = pushList.iterator();
+        Iterator<MarketingSyncUser> iterator = pushList.iterator();
         int beforePushSize = pushList.size();
         long startTime = System.currentTimeMillis();
         while(iterator.hasNext()){
-            MarketingTransferSyncUser next = iterator.next();
+            MarketingSyncUser next = iterator.next();
             String custNum = next.getCustNum();
             try {
                 Long successQuantity = redisChgService.saddMember(key, custNum);

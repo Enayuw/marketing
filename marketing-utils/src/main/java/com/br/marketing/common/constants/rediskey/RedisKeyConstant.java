@@ -115,7 +115,7 @@ public class RedisKeyConstant {
     /**
      * 宜信推送百应数据redis去重
      */
-    public static final String YIXIN_TRANSFER_PUSH_BAIYING_REDIS_SLOE = prefix.concat("yixin:redis:custNum");
+    public static final String YIXIN_TRANSFER_PUSH_BAIYING_REDIS_SLOE = prefix.concat("sole:redis");
 
     /**
      * 榕树推送人工Ibu手机号加锁  key

@@ -1,4 +1,4 @@
-package com.br.marketing.monkeydata.handle.yixin;
+package com.br.marketing.monkeydata.handle.yixin.sole;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
