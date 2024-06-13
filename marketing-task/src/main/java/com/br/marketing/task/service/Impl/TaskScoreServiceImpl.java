@@ -268,6 +268,7 @@ public class TaskScoreServiceImpl {
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
             StraHisFile updateFile = new StraHisFile();
             updateFile.setId(task.getFileId());
+            updateFile.setRunningEndTime(new Date());
             if (observedTaskObj.getInterrupt().equals(0)) {
                 if (isOffline) {
                     updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
@@ -275,7 +276,6 @@ public class TaskScoreServiceImpl {
                     updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
                 }
                 updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
-                updateFile.setRunningEndTime(new Date());
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 MarketingTask updateTask = new MarketingTask();
                 updateTask.setId(task.getId());
