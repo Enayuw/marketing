@@ -44,4 +44,5 @@ public class DataCleaningGeneralJob extends AbstractSimpleElasticJob {
         }
 
     }
+
 }

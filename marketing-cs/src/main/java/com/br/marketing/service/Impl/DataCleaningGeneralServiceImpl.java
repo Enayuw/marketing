@@ -13,6 +13,7 @@ import com.br.marketing.entity.MarketingCleanDataTaskExample;
 import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
+import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.service.IDataCleaningGeneralService;
 import com.br.marketing.service.IFileToMarketingRuleService;
 import com.br.marketing.service.PushInfoService;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 
 /**
  * 数据清洗处理接口
+ *
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-05-24
  */
@@ -53,6 +55,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
     @Resource
     MarketingCleanDataFileMapper marketingCleanDataFileMapper;
+
+    @Resource
+    MarketingDataFileConfigMapper marketingDataFileConfigMapper;
 
     @Resource
     PushInfoService pushInfoService;
@@ -81,9 +86,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 .andIsDelEqualTo(1);
         example.setOrderByClause("create_time asc");
         List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
-        if(marketingCleanDataTasks.size()>0){
+        if (marketingCleanDataTasks.size() > 0) {
             return marketingCleanDataTasks.get(0);
-        }else{
+        } else {
             return null;
         }
     }
@@ -93,7 +98,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         String fileIds = task.getFileId();
         String fileStr = "";
         Long taskId = task.getId();
-        if(StringUtils.isNotBlank(fileIds)){
+        if (StringUtils.isNotBlank(fileIds)) {
             String[] split = fileIds.split(",");
             for (int j = 0; j < split.length; j++) {
                 MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(Long.parseLong(split[j]));
@@ -117,7 +122,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 // 定义一个map<表名:字段值>
                 Map<String, String> tableMap = new HashMap<>();
 
-                File file = new File(fileStr+fileName);
+                File file = new File(fileStr + fileName);
                 Integer line = 0;
                 Integer errorSum = 0;
                 Integer pushSum = 0;
@@ -151,11 +156,11 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     tableMap.put(header, null);
                                 }
                                 headSum = headers.length;
-                                Result result = statisticsHeadByCommon(row, address, extra, mustHeads,fieldVosMap);
+                                Result result = statisticsHeadByCommon(row, address, extra, mustHeads, fieldVosMap);
                                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                                     log.warn("清洗任务表头校验异常-id:{}-规则id:{}-文件名:{}-异常原因:{}",
-                                            taskId,task.getConfigId(),fileName, result.getMessage());
-                                    marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId,3);
+                                            taskId, task.getConfigId(), fileName, result.getMessage());
+                                    marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 3);
                                     return;
                                 }
                             } else {
@@ -208,22 +213,22 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     }
                                     //endregion
                                     // 选填字段集合
-                                    if(StringUtils.isNotBlank(fieldVO.getGroupOptional())){
+                                    if (StringUtils.isNotBlank(fieldVO.getGroupOptional())) {
                                         list.add(fieldVO.getHeadField());
                                     }
 
                                     //region 根据配置信息进行处理
                                     // 表里没有初始值，需要动态赋值或取默认值（初始数据 > 动态赋值 > 默认值）
-                                    if(StringUtils.isBlank(value)){
+                                    if (StringUtils.isBlank(value)) {
                                         // 根据动态配置赋值
-                                        if(StringUtils.isNotBlank(fieldVO.getDynamicData())){
+                                        if (StringUtils.isNotBlank(fieldVO.getDynamicData())) {
                                             value = tableMap.get(fieldVO.getDynamicData());
-                                        }else if(StringUtils.isNotBlank(fieldVO.getDefaultValue())) {
+                                        } else if (StringUtils.isNotBlank(fieldVO.getDefaultValue())) {
                                             value = fieldVO.getDefaultValue();
                                         }
                                     }
                                     // 字典项不为空 则进行字典项映射
-                                    if(StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())){
+                                    if (StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())) {
                                         String conversion = fieldVO.getConversion();
                                         // 创建ObjectMapper实例
                                         ObjectMapper objectMapper = new ObjectMapper();
@@ -238,7 +243,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                             log.error(ex.getMessage(), ex);
                                         }
                                     }
-                                    if(StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()){
+                                    if (StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()) {
                                         LocalDateTime date = null;
                                         for (DateTimeFormatter parser : parsers) {
                                             try {
@@ -277,23 +282,23 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                 //endregion
 
                                 // 增加fileName值
-                                if(StringUtils.isBlank(tableMap.get("fileName"))){
+                                if (StringUtils.isBlank(tableMap.get("fileName"))) {
                                     FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
                                     vo.setInterfaceField("fileName");
                                     vo.setDataValue(fileName);
                                     dataFieldVOS.add(vo);
                                 }
                                 // 选填字段处理：例如身份证号和性别选填二选一
-                                if(!list.isEmpty()){
+                                if (!list.isEmpty()) {
                                     Boolean b = false;
                                     for (String s : list) {
-                                        if(StringUtils.isNotBlank(tableMap.get(s))){
+                                        if (StringUtils.isNotBlank(tableMap.get(s))) {
                                             b = true;
                                         }
                                     }
-                                    if(!b){
+                                    if (!b) {
                                         ++errorSum;
-                                        log.warn("文件名:{};行数:{};错误:{};", fileName, line, "选填字段未赋值:"+list);
+                                        log.warn("文件名:{};行数:{};错误:{};", fileName, line, "选填字段未赋值:" + list);
                                         continue;
                                     }
                                 }
@@ -344,39 +349,38 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 } catch (Exception ex) {
                     log.error("[{}]数据清洗文件[{}]清洗失败-文件行数[{}]-推送成功数[{}]-推送失败数[{}]--"
                             , apiCode, fileName, line, pushSum, errorSum, ex);
-                    marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId,3);
+                    marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 3);
                 }
                 // 打印处理正确和不正确的条数以及所在行
                 log.warn("[{}]数据清洗文件[{}]-文件行数[{}]-推送成功数[{}]-推送失败数[{}]"
                         , apiCode, fileName, line, pushSum, errorSum);
-                marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId,2);
+                marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 2);
             }
         }
     }
 
     /**
-     *
-     * @Author yu.xia@brgroup.com
-     * @Date 2024/5/21 17:47
-     * @param head 文件表头
-     * @param address 空值, <位置,表头字段名>
-     * @param extra 空值, 扩展子段包含的表头字段名
-     * @param baseHeads 必填字段
+     * @param head        文件表头
+     * @param address     空值, <位置,表头字段名>
+     * @param extra       空值, 扩展子段包含的表头字段名
+     * @param baseHeads   必填字段
      * @param fieldVosMap <表头字段,处理规则配置>
      * @return Result
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/5/21 17:47
      */
-    public static Result statisticsHeadByCommon(String head,HashMap<Integer, String> address,HashSet extra,
-                                                List<String> baseHeads,Map<String, List<FileToMarketingFieldVO>> fieldVosMap){
+    public static Result statisticsHeadByCommon(String head, HashMap<Integer, String> address, HashSet extra,
+                                                List<String> baseHeads, Map<String, List<FileToMarketingFieldVO>> fieldVosMap) {
         List<String> heads = com.google.common.base.Splitter.on(",").splitToList(head);
-        if(heads.size()<=0){
+        if (heads.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
         }
-        if(!heads.containsAll(baseHeads)){
+        if (!heads.containsAll(baseHeads)) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
         }
         for (int i = 0; i < heads.size(); i++) {
             String s = heads.get(i);
-            if(StringUtils.isBlank(s)){
+            if (StringUtils.isBlank(s)) {
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不能有空字段");
             }
             FileToMarketingFieldVO fieldVO = null;
@@ -386,7 +390,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 fieldVO = fileToMarketingFieldVOS.get(0);
             }
             // 扩展字段
-            if(fieldVO == null || fieldVO.getIsExtend()){
+            if (fieldVO == null || fieldVO.getIsExtend()) {
                 extra.add(s);
             }
             address.put(i, s);
@@ -395,17 +399,110 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
     }
 
     @Override
-    public void pilotAction(Long id) {
+    public void pilotAction(Long id,IFileToMarketingRuleService iFileToMarketingRuleService) {
+        String tasId = "".concat("_").concat(LocalDate.now().toString()).concat("test");
+        List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
         // 查询ID对应的清洗任务
-
+        MarketingCleanDataTask task = marketingCleanDataTaskMapper.selectByPrimaryKey(id);
+        Long fieldId = Long.valueOf(Arrays.asList(task.getFileId().split(",")).get(0));
+        MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(fieldId);
+        List<String> head = Splitter.on(",").splitToList(marketingCleanDataFile.getFileHeader());
         // 解析配置的清洗规则
+        MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigMapper.selectByPrimaryKey(Long.valueOf(task.getConfigId()));
+        String ruleConfig = marketingDataFileConfig.getFieldConfig();
+        List<String> datas = Splitter.on(",").splitToList(marketingCleanDataFile.getFileData());
+        // 定义一个map<表名:字段值>
+        Map<String, String> tableMap = new HashMap<>();
+        // 确保表头和数据数量一致
+        if (head.size() == datas.size()) {
+            // 使用索引来按顺序添加数据到对应的表头中
+            for (int i = 0; i < head.size(); i++) {
+                // 更新map中对应键的值
+                tableMap.put(head.get(i), datas.get(i));
+            }
+        }
+        // 解析配置的清洗规则
+        List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(ruleConfig, FileToMarketingFieldVO.class);
+        // 根据 headField 字段分组
+        Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+        List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
+        //region 每列的字段处理逻辑
+        for (int i = 0; i < datas.size(); i++) {
+            // 列字段值
+            String value = datas.get(i);
+            String headNm = head.get(i);
+            //根据当前表头名获取配置信息
+            List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(headNm);
+            Iterator<FileToMarketingFieldVO> itr = fileToMarketingFieldVOS.iterator();
+            //遍历配置项进行组装
+            while (itr.hasNext()) {
+                FileToMarketingFieldVO fieldVO = itr.next();
+                // 表里没有初始值，需要动态赋值或取默认值（初始数据 > 动态赋值 > 默认值）
+                if (StringUtils.isBlank(value)) {
+                    // 根据动态配置赋值
+                    if (StringUtils.isNotBlank(fieldVO.getDynamicData())) {
+                        value = tableMap.get(fieldVO.getDynamicData());
+                    } else if (StringUtils.isNotBlank(fieldVO.getDefaultValue())) {
+                        value = fieldVO.getDefaultValue();
+                    }
+                }
+                // 字典项不为空 则进行字典项映射
+                if (StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())) {
+                    String conversion = fieldVO.getConversion();
+                    // 创建ObjectMapper实例
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    try {
+                        // 将JSON字符串转换为List<Map<String, String>>
+                        List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
+                        if (!genderMappings.isEmpty()) {
+                            Map<String, String> genderMapping = genderMappings.get(0);
+                            value = genderMapping.get(value);
+                        }
+                    } catch (IOException ex) {
+                        log.error(ex.getMessage(), ex);
+                    }
+                }
+                if (StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()) {
+                    LocalDateTime date = null;
+                    for (DateTimeFormatter parser : parsers) {
+                        try {
+                            date = LocalDateTime.parse(value, parser);
+                            break; // 如果解析成功，则跳出循环
+                        } catch (DateTimeParseException e) {
+                            // 忽略异常，并尝试下一个解析器
+                            log.warn("日期格式化异常:{}",e);
+                        }
+                    }
+                    if (date != null) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                        value = date.format(formatter);
+                    } else {
+                        log.warn("试跑无法解析日期:{}-", value);
+                    }
+                }
+                FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                BeanUtils.copyProperties(fieldVO, vo);
+                vo.setDataValue(value);
+                dataFieldVOS.add(vo);
+            }
+        }
+        Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream().filter(headKey->  !head.contains(headKey))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        defaultConfig.forEach((fileHeader,configList)->{
+            FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+            vo.setDataValue(configList.get(0).getDefaultValue());
+            dataFieldVOS.add(vo);
+        });
+        MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
+        //endregion
+        syncUsers.add(make);
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        marketingPreUserDTO.setTaskId(tasId);
+        marketingPreUserDTO.setRequestId("".concat("_").concat(LocalDate.now().toString()).concat("_").concat(UUID.randomUUID().toString()));
+        marketingPreUserDTO.setDataItems(syncUsers);
+        UploadDataDTO uploadDataDTO = new UploadDataDTO();
+        uploadDataDTO.setApiCode("");
+        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
 
-        // 读取预存的数据并逐行处理
-
-        // 打印处理正确和不正确的条数以及所在行
-
-        // 根据清洗的文件类型（上传、转换等）
-            // 参数封装
-            // 调用推送方法
     }
 }
