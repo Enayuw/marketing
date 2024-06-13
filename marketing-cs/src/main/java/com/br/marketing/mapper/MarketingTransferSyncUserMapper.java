@@ -77,18 +77,37 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      * @param tCid tCid
      * @param apiCode apiCode
      * @param requestDate requestDate
-     * @param transformType transformType
-     * @param id id
-     * @param rowCount rowCount
+     * @param beginId beginId
+     * @param endId endId
      * @return java.util.List<com.br.marketing.entity.MarketingTransferSyncUser> 查询到的MarketingTransferSyncUser集合
      */
     List<MarketingTransferSyncUser> getTransferByStartAndEndDateYiXinV4(@Param("tCid") String tCid
             , @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate
-            , @Param("transformType") String transformType
-            , @Param("id") Long id
-            , @Param("rowCount") int rowCount);
+            , @Param("beginId") Long beginId
+            , @Param("endId") Long endId);
 
+    /**
+     * 获取满足条件的最大id
+     * @param tCid tCid
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @return Long
+     */
+    Long maxIdByCid(@Param("tCid") String tCid
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate);
+
+    /**
+     * 获取满足条件的最小id
+     * @param tCid tCid
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @return Long
+     */
+    Long minIdByCid(@Param("tCid") String tCid
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate);
 
     List<MarketingTransferSyncUser> getTransferData(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 

@@ -200,20 +200,24 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
         // T日站在T-1日的角度，判断该条转化数据是否在有效期内
         String requestDataMinusOne = dateToday.minusDays(1L).format(YYYYMMDDSHORTDFLINE);
         // 创建线程池
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 10000);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(12, 12, 100);
         Integer pageSize = null;
-        Long id = null;
-        for (; ; ) {
+        Long beginId = marketingTransferSyncUserMapper.minIdByCid(tcId, apiCode, requestDate);
+        Long endId = marketingTransferSyncUserMapper.maxIdByCid(tcId, apiCode, requestDate);
+        Long middleId;
+        Boolean continueFlag = Boolean.TRUE;
+        while (continueFlag) {
             pageSize = dynamicParameterService.getPageSize("YiXinV4Get");
-            List<MarketingTransferSyncUser> transferDataOriginal = marketingTransferSyncUserMapper
-                    .getTransferByStartAndEndDateYiXinV4(tcId, apiCode, requestDate
-                            , "1", id, pageSize);
-            if (CollectionUtils.isEmpty(transferDataOriginal)) {
-                break;
+            middleId = beginId + pageSize;
+            if(middleId >= endId){
+                middleId = endId+1;
+                continueFlag = Boolean.FALSE;
             }
+            List<MarketingTransferSyncUser> transferDataOriginal = marketingTransferSyncUserMapper
+                    .getTransferByStartAndEndDateYiXinV4(tcId, apiCode, requestDate, beginId, middleId);
+            beginId = middleId;
             List<MarketingTransferSyncUser> transferData = new ArrayList<>();
             Set<String> custNumSet = new HashSet<>();
-            id = transferDataOriginal.get(transferDataOriginal.size() - 1).getId();
             for(MarketingTransferSyncUser syncUser : transferDataOriginal){
                 String reserveField1 = syncUser.getReserveField1();
                 if(StringUtils.isNotBlank(reserveField1)){
