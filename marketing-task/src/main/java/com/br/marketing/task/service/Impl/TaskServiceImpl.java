@@ -249,7 +249,7 @@ public class TaskServiceImpl implements ITaskService {
                 TaskStatusExample statusExample = new TaskStatusExample();
                 statusExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
                 List<TaskStatus> bts = taskStatusMapper.selectByExample(statusExample);
-                if (bts.size() > 0 && (bts.get(0).getOnceStatus().equals(3) || bts.get(0).getAllStatus().equals(3))) {
+                if (bts.size() > 0 && ((Objects.equals(bts.get(0).getOnceStatus(),3)) || (Objects.equals(bts.get(0).getAllStatus(), 3)))) {
                     return true;
                 }
                 return bts.size() <= 0;
@@ -258,15 +258,16 @@ public class TaskServiceImpl implements ITaskService {
         }).collect(Collectors.toList());
 
         if (CollectionUtils.isEmpty(highPriorityTasks)) {
+            log.warn("暂停优先级非0任务，没有查询到0优先级任务");
             return;
         }
 
-        // todo 条件缺失
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andStatusEqualTo(3);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
 
         if (CollectionUtils.isEmpty(straHisFiles)) {
+            log.warn("暂停优先级非0任务，没有查询到正在进行中任务");
             return;
         }
 
@@ -275,18 +276,21 @@ public class TaskServiceImpl implements ITaskService {
 
         // 判断跑分中任务数量和分片数是否相等
         if (straHisFiles.size() != numberOfScoreTaskNodes) {
+            log.warn("暂停优先级非0任务，跑分中任务数量和分片数不相等");
             return;
         }
 
         // 获取正在跑分中的优先级非0的任务.条件：优先级非0，且任务类型非一次性验证，且is_online为在线跑分
         List<Integer> fileIds = straHisFiles.stream().map(StraHisFile::getId).map(Long::intValue).collect(Collectors.toList());
+        List<String> batchNumbers = straHisFiles.stream().map(StraHisFile::getBatchNumber).collect(Collectors.toList());
         MarketingTaskExample runningTaskExample = new MarketingTaskExample();
-        runningTaskExample.createCriteria().andFileIdIn(fileIds).andPriorityNotEqualTo(0)
+        runningTaskExample.createCriteria().andBatchNumberIn(batchNumbers).andPriorityNotEqualTo(0)
                 .andMonitorTypeNotEqualTo(2).andIsOnlineEqualTo(1);
         runningTaskExample.setOrderByClause("priority desc, start_date desc");
 
         List<MarketingTask> runningTasks = marketingTaskMapper.selectByExample(runningTaskExample);
         if (CollectionUtils.isEmpty(runningTasks)) {
+            log.warn("暂停优先级非0任务，没有查询到正在跑分中的非0任务");
             return;
         }
 
@@ -306,8 +310,8 @@ public class TaskServiceImpl implements ITaskService {
     private void pauseTasks(List<MarketingTask> runningTasks, List<StraHisFile> straHisFiles) {
         for (MarketingTask runningTask : runningTasks) {
             Optional<StraHisFile> first =
-                    straHisFiles.stream().filter((StraHisFile straHisFile) -> straHisFile.getId()
-                            .equals(runningTask.getFileId())).findFirst();
+                    straHisFiles.stream().filter((StraHisFile straHisFile) -> straHisFile.getBatchNumber()
+                            .equals(runningTask.getBatchNumber())).findFirst();
 
             if (!first.isPresent()) {
                 continue;
@@ -348,8 +352,10 @@ public class TaskServiceImpl implements ITaskService {
             updateStatus.setId(taskStatus.getId());
 
             if (taskNeedPause.getMonitorType().equals(1)) {
+                log.warn("暂停优先级非0任务，一次性全量类型任务状态置为待恢复，跑分编号：{}", taskNeedPause.getBatchNumber());
                 updateStatus.setOnceStatus(3);
             } else {
+                log.warn("暂停优先级非0任务，任务状态置为待恢复，跑分编号：{}", taskNeedPause.getBatchNumber());
                 updateStatus.setAllStatus(3);
             }
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
