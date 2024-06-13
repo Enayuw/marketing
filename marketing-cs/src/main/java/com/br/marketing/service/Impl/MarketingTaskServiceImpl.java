@@ -279,24 +279,26 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public Result<Long> buildScoreTaskOfAutoBuild(CustomerScoreRuleVO vo) {
-        // 获取当前时间和日期
         LocalDateTime nowTime = LocalDateTime.now();
         LocalDate nowDate = LocalDate.now();
         LocalDate plusDays = nowDate.plusDays(1);
         Date nowDateStart = Date.from(nowDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         Date nowDateEnd = Date.from(plusDays.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-        // 解析和构建有效时间
         String startTime = vo.getStartTime();
         String validTimeStr = nowDate.format(ymd) + " " + startTime + ":00";
+        // 获取任务计划开始时间：当前日期+跑分开始时间
         LocalDateTime validTime = LocalDateTime.parse(validTimeStr, ymdhms);
+
         // 判断是否达到开始时间
         if (nowTime.isBefore(validTime)) {
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则没达到开始时间，暂不生成任务");
         }
 
-        String apiCode = vo.getApiCode();
+        // 生成任务方式置为自动
+        vo.setBuildType(2);
 
+        String apiCode = vo.getApiCode();
         Integer execType = vo.getExecType();
         // 每个任务的周期
         if (execType == 3 && vo.getAutoBuild() == 1) {
@@ -331,6 +333,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
                 List<String> userTypeList = new ArrayList<>();
 
+                // 获取该任务对应上传记录的usertype集合
                 if (StringUtils.isNotEmpty(autoBuildConfig.getSyncReportId())) {
                     List<Long> syncReportIds = Arrays.stream(autoBuildConfig.getSyncReportId()
                             .split(",")).map(Long::new).collect(Collectors.toList());
@@ -338,14 +341,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
                     reportExample.createCriteria().andIdIn(syncReportIds);
                     List<MarketingSyncReport> marketingSyncReports = marketingSyncReportMapper.selectByExample(reportExample);
-                    // 查询符合跑分数据的场景
 
                     for (MarketingSyncReport marketingSyncReport : marketingSyncReports) {
                         userTypeList.add(marketingSyncReport.getUserType());
                     }
                 }
 
-                vo.setBuildType(2);
                 Result<Long> result = buildScoreTaskOfSelect(vo, userTypeList);
                 if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -363,14 +364,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
             }
 
-            // 是否存在T日上传完成、T-1未上传完成的情况
             MarketingSyncInfoExample syncInfoIngExample = new MarketingSyncInfoExample();
             syncInfoIngExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
                     .andCreateTimeGreaterThanOrEqualTo(nowDateStart)
                     .andCreateTimeLessThan(nowDateEnd)
                     .andStatusEqualTo(1);
-//                .andIsUploadEqualTo(1);
             int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
             if (isUploadCount > 0) {
                 String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(), "");
@@ -378,80 +377,89 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
             }
 
-            // 是否叠加有效期数据
+            // 是否叠加有效期数据 0-否，1-是
             Integer isStackValidity = vo.getIsStackValidity();
-            vo.setBuildType(2);
             if (isStackValidity == 0) {
-                Long minId = syncInfoMapper
-                        .getMinIdByRuleScoreWithDate(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
-
-                if (minId == null || minId <= 0) {
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
-                }
-
-                String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-                // 生成跑分批次号
-                Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
-                        , vo.getId().toString(), vo.getRuleNameShort()
-                        , time, null);
-                if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
-                    String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
-                    log.warn(errorMsg);
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
-                }
-                String batchNumber = batchNumberRes.getData();
-
-                // 查询符合跑分数据的场景
-                List<String> userTypeList = syncInfoMapper
-                        .queryUserTypeListWithDatetikv_(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
-
-                //跑分条件转化
-                Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), nowDate.toString(),
-                        validTimeStr);
-
-                return getResult(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
+                return notStackValidtyBuildTask(vo, apiCode, nowDate, validTimeStr, conditionRes);
             }
 
             if (isStackValidity == 1) {
-                List<MarketingDataValidConfig> configList = marketingDataValidConfigMapper
-                        .findListByApiCodeAndUserTypeSetPagetikv_(
-                                apiCode, nowDate.toString(), null, null, null);
-
-                Long minId = syncInfoMapper
-                        .getMinIdByRuleScoreWithValidConfig(apiCode, configList,conditionRes.getData(), validTimeStr);
-
-                if (minId == null || minId <= 0) {
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
-                }
-
-                String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-                // 生成跑分批次号
-                Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
-                        , vo.getId().toString(), vo.getRuleNameShort()
-                        , time, null);
-                if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
-                    String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
-                    log.warn(errorMsg);
-                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
-                }
-                String batchNumber = batchNumberRes.getData();
-                // 查询符合跑分数据的场景
-                List<String> userTypeList = syncInfoMapper
-                        .queryUserTypeListWithValidConfigtikv_(apiCode, configList, conditionRes.getData(), validTimeStr);
-
-                //跑分条件转化
-                Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditionsByValidConfig(vo.getConditionInfo(), configList,
-                        validTimeStr);
-
-                return getResult(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
+                return stackValidtyBuildTask(vo, apiCode, nowDate, conditionRes, validTimeStr);
             }
         }
 
         return null;
     }
 
-    private Result getResult(CustomerScoreRuleVO vo, Result<String> conditionTransferRes, String apiCode,
-                             String batchNumber, LocalDate nowDate, List<String> userTypeList) {
+    private Result stackValidtyBuildTask(CustomerScoreRuleVO vo, String apiCode, LocalDate nowDate, Result<String> conditionRes,
+                                         String validTimeStr) {
+        List<MarketingDataValidConfig> configList = marketingDataValidConfigMapper
+                .findListByApiCodeAndUserTypeSetPagetikv_(
+                        apiCode, nowDate.toString(), null, null, null);
+
+        Long minId = syncInfoMapper
+                .getMinIdByRuleScoreWithValidConfig(apiCode, configList, conditionRes.getData(), validTimeStr);
+
+        if (minId == null || minId <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
+        }
+
+        String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // 生成跑分批次号
+        Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
+                , vo.getId().toString(), vo.getRuleNameShort()
+                , time, null);
+        if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
+            String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
+            log.warn(errorMsg);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+        }
+        String batchNumber = batchNumberRes.getData();
+        // 查询符合跑分数据的场景
+        List<String> userTypeList = syncInfoMapper
+                .queryUserTypeListWithValidConfigtikv_(apiCode, configList, conditionRes.getData(), validTimeStr);
+
+        //跑分条件转化
+        Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditionsByValidConfig(vo.getConditionInfo(), configList,
+                validTimeStr);
+
+        return buildShowAndSaveTask(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
+    }
+
+    private Result notStackValidtyBuildTask(CustomerScoreRuleVO vo, String apiCode, LocalDate nowDate, String validTimeStr,
+                                            Result<String> conditionRes) {
+        Long minId = syncInfoMapper
+                .getMinIdByRuleScoreWithDate(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
+
+        if (minId == null || minId <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
+        }
+
+        String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // 生成跑分批次号
+        Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
+                , vo.getId().toString(), vo.getRuleNameShort()
+                , time, null);
+        if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
+            String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
+            log.warn(errorMsg);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+        }
+        String batchNumber = batchNumberRes.getData();
+
+        // 查询符合跑分数据的场景
+        List<String> userTypeList = syncInfoMapper
+                .queryUserTypeListWithDatetikv_(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
+
+        //跑分条件转化
+        Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), nowDate.toString(),
+                validTimeStr);
+
+        return buildShowAndSaveTask(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
+    }
+
+    private Result buildShowAndSaveTask(CustomerScoreRuleVO vo, Result<String> conditionTransferRes, String apiCode,
+                                        String batchNumber, LocalDate nowDate, List<String> userTypeList) {
         if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
         }
@@ -695,7 +703,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
             // 每个任务的周期：校验该配置是否已存在
             if (datum.getExecType() == 3) {
-                return buildCycleTask(dto.getTaskDate(),dto.getTaskTime(), dto.getDataIdDesc(),datum, conditionInfo);
+                return buildCycleTaskBySelect(dto.getTaskDate(), dto.getTaskTime(), dto.getDataIdDesc(), datum, conditionInfo);
             }
 
             datum.setConditionInfo(conditionInfo);
@@ -717,7 +725,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
-    public Result buildCycleTask(String startDate, String startTime, List<Long> syncReportIds, CustomerScoreRuleVO datum, String conditionInfo) {
+    public Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds, CustomerScoreRuleVO datum, String conditionInfo) {
         MarketingTaskAutoBuildConfigExample example = new MarketingTaskAutoBuildConfigExample();
         example.createCriteria().andIsDeletedEqualTo(0).andScoreRuleIdEqualTo(datum.getId().intValue())
                 .andDataConditionEqualTo(conditionInfo);
@@ -806,25 +814,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(hasTask.getId());
         }
 
-        //此逻辑暂时去掉，后期优化 需要和前端配合修改
-//        if (Integer.valueOf(4).equals(ruleVO.getExecType()) || Integer.valueOf(3).equals(ruleVO.getExecType())) {
-//            String closeDate = "";
-//            if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
-//                MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
-//                if (task1 != null) {
-//                    closeDate = task1.getCloseDate();
-//                } else {
-//                    closeDate = ruleVO.getCycleEndDay();
-//                }
-//            } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
-//                closeDate = ruleVO.getCycleEndDay();
-//            }
-//            LocalDate closeDay = LocalDate.parse(closeDate, ymd);
-//            if (closeDay.compareTo(LocalDate.now()) <= 0) {
-//                return new Result<Long>().setCode(ResultCode.FAIL.getValue()).setMessage("规则的结束时间小于等于当前时间");
-//            }
-//        }
-
         //region 处理task
         MarketingTask task = new MarketingTask();
         task.setApiCode(apiCode);
@@ -840,7 +829,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         task.setCusBatch(ruleVO.getId().toString());
         task.setMonitorType(ruleVO.getExecType());
         task.setIsOnline(ruleVO.getIsOnline());
-        if(ruleVO.getPriority() != null){
+
+        // region 202406新增
+        if (ruleVO.getPriority() != null) {
             task.setPriority(ruleVO.getPriority());
         }
         if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
@@ -848,6 +839,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
             task.setMonitorType(3);
         }
+        // endregion
+
         String taskEnd = LocalDate.parse(taskStart, ymd)
                 .plusDays(1L).format(ymd);
         task.setStartDate(taskStart);

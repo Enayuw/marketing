@@ -47,7 +47,7 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        BackEndScoreRuleConfigDTO dto  = JSON.parseObject(jobParameter, BackEndScoreRuleConfigDTO.class);
+        BackEndScoreRuleConfigDTO dto = JSON.parseObject(jobParameter, BackEndScoreRuleConfigDTO.class);
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds());
         AssertResult.assertResult(scoreConfigNow);
         for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {
@@ -56,9 +56,9 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
             }
 
             if (datum.getExecType() == 3) {
-                Result result = marketingTaskService.buildCycleTask(dto.getStartDate(), dto.getTaskTime(),
+                Result result = marketingTaskService.buildCycleTaskBySelect(dto.getStartDate(), dto.getTaskTime(),
                         new ArrayList<>(), datum, datum.getConditionInfo());
-                if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     continue;
                 }
             }
@@ -67,7 +67,7 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
             datum.setStartDate(dto.getStartDate());
             datum.setStartTime(dto.getTaskTime());
             datum.setAutoBuild(1);
-            Result<Long> result = marketingTaskService.buildScoreTaskOfSelect(datum,null);
+            Result<Long> result = marketingTaskService.buildScoreTaskOfSelect(datum, null);
         }
     }
 }

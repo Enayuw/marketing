@@ -10,6 +10,6 @@ public class CustomerScoreRuleVO extends ScoreRuleConfig {
     private Integer dataLimit;
     private Integer isOrNoScoreVer;
     private Integer priority;
-    // 生成方式 1：手动 2：自动
+    // 生成任务方式 1：手动（包括页面勾选和自定义上传数据时间范围JOB） 2：自动(包括每个任务的周期和每日定时)
     private Integer buildType;
 }
