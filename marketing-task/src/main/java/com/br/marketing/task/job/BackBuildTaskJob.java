@@ -66,6 +66,7 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
             datum.setConditionInfo(dto.getConditionInfo());
             datum.setStartDate(dto.getStartDate());
             datum.setStartTime(dto.getTaskTime());
+            datum.setAutoBuild(1);
             Result<Long> result = marketingTaskService.buildScoreTaskOfSelect(datum,null);
         }
     }

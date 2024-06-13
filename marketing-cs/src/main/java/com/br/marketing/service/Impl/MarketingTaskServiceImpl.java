@@ -81,6 +81,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -658,7 +659,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         String number = "";
         if (count > 0) {
-            if (vo.getBuildType() == 2) {
+            if (Objects.equals(vo.getBuildType(), 2)) {
                 // 生成跑分批次号
                 String validTimeStr = LocalDate.now() + " " + vo.getStartTime() + ":00";
                 String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
