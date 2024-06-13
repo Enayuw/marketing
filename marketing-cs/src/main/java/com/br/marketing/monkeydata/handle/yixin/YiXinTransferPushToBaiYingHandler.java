@@ -186,7 +186,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 return result;
             }
 
-            List<MarketingTransferSyncUser> periodList = pageList.stream().filter(data -> {
+            List<MarketingTransferSyncUser> periodList = pageList.stream().filter((MarketingTransferSyncUser data)-> {
                 String custNum = data.getCustNum();
                 if (custNumToSyncUserBoMap.get(custNum) == null) {
                     return false;
@@ -308,6 +308,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                     "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) " +
                     "AND reserve_field1->'$.applyLoan' = '1' and reserve_field1 ->> '$.availableAmount' < 2000.00";
                 break;
+            default:  extendSql = "and id < 0";
         }
         return extendSql;
     }
