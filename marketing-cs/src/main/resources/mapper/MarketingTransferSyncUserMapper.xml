@@ -130,7 +130,7 @@
         <if test="apiCode != null and apiCode.trim() neq ''">
             api_code=#{apiCode} and
         </if>
-        request_data = #{requestDate} and id>=11031902
+        request_data = #{requestDate}
     </select>
 
 
