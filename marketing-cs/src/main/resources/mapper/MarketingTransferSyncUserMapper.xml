@@ -1022,8 +1022,24 @@
         select *
         from b_marketing_transfer_sync_${tCid}
         where api_code = #{apiCode}
-        and (json_extract(reserve_field1, "$.transformType") !='1' or json_extract(reserve_field1,"$.transformType") is null)
         and request_data = #{requestDate}
+        <if test="extendSql != null and extendSql != ''">
+            ${extendSql}
+        </if>
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by id asc limit #{pageSize}
+    </select>
+
+    <select id="getYxCustNumsByRequestDate" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select id, cust_num
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode}
+        and request_data = #{requestDate}
+        <if test="extendSql != null and extendSql != ''">
+            ${extendSql}
+        </if>
         <if test="indexId != null and indexId != ''">
             and id > #{indexId}
         </if>

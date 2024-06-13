@@ -871,6 +871,11 @@ public class MarketingCommonConfig {
     private String yiXinTransferPushBaiYingExecuteTime;
 
     /**
+     * 宜信转化过滤推送百应执行时间
+     */
+    private Map<String, Integer> yiXinTransferPushBaiYingPageConfig;
+
+    /**
      * 宜信转化过滤推送百应线程
      */
     private Map<String, Integer> yiXinTransferPushBaiYingThreadPool;
