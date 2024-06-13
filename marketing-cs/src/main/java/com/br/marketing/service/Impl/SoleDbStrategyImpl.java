@@ -528,7 +528,7 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         if (StringUtils.isBlank(conditionStr)) {
             return new Result<String>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不能传空");
         }
-        RuleConditionVo conditionVo;
+        RuleConditionVo conditionVo = new RuleConditionVo();
         try {
             conditionVo = JSON.parseObject(conditionStr, new TypeReference<RuleConditionVo>() {
             }.getType());
