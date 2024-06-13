@@ -237,10 +237,10 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                 custNumSet.add(custNum);
                 transferData.add(syncUser);
             }
-            //判断转化数据是否在有效期内
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                    .getValidityPeriodsByCustNum(custNumSet, apiCode, requestDataMinusOne);
             threadPool.submit(() -> {
+                //判断转化数据是否在有效期内
+                Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
+                        .getValidityPeriodsByCustNum(custNumSet, apiCode, requestDataMinusOne);
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = transferFilterData.getCustNum();
                     SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
