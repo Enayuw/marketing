@@ -333,7 +333,8 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+                sharding-offset="1"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
 
     <job:simple id="YiXinTransferToRobotAIJob"
@@ -348,7 +349,8 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+                sharding-offset="2"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
 
 
@@ -632,7 +634,8 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+                sharding-offset="3"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
     <job:simple id="XieChengSmsCollidingDataVtToSendJob"
                 class="com.br.marketing.check.job.XieChengSmsCollidingDataVtToSendJob"
