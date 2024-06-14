@@ -10,7 +10,7 @@ import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
-import com.br.marketing.service.TaskOptService;
+import com.br.marketing.service.MarketingTaskOptService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class TaskOptServiceImpl implements TaskOptService {
+public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
     @Autowired
     StraHisFileMapper straHisFileMapper;
 

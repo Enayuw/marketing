@@ -31,7 +31,7 @@ import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.service.SoleStrategyService;
-import com.br.marketing.service.TaskOptService;
+import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ITaskService;
 import com.br.marketing.vo.CustomerScoreRuleVO;
@@ -124,7 +124,7 @@ public class TaskServiceImpl implements ITaskService {
     EntityOptServiceImpl entityOptService;
 
     @Autowired
-    TaskOptService taskOptService;
+    MarketingTaskOptService marketingTaskOptService;
 
     @Override
     public void buildScoreTask(List<Long> scoreRuleIds,String jobNm) {
@@ -330,7 +330,7 @@ public class TaskServiceImpl implements ITaskService {
         }
         TaskStatus taskStatus = taskStatuses.get(0);
 
-        Result result = taskOptService.pauseTaskByStraHisFile(2, straHisFileNeedPause, taskStatus);
+        Result result = marketingTaskOptService.pauseTaskByStraHisFile(2, straHisFileNeedPause, taskStatus);
         if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             log.warn(result.getMessage() + "。跑分编号：{}", straHisFileNeedPause.getBatchNumber());
         }
