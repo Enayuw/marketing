@@ -7,10 +7,10 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>marketing-rule-scheduler</artifactId>
-  <description>营销规则跑批服务</description>
+  <description>营销规则调度服务</description>
   <build>
     <defaultGoal>compile</defaultGoal>
-    <finalName>营销规则跑批服务</finalName>
+    <finalName>营销规则调度服务</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>

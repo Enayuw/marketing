@@ -23,7 +23,7 @@ public class AlarmAppender<E> extends RollingFileAppender<E>  {
             }
             try {
                 SystemExceptionServiceImpl emailService= RuleSchedulerApplication.ac.getBean(SystemExceptionServiceImpl.class);
-                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "MARKETING-DATA-BRIDGE",throwableProxy);
+                emailService.sendAlarmPrintStack(loggerName+":</br>"+content.toString(), "MARKETING-RULE-SCHEDULER",throwableProxy);
             } catch (Exception e) {
                 log.warn("Exception",e);
             }
