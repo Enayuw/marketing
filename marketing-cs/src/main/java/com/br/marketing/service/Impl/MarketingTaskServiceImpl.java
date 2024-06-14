@@ -642,6 +642,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 if(null != userTypeByList && userTypeByList.size() > 0){
                     userTypeList.addAll(userTypeByList);
                 }
+                log.warn("生成跑分任务，根据数据范围查询usertype，数据范围：{}，usertypeList：{}", whereStr, JSON.toJSONString(userTypeByList));
             }
         }
         // 去重
