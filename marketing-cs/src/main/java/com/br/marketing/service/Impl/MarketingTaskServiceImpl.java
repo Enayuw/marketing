@@ -296,6 +296,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         // 生成任务方式置为自动
         vo.setBuildType(2);
+        vo.setStartDate(nowDate.toString());
 
         String apiCode = vo.getApiCode();
         Integer execType = vo.getExecType();
@@ -332,6 +333,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
                 List<String> userTypeList = new ArrayList<>();
 
+                vo.setAutoBuildConfigId(autoBuildConfig.getId());
                 Result<Long> result = buildScoreTaskOfSelect(vo, userTypeList);
                 if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
@@ -654,11 +656,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         String number = "";
         if (count > 0) {
             if (Objects.equals(vo.getBuildType(), 2)) {
+                // 每个任务的周期类型：一个配置规则可以生成多个任务
+                String buildId = StringUtils.isEmpty(vo.getAutoBuildConfigId()) ? vo.getId().toString() : vo.getAutoBuildConfigId().toString();
+
                 // 生成跑分批次号
                 String validTimeStr = LocalDate.now() + " " + vo.getStartTime() + ":00";
                 String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
                 Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
-                        , vo.getId().toString(), vo.getRuleNameShort()
+                        , buildId, vo.getRuleNameShort()
                         , time, null);
                 if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
                     String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
@@ -825,12 +830,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
             task.setMonitorType(3);
         }
-        // endregion
-
         String taskEnd = LocalDate.parse(taskStart, ymd)
                 .plusDays(1L).format(ymd);
         task.setStartDate(taskStart);
         task.setCloseDate(taskEnd);
+        // endregion
+
         task.setCreateTime(LocalDateTime.now().format(ymdhms));
         task.setContextId(iApiToDbService.getTaskContextId());
         marketingTaskMapper.insertSelective(task);

@@ -2,7 +2,6 @@ package com.br.marketing.task.job;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.dto.BackEndScoreRuleConfigDTO;
 import com.br.marketing.service.IRuleConfigService;
@@ -15,7 +14,6 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -51,18 +49,6 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds());
         AssertResult.assertResult(scoreConfigNow);
         for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {
-            if (datum.getExecType() == 4) {
-                continue;
-            }
-
-            if (datum.getExecType() == 3) {
-                Result result = marketingTaskService.buildCycleTaskBySelect(dto.getStartDate(), dto.getTaskTime(),
-                        new ArrayList<>(), datum, datum.getConditionInfo());
-                if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    continue;
-                }
-            }
-
             datum.setConditionInfo(dto.getConditionInfo());
             datum.setStartDate(dto.getStartDate());
             datum.setStartTime(dto.getTaskTime());
