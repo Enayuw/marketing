@@ -238,7 +238,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             }
             result.setDate(userDetailDTOS.size());
         } catch (Exception e) {
-            log.error("携程撞库数据推送决策异常", e.getMessage());
+            log.error("携程撞库数据推送决策异常", e);
         }
         return result;
     }
