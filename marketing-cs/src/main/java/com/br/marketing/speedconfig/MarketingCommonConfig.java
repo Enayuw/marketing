@@ -298,6 +298,11 @@ public class MarketingCommonConfig {
     private Boolean dataMonkeyJobOnlineSwitch;
 
     /**
+     * ruleScheduler服务job的上线开关
+     */
+    private Boolean ruleSchedulerJobOnlineSwitch;
+
+    /**
      * 离线跑批入es文件 线程数
      */
     private Integer OffLineInserEsThreadNum;
