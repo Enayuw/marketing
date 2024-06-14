@@ -281,7 +281,6 @@ public class TaskServiceImpl implements ITaskService {
         }
 
         // 获取正在跑分中的优先级非0的任务.条件：优先级非0，且任务类型非一次性验证，且is_online为在线跑分
-        List<Integer> fileIds = straHisFiles.stream().map(StraHisFile::getId).map(Long::intValue).collect(Collectors.toList());
         List<String> batchNumbers = straHisFiles.stream().map(StraHisFile::getBatchNumber).collect(Collectors.toList());
         MarketingTaskExample runningTaskExample = new MarketingTaskExample();
         runningTaskExample.createCriteria().andBatchNumberIn(batchNumbers).andPriorityNotEqualTo(0)
@@ -323,16 +322,19 @@ public class TaskServiceImpl implements ITaskService {
     private void pauseTask(StraHisFile straHisFileNeedPause, MarketingTask taskNeedPause) {
         if (!ScoreStatusEnum.RUNNING.getValue().equals(straHisFileNeedPause.getStatus())) {
             log.warn("暂停优先级非0任务失败。该跑分任务已结束，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
+            return;
         }
 
         String filePath = ZookeeperPath.marketStatusPath.concat("/").concat(straHisFileNeedPause.getId().toString());
         try {
             if (client.checkExists().forPath(filePath) == null) {
                 log.warn("暂停优先级非0任务失败。该跑分任务正在启动中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
+                return;
             }
             String value = Arrays.toString(client.getData().forPath(filePath));
             if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
                 log.warn("暂停优先级非0任务失败。该跑分任务不在进行中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
+                return;
             }
 
             TaskStatusExample taskStatusExample = new TaskStatusExample();
@@ -341,6 +343,7 @@ public class TaskServiceImpl implements ITaskService {
 
             if (CollectionUtils.isEmpty(taskStatuses)) {
                 log.error("暂停优先级非0任务失败。跑分执行状态表中未找到该跑分任务，fileId：{}", straHisFileNeedPause.getId());
+                return;
             }
 
             // zk节点置为暂停中
@@ -359,7 +362,7 @@ public class TaskServiceImpl implements ITaskService {
                 updateStatus.setAllStatus(3);
             }
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-            entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()), updateStatus, taskStatus);
+//            entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()), updateStatus, taskStatus);
         } catch (Exception e) {
             log.error("暂停优先级非0任务失败。跑分编号：{}", straHisFileNeedPause.getBatchNumber(), e);
         }

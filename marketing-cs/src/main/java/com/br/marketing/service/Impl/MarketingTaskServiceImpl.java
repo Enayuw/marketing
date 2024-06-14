@@ -311,32 +311,33 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该周期生成任务规则，已过期或已删除");
             }
 
-            MarketingTaskAutoBuildConfig autoBuildConfig = autoBuildConfigList.get(0);
-            Integer cycleDay = autoBuildConfig.getCycleDay();
-            if (cycleDay == null || cycleDay == 0) {
-                log.error(String.format("该周期生成任务规则，没有配置周期天数，任务id：%d", vo.getId()));
-                return new Result<>().setCode(ResultCode.FAIL.getValue());
-            }
-
-            long days;
-            try {
-                days = DateHelper.getDistanceDays(nowDate.toString(), autoBuildConfig.getStartDate());
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-                return new Result<>().setCode(ResultCode.FAIL.getValue());
-            }
-
-            if (days % cycleDay == 0){
-                vo.setConditionInfo(autoBuildConfig.getDataCondition());
-                vo.setStartDate(autoBuildConfig.getStartDate());
-                vo.setStartTime(autoBuildConfig.getStartTime());
-
-                List<String> userTypeList = new ArrayList<>();
-
-                vo.setAutoBuildConfigId(autoBuildConfig.getId());
-                Result<Long> result = buildScoreTaskOfSelect(vo, userTypeList);
-                if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            for (MarketingTaskAutoBuildConfig autoBuildConfig : autoBuildConfigList) {
+                Integer cycleDay = autoBuildConfig.getCycleDay();
+                if (cycleDay == null || cycleDay == 0) {
+                    log.error(String.format("该周期生成任务规则，没有配置周期天数，任务id：%d", vo.getId()));
                     return new Result<>().setCode(ResultCode.FAIL.getValue());
+                }
+
+                long days;
+                try {
+                    days = DateHelper.getDistanceDays(nowDate.toString(), autoBuildConfig.getStartDate());
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    return new Result<>().setCode(ResultCode.FAIL.getValue());
+                }
+
+                if (days % cycleDay == 0){
+                    vo.setConditionInfo(autoBuildConfig.getDataCondition());
+                    vo.setStartDate(autoBuildConfig.getStartDate());
+                    vo.setStartTime(autoBuildConfig.getStartTime());
+
+                    List<String> userTypeList = new ArrayList<>();
+
+                    vo.setAutoBuildConfigId(autoBuildConfig.getId());
+                    Result<Long> result = buildScoreTaskOfSelect(vo, userTypeList);
+                    if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        return new Result<>().setCode(ResultCode.FAIL.getValue());
+                    }
                 }
             }
         }
