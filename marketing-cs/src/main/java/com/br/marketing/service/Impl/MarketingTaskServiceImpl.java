@@ -717,8 +717,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
-    public Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds, CustomerScoreRuleVO datum,
-                                         String conditionInfo) {
+    public Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds,
+                                         CustomerScoreRuleVO datum, String conditionInfo) {
         MarketingTaskAutoBuildConfigExample example = new MarketingTaskAutoBuildConfigExample();
         example.createCriteria().andIsDeletedEqualTo(0).andScoreRuleIdEqualTo(datum.getId().intValue())
                 .andDataConditionEqualTo(conditionInfo);

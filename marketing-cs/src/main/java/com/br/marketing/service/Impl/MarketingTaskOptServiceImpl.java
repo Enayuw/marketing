@@ -23,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @Description TaskOptServiceImpl
@@ -83,10 +84,11 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
 
                 TaskStatus updateStatus = new TaskStatus();
                 updateStatus.setId(taskStatus.getId());
-                if (new Integer(4).equals(taskStatus.getOnceStatus())) {
+
+                if (Objects.equals(taskStatus.getOnceStatus(), 4)) {
                     updateStatus.setOnceStatus(3);
                 }
-                if (new Integer(4).equals(taskStatus.getAllStatus())) {
+                if (Objects.equals(taskStatus.getAllStatus(), 4)) {
                     updateStatus.setAllStatus(3);
                 }
                 taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
@@ -112,7 +114,8 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
             if (client.checkExists().forPath(filePath) == null) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分调度任务启动中，请10分钟后重试");
             }
-            String value = new String(client.getData().forPath(filePath));
+
+            String value = String.valueOf(client.getData().forPath(filePath));
             if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不在进行中");
             }
