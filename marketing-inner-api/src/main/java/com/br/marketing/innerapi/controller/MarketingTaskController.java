@@ -4,12 +4,11 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.ScoreRuleConfig;
-import com.br.marketing.innerapi.service.impl.TaskOptServiceImpl;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.service.TaskOptService;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
@@ -20,7 +19,12 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -45,7 +49,7 @@ public class MarketingTaskController {
     MarketingTaskService marketingTaskService;
 
     @Autowired
-    TaskOptServiceImpl taskOptService;
+    TaskOptService taskOptService;
 
     @ApiOperation(value = "跑分记录列表", notes = "跑分记录列表")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")

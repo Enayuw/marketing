@@ -284,6 +284,12 @@ public class TaskScoreServiceImpl {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
                 }
             } else {
+                // 当b_task_status.pause_type为2（插队暂停）时，将状态置为待恢复
+                TaskStatus taskStatus = taskStatusMapper.selectByPrimaryKey(task.getStatusId());
+                if (Objects.equals(taskStatus.getPauseType(), 2)) {
+                    setTaskStatusToRecovered(task, taskStatus);
+                }
+
                 updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 String content = String.format("任务编号：【%s】；\r\n 跑分记录id：【%s】；\r\n 已经暂停跑分"
@@ -299,6 +305,17 @@ public class TaskScoreServiceImpl {
             log.error("预警调度出错", e);
         }
         return;
+    }
+
+    private void setTaskStatusToRecovered(MarketingTask task, TaskStatus taskStatus) {
+        if (task.getMonitorType().equals(1)) {
+            log.warn("暂停优先级非0任务，一次性全量类型任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
+            taskStatus.setOnceStatus(3);
+        } else {
+            log.warn("暂停优先级非0任务，任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
+            taskStatus.setAllStatus(3);
+        }
+        taskStatusMapper.updateByPrimaryKeySelective(taskStatus);
     }
 
     /**

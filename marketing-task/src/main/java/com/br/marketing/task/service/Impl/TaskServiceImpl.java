@@ -15,8 +15,6 @@ import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.StraHisFileExample;
 import com.br.marketing.entity.TaskStatus;
 import com.br.marketing.entity.TaskStatusExample;
-import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
@@ -33,6 +31,7 @@ import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.service.TaskOptService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ITaskService;
 import com.br.marketing.vo.CustomerScoreRuleVO;
@@ -44,7 +43,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -124,6 +122,9 @@ public class TaskServiceImpl implements ITaskService {
 
     @Autowired
     EntityOptServiceImpl entityOptService;
+
+    @Autowired
+    TaskOptService taskOptService;
 
     @Override
     public void buildScoreTask(List<Long> scoreRuleIds,String jobNm) {
@@ -315,56 +316,23 @@ public class TaskServiceImpl implements ITaskService {
             if (!first.isPresent()) {
                 continue;
             }
-            pauseTask(first.get(), runningTask);
+            pauseTask(first.get());
         }
     }
 
-    private void pauseTask(StraHisFile straHisFileNeedPause, MarketingTask taskNeedPause) {
-        if (!ScoreStatusEnum.RUNNING.getValue().equals(straHisFileNeedPause.getStatus())) {
-            log.warn("暂停优先级非0任务失败。该跑分任务已结束，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
+    private void pauseTask(StraHisFile straHisFileNeedPause) {
+        TaskStatusExample statusExample = new TaskStatusExample();
+        statusExample.createCriteria().andFileIdEqualTo(straHisFileNeedPause.getId().intValue());
+        List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
+        if (CollectionUtils.isEmpty(taskStatuses)) {
+            log.warn("跑分执行状态表中未找到该跑分任务。跑分编号：{}",straHisFileNeedPause.getBatchNumber());
             return;
         }
+        TaskStatus taskStatus = taskStatuses.get(0);
 
-        String filePath = ZookeeperPath.marketStatusPath.concat("/").concat(straHisFileNeedPause.getId().toString());
-        try {
-            if (client.checkExists().forPath(filePath) == null) {
-                log.warn("暂停优先级非0任务失败。该跑分任务正在启动中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
-                return;
-            }
-            String value = Arrays.toString(client.getData().forPath(filePath));
-            if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
-                log.warn("暂停优先级非0任务失败。该跑分任务不在进行中，跑分编号：{}", straHisFileNeedPause.getBatchNumber());
-                return;
-            }
-
-            TaskStatusExample taskStatusExample = new TaskStatusExample();
-            taskStatusExample.createCriteria().andFileIdEqualTo(straHisFileNeedPause.getId().intValue());
-            List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(taskStatusExample);
-
-            if (CollectionUtils.isEmpty(taskStatuses)) {
-                log.error("暂停优先级非0任务失败。跑分执行状态表中未找到该跑分任务，fileId：{}", straHisFileNeedPause.getId());
-                return;
-            }
-
-            // zk节点置为暂停中
-            client.setData().forPath(filePath, ZkScoreStatusEnum.PAUSE.getValue().getBytes(StandardCharsets.UTF_8));
-
-            // b_task_status置为3（待恢复）
-            TaskStatus taskStatus = taskStatuses.get(0);
-            TaskStatus updateStatus = new TaskStatus();
-            updateStatus.setId(taskStatus.getId());
-
-            if (taskNeedPause.getMonitorType().equals(1)) {
-                log.warn("暂停优先级非0任务，一次性全量类型任务状态置为待恢复，跑分编号：{}", taskNeedPause.getBatchNumber());
-                updateStatus.setOnceStatus(3);
-            } else {
-                log.warn("暂停优先级非0任务，任务状态置为待恢复，跑分编号：{}", taskNeedPause.getBatchNumber());
-                updateStatus.setAllStatus(3);
-            }
-            taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-//            entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()), updateStatus, taskStatus);
-        } catch (Exception e) {
-            log.error("暂停优先级非0任务失败。跑分编号：{}", straHisFileNeedPause.getBatchNumber(), e);
+        Result result = taskOptService.pauseTaskByStraHisFile(2, straHisFileNeedPause, taskStatus);
+        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            log.warn(result.getMessage() + "。跑分编号：{}", straHisFileNeedPause.getBatchNumber());
         }
     }
 
