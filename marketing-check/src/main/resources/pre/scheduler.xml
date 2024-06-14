@@ -954,7 +954,7 @@
 
     <job:simple id="ToPolicyByRuleJob"
                 class="com.br.marketing.check.job.ruletopolicy.ToPolicyByRuleJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="规则中心推送决策任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
@@ -969,7 +969,7 @@
 
     <job:simple id="CustomerPushStatusQueryJob"
                 class="com.br.marketing.check.job.ruletopolicy.CustomerPushStatusQueryJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="规则中心推送决策结果查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
