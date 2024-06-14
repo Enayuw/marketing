@@ -277,10 +277,7 @@ public class TaskScoreServiceImpl {
                 }
                 updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-                MarketingTask updateTask = new MarketingTask();
-                updateTask.setId(task.getId());
-                updateTask.setPriority(0);
-                marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
+
                 if (isOffline) {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
                 } else {

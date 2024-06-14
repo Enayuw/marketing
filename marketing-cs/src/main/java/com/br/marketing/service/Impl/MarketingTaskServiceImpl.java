@@ -76,7 +76,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -332,20 +331,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 vo.setStartTime(autoBuildConfig.getStartTime());
 
                 List<String> userTypeList = new ArrayList<>();
-
-                // 获取该任务对应上传记录的usertype集合
-                if (StringUtils.isNotEmpty(autoBuildConfig.getSyncReportId())) {
-                    List<Long> syncReportIds = Arrays.stream(autoBuildConfig.getSyncReportId()
-                            .split(",")).map(Long::new).collect(Collectors.toList());
-
-                    MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
-                    reportExample.createCriteria().andIdIn(syncReportIds);
-                    List<MarketingSyncReport> marketingSyncReports = marketingSyncReportMapper.selectByExample(reportExample);
-
-                    for (MarketingSyncReport marketingSyncReport : marketingSyncReports) {
-                        userTypeList.add(marketingSyncReport.getUserType());
-                    }
-                }
 
                 Result<Long> result = buildScoreTaskOfSelect(vo, userTypeList);
                 if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
