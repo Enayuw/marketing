@@ -302,10 +302,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         Integer execType = vo.getExecType();
         // 每个任务的周期
         if (execType == 3 && vo.getAutoBuild() == 1) {
+            // 查询中间表，条件：ruleid且结束日期大于等于当前日期
             MarketingTaskAutoBuildConfigExample buildConfigExample = new MarketingTaskAutoBuildConfigExample();
             buildConfigExample.createCriteria().andIsDeletedEqualTo(0)
                     .andScoreRuleIdEqualTo(vo.getId().intValue())
-                    .andCloseDateLessThanOrEqualTo(vo.getCycleEndDay());
+                    .andCloseDateGreaterThanOrEqualTo(nowDate.toString());
             List<MarketingTaskAutoBuildConfig> autoBuildConfigList = buildConfigMapper.selectByExample(buildConfigExample);
             if (CollectionUtils.isEmpty(autoBuildConfigList)) {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该周期生成任务规则，已过期或已删除");
