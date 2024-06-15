@@ -115,7 +115,7 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分调度任务启动中，请10分钟后重试");
             }
 
-            String value = String.valueOf(client.getData().forPath(filePath));
+            String value = new String(client.getData().forPath(filePath));
             if (!ZkScoreStatusEnum.RUNNING.getValue().equals(value)) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不在进行中");
             }
