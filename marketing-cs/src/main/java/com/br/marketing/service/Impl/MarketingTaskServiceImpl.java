@@ -804,6 +804,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(batchNumber);
         if (hasTask != null) {
+            log.warn("生成跑分任务失败，该跑分编号已存在：{}", batchNumber);
             return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(hasTask.getId());
         }
 
