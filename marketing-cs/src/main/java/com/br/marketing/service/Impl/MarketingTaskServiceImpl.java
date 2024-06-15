@@ -328,7 +328,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
                 if (days % cycleDay == 0){
                     vo.setConditionInfo(autoBuildConfig.getDataCondition());
-                    vo.setStartDate(autoBuildConfig.getStartDate());
                     vo.setStartTime(autoBuildConfig.getStartTime());
 
                     List<String> userTypeList = new ArrayList<>();
