@@ -308,12 +308,6 @@ public class TaskScoreServiceImpl {
     }
 
     private void setTaskStatusToRecovered(MarketingTask task, TaskStatus taskStatus) {
-        // 跑分状态置为进行中
-        StraHisFile updateFile = new StraHisFile();
-        updateFile.setId(task.getFileId());
-        updateFile.setStatus(ScoreStatusEnum.RUNNING.getValue());
-        straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-
         if (task.getMonitorType().equals(1)) {
             log.warn("暂停优先级非0任务，一次性全量类型任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
             taskStatus.setOnceStatus(3);
@@ -423,6 +417,9 @@ public class TaskScoreServiceImpl {
         if (blt.getFileId() != null && blt.getFileId() > 1) {
             StraHisFile file = straHisFileMapper.selectByPrimaryKey(blt.getFileId());
             descPath = file.getFilePath();
+            // 待恢复任务，跑分状态置为进行中
+            file.setStatus(ScoreStatusEnum.RUNNING.getValue());
+            straHisFileMapper.updateByPrimaryKeySelective(file);
         } else {
             StraHisFile file = new StraHisFile();
             file.setApiCode(blt.getApiCode());

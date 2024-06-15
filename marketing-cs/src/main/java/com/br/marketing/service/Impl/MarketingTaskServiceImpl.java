@@ -385,10 +385,16 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .findListByApiCodeAndUserTypeSetPagetikv_(
                         apiCode, nowDate.toString(), null, null, null);
 
+        if (CollectionUtils.isEmpty(configList)) {
+            log.warn("自动规则生成任务，每日定时叠加有效期类型：所有数据均已失效，不生成跑分任务");
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
+        }
+
         Long minId = syncInfoMapper
                 .getMinIdByRuleScoreWithValidConfig(apiCode, configList, conditionRes.getData(), validTimeStr);
 
         if (minId == null || minId <= 0) {
+            log.warn("自动规则生成任务，没有符合条件的数据");
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
         }
 
