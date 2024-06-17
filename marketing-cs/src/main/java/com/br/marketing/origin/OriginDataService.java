@@ -35,4 +35,6 @@ public interface OriginDataService {
     List<Object> collect(MqFact mqFact, ProcessHandlerContext context);
 
     TransferSource source();
+
+    List<Long> getIdList(List<Object> collect);
 }

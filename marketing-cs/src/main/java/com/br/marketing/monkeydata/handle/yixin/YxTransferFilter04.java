@@ -10,8 +10,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -61,8 +59,6 @@ public class YxTransferFilter04 implements YxTransferFilter<MarketingTransferSyn
                 log.error(TITLE + "filter error, {}", JSONObject.toJSONString(next.getCustNum()));
             }
         }
-        Set<String> custNumSets = filteredList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        log.warn(TITLE + "filteredSet: {}", JSONObject.toJSONString(custNumSets));
         return filteredList;
     }
 }

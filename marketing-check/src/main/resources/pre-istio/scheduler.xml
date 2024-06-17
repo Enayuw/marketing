@@ -333,7 +333,8 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+                sharding-offset="1"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
 
     <job:simple id="YiXinTransferToRobotAIJob"
@@ -348,7 +349,8 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+                sharding-offset="2"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
 
 
@@ -632,7 +634,8 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+                sharding-offset="3"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.RotateServerByOffsetJobShardingStrategy"
     />
     <job:simple id="XieChengSmsCollidingDataVtToSendJob"
                 class="com.br.marketing.check.job.XieChengSmsCollidingDataVtToSendJob"
@@ -953,7 +956,7 @@
     />
     <job:simple id="ToPolicyByRuleJob"
                 class="com.br.marketing.check.job.ruletopolicy.ToPolicyByRuleJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="规则中心推送决策任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
@@ -968,7 +971,7 @@
 
     <job:simple id="CustomerPushStatusQueryJob"
                 class="com.br.marketing.check.job.ruletopolicy.CustomerPushStatusQueryJob"
-                cron="0 0/1 * * * ? "
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="规则中心推送决策结果查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="4"
@@ -1013,6 +1016,20 @@
                 class="com.br.marketing.check.job.zhongbang.ZhongBangPushVoiceFileJob"
                 cron="0 0/11 * * * ?"
                 description="众邦财富fileSDK录音文件上传"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+    <job:simple id="PeriodPushJob"
+                class="com.br.marketing.check.job.PeriodPushJob"
+                cron="0 0/1 * * * ?"
+                description="数据积攒后周期推送决策"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"

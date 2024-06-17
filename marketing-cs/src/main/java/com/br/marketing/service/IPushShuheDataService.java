@@ -41,7 +41,7 @@ public interface IPushShuheDataService {
 
     default void sendAlarmMgsUrgent(String title, String error, AlarmApiClient alarmClient) {
         try {
-            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+            alarmClient.sendAlarm(error, title, AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode());
         } catch (Exception ignored) {
 
         }
