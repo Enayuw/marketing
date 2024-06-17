@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 @Slf4j
@@ -77,14 +78,21 @@ public class EsConditionTransferSqlUtil {
             }
         }
         switch (operation) {
-
             case "in":
                 List<String> inList = (List) value;
-                sqlTep = key.concat(" in (").concat(String.join(",", inList).concat(" )"));
+                StringBuilder inStrValue = new StringBuilder();
+                inList.forEach(str -> {
+                    inStrValue.append("\"").append(str).append("\"").append(",");
+                });
+                sqlTep = key.concat(" in (").concat(inStrValue.substring(0, inStrValue.length() - 1).concat(" )"));
                 break;
             case "not_in":
                 List<String> notinList = (List) value;
-                sqlTep = key.concat(" not in (").concat(String.join(",", notinList).concat(" )"));
+                StringBuilder notStrValue = new StringBuilder();
+                notinList.forEach(str -> {
+                    notStrValue.append("\"").append(str).append("\"").append(",");
+                });
+                sqlTep = key.concat(" not in (").concat(notStrValue.substring(0, notStrValue.length() - 1).concat(" )"));
                 break;
             case "between":
                 List<String> betweenList = Arrays.asList(((String) value).split(","));
