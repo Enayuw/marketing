@@ -586,7 +586,7 @@
     <select id="getScoreTasks" resultType="com.br.marketing.entity.MarketingTask" >
         select *
         from b_marketing_task
-        where <![CDATA[  start_date <= #{date} and close_date >#{date} ]]>
+        where <![CDATA[  start_date <= #{date} and close_date >=#{date} ]]>
           <if test="taskId!=null and taskId>0">
               and id = #{taskId}
           </if>
