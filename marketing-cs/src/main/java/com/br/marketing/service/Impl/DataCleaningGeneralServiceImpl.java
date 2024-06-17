@@ -102,10 +102,10 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             String[] split = fileIds.split(",");
             for (int j = 0; j < split.length; j++) {
                 MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(Long.parseLong(split[j]));
-//                fileStr = "D:\\test\\";
-//                String fileName = "zhongbangtest-1.txt";
-                fileStr = marketingCleanDataFile.getLocalPath();
-                String fileName = marketingCleanDataFile.getFileName();
+                fileStr = "D:\\test\\";
+                String fileName = "zhongbangtest-1.txt";
+//                fileStr = marketingCleanDataFile.getLocalPath();
+//                String fileName = marketingCleanDataFile.getFileName();
                 String apiCode = task.getApiCode();
                 String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 String tasId = apiCode.concat("_").concat(yyyyMMdd);
@@ -119,11 +119,11 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
                 // 读取文件并逐行处理
 
-                // 定义一个map<表名:字段值>
+                // 定义一个map<表头名字:字段值>
                 Map<String, String> tableMap = new HashMap<>();
 
                 File file = new File(fileStr + fileName);
-                Integer line = 0;
+                Integer lineNum = 0;
                 Integer errorSum = 0;
                 Integer pushSum = 0;
                 ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5);
@@ -142,13 +142,13 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                         if (row == null) {
                             isNotFinal = Boolean.FALSE;
                         } else {
-                            line++;
+                            lineNum++;
                         }
-                        if (line == 0 && !isNotFinal) {
+                        if (lineNum == 0 && !isNotFinal) {
                             continue;
                         }
                         if (isNotFinal) {
-                            if (line == 1) {
+                            if (lineNum == 1) {
                                 //region 文件头处理
                                 headers = row.split(",", -1);
                                 // 存储表头信息
@@ -168,7 +168,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                 List<String> datas = Splitter.on(",").splitToList(row);
                                 if (!headSum.equals(datas.size())) {
                                     ++errorSum;
-                                    log.warn("文件名:{};行数:{};错误:{};", fileName, line, "该行与表头列数不一致");
+                                    log.warn("文件名:{};行数:{};错误:{};", fileName, lineNum, "该行与表头列数不一致");
                                     continue;
                                 }
                                 // 确保表头和数据数量一致
@@ -181,11 +181,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                 }
                                 StringBuilder errorMsg = new StringBuilder();
                                 List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
-                                HashMap<String, FileToMarketingDataFieldVO> dataFieldMap = new HashMap<>();
+                                HashMap<String, List<FileToMarketingDataFieldVO>> dataFieldMap = new HashMap<>();
                                 HashSet hasSet = new HashSet();
                                 ArrayList<String> list = Lists.newArrayList();
-//                                String cell = "";
-
                                 //region 每列的字段处理逻辑
                                 for (int i = 0; i < datas.size(); i++) {
                                     // 列字段值
@@ -196,90 +194,104 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     //根据当前表头名获取配置信息
                                     List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(headNm);
                                     if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
-                                        fieldVO = fileToMarketingFieldVOS.get(0);
-                                    }
-
-                                    //region 未获取到配置信息的处理
-                                    if (fieldVO == null) {
-                                        if (!extra.contains(headNm)) {
-                                            continue;
-                                        } else {
-                                            fieldVO = new FileToMarketingFieldVO();
-                                            fieldVO.setHeadField(headNm);
-                                            fieldVO.setInterfaceField(headNm);
-                                            fieldVO.setIsMust(Boolean.FALSE);
-                                            fieldVO.setIsExtend(true);
+                                        for (int k = 0; k < fileToMarketingFieldVOS.size(); k++) {
+                                            fieldVO = fileToMarketingFieldVOS.get(k);
+                                            rowFieldHandle(fieldVO, list, value, tableMap, fileName, lineNum
+                                                    , errorMsg, headNm, hasSet, dataFieldVOS, dataFieldMap);
                                         }
+                                    }else{
+                                        log.warn("[{}]文件[{}]行[{}]字段没配置，舍弃",fileName,lineNum,headNm);
+                                        // do nothing
+//                                        // 文件中字段没有配置处理规则时
+//                                        if (!extra.contains(headNm)) {
+//                                            continue;
+//                                        } else {
+//                                            fieldVO = new FileToMarketingFieldVO();
+//                                            fieldVO.setHeadField(headNm);
+//                                            fieldVO.setInterfaceField(headNm);
+//                                            fieldVO.setIsMust(Boolean.FALSE);
+//                                            fieldVO.setIsExtend(true);
+//                                        }
+//                                        rowFieldHandle(fieldVO, list, value, tableMap, fileName, lineNum
+//                                                , errorMsg, headNm, hasSet, dataFieldVOS, dataFieldMap);
                                     }
-                                    //endregion
-                                    // 选填字段集合
-                                    if (StringUtils.isNotBlank(fieldVO.getGroupOptional())) {
-                                        list.add(fieldVO.getHeadField());
-                                    }
-
-                                    //region 根据配置信息进行处理
-                                    // 表里没有初始值，需要动态赋值或取默认值（初始数据 > 动态赋值 > 默认值）
-                                    if (StringUtils.isBlank(value)) {
-                                        // 根据动态配置赋值
-                                        if (StringUtils.isNotBlank(fieldVO.getDynamicData())) {
-                                            value = tableMap.get(fieldVO.getDynamicData());
-                                        } else if (StringUtils.isNotBlank(fieldVO.getDefaultValue())) {
-                                            value = fieldVO.getDefaultValue();
-                                        }
-                                    }
-                                    // 字典项不为空 则进行字典项映射
-                                    if (StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())) {
-                                        String conversion = fieldVO.getConversion();
-                                        // 创建ObjectMapper实例
-                                        ObjectMapper objectMapper = new ObjectMapper();
-                                        try {
-                                            // 将JSON字符串转换为List<Map<String, String>>
-                                            List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
-                                            if (!genderMappings.isEmpty()) {
-                                                Map<String, String> genderMapping = genderMappings.get(0);
-                                                value = genderMapping.get(value);
-                                            }
-                                        } catch (IOException ex) {
-                                            log.error(ex.getMessage(), ex);
-                                        }
-                                    }
-                                    if (StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()) {
-                                        LocalDateTime date = null;
-                                        for (DateTimeFormatter parser : parsers) {
-                                            try {
-                                                date = LocalDateTime.parse(value, parser);
-                                                break; // 如果解析成功，则跳出循环
-                                            } catch (DateTimeParseException e) {
-                                                // 忽略异常，并尝试下一个解析器
-                                                log.warn("文件名:{};行数:{};错误:{};", fileName, line, "该行与表头列数不一致");
-                                            }
-                                        }
-                                        if (date != null) {
-                                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                                            value = date.format(formatter);
-                                        } else {
-                                            log.warn("无法解析日期:{}-文件名:{}-行数:{}", value, fileName, line);
-                                        }
-                                    }
-                                    // 必填字段没值 则报错
-                                    if (fieldVO.getIsMust() && StringUtils.isBlank(value)) {
-                                        errorMsg.append(String.format("字段名:%s 未赋值;", fieldVO.getHeadField()));
-                                        continue;
-                                    }
-                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-                                    if (fieldVO != null) {
-                                        BeanUtils.copyProperties(fieldVO, vo);
-                                    } else {
-                                        vo.setHeadField(headNm);
-                                        vo.setInterfaceField(headNm);
-                                    }
-                                    vo.setDataValue(value);
-                                    hasSet.add(vo.getInterfaceField());
-                                    dataFieldVOS.add(vo);
-                                    dataFieldMap.put(vo.getHeadField(), vo);
-                                    //endregion
+//                                    //endregion
+//                                    // 选填字段集合
+//                                    if (StringUtils.isNotBlank(fieldVO.getGroupOptional())) {
+//                                        list.add(fieldVO.getHeadField());
+//                                    }
+//
+//                                    //region 根据配置信息进行处理
+//                                    // 表里没有初始值，需要动态赋值或取默认值（初始数据 > 动态赋值 > 默认值）
+//                                    if (StringUtils.isBlank(value)) {
+//                                        // 根据动态配置赋值
+//                                        if (StringUtils.isNotBlank(fieldVO.getDynamicData())) {
+//                                            value = tableMap.get(fieldVO.getDynamicData());
+//                                        } else if (StringUtils.isNotBlank(fieldVO.getDefaultValue())) {
+//                                            value = fieldVO.getDefaultValue();
+//                                        }
+//                                    }
+//                                    // 字典项不为空 则进行字典项映射
+//                                    if (StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())) {
+//                                        String conversion = fieldVO.getConversion();
+//                                        // 创建ObjectMapper实例
+//                                        ObjectMapper objectMapper = new ObjectMapper();
+//                                        try {
+//                                            // 将JSON字符串转换为List<Map<String, String>>
+//                                            List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
+//                                            if (!genderMappings.isEmpty()) {
+//                                                Map<String, String> genderMapping = genderMappings.get(0);
+//                                                value = genderMapping.get(value);
+//                                            }
+//                                        } catch (IOException ex) {
+//                                            log.error(ex.getMessage(), ex);
+//                                        }
+//                                    }
+//                                    // 时间格式转换
+//                                    if (StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()) {
+//                                        LocalDateTime date = null;
+//                                        for (DateTimeFormatter parser : parsers) {
+//                                            try {
+//                                                date = LocalDateTime.parse(value, parser);
+//                                                break; // 如果解析成功，则跳出循环
+//                                            } catch (DateTimeParseException e) {
+//                                                // 忽略异常，并尝试下一个解析器
+//                                                log.warn("文件名:{};行数:{};错误:{};", fileName, line, "该行与表头列数不一致");
+//                                            }
+//                                        }
+//                                        if (date != null) {
+//                                            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//                                            value = date.format(formatter);
+//                                        } else {
+//                                            log.warn("无法解析日期:{}-文件名:{}-行数:{}", value, fileName, line);
+//                                        }
+//                                    }
+//                                    // 必填字段没值 则报错
+//                                    if (fieldVO.getIsMust() && StringUtils.isBlank(value)) {
+//                                        errorMsg.append(String.format("字段名:%s 未赋值;", fieldVO.getHeadField()));
+//                                        continue;
+//                                    }
+//                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+//                                    if (fieldVO != null) {
+//                                        BeanUtils.copyProperties(fieldVO, vo);
+//                                    } else {
+//                                        vo.setHeadField(headNm);
+//                                        vo.setInterfaceField(headNm);
+//                                    }
+//                                    vo.setDataValue(value);
+//                                    hasSet.add(vo.getInterfaceField());
+//                                    dataFieldVOS.add(vo);
+//                                    dataFieldMap.put(vo.getHeadField(), vo);
+//                                    //endregion
                                 }
-                                //endregion
+                                Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream()
+                                        .filter(headKey->  ! list.contains(headKey))
+                                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                                defaultConfig.forEach((fileHeader,configList)->{
+                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                                    vo.setDataValue(configList.get(0).getDefaultValue());
+                                    dataFieldVOS.add(vo);
+                                });
 
                                 // 增加fileName值
                                 if (StringUtils.isBlank(tableMap.get("fileName"))) {
@@ -298,21 +310,21 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     }
                                     if (!b) {
                                         ++errorSum;
-                                        log.warn("文件名:{};行数:{};错误:{};", fileName, line, "选填字段未赋值:" + list);
+                                        log.warn("文件名:{};行数:{};错误:{};", fileName, lineNum, "选填字段未赋值:" + list);
                                         continue;
                                     }
                                 }
                                 if (StringUtils.isNotBlank(errorMsg.toString())) {
                                     ++errorSum;
-                                    log.warn("文件名:{};行数:{};错误:{};", fileName, line, errorMsg.toString());
+                                    log.warn("文件名:{};行数:{};错误:{};", fileName, lineNum, errorMsg.toString());
                                     continue;
                                 }
 
                                 //region 抽象的剔除方法和组装逻辑的调用,如未实现走默认的service
-                                Result vaild = iFileToMarketingRuleService.isVaild(dataFieldVOS, dataFieldMap);
+                                Result vaild = iFileToMarketingRuleService.isVaildByList(dataFieldVOS, dataFieldMap);
                                 if (!ResultCode.SUCCESS.getValue().equals(vaild.getCode())) {
                                     ++errorSum;
-                                    log.warn("文件名:{};行数:{};错误:{};", fileName, line, vaild.getMessage());
+                                    log.warn("文件名:{};行数:{};错误:{};", fileName, lineNum, vaild.getMessage());
                                     continue;
                                 }
                                 MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
@@ -348,34 +360,143 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     }
                 } catch (Exception ex) {
                     log.error("[{}]数据清洗文件[{}]清洗失败-文件行数[{}]-推送成功数[{}]-推送失败数[{}]--"
-                            , apiCode, fileName, line, pushSum, errorSum, ex);
+                            , apiCode, fileName, lineNum, pushSum, errorSum, ex);
                     marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 3);
                 }
                 // 打印处理正确和不正确的条数以及所在行
                 log.warn("[{}]数据清洗文件[{}]-文件行数[{}]-推送成功数[{}]-推送失败数[{}]"
-                        , apiCode, fileName, line, pushSum, errorSum);
-                marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 2);
+                        , apiCode, fileName, lineNum, pushSum, errorSum);
+            }
+            marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 2);
+        }else{
+            log.warn("清洗任务未配置文件名");
+        }
+    }
+
+    /**
+     * 处理每一行数据字段的方法
+     * @param fieldVO 列对应的处理规则（列名可以重复）
+     * @param list
+     * @param value 列名对应的值
+     * @param tableMap map<表头名字:字段值>
+     * @param fileName 待处理文件名
+     * @param lineNum 待处理文件行号
+     * @param errorMsg 错误信息
+     * @param headNm 列名
+     * @param hasSet
+     * @param dataFieldVOS
+     * @param dataFieldMap <表头,表头对应规则list>
+     */
+    public void rowFieldHandle(FileToMarketingFieldVO fieldVO,ArrayList<String> list, String value
+            , Map<String, String> tableMap, String fileName, Integer lineNum
+            , StringBuilder errorMsg, String headNm, HashSet hasSet
+            , List<FileToMarketingDataFieldVO> dataFieldVOS, HashMap<String, List<FileToMarketingDataFieldVO>> dataFieldMap) {
+        //endregion
+        // 选填字段集合
+        if (StringUtils.isNotBlank(fieldVO.getGroupOptional())) {
+            list.add(fieldVO.getHeadField());
+        }
+
+        //region 根据配置信息进行处理
+        // 表里没有初始值，需要动态赋值或取默认值（初始数据 > 动态赋值 > 默认值）
+        if (StringUtils.isBlank(value)) {
+            // 根据动态配置赋值
+            if (StringUtils.isNotBlank(fieldVO.getDynamicData())) {
+                value = tableMap.get(fieldVO.getDynamicData());
+            } else if (StringUtils.isNotBlank(fieldVO.getDefaultValue())) {
+                value = fieldVO.getDefaultValue();
             }
         }
+        // 字典项不为空 则进行字典项映射
+        if (StringUtils.isNotEmpty(value) && StringUtils.isNotBlank(fieldVO.getConversion())) {
+            String conversion = fieldVO.getConversion();
+            // 创建ObjectMapper实例
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                // 将JSON字符串转换为List<Map<String, String>>
+                List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
+                if (!genderMappings.isEmpty()) {
+                    Map<String, String> genderMapping = genderMappings.get(0);
+                    value = genderMapping.get(value);
+                }
+            } catch (IOException ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+        // 时间格式转换
+        if (StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()) {
+            value = getFormatterValue(value, fileName, lineNum);
+        }
+        // 必填字段没值 则报错
+        if (fieldVO.getIsMust() && StringUtils.isBlank(value)) {
+            errorMsg.append(String.format("字段名:%s 未赋值;", fieldVO.getHeadField()));
+            return;
+        }
+        FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+        if (fieldVO != null) {
+            BeanUtils.copyProperties(fieldVO, vo);
+        } else {
+            vo.setHeadField(headNm);
+            vo.setInterfaceField(headNm);
+        }
+        vo.setDataValue(value);
+        hasSet.add(vo.getInterfaceField());
+        dataFieldVOS.add(vo);
+        String headField = vo.getHeadField();
+        List<FileToMarketingDataFieldVO> fileToMarketingDataFieldVOS = dataFieldMap.get(headField);
+        if(null != fileToMarketingDataFieldVOS){
+            fileToMarketingDataFieldVOS.add(vo);
+        }else{
+            List<FileToMarketingDataFieldVO> fileToMarketingDataFieldVOS1 = new ArrayList<>();
+            fileToMarketingDataFieldVOS1.add(vo);
+            dataFieldMap.put(headField, fileToMarketingDataFieldVOS1);
+        }
+    }
+
+    /**
+     * 处理时间格式的方法
+     * @param value 待处理的时间类型的值
+     * @param fileName 待处理文件名
+     * @param lineNum 待处理文件对应行数
+     * @return String 格式化后的时间值（yyyy-MM-dd HH:mm:ss）
+     */
+    private static String getFormatterValue(String value, String fileName, Integer lineNum) {
+        LocalDateTime date = null;
+        for (DateTimeFormatter parser : parsers) {
+            try {
+                date = LocalDateTime.parse(value, parser);
+                break; // 如果解析成功，则跳出循环
+            } catch (DateTimeParseException e) {
+                // 忽略异常，并尝试下一个解析器
+                log.warn("文件名:{};行数:{};错误:{};", fileName, lineNum, "该行与表头列数不一致");
+            }
+        }
+        if (date != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            value = date.format(formatter);
+        } else {
+            log.warn("无法解析日期:{}-文件名:{}-行数:{}", value, fileName, lineNum);
+        }
+        return value;
     }
 
     /**
      * @param head        文件表头
      * @param address     空值, <位置,表头字段名>
      * @param extra       空值, 扩展子段包含的表头字段名
-     * @param baseHeads   必填字段
-     * @param fieldVosMap <表头字段,处理规则配置>
+     * @param mustHeads   必填字段
+     * @param fieldVosMap <表头字段,处理规则配置list>
      * @return Result
      * @Author yu.xia@brgroup.com
      * @Date 2024/5/21 17:47
      */
     public static Result statisticsHeadByCommon(String head, HashMap<Integer, String> address, HashSet extra,
-                                                List<String> baseHeads, Map<String, List<FileToMarketingFieldVO>> fieldVosMap) {
+                                                List<String> mustHeads, Map<String, List<FileToMarketingFieldVO>> fieldVosMap) {
         List<String> heads = com.google.common.base.Splitter.on(",").splitToList(head);
         if (heads.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
         }
-        if (!heads.containsAll(baseHeads)) {
+        if (!heads.containsAll(mustHeads)) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("表头缺少必填字段");
         }
         for (int i = 0; i < heads.size(); i++) {
@@ -387,10 +508,15 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             //根据当前表头名获取配置信息
             List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(s);
             if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
-                fieldVO = fileToMarketingFieldVOS.get(0);
-            }
-            // 扩展字段
-            if (fieldVO == null || fieldVO.getIsExtend()) {
+                for (int j = 0; j < fileToMarketingFieldVOS.size(); j++) {
+                    fieldVO = fileToMarketingFieldVOS.get(j);
+                    if(fieldVO.getIsExtend()){
+                        // 该列字段数据需要写到扩展字段
+                        extra.add(s);
+                    }
+                }
+            }else{
+                // 该列字段数据需要写到扩展字段
                 extra.add(s);
             }
             address.put(i, s);

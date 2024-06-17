@@ -23,6 +23,9 @@ public interface IFileToMarketingRuleService {
     default Result isVaild(List<FileToMarketingDataFieldVO> vos, Map<String,FileToMarketingDataFieldVO> voMaps){
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
+    default Result isVaildByList(List<FileToMarketingDataFieldVO> vos, Map<String,List<FileToMarketingDataFieldVO>> voMaps){
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
 
     /**
      * 生成营销数据对象
