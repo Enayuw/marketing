@@ -280,9 +280,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     public Result<Long> buildScoreTaskOfAutoBuild(CustomerScoreRuleVO vo) {
         LocalDateTime nowTime = LocalDateTime.now();
         LocalDate nowDate = LocalDate.now();
-        LocalDate plusDays = nowDate.plusDays(1);
         Date nowDateStart = Date.from(nowDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        Date nowDateEnd = Date.from(plusDays.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
         String startTime = vo.getStartTime();
         String validTimeStr = nowDate.format(ymd) + " " + startTime + ":00";
@@ -352,6 +350,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
             }
 
+            Date nowDateEnd = Date.from(validTime.atZone(ZoneId.systemDefault()).toInstant());
             MarketingSyncInfoExample syncInfoIngExample = new MarketingSyncInfoExample();
             syncInfoIngExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
