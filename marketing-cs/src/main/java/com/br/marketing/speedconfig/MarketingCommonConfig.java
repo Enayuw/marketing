@@ -1676,5 +1676,11 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONObject> periodPushConfig;
 
+
+    /**
+     * 数据清洗试跑apiCode
+     */
+    private String datacleanTestRunApiCode;
+
 }
 

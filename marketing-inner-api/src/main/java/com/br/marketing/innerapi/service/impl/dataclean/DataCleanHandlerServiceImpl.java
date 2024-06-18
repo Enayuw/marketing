@@ -12,7 +12,9 @@ import com.br.marketing.dto.dataclean.DataCleanRuleDetailDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.innerapi.service.dataclean.DataCleanHandlerService;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.IDataCleaningGeneralService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.br.marketing.vo.dataclean.DataCleanConfigVO;
 import com.br.marketing.vo.dataclean.DataCleanTaskVO;
@@ -64,6 +66,13 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
+
+
+    @Resource
+    IDataCleaningGeneralService dataCleaningGeneralService;
 
     public static final List<String> UPLOAD_FIELD = Lists.newArrayList("custNum", "cell", "id", "name", "userType");
     public static final List<String> TRANSFER_FIELD = Lists.newArrayList("custNum", "userType");
@@ -339,18 +348,12 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         if (Objects.isNull(task)) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到清洗任务");
         }
-        Long fieldId = Long.valueOf(Arrays.asList(task.getFileId().split(",")).get(0));
-        MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(fieldId);
-        String data = marketingCleanDataFile.getFileData();
-        MarketingDataFileConfig marketingDataFileConfig =marketingDataFileConfigMapper.selectByPrimaryKey(Long.valueOf(task.getConfigId()));
-        String ruleConfig = marketingDataFileConfig.getFieldConfig();
-        //组装数据 TODO
-
+        //组装数据
+        MarketingPreUserDTO uploadDataDTO = dataCleaningGeneralService.pilotAction(dto.getId());;
         //插入上传info表
-        MarketingPreUserDTO uploadDataDTO = new MarketingPreUserDTO();
         MarketingSyncInfo syncInfo = new MarketingSyncInfo();
         try {
-            syncInfo.setApiCode("7410666");
+            syncInfo.setApiCode(marketingCommonConfig.getDatacleanTestRunApiCode());
             syncInfo.setCusBatch(uploadDataDTO.getTaskId());
             syncInfo.setRequestBatch(uploadDataDTO.getRequestId());
             syncInfo.setCreateTime(new Date());
@@ -367,14 +370,16 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         //插入上传明细表
         pushRuleService.insertMarketingPreUserSync(syncInfo.getId());
         //查询明细表
-        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(dto.getApiCode(),uploadDataDTO.getRequestId());
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(marketingCommonConfig.getDatacleanTestRunApiCode()
+                ,uploadDataDTO.getRequestId());
         if(CollectionUtils.isEmpty(syncUserList)){
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("试跑失败，请检查配置");
         }
         //更新试跑结果到任务表
         MarketingCleanDataTask cleanDataTask = new MarketingCleanDataTask();
         cleanDataTask.setUpdateTime(new Date());
-        cleanDataTask.setTestResult(JSON.toJSONStringWithDateFormat(syncUserList.get(0),"yyyy-MM-dd HH:mm:ss", SerializerFeature.WriteDateUseDateFormat));
+        cleanDataTask.setTestResult(JSON.toJSONStringWithDateFormat(syncUserList.get(0),"yyyy-MM-dd HH:mm:ss", SerializerFeature
+                .WriteDateUseDateFormat));
         cleanDataTask.setId(dto.getId());
         marketingCleanDataTaskMapper.updateByPrimaryKeySelective(task);
         return new Result().setCode(ResultCode.SUCCESS.getValue());

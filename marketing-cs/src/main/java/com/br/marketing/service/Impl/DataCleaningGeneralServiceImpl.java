@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -26,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.BufferedReader;
@@ -61,6 +63,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 
     @Resource
     PushInfoService pushInfoService;
+
 
     public static List<DateTimeFormatter> parsers = Arrays.asList(
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
@@ -399,7 +402,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
     }
 
     @Override
-    public void pilotAction(Long id,IFileToMarketingRuleService iFileToMarketingRuleService) {
+    public MarketingPreUserDTO pilotAction(Long id) {
         String tasId = "".concat("_").concat(LocalDate.now().toString()).concat("test");
         List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
         // 查询ID对应的清洗任务
@@ -433,6 +436,10 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             String headNm = head.get(i);
             //根据当前表头名获取配置信息
             List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(headNm);
+            //未获取配置
+            if(CollectionUtils.isEmpty(fileToMarketingFieldVOS)){
+                continue;
+            }
             Iterator<FileToMarketingFieldVO> itr = fileToMarketingFieldVOS.iterator();
             //遍历配置项进行组装
             while (itr.hasNext()) {
@@ -486,23 +493,69 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 dataFieldVOS.add(vo);
             }
         }
-        Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream().filter(headKey->  !head.contains(headKey))
+        Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream().filter(map->  !head.contains(map.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         defaultConfig.forEach((fileHeader,configList)->{
             FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
             vo.setDataValue(configList.get(0).getDefaultValue());
+            vo.setInterfaceField(configList.get(0).getHeadField());
             dataFieldVOS.add(vo);
         });
-        MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
+        MarketingPreUserDetailDTO make = make(dataFieldVOS);
         //endregion
         syncUsers.add(make);
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(tasId);
         marketingPreUserDTO.setRequestId("".concat("_").concat(LocalDate.now().toString()).concat("_").concat(UUID.randomUUID().toString()));
         marketingPreUserDTO.setDataItems(syncUsers);
-        UploadDataDTO uploadDataDTO = new UploadDataDTO();
-        uploadDataDTO.setApiCode("");
-        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+        return marketingPreUserDTO;
+    }
 
+    MarketingPreUserDetailDTO make(List<FileToMarketingDataFieldVO> vos){
+        MarketingPreUserDetailDTO dto = new MarketingPreUserDetailDTO();
+        JSONObject reserveFieldJo = new JSONObject();
+        for (FileToMarketingDataFieldVO vo : vos) {
+            switch (vo.getInterfaceField()){
+                case "custNum":
+                    dto.setCustNum(vo.getDataValue());
+                    break;
+                case"cell":
+                    dto.setCell(vo.getDataValue());
+                    break;
+                case"id":
+                    if(com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())){
+                        dto.setId(vo.getDataValue());
+                    }
+                    break;
+                case"name":
+                    if(com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())){
+                        dto.setName(vo.getDataValue());
+                    }
+                    break;
+                case"groupType":
+                    if(com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())){
+                        dto.setGroupType(vo.getDataValue());
+                    }
+                    break;
+                case"userType":
+                    reserveFieldJo.put("userType",vo.getDataValue());
+                    break;
+                case"operateType":
+                    reserveFieldJo.put("operateType",vo.getDataValue());
+                    break;
+                case"fileName":
+                    reserveFieldJo.put("fileName",vo.getDataValue());
+                    break;
+                default:
+                    break;
+            }
+            if(vo.getIsExtend()!=null && vo.getIsExtend()){
+                reserveFieldJo.put(com.br.marketing.common.utils.StringUtils.isBlank(vo.getInterfaceField())?vo.getHeadField():vo.getInterfaceField(),vo.getDataValue());
+            }
+        }
+        if (reserveFieldJo.keySet().size()>0) {
+            dto.setReserveField1(JSON.toJSONString(reserveFieldJo));
+        }
+        return dto;
     }
 }
