@@ -320,6 +320,9 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         if(StringUtils.isBlank(marketingCleanDataTask.getTestResult())){
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未试跑，请先进行试跑");
         }
+        if(!marketingCleanDataTask.getCleanStatus().equals(0)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("任务状态不是待清洗，不能执行任务");
+        }
         MarketingCleanDataTask task = new MarketingCleanDataTask();
         task.setUpdateTime(new Date());
         task.setCleanStatus(0);
