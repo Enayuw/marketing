@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.MarketingDataFileConfig;
 
@@ -32,8 +33,7 @@ public interface IDataCleaningGeneralService {
      * @Author yu.xia@brgroup.com
      * @Date 2024/5/24 11:31
      * @param id 试跑任务的id
-     * @param iFileToMarketingRuleService 具体处理映射的对象
      */
-    void pilotAction(Long id,IFileToMarketingRuleService iFileToMarketingRuleService);
+    MarketingPreUserDTO pilotAction(Long id);
 
 }
