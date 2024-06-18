@@ -572,6 +572,15 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("tCid") String tCid,
             @Param("apiCode") String apiCode,
             @Param("requestDate") String requestDate,
+            @Param("extendSql") String extendSql,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize);
+
+    List<MarketingTransferSyncUser> getYxCustNumsByRequestDate(
+            @Param("tCid") String tCid,
+            @Param("apiCode") String apiCode,
+            @Param("requestDate") String requestDate,
+            @Param("extendSql") String extendSql,
             @Param("indexId") Long indexId,
             @Param("pageSize") Integer pageSize);
 

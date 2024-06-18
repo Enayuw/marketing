@@ -44,6 +44,38 @@ public class MyTest {
     final static SimpleDateFormat yyyyMMddHMS = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Test
+    public void yu(){
+
+        int offset = 0;
+        System.out.println("offset="+offset+" h:"+getIndex(0,offset));
+        System.out.println("offset="+offset+" i:"+getIndex(1,offset));
+        System.out.println("offset="+offset+" j:"+getIndex(2,offset));
+
+        offset = 1;
+        System.out.println("offset="+offset+" h:"+getIndex(0,offset));
+        System.out.println("offset="+offset+" i:"+getIndex(1,offset));
+        System.out.println("offset="+offset+" j:"+getIndex(2,offset));
+
+        offset = -1;
+        System.out.println("offset="+offset+" h:"+getIndex(0,offset));
+        System.out.println("offset="+offset+" i:"+getIndex(1,offset));
+        System.out.println("offset="+offset+" j:"+getIndex(2,offset));
+
+        Long dxCode = Long.valueOf("YiXinTransferToDxJob".hashCode());
+        Long aiCode = Long.valueOf("YiXinTransferToRobotAIJob".hashCode());
+        Long jueCode = Long.valueOf("YiXinTransferToJueCeJob".hashCode());
+
+        System.out.println("dxCode="+dxCode);
+        System.out.println("aiCode="+aiCode);
+        System.out.println("jueCode="+jueCode);
+
+    }
+
+    int getIndex(int start,int offset){
+        return (start+offset) % 3;
+    }
+
+    @Test
     public void testhashcode(){
         ArrayList<DataDetailTestDTO> dataDetailTestDTOS = new ArrayList<>();
 

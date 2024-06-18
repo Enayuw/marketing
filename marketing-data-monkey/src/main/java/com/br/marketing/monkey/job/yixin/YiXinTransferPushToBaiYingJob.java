@@ -5,7 +5,6 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.TransferActionFront;
-import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.yixin.YiXinBlackPushToBaiYingHandler;
 import com.br.marketing.monkeydata.handle.yixin.YiXinTransferPushToBaiYingHandler;
@@ -42,9 +41,6 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
 
     @Resource
     private JobManager jobManager;
-
-    @Resource
-    private MarketingTransferInfoMapper marketingTransferInfoMapper;
 
     @Resource
     private ZnkfPushService znkfPushService;
@@ -105,9 +101,16 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             }
 
             // action transfer
-            Result result = actionTransferPush(apiCode, bizDate, synApiCode);
+            Result result1 = actionTransferPush(apiCode, bizDate, synApiCode,"1");
+            Result result2 = actionTransferPush(apiCode, bizDate, synApiCode,"2");
+            Result result3 = actionTransferPush(apiCode, bizDate, synApiCode,"3");
+            Result result4 = actionTransferPush(apiCode, bizDate, synApiCode,"4");
 
-            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            if (ResultCode.SUCCESS.getValue().equals(result1.getCode())
+                    && ResultCode.SUCCESS.getValue().equals(result2.getCode())
+                    && ResultCode.SUCCESS.getValue().equals(result3.getCode())
+                    && ResultCode.SUCCESS.getValue().equals(result4.getCode())
+            ) {
                 jobManager.updateFrontDataStatus(actionFront.getId(), 2);
             }
 
@@ -116,21 +119,28 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private Result<?> actionTransferPush(String apiCode, String bizDate, String synApiCode) {
+    private Result<?> actionTransferPush(String apiCode, String bizDate, String synApiCode, String priority) {
+        log.warn(TITLE+"转化数据任务, action开始, apiCode:{}, bizDate:{}, priority:{}", apiCode, bizDate, priority);
         YiXinCondition condition = new YiXinCondition();
         condition.setPageIndex(0);
-        condition.setPageSize(2000);
+        Map<String, Integer> pageConfig = marketingCommonConfig.getYiXinTransferPushBaiYingPageConfig();
+        Integer transferPushPageSize = pageConfig.getOrDefault("transferPushPageSize", 2000);
+        condition.setPageSize(transferPushPageSize);
         condition.setApiCode(apiCode);
         condition.setRequestData(bizDate);
         condition.setSynApiCode(synApiCode);
+        condition.setPriority(priority);
         Result actionResult = yiXinTransferPushToBaiYingHandler.action(condition);
+        log.warn(TITLE+"转化数据任务, action结束, apiCode:{}, bizDate:{}, priority:{}", apiCode, bizDate, priority);
         return actionResult;
     }
 
     private Result<?> actionBlackPush(String apiCode, String bizDate, String synApiCode) {
         YiXinCondition condition = new YiXinCondition();
         condition.setPageIndex(0);
-        condition.setPageSize(500);
+        Map<String, Integer> pageConfig = marketingCommonConfig.getYiXinTransferPushBaiYingPageConfig();
+        Integer blackPushPageSize = pageConfig.getOrDefault("blackPushPageSize", 500);
+        condition.setPageSize(blackPushPageSize);
         condition.setApiCode(apiCode);
         condition.setRequestData(bizDate);
         condition.setSynApiCode(synApiCode);

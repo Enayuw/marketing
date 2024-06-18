@@ -1,4 +1,4 @@
-package com.br.marketing.monkeydata.handle.yixin;
+package com.br.marketing.monkeydata.handle.yixin.sole;
 
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -6,20 +6,24 @@ import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.entity.DataDistributeDetailLog;
 import com.br.marketing.entity.DataDistributeDetailLogExample;
-import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
-public class YiXinTransferPushDistributeSoleProcessor {
+public class YiXinBlackPushDistributeSoleProcessor {
 
     @Resource
     private RedisChgService redisChgService;
@@ -27,18 +31,23 @@ public class YiXinTransferPushDistributeSoleProcessor {
     @Resource
     private DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
 
-    private final static String TITLE = "【宜信转化过滤推送百应】-转化推送";
+    private final static String TITLE = "【宜信转化过滤推送百应】-黑名单推送";
 
-    public List<MarketingTransferSyncUser> process(List<MarketingTransferSyncUser> pushList, YiXinCondition condition){
+    public List<MarketingSyncUser> process(List<MarketingSyncUser> pushList, YiXinCondition condition){
         String key = RedisKeyConstant.YIXIN_TRANSFER_PUSH_BAIYING_DISTRIBUTE_DATA_SLOE_LOCK;
         Integer distributeType = DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getValue();
         Integer soleDay = 1;
 
-        Iterator<MarketingTransferSyncUser> iterator = pushList.iterator();
+        if(CollectionUtils.isEmpty(pushList)){
+            return pushList;
+        }
+
+        Iterator<MarketingSyncUser> iterator = pushList.iterator();
+        int beforePushSize = pushList.size();
         long startTime = System.currentTimeMillis();
         while(iterator.hasNext()){
-            MarketingTransferSyncUser next = iterator.next();
-            String apiCode = next.getApiCode();
+            MarketingSyncUser next = iterator.next();
+            String apiCode = condition.getApiCode();
             String custNum = next.getCustNum();
             key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, custNum));
             String lockValue = UUID.randomUUID().toString();
@@ -80,7 +89,7 @@ public class YiXinTransferPushDistributeSoleProcessor {
             }
         }
         long endTime = System.currentTimeMillis();
-        log.warn(TITLE+"去重耗时："+(endTime-startTime));
+        log.warn(TITLE+"去重量级{}，去重耗时{}", beforePushSize, (endTime-startTime));
         return pushList;
     }
 
