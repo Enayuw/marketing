@@ -32,6 +32,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -62,17 +64,19 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
     @Resource
     PushInfoService pushInfoService;
 
-    public static List<DateTimeFormatter> parsers = Arrays.asList(
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy-M-dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("yyyy/M/dd HH:mm:ss"),
-            DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss"),
-            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"),
-            DateTimeFormatter.BASIC_ISO_DATE,
-            DateTimeFormatter.ISO_LOCAL_DATE,
-            DateTimeFormatter.ISO_LOCAL_TIME,
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME
+    public static List<String> pattern = Arrays.asList(
+            "yyyy-MM-dd",
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy/MM/dd",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy-M-dd",
+            "yyyy-M-dd HH:mm:ss",
+            "yyyy/M/dd",
+            "yyyy/M/dd HH:mm:ss",
+            "MM-dd-yyyy",
+            "MM-dd-yyyy HH:mm:ss",
+            "dd-MM-yyyy",
+            "dd-MM-yyyy HH:mm:ss"
             // 可以添加更多可能的格式
     );
 
@@ -136,7 +140,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
                     Integer headSum = 0;
                     Boolean isNotFinal = Boolean.TRUE;
-                    String[] headers = new String[0];
+//                    String[] headers = new String[0];
+                    List<String> headList = null;
                     while (isNotFinal) {
                         row = br.readLine();
                         if (row == null) {
@@ -150,13 +155,14 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                         if (isNotFinal) {
                             if (lineNum == 1) {
                                 //region 文件头处理
-                                headers = row.split(",", -1);
+//                                headers = row.split(",", -1);
+                                headList = com.google.common.base.Splitter.on(",").splitToList(row);
                                 // 存储表头信息
-                                for (String header : headers) {
+                                for (String header : headList) {
                                     tableMap.put(header, null);
                                 }
-                                headSum = headers.length;
-                                Result result = statisticsHeadByCommon(row, address, extra, mustHeads, fieldVosMap);
+                                headSum = headList.size();
+                                Result result = statisticsHeadByCommon(headList, address, extra, mustHeads, fieldVosMap);
                                 if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                                     log.warn("清洗任务表头校验异常-id:{}-规则id:{}-文件名:{}-异常原因:{}",
                                             taskId, task.getConfigId(), fileName, result.getMessage());
@@ -172,11 +178,11 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     continue;
                                 }
                                 // 确保表头和数据数量一致
-                                if (headers.length == datas.size()) {
+                                if (headSum == datas.size()) {
                                     // 使用索引来按顺序添加数据到对应的表头中
-                                    for (int i = 0; i < headers.length; i++) {
+                                    for (int i = 0; i < headSum; i++) {
                                         // 更新map中对应键的值
-                                        tableMap.put(headers[i], datas.get(i));
+                                        tableMap.put(headList.get(i), datas.get(i));
                                     }
                                 }
                                 StringBuilder errorMsg = new StringBuilder();
@@ -284,14 +290,30 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 //                                    dataFieldMap.put(vo.getHeadField(), vo);
 //                                    //endregion
                                 }
-                                Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream()
-                                        .filter(headKey->  ! list.contains(headKey))
-                                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-                                defaultConfig.forEach((fileHeader,configList)->{
-                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-                                    vo.setDataValue(configList.get(0).getDefaultValue());
-                                    dataFieldVOS.add(vo);
-                                });
+                                List<String> finalHeadList = headList;
+//                                Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream()
+//                                        .filter((Map.Entry<String, List<FileToMarketingFieldVO>> entry) ->
+//                                                entry.getValue().stream().anyMatch((FileToMarketingFieldVO vo)->
+//                                                        ! finalHeadList.contains(vo.getHeadField())))
+//                                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+//                                defaultConfig.forEach((fileHeader,configList)->{
+//                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+//                                    vo.setDataValue(configList.get(0).getDefaultValue());
+//                                    dataFieldVOS.add(vo);
+//                                });
+                                for (Map.Entry<String, List<FileToMarketingFieldVO>> entry : fieldVosMap.entrySet()) {
+                                    String key = entry.getKey();
+                                    List<FileToMarketingFieldVO> valueList = entry.getValue();
+                                    List<FileToMarketingDataFieldVO> collect = valueList.stream().filter(
+                                            (FileToMarketingFieldVO vo) -> !finalHeadList.contains(vo.getHeadField())
+                                        ).map((FileToMarketingFieldVO ftmf)->{
+                                            FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                                            vo.setDataValue(ftmf.getDefaultValue());
+                                            BeanUtils.copyProperties(ftmf, vo);
+                                            return vo;
+                                        }).collect(Collectors.toList());
+                                    dataFieldVOS.addAll(collect);
+                                }
 
                                 // 增加fileName值
                                 if (StringUtils.isBlank(tableMap.get("fileName"))) {
@@ -460,20 +482,21 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
      * @param lineNum 待处理文件对应行数
      * @return String 格式化后的时间值（yyyy-MM-dd HH:mm:ss）
      */
-    private static String getFormatterValue(String value, String fileName, Integer lineNum) {
-        LocalDateTime date = null;
-        for (DateTimeFormatter parser : parsers) {
+    private String getFormatterValue(String value, String fileName, Integer lineNum) {
+        Date date = null;
+        for (String parser : pattern) {
             try {
-                date = LocalDateTime.parse(value, parser);
+                SimpleDateFormat sdf = new SimpleDateFormat(parser);
+                date = sdf.parse(value);
                 break; // 如果解析成功，则跳出循环
-            } catch (DateTimeParseException e) {
+            } catch (ParseException e) {
                 // 忽略异常，并尝试下一个解析器
-                log.warn("文件名:{};行数:{};错误:{};", fileName, lineNum, "该行与表头列数不一致");
+                log.warn("无法解析日期-文件名:{};行数:{};格式:{};原值:{}", fileName, lineNum, parser, value);
             }
         }
         if (date != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            value = date.format(formatter);
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            value = formatter.format(date);
         } else {
             log.warn("无法解析日期:{}-文件名:{}-行数:{}", value, fileName, lineNum);
         }
@@ -481,7 +504,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
     }
 
     /**
-     * @param head        文件表头
+     * @param heads       文件表头字段集合
      * @param address     空值, <位置,表头字段名>
      * @param extra       空值, 扩展子段包含的表头字段名
      * @param mustHeads   必填字段
@@ -490,9 +513,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
      * @Author yu.xia@brgroup.com
      * @Date 2024/5/21 17:47
      */
-    public static Result statisticsHeadByCommon(String head, HashMap<Integer, String> address, HashSet extra,
+    public static Result statisticsHeadByCommon(List<String> heads, HashMap<Integer, String> address, HashSet extra,
                                                 List<String> mustHeads, Map<String, List<FileToMarketingFieldVO>> fieldVosMap) {
-        List<String> heads = com.google.common.base.Splitter.on(",").splitToList(head);
         if (heads.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("head信息不存在");
         }
@@ -589,22 +611,23 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     }
                 }
                 if (StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()) {
-                    LocalDateTime date = null;
-                    for (DateTimeFormatter parser : parsers) {
-                        try {
-                            date = LocalDateTime.parse(value, parser);
-                            break; // 如果解析成功，则跳出循环
-                        } catch (DateTimeParseException e) {
-                            // 忽略异常，并尝试下一个解析器
-                            log.warn("日期格式化异常:{}",e);
-                        }
-                    }
-                    if (date != null) {
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-                        value = date.format(formatter);
-                    } else {
-                        log.warn("试跑无法解析日期:{}-", value);
-                    }
+//                    LocalDateTime date = null;
+//                    for (DateTimeFormatter parser : parsers) {
+//                        try {
+//                            date = LocalDateTime.parse(value, parser);
+//                            break; // 如果解析成功，则跳出循环
+//                        } catch (DateTimeParseException e) {
+//                            // 忽略异常，并尝试下一个解析器
+//                            log.warn("日期格式化异常:{}",e);
+//                        }
+//                    }
+//                    if (date != null) {
+//                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//                        value = date.format(formatter);
+//                    } else {
+//                        log.warn("试跑无法解析日期:{}-", value);
+//                    }
+                    getFormatterValue(value,marketingCleanDataFile.getFileName(),1);
                 }
                 FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
                 BeanUtils.copyProperties(fieldVO, vo);
