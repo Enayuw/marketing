@@ -183,6 +183,7 @@ public class TaskScoreServiceImpl {
 
             //线程池运行情况报告
             Thread thread = threadReport(warrningExecutor, customer);
+            log.warn("跑分任务generateTask，本次调度任务id：{}",task.getId());
 
             //region 跑分
             this.generateTask(observedTaskObj, customer, day);
@@ -271,20 +272,24 @@ public class TaskScoreServiceImpl {
                 if (isOffline) {
                     updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
                 } else {
+                    updateFile.setRunningEndTime(new Date());
                     updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
                 }
                 updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-                MarketingTask updateTask = new MarketingTask();
-                updateTask.setId(task.getId());
-                updateTask.setPriority(0);
-                marketingTaskMapper.updateByPrimaryKeySelective(updateTask);
+
                 if (isOffline) {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
                 } else {
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
                 }
             } else {
+                // 当b_task_status.pause_type为2（插队暂停）时，将状态置为待恢复
+                TaskStatus taskStatus = taskStatusMapper.selectByPrimaryKey(task.getStatusId());
+                if (Objects.equals(taskStatus.getPauseType(), 2)) {
+                    setTaskStatusToRecovered(task, taskStatus);
+                }
+
                 updateFile.setStatus(ScoreStatusEnum.PAUSEED.getValue());
                 straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 String content = String.format("任务编号：【%s】；\r\n 跑分记录id：【%s】；\r\n 已经暂停跑分"
@@ -300,6 +305,17 @@ public class TaskScoreServiceImpl {
             log.error("预警调度出错", e);
         }
         return;
+    }
+
+    private void setTaskStatusToRecovered(MarketingTask task, TaskStatus taskStatus) {
+        if (task.getMonitorType().equals(1)) {
+            log.warn("暂停优先级非0任务，一次性全量类型任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
+            taskStatus.setOnceStatus(3);
+        } else {
+            log.warn("暂停优先级非0任务，任务状态置为待恢复，跑分编号：{}", task.getBatchNumber());
+            taskStatus.setAllStatus(3);
+        }
+        taskStatusMapper.updateByPrimaryKeySelective(taskStatus);
     }
 
     /**
@@ -401,6 +417,9 @@ public class TaskScoreServiceImpl {
         if (blt.getFileId() != null && blt.getFileId() > 1) {
             StraHisFile file = straHisFileMapper.selectByPrimaryKey(blt.getFileId());
             descPath = file.getFilePath();
+            // 待恢复任务，跑分状态置为进行中
+            file.setStatus(ScoreStatusEnum.RUNNING.getValue());
+            straHisFileMapper.updateByPrimaryKeySelective(file);
         } else {
             StraHisFile file = new StraHisFile();
             file.setApiCode(blt.getApiCode());
@@ -423,7 +442,7 @@ public class TaskScoreServiceImpl {
             updateStatus.setId(blt.getStatusId());
             updateStatus.setFileId(file.getId());
             taskStatusMapper.updateByPrimaryKeySelective(updateStatus);
-
+            log.warn("跑分任务TaskStatus写入完成，本次调度任务id：{}",blt.getId());
 
             //region 记录跑分产品
             JSONArray pList = JSONArray.parseArray(productJson);

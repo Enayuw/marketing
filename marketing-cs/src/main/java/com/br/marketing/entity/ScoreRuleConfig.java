@@ -64,9 +64,14 @@ public class ScoreRuleConfig {
     private Date createTime;
 
     /**
-     * 任务执行策略 1-一次性全量；2-周期性全量
+     * 任务执行策略 1-一次性全量；2-一次性验证；3-每个任务的周期；4-每日定时
      */
     private Integer execType;
+
+    /**
+     * 是否自动生成跑分任务 0-否；1-是
+     */
+    private Integer autoBuild;
 
     /**
      * 周期天数
@@ -112,6 +117,16 @@ public class ScoreRuleConfig {
      * 是否线上跑分1-线上；2-离线
      */
     private Integer isOnline;
+
+    /**
+     * 是否叠加有效期数据 0-否，1-是
+     */
+    private Integer isStackValidity;
+
+    /**
+     * 跑分优先级 0最高，9最低
+     */
+    private Integer priority;
 
     public Long getId() {
         return id;
@@ -217,6 +232,14 @@ public class ScoreRuleConfig {
         this.execType = execType;
     }
 
+    public Integer getAutoBuild() {
+        return autoBuild;
+    }
+
+    public void setAutoBuild(Integer autoBuild) {
+        this.autoBuild = autoBuild;
+    }
+
     public Integer getCycleDay() {
         return cycleDay;
     }
@@ -287,5 +310,21 @@ public class ScoreRuleConfig {
 
     public void setIsOnline(Integer isOnline) {
         this.isOnline = isOnline;
+    }
+
+    public Integer getIsStackValidity() {
+        return isStackValidity;
+    }
+
+    public void setIsStackValidity(Integer isStackValidity) {
+        this.isStackValidity = isStackValidity;
+    }
+
+    public Integer getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Integer priority) {
+        this.priority = priority;
     }
 }

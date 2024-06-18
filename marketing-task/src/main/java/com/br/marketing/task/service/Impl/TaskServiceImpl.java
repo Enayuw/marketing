@@ -1,38 +1,57 @@
 package com.br.marketing.task.service.Impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.Constants;
-import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.*;
-import com.br.marketing.mapper.*;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MarketingTaskExample;
+import com.br.marketing.entity.MerchantParam;
+import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.entity.StraHisFileExample;
+import com.br.marketing.entity.TaskStatus;
+import com.br.marketing.entity.TaskStatusExample;
+import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingTaskExtendMapper;
+import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.ScoreRuleConfigMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.mapper.TaskBatchnumberPreMapper;
+import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.rpcclient.RpcClientProxy;
-import com.br.marketing.service.*;
+import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.ICompatibleService;
+import com.br.marketing.service.IDynamicSqlService;
+import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ITaskService;
-import com.br.marketing.vo.ConfigByApiCodeVO;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -98,6 +117,15 @@ public class TaskServiceImpl implements ITaskService {
     @Autowired
     ICompatibleService iCompatibleService;
 
+    @Resource
+    StraHisFileMapper straHisFileMapper;
+
+    @Autowired
+    EntityOptServiceImpl entityOptService;
+
+    @Autowired
+    MarketingTaskOptService marketingTaskOptService;
+
     @Override
     public void buildScoreTask(List<Long> scoreRuleIds,String jobNm) {
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(scoreRuleIds);
@@ -119,7 +147,7 @@ public class TaskServiceImpl implements ITaskService {
                 continue;
             }
 //            if (datum.getParentId() <= 0) {
-                marketingTaskService.buildScoreTaskOfAuto(datum);
+                marketingTaskService.buildScoreTaskOfAutoBuild(datum);
 //            } else {
 //                buildScoreTaskOfSelect(datum);
 //            }
@@ -167,7 +195,7 @@ public class TaskServiceImpl implements ITaskService {
                 continue;
             }
 
-            Result<TaskStatus> taskStatusResult = canScore(scoreTask, nowDay,jobNm);
+            Result<TaskStatus> taskStatusResult = canScore(scoreTask,jobNm);
             if (!ResultCode.SUCCESS.getValue().equals(taskStatusResult.getCode())) {
                 removeTaskLock(scoreTask, s);
                 continue;
@@ -207,77 +235,145 @@ public class TaskServiceImpl implements ITaskService {
         return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 
+    @Override
+    public void JumpQueuehandle() {
+        LocalDate nowDate = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
+        String nowTimeStr = now.format(DateTimeFormatter.ofPattern("HH:mm"));
+        MarketingTaskExample marketingTaskExample = new MarketingTaskExample();
+        marketingTaskExample.createCriteria().andStatusEqualTo(1).andPriorityEqualTo(0)
+                .andStartDateEqualTo(nowDate.toString()).andStartTimeLessThanOrEqualTo(nowTimeStr);
+        List<MarketingTask> marketingTasks = marketingTaskMapper.selectByExample(marketingTaskExample);
+
+        List<MarketingTask> highPriorityTasks = marketingTasks.stream().filter((MarketingTask task) -> {
+            if (task.getMonitorType() >= 1 && task.getMonitorType() <= 4) {
+                TaskStatusExample statusExample = new TaskStatusExample();
+                statusExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
+                List<TaskStatus> bts = taskStatusMapper.selectByExample(statusExample);
+                if (bts.size() > 0 && ((Objects.equals(bts.get(0).getOnceStatus(),3)) || (Objects.equals(bts.get(0).getAllStatus(), 3)))) {
+                    return true;
+                }
+                return bts.size() <= 0;
+            }
+            return false;
+        }).collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(highPriorityTasks)) {
+            log.warn("暂停优先级非0任务，没有查询到0优先级任务");
+            return;
+        }
+
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
+        straHisFileExample.createCriteria().andStatusEqualTo(3);
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+
+        if (CollectionUtils.isEmpty(straHisFiles)) {
+            log.warn("暂停优先级非0任务，没有查询到正在进行中任务");
+            return;
+        }
+
+        Integer numberOfScoreTaskNodes = marketingCommonConfig.getNumberOfScoreTaskNodes();
+        numberOfScoreTaskNodes = numberOfScoreTaskNodes == null ? 4 : numberOfScoreTaskNodes;
+
+        // 判断跑分中任务数量和分片数是否相等
+        if (straHisFiles.size() != numberOfScoreTaskNodes) {
+            log.warn("暂停优先级非0任务，跑分中任务数量和分片数不相等");
+            return;
+        }
+
+        // 获取正在跑分中的优先级非0的任务.条件：优先级非0，且任务类型非一次性验证，且is_online为在线跑分
+        List<String> batchNumbers = straHisFiles.stream().map(StraHisFile::getBatchNumber).collect(Collectors.toList());
+        MarketingTaskExample runningTaskExample = new MarketingTaskExample();
+        runningTaskExample.createCriteria().andBatchNumberIn(batchNumbers).andPriorityNotEqualTo(0)
+                .andMonitorTypeNotEqualTo(2).andIsOnlineEqualTo(1);
+        runningTaskExample.setOrderByClause("priority desc, start_date desc");
+
+        List<MarketingTask> runningTasks = marketingTaskMapper.selectByExample(runningTaskExample);
+        if (CollectionUtils.isEmpty(runningTasks)) {
+            log.warn("暂停优先级非0任务，没有查询到正在跑分中的非0任务");
+            return;
+        }
+
+        if (highPriorityTasks.size() >= runningTasks.size()) {
+            pauseTasks(runningTasks, straHisFiles);
+        } else {
+            List<MarketingTask> pauseTasks = runningTasks.stream().limit(highPriorityTasks.size()).collect(Collectors.toList());
+            pauseTasks(pauseTasks, straHisFiles);
+        }
+    }
+
+    /**
+     * 暂停正在跑分中的非0优先级任务
+     * @param runningTasks
+     * @param straHisFiles
+     */
+    private void pauseTasks(List<MarketingTask> runningTasks, List<StraHisFile> straHisFiles) {
+        for (MarketingTask runningTask : runningTasks) {
+            Optional<StraHisFile> first =
+                    straHisFiles.stream().filter((StraHisFile straHisFile) -> straHisFile.getBatchNumber()
+                            .equals(runningTask.getBatchNumber())).findFirst();
+
+            if (!first.isPresent()) {
+                continue;
+            }
+            pauseTask(first.get());
+        }
+    }
+
+    private void pauseTask(StraHisFile straHisFileNeedPause) {
+        TaskStatusExample statusExample = new TaskStatusExample();
+        statusExample.createCriteria().andFileIdEqualTo(straHisFileNeedPause.getId().intValue());
+        List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
+        if (CollectionUtils.isEmpty(taskStatuses)) {
+            log.warn("跑分执行状态表中未找到该跑分任务。跑分编号：{}",straHisFileNeedPause.getBatchNumber());
+            return;
+        }
+        TaskStatus taskStatus = taskStatuses.get(0);
+
+        Result result = marketingTaskOptService.pauseTaskByStraHisFile(2, straHisFileNeedPause, taskStatus);
+        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            log.warn(result.getMessage() + "。跑分编号：{}", straHisFileNeedPause.getBatchNumber());
+        }
+    }
+
     /**
      * 2-暂停；3-恢复跑分；
      *
      * @param task
      * @return
      */
-    private Result<TaskStatus> canScore(MarketingTask task, String nowDay,String jobNm) {
+    private Result<TaskStatus> canScore(MarketingTask task, String jobNm) {
 
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeEqualTo(task.getApiCode()).andStatusEqualTo(new Byte("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
         if(marketingCustomers.size()<=0){
+            log.warn("跑分任务执行，marketingCustomers为空，{}", JSON.toJSONString(task));
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
         MarketingCustomer customer = marketingCustomers.get(0);
         Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobNm);
         if(!action){
+            log.warn("跑分任务执行，!action，{}", JSON.toJSONString(task));
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
-        //一次行跑分、规则验证、离线跑批 都判断状态表种的 oncestatus状态来判定任务是否已经跑过
-        if (1 == task.getMonitorType()||2==task.getMonitorType()) {
-            //region 一次性跑分
+
+        // 根据跑分状态表判断任务是否已经跑过
+        // 一次行全量、一次性验证判断onceStatus;每个任务的周期、每日定时判断allStatus
+        if (task.getMonitorType() >= 1 && task.getMonitorType() <= 4) {
             TaskStatusExample statusExample = new TaskStatusExample();
             statusExample.createCriteria().andBatchNumberEqualTo(task.getBatchNumber());
             List<TaskStatus> bts = taskStatusMapper.selectByExample(statusExample);
-            if (bts.size() > 0 && bts.get(0).getOnceStatus().equals(3)) {
+            if (bts.size() > 0 && ((Objects.equals(3,bts.get(0).getOnceStatus())) || (Objects.equals(3,bts.get(0).getAllStatus())))) {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(bts.get(0));
             }
             if (bts.size() > 0) {
+                log.warn("跑分任务执行，task_status已存在，{}", JSON.toJSONString(task));
                 return new Result<>().setCode(ResultCode.FAIL.getValue());
             }
             return new Result<>().setCode(ResultCode.SUCCESS.getValue());
-            //endregion
-        } else if (4 == task.getMonitorType()||3 == task.getMonitorType()) {
-            //region 周期性跑分
-            long days = 0;
-            try {
-                days = DateHelper.getDistanceDays(nowDay, task.getStartDate());
-            } catch (ParseException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            Integer cycleDay;
-            if (StringUtils.isNotBlank(task.getCycleDay())) {
-                cycleDay = Integer.valueOf(task.getCycleDay());
-            } else {
-                cycleDay = Constants.frequencyMap.get(task.getFrequency());
-            }
-            if (cycleDay == null || cycleDay == 0) {
-                log.error(String.format("该周期性任务 没有配置周期时间 任务id：%d", task.getId()));
-                return new Result<>().setCode(ResultCode.FAIL.getValue());
-            }
-            if (days % cycleDay == 0) {
-                TaskStatusExample statusExample = new TaskStatusExample();
-                statusExample.createCriteria()
-                        .andBatchNumberEqualTo(task.getBatchNumber())
-                        .andCreateTimeGreaterThanOrEqualTo(nowDay)
-                        .andCreateTimeLessThan(LocalDate.parse(nowDay, ymd).plusDays(1).format(ymd));
-                List<TaskStatus> taskStatuses = taskStatusMapper.selectByExample(statusExample);
-                if (taskStatuses.size() > 0 && taskStatuses.get(0).getAllStatus().equals(3)) {
-                    return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(taskStatuses.get(0));
-                }
-                if (taskStatuses.size() > 0) {
-                    return new Result<>().setCode(ResultCode.FAIL.getValue());
-                }
-                return new Result<>().setCode(ResultCode.SUCCESS.getValue());
-            }
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
-            //endregion
         }
+
         return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 

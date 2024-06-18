@@ -95,4 +95,8 @@ public class ScoreRuleConfigPageVO {
 
     @ApiModelProperty(value = "是否是在线跑分 1-在线；2-离线", dataType = "string", position = 16)
     private Integer isOnline;
+
+    @ApiModelProperty(value = "跑分优先级 0最高，9最低", dataType = "integer", position = 17)
+    private Integer priority;
+
 }

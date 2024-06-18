@@ -1686,5 +1686,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONObject> periodPushConfig;
 
+
+    /**
+     * marketing-task跑分服务节点数量
+     */
+    private Integer numberOfScoreTaskNodes;
 }
 
