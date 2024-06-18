@@ -73,21 +73,41 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("offset") int offset);
 
     /**
-     * 查询
-     * @param transferSyncUser transferSyncUser
+     * 宜信数据有last标识，所以数据相对来说是固定的，所以可以使用这个sql查询
+     * @param tCid tCid
+     * @param apiCode apiCode
      * @param requestDate requestDate
-     * @param transformType transformType
-     * @param orderByClause orderByClause
-     * @param rowCount rowCount
-     * @param offset offset
+     * @param beginId beginId
+     * @param endId endId
      * @return java.util.List<com.br.marketing.entity.MarketingTransferSyncUser> 查询到的MarketingTransferSyncUser集合
      */
-    List<MarketingTransferSyncUser> getTransferByStartAndEndDateYiXinV4(@Param("transferSyncUser") MarketingTransferSyncUser transferSyncUser
+    List<MarketingTransferSyncUser> getTransferByStartAndEndDateYiXinV4(@Param("tCid") String tCid
+            , @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate
-            , @Param("transformType") String transformType , @Param("orderByClause") String orderByClause
-            , @Param("rowCount") int rowCount
-            , @Param("offset") int offset);
+            , @Param("beginId") Long beginId
+            , @Param("endId") Long endId);
 
+    /**
+     * 获取满足条件的最大id
+     * @param tCid tCid
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @return Long
+     */
+    Long maxIdByCid(@Param("tCid") String tCid
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate);
+
+    /**
+     * 获取满足条件的最小id
+     * @param tCid tCid
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @return Long
+     */
+    Long minIdByCid(@Param("tCid") String tCid
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate);
 
     List<MarketingTransferSyncUser> getTransferData(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 

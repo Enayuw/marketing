@@ -445,7 +445,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     }
 
     private ThreadPoolExecutor getYiXinToJueCeThread() {
-        return BrExecutors.getThreadPool(marketingCommonConfig.getYiXinToJueCeTpNum(), marketingCommonConfig.getYiXinToJueCeTpNum());
+        return BrExecutors.getThreadPool(marketingCommonConfig.getYiXinToJueCeTpNum(), marketingCommonConfig.getYiXinToJueCeTpNum(),30);
     }
 
 

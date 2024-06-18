@@ -101,26 +101,38 @@
         ) as t1 where t1.id = t2.id
     </select>
     <select id="getTransferByStartAndEndDateYiXinV4" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select t2.* from b_marketing_transfer_sync_${transferSyncUser.tCid} t2,(select id from
-        b_marketing_transfer_sync_${transferSyncUser.tCid}
+        select * from b_marketing_transfer_sync_${tCid}
         where
-            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
-                api_code=#{transferSyncUser.apiCode}
+            <if test="apiCode != null and apiCode.trim() neq ''">
+                api_code=#{apiCode}
             </if>
             <![CDATA[ and request_data = #{requestDate} ]]>
-            and (json_extract(reserve_field1, '$.transformType') != #{transformType} or json_extract(reserve_field1,'$.transformType') is null)
-        order by
-        <choose>
-            <when test="orderByClause != null and orderByClause.trim() neq ''">
-                ${orderByClause}
-            </when>
-            <otherwise>
-                id
-            </otherwise>
-        </choose>
-        limit ${rowCount},${offset}
-        ) as t1 where t1.id = t2.id
+            <![CDATA[ and id >= #{beginId} and id < #{endId} ]]>
+        order by id
     </select>
+    <select id="maxIdByCid" resultType="java.lang.Long">
+        SELECT
+        max(id) as id
+        FROM
+        b_marketing_transfer_sync_${tCid}
+        where
+            <if test="apiCode != null and apiCode.trim() neq ''">
+                api_code=#{apiCode} and
+            </if>
+        request_data = #{requestDate}
+    </select>
+    <select id="minIdByCid" resultType="java.lang.Long">
+        SELECT
+        min(id) as id
+        FROM
+        b_marketing_transfer_sync_${tCid}
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        request_data = #{requestDate}
+    </select>
+
 
     <select id="getTransferData" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
