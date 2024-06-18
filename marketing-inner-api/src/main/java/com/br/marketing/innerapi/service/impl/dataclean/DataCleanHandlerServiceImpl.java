@@ -322,7 +322,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         }
         MarketingCleanDataTask task = new MarketingCleanDataTask();
         task.setUpdateTime(new Date());
-        task.setCleanStatus(1);
+        task.setCleanStatus(0);
         task.setId(dto.getId());
         marketingCleanDataTaskMapper.updateByPrimaryKeySelective(task);
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(task.getId());
