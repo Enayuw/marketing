@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.xc;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +64,9 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private VariableAllocationServiceImpl variableAllocationService;
     @Resource
     private XiechengCollidingDataPackageRuleMapper packageRuleMapper;
+    @Resource
+    private XiechengCollidingDataEliminationMapper eliminationMapper;
+
 
     @Override
     public void collidingData() {
@@ -135,6 +141,17 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
             .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
         List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
+        try {
+            List<String> excludeData = eliminationMapper.getExcludeData(sha256Codes);
+            if (CollectionUtils.isNotEmpty(excludeData)) {
+                List<String> distinctExcludeData = excludeData.stream().distinct().collect(Collectors.toList());
+                String extend = DateUtil.today() + " 转化数据convType=107或105";
+                xieChengCollidingDataRobMapper.batchDeleteExcludeCollidingData(excludeData, extend);
+                sha256Codes.removeAll(distinctExcludeData);
+            }
+        } catch (Exception e) {
+            log.error("携程非周期撞库剔除撞库数据异常", e);
+        }
         try {
             Result collidingResult = xieChengServiceNew.pushXieChengSmsCollidingDataNew(sha256Codes);
             handleService.robDataHandle(collidingResult, cellMap);

@@ -71,4 +71,20 @@
             <![CDATA[ and create_time >= #{dateTimeStart}
           and create_time < #{dateTimeEnd}]]>;
     </select>
+
+    <select id="selectFalseDynamicData" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+        select log.cell_sha256_code_list
+        FROM b_xiecheng_colliding_data_log log
+                 left join b_xiecheng_colliding_data_rob rob on log.cell_sha256_code_list = rob.cell_sha256_code_list and rob.is_delete = 0
+                 left Join b_xiecheng_colliding_data_loop_cycle dlc on log.cell_sha256_code_list = dlc.cell_sha256_code_list and dlc.is_delete = 0
+        WHERE log.create_time  <![CDATA[ >= ]]> DATE_SUB(CURDATE(), interval 1 day)
+          and log.create_time <![CDATA[ < ]]> CURDATE()
+          AND log.data_source_type = 'T'
+          AND log.business_code = 0
+          AND log.is_delete = 0
+          and log.result = false
+          and log.info is null
+          and rob.id is null
+          and dlc.id is null
+    </select>
 </mapper>

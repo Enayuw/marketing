@@ -27,4 +27,6 @@ public interface XieChengCollidingDataLogMapper extends XieChengCollidingDataLog
      */
     Date selectMaxCreateTimeByCreateTime(@Param("dateTimeStart") Date dateTimeStart
             , @Param("dateTimeEnd") Date dateTimeEnd);
+
+    List<XieChengCollidingDataLog> selectFalseDynamicData();
 }
