@@ -80,7 +80,9 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     @Override
     public Result<List<MarketingCleanDataFile>> getfileMsg(String fileIdList, String apiCode) {
-
+        if(StringUtils.isEmpty(fileIdList)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未选择文件，请进行选择");
+        }
         List<String> fieldIds = Arrays.asList(fileIdList.split(","));
         MarketingCleanDataFileExample cleanDataFileExample = new MarketingCleanDataFileExample();
         MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
