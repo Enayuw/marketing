@@ -457,10 +457,10 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 
     @Override
     public MarketingPreUserDTO pilotAction(Long id) {
-        String tasId = "".concat("_").concat(LocalDate.now().toString()).concat("test");
         List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
         // 查询ID对应的清洗任务
         MarketingCleanDataTask task = marketingCleanDataTaskMapper.selectByPrimaryKey(id);
+        String tasId = task.getApiCode().concat("_").concat(LocalDate.now().toString()).concat("test");
         Long fieldId = Long.valueOf(Arrays.asList(task.getFileId().split(",")).get(0));
         MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(fieldId);
         List<String> head = Splitter.on(",").splitToList(marketingCleanDataFile.getFileHeader());
@@ -512,15 +512,19 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     String conversion = fieldVO.getConversion();
                     // 创建ObjectMapper实例
                     ObjectMapper objectMapper = new ObjectMapper();
+                    String mappStr = "";
                     try {
                         // 将JSON字符串转换为List<Map<String, String>>
                         List<Map<String, String>> genderMappings = objectMapper.readValue(conversion, List.class);
                         if (!genderMappings.isEmpty()) {
                             Map<String, String> genderMapping = genderMappings.get(0);
-                            value = genderMapping.get(value);
+                            mappStr = genderMapping.get(value);
                         }
                     } catch (IOException ex) {
                         log.error(ex.getMessage(), ex);
+                    }
+                    if(StringUtils.isNotEmpty(mappStr)){
+                        value = mappStr;
                     }
                 }
                 if (StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()) {
@@ -545,7 +549,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         syncUsers.add(make);
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(tasId);
-        marketingPreUserDTO.setRequestId("".concat("_").concat(LocalDate.now().toString()).concat("_").concat(UUID.randomUUID().toString()));
+        marketingPreUserDTO.setRequestId(task.getApiCode().concat("_").concat(LocalDate.now().toString()).concat("_").concat(UUID.randomUUID().toString()));
         marketingPreUserDTO.setDataItems(syncUsers);
         return marketingPreUserDTO;
     }

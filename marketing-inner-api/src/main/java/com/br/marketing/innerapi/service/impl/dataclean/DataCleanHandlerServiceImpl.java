@@ -383,7 +383,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         cleanDataTask.setTestResult(JSON.toJSONStringWithDateFormat(syncUserList.get(0),"yyyy-MM-dd HH:mm:ss", SerializerFeature
                 .WriteDateUseDateFormat));
         cleanDataTask.setId(dto.getId());
-        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(task);
+        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(cleanDataTask);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
