@@ -108,7 +108,7 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
             String today = localDate.format(YYYYMMDDSHORTDFLINE);
             // 判断数据是否满足 T日 last=1 且数据已经处理完成（由于是异步处理，所以需要做数据处理完成判断）
             Result<Date> result = yiXinTransferServiceImpl.checkPush(apiCode, today);
-            if (ResultCode.SUCCESS.getValue() == result.getCode()) {
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 // 当天的记录
                 boolean isParamNotBlack = StringUtils.isNotBlank(myParam);
                 String yyyyMMdd = isParamNotBlack ? myParam.replace("-", "")
@@ -130,7 +130,7 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                     List<String> yinXinTransferRealTimeApiCodes = marketingCommonConfig.getYinXinTransferV4ApiCodes();
                     String fileName;
                     if(null != yinXinTransferRealTimeApiCodes && yinXinTransferRealTimeApiCodes.size()>0){
-                        fileName = String.format(yinXinTransferRealTimeApiCodes.get(0)+"_%s.csv", today);
+                        fileName = String.format("%s_%s.csv", yinXinTransferRealTimeApiCodes.get(0), today);
                     }else{
                         fileName = String.format("yixinzhuanhua_all_%s.csv", today);
                     }
@@ -383,9 +383,6 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
      */
     private String emptyDefault(String value) {
         return StringUtils.isNotBlank(value) ? value : "";
-    }
-    private String removeMillisecond(String timeStr) {
-        return timeStr.replace(":000", "");
     }
 
     /**
