@@ -411,6 +411,9 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getTransferByRequestDate(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate, @Param("minId") Long minId);
 
+    List<MarketingTransferSyncUser> getRongShuTransferDate(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate, @Param("minId") Long minId);
+
     List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId, @Param("custNums") List<String> custNums);
 
     List<MarketingTransferSyncUser> getYxTransferByApiCodeBtoCtoItikv_(@Param("tCid") String tcId,

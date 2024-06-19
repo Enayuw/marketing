@@ -194,7 +194,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         while (mark) {
             List<MarketingTransferSyncUser> transferSyncUsers =
-                    marketingTransferSyncUserMapper.getTransferByRequestDate(tcId, apiCode, yesterday, minId);
+                    marketingTransferSyncUserMapper.getRongShuTransferDate(tcId, apiCode, yesterday, minId);
             if (transferSyncUsers.isEmpty()) {
                 mark = false;
                 continue;
