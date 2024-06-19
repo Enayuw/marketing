@@ -481,7 +481,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         // 解析配置的清洗规则
         List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(ruleConfig, FileToMarketingFieldVO.class);
         // 根据 headField 字段分组
-        Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+        Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().
+                collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
         List<FileToMarketingDataFieldVO> dataFieldVOS = new ArrayList<>();
         //region 每列的字段处理逻辑
         for (int i = 0; i < datas.size(); i++) {
@@ -538,7 +539,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         }
         Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream().filter(map->  !head.contains(map.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        defaultConfig.forEach((fileHeader,configList)->{
+        defaultConfig.forEach((String fileHeader,List<FileToMarketingFieldVO> configList)->{
             FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
             vo.setDataValue(configList.get(0).getDefaultValue());
             vo.setInterfaceField(configList.get(0).getHeadField());
@@ -549,7 +550,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         syncUsers.add(make);
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(tasId);
-        marketingPreUserDTO.setRequestId(task.getApiCode().concat("_").concat(LocalDate.now().toString()).concat("_").concat(UUID.randomUUID().toString()));
+        marketingPreUserDTO.setRequestId(task.getApiCode().concat("_").concat(LocalDate.now().toString()).concat("_")
+                .concat(UUID.randomUUID().toString()));
         marketingPreUserDTO.setDataItems(syncUsers);
         return marketingPreUserDTO;
     }
@@ -593,7 +595,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     break;
             }
             if(vo.getIsExtend()!=null && vo.getIsExtend()){
-                reserveFieldJo.put(com.br.marketing.common.utils.StringUtils.isBlank(vo.getInterfaceField())?vo.getHeadField():vo.getInterfaceField(),vo.getDataValue());
+                reserveFieldJo.put(com.br.marketing.common.utils.StringUtils.isBlank(vo.getInterfaceField())?
+                        vo.getHeadField():vo.getInterfaceField(),vo.getDataValue());
             }
         }
         if (reserveFieldJo.keySet().size()>0) {

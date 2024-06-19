@@ -249,13 +249,13 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         PageHelper.startPage(page, pageSize);
         try {
             List<DataCleanTaskVO> list = marketingCleanDataTaskMapper.getTaskList(apiCode, fileType, status);
-            list.stream().map(dataCleanTaskVO -> {
+            list.stream().map((DataCleanTaskVO dataCleanTaskVO) -> {
                 MarketingCleanDataFileExample cleanDataFileExample = new MarketingCleanDataFileExample();
                 MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
                 List<String> fieldIds = Arrays.asList(dataCleanTaskVO.getFileId().split(","));
                 criteria.andIdIn(fieldIds.stream().map(Long::valueOf).collect(Collectors.toList()));
-                dataCleanTaskVO.setFileName(marketingCleanDataFileMapper.selectByExample(cleanDataFileExample).stream().map(MarketingCleanDataFile::getFileName).
-                        collect(Collectors.joining(",")));
+                dataCleanTaskVO.setFileName(marketingCleanDataFileMapper.selectByExample(cleanDataFileExample).stream().
+                        map(MarketingCleanDataFile::getFileName).collect(Collectors.joining(",")));
                 return dataCleanTaskVO;
             }).collect(Collectors.toList());
 
@@ -424,36 +424,5 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
 
     }
 
-
-    public static void main(String args[]){
-        List<FileToMarketingFieldVO> ruleList = new ArrayList<>();
-        String ruleConfig = "[{\"headField\":\"cell\",\"interfaceField\":\"cell\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":false},{\"headField\":\"custNum\",\"interfaceField\":\"custNum\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":false},{\"headField\":\"rmk\",\"interfaceField\":\"\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":false},{\"headField\":\"test\",\"interfaceField\":\"test001\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":false},{\"headField\":\"sex\",\"interfaceField\":\"\",\"defaultValue\":\"\",\"conversion\":{\"男\":\"0\",\"女\":\"1\"},\"isDateTransform\":false},{\"headField\":\"sletTime\",\"interfaceField\":\"\",\"defaultValue\":\"\",\"conversion\":{},\"isDateTransform\":true},{\"headField\":\"\",\"interfaceField\":\"userType\",\"defaultValue\":\"07\",\"conversion\":{},\"isDateTransform\":false}]";
-        List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfig, new TypeReference<List<FileToMarketingFieldVO>>() {
-        }.getType());
-        marketingFieldVOList.forEach((FileToMarketingFieldVO fileToMarketingFieldVO) -> {
-
-            FileToMarketingFieldVO fieldVO = new FileToMarketingFieldVO();
-            BeanUtils.copyProperties(fileToMarketingFieldVO, fieldVO);
-            String conversion = fieldVO.getConversion();
-            //字典映射兼容，转化为List<Map<String,String>>,后期可统一修改为Map类型
-            if(!StringUtils.isBlank(conversion)){
-                Map mapConversion =JSON.parseObject(conversion, new TypeReference<Map<String, String>>(){});
-                if(CollectionUtils.isEmpty(mapConversion)) {
-                    fieldVO.setConversion("");
-                }else{
-                    List<Map<String, String>> listConversion = new ArrayList<>();
-                    listConversion.add(mapConversion);
-                    fieldVO.setConversion(JSON.toJSONString(listConversion));
-                }
-                System.out.println("fieldVO的conversion"+"------"+fieldVO.getConversion());
-            }
-            ruleList.add(fieldVO);
-            });
-
-        System.out.println("fieldVO的json"+"------"+JSON.toJSONString(ruleList));
-
-
-
-    }
 
 }
