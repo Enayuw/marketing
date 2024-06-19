@@ -586,7 +586,7 @@
     <select id="getScoreTasks" resultType="com.br.marketing.entity.MarketingTask" >
         select *
         from b_marketing_task
-        where <![CDATA[  start_date <= #{date} and close_date >#{date} ]]>
+        where <![CDATA[  start_date <= #{date} and close_date >=#{date} ]]>
           <if test="taskId!=null and taskId>0">
               and id = #{taskId}
           </if>
@@ -594,7 +594,7 @@
               <![CDATA[ and start_time<=#{hm}  ]]>
           </if>
         and status = 1
-        order by priority desc,start_time asc
+        order by priority, start_time asc
     </select>
     <select id="selectList" resultType="com.br.marketing.vo.MarketingTaskVO">
         select bmt.id,
@@ -614,6 +614,8 @@
         bmte.condition_type                               as `conditionType`,
         bmte.condition_info_show                          as `conditionInfoShow`,
         bmt.monitor_type                                  as `execType`,
+        shf.create_time                                   as `taskCreateTime`,
+        shf.running_end_time                              as `taskUpdateTime`,
         bmt.is_online                                     as `isOnline`,
         case
         when shf.status is null then 0
@@ -688,6 +690,9 @@
         </if>
         <if test="id !=null">
             and bmt.id = #{id}
+        </if>
+        <if test="execType !=null">
+            and bmt.monitor_type = #{execType}
         </if>
         order by bmt.create_time desc,bmt.id desc
     </select>

@@ -125,4 +125,11 @@ public class MarketingTaskVO {
 
     @ApiModelProperty(value = "")
     private Integer isOnline;
+
+    @ApiModelProperty(value = "跑分开始时间")
+    private String taskCreateTime;
+
+    @ApiModelProperty(value = "跑分结束时间")
+    private String taskUpdateTime;
+
 }

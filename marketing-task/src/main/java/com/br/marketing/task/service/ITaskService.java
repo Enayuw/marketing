@@ -17,4 +17,6 @@ public interface ITaskService {
      * @return
      */
     Result<MarketingTask> getScoreTask(String date,Long taskId,Integer isTimeLimit,String jobNm);
+
+    void JumpQueuehandle();
 }

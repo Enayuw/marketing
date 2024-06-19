@@ -9,39 +9,80 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.auth.CodeEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.entity.MarketingSyncInfoExample;
+import com.br.marketing.entity.MarketingSyncReport;
+import com.br.marketing.entity.MarketingSyncReportExample;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MarketingTaskAutoBuildConfig;
+import com.br.marketing.entity.MarketingTaskAutoBuildConfigExample;
+import com.br.marketing.entity.MarketingTaskExtend;
+import com.br.marketing.entity.MarketingTaskResultPreview;
+import com.br.marketing.entity.MarketingTaskResultPreviewExample;
+import com.br.marketing.entity.MarketingTaskUserType;
+import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.entity.StraHisFileExample;
+import com.br.marketing.entity.TaskBatchnumberPre;
+import com.br.marketing.entity.TaskBatchnumberPreExample;
 import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingSyncReportMapper;
+import com.br.marketing.mapper.MarketingTaskAutoBuildConfigMapper;
+import com.br.marketing.mapper.MarketingTaskExtendMapper;
+import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.MarketingTaskResultPreviewMapper;
+import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
+import com.br.marketing.mapper.ScoreRuleConfigMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.mapper.TaskBatchnumberPreMapper;
+import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.*;
+import com.br.marketing.service.IApiToDbService;
+import com.br.marketing.service.IDynamicSqlService;
+import com.br.marketing.service.IProductResultSimpleService;
+import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -124,9 +165,18 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Autowired
+    TaskStatusMapper taskStatusMapper;
+
+    @Autowired
+    MarketingDataValidConfigMapper marketingDataValidConfigMapper;
+
+    @Autowired
+    MarketingTaskAutoBuildConfigMapper buildConfigMapper;
+
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
-                                 String updateTimeStart, String updateTimeEnd, Integer taskStatus) {
+                                 String updateTimeStart, String updateTimeEnd, Integer taskStatus, Integer execType) {
 
         if (StringUtils.isNotEmpty(createTimeEnd)) {
             createTimeEnd = DateUtils.format(addDay(createTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
@@ -140,7 +190,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         PageHelper.startPage(current, size);
         List<MarketingTaskVO> fastTaskRuleListVOS = marketingTaskMapper.selectList(search, status,
-                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus, null);
+                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus, null, execType);
 
         return PageResultReturn.setPageResult(fastTaskRuleListVOS, current, size);
     }
@@ -150,10 +200,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         MarketingTask marketingTask = new MarketingTask();
         marketingTask.setPriority(priority);
         marketingTask.setId(Long.valueOf(id));
-        Integer exist = marketingTaskMapper.selectByPriority(priority);
-        if (exist > 0) {
-            return new ApiResult<Boolean>().fail(CodeEnum.TASK_PRIORITY_EXIST.getMessage());
-        }
         marketingTaskMapper.updateByPrimaryKeySelective(marketingTask);
         return new ApiResult<Boolean>().success(true);
     }
@@ -175,7 +221,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public MarketingTaskVO getTask(String id) {
-        List<MarketingTaskVO> marketingTaskVO = marketingTaskMapper.selectList(null, null, null, null, null, null, null, id);
+        List<MarketingTaskVO> marketingTaskVO = marketingTaskMapper.selectList(null, null, null, null, null, null, null, id, null);
         if (marketingTaskVO.size() > 0) {
             return marketingTaskVO.get(0);
         }
@@ -228,6 +274,209 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     public void addTaskPercent(Long fileId, Long number) {
         String key = RedisKeyConstant.taskScoreNum.concat(":").concat(fileId.toString());
         redisChgService.incrBy(key, number);
+    }
+
+    @Override
+    public Result<Long> buildScoreTaskOfAutoBuild(CustomerScoreRuleVO vo) {
+        LocalDateTime nowTime = LocalDateTime.now();
+        LocalDate nowDate = LocalDate.now();
+        Date nowDateStart = Date.from(nowDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        String startTime = vo.getStartTime();
+        String validTimeStr = nowDate.format(ymd) + " " + startTime + ":00";
+        // 获取任务计划开始时间：当前日期+跑分开始时间
+        LocalDateTime validTime = LocalDateTime.parse(validTimeStr, ymdhms);
+
+        // 判断是否达到开始时间
+        if (nowTime.isBefore(validTime)) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则没达到开始时间，暂不生成任务");
+        }
+
+        // 生成任务方式置为自动
+        vo.setBuildType(2);
+        vo.setStartDate(nowDate.toString());
+
+        String apiCode = vo.getApiCode();
+        Integer execType = vo.getExecType();
+        // 每个任务的周期
+        if (execType == 3 && vo.getAutoBuild() == 1) {
+            // 查询中间表，条件：ruleid且结束日期大于等于当前日期
+            MarketingTaskAutoBuildConfigExample buildConfigExample = new MarketingTaskAutoBuildConfigExample();
+            buildConfigExample.createCriteria().andIsDeletedEqualTo(0)
+                    .andScoreRuleIdEqualTo(vo.getId().intValue())
+                    .andCloseDateGreaterThanOrEqualTo(nowDate.toString());
+            List<MarketingTaskAutoBuildConfig> autoBuildConfigList = buildConfigMapper.selectByExample(buildConfigExample);
+            if (CollectionUtils.isEmpty(autoBuildConfigList)) {
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该周期生成任务规则，已过期或已删除");
+            }
+
+            for (MarketingTaskAutoBuildConfig autoBuildConfig : autoBuildConfigList) {
+                Integer cycleDay = autoBuildConfig.getCycleDay();
+                if (cycleDay == null || cycleDay == 0) {
+                    log.error(String.format("该周期生成任务规则，没有配置周期天数，任务id：%d", vo.getId()));
+                    return new Result<>().setCode(ResultCode.FAIL.getValue());
+                }
+
+                long days;
+                try {
+                    days = DateHelper.getDistanceDays(nowDate.toString(), autoBuildConfig.getStartDate());
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    return new Result<>().setCode(ResultCode.FAIL.getValue());
+                }
+
+                if (days % cycleDay == 0){
+                    vo.setConditionInfo(autoBuildConfig.getDataCondition());
+                    vo.setStartTime(autoBuildConfig.getStartTime());
+
+                    List<String> userTypeList = new ArrayList<>();
+
+                    vo.setAutoBuildConfigId(autoBuildConfig.getId());
+                    Result<Long> result = buildScoreTaskOfSelect(vo, userTypeList);
+                    if (! ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        return new Result<>().setCode(ResultCode.FAIL.getValue());
+                    }
+                }
+            }
+        }
+
+        // 每日定时
+        if (execType == 4) {
+            //region 条件解析userType配置
+            Result<String> conditionRes = soleStrategyService.analysisCondition(vo.getConditionInfo());
+            if (!ResultCode.SUCCESS.getValue().equals(conditionRes.getCode())) {
+                String errorMsg = String.format("自动规则生成任务 数据范围解析有误;" + warnTemp, vo.getApiCode(), vo.getId(), conditionRes.getMessage());
+                log.warn(errorMsg);
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+            }
+
+            Date nowDateEnd = Date.from(validTime.atZone(ZoneId.systemDefault()).toInstant());
+            MarketingSyncInfoExample syncInfoIngExample = new MarketingSyncInfoExample();
+            syncInfoIngExample.createCriteria()
+                    .andApiCodeEqualTo(apiCode)
+                    .andCreateTimeGreaterThanOrEqualTo(nowDateStart)
+                    .andCreateTimeLessThan(nowDateEnd)
+                    .andStatusEqualTo(1);
+            int isUploadCount = syncInfoMapper.countByExample(syncInfoIngExample);
+            if (isUploadCount > 0) {
+                String errorMsg = String.format("自动规则生成任务 上传数据还未解析完成" + warnTemp, vo.getApiCode(), vo.getId(), "");
+                log.warn(errorMsg);
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+            }
+
+            // 是否叠加有效期数据 0-否，1-是
+            Integer isStackValidity = vo.getIsStackValidity();
+            if (isStackValidity == 0) {
+                return notStackValidtyBuildTask(vo, apiCode, nowDate, validTimeStr, conditionRes);
+            }
+
+            if (isStackValidity == 1) {
+                return stackValidtyBuildTask(vo, apiCode, nowDate, conditionRes, validTimeStr);
+            }
+        }
+
+        return null;
+    }
+
+    private Result stackValidtyBuildTask(CustomerScoreRuleVO vo, String apiCode, LocalDate nowDate, Result<String> conditionRes,
+                                         String validTimeStr) {
+        List<MarketingDataValidConfig> configList = marketingDataValidConfigMapper
+                .findListByApiCodeAndUserTypeSetPagetikv_(
+                        apiCode, nowDate.toString(), null, null, null);
+
+        if (CollectionUtils.isEmpty(configList)) {
+            log.warn("自动规则生成任务，每日定时叠加有效期类型：所有数据均已失效，不生成跑分任务");
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
+        }
+
+        Long minId = syncInfoMapper
+                .getMinIdByRuleScoreWithValidConfig(apiCode, configList, conditionRes.getData(), validTimeStr);
+
+        if (minId == null || minId <= 0) {
+            log.warn("自动规则生成任务，没有符合条件的数据");
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
+        }
+
+        String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // 生成跑分批次号
+        Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
+                , vo.getId().toString(), vo.getRuleNameShort()
+                , time, null);
+        if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
+            String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
+            log.warn(errorMsg);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+        }
+        String batchNumber = batchNumberRes.getData();
+        // 查询符合跑分数据的场景
+        List<String> userTypeList = syncInfoMapper
+                .queryUserTypeListWithValidConfigtikv_(apiCode, configList, conditionRes.getData(), validTimeStr);
+
+        //跑分条件转化
+        Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditionsByValidConfig(vo.getConditionInfo(), configList,
+                validTimeStr);
+
+        return buildShowAndSaveTask(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
+    }
+
+    private Result notStackValidtyBuildTask(CustomerScoreRuleVO vo, String apiCode, LocalDate nowDate, String validTimeStr,
+                                            Result<String> conditionRes) {
+        Long minId = syncInfoMapper
+                .getMinIdByRuleScoreWithDate(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
+
+        if (minId == null || minId <= 0) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("没有符合条件的数据");
+        }
+
+        String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        // 生成跑分批次号
+        Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
+                , vo.getId().toString(), vo.getRuleNameShort()
+                , time, null);
+        if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
+            String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
+            log.warn(errorMsg);
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+        }
+        String batchNumber = batchNumberRes.getData();
+
+        // 查询符合跑分数据的场景
+        List<String> userTypeList = syncInfoMapper
+                .queryUserTypeListWithDatetikv_(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
+
+        //跑分条件转化
+        Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), nowDate.toString(),
+                validTimeStr);
+
+        return buildShowAndSaveTask(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
+    }
+
+    private Result buildShowAndSaveTask(CustomerScoreRuleVO vo, Result<String> conditionTransferRes, String apiCode,
+                                        String batchNumber, LocalDate nowDate, List<String> userTypeList) {
+        if (!ResultCode.SUCCESS.getValue().equals(conditionTransferRes.getCode())) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("数据条件转化错误");
+        }
+
+        String transferData = conditionTransferRes.getData();
+        //获取查询sql条件
+        Result<List<String>> transferWhereRes = soleStrategyService.analysisConditions(transferData);
+        if (!ResultCode.SUCCESS.getValue().equals(transferWhereRes.getCode())) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(transferWhereRes.getMessage());
+        }
+        StringBuilder showStr = new StringBuilder();
+        Integer count = 0;
+        for (int i = 0; i < transferWhereRes.getData().size(); i++) {
+            String datum = transferWhereRes.getData().get(i);
+            String s = whereSqlToShow(datum);
+            Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, datum);
+            count += integer;
+            showStr.append(s).append("总数据").append(integer.toString());
+            if (i < transferWhereRes.getData().size() - 1) {
+                showStr.append(",");
+            }
+        }
+        vo.setConditionInfo(transferData);
+        return saveTask(apiCode, batchNumber, vo, nowDate.toString(), count, 1, showStr.toString(), userTypeList);
     }
 
     @Override
@@ -359,7 +608,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo, List<String> userTypeList) {
-
         Boolean isVer = new Integer(1).equals(vo.getIsOrNoScoreVer());
         String apiCode = vo.getApiCode();
         Result<List<String>> listResult = soleStrategyService.analysisConditions(vo.getConditionInfo());
@@ -390,7 +638,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 preMaxNum = preMaxNum - integer;
             }
             count += integer;
-            showStr.append(s).append("总数据" + integer);
+            showStr.append(s).append("总数据").append(integer.toString());
             if (i < data.size() - 1) {
                 showStr.append(",");
             }
@@ -402,6 +650,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 if(null != userTypeByList && userTypeByList.size() > 0){
                     userTypeList.addAll(userTypeByList);
                 }
+                log.warn("生成跑分任务，根据数据范围查询usertype，数据范围：{}，usertypeList：{}", whereStr, JSON.toJSONString(userTypeByList));
             }
         }
         // 去重
@@ -412,9 +661,27 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         String number = "";
         if (count > 0) {
-            String concatTime = vo.getStartDate().concat(" ").concat(vo.getStartTime() + ":00");
-            String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-            number = createMarketingTaskBatchNumber(apiCode, time);
+            if (Objects.equals(vo.getBuildType(), 2)) {
+                // 每个任务的周期类型：一个配置规则可以生成多个任务
+                String buildId = StringUtils.isEmpty(vo.getAutoBuildConfigId()) ? vo.getId().toString() : vo.getAutoBuildConfigId().toString();
+
+                // 生成跑分批次号
+                String validTimeStr = LocalDate.now() + " " + vo.getStartTime() + ":00";
+                String time = LocalDateTime.parse(validTimeStr, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                Result<String> batchNumberRes = iApiToDbService.buildBatchNumber(apiCode
+                        , buildId, vo.getRuleNameShort()
+                        , time, null);
+                if (!ResultCode.SUCCESS.getValue().equals(batchNumberRes.getCode())) {
+                    String errorMsg = String.format("自动规则生成任务 批次号生成错误" + warnTemp, vo.getApiCode(), vo.getId(), "");
+                    log.warn(errorMsg);
+                    return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg);
+                }
+                number = batchNumberRes.getData();
+            } else {
+                String concatTime = vo.getStartDate().concat(" ").concat(vo.getStartTime() + ":00");
+                String time = LocalDateTime.parse(concatTime, ymdhms).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+                number = createMarketingTaskBatchNumber(apiCode, time);
+            }
         }
         return saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString(), userTypeList);
 
@@ -431,6 +698,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         String conditionInfo = getConditionInfo(dto.getDataIdDesc(), userTypeList);
         for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {
 
+            // 每个任务的周期：校验该配置是否已存在
+            if (datum.getExecType() == 3) {
+                return buildCycleTaskBySelect(dto.getTaskDate(), dto.getTaskTime(), dto.getDataIdDesc(), datum, conditionInfo);
+            }
+
             datum.setConditionInfo(conditionInfo);
             datum.setStartDate(dto.getTaskDate());
             datum.setStartTime(dto.getTaskTime());
@@ -439,12 +711,49 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 datum.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
                 datum.setDataLimit(dto.getDataLimit());
             }
+            datum.setBuildType(1);
+
             Result<Long> result = buildScoreTaskOfSelect(datum, userTypeList);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 resIds.add(result.getData());
             }
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resIds);
+    }
+
+    @Override
+    public Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds,
+                                         CustomerScoreRuleVO datum, String conditionInfo) {
+        MarketingTaskAutoBuildConfigExample example = new MarketingTaskAutoBuildConfigExample();
+        example.createCriteria().andIsDeletedEqualTo(0).andScoreRuleIdEqualTo(datum.getId().intValue())
+                .andDataConditionEqualTo(conditionInfo);
+
+        List<MarketingTaskAutoBuildConfig> buildConfigList = buildConfigMapper.selectByExample(example);
+        if (!CollectionUtils.isEmpty(buildConfigList)) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该周期任务已存在，不能重复生成!");
+        }
+
+        // 第一次生成周期任务
+        MarketingTaskAutoBuildConfig buildConfig = new MarketingTaskAutoBuildConfig();
+        buildConfig.setScoreRuleId(datum.getId().intValue());
+        buildConfig.setSyncReportId(Joiner.on(",").join(syncReportIds));
+        buildConfig.setDataCondition(conditionInfo);
+        buildConfig.setStartDate(startDate);
+        buildConfig.setStartTime(startTime);
+        buildConfig.setCloseDate(datum.getCycleEndDay());
+        buildConfig.setCycleDay(datum.getCycleDay());
+        int insert = buildConfigMapper.insertSelective(buildConfig);
+
+        ScoreRuleConfig scoreRuleConfig = new ScoreRuleConfig();
+        scoreRuleConfig.setAutoBuild(1);
+        scoreRuleConfig.setId(datum.getId());
+        scoreRuleConfig.setUpdateTime(new Date());
+        int update = scoreRuleConfigMapper.updateByPrimaryKeySelective(scoreRuleConfig);
+
+        if (insert > 0 && update > 0) {
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue());
+        }
+        return new Result<>().setCode(ResultCode.FAIL.getValue());
     }
 
     /**
@@ -500,27 +809,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         MarketingTask hasTask = marketingTaskMapper.getByBatchNumber(batchNumber);
         if (hasTask != null) {
+            log.warn("生成跑分任务失败，该跑分编号已存在：{}", batchNumber);
             return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(hasTask.getId());
         }
-
-        //此逻辑暂时去掉，后期优化 需要和前端配合修改
-//        if (Integer.valueOf(4).equals(ruleVO.getExecType()) || Integer.valueOf(3).equals(ruleVO.getExecType())) {
-//            String closeDate = "";
-//            if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
-//                MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
-//                if (task1 != null) {
-//                    closeDate = task1.getCloseDate();
-//                } else {
-//                    closeDate = ruleVO.getCycleEndDay();
-//                }
-//            } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
-//                closeDate = ruleVO.getCycleEndDay();
-//            }
-//            LocalDate closeDay = LocalDate.parse(closeDate, ymd);
-//            if (closeDay.compareTo(LocalDate.now()) <= 0) {
-//                return new Result<Long>().setCode(ResultCode.FAIL.getValue()).setMessage("规则的结束时间小于等于当前时间");
-//            }
-//        }
 
         //region 处理task
         MarketingTask task = new MarketingTask();
@@ -537,27 +828,22 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         task.setCusBatch(ruleVO.getId().toString());
         task.setMonitorType(ruleVO.getExecType());
         task.setIsOnline(ruleVO.getIsOnline());
+
+        // region 202406新增
+        if (ruleVO.getPriority() != null) {
+            task.setPriority(ruleVO.getPriority());
+        }
         if (Integer.valueOf(4).equals(ruleVO.getExecType())) {
-            MarketingTask task1 = marketingTaskMapper.selectCycleTopByApiCode(apiCode);
-            if (task1 != null) {
-                task.setStartDate(task1.getStartDate());
-                task.setCloseDate(task1.getCloseDate());
-            } else {
-                task.setStartDate(taskStart);
-                task.setCloseDate(ruleVO.getCycleEndDay());
-            }
-            task.setCycleDay(ruleVO.getCycleDay().toString());
+            task.setMonitorType(4);
         } else if (Integer.valueOf(3).equals(ruleVO.getExecType())) {
             task.setMonitorType(3);
-            task.setStartDate(taskStart);
-            task.setCloseDate(ruleVO.getCycleEndDay());
-            task.setCycleDay(ruleVO.getCycleDay().toString());
-        } else {
-            String taskEnd = LocalDate.parse(taskStart, ymd)
-                    .plusDays(1L).format(ymd);
-            task.setStartDate(taskStart);
-            task.setCloseDate(taskEnd);
         }
+        String taskEnd = LocalDate.parse(taskStart, ymd)
+                .plusDays(1L).format(ymd);
+        task.setStartDate(taskStart);
+        task.setCloseDate(taskEnd);
+        // endregion
+
         task.setCreateTime(LocalDateTime.now().format(ymdhms));
         task.setContextId(iApiToDbService.getTaskContextId());
         marketingTaskMapper.insertSelective(task);
@@ -601,6 +887,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             taskBatchnumberPreMapper.updateByExampleSelective(updateBatchnumber, updateBatchExample);
         }
         //endregion
+
+        // 当任务类型为一次性全量时，生成任务后禁用跑分配置规则
+        if (task.getMonitorType() == 1) {
+            ScoreRuleConfig scoreRuleConfig = new ScoreRuleConfig();
+            scoreRuleConfig.setStatus(2);
+            scoreRuleConfig.setId(ruleVO.getId());
+            scoreRuleConfigMapper.updateByPrimaryKeySelective(scoreRuleConfig);
+        }
 
         //region 发送通知
         StringBuilder content = new StringBuilder();

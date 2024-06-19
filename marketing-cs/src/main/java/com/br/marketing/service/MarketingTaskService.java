@@ -38,9 +38,11 @@ public interface MarketingTaskService {
      * @param updateTimeStart
      * @param updateTimeEnd
      * @param taskStatus
+     * @param execType
      * @return
      */
-    PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd, String updateTimeStart, String updateTimeEnd, Integer taskStatus);
+    PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
+                          String updateTimeStart, String updateTimeEnd, Integer taskStatus, Integer execType);
 
     ApiResult<Boolean> editPriority(String id, Integer priority);
 
@@ -54,6 +56,7 @@ public interface MarketingTaskService {
 
     void addTaskPercent(Long fileId, Long number);
 
+    Result<Long> buildScoreTaskOfAutoBuild(CustomerScoreRuleVO vo);
     Result<Long> buildScoreTaskOfAuto(CustomerScoreRuleVO vo);
 
     Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo, List<String> userTypeList);
@@ -75,4 +78,6 @@ public interface MarketingTaskService {
     Integer getPart(Integer index);
 
     Integer getPartNum(Integer sum);
+
+    Result buildCycleTaskBySelect(String startDate, String startTime, List<Long> syncReportIds, CustomerScoreRuleVO datum, String conditionInfo);
 }

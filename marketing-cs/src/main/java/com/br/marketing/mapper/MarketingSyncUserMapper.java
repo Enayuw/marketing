@@ -180,15 +180,16 @@ public interface MarketingSyncUserMapper {
      * 根据id和日期获取上传数据
      *
      * @param apiCode
-     * @param appletDate
      * @param minId
      * @param pageSize
      * @return
      */
-    List<MarketingSyncUser> getNewSyncUserByDate(@Param("apiCode") String apiCode
-            , @Param("appletDate") String appletDate
-            , @Param("pageSize") Integer pageSize
-            , @Param("minId") Long minId);
+    List<MarketingSyncUser> getNewSyncUserByDate(
+            @Param("apiCode") String apiCode,
+            @Param("appletDate") String appletDate,
+            @Param("userType") String userType,
+            @Param("pageSize") Integer pageSize,
+            @Param("minId") Long minId);
 
     Integer countByAppletDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
 

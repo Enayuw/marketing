@@ -298,6 +298,11 @@ public class MarketingCommonConfig {
     private Boolean dataMonkeyJobOnlineSwitch;
 
     /**
+     * ruleScheduler服务job的上线开关
+     */
+    private Boolean ruleSchedulerJobOnlineSwitch;
+
+    /**
      * 离线跑批入es文件 线程数
      */
     private Integer OffLineInserEsThreadNum;
@@ -869,6 +874,11 @@ public class MarketingCommonConfig {
      * 宜信转化过滤推送百应执行时间
      */
     private String yiXinTransferPushBaiYingExecuteTime;
+
+    /**
+     * 宜信转化过滤推送百应执行时间
+     */
+    private Map<String, Integer> yiXinTransferPushBaiYingPageConfig;
 
     /**
      * 宜信转化过滤推送百应线程
@@ -1682,5 +1692,9 @@ public class MarketingCommonConfig {
      */
     private String datacleanTestRunApiCode;
 
+    /**
+     *  * marketing-task跑分服务节点数量
+     */
+    private Integer numberOfScoreTaskNodes;
 }
 

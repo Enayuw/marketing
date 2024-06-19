@@ -10,15 +10,14 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.enums.YxTransferFilterEnum;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.handle.yixin.sole.YiXinTransferPushRedisSoleProcessor;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -56,7 +55,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Resource
-    private YiXinTransferPushDistributeSoleProcessor transferDistributeSoleProcessor;
+    private YiXinTransferPushRedisSoleProcessor transferPushRedisSoleProcessor;
 
     @Resource
     private ByApiServiceClient byApiServiceClient;
@@ -74,7 +73,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         Result<?> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
 
-        ThreadPoolExecutor processPool = BrExecutors.getThreadPool(2, 2, 10);
+        ThreadPoolExecutor processPool = BrExecutors.getThreadPool(12, 12, 20);
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
 
         List<Future<Result<List<MarketingTransferSyncUser>>>> futureList = new ArrayList<>();
@@ -82,13 +81,15 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         String apiCode = condition.getApiCode();
         String requestData = condition.getRequestData();
         String synApiCode = condition.getSynApiCode();
+        String priority = condition.getPriority();
+        String extendSql = assembleExtendSql(priority);
         String tCid = tableCreateService.getTcId(apiCode);
 
         Long indexId = null;
         while(true) {
             // 循环获取条件数据，每次pageSize条
-            final List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper.getYxTransferByRequestDate(
-                    tCid, apiCode, requestData, indexId, pageSize);
+            final List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper.getYxCustNumsByRequestDate(
+                    tCid, apiCode, requestData, extendSql, indexId, pageSize);
 
             if (CollectionUtils.isEmpty(pageList)) {
                 break;
@@ -98,8 +99,9 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
 
             setThreadPoolParam(processPool, pushPool);
 
-            // 根据规则分类，推送数据
+            log.warn(TITLE+"action, 加入processPool");
             futureList.add(processPool.submit(() -> processData(pageList, condition, pushPool)));
+
         }
 
         for (Future<Result<List<MarketingTransferSyncUser>>> future : futureList) {
@@ -162,6 +164,10 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 YiXinCondition condition, ThreadPoolExecutor pushPool) {
         Result<List<MarketingTransferSyncUser>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
+        log.warn(TITLE+"processData开始");
+
+        int processSize = pageList.size();
+        long startTime = System.currentTimeMillis();
 
         try {
             // pageParam
@@ -169,20 +175,18 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             String requestData = condition.getRequestData();
             String synApiCode = condition.getSynApiCode();
 
-            // ValidityPeriod
+            // valid period
             Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
                     .getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
 
             // 未获取到上传数据
             if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
-                        "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
-                        "宜信转化过滤推送百应"));
+                log.warn(TITLE+"未获取到上传数据或未配置有效期, apiCode: {}, requestData: {}", apiCode, requestData);
                 return result;
             }
 
-            List<MarketingTransferSyncUser> periodList = pageList.stream().filter(data -> {
+            List<MarketingTransferSyncUser> periodList = pageList.stream().filter((MarketingTransferSyncUser data)-> {
                 String custNum = data.getCustNum();
                 if (custNumToSyncUserBoMap.get(custNum) == null) {
                     return false;
@@ -190,29 +194,22 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 return true;
             }).collect(Collectors.toList());
 
-            List<MarketingTransferSyncUser> pushList = new ArrayList<>();
-            List<String> filterList = YxTransferFilterEnum.getFilterListOrderByPriority();
-            for(String filterName : filterList){
-                YxTransferFilter transferFilter = SpringContextUtil.getBean(filterName, YxTransferFilter.class);
-                List filteredList = transferFilter.filter(periodList);
-                if(CollectionUtils.isEmpty(filteredList)){
-                    continue;
-                }
-                pushList.addAll(filteredList);
-            }
-
+            List<MarketingTransferSyncUser> pushList = periodList;
             if (CollectionUtils.isEmpty(pushList)) {
                 return result;
             }
 
             // distribute去重 custNum + distribute_date
-            transferDistributeSoleProcessor.process(pushList, condition);
+            transferPushRedisSoleProcessor.process(pushList, condition);
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+
+        long endTime = System.currentTimeMillis();
+        log.warn(TITLE+"processData结束, 量级{}, 耗时{}", processSize, (endTime-startTime));
         return result;
     }
 
@@ -227,6 +224,9 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             result.setCode(ResultCode.FAIL.getValue());
             return result;
         }
+
+        int processSize = outputDataList.size();
+        long startTime = System.currentTimeMillis();
 
         Map<String, Object> pushConfigMap = marketingCommonConfig.getYiXinTransferPushBaiYingPush();
         int pushSize = pushConfigMap.get("pushPartSize") != null ?
@@ -257,6 +257,8 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());
+        long endTime = System.currentTimeMillis();
+        log.warn(TITLE+"resultAction, 量级{}, 耗时{}", processSize, (endTime-startTime));
         return result;
     }
 
@@ -275,12 +277,39 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             pushPoolSize = Runtime.getRuntime().availableProcessors() * 10;
         }
 
-        processPool.setCorePoolSize(processPoolSize);
-        processPool.setMaximumPoolSize(processPoolSize);
+        int curProcessPoolSize = processPool.getCorePoolSize();
+        int curPushPoolSize = pushPool.getCorePoolSize();
 
-        pushPool.setCorePoolSize(pushPoolSize);
-        pushPool.setMaximumPoolSize(pushPoolSize);
+        if(processPoolSize != curProcessPoolSize){
+            processPool.setCorePoolSize(processPoolSize);
+            processPool.setMaximumPoolSize(processPoolSize);
+        }
+
+        if(pushPoolSize != curPushPoolSize) {
+            pushPool.setCorePoolSize(pushPoolSize);
+            pushPool.setMaximumPoolSize(pushPoolSize);
+        }
     }
 
-
+    private String assembleExtendSql(String priority){
+        String extendSql = "";
+        switch (priority){
+            case "1": extendSql = "and if_apply ='1' and apply_result ='0' " +
+                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL)";
+                break;
+            case "2": extendSql = "and if_apply ='1' and apply_result ='2' " +
+                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL)";
+                break;
+            case "3": extendSql = "and if_lent ='0' " +
+                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) " +
+                    "AND reserve_field1->'$.applyLoan' = '1'";
+                break;
+            case "4": extendSql = "and if_lent ='1' " +
+                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) " +
+                    "AND reserve_field1->'$.applyLoan' = '1' and reserve_field1 ->> '$.availableAmount' < 2000.00";
+                break;
+            default:  extendSql = "and id < 0";
+        }
+        return extendSql;
+    }
 }

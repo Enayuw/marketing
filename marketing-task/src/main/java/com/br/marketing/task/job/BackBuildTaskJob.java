@@ -2,13 +2,8 @@ package com.br.marketing.task.job;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.customizedassert.AssertResult;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.BackEndScoreRuleConfigDTO;
-import com.br.marketing.dto.ScoreRuleConfigDTO;
-import com.br.marketing.dto.TaskSelectSaveDTO;
-import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.service.ScoreRuleConfigService;
@@ -19,9 +14,7 @@ import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class BackBuildTaskJob extends AbstractSimpleElasticJob {
@@ -52,14 +45,15 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
-        BackEndScoreRuleConfigDTO dto  = JSON.parseObject(jobParameter, BackEndScoreRuleConfigDTO.class);
+        BackEndScoreRuleConfigDTO dto = JSON.parseObject(jobParameter, BackEndScoreRuleConfigDTO.class);
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds());
         AssertResult.assertResult(scoreConfigNow);
         for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {
             datum.setConditionInfo(dto.getConditionInfo());
             datum.setStartDate(dto.getStartDate());
             datum.setStartTime(dto.getTaskTime());
-            Result<Long> result = marketingTaskService.buildScoreTaskOfSelect(datum,null);
+            datum.setAutoBuild(1);
+            Result<Long> result = marketingTaskService.buildScoreTaskOfSelect(datum, null);
         }
     }
 }

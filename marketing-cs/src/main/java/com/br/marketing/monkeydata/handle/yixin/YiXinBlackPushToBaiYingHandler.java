@@ -13,11 +13,16 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.entity.MarketingDataValidConfigExample;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.monkeydata.handle.yixin.sole.YiXinBlackPushDistributeSoleProcessor;
+import com.br.marketing.monkeydata.handle.yixin.sole.YiXinBlackPushRedisSoleProcessor;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -54,10 +59,16 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
     private YiXinBlackPushDistributeSoleProcessor blackDistributeSoleProcessor;
 
     @Resource
+    private YiXinBlackPushRedisSoleProcessor blackPushRedisSoleProcessor;
+
+    @Resource
     private ByApiServiceClient byApiServiceClient;
 
     @Resource
     private RobotaiApiServiceClient robotaiApiServiceClient;
+
+    @Resource
+    private MarketingDataValidConfigMapper marketingDataValidConfigMapper;
 
     private final static String TITLE = "【宜信转化过滤推送百应】";
 
@@ -72,7 +83,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         Result<?> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
 
-        ThreadPoolExecutor processPool = BrExecutors.getThreadPool(2, 2, 10);
+        ThreadPoolExecutor processPool = BrExecutors.getThreadPool(12, 12, 20);
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(24, 24, new SynchronousQueue<>());
 
         List<Future<Result<List<MarketingSyncUser>>>> futureList = new ArrayList<>();
@@ -81,22 +92,34 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         String requestData = condition.getRequestData();
         String synApiCode = condition.getSynApiCode();
 
-        Long indexId = null;
-        while(true) {
-            // 循环获取条件数据，每次pageSize条
-            final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getNewSyncUserByDate(
-                    synApiCode, requestData, pageSize, indexId);
+        List<MarketingDataValidConfig> configList = findConfigByBetweenDate(synApiCode, requestData);
+        if (CollectionUtils.isEmpty(configList)) {
+            log.error(TITLE + "未配置有效期，请检查");
+            return result;
+        }
 
-            if (CollectionUtils.isEmpty(pageList)) {
-                break;
+        for (MarketingDataValidConfig config : configList) {
+            String userType = config.getUserType();
+            String appletDate = config.getAppletDate();
+            log.warn(TITLE+"当前有效期, {}, {}", userType, appletDate);
+
+            Long indexId = null;
+            while (true) {
+                // 循环获取条件数据，每次pageSize条
+                final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getNewSyncUserByDate(
+                        synApiCode, appletDate, userType, pageSize, indexId);
+
+                if (CollectionUtils.isEmpty(pageList)) {
+                    break;
+                }
+
+                indexId = pageList.get(pageList.size() - 1).getId();
+
+                setThreadPoolParam(processPool, pushPool);
+
+                // 根据规则分类，推送数据
+                futureList.add(processPool.submit(() -> processData(pageList, condition, pushPool)));
             }
-
-            indexId = pageList.get(pageList.size() - 1).getId();
-
-            setThreadPoolParam(processPool, pushPool);
-
-            // 根据规则分类，推送数据
-            futureList.add(processPool.submit(() -> processData(pageList, condition, pushPool)));
         }
 
         for (Future<Result<List<MarketingSyncUser>>> future : futureList) {
@@ -171,9 +194,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
             // 未获取到上传数据
             if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode(),
-                        "apiCode:" + apiCode + ", bizDate:" + requestData + "未获取到上传数据或未配置有效期！",
-                        "宜信转化过滤推送百应-黑名单推送"));
+                log.warn(TITLE+"未获取到上传数据或未配置有效期, apiCode: {}, requestData: {}", apiCode, requestData);
                 return result;
             }
 
@@ -205,7 +226,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             pushList = blackList;
 
             // distribute去重 custNum + distribute_date
-            blackDistributeSoleProcessor.process(pushList, condition);
+            blackPushRedisSoleProcessor.process(pushList, condition);
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
@@ -296,4 +317,11 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         return robotaiApiServiceClient.queryBlackPhone(dto);
     }
 
+    private List<MarketingDataValidConfig> findConfigByBetweenDate(String synApiCode, String date) {
+        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
+        example.createCriteria().andApiCodeEqualTo(synApiCode).andValidStartDateLessThanOrEqualTo(date)
+                .andValidEndDateGreaterThanOrEqualTo(date).andIsDelEqualTo(1);
+        example.setOrderByClause("create_time desc, update_time desc");
+        return marketingDataValidConfigMapper.selectByExample(example);
+    }
 }

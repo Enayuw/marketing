@@ -9,5 +9,6 @@ public class YiXinCondition extends PageCondition {
     private String apiCode;
     private String requestData;
     private String synApiCode;
+    private String priority;
 
 }

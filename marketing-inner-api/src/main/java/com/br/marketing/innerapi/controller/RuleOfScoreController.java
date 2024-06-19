@@ -54,6 +54,7 @@ public class RuleOfScoreController {
             , @ApiImplicitParam(name = "cte", value = "创建时间结束", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "uts", value = "更新时间开始", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "ute", value = "更新时间结束", paramType = "query", dataType = "string")
+            , @ApiImplicitParam(name = "execType", value = "任务执行策略 1-一次性全量；3-每个任务的周期;4-每日定时", paramType = "query", dataType = "Integer")
     })
     @ApiResponses(value = {@ApiResponse(code = 500, message = "INTERNAL_SERVER_ERROR", response = ScoreRuleConfigPageVO.class)})
     @AddDataAuthBusiness
@@ -65,8 +66,9 @@ public class RuleOfScoreController {
             , @RequestParam(required = false) String cte
             , @RequestParam(required = false) String uts
             , @RequestParam(required = false) String ute
+            , @RequestParam(required = false) Integer execType
     ) {
-        PageResultReturn listPage = scoreRuleConfigService.findListPage(page, pageSize, search, status, cts, cte, uts, ute);
+        PageResultReturn listPage = scoreRuleConfigService.findListPage(page, pageSize, search, status, cts, cte, uts, ute,execType);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
