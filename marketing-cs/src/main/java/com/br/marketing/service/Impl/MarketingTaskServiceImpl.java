@@ -301,7 +301,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         // 每个任务的周期
         if (execType == 3 && vo.getAutoBuild() == 1) {
             int idValue = vo.getId().intValue();
-            String nowDateString = nowDate.toString();
+            String nowDateString = LocalDate.now().toString();
             // 查询中间表，条件：ruleid且结束日期大于等于当前日期
             MarketingTaskAutoBuildConfigExample buildConfigExample = new MarketingTaskAutoBuildConfigExample();
             buildConfigExample.createCriteria().andIsDeletedEqualTo(0)
@@ -447,7 +447,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                 .queryUserTypeListWithDatetikv_(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
 
         String conditionInfo = vo.getConditionInfo();
-        String nowDateString = nowDate.toString();
+        String nowDateString = LocalDate.now().toString();
         //跑分条件转化
         Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(conditionInfo, nowDateString, validTimeStr);
 
