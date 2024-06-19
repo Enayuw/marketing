@@ -401,6 +401,44 @@ public class AlarmAndNoticeTest {
     }
 
 
+    private final static String FILE_HEADER_PPD = "requestId,requestTime,custNum,cell,userType,userType1,registerTime,ifApply,applyDt,applyResult,"
+            + "auditTime,auditAmount,ifLent,lentTime,lentAmount,applyLoan,applyLoanTime,applyLoanAmount,"
+            + "ifActivity,activityTime,unlentAmount,caseEffective";
+    @Resource
+    TransferToFileByRongShuServiceImpl transferToFileByRongShuService;
+    @Test
+    public void RSWriteTransferToFile() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7492801");
+        String myParam = "7492801#2024-06-18";
+        String dd = isMyParam("7492801", myParam);
+        transferFileTask.setStartDate(dd);
+        String apiCode = transferFileTask.getApiCode();
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String fileName = apiCode + "_zhuanhua_" + dateyyyymmddStr + ".txt";
+        transferFileTask.setFileName(fileName);
+        log.warn("榕树转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(FILE_HEADER_PPD);
+            fw.append("\r\n");
+            transferToFileByRongShuService.writeTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+    }
+
+
     @Resource
     private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;
 
