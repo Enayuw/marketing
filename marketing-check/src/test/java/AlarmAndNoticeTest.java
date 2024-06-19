@@ -401,9 +401,6 @@ public class AlarmAndNoticeTest {
     }
 
 
-
-
-
     @Resource
     private TransferToFileByZhongAnServiceImpl transferToFileByZhongAnService;
 
