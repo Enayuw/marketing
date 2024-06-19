@@ -12,23 +12,17 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.service.TransferDataValidityPeriodService;
-import com.br.marketing.util.EncAndDecUtil;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -43,7 +37,6 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -66,9 +59,9 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
 
     final static String EXECUTE_TIME = "01:00:00";
 
-    private final static String FILE_HEADER = "requestId,requestTime,custNum,cell,userType,userType1,registerTime,ifApply,applyDt,applyResult,"
-        + "auditTime,auditAmount,ifLent,lentTime,lentAmount,applyLoan,applyLoanTime,applyLoanAmount,"
-        + "ifActivity,activityTime,unlentAmount,caseEffective";
+    private final static String FILE_HEADER = "requestId,requestTime,custNum,cell,userType,userType1" +
+            ",registerTime,ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount" +
+            ",applyLoan,applyLoanTime,applyLoanAmount,ifActivity,activityTime,unlentAmount,caseEffective";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -84,8 +77,6 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
     private TransferDataValidityPeriodService validityPeriodService;
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
-    @Resource
-    private MarketingSyncInfoMapper marketingSyncInfoMapper;
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
 
@@ -120,7 +111,8 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
         boolean isParam = StringUtils.isNotBlank(myParam);
         if (LocalTime.now().isAfter(localTime) || isParam) {
             // 指定日期提取，生成指定日期的记录，不是当天的记录
-            String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            String dateyyyymmddStr = isParam ? myParam.replace("-", "")
+                    : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             LocalDate localDate = LocalDate.parse(dateyyyymmddStr, YYYYMMDDSHORTLINE);
             String yesterday = localDate.minusDays(1).toString();
             String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
@@ -160,7 +152,8 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
         String apiCode = transferFileTask.getApiCode();
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().toString() : jobParameter;
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
+        String descPath = syncConfigService.getPath()
+                .concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
@@ -199,7 +192,8 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
         syncUser.setApiCode(apiCode);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         while (mark) {
-            List<MarketingTransferSyncUser> transferSyncUsers = marketingTransferSyncUserMapper.getTransferByRequestDate(tcId, apiCode, yesterday, minId);
+            List<MarketingTransferSyncUser> transferSyncUsers =
+                    marketingTransferSyncUserMapper.getTransferByRequestDate(tcId, apiCode, yesterday, minId);
             if (transferSyncUsers.isEmpty()) {
                 mark = false;
                 continue;
@@ -295,15 +289,18 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("榕树转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}", taskCount, completedTaskCount, taskCount - completedTaskCount);
+                    log.info("榕树转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                            , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
             saveUpdateTask(transferFileTask, totalSize);
-            log.warn("榕树转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize);
+            log.warn("榕树转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
+                    , apiCode, System.currentTimeMillis() - start, totalSize);
         } catch (InterruptedException e) {
             log.error("榕树转化数据提取-本地文件生成失败！" + e.getMessage(), e);
             threadPool.shutdownNow();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
+            Thread.currentThread().interrupt();
         }
     }
 
