@@ -200,7 +200,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     }
                     boolean tagOne = custNumALL.add(datum.getCustNum());
                     boolean tagTwo = logCustNumList.contains(datum.getCustNum());
-                    if (tagOne || !tagTwo) {
+                    if (tagOne && (!tagTwo)) {
                         //剔除实时推决策7天内数据
                         dataFilter1.add(datum.getId());
 //                        custNumsList.add(datum.getCustNum());

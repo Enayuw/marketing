@@ -6,7 +6,6 @@ import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.ScorePushCustomerConfig;
