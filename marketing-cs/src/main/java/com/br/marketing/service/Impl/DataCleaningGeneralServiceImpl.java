@@ -110,7 +110,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             for (int j = 0; j < split.length; j++) {
                 MarketingCleanDataFile marketingCleanDataFile = marketingCleanDataFileMapper.selectByPrimaryKey(Long.parseLong(split[j]));
 //                fileStr = "D:\\test\\";
-//                String fileName = "zhongbangtest-1.txt";
+//                String fileName = "bairong_formal_act_01.txt";
                 fileStr = marketingCleanDataFile.getLocalPath();
                 String fileName = marketingCleanDataFile.getFileName();
                 String apiCode = task.getApiCode();
@@ -225,14 +225,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     }).collect(Collectors.toList());
                                     dataFieldVOS.addAll(collect);
                                 }
-
-                                // 增加fileName值
-                                if (StringUtils.isBlank(tableMap.get("fileName"))) {
-                                    FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-                                    vo.setInterfaceField("fileName");
-                                    vo.setDataValue(fileName);
-                                    dataFieldVOS.add(vo);
-                                }
                                 // 选填字段处理：例如身份证号和性别选填二选一
                                 if (!list.isEmpty()) {
                                     Boolean b = false;
@@ -277,11 +269,12 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     pushPool.shutdown();
                     while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {}
                 }catch (InterruptedException  ie){
-                    log.error("[{}]清洗失败[{}]-行数[{}]-推送成功数[{}]-推送失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ie);
+                    log.error("线程池终止[{}]文件[{}]-行数[{}]-成功数[{}]-失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ie);
                     Thread.currentThread().interrupt();
                 } catch (Exception ex) {
                     log.error("[{}]清洗失败[{}]-行数[{}]-推送成功数[{}]-推送失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ex);
                     marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 3);
+                    return;
                 }
                 // 打印处理正确和不正确的条数以及所在行
                 log.warn("[{}]数据清洗文件[{}]-文件行数[{}]-推送成功数[{}]-推送失败数[{}]",apiCode,fileName,lineNum,pushSum,errorSum);
@@ -301,7 +294,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
      * @param pushBatchNumber pushBatchNumber
      * @param syncUsers 具体数据对象
      */
-    private void asyncUploadData(String apiCode, String tasId, String requestIdPrefix, ThreadPoolExecutor pushPool, Integer pushBatchNumber, List<MarketingPreUserDetailDTO> syncUsers) {
+    private void asyncUploadData(String apiCode, String tasId, String requestIdPrefix
+            , ThreadPoolExecutor pushPool, Integer pushBatchNumber, List<MarketingPreUserDetailDTO> syncUsers) {
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(tasId);
         marketingPreUserDTO.setRequestId(requestIdPrefix.concat(pushBatchNumber.toString()));

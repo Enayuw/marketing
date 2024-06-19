@@ -33,16 +33,18 @@ public class DataCleaningGeneralJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobContext) {
-
         String jobParameter = jobContext.getJobParameter();
+        log.warn("DataCleaningGeneralJob--开始执行-{}",jobParameter);
         MarketingCleanDataTask task = dataCleaningGeneralService.getAction();
         if(null != task){
             Integer configId = task.getConfigId();
             MarketingDataFileConfig config = marketingDataFileConfigMapper.selectByPrimaryKey(configId.longValue());
             IFileToMarketingRuleService fileToMarketingRuleService = dataCleanFactory.getFileToMarketingRuleService(config);
             dataCleaningGeneralService.action(task,fileToMarketingRuleService,config);
+        }else{
+            log.warn("未找到满足条件的数据清洗任务");
         }
-
+        log.warn("DataCleaningGeneralJob--执行结束-{}",jobParameter);
     }
 
 }
