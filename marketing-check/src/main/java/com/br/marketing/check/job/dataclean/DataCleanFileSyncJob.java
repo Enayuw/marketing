@@ -23,6 +23,7 @@ import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -72,7 +73,8 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
         for (SyncConfig syncConfig : syncConfigs) {
             // 组装本地下载路径
-            String targetPath = syncConfigService.getPath().concat("initPath/upload/").concat(syncConfig.getApiCode()).concat("/");
+            String targetPath = syncConfigService.getPath().concat("initPath/upload/").concat(syncConfig.getApiCode()).concat("/")
+                    .concat(LocalDate.now().toString()).concat("/");
             SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);
             Result<List<String>> res = iFileActionService.downSyncFileBySftp(sftpClient, syncConfig, targetPath);
             if (ResultCode.SUCCESS.getValue().equals(res.getCode())) {
