@@ -6,6 +6,7 @@ import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.ScorePushCustomerConfig;
@@ -406,6 +407,8 @@ public class AlarmAndNoticeTest {
             + "ifActivity,activityTime,unlentAmount,caseEffective";
     @Resource
     TransferToFileByRongShuServiceImpl transferToFileByRongShuService;
+    final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
+
     @Test
     public void RSWriteTransferToFile() {
         TransferFileTask transferFileTask = new TransferFileTask();
@@ -417,7 +420,9 @@ public class AlarmAndNoticeTest {
         String recordDate = transferFileTask.getStartDate();
         boolean isParam = StringUtils.isNotBlank(dd);
         String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        String fileName = apiCode + "_zhuanhua_" + dateyyyymmddStr + ".txt";
+        LocalDate localDate = LocalDate.parse(dateyyyymmddStr, YYYYMMDDSHORTLINE);
+        String yesterday = localDate.minusDays(1).toString();
+        String fileName = apiCode + "_zhuanhua_" + yesterday + ".txt";
         transferFileTask.setFileName(fileName);
         log.warn("榕树转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
