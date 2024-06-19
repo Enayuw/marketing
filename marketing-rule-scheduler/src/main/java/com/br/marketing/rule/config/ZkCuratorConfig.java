@@ -33,8 +33,10 @@ public class ZkCuratorConfig {
         // 建立客户端
         CuratorFramework client =  CuratorFrameworkFactory.builder()
                 .connectString(serverList)
-                .sessionTimeoutMs(60 * 1000)  // 会话超时时间
-                .connectionTimeoutMs(5000) // 连接超时时间
+                // 会话超时时间
+                .sessionTimeoutMs(60 * 1000)
+                // 连接超时时间
+                .connectionTimeoutMs(5000)
                 .retryPolicy(retryPolicy)
                 .build();
         return client;
