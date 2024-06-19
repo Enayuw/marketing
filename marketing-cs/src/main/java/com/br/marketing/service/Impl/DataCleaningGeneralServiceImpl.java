@@ -100,7 +100,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
     }
 
     @Override
-    public void action(MarketingCleanDataTask task, IFileToMarketingRuleService iFileToMarketingRuleService, MarketingDataFileConfig marketingDataFileConfig) {
+    public void action(MarketingCleanDataTask task, IFileToMarketingRuleService iFileToMarketingRuleService
+            , MarketingDataFileConfig marketingDataFileConfig) {
         String fileIds = task.getFileId();
         String fileStr = "";
         Long taskId = task.getId();
@@ -120,7 +121,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 // 解析配置的清洗规则
                 List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(fileConfigString, FileToMarketingFieldVO.class);
                 // 根据 headField 字段分组
-                Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream().collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+                Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream()
+                        .collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
                 // 提取规则配置中的 必填字段，根据 headField 字段分组
                 List<String> mustHeads = fieldVos.stream().filter(t -> t.getIsMust()).map(t -> t.getHeadField()).collect(Collectors.toList());
                 // 读取文件并逐行处理
@@ -142,7 +144,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     List<MarketingPreUserDetailDTO> syncUsers = new ArrayList<>();
                     Integer headSum = 0;
                     Boolean isNotFinal = Boolean.TRUE;
-//                    String[] headers = new String[0];
                     List<String> headList = null;
                     while (isNotFinal) {
                         row = br.readLine();
@@ -157,7 +158,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                         if (isNotFinal) {
                             if (lineNum == 1) {
                                 //region 文件头处理
-//                                headers = row.split(",", -1);
                                 headList = com.google.common.base.Splitter.on(",").splitToList(row);
                                 // 存储表头信息
                                 for (String header : headList) {
@@ -207,8 +207,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                             rowFieldHandle(fieldVO, list, value, tableMap, fileName, lineNum
                                                     , errorMsg, headNm, hasSet, dataFieldVOS, dataFieldMap);
                                         }
-                                    }else{
-                                        log.warn("[{}]文件[{}]行[{}]字段没配置，舍弃",fileName,lineNum,headNm);
+                                    } else {
+                                        log.warn("[{}]文件[{}]行[{}]字段没配置，舍弃", fileName, lineNum, headNm);
                                         // do nothing
                                     }
                                 }
@@ -217,12 +217,12 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     List<FileToMarketingFieldVO> valueList = entry.getValue();
                                     List<FileToMarketingDataFieldVO> collect = valueList.stream().filter(
                                             (FileToMarketingFieldVO vo) -> !finalHeadList.contains(vo.getHeadField())
-                                        ).map((FileToMarketingFieldVO ftmf)->{
-                                            FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-                                            vo.setDataValue(ftmf.getDefaultValue());
-                                            BeanUtils.copyProperties(ftmf, vo);
-                                            return vo;
-                                        }).collect(Collectors.toList());
+                                    ).map((FileToMarketingFieldVO ftmf) -> {
+                                        FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
+                                        vo.setDataValue(ftmf.getDefaultValue());
+                                        BeanUtils.copyProperties(ftmf, vo);
+                                        return vo;
+                                    }).collect(Collectors.toList());
                                     dataFieldVOS.addAll(collect);
                                 }
 
@@ -269,38 +269,49 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                         if (syncUsers.size() == pushNum || (!isNotFinal && syncUsers.size() > 0)) {
                             pushSum += syncUsers.size();
                             // TODO 不同类型不同的参数拼装和接口调用
-                            MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-                            marketingPreUserDTO.setTaskId(tasId);
-                            marketingPreUserDTO.setRequestId(requestIdPrefix.concat(pushBatchNumber.toString()));
-                            marketingPreUserDTO.setDataItems(syncUsers);
-                            UploadDataDTO uploadDataDTO = new UploadDataDTO();
-                            uploadDataDTO.setApiCode(apiCode);
-                            uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-//                            log.warn("调用接口前参数信息:{}",JSON.toJSONString(uploadDataDTO));
-                            pushPool.submit(() -> {
-                                pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                            });
+                            asyncUploadData(apiCode, tasId, requestIdPrefix, pushPool, pushBatchNumber, syncUsers);
                             syncUsers = new ArrayList<>();
                             pushBatchNumber++;
                         }
                     }
                     pushPool.shutdown();
-                    while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {
-
-                    }
+                    while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {}
+                }catch (InterruptedException  ie){
+                    log.error("[{}]清洗失败[{}]-行数[{}]-推送成功数[{}]-推送失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ie);
+                    Thread.currentThread().interrupt();
                 } catch (Exception ex) {
-                    log.error("[{}]数据清洗文件[{}]清洗失败-文件行数[{}]-推送成功数[{}]-推送失败数[{}]--"
-                            , apiCode, fileName, lineNum, pushSum, errorSum, ex);
+                    log.error("[{}]清洗失败[{}]-行数[{}]-推送成功数[{}]-推送失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ex);
                     marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 3);
                 }
                 // 打印处理正确和不正确的条数以及所在行
-                log.warn("[{}]数据清洗文件[{}]-文件行数[{}]-推送成功数[{}]-推送失败数[{}]"
-                        , apiCode, fileName, lineNum, pushSum, errorSum);
+                log.warn("[{}]数据清洗文件[{}]-文件行数[{}]-推送成功数[{}]-推送失败数[{}]",apiCode,fileName,lineNum,pushSum,errorSum);
             }
             marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 2);
         }else{
             log.warn("清洗任务未配置文件名");
         }
+    }
+
+    /**
+     * 异步调用上传数据接口
+     * @param apiCode apiCode
+     * @param tasId tasId
+     * @param requestIdPrefix requestIdPrefix
+     * @param pushPool 上传使用线程池
+     * @param pushBatchNumber pushBatchNumber
+     * @param syncUsers 具体数据对象
+     */
+    private void asyncUploadData(String apiCode, String tasId, String requestIdPrefix, ThreadPoolExecutor pushPool, Integer pushBatchNumber, List<MarketingPreUserDetailDTO> syncUsers) {
+        MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+        marketingPreUserDTO.setTaskId(tasId);
+        marketingPreUserDTO.setRequestId(requestIdPrefix.concat(pushBatchNumber.toString()));
+        marketingPreUserDTO.setDataItems(syncUsers);
+        UploadDataDTO uploadDataDTO = new UploadDataDTO();
+        uploadDataDTO.setApiCode(apiCode);
+        uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
+        pushPool.submit(() -> {
+            pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+        });
     }
 
     /**
