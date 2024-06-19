@@ -58,7 +58,7 @@ public class InitDataToPolicyImpl implements AssembleData<PushMarketingUserDetai
                 if (s.toLowerCase().equals("batchnumber")) {
                     pushMarketingUserDetailByRuleDTO.setBatchNumber(initJson.getString(s));
                 }
-                if(s.equals("repayTime")){
+                if("repayTime".equals(s)){
                     varDto.put("deadlineday",initJson.getString(s));
                 }
             }

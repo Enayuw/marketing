@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
@@ -180,7 +181,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
     public void writeTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
-        int totalSize = 0;
+        AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         Long minId = null;
         boolean mark = true;
@@ -276,12 +277,12 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                         .append("\r\n");
                     try {
                         fw.append(sb.toString());
+                        totalSize.incrementAndGet();
                     } catch (IOException e) {
                         log.error(e.getMessage(), e);
                     }
                 }
             });
-            totalSize = totalSize + transferSyncUsers.size();
         }
         threadPool.shutdown();
         try {
@@ -293,9 +294,9 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
-            saveUpdateTask(transferFileTask, totalSize);
+            saveUpdateTask(transferFileTask, totalSize.intValue());
             log.warn("榕树转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
-                    , apiCode, System.currentTimeMillis() - start, totalSize);
+                    , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
             log.error("榕树转化数据提取-本地文件生成失败！" + e.getMessage(), e);
             threadPool.shutdownNow();
