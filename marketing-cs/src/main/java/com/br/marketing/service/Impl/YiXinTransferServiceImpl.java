@@ -202,11 +202,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         custNumALL.add(datum.getCustNum());
                         continue;
                     }
-                    if (custNumALL.add(datum.getCustNum())) {
-                        //剔除实时推决策7天内数据
-                        if (!logCustNumList.contains(datum.getCustNum())) {
-                            dataFilter1.add(datum.getId());
-                        }
+                    //剔除实时推决策7天内数据
+                    if (custNumALL.add(datum.getCustNum()) && (!logCustNumList.contains(datum.getCustNum()))) {
+                        dataFilter1.add(datum.getId());
 //                        custNumsList.add(datum.getCustNum());
                     }
                 }
