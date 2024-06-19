@@ -405,7 +405,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 break;
             } catch (ParseException e) {
                 // 忽略异常，并尝试下一个解析器
-                log.warn("无法解析日期-文件名:{};行数:{};格式:{};原值:{}", fileName, lineNum, parser, value);
+                if(log.isInfoEnabled()){
+                    log.info("无法解析日期-文件名:{};行数:{};格式:{};原值:{}", fileName, lineNum, parser, value);
+                }
             }
         }
         if (date != null) {
