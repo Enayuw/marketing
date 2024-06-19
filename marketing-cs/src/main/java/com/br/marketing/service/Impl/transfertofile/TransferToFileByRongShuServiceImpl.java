@@ -121,6 +121,8 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
         if (LocalTime.now().isAfter(localTime) || isParam) {
             // 指定日期提取，生成指定日期的记录，不是当天的记录
             String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            LocalDate localDate = LocalDate.parse(dateyyyymmddStr, YYYYMMDDSHORTLINE);
+            String yesterday = localDate.minusDays(1).toString();
             String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(date)
@@ -134,7 +136,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(1);
                 transferFileTask.setBatchNumber(batchNumber);
-                String fileName = apiCode + "_zhuanhua_" + dateyyyymmddStr + ".txt";
+                String fileName = apiCode + "_zhuanhua_" + yesterday + ".txt";
                 transferFileTask.setFileName(fileName);
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStartDate(date);
