@@ -42,7 +42,7 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
     @Resource
     TaskStatusMapper taskStatusMapper;
 
-    @Autowired
+    @Autowired(required = false)
     private CuratorFramework client;
 
     @Override
