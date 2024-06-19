@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl.xc;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -12,8 +11,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import cn.hutool.core.collection.CollectionUtil;
-import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +24,7 @@ import com.br.marketing.entity.XieChengCollidingDataRobExample;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
 import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
 import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -148,6 +146,10 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
                 String extend = DateUtil.today() + " 转化数据convType=107或105";
                 xieChengCollidingDataRobMapper.batchDeleteExcludeCollidingData(excludeData, extend);
                 sha256Codes.removeAll(distinctExcludeData);
+                if (CollectionUtils.isEmpty(sha256Codes)) {
+                    log.warn("该批次手机号全部被过滤掉:{}", distinctExcludeData);
+                    return;
+                }
             }
         } catch (Exception e) {
             log.error("携程非周期撞库剔除撞库数据异常", e);

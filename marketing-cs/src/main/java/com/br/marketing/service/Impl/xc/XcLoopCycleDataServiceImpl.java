@@ -82,6 +82,10 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                     String extend = DateUtil.today() + " 转化数据convType=107或105";
                     dataLoopCycleMapper.batchDeleteExcludeCollidingData(excludeData, extend);
                     cells.removeAll(distinctExcludeData);
+                    if (CollectionUtils.isEmpty(cells)) {
+                        log.warn("该批次手机号全部被过滤掉:{}", distinctExcludeData);
+                        return;
+                    }
                 }
             } catch (Exception e) {
                 log.error("携程周期撞库剔除撞库数据异常", e);
