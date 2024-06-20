@@ -47,6 +47,7 @@ public class RuleSchedulerApplication {
             BrGrpcUtils.shutDown();
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);
+            Thread.currentThread().interrupt();
         }
     }
 }

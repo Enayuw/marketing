@@ -640,6 +640,21 @@
         order by id asc limit 2000;
     </select>
 
+    <select id="getRongShuTransferDatatikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select duplicate.*
+        from (select *, row_number() over (partition by cust_num order by request_time desc ) as row_num
+        from b_marketing_transfer_sync_${tCid} a
+        where a.api_code = #{apiCode}
+        and a.request_data = #{requestDate}
+        ) as duplicate
+        where duplicate.row_num = 1
+        <if test="minId != null and minId >0">
+            and duplicate.id > #{minId}
+        </if>
+        order by duplicate.id asc
+        limit 20000;
+    </select>
+
     <select id="getTransferByCustNumOrderDatatikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
     select * from (
     select *,row_number() over(partition by cust_num order by create_time desc) as num

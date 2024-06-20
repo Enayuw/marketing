@@ -14,11 +14,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
@@ -27,7 +25,6 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import com.br.marketing.vo.PhoneSaleInfoVO;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +43,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -202,11 +198,11 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         custNumALL.add(datum.getCustNum());
                         continue;
                     }
-                    if (custNumALL.add(datum.getCustNum())) {
+                    boolean tagOne = custNumALL.add(datum.getCustNum());
+                    boolean tagTwo = logCustNumList.contains(datum.getCustNum());
+                    if (tagOne && (!tagTwo)) {
                         //剔除实时推决策7天内数据
-                        if (!logCustNumList.contains(datum.getCustNum())) {
-                            dataFilter1.add(datum.getId());
-                        }
+                        dataFilter1.add(datum.getId());
 //                        custNumsList.add(datum.getCustNum());
                     }
                 }
