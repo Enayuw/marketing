@@ -234,7 +234,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }
                     } catch (Exception e) {
-                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey);
+                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey, e);
                     } finally {
                         redisChgService.unlock(redisKey, value);
                     }
@@ -260,10 +260,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                 } else {
                                     //第一次执行，查询为空，不会进行删除，直接返回
                                     //第二次执行，删除b_sync_log的记录
-                                    List<SyncLog> syncLogList = loanSyncLogMapper.querySyncLog(ImmutableMap.of("apiCode", marketingCustomer.getApiCode(), "fileName", datum.getFileName()));
+                                    List<SyncLog> syncLogList = loanSyncLogMapper.querySyncLog(
+                                            ImmutableMap.of("apiCode", marketingCustomer.getApiCode(), "fileName", datum.getFileName()));
                                     if (!CollectionUtils.isEmpty(syncLogList)) {
                                         if (syncLogList.size() != 1) {
-                                            log.warn("重新执行数据提取异常，apiCode={},fileName={},syncLogSize={}", marketingCustomer.getApiCode(), datum.getFileName(), syncLogList.size());
+                                            log.warn("重新执行数据提取异常，apiCode={},fileName={},syncLogSize={}"
+                                                    , marketingCustomer.getApiCode(), datum.getFileName(), syncLogList.size());
                                             return;
                                         }
                                         SyncLogExample syncLogExample = new SyncLogExample();
@@ -345,52 +347,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             .addBind(transferToFileByDiDiService, marketingCommonConfig.getDidiApiCodes())
             // 榕树转化数据提取
             .addBind(transferToFileByRongShuService, marketingCommonConfig.getRongShuTransferApiCodes()).build();
-    }
-
-    /**
-     * 2022-12-24 17:15
-     * 已弃用，最好不要用，用了也不会起作用
-     * ，如果非要用，需要修改主业务逻辑（👆{@link TransferFileTaskJob#process(JobExecutionMultipleShardingContext)}）的内容。
-     * <p>
-     * 新方法{@link TransferFileTaskJob#bindApiCode()}
-     */
-    @Deprecated
-    ITransferToFileService getServiceImpl(MarketingCustomer customer) {
-        if (marketingCommonConfig.getSaMoYeTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileBySamoyeServiveImpl;
-        } else if (marketingCommonConfig.getHaLuoTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByHaluoServiceImpl;
-        } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().containsKey(customer.getApiCode())) {
-            return transferToFileByShuHeService;
-        } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByYiXinRealTimeService;
-        } else if (marketingCommonConfig.getYinXinTransferV4ApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByYiXinV4Service;
-        }
-        if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByJiuFuService;
-        }
-        if (marketingCommonConfig.getPPDTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByPPDService;
-        }
-        if (marketingCommonConfig.getTongChengTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByTongChengService;
-        }
-        if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
-            return xiaoYingRealTimeService;
-        }
-        if (marketingCommonConfig.getZhongAnTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByZhongAnService;
-        }
-        if (marketingCommonConfig.getYouMeDApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByYouMeDService;
-        }
-        if (marketingCommonConfig.getXieChengTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByXieChengService;
-        }
-        else {
-            return null;
-        }
     }
 
 

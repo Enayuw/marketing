@@ -300,11 +300,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         Integer execType = vo.getExecType();
         // 每个任务的周期
         if (execType == 3 && vo.getAutoBuild() == 1) {
+            int idValue = vo.getId().intValue();
+            String nowDateString = LocalDate.now().toString();
             // 查询中间表，条件：ruleid且结束日期大于等于当前日期
             MarketingTaskAutoBuildConfigExample buildConfigExample = new MarketingTaskAutoBuildConfigExample();
             buildConfigExample.createCriteria().andIsDeletedEqualTo(0)
-                    .andScoreRuleIdEqualTo(vo.getId().intValue())
-                    .andCloseDateGreaterThanOrEqualTo(nowDate.toString());
+                    .andScoreRuleIdEqualTo(idValue)
+                    .andCloseDateGreaterThanOrEqualTo(nowDateString);
             List<MarketingTaskAutoBuildConfig> autoBuildConfigList = buildConfigMapper.selectByExample(buildConfigExample);
             if (CollectionUtils.isEmpty(autoBuildConfigList)) {
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该周期生成任务规则，已过期或已删除");
@@ -444,9 +446,10 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         List<String> userTypeList = syncInfoMapper
                 .queryUserTypeListWithDatetikv_(apiCode, nowDate.toString(), validTimeStr, conditionRes.getData());
 
+        String conditionInfo = vo.getConditionInfo();
+        String nowDateString = LocalDate.now().toString();
         //跑分条件转化
-        Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(vo.getConditionInfo(), nowDate.toString(),
-                validTimeStr);
+        Result<String> conditionTransferRes = soleStrategyService.analysisTransferConditions(conditionInfo, nowDateString, validTimeStr);
 
         return buildShowAndSaveTask(vo, conditionTransferRes, apiCode, batchNumber, nowDate, userTypeList);
     }

@@ -138,6 +138,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , JobPushDecisionParameterBO parameter
             , String jobParameter
             , MethodRetryHandlerService methodRetryHandlerService) {
+        String newJobParameter = jobParameter;
         Object o = parameter.getParamList().get(0);
         String requestDate = (String) o;
         String apiCode = parameter.getApiCode();
@@ -174,6 +175,7 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , String apiCode
             , JobPushDecisionParameterBO parameter
             , MethodRetryHandlerService methodRetryHandlerService) {
+        MethodRetryHandlerService methodRetryHandlerServiceNew = methodRetryHandlerService;
         Map<String, Object> paramMap = parameter.getParamMap();
         int sum = 0;
         if (CollectionUtils.isEmpty(paramMap)) {
