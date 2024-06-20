@@ -1689,7 +1689,12 @@ public class MarketingCommonConfig {
 
 
     /**
-     * marketing-task跑分服务节点数量
+     * 数据清洗试跑apiCode
+     */
+    private String datacleanTestRunApiCode;
+
+    /**
+     *  * marketing-task跑分服务节点数量
      */
     private Integer numberOfScoreTaskNodes;
 

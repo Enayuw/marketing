@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.MarketingDataFileConfigMapperBase">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDataFileConfig">
+<mapper namespace="com.br.marketing.mapper.MarketingCleanDataFileMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCleanDataFile">
     <id column="id" jdbcType="BIGINT" property="id" />
     <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
-    <result column="file_id" jdbcType="INTEGER" property="fileId" />
     <result column="clean_type" jdbcType="INTEGER" property="cleanType" />
-    <result column="rule_name" jdbcType="VARCHAR" property="ruleName" />
-    <result column="field_config" jdbcType="VARCHAR" property="fieldConfig" />
-    <result column="field_config_show" jdbcType="VARCHAR" property="fieldConfigShow" />
-    <result column="service_name" jdbcType="VARCHAR" property="serviceName" />
+    <result column="file_name" jdbcType="VARCHAR" property="fileName" />
+    <result column="file_header" jdbcType="VARCHAR" property="fileHeader" />
+    <result column="file_data" jdbcType="VARCHAR" property="fileData" />
+    <result column="target_sftp_path" jdbcType="VARCHAR" property="targetSftpPath" />
+    <result column="local_path" jdbcType="VARCHAR" property="localPath" />
+    <result column="status" jdbcType="INTEGER" property="status" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="is_del" jdbcType="INTEGER" property="isDel" />
-    <result column="is_checklist_name" jdbcType="TINYINT" property="isChecklistName" />
-    <result column="validation_rules" jdbcType="VARCHAR" property="validationRules" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <where>
@@ -75,16 +74,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, file_id, clean_type, rule_name, field_config, field_config_show, service_name, 
-    create_time, update_time, is_del, is_checklist_name, validation_rules
+    id, api_code, clean_type, file_name, file_header, file_data, target_sftp_path, local_path, 
+    `status`, create_time, update_time, is_del
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" resultMap="BaseResultMap">
+  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingCleanDataFileExample" resultMap="BaseResultMap">
     select
     <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_marketing_data_file_config
+    from b_marketing_clean_data_file
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
@@ -95,54 +94,55 @@
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from b_marketing_data_file_config
+    from b_marketing_clean_data_file
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-    delete from b_marketing_data_file_config
+    delete from b_marketing_clean_data_file
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample">
-    delete from b_marketing_data_file_config
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingCleanDataFileExample">
+    delete from b_marketing_clean_data_file
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataFileConfig" useGeneratedKeys="true">
-    insert into b_marketing_data_file_config (api_code, file_id, clean_type, 
-      rule_name, field_config, field_config_show, 
-      service_name, create_time, update_time, 
-      is_del, is_checklist_name, validation_rules
-      )
-    values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=INTEGER}, #{cleanType,jdbcType=INTEGER}, 
-      #{ruleName,jdbcType=VARCHAR}, #{fieldConfig,jdbcType=VARCHAR}, #{fieldConfigShow,jdbcType=VARCHAR}, 
-      #{serviceName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{isDel,jdbcType=INTEGER}, #{isChecklistName,jdbcType=TINYINT}, #{validationRules,jdbcType=VARCHAR}
-      )
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCleanDataFile" useGeneratedKeys="true">
+    insert into b_marketing_clean_data_file (api_code, clean_type, file_name, 
+      file_header, file_data, target_sftp_path, 
+      local_path, `status`, create_time, 
+      update_time, is_del)
+    values (#{apiCode,jdbcType=VARCHAR}, #{cleanType,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR}, 
+      #{fileHeader,jdbcType=VARCHAR}, #{fileData,jdbcType=VARCHAR}, #{targetSftpPath,jdbcType=VARCHAR}, 
+      #{localPath,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataFileConfig" useGeneratedKeys="true">
-    insert into b_marketing_data_file_config
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingCleanDataFile" useGeneratedKeys="true">
+    insert into b_marketing_clean_data_file
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="apiCode != null">
         api_code,
       </if>
-      <if test="fileId != null">
-        file_id,
-      </if>
       <if test="cleanType != null">
         clean_type,
       </if>
-      <if test="ruleName != null">
-        rule_name,
+      <if test="fileName != null">
+        file_name,
       </if>
-      <if test="fieldConfig != null">
-        field_config,
+      <if test="fileHeader != null">
+        file_header,
       </if>
-      <if test="fieldConfigShow != null">
-        field_config_show,
+      <if test="fileData != null">
+        file_data,
       </if>
-      <if test="serviceName != null">
-        service_name,
+      <if test="targetSftpPath != null">
+        target_sftp_path,
+      </if>
+      <if test="localPath != null">
+        local_path,
+      </if>
+      <if test="status != null">
+        `status`,
       </if>
       <if test="createTime != null">
         create_time,
@@ -153,34 +153,31 @@
       <if test="isDel != null">
         is_del,
       </if>
-      <if test="isChecklistName != null">
-        is_checklist_name,
-      </if>
-      <if test="validationRules != null">
-        validation_rules,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="apiCode != null">
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="fileId != null">
-        #{fileId,jdbcType=INTEGER},
-      </if>
       <if test="cleanType != null">
         #{cleanType,jdbcType=INTEGER},
       </if>
-      <if test="ruleName != null">
-        #{ruleName,jdbcType=VARCHAR},
+      <if test="fileName != null">
+        #{fileName,jdbcType=VARCHAR},
       </if>
-      <if test="fieldConfig != null">
-        #{fieldConfig,jdbcType=VARCHAR},
+      <if test="fileHeader != null">
+        #{fileHeader,jdbcType=VARCHAR},
       </if>
-      <if test="fieldConfigShow != null">
-        #{fieldConfigShow,jdbcType=VARCHAR},
+      <if test="fileData != null">
+        #{fileData,jdbcType=VARCHAR},
       </if>
-      <if test="serviceName != null">
-        #{serviceName,jdbcType=VARCHAR},
+      <if test="targetSftpPath != null">
+        #{targetSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="localPath != null">
+        #{localPath,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
       </if>
       <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
@@ -191,22 +188,16 @@
       <if test="isDel != null">
         #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="isChecklistName != null">
-        #{isChecklistName,jdbcType=TINYINT},
-      </if>
-      <if test="validationRules != null">
-        #{validationRules,jdbcType=VARCHAR},
-      </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" resultType="java.lang.Long">
-    select count(*) from b_marketing_data_file_config
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingCleanDataFileExample" resultType="java.lang.Long">
+    select count(*) from b_marketing_clean_data_file
     <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map">
-    update b_marketing_data_file_config
+    update b_marketing_clean_data_file
     <set>
       <if test="record.id != null">
         id = #{record.id,jdbcType=BIGINT},
@@ -214,23 +205,26 @@
       <if test="record.apiCode != null">
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.fileId != null">
-        file_id = #{record.fileId,jdbcType=INTEGER},
-      </if>
       <if test="record.cleanType != null">
         clean_type = #{record.cleanType,jdbcType=INTEGER},
       </if>
-      <if test="record.ruleName != null">
-        rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      <if test="record.fileName != null">
+        file_name = #{record.fileName,jdbcType=VARCHAR},
       </if>
-      <if test="record.fieldConfig != null">
-        field_config = #{record.fieldConfig,jdbcType=VARCHAR},
+      <if test="record.fileHeader != null">
+        file_header = #{record.fileHeader,jdbcType=VARCHAR},
       </if>
-      <if test="record.fieldConfigShow != null">
-        field_config_show = #{record.fieldConfigShow,jdbcType=VARCHAR},
+      <if test="record.fileData != null">
+        file_data = #{record.fileData,jdbcType=VARCHAR},
       </if>
-      <if test="record.serviceName != null">
-        service_name = #{record.serviceName,jdbcType=VARCHAR},
+      <if test="record.targetSftpPath != null">
+        target_sftp_path = #{record.targetSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localPath != null">
+        local_path = #{record.localPath,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -241,59 +235,55 @@
       <if test="record.isDel != null">
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
-      <if test="record.isChecklistName != null">
-        is_checklist_name = #{record.isChecklistName,jdbcType=TINYINT},
-      </if>
-      <if test="record.validationRules != null">
-        validation_rules = #{record.validationRules,jdbcType=VARCHAR},
-      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
   <update id="updateByExample" parameterType="map">
-    update b_marketing_data_file_config
+    update b_marketing_clean_data_file
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
-      file_id = #{record.fileId,jdbcType=INTEGER},
       clean_type = #{record.cleanType,jdbcType=INTEGER},
-      rule_name = #{record.ruleName,jdbcType=VARCHAR},
-      field_config = #{record.fieldConfig,jdbcType=VARCHAR},
-      field_config_show = #{record.fieldConfigShow,jdbcType=VARCHAR},
-      service_name = #{record.serviceName,jdbcType=VARCHAR},
+      file_name = #{record.fileName,jdbcType=VARCHAR},
+      file_header = #{record.fileHeader,jdbcType=VARCHAR},
+      file_data = #{record.fileData,jdbcType=VARCHAR},
+      target_sftp_path = #{record.targetSftpPath,jdbcType=VARCHAR},
+      local_path = #{record.localPath,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      is_del = #{record.isDel,jdbcType=INTEGER},
-      is_checklist_name = #{record.isChecklistName,jdbcType=TINYINT},
-      validation_rules = #{record.validationRules,jdbcType=VARCHAR}
+      is_del = #{record.isDel,jdbcType=INTEGER}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDataFileConfig">
-    update b_marketing_data_file_config
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingCleanDataFile">
+    update b_marketing_clean_data_file
     <set>
       <if test="apiCode != null">
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="fileId != null">
-        file_id = #{fileId,jdbcType=INTEGER},
-      </if>
       <if test="cleanType != null">
         clean_type = #{cleanType,jdbcType=INTEGER},
       </if>
-      <if test="ruleName != null">
-        rule_name = #{ruleName,jdbcType=VARCHAR},
+      <if test="fileName != null">
+        file_name = #{fileName,jdbcType=VARCHAR},
       </if>
-      <if test="fieldConfig != null">
-        field_config = #{fieldConfig,jdbcType=VARCHAR},
+      <if test="fileHeader != null">
+        file_header = #{fileHeader,jdbcType=VARCHAR},
       </if>
-      <if test="fieldConfigShow != null">
-        field_config_show = #{fieldConfigShow,jdbcType=VARCHAR},
+      <if test="fileData != null">
+        file_data = #{fileData,jdbcType=VARCHAR},
       </if>
-      <if test="serviceName != null">
-        service_name = #{serviceName,jdbcType=VARCHAR},
+      <if test="targetSftpPath != null">
+        target_sftp_path = #{targetSftpPath,jdbcType=VARCHAR},
+      </if>
+      <if test="localPath != null">
+        local_path = #{localPath,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -304,29 +294,22 @@
       <if test="isDel != null">
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="isChecklistName != null">
-        is_checklist_name = #{isChecklistName,jdbcType=TINYINT},
-      </if>
-      <if test="validationRules != null">
-        validation_rules = #{validationRules,jdbcType=VARCHAR},
-      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataFileConfig">
-    update b_marketing_data_file_config
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCleanDataFile">
+    update b_marketing_clean_data_file
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      file_id = #{fileId,jdbcType=INTEGER},
       clean_type = #{cleanType,jdbcType=INTEGER},
-      rule_name = #{ruleName,jdbcType=VARCHAR},
-      field_config = #{fieldConfig,jdbcType=VARCHAR},
-      field_config_show = #{fieldConfigShow,jdbcType=VARCHAR},
-      service_name = #{serviceName,jdbcType=VARCHAR},
+      file_name = #{fileName,jdbcType=VARCHAR},
+      file_header = #{fileHeader,jdbcType=VARCHAR},
+      file_data = #{fileData,jdbcType=VARCHAR},
+      target_sftp_path = #{targetSftpPath,jdbcType=VARCHAR},
+      local_path = #{localPath,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      is_del = #{isDel,jdbcType=INTEGER},
-      is_checklist_name = #{isChecklistName,jdbcType=TINYINT},
-      validation_rules = #{validationRules,jdbcType=VARCHAR}
+      is_del = #{isDel,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

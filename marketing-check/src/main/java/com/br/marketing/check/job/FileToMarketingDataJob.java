@@ -2,7 +2,6 @@ package com.br.marketing.check.job;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.check.CkeckApplication;
-import com.br.marketing.check.service.IFileToMarketingRuleService;
 import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.SftpClient;
@@ -21,6 +20,7 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
+import com.br.marketing.service.IFileToMarketingRuleService;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
@@ -167,7 +167,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
         // 校验表名称
-        if(fileConfig.getIsChecklistName() == 0){
+        if(fileConfig.getIsChecklistName() != null && fileConfig.getIsChecklistName() == 0){
             String regex = fileConfig.getValidationRules();
             Pattern pattern = Pattern.compile(regex);
             // 匹配不带 .success 后缀的文件名
@@ -289,8 +289,8 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
                                 // 根据动态配置赋值
                                 if(StringUtils.isNotBlank(fieldVO.getDynamicData())){
                                     value = tableMap.get(fieldVO.getDynamicData());
-                                }else if(StringUtils.isNotBlank(fieldVO.getDefalutValue())) {
-                                    value = fieldVO.getDefalutValue();
+                                }else if(StringUtils.isNotBlank(fieldVO.getDefaultValue())) {
+                                    value = fieldVO.getDefaultValue();
                                 }
                             }
                             // 字典项不为空 则进行字典项映射
