@@ -1,5 +1,16 @@
 package com.br.marketing.strategy;
 
+import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
@@ -7,15 +18,6 @@ import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
-
-import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE;
 
 /**
  * 推送携程(3710058/3710078)
@@ -50,8 +52,7 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
                 JSONObject msg = new JSONObject();
                 msg.put("localId", dto.getInitId());
                 msg.put("type", 2);
-                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
-                        , msg.toJSONString());
+                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
             }
         }
         return null;

@@ -24,6 +24,7 @@ import com.br.marketing.entity.XieChengCollidingDataRobExample;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
 import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
 import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -61,6 +62,9 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private VariableAllocationServiceImpl variableAllocationService;
     @Resource
     private XiechengCollidingDataPackageRuleMapper packageRuleMapper;
+    @Resource
+    private XiechengCollidingDataEliminationMapper eliminationMapper;
+
 
     @Override
     public void collidingData() {
@@ -135,6 +139,21 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
             .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
         List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
+        try {
+            List<String> excludeData = eliminationMapper.getExcludeData(sha256Codes);
+            if (CollectionUtils.isNotEmpty(excludeData)) {
+                List<String> distinctExcludeData = excludeData.stream().distinct().collect(Collectors.toList());
+                String extend = DateUtil.today() + " 转化数据convType=107或105";
+                xieChengCollidingDataRobMapper.batchDeleteExcludeCollidingData(excludeData, extend);
+                sha256Codes.removeAll(distinctExcludeData);
+                if (CollectionUtils.isEmpty(sha256Codes)) {
+                    log.warn("该批次手机号全部被过滤掉:{}", distinctExcludeData);
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            log.error("携程非周期撞库剔除撞库数据异常", e);
+        }
         try {
             Result collidingResult = xieChengServiceNew.pushXieChengSmsCollidingDataNew(sha256Codes);
             handleService.robDataHandle(collidingResult, cellMap);

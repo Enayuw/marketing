@@ -61,4 +61,8 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     int batchDeleteRobDataByPackageId(@Param("packageId") Long packageId, @Param("limit") int limit);
 
     List<Map<String, Long>> selectRemainingNumberstiflash_();
+
+    void batchDeleteExcludeCollidingData(@Param("excludeData")List<String> excludeData, @Param("extend")String extend);
+
+    void batchSaveFalseDynamicData(@Param("robs") List<XieChengCollidingDataRob> robs);
 }
