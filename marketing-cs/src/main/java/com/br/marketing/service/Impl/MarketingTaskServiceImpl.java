@@ -891,14 +891,6 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         //endregion
 
-        // 当任务类型为一次性全量时，生成任务后禁用跑分配置规则
-        if (task.getMonitorType() == 1) {
-            ScoreRuleConfig scoreRuleConfig = new ScoreRuleConfig();
-            scoreRuleConfig.setStatus(2);
-            scoreRuleConfig.setId(ruleVO.getId());
-            scoreRuleConfigMapper.updateByPrimaryKeySelective(scoreRuleConfig);
-        }
-
         //region 发送通知
         StringBuilder content = new StringBuilder();
         content.append("apiCode：".concat(apiCode).concat("\r\n"))
