@@ -87,4 +87,6 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     List<XieChengCollidingDataLoopCycle> selectCycleDataByCondition(@Param("minId") Long minId
             , @Param("querySql") String querySql,@Param("pageSize") Integer pageSize);
+
+    void batchDeleteExcludeCollidingData(@Param("excludeData") List<String> excludeData, @Param("extend")String extend);
 }
