@@ -1,5 +1,6 @@
 package com.br.marketing.check.utils;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
 import com.br.marketing.client.SftpClient;
@@ -12,6 +13,7 @@ import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.google.common.base.Splitter;
+import com.google.gson.JsonObject;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -401,6 +403,9 @@ public class SftpToDbUtils {
             List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(s);
             if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
                 fieldVO = fileToMarketingFieldVOS.get(0);
+            }
+            if (fieldVO != null && fieldVO.getIsExtend() == null) {
+                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("未配置该字段是否为扩展字段的属性信息"+ JSONObject.toJSONString(fieldVO));
             }
             // 扩展字段
             if(fieldVO == null || fieldVO.getIsExtend()){
