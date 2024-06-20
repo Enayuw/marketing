@@ -267,7 +267,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                         }
                     }
                     pushPool.shutdown();
-                    while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {}
+                    while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {// do nothing
+                    }
                 }catch (InterruptedException  ie){
                     log.error("线程池终止[{}]文件[{}]-行数[{}]-成功数[{}]-失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ie);
                     Thread.currentThread().interrupt();

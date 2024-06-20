@@ -167,7 +167,7 @@ public class FileToMarketingDataJob extends AbstractSimpleElasticJob {
         String requestIdPrefix = apiCode.concat("_").concat(fileNm).concat("_");
         String fileStr = path.concat(fileNm);
         // 校验表名称
-        if(fileConfig.getIsChecklistName() == 0){
+        if(fileConfig.getIsChecklistName() != null && fileConfig.getIsChecklistName() == 0){
             String regex = fileConfig.getValidationRules();
             Pattern pattern = Pattern.compile(regex);
             // 匹配不带 .success 后缀的文件名
