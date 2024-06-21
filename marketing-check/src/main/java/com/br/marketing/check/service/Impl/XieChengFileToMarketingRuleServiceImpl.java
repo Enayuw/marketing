@@ -1,9 +1,9 @@
 package com.br.marketing.check.service.Impl;
 
-import com.br.marketing.check.service.IFileToMarketingRuleService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
+import com.br.marketing.service.IFileToMarketingRuleService;
 import com.br.marketing.vo.FileToMarketingDataFieldVO;
 import org.springframework.stereotype.Service;
 

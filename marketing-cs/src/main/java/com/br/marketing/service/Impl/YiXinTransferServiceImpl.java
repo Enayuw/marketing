@@ -14,11 +14,9 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
@@ -27,7 +25,6 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import com.br.marketing.vo.PhoneSaleInfoVO;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +43,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -167,7 +163,15 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         String _60startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -60));
         String _endDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -1));
 
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
+        /*ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);*/
+        String startDate = LocalDate.now().minusDays(7).toString();
+        //查询实时推决策7天内数据
+        DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
+        DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(marketingCommonConfig.
+                getYiXinToPolicyApiCode()).andDistributeTypeEqualTo(DistributeTypeEnum.YIXIN_REALTIME_POLICYDATA.getValue()).
+                andDistributeDateGreaterThanOrEqualTo(startDate).andDistributeDateLessThan(LocalDate.now().toString());
+        List<DataDistributeDetailLog> detailLogList = dataDistributeDetailLogMapper.selectByExample(logExample);
+        List<String> logCustNumList = detailLogList.stream().map(DataDistributeDetailLog::getCustNum).collect(Collectors.toList());
         String tcId = tableCreateService.getTcId(apiCode);
         Integer pageSize = dynamicParameterService.getPageSize("yxToDx");
         Integer threadvalue = 0;
@@ -186,7 +190,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             HashSet<String> custNums = new HashSet();
             //如果返回的数据样本较大，考虑用list在分批查询，暂时先未使用
 //            List<String> custNumsList = new ArrayList<>();
-            List<MarketingTransferSyncUser> dataFilter1 = new ArrayList<>();
+            List<Long> dataFilter1 = new ArrayList<>();
             for (MarketingTransferSyncUser datum : data) {
                 if (!(StringUtils.isNotBlank(datum.getReserveField1())
                         && datum.getReserveField1().contains("\"transformType\":\"1\""))) {
@@ -194,13 +198,16 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         custNumALL.add(datum.getCustNum());
                         continue;
                     }
-                    if (custNumALL.add(datum.getCustNum()) && custNums.add(datum.getCustNum())) {
-                        dataFilter1.add(datum);
+                    boolean tagOne = custNumALL.add(datum.getCustNum());
+                    boolean tagTwo = logCustNumList.contains(datum.getCustNum());
+                    if (tagOne && (!tagTwo)) {
+                        //剔除实时推决策7天内数据
+                        dataFilter1.add(datum.getId());
 //                        custNumsList.add(datum.getCustNum());
                     }
                 }
             }
-            if (custNums.size() <= 0) {
+            if (dataFilter1.size() <= 0) {
                 continue;
             }
             //endregion
@@ -208,10 +215,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             final String _tApicode = apiCode;
             String pushUid = UUID.randomUUID().toString();
 
-            threadPool.submit(() -> {
+            /*threadPool.submit(() -> {*/
                 try {
-                    List<MarketingTransferSyncUser> dataFilter2 = new ArrayList<>();
-
                     /*//region 获取7天实时和60天非实时 推送记录
 
                     // 获取不包含当天的前7天实时推人工的custNum _7filerCustNumSet
@@ -326,23 +331,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         } else {
                             dataFilter2.add(transferSyncUser);
                         }
-                    }*/
+                    }
                     //endregion
                     //region 剔除实时推决策7天内数据
-                    String startDate = LocalDate.now().minusDays(7).toString();
-                    List<String> custNumList =  dataFilter1.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toList());
-                    DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
-                    DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(marketingCommonConfig.
-                            getYiXinToPolicyApiCode()).andDistributeTypeEqualTo(DistributeTypeEnum.YIXIN_REALTIME_POLICYDATA.getValue())
-                            .andCustNumIn(custNumList).andDistributeDateGreaterThanOrEqualTo(startDate)
-                            .andDistributeDateLessThan(LocalDate.now().toString());
-                    List<DataDistributeDetailLog> detailLogList = dataDistributeDetailLogMapper.selectByExample(logExample);
-                    List<String> logCustNumList = detailLogList.stream().map(DataDistributeDetailLog::getCustNum).collect(Collectors.toList());
-                    dataFilter1.forEach((MarketingTransferSyncUser transferSyncUser) -> {
-                        if (!logCustNumList.contains(transferSyncUser.getCustNum())) {
-                            dataFilter2.add(transferSyncUser);
-                        }
-                    });
                     //endregion
                     //region 黑名单查询
                     HashMap<String, String> blackData = new HashMap<>();
@@ -372,8 +363,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     List<Long> ids = dataFilter2.stream()
                             .filter(t -> StringUtils.isBlank(blackData.get(t.getId().toString()))
                                     || !blackData.get(t.getId().toString()).equals("Y"))
-                            .map(t -> t.getId()).collect(Collectors.toList());
-                    List<List<Long>> mqIdgroup = Lists.partition(ids, 1000);
+                            .map(t -> t.getId()).collect(Collectors.toList());*/
+                    List<List<Long>> mqIdgroup = Lists.partition(dataFilter1, 1000);
                     for (List<Long> longs : mqIdgroup) {
                         JSONObject jo = new JSONObject();
                         jo.put("tcId", tcId);
@@ -384,7 +375,6 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
                         mq.setIncludeRules(rule);
                         mq.setMessage(JSON.toJSONString(jo));
-//                    mq.setIncludeRules();
                         String mqStr = JSON.toJSONString(mq);
                         producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
                         if (log.isWarnEnabled()) {
@@ -395,10 +385,13 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                 } catch (Exception ex) {
                     log.error(ex.getMessage(), ex);
                 }
-            });
+            //手动清除大集合
+            data.clear();
+            dataFilter1.clear();
+           /* });*/
         }
 
-        threadPool.shutdown();
+        /*threadPool.shutdown();
         Boolean threadMark = Boolean.TRUE;
         while (threadMark) {
             if (threadPool.isTerminated()) {
@@ -409,7 +402,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
         updateFrontDataStatus(frontId, 2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -444,8 +437,6 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         Integer page = 0;
         //过滤type的Set
         HashSet custNumFilterType = new HashSet();
-        //去重后的Set
-        HashSet custNumResult = new HashSet();
         List<Long> ids = new ArrayList<>();
         Integer pageSize = dynamicParameterService.getPageSize("yxToCustomer");
         while (mark) {
@@ -469,7 +460,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         continue;
                     }
                     //过滤掉 同一custNum的其他insertTime列，custNumResult
-                    if (custNumFilterType.add(datum.getCustNum()) && custNumResult.add(datum.getCustNum())) {
+                    if (custNumFilterType.add(datum.getCustNum())) {
                         //过滤type=13，且registerChannel！=1,2的
                         if ("13".equals(datum.getType())) {
                             String registerChannel = JSON.parseObject(datum.getReserveField1()).getString("registerChannel");
@@ -486,9 +477,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     }
                 }
             }
+            data.clear();
+            syncUserMap.clear();
         }
         custNumFilterType.clear();
-        custNumResult.clear();
         log.warn("宜信非实时数据推送客服数据量 totalNum={}", ids.size());
         long time = System.currentTimeMillis();
         pushRobotAIMessage(apiCode, ids);

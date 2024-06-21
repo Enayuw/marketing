@@ -905,4 +905,10 @@
             order by applet_date desc
         </if>
     </select>
+
+    <select id="getSyncUserByRequestBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where api_code =#{apiCode} and request_batch = #{requestBatch}
+    </select>
 </mapper>

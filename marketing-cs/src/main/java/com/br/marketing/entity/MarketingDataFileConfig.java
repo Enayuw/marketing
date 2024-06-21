@@ -1,22 +1,41 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class MarketingDataFileConfig {
-    /**
-     * 
-     */
+/**
+ * b_marketing_data_file_config
+ * @author 
+ */
+public class MarketingDataFileConfig implements Serializable {
     private Long id;
 
-    /**
-     * 
-     */
     private String apiCode;
+
+    /**
+     * 匹配文件Id
+     */
+    private Integer fileId;
+
+    /**
+     * 清洗类型：0上传，1转化
+     */
+    private Integer cleanType;
+
+    /**
+     * 规则名称
+     */
+    private String ruleName;
 
     /**
      * 字段配置
      */
     private String fieldConfig;
+
+    /**
+     * 字段配置展示
+     */
+    private String fieldConfigShow;
 
     /**
      * 实现的服务名
@@ -41,12 +60,14 @@ public class MarketingDataFileConfig {
     /**
      * 是否校验表名 0校验 1不校验
      */
-    private Integer isChecklistName;
+    private Byte isChecklistName;
 
     /**
      * 表名校验规则
      */
     private String validationRules;
+
+    private static final long serialVersionUID = 1L;
 
     public Long getId() {
         return id;
@@ -61,7 +82,31 @@ public class MarketingDataFileConfig {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
+        this.apiCode = apiCode;
+    }
+
+    public Integer getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(Integer fileId) {
+        this.fileId = fileId;
+    }
+
+    public Integer getCleanType() {
+        return cleanType;
+    }
+
+    public void setCleanType(Integer cleanType) {
+        this.cleanType = cleanType;
+    }
+
+    public String getRuleName() {
+        return ruleName;
+    }
+
+    public void setRuleName(String ruleName) {
+        this.ruleName = ruleName;
     }
 
     public String getFieldConfig() {
@@ -69,7 +114,15 @@ public class MarketingDataFileConfig {
     }
 
     public void setFieldConfig(String fieldConfig) {
-        this.fieldConfig = fieldConfig == null ? null : fieldConfig.trim();
+        this.fieldConfig = fieldConfig;
+    }
+
+    public String getFieldConfigShow() {
+        return fieldConfigShow;
+    }
+
+    public void setFieldConfigShow(String fieldConfigShow) {
+        this.fieldConfigShow = fieldConfigShow;
     }
 
     public String getServiceName() {
@@ -77,7 +130,7 @@ public class MarketingDataFileConfig {
     }
 
     public void setServiceName(String serviceName) {
-        this.serviceName = serviceName == null ? null : serviceName.trim();
+        this.serviceName = serviceName;
     }
 
     public Date getCreateTime() {
@@ -104,11 +157,11 @@ public class MarketingDataFileConfig {
         this.isDel = isDel;
     }
 
-    public Integer getIsChecklistName() {
+    public Byte getIsChecklistName() {
         return isChecklistName;
     }
 
-    public void setIsChecklistName(Integer isChecklistName) {
+    public void setIsChecklistName(Byte isChecklistName) {
         this.isChecklistName = isChecklistName;
     }
 
@@ -117,6 +170,6 @@ public class MarketingDataFileConfig {
     }
 
     public void setValidationRules(String validationRules) {
-        this.validationRules = validationRules == null ? null : validationRules.trim();
+        this.validationRules = validationRules;
     }
 }

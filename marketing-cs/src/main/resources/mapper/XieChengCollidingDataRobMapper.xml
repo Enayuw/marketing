@@ -148,4 +148,26 @@
         WHERE is_delete = 0
         GROUP BY package_id;
     </select>
+
+    <update id="batchDeleteExcludeCollidingData">
+        update b_xiecheng_colliding_data_rob
+        set is_delete   = 1,
+            update_time = now(),
+            extend      = #{extend}
+        where is_delete = 0
+          and cell_sha256_code_list in
+        <foreach collection="excludeData" item="cell_sha256_code_list" open="(" separator="," close=")">
+            #{cell_sha256_code_list}
+        </foreach>
+    </update>
+
+    <insert id="batchSaveFalseDynamicData">
+        INSERT INTO b_xiecheng_colliding_data_rob (package_id, data_source_type, cell_sha256_code_list)
+        VALUES
+        <foreach collection="robs" item="item" separator=",">
+            (#{item.packageId},
+            #{item.dataSourceType},
+            #{item.cellSha256CodeList})
+        </foreach>
+    </insert>
 </mapper>

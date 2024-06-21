@@ -145,4 +145,15 @@
         order by id limit #{pageSize};
     </select>
 
+    <update id="batchDeleteExcludeCollidingData">
+        update b_xiecheng_colliding_data_loop_cycle
+        set is_delete   = 1,
+            update_time = now(),
+            extend      = #{extend}
+        where is_delete = 0
+          and cell_sha256_code_list in
+        <foreach collection="excludeData" item="cell_sha256_code_list" open="(" separator="," close=")">
+            #{cell_sha256_code_list}
+        </foreach>
+    </update>
 </mapper>

@@ -34,7 +34,7 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
     List<MarketingTaskVO> selectList(@Param("search")String search, @Param("status")Integer status,
                                      @Param("createTimeStart")String createTimeStart, @Param("createTimeEnd")String createTimeEnd,
                                      @Param("updateTimeStart")String updateTimeStart, @Param("updateTimeEnd")String updateTimeEnd,
-                                     @Param("taskStatus")Integer taskStatus, @Param("id")String id);
+                                     @Param("taskStatus")Integer taskStatus, @Param("id")String id, @Param("execType")Integer execType);
 
 
     List<Map<String, Object>> getModule(String apiCode);

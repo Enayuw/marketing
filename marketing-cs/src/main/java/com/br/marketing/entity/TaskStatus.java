@@ -17,5 +17,8 @@ public class TaskStatus {
     private Integer incrStatus;
     private Integer onceStatus;
     private Long fileId;
-
+    /**
+     * 暂停方式（1：手动暂停、2：插队暂停）
+     */
+    private Integer pauseType;
 }

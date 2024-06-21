@@ -965,6 +965,66 @@ public class ScoreRuleConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andAutoBuildIsNull() {
+            addCriterion("auto_build is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildIsNotNull() {
+            addCriterion("auto_build is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildEqualTo(Integer value) {
+            addCriterion("auto_build =", value, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildNotEqualTo(Integer value) {
+            addCriterion("auto_build <>", value, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildGreaterThan(Integer value) {
+            addCriterion("auto_build >", value, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildGreaterThanOrEqualTo(Integer value) {
+            addCriterion("auto_build >=", value, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildLessThan(Integer value) {
+            addCriterion("auto_build <", value, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildLessThanOrEqualTo(Integer value) {
+            addCriterion("auto_build <=", value, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildIn(List<Integer> values) {
+            addCriterion("auto_build in", values, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildNotIn(List<Integer> values) {
+            addCriterion("auto_build not in", values, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildBetween(Integer value1, Integer value2) {
+            addCriterion("auto_build between", value1, value2, "autoBuild");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoBuildNotBetween(Integer value1, Integer value2) {
+            addCriterion("auto_build not between", value1, value2, "autoBuild");
+            return (Criteria) this;
+        }
+
         public Criteria andCycleDayIsNull() {
             addCriterion("cycle_day is null");
             return (Criteria) this;
@@ -1216,62 +1276,62 @@ public class ScoreRuleConfigExample {
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+            addCriterion("`status` is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+            addCriterion("`status` is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(Integer value) {
-            addCriterion("status =", value, "status");
+            addCriterion("`status` =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(Integer value) {
-            addCriterion("status <>", value, "status");
+            addCriterion("`status` <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(Integer value) {
-            addCriterion("status >", value, "status");
+            addCriterion("`status` >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("status >=", value, "status");
+            addCriterion("`status` >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(Integer value) {
-            addCriterion("status <", value, "status");
+            addCriterion("`status` <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("status <=", value, "status");
+            addCriterion("`status` <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<Integer> values) {
-            addCriterion("status in", values, "status");
+            addCriterion("`status` in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<Integer> values) {
-            addCriterion("status not in", values, "status");
+            addCriterion("`status` not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(Integer value1, Integer value2) {
-            addCriterion("status between", value1, value2, "status");
+            addCriterion("`status` between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("status not between", value1, value2, "status");
+            addCriterion("`status` not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -1522,6 +1582,126 @@ public class ScoreRuleConfigExample {
 
         public Criteria andIsOnlineNotBetween(Integer value1, Integer value2) {
             addCriterion("is_online not between", value1, value2, "isOnline");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityIsNull() {
+            addCriterion("is_stack_validity is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityIsNotNull() {
+            addCriterion("is_stack_validity is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityEqualTo(Integer value) {
+            addCriterion("is_stack_validity =", value, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityNotEqualTo(Integer value) {
+            addCriterion("is_stack_validity <>", value, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityGreaterThan(Integer value) {
+            addCriterion("is_stack_validity >", value, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_stack_validity >=", value, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityLessThan(Integer value) {
+            addCriterion("is_stack_validity <", value, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityLessThanOrEqualTo(Integer value) {
+            addCriterion("is_stack_validity <=", value, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityIn(List<Integer> values) {
+            addCriterion("is_stack_validity in", values, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityNotIn(List<Integer> values) {
+            addCriterion("is_stack_validity not in", values, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityBetween(Integer value1, Integer value2) {
+            addCriterion("is_stack_validity between", value1, value2, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsStackValidityNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_stack_validity not between", value1, value2, "isStackValidity");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityIsNull() {
+            addCriterion("priority is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityIsNotNull() {
+            addCriterion("priority is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityEqualTo(Integer value) {
+            addCriterion("priority =", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityNotEqualTo(Integer value) {
+            addCriterion("priority <>", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityGreaterThan(Integer value) {
+            addCriterion("priority >", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityGreaterThanOrEqualTo(Integer value) {
+            addCriterion("priority >=", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityLessThan(Integer value) {
+            addCriterion("priority <", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityLessThanOrEqualTo(Integer value) {
+            addCriterion("priority <=", value, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityIn(List<Integer> values) {
+            addCriterion("priority in", values, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityNotIn(List<Integer> values) {
+            addCriterion("priority not in", values, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityBetween(Integer value1, Integer value2) {
+            addCriterion("priority between", value1, value2, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andPriorityNotBetween(Integer value1, Integer value2) {
+            addCriterion("priority not between", value1, value2, "priority");
             return (Criteria) this;
         }
     }

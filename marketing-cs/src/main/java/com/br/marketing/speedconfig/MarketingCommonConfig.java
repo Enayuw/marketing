@@ -9,6 +9,7 @@ import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.speed.client.common.annotations.SpeedFile;
 import lombok.Data;
 import org.springframework.context.annotation.Configuration;
+import shaded.com.google.common.collect.Lists;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -296,6 +297,11 @@ public class MarketingCommonConfig {
      * 服务上线job开关-Monkey
      */
     private Boolean dataMonkeyJobOnlineSwitch;
+
+    /**
+     * ruleScheduler服务job的上线开关
+     */
+    private Boolean ruleSchedulerJobOnlineSwitch;
 
     /**
      * 离线跑批入es文件 线程数
@@ -1681,5 +1687,20 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONObject> periodPushConfig;
 
+
+    /**
+     * 数据清洗试跑apiCode
+     */
+    private String datacleanTestRunApiCode;
+
+    /**
+     *  * marketing-task跑分服务节点数量
+     */
+    private Integer numberOfScoreTaskNodes;
+
+    /**
+     * 携程CPA撞库过滤转化数据convType配置
+     */
+    private List<String> xieChengCpaExcludeConvTypeConfig = Lists.newArrayList("107","105");
 }
 

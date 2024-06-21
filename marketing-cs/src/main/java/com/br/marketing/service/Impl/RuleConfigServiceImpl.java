@@ -181,6 +181,7 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         return getScoreConfigNow(null);
     }
 
+
     @Override
     public Result<List<CustomerScoreRuleVO>> getScoreConfigNow(List<Long> ids) {
         ScoreRuleConfigExample ruleConfigExample = new ScoreRuleConfigExample();
@@ -193,6 +194,7 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         }else {
             String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
             ruleConfigExample.createCriteria()
+                    .andAutoBuildEqualTo(1)
                     .andStartTimeLessThanOrEqualTo(nowTime)
                     .andIsDelEqualTo(Constants.DATA_VALID)
                     .andStatusEqualTo(Constants.STATUS_START);
@@ -243,5 +245,4 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerScoreRuleVOS);
     }
-
 }
