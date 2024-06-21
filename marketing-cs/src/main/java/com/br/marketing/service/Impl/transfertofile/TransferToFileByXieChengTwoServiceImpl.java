@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -67,10 +68,7 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
 
     final static String XIECHENG_ZK_FILE = "callbackresult_";
 
-    final static DateTimeFormatter YYYY_MM_DD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-
     final static DateTimeFormatter YYYYMMDD = DateTimeFormatter.ofPattern("yyyyMMdd");
-    private final static DateTimeFormatter YYYYMMDDHMS = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     /**
      * 2024-05-07 14:30
@@ -276,7 +274,7 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         try (Writer fw = new BufferedWriter(
                 new OutputStreamWriter(
                         new FileOutputStream(file), "UTF-8"));) {
-            fw.append("sha256Code,result,orgChannel,mktLevel,info,fileName,ifCycle");
+            fw.append("sha256Code,result,orgChannel,mktLevel,info,fileName,releaseTime,couponCode,couponDesc");
             fw.append("\r\n");
             writeZk(fw, apiCode, transferFileTask);
         } catch (Exception ex) {
@@ -288,7 +286,7 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
 
     private void writeZk(Writer fw, String apiCode, TransferFileTask transferFileTask) {
         Long start = System.currentTimeMillis();
-        int num = 0;
+        AtomicInteger totalSize = new AtomicInteger(0);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100);
         try {
             List<Map<Integer, String>> timeRange = initCallBackResultTimeRange();
@@ -350,8 +348,6 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                         .distinct()
                         .collect(Collectors.toList());
 
-                num += xieChengCollidingDataLogs.size();
-
                 XieChengCollidingDataPackageExample dataPackageExample = new XieChengCollidingDataPackageExample();
                 dataPackageExample.createCriteria().andIdIn(packageIds);
                 List<XieChengCollidingDataPackage> dataPackageList = xieChengCollidingDataPackageMapper.selectByExample(dataPackageExample);
@@ -371,23 +367,17 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                             }
                             List<XieChengCollidingDataPackage> dataPackages = dataPackagesMap.get(xieChengCollidingDataLog.getPackageId());
                             String fileName = "";
-                            String ifCycle = StringUtils.isBlank(xieChengCollidingDataLog.getDataSourceType()) ?
-                                    "" : xieChengCollidingDataLog.getDataSourceType();
-                            if (StringUtils.isNotBlank(ifCycle)) {
-                                ifCycle = ifCycle.equals("T") ? "1" : "0";
-                            }
+                            String releaseTime = removeMillisecond(emptyDefault(xieChengCollidingDataLog.getReleaseTime()));
+//                            String couponCode = removeMillisecond(emptyDefault(xieChengCollidingDataLog.getCouponCode()));
+//                            String couponDesc = removeMillisecond(emptyDefault(xieChengCollidingDataLog.getCouponDesc()));
                             if (!dataPackages.isEmpty()) {
                                 fileName = dataPackages.get(0).getPackageName();
                             }
-                            String cellSha256CodeList = xieChengCollidingDataLog.getCellSha256CodeList();
-                            String result = xieChengCollidingDataLog.getResult() == null ?
-                                    "" : xieChengCollidingDataLog.getResult().toString();
-                            String orgChannel = StringUtils.isBlank(xieChengCollidingDataLog.getOrgChannel()) ?
-                                    "" : xieChengCollidingDataLog.getOrgChannel();
-                            String mktLevel = StringUtils.isBlank(xieChengCollidingDataLog.getMktLevel()) ?
-                                    "" : xieChengCollidingDataLog.getMktLevel();
-                            String info = StringUtils.isBlank(xieChengCollidingDataLog.getInfo()) ?
-                                    "" : xieChengCollidingDataLog.getInfo();
+                            String cellSha256CodeList = emptyDefault(xieChengCollidingDataLog.getCellSha256CodeList());
+                            String result = emptyDefault(xieChengCollidingDataLog.getResult().toString());
+                            String orgChannel = emptyDefault(xieChengCollidingDataLog.getOrgChannel());
+                            String mktLevel = emptyDefault(xieChengCollidingDataLog.getMktLevel());
+                            String info = emptyDefault(xieChengCollidingDataLog.getInfo());
                             StringBuilder sb = new StringBuilder();
                             sb.append(cellSha256CodeList.concat(","))
                                     .append(result.concat(","))
@@ -395,9 +385,12 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                                     .append(mktLevel.concat(","))
                                     .append(info.concat(","))
                                     .append(fileName.concat(","))
-                                    .append(ifCycle)
+                                    .append(releaseTime.concat(","))
+//                                    .append(couponCode.concat(","))
+//                                    .append(couponDesc)
                                     .append("\r\n");
                             fw.append(sb.toString());
+                            totalSize.incrementAndGet();
                         }
                     } catch (Exception ex) {
                         log.error("携程锁定名单线程错误:" + ex.getMessage(), ex);
@@ -418,10 +411,10 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         updateTask.setStatus(2);
         updateTask.setFileName(transferFileTask.getFileName());
         updateTask.setFilePath(transferFileTask.getFilePath());
-        updateTask.setTaskNumber(num);
+        updateTask.setTaskNumber(totalSize.intValue());
         transferFileTaskMapper.updateByPrimaryKeySelective(updateTask);
 
-        log.warn("携程锁定结果数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, num);
+        log.warn("携程锁定结果数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode, System.currentTimeMillis() - start, totalSize.intValue());
 
     }
 
@@ -548,6 +541,14 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
             }
         }
         return false;
+    }
+
+    private String removeMillisecond(String timeStr) {
+        return timeStr.replace(":000", "");
+    }
+
+    private String emptyDefault(String value) {
+        return StringUtils.isNotEmpty(value) ? value : "";
     }
 
 }
