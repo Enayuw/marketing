@@ -27,4 +27,16 @@ public class XieChengCollidingFilterDTO {
      */
     private Map<String,String> releaseTime;
 
+    /**
+     * coupon_code
+     * 卷码code：result=true时返回
+     */
+    private Map<String,String> coupon_code;
+
+    /**
+     * coupon_desc
+     * 卷码描述：result=true时返回
+     */
+    private Map<String,String> coupon_desc;
+
 }

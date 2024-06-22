@@ -1702,5 +1702,10 @@ public class MarketingCommonConfig {
      * 携程CPA撞库过滤转化数据convType配置
      */
     private List<String> xieChengCpaExcludeConvTypeConfig = Lists.newArrayList("107","105");
+
+    /**
+     *  携程撞库推决策分页查询数量
+     */
+    private Integer xiechengZkToPlicyPageSize;
 }
 
