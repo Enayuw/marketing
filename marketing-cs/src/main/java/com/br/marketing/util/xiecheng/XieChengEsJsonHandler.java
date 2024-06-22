@@ -80,13 +80,13 @@ public class XieChengEsJsonHandler {
             if(StringUtils.isNotEmpty(zkTrueCondition.toString())){
                 zkTrueCondition.append(" and ");
             }
-            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_code", releaseTime.get("operation"), releaseTime.get("value")));
+            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_code", couponCode.get("operation"), couponCode.get("value")));
         }
         if (!CollectionUtils.isEmpty(couponDesc)) {
             if(StringUtils.isNotEmpty(zkTrueCondition.toString())){
                 zkTrueCondition.append(" and ");
             }
-            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_desc", releaseTime.get("operation"), releaseTime.get("value")));
+            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_desc", couponDesc.get("operation"), couponDesc.get("value")));
         }
 
         return zkTrueCondition.toString();
