@@ -62,6 +62,16 @@ public class XieChengCollidingDataLog {
     private Boolean result;
 
     /**
+     * 券码code
+     */
+    private String couponCode;
+
+    /**
+     * 券码名称
+     */
+    private String couponDesc;
+
+    /**
      * 网络异常码
      */
     private Integer httpCode;
