@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.common.utils.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -159,27 +160,36 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
      * @param cellMaps
      */
     private void falseHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
-        List<XieChengCollidingDataLoopCycle> falseList = returnDataList.stream().map(t -> (JSONObject)t)
-            .filter(t -> t.getBoolean("result").equals(Boolean.FALSE)).map(t -> buildFalseDataDto(t, cellMaps)).collect(Collectors.toList());
-
         // 设置packageId为package表优先级为0的id
         Long packageId = getPackageId();
-
-        falseList.forEach((XieChengCollidingDataLoopCycle t) -> {
-            try {
-                handleService.cycleDataHandle(t, packageId);
-            } catch (Exception e) {
-                log.error("携程TRUE数据撞库，同时写true和false表失败，cell：" + t.getCellSha256CodeList(), e.getMessage());
-            }
-        });
+        returnDataList.stream()
+            .map(obj -> (JSONObject) obj)
+            .filter(returnData -> !returnData.getBoolean("result"))
+            .forEach(returnData -> {
+                String sha256Code = returnData.getString("sha256Code");
+                XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
+                if (loopCycle == null) {
+                    log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=false", sha256Code);
+                    return;
+                }
+                XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
+                dto.setId(loopCycle.getId());
+                dto.setCellSha256CodeList(sha256Code);
+                Date releaseDate = StringUtils.isNotEmpty(returnData.getString("releaseDate"))
+                    ? DateUtil.parse(returnData.getString("releaseDate"), DatePattern.NORM_DATE_PATTERN) : null;
+                try {
+                    handleService.cycleDataHandle(dto, packageId, releaseDate);
+                } catch (Exception e) {
+                    log.error("携程TRUE数据撞库，同时写true和false表失败，cell：{}", dto.getCellSha256CodeList(), e);
+                }
+            });
     }
 
     private Long getPackageId() {
         XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
         packageExample.createCriteria().andPriorityEqualTo(0);
         List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
-        Long packageId = CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
-        return packageId;
+        return CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
     }
 
     private XieChengCollidingDataLoopCycle buildTrueDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
@@ -199,22 +209,19 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         dto.setRetryCount(0);
         // 更新releaseTime
         dto.setReleaseTime(DateUtil.parse(t.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
-
-        return dto;
-    }
-
-    private XieChengCollidingDataLoopCycle buildFalseDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
-        XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
-        String sha256Code = t.getString("sha256Code");
-        XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
-        if (loopCycle == null) {
-            log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=false", sha256Code);
-            return new XieChengCollidingDataLoopCycle();
+        try {
+            JSONArray jsonArray = t.getJSONArray("marketCouponList");
+            dto.setMarketCouponList(jsonArray.toJSONString());
+            if (!jsonArray.isEmpty()) {
+                JSONObject firstCoupon = jsonArray.getJSONObject(0);
+                String couponCode = firstCoupon.getString("couponCode");
+                String couponDesc = firstCoupon.getString("couponDesc");
+                dto.setCouponCode(couponCode);
+                dto.setCouponDesc(couponDesc);
+            }
+        } catch (Exception e) {
+            log.error("携程周期撞库析出marketCouponList异常", e);
         }
-
-        dto.setId(loopCycle.getId());
-        dto.setCellSha256CodeList(sha256Code);
-
         return dto;
     }
 

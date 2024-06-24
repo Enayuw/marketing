@@ -42,6 +42,11 @@ public class XieChengCollidingDataLog {
     private String releaseTime;
 
     /**
+     * 释放日期
+     */
+    private String releaseDate;
+
+    /**
      * 携程用户：CTRIP 去哪儿用户：QUNAR
      */
     private String orgChannel;
@@ -60,6 +65,21 @@ public class XieChengCollidingDataLog {
      * 核验结果 true：参与营销，false：不参与营销
      */
     private Boolean result;
+
+    /**
+     * 券码信息
+     */
+    private String marketCouponList;
+
+    /**
+     * 券码code
+     */
+    private String couponCode;
+
+    /**
+     * 券码名称
+     */
+    private String couponDesc;
 
     /**
      * 网络异常码

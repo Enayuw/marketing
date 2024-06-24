@@ -46,27 +46,6 @@ public class XieChengServiceNew {
     private static final String MARKETTYPE = "SMS";
     private static final Boolean MARKETFINANCEUSER = false;
 
-    @Value("${api.xiecheng.smsColliding.openUrl:0}")
-    private String smsCollidingOpenUrl;
-
-    @Value("${api.xiecheng.smsColliding.appId:0}")
-    private String smsCollidingAppId;
-
-    @Value("${api.xiecheng.smsColliding.key:0}")
-    private String smsCollidingKey;
-
-    @Value("${api.xiecheng.smsColliding.iv:0}")
-    private String smsCollidingIv;
-
-    @Value("${api.xiecheng.smsColliding.singKey:0}")
-    private String smsCollidingSingKey;
-
-    @Value("${api.xiecheng.smsColliding.channel:0}")
-    private String smsCollidingChannel;
-
-    @Value("${api.xiecheng.smsQuit.isProxy:0}")
-    private Boolean smsCollidingIsProxy;
-
     @Autowired
     HttpProxyClient httpProxyClient;
 
@@ -124,6 +103,14 @@ public class XieChengServiceNew {
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengSmsCollidingDataNew(List<String> sha256CodeList) {
+        JSONObject collidingConfig = marketingCommonConfig.getXieChengSmsCollidingConfig();
+        String smsCollidingOpenUrl = collidingConfig.getString("smsCollidingOpenUrl");
+        String smsCollidingAppId = collidingConfig.getString("smsCollidingAppId");
+        String smsCollidingKey = collidingConfig.getString("smsCollidingKey");
+        String smsCollidingIv = collidingConfig.getString("smsCollidingIv");
+        String smsCollidingSingKey = collidingConfig.getString("smsCollidingSingKey");
+        String smsCollidingChannel = collidingConfig.getString("smsCollidingChannel");
+        Boolean smsCollidingIsProxy = collidingConfig.getBoolean("smsCollidingIsProxy");
         /**
          * data 组装
          */

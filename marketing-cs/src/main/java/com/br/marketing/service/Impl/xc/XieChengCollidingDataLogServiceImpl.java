@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.br.marketing.common.commondto.Result;
@@ -64,6 +65,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
         String mktLevel = returnData.getString("mktLevel");
         String info = returnData.getString("info");
         String releaseTime = returnData.getString("releaseTime");
+        String releaseDate = returnData.getString("releaseDate");
         XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
         xieChengCollidingDataLog.setSmsCollidingDataId(id);
         xieChengCollidingDataLog.setPackageId(packageId);
@@ -73,12 +75,26 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
         xieChengCollidingDataLog.setDataSourceType(dataSourceType);
         xieChengCollidingDataLog.setCellSha256CodeList(sha256Code);
         xieChengCollidingDataLog.setReleaseTime(releaseTime);
+        xieChengCollidingDataLog.setReleaseDate(releaseDate);
         xieChengCollidingDataLog.setOrgChannel(orgChannel);
         xieChengCollidingDataLog.setHttpCode(Integer.valueOf(httpcode));
         xieChengCollidingDataLog.setBusinessCode(businessCode);
         xieChengCollidingDataLog.setMktLevel(mktLevel);
         xieChengCollidingDataLog.setInfo(info);
         xieChengCollidingDataLog.setResult(result);
+        try {
+            JSONArray jsonArray = returnData.getJSONArray("marketCouponList");
+            xieChengCollidingDataLog.setMarketCouponList(jsonArray.toJSONString());
+            if (!jsonArray.isEmpty()) {
+                JSONObject firstCoupon = jsonArray.getJSONObject(0);
+                String couponCode = firstCoupon.getString("couponCode");
+                String couponDesc = firstCoupon.getString("couponDesc");
+                xieChengCollidingDataLog.setCouponCode(couponCode);
+                xieChengCollidingDataLog.setCouponDesc(couponDesc);
+            }
+        } catch (Exception e) {
+            log.error("携程撞库日志析出marketCouponList异常", e);
+        }
         xieChengCollidingDataLog.setReturnContent(returnData.toString(SerializerFeature.WriteMapNullValue));
         xieChengCollidingDataLog.setCreateTime(new Date());
         xieChengCollidingDataLog.setUpdateTime(new Date());
@@ -86,7 +102,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     }
 
     /**
-     * 构建失败谢程碰撞数据日志
+     * 构建异常携程撞库日志
      *
      * @param id id
      * @param packageId packageId

@@ -2,6 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 public class XieChengCollidingDataRobExample {
@@ -103,6 +104,32 @@ public class XieChengCollidingDataRobExample {
                 throw new RuntimeException("Between values for " + property + " cannot be null");
             }
             criteria.add(new Criterion(condition, value1, value2));
+        }
+
+        protected void addCriterionForJDBCDate(String condition, Date value, String property) {
+            if (value == null) {
+                throw new RuntimeException("Value for " + property + " cannot be null");
+            }
+            addCriterion(condition, new java.sql.Date(value.getTime()), property);
+        }
+
+        protected void addCriterionForJDBCDate(String condition, List<Date> values, String property) {
+            if (values == null || values.size() == 0) {
+                throw new RuntimeException("Value list for " + property + " cannot be null or empty");
+            }
+            List<java.sql.Date> dateList = new ArrayList<java.sql.Date>();
+            Iterator<Date> iter = values.iterator();
+            while (iter.hasNext()) {
+                dateList.add(new java.sql.Date(iter.next().getTime()));
+            }
+            addCriterion(condition, dateList, property);
+        }
+
+        protected void addCriterionForJDBCDate(String condition, Date value1, Date value2, String property) {
+            if (value1 == null || value2 == null) {
+                throw new RuntimeException("Between values for " + property + " cannot be null");
+            }
+            addCriterion(condition, new java.sql.Date(value1.getTime()), new java.sql.Date(value2.getTime()), property);
         }
 
         public Criteria andIdIsNull() {
@@ -482,6 +509,66 @@ public class XieChengCollidingDataRobExample {
 
         public Criteria andReleaseTimeNotBetween(Date value1, Date value2) {
             addCriterion("release_time not between", value1, value2, "releaseTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateIsNull() {
+            addCriterion("release_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateIsNotNull() {
+            addCriterion("release_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateEqualTo(Date value) {
+            addCriterionForJDBCDate("release_date =", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateNotEqualTo(Date value) {
+            addCriterionForJDBCDate("release_date <>", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateGreaterThan(Date value) {
+            addCriterionForJDBCDate("release_date >", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateGreaterThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("release_date >=", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateLessThan(Date value) {
+            addCriterionForJDBCDate("release_date <", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateLessThanOrEqualTo(Date value) {
+            addCriterionForJDBCDate("release_date <=", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateIn(List<Date> values) {
+            addCriterionForJDBCDate("release_date in", values, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateNotIn(List<Date> values) {
+            addCriterionForJDBCDate("release_date not in", values, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("release_date between", value1, value2, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateNotBetween(Date value1, Date value2) {
+            addCriterionForJDBCDate("release_date not between", value1, value2, "releaseDate");
             return (Criteria) this;
         }
 
