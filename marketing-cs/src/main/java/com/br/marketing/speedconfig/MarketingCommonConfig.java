@@ -1707,5 +1707,10 @@ public class MarketingCommonConfig {
      *  携程撞库推决策分页查询数量
      */
     private Integer xiechengZkToPlicyPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengSmsCollidingConfig;
 }
 
