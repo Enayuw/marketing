@@ -1,6 +1,7 @@
 package com.br.marketing.client.xiecheng;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -66,7 +67,6 @@ public class XieChengServiceNew {
         }
 
         JSONArray jsonArray = new JSONArray();
-        Random random = new Random();
         for(int i=0;i<sha256CodeList.size();i++){
             JSONObject dataMap = new JSONObject();
             String s = sha256CodeList.get(i);
@@ -77,7 +77,7 @@ public class XieChengServiceNew {
                 dataMap.put("releaseDate", null);
             }else {
                 dataMap.put("result",false);
-                dataMap.put("releaseDate", DateUtil.formatDate(DateUtil.offsetDay(new Date(),random.nextInt(7)+1)));
+                dataMap.put("releaseDate", DateUtil.formatDate(DateUtil.offsetDay(new Date(), RandomUtil.getRandom().nextInt(7)+1)));
             }
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
