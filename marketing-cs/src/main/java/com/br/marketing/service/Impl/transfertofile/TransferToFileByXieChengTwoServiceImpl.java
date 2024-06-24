@@ -368,8 +368,8 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                             List<XieChengCollidingDataPackage> dataPackages = dataPackagesMap.get(xieChengCollidingDataLog.getPackageId());
                             String fileName = "";
                             String releaseTime = removeMillisecond(emptyDefault(xieChengCollidingDataLog.getReleaseTime()));
-//                            String couponCode = removeMillisecond(emptyDefault(xieChengCollidingDataLog.getCouponCode()));
-//                            String couponDesc = removeMillisecond(emptyDefault(xieChengCollidingDataLog.getCouponDesc()));
+                            String couponCode = removeMillisecond(emptyDefault(xieChengCollidingDataLog.getCouponCode()));
+                            String couponDesc = removeMillisecond(emptyDefault(xieChengCollidingDataLog.getCouponDesc()));
                             if (!dataPackages.isEmpty()) {
                                 fileName = dataPackages.get(0).getPackageName();
                             }
@@ -386,8 +386,8 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
                                     .append(info.concat(","))
                                     .append(fileName.concat(","))
                                     .append(releaseTime.concat(","))
-//                                    .append(couponCode.concat(","))
-//                                    .append(couponDesc)
+                                    .append(couponCode.concat(","))
+                                    .append(couponDesc)
                                     .append("\r\n");
                             fw.append(sb.toString());
                             totalSize.incrementAndGet();
