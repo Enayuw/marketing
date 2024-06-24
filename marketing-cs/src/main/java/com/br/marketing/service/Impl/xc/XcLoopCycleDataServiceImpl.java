@@ -162,10 +162,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private void falseHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         // 设置packageId为package表优先级为0的id
         Long packageId = getPackageId();
-        returnDataList.stream()
-            .map(obj -> (JSONObject) obj)
-            .filter(returnData -> !returnData.getBoolean("result"))
-            .forEach(returnData -> {
+        returnDataList.stream().map(obj -> (JSONObject)obj).filter(returnData -> !returnData.getBoolean("result"))
+            .forEach((JSONObject returnData) -> {
                 String sha256Code = returnData.getString("sha256Code");
                 XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
                 if (loopCycle == null) {
@@ -175,8 +173,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                 XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
                 dto.setId(loopCycle.getId());
                 dto.setCellSha256CodeList(sha256Code);
-                Date releaseDate = StringUtils.isNotEmpty(returnData.getString("releaseDate"))
-                    ? DateUtil.parse(returnData.getString("releaseDate")) : null;
+                Date releaseDate =
+                    StringUtils.isNotEmpty(returnData.getString("releaseDate")) ? DateUtil.parse(returnData.getString("releaseDate")) : null;
                 try {
                     handleService.cycleDataHandle(dto, packageId, releaseDate);
                 } catch (Exception e) {

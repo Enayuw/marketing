@@ -66,6 +66,7 @@ public class XieChengServiceNew {
         }
 
         JSONArray jsonArray = new JSONArray();
+        Random random = new Random();
         for(int i=0;i<sha256CodeList.size();i++){
             JSONObject dataMap = new JSONObject();
             String s = sha256CodeList.get(i);
@@ -76,7 +77,7 @@ public class XieChengServiceNew {
                 dataMap.put("releaseDate", null);
             }else {
                 dataMap.put("result",false);
-                dataMap.put("releaseDate", DateUtil.formatDate(DateUtil.offsetDay(new Date(),new Random().nextInt(7)+1)));
+                dataMap.put("releaseDate", DateUtil.formatDate(DateUtil.offsetDay(new Date(),random.nextInt(7)+1)));
             }
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
@@ -87,7 +88,8 @@ public class XieChengServiceNew {
                         dataMap.put("marketCouponList", JSONArray.parseArray("[{\"couponCode\":\"券码Code\",\"couponDesc\":\"券码描述\"}]"));
                         break;
                     case 1:
-                        dataMap.put("marketCouponList", JSONArray.parseArray("[{\"couponCode\":\"券码Code1\",\"couponDesc\":\"券码描述1\"},{\"couponCode\":\"券码Code2\",\"couponDesc\":\"券码描述2\"}]"));
+                        dataMap.put("marketCouponList", JSONArray.parseArray(
+                            "[{\"couponCode\":\"券码Code1\",\"couponDesc\":\"券码描述1\"},{\"couponCode\":\"券码Code2\",\"couponDesc\":\"券码描述2\"}]"));
                         break;
                     case 2:
                         dataMap.put("marketCouponList", "测试非规定marketCouponList格式，不影响撞库，只是不析出marketCouponList！");
