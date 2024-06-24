@@ -73,12 +73,29 @@ public class XieChengServiceNew {
             if(i%2==0){
                 dataMap.put("result",true);
                 dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
+                dataMap.put("releaseDate", null);
             }else {
                 dataMap.put("result",false);
+                dataMap.put("releaseDate", DateUtil.formatDate(DateUtil.offsetDay(new Date(),new Random().nextInt(7)+1)));
             }
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
             dataMap.put("info","测试info");
+            if (marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(3)) {
+                switch (i % 3) {
+                    case 0:
+                        dataMap.put("marketCouponList", JSONArray.parseArray("[{\"couponCode\":\"券码Code\",\"couponDesc\":\"券码描述\"}]"));
+                        break;
+                    case 1:
+                        dataMap.put("marketCouponList", JSONArray.parseArray("[{\"couponCode\":\"券码Code1\",\"couponDesc\":\"券码描述1\"},{\"couponCode\":\"券码Code2\",\"couponDesc\":\"券码描述2\"}]"));
+                        break;
+                    case 2:
+                        dataMap.put("marketCouponList", "测试非规定marketCouponList格式，不影响撞库，只是不析出marketCouponList！");
+                        break;
+                    default:
+                        break;
+                }
+            }
             jsonArray.add(dataMap);
         }
         map.put("data",jsonArray);

@@ -176,7 +176,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                 dto.setId(loopCycle.getId());
                 dto.setCellSha256CodeList(sha256Code);
                 Date releaseDate = StringUtils.isNotEmpty(returnData.getString("releaseDate"))
-                    ? DateUtil.parse(returnData.getString("releaseDate"), DatePattern.NORM_DATE_PATTERN) : null;
+                    ? DateUtil.parse(returnData.getString("releaseDate")) : null;
                 try {
                     handleService.cycleDataHandle(dto, packageId, releaseDate);
                 } catch (Exception e) {
@@ -211,8 +211,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         dto.setReleaseTime(DateUtil.parse(t.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
         try {
             JSONArray jsonArray = t.getJSONArray("marketCouponList");
-            dto.setMarketCouponList(jsonArray.toJSONString());
-            if (!jsonArray.isEmpty()) {
+            if (jsonArray != null && !jsonArray.isEmpty()) {
+                dto.setMarketCouponList(jsonArray.toJSONString());
                 JSONObject firstCoupon = jsonArray.getJSONObject(0);
                 String couponCode = firstCoupon.getString("couponCode");
                 String couponDesc = firstCoupon.getString("couponDesc");
@@ -220,6 +220,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
                 dto.setCouponDesc(couponDesc);
             }
         } catch (Exception e) {
+            dto.setMarketCouponList(String.valueOf(t.get("marketCouponList")));
             log.error("携程周期撞库析出marketCouponList异常", e);
         }
         return dto;

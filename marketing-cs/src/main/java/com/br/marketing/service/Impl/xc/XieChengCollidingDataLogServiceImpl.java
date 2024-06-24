@@ -84,8 +84,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
         xieChengCollidingDataLog.setResult(result);
         try {
             JSONArray jsonArray = returnData.getJSONArray("marketCouponList");
-            xieChengCollidingDataLog.setMarketCouponList(jsonArray.toJSONString());
-            if (!jsonArray.isEmpty()) {
+            if (jsonArray != null && !jsonArray.isEmpty()) {
+                xieChengCollidingDataLog.setMarketCouponList(jsonArray.toJSONString());
                 JSONObject firstCoupon = jsonArray.getJSONObject(0);
                 String couponCode = firstCoupon.getString("couponCode");
                 String couponDesc = firstCoupon.getString("couponDesc");
@@ -93,6 +93,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
                 xieChengCollidingDataLog.setCouponDesc(couponDesc);
             }
         } catch (Exception e) {
+            xieChengCollidingDataLog.setMarketCouponList(String.valueOf(returnData.get("marketCouponList")));
             log.error("携程撞库日志析出marketCouponList异常", e);
         }
         xieChengCollidingDataLog.setReturnContent(returnData.toString(SerializerFeature.WriteMapNullValue));

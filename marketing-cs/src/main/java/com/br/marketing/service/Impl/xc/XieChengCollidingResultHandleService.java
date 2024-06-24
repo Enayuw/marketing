@@ -86,7 +86,7 @@ public class XieChengCollidingResultHandleService {
                     robData.setRetryCount(0);
                     robData.setUpdateTime(new Date());
                     Date releaseDate = StringUtils.isNotEmpty(returnData.getString("releaseDate"))
-                        ? DateUtil.parse(returnData.getString("releaseDate"), DatePattern.NORM_DATE_PATTERN) : null;
+                        ? DateUtil.parse(returnData.getString("releaseDate")) : null;
                     robData.setReleaseDate(releaseDate);
                     xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
                 }
@@ -118,8 +118,8 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataLoopCycle.setReleaseTime(DateUtil.parse(returnData.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
         try {
             JSONArray jsonArray = returnData.getJSONArray("marketCouponList");
-            xieChengCollidingDataLoopCycle.setMarketCouponList(jsonArray.toJSONString());
-            if (!jsonArray.isEmpty()) {
+            if (jsonArray != null && !jsonArray.isEmpty()) {
+                xieChengCollidingDataLoopCycle.setMarketCouponList(jsonArray.toJSONString());
                 JSONObject firstCoupon = jsonArray.getJSONObject(0);
                 String couponCode = firstCoupon.getString("couponCode");
                 String couponDesc = firstCoupon.getString("couponDesc");
@@ -127,6 +127,7 @@ public class XieChengCollidingResultHandleService {
                 xieChengCollidingDataLoopCycle.setCouponDesc(couponDesc);
             }
         } catch (Exception e) {
+            xieChengCollidingDataLoopCycle.setMarketCouponList(String.valueOf(returnData.get("marketCouponList")));
             log.error("携程非周期撞库析出marketCouponList异常", e);
         }
         xieChengCollidingDataLoopCycle.setPushTime(new Date());
