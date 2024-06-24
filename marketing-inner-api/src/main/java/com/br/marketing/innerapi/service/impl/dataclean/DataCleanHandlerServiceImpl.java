@@ -117,7 +117,10 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         List<FileToMarketingFieldVO> marketingFieldVOList = JSON.parseObject(ruleConfigShow, new TypeReference<List<FileToMarketingFieldVO>>() {
         }.getType());
         List<String> mustFieldList = getInterFaceMustField(dto.getFileType());
-        List<String> interFaceFieldList = marketingFieldVOList.stream().map(FileToMarketingFieldVO::getInterfaceField).collect(Collectors.toList());
+        List<String> interFaceFieldList= new ArrayList<>();
+        marketingFieldVOList.forEach((FileToMarketingFieldVO fieldVO)->{
+            interFaceFieldList.addAll(Arrays.asList(fieldVO.getInterfaceField().split(",")));
+        });
         if (!interFaceFieldList.containsAll(mustFieldList)) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("必填字段未配置，请检查");
         }
@@ -148,7 +151,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         task.setFileId(dto.getFileIds());
         task.setCleanType(dto.getFileType());
         task.setUpdateTime(new Date());
-        task.setCleanStatus(0);
+        task.setCleanStatus(-1);
         task.setApiCode(apiCode);
         if (Objects.isNull(dto.getId())) {
             task.setCreateTime(new Date());
