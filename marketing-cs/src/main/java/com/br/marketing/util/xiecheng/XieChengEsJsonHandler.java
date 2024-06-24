@@ -24,9 +24,9 @@ public class XieChengEsJsonHandler {
      */
     public static void handlerJson(JSONObject jsonObject, XieChengCollidingFilterDTO collidingFilterDTO) {
         JSONArray jsonArray = jsonObject.getJSONArray("data");
-        Map<String, String> releaseTimeMap = new HashMap<>();
-        Map<String, String> couponCodeMap = new HashMap<>();
-        Map<String, String> couponDescMap = new HashMap<>();
+        Map<String, Object> releaseTimeMap = new HashMap<>();
+        Map<String, Object> couponCodeMap = new HashMap<>();
+        Map<String, Object> couponDescMap = new HashMap<>();
         Iterator<Object> iterator = jsonArray.iterator();
         while (iterator.hasNext()) {
             JSONObject jsonData = (JSONObject) iterator.next();
@@ -34,7 +34,7 @@ public class XieChengEsJsonHandler {
                 String keyValue = jsonData.getString("key");
                 switch (keyValue) {
                     case "release_time":
-                        releaseTimeMap.put("value", jsonData.getString("value"));
+                        releaseTimeMap.put("value", jsonData.get("value"));
                         releaseTimeMap.put("operation", jsonData.getString("operation"));
                         collidingFilterDTO.setReleaseTime(releaseTimeMap);
                         iterator.remove();
@@ -48,13 +48,13 @@ public class XieChengEsJsonHandler {
                         iterator.remove();
                         break;
                     case "coupon_code":
-                        couponCodeMap.put("value", jsonData.getString("value"));
+                        couponCodeMap.put("value", jsonData.get("value"));
                         couponCodeMap.put("operation", jsonData.getString("operation"));
                         collidingFilterDTO.setCoupon_code(couponCodeMap);
                         iterator.remove();
                         break;
                     case "coupon_desc":
-                        couponDescMap.put("value", jsonData.getString("value"));
+                        couponDescMap.put("value", jsonData.get("value"));
                         couponDescMap.put("operation", jsonData.getString("operation"));
                         collidingFilterDTO.setCoupon_desc(couponDescMap);
                         iterator.remove();
@@ -69,24 +69,27 @@ public class XieChengEsJsonHandler {
 
     public static String zkTrueCondition(XieChengCollidingFilterDTO collidingFilterDTO) {
         StringBuilder zkTrueCondition = new StringBuilder();
-        Map<String, String> releaseTime = collidingFilterDTO.getReleaseTime();
-        Map<String, String> couponCode = collidingFilterDTO.getCoupon_code();
-        Map<String, String> couponDesc = collidingFilterDTO.getCoupon_desc();
+        Map<String, Object> releaseTime = collidingFilterDTO.getReleaseTime();
+        Map<String, Object> couponCode = collidingFilterDTO.getCoupon_code();
+        Map<String, Object> couponDesc = collidingFilterDTO.getCoupon_desc();
 
         if (!CollectionUtils.isEmpty(releaseTime)) {
-            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("release_time", releaseTime.get("operation"), releaseTime.get("value")));
+            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("release_time", (String) releaseTime.get("operation"),
+                    releaseTime.get("value")));
         }
         if (!CollectionUtils.isEmpty(couponCode)) {
-            if(StringUtils.isNotEmpty(zkTrueCondition.toString())){
+            if (StringUtils.isNotEmpty(zkTrueCondition.toString())) {
                 zkTrueCondition.append(" and ");
             }
-            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_code", couponCode.get("operation"), couponCode.get("value")));
+            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_code", (String) couponCode.get("operation"),
+                    couponCode.get("value")));
         }
         if (!CollectionUtils.isEmpty(couponDesc)) {
-            if(StringUtils.isNotEmpty(zkTrueCondition.toString())){
+            if (StringUtils.isNotEmpty(zkTrueCondition.toString())) {
                 zkTrueCondition.append(" and ");
             }
-            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_desc", couponDesc.get("operation"), couponDesc.get("value")));
+            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_desc", (String) couponDesc.get("operation"),
+                    couponDesc.get("value")));
         }
 
         return zkTrueCondition.toString();
