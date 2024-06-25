@@ -1704,6 +1704,12 @@ public class MarketingCommonConfig {
     private List<String> xieChengCpaExcludeConvTypeConfig = Lists.newArrayList("107","105");
 
     /**
+     * 奇富360获取用户信息接口线程数
+     */
+    private Integer qiFuQryUserMessageThreadNum;
+
+
+    /**
      * 奇富360转化数据提取apiCode集合
      */
     private List<String> CuDongZhiTransferExtractApiCodes;
