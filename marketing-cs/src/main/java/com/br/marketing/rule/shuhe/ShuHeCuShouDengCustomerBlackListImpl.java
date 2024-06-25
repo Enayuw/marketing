@@ -22,9 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,8 +40,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackDetailDTO> {
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    public static final DateTimeFormatter ymhdms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -100,7 +99,7 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
         }
         expireDate = LocalDateTime.now()
                 .withHour(23).withMinute(59).withSecond(59)
-                .plusDays(blackDays).format(ymhdms);
+                .plusDays(blackDays).format(DATE_FORMAT);
         return expireDate;
     }
 
@@ -156,7 +155,8 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
     private String getExpireDate(JSONObject json, String key) {
         Date date = json.getDate(key);
         if (date != null) {
-            String expireDate = DATE_FORMAT.format(date);
+            LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            String expireDate = localDateTime.format(DATE_FORMAT);
             if (expireDate.endsWith("00:00:00")) {
                 expireDate = expireDate.substring(0, 10) + "23:59:59";
                 return expireDate;
