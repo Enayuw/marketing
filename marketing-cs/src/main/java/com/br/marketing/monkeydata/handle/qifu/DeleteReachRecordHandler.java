@@ -34,6 +34,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteRecordReqBO
         , SaveReachDeleteRecordReqBO, Page2Condition<QifuSaveReachDeleteRecordApiPushLog>> {
+
+    private final static String TITLE = "【奇富删除触达记录促动支】";
+
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
@@ -173,8 +176,8 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
     @Override
     public Result<?> resultAction(List<SaveReachDeleteRecordReqBO> outputDataList) {
         for (SaveReachDeleteRecordReqBO bo : outputDataList) {
-            methodRetryHandlerService.callSaveReachDeleteRecord(bo, null);
-            log.warn("奇富触达记录,日期[{}],批次[{}]已物理删除,后续无法恢复！", bo.getAppletDate(), bo.getReq().getBatchNo());
+            methodRetryHandlerService.callDeleteReachRecordCuDongZhi(bo, null);
+            log.warn(TITLE + "日期[{}],批次[{}]已物理删除,后续无法恢复！", bo.getAppletDate(), bo.getReq().getBatchNo());
         }
         Result<Object> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
