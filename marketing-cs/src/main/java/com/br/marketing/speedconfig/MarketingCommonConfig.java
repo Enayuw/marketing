@@ -1135,6 +1135,12 @@ public class MarketingCommonConfig {
     private Integer qiFuBreakPointDataToJueCeThreadNum;
 
     /**
+     * 2024-06-27
+     * 奇富删除触达记录删除区间
+     */
+    private Integer qiFuDeleteReachRecordDay;
+
+    /**
      * 页数动态调整配置
      * dynamicPageSize={"yxToDx":20000,"yxToCustomer":20000,"yhGet":20000}
      */
