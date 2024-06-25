@@ -3,6 +3,7 @@ package com.br.marketing.client.marketingapi;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
+import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataUrlDTO;
 import com.br.marketing.client.net.ApiCaller;
@@ -15,6 +16,7 @@ import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.entity.TwosevenFile;
 import com.br.marketing.entity.TwosevenFileExample;
 import com.br.marketing.mapper.InterfaceLogMapper;
+import com.br.marketing.mapper.QueryUserRealMessageMapper;
 import com.br.marketing.mapper.TwosevenFileMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +24,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -51,6 +55,42 @@ public class MarketingApiService {
     @Value("${api.marketing.uploadUrl:00}")
     String uploadUrl;
 
+    /**
+     * 奇富360促动支调用转化数据上传接口
+     * @param dto 转化数据对应值
+     * @param retry retry
+     * @param idList idList
+     * @param queryUserRealMessageMapper queryUserRealMessageMapper
+     * @return Result<Boolean>
+     */
+    @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
+    public Result pushMarketingApiTransfer(PushTransferDataDetailDTO dto, Integer retry, List<Long> idList
+            , QueryUserRealMessageMapper queryUserRealMessageMapper) {
+        try{
+            ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,interfaceLogDbpool)
+                    .setUrl(transferUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setRequestParam(dto)
+                    .postTransferStr();
+            if (Integer.valueOf(200).equals(transfer.getHttpCode())) {
+                JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+                String code = jsonObject.getString("code");
+                if ("00".equals(code)) {
+                    // 根据响应结果更新数据库数据表-status成功
+                    queryUserRealMessageMapper.updateStatusByIdList(2, idList);
+                    return new Result().setCode(ResultCode.SUCCESS.getValue());
+                }else{
+                    // 根据响应结果更新数据库数据表-status失败
+                    queryUserRealMessageMapper.updateStatusByIdList(3, idList);
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
+                }
+            }
+        }catch (Exception ex){
+            log.error("调用营销转化数据上传接口报错{}--",ex.getMessage(),ex);
+        }
+        queryUserRealMessageMapper.updateStatusByIdList(3, idList);
+        return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
     public Result<Boolean> pushTransfer(PushTransferDataDTO pushTransferDataDTO) {
         InterfaceLog interfaceLog = new InterfaceLog();
         interfaceLog.setExtendInfo(null);
