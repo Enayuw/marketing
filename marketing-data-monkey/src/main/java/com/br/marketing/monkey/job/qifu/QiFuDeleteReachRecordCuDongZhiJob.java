@@ -37,9 +37,9 @@ import java.util.List;
  */
 @Component
 @Slf4j
-public class QiFuDeleteReachRecordJob extends AbstractSimpleElasticJob {
+public class QiFuDeleteReachRecordCuDongZhiJob extends AbstractSimpleElasticJob {
 
-    private final static String TITLE = "【奇富删除触达记录-新】";
+    private final static String TITLE = "【奇富删除触达记录促动支】";
 
     @Resource
     private DeleteReachRecordHandler deleteReachRecordHandler;
@@ -133,7 +133,7 @@ public class QiFuDeleteReachRecordJob extends AbstractSimpleElasticJob {
         // 检查异常数据发送告警
         String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
         if (StringUtils.isNotBlank(accessToken) && isRetry(now)) {
-            errorStatistics(apiCode, pushLog.getPushDate(), accessToken, marketingCommonConfig.getQiFuDingDingSecret());
+            errorStatistics(apiCode, actionDate, accessToken, marketingCommonConfig.getQiFuDingDingSecret());
         }
         long end = System.currentTimeMillis();
         log.warn(TITLE + "调度结束, apiCode:{}, deleteDate:{}, 耗时:{}", apiCode, deleteDate, end - start);
