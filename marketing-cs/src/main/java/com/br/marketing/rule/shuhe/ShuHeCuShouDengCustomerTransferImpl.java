@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * @Description 数禾促首登转化过滤
+ * @Description 数禾促首登推送客服转化过滤
  * @Author hong.chen
  * 技术方案地址：https://c.100credit.cn/pages/viewpage.action?pageId=166637179
  * @CreateTime 2024/06/25
