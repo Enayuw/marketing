@@ -911,4 +911,14 @@
         from b_marketing_sync_${apiCode}
         where api_code =#{apiCode} and request_batch = #{requestBatch}
     </select>
+
+    <select id="getSyncUserByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where api_code =#{apiCode} and cus_batch in
+        <foreach collection="cusBatchSet" item="cusBatch" open="(" separator="," close=")">
+            '${cusBatch}'
+        </foreach>
+    </select>
+
 </mapper>

@@ -150,6 +150,7 @@ api:
   qifu:
     baseUri: https://gws-bps.daikuan.360.cn
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    qrySleepUserRealMessageUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
     qifuPublicKey: ""
     brPrivateKey: ""
     brPublicKey: ""
