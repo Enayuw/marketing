@@ -1702,5 +1702,15 @@ public class MarketingCommonConfig {
      * 携程CPA撞库过滤转化数据convType配置
      */
     private List<String> xieChengCpaExcludeConvTypeConfig = Lists.newArrayList("107","105");
+
+    /**
+     * 奇富360转化数据提取apiCode集合
+     */
+    private List<String> CuDongZhiTransferExtractApiCodes;
+
+    /**
+     * 奇富360转化数据提取执行时间
+     */
+    private String CuDongZhiTransferFileExecuteTime;
 }
 
