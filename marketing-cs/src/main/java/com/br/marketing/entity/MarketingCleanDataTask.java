@@ -38,7 +38,7 @@ public class MarketingCleanDataTask implements Serializable {
     private String testResult;
 
     /**
-     * 清洗类型：0待清洗，1清洗中，2成功，3失败
+     * 清洗类型：-1配置完成，0待清洗，1清洗中，2成功，3失败
      */
     private Integer cleanStatus;
 
