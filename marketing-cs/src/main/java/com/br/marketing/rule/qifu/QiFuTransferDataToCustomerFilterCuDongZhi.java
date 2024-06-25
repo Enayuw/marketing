@@ -8,13 +8,10 @@ import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.qifu.util.QiFuTransferDataUtil;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-
-import javax.annotation.Resource;
 
 /**
  * D20240622促动支自动化过滤-3710139（营销→外呼）
@@ -27,14 +24,10 @@ import javax.annotation.Resource;
 @Slf4j
 public class QiFuTransferDataToCustomerFilterCuDongZhi implements AssembleData<ConversionData> {
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         return QiFuTransferDataUtil.getConversionData((MarketingTransferSyncUser) transmitFact, context);
     }
-
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -49,7 +42,7 @@ public class QiFuTransferDataToCustomerFilterCuDongZhi implements AssembleData<C
         }
 
         String reserveField1 = transfer.getReserveField1();
-        if(StringUtils.isEmpty(reserveField1)) {
+        if (StringUtils.isEmpty(reserveField1)) {
             return false;
         }
         JSONObject jo = JSONObject.parseObject(reserveField1);
