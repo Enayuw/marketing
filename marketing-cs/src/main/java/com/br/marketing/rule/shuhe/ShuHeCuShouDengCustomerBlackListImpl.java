@@ -83,6 +83,8 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
                 blackDetailDTO.setExpireDate(expireDate);
             }
             blackDetailDTO.setPhone(decode);
+
+            log.warn("数禾促首登推送客服黑名单,apicode={},custNum={}", context.getApiCode(), transfer.getCustNum());
             return blackDetailDTO;
         }
 

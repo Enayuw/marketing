@@ -1705,7 +1705,7 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾促首登场景apicode映射配置
-     * eg:{"3710149":["促首登"],"7410910":["促首登"]}
+     * eg:{"3710149":["促首登"],"7410727":["促首登"]}
      */
     private HashMap<String, List<String>> shuHeCuShouDengApiCodeMapping;
 }
