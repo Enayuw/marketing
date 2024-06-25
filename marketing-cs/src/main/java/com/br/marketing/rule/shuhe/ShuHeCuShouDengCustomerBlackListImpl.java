@@ -60,14 +60,25 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
         DateTime nowDay = DateUtil.parse(LocalDate.now().toString(), DatePattern.NORM_DATE_PATTERN);
         String usrForbidCallEndTimStr = json.getString("usr_forbid_call_end_tim");
         String clcUsrMaxDxRrtEndStr = json.getString("clc_usr_max_dx_rrt_end");
-        DateTime usrForbidCallEndTim = DateUtil.parse(usrForbidCallEndTimStr, DatePattern.NORM_DATE_PATTERN);
-        DateTime clcUsrMaxDxRrtEnd = DateUtil.parse(clcUsrMaxDxRrtEndStr, DatePattern.NORM_DATE_PATTERN);
+
+        DateTime usrForbidCallEndTim = null;
+        try {
+            usrForbidCallEndTim = DateUtil.parse(usrForbidCallEndTimStr, DatePattern.NORM_DATE_PATTERN);
+        } catch (Exception e) {
+            log.warn("数禾促首登推送客服黑名单,usrForbidCallEndTim日期格式转换失败,custNum:{}",transfer.getCustNum());
+        }
+        DateTime clcUsrMaxDxRrtEnd = null;
+        try {
+            clcUsrMaxDxRrtEnd = DateUtil.parse(clcUsrMaxDxRrtEndStr, DatePattern.NORM_DATE_PATTERN);
+        } catch (Exception e) {
+            log.warn("数禾促首登推送客服黑名单,clcUsrMaxDxRrtEnd日期格式转换失败,custNum:{}",transfer.getCustNum());
+        }
 
         boolean canPush = true;
         String expireDate = null;
-        if (usrForbidCallEndTim.isAfterOrEquals(nowDay)) {
+        if (Objects.nonNull(usrForbidCallEndTim) && usrForbidCallEndTim.isAfterOrEquals(nowDay)) {
             expireDate = getExpireDate(json, "usr_forbid_call_end_tim");
-        } else if (clcUsrMaxDxRrtEnd.isAfterOrEquals(nowDay)) {
+        } else if (Objects.nonNull(clcUsrMaxDxRrtEnd) && clcUsrMaxDxRrtEnd.isAfterOrEquals(nowDay)) {
             expireDate = getExpireDate(json, "clc_usr_max_dx_rrt_end");
         } else if (Objects.equals("Y", isBlack)) {
             expireDate = getExpireDateForBlack();
@@ -109,6 +120,10 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
 
             List<String> userTypeList = marketingCommonConfig.getShuHeCuShouDengApiCodeMapping().get(context.getApiCode());
+            if (CollectionUtils.isEmpty(userTypeList)) {
+                return false;
+            }
+
             if (userTypeList.contains(transfer.getUserType())) {
                 ShuHeCuShouDengRuleCollectDataImpl.ShuHeCuShouDengRuleNecessaryData necessaryData =
                         (ShuHeCuShouDengRuleCollectDataImpl.ShuHeCuShouDengRuleNecessaryData) context.getRuleNecessaryData();
@@ -161,8 +176,9 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
             String expireDate = localDateTime.format(DATE_FORMAT);
             if (expireDate.endsWith("00:00:00")) {
                 expireDate = expireDate.substring(0, 10) + "23:59:59";
-                return expireDate;
             }
+
+            return expireDate;
         }
 
         return null;
