@@ -31,7 +31,7 @@
         <jdbcConnection driverClass="com.mysql.jdbc.Driver"
                         connectionURL="jdbc:mysql://tidb-pre.brapp.com:4000/marketing"
                         userId="u_pd_marketing"
-                        password="M6teKbFVl1odfOCkC1JA">
+                        password="f9daIYUIAXQkeyVbDoOI">
         </jdbcConnection>
 
         <!-- 类型转换 -->
