@@ -55,6 +55,7 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
         if (!actionFrontList.isEmpty()) {
             TransferActionFront actionFront = actionFrontList.get(0);
             if (status == actionFront.getStatus()) {
+                service.process(apiCode);
                 log.warn("api_code:{}【奇富促动支用户信息】该任务今日已经推送", apiCode);
             } else {
                 log.warn("api_code:{}【奇富促动支用户信息】该任务今日已经已有任务在运行"
@@ -62,10 +63,10 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
                 return;
             }
         } else {
-            // 记录作业执行日志
             Long frontId = yiXinTransferService.saveFrontData(apiCode, now.toString(), actionTypeTransfer);
             // 逻辑处理
             service.process(apiCode);
+            // 记录作业执行日志
             // 处理完成，将作业状态置为执行结束
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
         }
