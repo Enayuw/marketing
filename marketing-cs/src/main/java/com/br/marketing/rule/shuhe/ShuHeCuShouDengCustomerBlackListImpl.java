@@ -40,7 +40,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackDetailDTO> {
-    public DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -131,6 +131,8 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
                     log.warn("数禾促首登推送客服黑名单，该custNum不在有效期：{}", custNum);
                     return false;
                 }
+
+                return true;
             }
         }
 
