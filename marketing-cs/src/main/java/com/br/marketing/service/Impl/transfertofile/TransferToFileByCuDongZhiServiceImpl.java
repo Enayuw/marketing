@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.transfertofile;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
@@ -8,11 +7,9 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.entity.TransferFileTaskExample;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
@@ -62,11 +59,10 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-    @Resource
-    private MarketingSyncUserMapper marketingSyncUserMapper;
 
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum,userType,loginTime,applyDt,applyResult,auditAmount,ifLent,firstName,cell,stopMarketingSign,gender,age,isLightMarkting,operationScene,applyLoan,succAmtType";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,userType,loginTime,applyDt,applyResult,auditAmount,ifLent,firstName" +
+            ",cell,stopMarketingSign,gender,age,isLightMarkting,operationScene,applyLoan,succAmtType";
 
     final static String EXECUTE_TIME = "23:00:00";
 
