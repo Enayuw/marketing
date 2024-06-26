@@ -248,6 +248,7 @@ api:
   qifu:
     baseUri: https://stg1-gws-bps-web.daikuan.360.cn
     baseCuDongZhiUri: https://stg3-gws-bps-web.daikuan.360.cn
+    qrySleepUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
     saveReachDeleteRecordCuDongZhiUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/agentOperationActSaveReachDeleteRecord
     qifuPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwQAaMvE6+7Wy+rf6jfW8OEKhGSmmg6LaiSLaTui3lBA4V4eqfQEpLfL8dGYYcakiH6CUAMPZ0jqNEN/En3Mtfclhr8903m/xG3IOUxhbqiVZBZmQ8esG6nP8MHsFWK2hMHN20xh0qKN6hg0BHQIIkbbnZjN9FGD/hz1t4NJvwIHxqJC+I3pRkCrC+SPWH5djzQdhYczgpyGwNqrGpg5dPibZJ+/qw15Va0vDBMp8cGad+Njcw5n7QcxBvSpViTYl704+wyohX36bF1CkrtfV6z1JnDqR+9KtEaRpfnUC/eh7gvltDbl/vTfeZLuShLs+/csgVshVIXEpL8g9uC0XOQIDAQAB"
