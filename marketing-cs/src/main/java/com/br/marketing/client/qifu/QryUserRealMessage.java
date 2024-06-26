@@ -15,7 +15,7 @@ public class QryUserRealMessage {
     /**
      * 交易信息
      */
-    private List<TradeMessageRes> tradeMessageRes;
+    private Object tradeMessageRes;
     /**
      * 唯一号
      */
@@ -23,11 +23,11 @@ public class QryUserRealMessage {
     /**
      * 授信信息
      */
-    private List<RiskMessageRes> riskMessageRes;
+    private Object riskMessageRes;
     /**
      * 用户完件信息
      */
-    private List<UserMessageRes> userMessageRes;
+    private Object userMessageRes;
 
     public String getMobileMd5() {
         return mobileMd5;
@@ -45,11 +45,11 @@ public class QryUserRealMessage {
         this.stopMarketingSign = stopMarketingSign;
     }
 
-    public List<TradeMessageRes> getTradeMessageRes() {
+    public Object getTradeMessageRes() {
         return tradeMessageRes;
     }
 
-    public void setTradeMessageRes(List<TradeMessageRes> tradeMessageRes) {
+    public void setTradeMessageRes(Object tradeMessageRes) {
         this.tradeMessageRes = tradeMessageRes;
     }
 
@@ -61,23 +61,24 @@ public class QryUserRealMessage {
         this.uniqueReqNo = uniqueReqNo;
     }
 
-    public List<UserMessageRes> getUserMessageRes() {
-        return userMessageRes;
-    }
-
-    public void setUserMessageRes(List<UserMessageRes> userMessageRes) {
-        this.userMessageRes = userMessageRes;
-    }
-
-    public List<RiskMessageRes> getRiskMessageRes() {
+    public Object getRiskMessageRes() {
         return riskMessageRes;
     }
 
-    public void setRiskMessageRes(List<RiskMessageRes> riskMessageRes) {
+    public void setRiskMessageRes(Object riskMessageRes) {
         this.riskMessageRes = riskMessageRes;
     }
-}
 
-class RiskMessageRes{
-    private String creditAmt;
+    public Object getUserMessageRes() {
+        return userMessageRes;
+    }
+
+    public void setUserMessageRes(Object userMessageRes) {
+        this.userMessageRes = userMessageRes;
+    }
+
+
+    class RiskMessageRes {
+        private String creditAmt;
+    }
 }

@@ -139,8 +139,8 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setUniqueReqNo(marketingSyncUser.getCustNum());
                     queryUserRealMessage.setMobileMd5(marketingSyncUser.getCellMd5());
                     queryUserRealMessage.setStopMarketingSign("N");
-                    queryUserRealMessage.setUserMessage("{\"age\":\"[36,44]\",\"lastLoginTime\":\"2024-02-20 11:13:48\",\"name\":\"谭*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"actSettlement\"}}");
-                    queryUserRealMessage.setRiskMessage("");
+                    queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\",\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
+                    queryUserRealMessage.setRiskMessage("{\"creditAmt\":180000}");
                     queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
@@ -167,13 +167,13 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setMobileMd5(qryUserRealMessage.getMobileMd5());
                     queryUserRealMessage.setStopMarketingSign(qryUserRealMessage.getStopMarketingSign());
                     if (qryUserRealMessage.getUserMessageRes() != null) {
-                        queryUserRealMessage.setUserMessage(JSONObject.toJSONString(qryUserRealMessage.getUserMessageRes()));
+                        queryUserRealMessage.setUserMessage(qryUserRealMessage.getUserMessageRes().toString());
                     }
                     if (qryUserRealMessage.getRiskMessageRes() != null) {
-                        queryUserRealMessage.setRiskMessage(JSONObject.toJSONString(qryUserRealMessage.getRiskMessageRes()));
+                        queryUserRealMessage.setRiskMessage(qryUserRealMessage.getRiskMessageRes().toString());
                     }
                     if (qryUserRealMessage.getTradeMessageRes() != null) {
-                        queryUserRealMessage.setTradeMessage(JSONObject.toJSONString(qryUserRealMessage.getTradeMessageRes()));
+                        queryUserRealMessage.setTradeMessage(qryUserRealMessage.getTradeMessageRes().toString());
                     }
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
