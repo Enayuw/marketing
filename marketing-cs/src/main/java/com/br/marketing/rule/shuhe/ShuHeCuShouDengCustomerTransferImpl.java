@@ -56,12 +56,10 @@ public class ShuHeCuShouDengCustomerTransferImpl implements AssembleData<Convers
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
         conversionData.setCaseNum(custNum);
-        conversionData.setGroupType(transfer.getUserType());
         conversionData.setInversionStatus("0");
         conversionData.setExpireDate(enDateStr);
         conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
-        conversionData.setTaskId(syncUser.getCusBatch());
         conversionData.setInversionInfo(JSON.toJSONString(vo));
 
         log.warn("数禾促首登转化过滤,apicode={},custNum={}", syncUser.getApiCode(), custNum);

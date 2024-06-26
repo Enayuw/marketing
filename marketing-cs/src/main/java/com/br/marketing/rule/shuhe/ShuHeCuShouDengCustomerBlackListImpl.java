@@ -175,7 +175,7 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
             LocalDateTime localDateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             String expireDate = localDateTime.format(DATE_FORMAT);
             if (expireDate.endsWith("00:00:00")) {
-                expireDate = expireDate.substring(0, 10) + "23:59:59";
+                expireDate = expireDate.substring(0, 10) + " 23:59:59";
             }
 
             return expireDate;
