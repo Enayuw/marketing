@@ -77,7 +77,7 @@ public class ShuHeCuShouDengCustomerTransferImpl implements AssembleData<Convers
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
 
-            List<String> userTypeList = marketingCommonConfig.getShuHeCuShouDengBlackListApiCodeMapping().get(context.getApiCode());
+            List<String> userTypeList = marketingCommonConfig.getShuHeCuShouDengTransferApiCodeMapping().get(context.getApiCode());
             if (CollectionUtils.isEmpty(userTypeList)) {
                 return false;
             }
