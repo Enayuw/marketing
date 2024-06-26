@@ -129,7 +129,7 @@
 
     <job:simple id="DidiaInvalidityJob"
                 class="com.br.marketing.monkey.job.didi.DidiaInvalidityJob"
-                cron="0 0/10 21-23 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="滴滴营销失败"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

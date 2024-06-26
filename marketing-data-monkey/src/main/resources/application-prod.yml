@@ -149,7 +149,9 @@ api:
     isProxy: true
   qifu:
     baseUri: https://gws-bps.daikuan.360.cn
+    baseCuDongZhiUri: https://gws-bps.daikuan.360.cn
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    saveReachDeleteRecordCuDongZhiUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/agentOperationActSaveReachDeleteRecord
     qifuPublicKey: ""
     brPrivateKey: ""
     brPublicKey: ""
