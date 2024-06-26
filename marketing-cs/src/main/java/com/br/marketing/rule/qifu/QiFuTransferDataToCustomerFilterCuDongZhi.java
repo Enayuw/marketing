@@ -1,10 +1,14 @@
 package com.br.marketing.rule.qifu;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.util.DateUtils;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.QiFuRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.rule.qifu.util.QiFuTransferDataUtil;
@@ -12,6 +16,8 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import java.util.Map;
 
 /**
  * D20240622促动支自动化过滤-3710139（营销→外呼）
@@ -26,7 +32,30 @@ public class QiFuTransferDataToCustomerFilterCuDongZhi implements AssembleData<C
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        return QiFuTransferDataUtil.getConversionData((MarketingTransferSyncUser) transmitFact, context);
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        ConversionData conversionData = new ConversionData();
+        conversionData.setDataId(transfer.getId().toString());
+        conversionData.setCaseNum(transfer.getCustNum());
+        conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
+
+        QiFuRuleCollectDataImpl.QiFuRuleNecessaryData ruleNecessaryData =
+                (QiFuRuleCollectDataImpl.QiFuRuleNecessaryData) context.getRuleNecessaryData();
+        conversionData.setInversionStatus("0");
+        Map<String, SyncUserValidityPeriodsBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = syncUserPeriodMap.get(transfer.getCustNum());
+        if (syncUserValidityPeriodsBO == null) {
+            return null;
+        }
+        // 去重参数设置
+        conversionData.setInitId(transfer.getId());
+        conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
+        conversionData.setSoleType(-1);
+
+        PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
+        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
+        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        return conversionData;
     }
 
     @Override
