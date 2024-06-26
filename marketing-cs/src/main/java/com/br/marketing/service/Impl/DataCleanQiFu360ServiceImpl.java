@@ -131,7 +131,11 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                 if(null != object && !object.isEmpty()){
                     lastLoginTime = object.getString("lastLoginTime");
                     name = object.getString("name");
-                    sex = object.getString("sex");
+                    String sexOriginal = object.getString("sex");
+                    String[] sexValue = {"1","0"};
+                    String[] sexKey = {"M","F"};
+                    sexOriginal = emptyDefault(sexOriginal);
+                    sex = getMapByList(sexOriginal,sexKey,sexValue);
                     age = object.getString("age");
 //                    mobileMd5 = object.getString("mobileMd5");
                     String userExtraInfoJsonString = object.getString("userExtraInfo");
@@ -155,8 +159,15 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             if(StringUtils.isNotBlank(tradeMessage)){
                 JSONObject object = JSON.parseObject(tradeMessage);
                 if(null != object && !object.isEmpty()){
-                    isSucc = object.getString("isSucc");
-                    isLoan = object.getString("isLoan");
+                    String isSuccOriginal = object.getString("isSucc");
+                    String[] isSuccValue = {"1","0"};
+                    String[] isSuccKey = {"Y","N"};
+                    isSuccOriginal = emptyDefault(isSuccOriginal);
+                    isSucc = getMapByList(isSuccOriginal,isSuccKey,isSuccValue);
+
+                    String isLoanOriginal = object.getString("isLoan");
+                    isLoanOriginal = emptyDefault(isLoanOriginal);
+                    isLoan = getMapByList(isLoanOriginal,isSuccKey,isSuccValue);
                     succAmtType = object.getString("succAmtType");
                 }
             }
@@ -199,6 +210,31 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             idList.add(qrm.getId());
         });
         return dataItems;
+    }
+
+    /**
+     * 2023-05-10 11:20
+     * 值为null时，赋值''
+     */
+    private String emptyDefault(String value) {
+        return StringUtils.isNotBlank(value) ? value : "";
+    }
+
+    private String getMapByList(String value, String[] keyArray, String[] valueArray){
+        if(keyArray.length != valueArray.length){
+            log.warn("参数长度不一致value:{}-keyArray[{}]valueArray[{}]",value,keyArray,valueArray);
+            return value;
+        }
+        try{
+            for (int i = 0; i < keyArray.length; i++) {
+                if(value.trim().equals(keyArray[i])){
+                    return valueArray[i];
+                }
+            }
+        }catch (Exception e){
+            log.warn("参数映射异常value:{}-keyArray[{}]valueArray[{}]--",value,keyArray,valueArray,e);
+        }
+        return value;
     }
 
     /**
