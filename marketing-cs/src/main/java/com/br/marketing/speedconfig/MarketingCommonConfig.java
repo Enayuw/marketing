@@ -1708,6 +1708,10 @@ public class MarketingCommonConfig {
      */
     private Integer qiFuQryUserMessageThreadNum;
 
+    /**
+     * 奇富360用户信息接口分页参数
+     */
+    private Integer qiFuQryUserMessageSize;
 
     /**
      * 奇富360转化数据提取apiCode集合
