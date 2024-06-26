@@ -100,10 +100,16 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             list1000.forEach((List<QueryUserRealMessage> listQurm)->{
                 pushPool.submit(() -> {
                     List<Long> idList = new ArrayList();
-                    // 数据清洗
-                    List<TransferDataItemDTO> transferDataItemDTOS = dataTransfer(listQurm,idList);
-                    // 调用转化接口参数拼接并调用
-                    asyncTransferUpload(apiCode, transferDataItemDTOS, idList);
+                    try{
+                        // 数据清洗
+                        List<TransferDataItemDTO> transferDataItemDTOS = dataTransfer(listQurm,idList);
+                        // 调用转化接口参数拼接并调用
+                        asyncTransferUpload(apiCode, transferDataItemDTOS, idList);
+                    }catch (Exception e){
+                        log.error("apiCode:{}奇富360数据清洗-线程池中执行异常-", apiCode, e);
+                        // 根据响应结果更新数据库数据表-status5数据处理失败
+                        queryUserRealMessageMapper.updateStatusByIdList(5, idList);
+                    }
                 });
             });
         }
@@ -148,23 +154,27 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             String succAmtType = null;
             String userMessage = qrm.getUserMessage();
             if(StringUtils.isNotBlank(userMessage)){
-                JSONObject object = JSON.parseObject(userMessage);
-                if(null != object && !object.isEmpty()){
-                    lastLoginTime = object.getString("lastLoginTime");
-                    name = object.getString("name");
-                    String sexOriginal = object.getString("sex");
-                    String[] sexValue = {"1","0"};
-                    String[] sexKey = {"M","F"};
-                    sexOriginal = emptyDefault(sexOriginal);
-                    sex = getMapByList(sexOriginal,sexKey,sexValue);
-                    age = object.getString("age");
-//                    mobileMd5 = object.getString("mobileMd5");
-                    String userExtraInfoJsonString = object.getString("userExtraInfo");
-                    if(StringUtils.isNotBlank(userExtraInfoJsonString)){
-                        JSONObject userExtraInfoJson = JSON.parseObject(userExtraInfoJsonString);
-                        if(null != userExtraInfoJson && !userExtraInfoJson.isEmpty()){
-                            isLightMarkting = userExtraInfoJson.getString("isLightMarkting");
-                            operationScene = userExtraInfoJson.getString("operationScene");
+                JSONArray array = JSON.parseArray(userMessage);
+                if(null != array && array.size()>0){
+                    for (int i = 0; i < array.size(); i++) {
+                        JSONObject object = array.getJSONObject(i);
+                        if(null != object && !object.isEmpty()){
+                            lastLoginTime = object.getString("lastLoginTime");
+                            name = object.getString("name");
+                            String sexOriginal = object.getString("sex");
+                            String[] sexValue = {"1","0"};
+                            String[] sexKey = {"M","F"};
+                            sexOriginal = emptyDefault(sexOriginal);
+                            sex = getMapByList(sexOriginal,sexKey,sexValue);
+                            age = object.getString("age");
+                            String userExtraInfoJsonString = object.getString("userExtraInfo");
+                            if(StringUtils.isNotBlank(userExtraInfoJsonString)){
+                                JSONObject userExtraInfoJson = JSON.parseObject(userExtraInfoJsonString);
+                                if(null != userExtraInfoJson && !userExtraInfoJson.isEmpty()){
+                                    isLightMarkting = userExtraInfoJson.getString("isLightMarkting");
+                                    operationScene = userExtraInfoJson.getString("operationScene");
+                                }
+                            }
                         }
                     }
                 }
