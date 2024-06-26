@@ -36,6 +36,8 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
     @Resource
     private YiXinTransferServiceImpl yiXinTransferService;
 
+    private final static String TITLE = "【奇富促动支用户信息】";
+
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         int actionTypeTransfer = JobManager.ActionTypeEnum.QIFU_TRIGGER_BRANCH_USER.getActionType();
@@ -53,7 +55,6 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
                 }
             }
         }
-
         // 查询今日是否执行过任务
         List<TransferActionFront> actionFrontList = getActionFront(apiCode, now.toString(),actionTypeTransfer);
         int status = 2;
@@ -61,9 +62,11 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
             TransferActionFront actionFront = actionFrontList.get(0);
             if (status == actionFront.getStatus()) {
                 service.process(apiCode);
-                log.warn("api_code:{}【奇富促动支用户信息】该任务今日已经推送", apiCode);
+                log.warn(TITLE + "api_code:{} 该任务今日已经推送", apiCode);
             } else {
-                log.warn("api_code:{}【奇富促动支用户信息】该任务今日已经已有任务在运行"
+                service.process(apiCode);
+                yiXinTransferService.updateFrontDataStatus(actionFront.getId(), 2);
+                log.warn(TITLE + "api_code:{} 该任务今日已经已有任务在运行"
                         , apiCode);
                 return;
             }

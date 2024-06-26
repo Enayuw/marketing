@@ -89,7 +89,6 @@ public class QiFuClients {
      * 奇富批量接口用户查询
      * @return
      */
-    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<ResponseData<QrySleepUserRealMessageResp>> qrySleepUserRealMessage(QrySleepUserRealMessageReq bizData) {
         Result<ResponseData<QrySleepUserRealMessageResp>> resultResp = new Result<>();
         try {
@@ -128,7 +127,8 @@ public class QiFuClients {
         return resultResp;
     }
 
-    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
+    @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> queryMessage(QrySleepUserRealMessageReq bizData,Integer retry) {
         Result<String> result = new Result<>();
         String qiFuApiPublicKey = marketingCommonConfig.getQiFuApiPublicKey();
@@ -154,6 +154,17 @@ public class QiFuClients {
                 result.setMessage("");
                 return result;
             }
+
+            if(httpResponseMap.get(CONTENT_KEY) != null){
+                String content = httpResponseMap.get(CONTENT_KEY);
+                JSONObject resultJson = JSONObject.parseObject(content);
+                String code = resultJson.getString("code");
+                if(!"200".equals(code)){
+                    result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                    return result;
+                }
+            }
+
         } catch (Exception e) {
             String eMsg = "奇富批量用户查询接口异常:" + e.getMessage();
             log.error(eMsg, e);

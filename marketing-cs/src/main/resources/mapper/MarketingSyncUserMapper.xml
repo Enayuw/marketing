@@ -913,18 +913,19 @@
     </select>
 
     <select id="getSyncUserByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select bms.*
-        from b_marketing_sync_${apiCode} as bms
-        LEFT JOIN b_qifu_batch_query_user_real_message bq ON bms.cell_md5 = bq.mobile_md5
-        where bms.api_code =#{apiCode}
-          AND bms.cus_batch =#{cusBatch}
-          AND DATE(bms.applet_date) = CURDATE()
+        select
+        <include refid="Last_Column_List"/>
+        from b_marketing_sync_${apiCode} as b
+        LEFT JOIN b_qifu_batch_query_user_real_message bq ON b.cell_md5 = bq.mobile_md5 AND b.cust_num = bq.unique_req_no
+        where b.api_code =#{apiCode}
+          AND b.cus_batch =#{cusBatch}
+          AND (bq.create_date = #{createDate} OR bq.create_date IS NULL)
           AND bq.mobile_md5 IS NULL
         <if test="minId !=null and minId >0">
-            and bms.id > #{minId}
+            and b.id > #{minId}
         </if>
-        order by bms.id asc
-        limit 2000
+        order by b.id asc
+        limit #{pageSize}
     </select>
 
 </mapper>
