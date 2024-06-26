@@ -1135,6 +1135,12 @@ public class MarketingCommonConfig {
     private Integer qiFuBreakPointDataToJueCeThreadNum;
 
     /**
+     * 2024-06-27
+     * 奇富删除触达记录删除区间
+     */
+    private Integer qiFuDeleteReachRecordDay;
+
+    /**
      * 页数动态调整配置
      * dynamicPageSize={"yxToDx":20000,"yxToCustomer":20000,"yhGet":20000}
      */
@@ -1243,6 +1249,11 @@ public class MarketingCommonConfig {
      *      000000:调用百应黑名单接口成功
      */
     private HashMap<String, Object> baiYingUndoMock;
+
+    /**
+     *
+     */
+    private HashMap<String, Object> qiFuDeleteReachRecordMock;
 
     /**
      * 同程不运营名单推送客户接口线程数
@@ -1708,6 +1719,10 @@ public class MarketingCommonConfig {
      */
     private Integer qiFuQryUserMessageThreadNum;
 
+    /**
+     * 奇富360用户信息接口分页参数
+     */
+    private Integer qiFuQryUserMessageSize;
 
     /**
      * 奇富360转化数据提取apiCode集合
