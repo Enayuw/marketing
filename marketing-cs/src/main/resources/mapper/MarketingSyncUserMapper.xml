@@ -914,7 +914,7 @@
 
     <select id="getSyncUserByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
         select
-        <include refid="Last_Column_List"/>
+          b.*
         from b_marketing_sync_${apiCode} as b
         LEFT JOIN b_qifu_batch_query_user_real_message bq ON b.cell_md5 = bq.mobile_md5 AND b.cust_num = bq.unique_req_no
         where b.api_code =#{apiCode}

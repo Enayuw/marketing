@@ -58,7 +58,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
         String now = LocalDate.now().toString();
         MarketingCustomizeDataValidConfigExample example = new MarketingCustomizeDataValidConfigExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andValidStartDateLessThanOrEqualTo(now)
-                .andValidEndDateGreaterThanOrEqualTo(now);
+                .andValidEndDateGreaterThanOrEqualTo(now).andIsDelEqualTo(1);
         List<MarketingCustomizeDataValidConfig> configList = customizeDataValidConfigMapper.selectByExample(example);
         if (CollectionUtil.isEmpty(configList)) {
             log.warn("api_code:{}【该apiCode无有效期配置】", apiCode);
@@ -130,9 +130,32 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
         qrySleepUserRealMessageReq.setPartner("bairong");
         qrySleepUserRealMessageReq.setRealDataes(list);
 
+        // 获取挡板开关
+        HashMap<String, Object> mock = marketingCommonConfig.getQifuQryUserMessageMock();
+        if (mock.get("switch") == Boolean.TRUE) {
+            for (MarketingSyncUser marketingSyncUser : pageList) {
+                QueryUserRealMessage queryUserRealMessage = new QueryUserRealMessage();
+                queryUserRealMessage.setApiCode(apiCode);
+                queryUserRealMessage.setBatchNo(tskId);
+                queryUserRealMessage.setUniqueReqNo(marketingSyncUser.getCustNum());
+                queryUserRealMessage.setMobileMd5(marketingSyncUser.getCellMd5());
+                queryUserRealMessage.setStopMarketingSign("N");
+                queryUserRealMessage.setUserMessage("{\"age\":\"[36,44]\",\"lastLoginTime\":\"2024-02-20 11:13:48\",\"name\":\"谭*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"actSettlement\"}}");
+                queryUserRealMessage.setRiskMessage("");
+                queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
+                queryUserRealMessage.setCreateDate(LocalDate.now().toString());
+                queryUserRealMessage.setCreateTime(new Date());
+                queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
+                log.warn(TITLE+"挡板数据, queryUserRealMessage{}", JSONObject.toJSONString(queryUserRealMessage));
+            }
+            result.setCode(ResultCode.SUCCESS.getValue());
+            return result;
+        }
+
         try {
             // 调用奇富查询用户信息接口
             Result<ResponseData<QrySleepUserRealMessageResp>> dataResult = qiFuClients.qrySleepUserRealMessage(qrySleepUserRealMessageReq);
+            log.warn(TITLE+"返回结果, dataResult{}", JSONObject.toJSONString(dataResult));
             if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
                 ResponseData<QrySleepUserRealMessageResp> data = dataResult.getData();
                 QrySleepUserRealMessageResp qrySleepUserRealMessageResp = data.getData().getT();

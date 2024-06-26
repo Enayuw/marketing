@@ -140,7 +140,7 @@ public class QiFuClients {
                 ? appId : qiFuApiAppId, bizData, qifuPublicKey, brPrivateKey);
         try {
             long start = System.currentTimeMillis();
-            log.warn(TITLE+"调度开始, requestParam{}", JSONObject.toJSONString(bizData));
+            log.warn(TITLE+"调度开始, requestParam{}", JSONObject.toJSONString(requestParam));
             Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(requestParam, qrySleepUserRealMessageUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(requestParam), true, true);

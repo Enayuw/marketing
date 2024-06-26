@@ -1737,5 +1737,9 @@ public class MarketingCommonConfig {
      * 奇富360获取用户信息接口线程数
      */
     private Integer dataCleanQiFu360CoreAndMaxNum;
+    /**
+     * #奇富360获取用户信息接口挡板 true:开启挡板。false:关闭挡板
+     */
+    private HashMap<String, Object> qifuQryUserMessageMock;
 }
 
