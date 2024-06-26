@@ -914,12 +914,12 @@
 
     <select id="getSyncUserByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
         select
-          b.*
+          b.cus_batch, b.cell_md5, b.cust_num
         from b_marketing_sync_${apiCode} as b
-        LEFT JOIN b_qifu_batch_query_user_real_message bq ON b.cell_md5 = bq.mobile_md5 AND b.cust_num = bq.unique_req_no
+        LEFT JOIN b_qifu_batch_query_user_real_message bq ON
+            b.cell_md5 = bq.mobile_md5 AND b.cust_num = bq.unique_req_no AND bq.create_date = #{createDate}
         where b.api_code =#{apiCode}
           AND b.cus_batch =#{cusBatch}
-          AND (bq.create_date = #{createDate} OR bq.create_date IS NULL)
           AND bq.mobile_md5 IS NULL
         <if test="minId !=null and minId >0">
             and b.id > #{minId}

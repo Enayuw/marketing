@@ -145,6 +145,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
                     queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
+                    Thread.sleep(400);
                     log.warn(TITLE + "挡板数据, queryUserRealMessage{}", JSONObject.toJSONString(queryUserRealMessage));
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
