@@ -132,6 +132,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             // 获取挡板开关
             HashMap<String, Object> mock = marketingCommonConfig.getQifuQryUserMessageMock();
             if (mock.get("switch") == Boolean.TRUE) {
+                boolean flg = true;
                 for (MarketingSyncUser marketingSyncUser : pageList) {
                     QueryUserRealMessage queryUserRealMessage = new QueryUserRealMessage();
                     queryUserRealMessage.setApiCode(apiCode);
@@ -141,13 +142,19 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setStopMarketingSign("N");
                     queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\",\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
                     queryUserRealMessage.setRiskMessage("{\"creditAmt\":180000}");
-                    queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
+                    if(flg){
+                        queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
+                        flg = false;
+                    }else {
+                        queryUserRealMessage.setTradeMessage("{\"isLoan\":\"Y\",\"isSucc\":\"Y\"}");
+                        flg = true;
+                    }
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
                     queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
-                    Thread.sleep(400);
                     log.warn(TITLE + "挡板数据, queryUserRealMessage{}", JSONObject.toJSONString(queryUserRealMessage));
                 }
+                Thread.sleep(400);
                 result.setCode(ResultCode.SUCCESS.getValue());
                 return result;
             }
