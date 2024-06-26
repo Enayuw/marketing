@@ -91,16 +91,17 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             List<Long> allIdListlist = list.stream().map(QueryUserRealMessage::getId).collect(Collectors.toList());
             queryUserRealMessageMapper.updateStatusByIdList(1, allIdListlist);
 
+            // 最后一个对象
+            QueryUserRealMessage queryUserRealMessage = list.get(list.size() - 1);
+            // 目前只同时支持一个apiCode操作，后续需要优化
+            String apiCode = queryUserRealMessage.getApiCode();
             // list数据按照1000条切割
             List<List<QueryUserRealMessage>> list1000 = Lists.partition(list, 1000);
             list1000.forEach((List<QueryUserRealMessage> listQurm)->{
                 pushPool.submit(() -> {
-                    // 最后一个对象
-                    QueryUserRealMessage queryUserRealMessage = list.get(list.size() - 1);
-                    String apiCode = queryUserRealMessage.getApiCode();
                     List<Long> idList = new ArrayList();
                     // 数据清洗
-                    List<TransferDataItemDTO> transferDataItemDTOS = dataTransfer(list,idList);
+                    List<TransferDataItemDTO> transferDataItemDTOS = dataTransfer(listQurm,idList);
                     // 调用转化接口参数拼接并调用
                     asyncTransferUpload(apiCode, transferDataItemDTOS, idList);
                 });
