@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserRealMessageService{
+public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserRealMessageService {
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
@@ -95,7 +95,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
             while (!threadPool.awaitTermination(30, TimeUnit.SECONDS)) {
                 long completedTask2Count = threadPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
-                    log.warn(TITLE+"业务线程等待超时, apiCode{}", apiCode);
+                    log.warn(TITLE + "业务线程等待超时, apiCode{}", apiCode);
                     break;
                 }
                 taskCount = completedTask2Count;
@@ -108,54 +108,52 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
 
     }
 
-    private Result<String> action(List<MarketingSyncUser> pageList,String apiCode,String tskId){
-
+    private Result<String> action(List<MarketingSyncUser> pageList, String apiCode, String tskId) {
         Result<String> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
-
-        ArrayList<RealDataesReq> list = new ArrayList<>();
-        for (MarketingSyncUser marketingSyncUser : pageList) {
-            RealDataesReq realDataesReq = new RealDataesReq();
-            realDataesReq.setUniqueReqNo(marketingSyncUser.getCustNum());
-            realDataesReq.setMobileMd5(marketingSyncUser.getCellMd5());
-            list.add(realDataesReq);
-        }
-        // 根据批次号推送数据
-        QrySleepUserRealMessageReq qrySleepUserRealMessageReq = new QrySleepUserRealMessageReq();
-
-        String uuid = UUID.randomUUID().toString();
-        qrySleepUserRealMessageReq.setRequestNo(uuid);
-        qrySleepUserRealMessageReq.setBatchNo(tskId);
-        qrySleepUserRealMessageReq.setInitiatingType("noArt");
-        qrySleepUserRealMessageReq.setPartner("bairong");
-        qrySleepUserRealMessageReq.setRealDataes(list);
-
-        // 获取挡板开关
-        HashMap<String, Object> mock = marketingCommonConfig.getQifuQryUserMessageMock();
-        if (mock.get("switch") == Boolean.TRUE) {
-            for (MarketingSyncUser marketingSyncUser : pageList) {
-                QueryUserRealMessage queryUserRealMessage = new QueryUserRealMessage();
-                queryUserRealMessage.setApiCode(apiCode);
-                queryUserRealMessage.setBatchNo(tskId);
-                queryUserRealMessage.setUniqueReqNo(marketingSyncUser.getCustNum());
-                queryUserRealMessage.setMobileMd5(marketingSyncUser.getCellMd5());
-                queryUserRealMessage.setStopMarketingSign("N");
-                queryUserRealMessage.setUserMessage("{\"age\":\"[36,44]\",\"lastLoginTime\":\"2024-02-20 11:13:48\",\"name\":\"谭*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"actSettlement\"}}");
-                queryUserRealMessage.setRiskMessage("");
-                queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
-                queryUserRealMessage.setCreateDate(LocalDate.now().toString());
-                queryUserRealMessage.setCreateTime(new Date());
-                queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
-                log.warn(TITLE+"挡板数据, queryUserRealMessage{}", JSONObject.toJSONString(queryUserRealMessage));
-            }
-            result.setCode(ResultCode.SUCCESS.getValue());
-            return result;
-        }
-
         try {
+            ArrayList<RealDataesReq> list = new ArrayList<>();
+            for (MarketingSyncUser marketingSyncUser : pageList) {
+                RealDataesReq realDataesReq = new RealDataesReq();
+                realDataesReq.setUniqueReqNo(marketingSyncUser.getCustNum());
+                realDataesReq.setMobileMd5(marketingSyncUser.getCellMd5());
+                list.add(realDataesReq);
+            }
+            // 根据批次号推送数据
+            QrySleepUserRealMessageReq qrySleepUserRealMessageReq = new QrySleepUserRealMessageReq();
+
+            String uuid = UUID.randomUUID().toString();
+            qrySleepUserRealMessageReq.setRequestNo(uuid);
+            qrySleepUserRealMessageReq.setBatchNo(tskId);
+            qrySleepUserRealMessageReq.setInitiatingType("noArt");
+            qrySleepUserRealMessageReq.setPartner("bairong");
+            qrySleepUserRealMessageReq.setRealDataes(list);
+
+            // 获取挡板开关
+            HashMap<String, Object> mock = marketingCommonConfig.getQifuQryUserMessageMock();
+            if (mock.get("switch") == Boolean.TRUE) {
+                for (MarketingSyncUser marketingSyncUser : pageList) {
+                    QueryUserRealMessage queryUserRealMessage = new QueryUserRealMessage();
+                    queryUserRealMessage.setApiCode(apiCode);
+                    queryUserRealMessage.setBatchNo(tskId);
+                    queryUserRealMessage.setUniqueReqNo(marketingSyncUser.getCustNum());
+                    queryUserRealMessage.setMobileMd5(marketingSyncUser.getCellMd5());
+                    queryUserRealMessage.setStopMarketingSign("N");
+                    queryUserRealMessage.setUserMessage("{\"age\":\"[36,44]\",\"lastLoginTime\":\"2024-02-20 11:13:48\",\"name\":\"谭*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"actSettlement\"}}");
+                    queryUserRealMessage.setRiskMessage("");
+                    queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
+                    queryUserRealMessage.setCreateDate(LocalDate.now().toString());
+                    queryUserRealMessage.setCreateTime(new Date());
+                    queryUserRealMessageMapper.insertSelective(queryUserRealMessage);
+                    log.warn(TITLE + "挡板数据, queryUserRealMessage{}", JSONObject.toJSONString(queryUserRealMessage));
+                }
+                result.setCode(ResultCode.SUCCESS.getValue());
+                return result;
+            }
+
             // 调用奇富查询用户信息接口
             Result<ResponseData<QrySleepUserRealMessageResp>> dataResult = qiFuClients.qrySleepUserRealMessage(qrySleepUserRealMessageReq);
-            log.warn(TITLE+"返回结果, dataResult{}", JSONObject.toJSONString(dataResult));
+            log.warn(TITLE + "返回结果, dataResult{}", JSONObject.toJSONString(dataResult));
             if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
                 ResponseData<QrySleepUserRealMessageResp> data = dataResult.getData();
                 QrySleepUserRealMessageResp qrySleepUserRealMessageResp = data.getData().getT();
@@ -168,13 +166,13 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setUniqueReqNo(qryUserRealMessage.getUniqueReqNo());
                     queryUserRealMessage.setMobileMd5(qryUserRealMessage.getMobileMd5());
                     queryUserRealMessage.setStopMarketingSign(qryUserRealMessage.getStopMarketingSign());
-                    if(qryUserRealMessage.getUserMessageRes() != null){
+                    if (qryUserRealMessage.getUserMessageRes() != null) {
                         queryUserRealMessage.setUserMessage(JSONObject.toJSONString(qryUserRealMessage.getUserMessageRes()));
                     }
-                    if(qryUserRealMessage.getRiskMessageRes() != null){
+                    if (qryUserRealMessage.getRiskMessageRes() != null) {
                         queryUserRealMessage.setRiskMessage(JSONObject.toJSONString(qryUserRealMessage.getRiskMessageRes()));
                     }
-                    if(qryUserRealMessage.getTradeMessageRes() != null){
+                    if (qryUserRealMessage.getTradeMessageRes() != null) {
                         queryUserRealMessage.setTradeMessage(JSONObject.toJSONString(qryUserRealMessage.getTradeMessageRes()));
                     }
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
@@ -184,7 +182,7 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                 result.setCode(ResultCode.SUCCESS.getValue());
             }
         } catch (Exception e) {
-            log.error("调用奇富查询用户方法执行异常",e);
+            log.error("调用奇富查询用户方法执行异常", e);
         }
         return result;
     }
