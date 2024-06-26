@@ -59,13 +59,10 @@ public class MarketingApiService {
      * 奇富360促动支调用转化数据上传接口
      * @param dto 转化数据对应值
      * @param retry retry
-     * @param idList idList
-     * @param queryUserRealMessageMapper queryUserRealMessageMapper
      * @return Result<Boolean>
      */
-    @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
-    public Result pushMarketingApiTransfer(PushTransferDataDetailDTO dto, Integer retry, List<Long> idList
-            , QueryUserRealMessageMapper queryUserRealMessageMapper) {
+    @RetryMethod(retryNowNum = 2)
+    public Result pushMarketingApiTransfer(PushTransferDataDetailDTO dto, Integer retry) {
         try{
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,interfaceLogDbpool)
                     .setUrl(transferUrl)
@@ -76,20 +73,17 @@ public class MarketingApiService {
                 JSONObject jsonObject = JSON.parseObject(transfer.getResult());
                 String code = jsonObject.getString("code");
                 if ("00".equals(code)) {
-                    // 根据响应结果更新数据库数据表-status成功
-                    queryUserRealMessageMapper.updateStatusByIdList(2, idList);
                     return new Result().setCode(ResultCode.SUCCESS.getValue());
                 }else{
-                    // 根据响应结果更新数据库数据表-status失败
-                    queryUserRealMessageMapper.updateStatusByIdList(3, idList);
                     return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
                 }
+            }else{
+                return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
         }catch (Exception ex){
             log.error("调用营销转化数据上传接口报错{}--",ex.getMessage(),ex);
         }
-        queryUserRealMessageMapper.updateStatusByIdList(3, idList);
-        return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
     }
     public Result<Boolean> pushTransfer(PushTransferDataDTO pushTransferDataDTO) {
         InterfaceLog interfaceLog = new InterfaceLog();

@@ -1718,5 +1718,9 @@ public class MarketingCommonConfig {
      * 奇富360转化数据提取执行时间
      */
     private String CuDongZhiTransferFileExecuteTime;
+    /**
+     * 奇富360获取用户信息接口线程数
+     */
+    private Integer dataCleanQiFu360CoreAndMaxNum;
 }
 
