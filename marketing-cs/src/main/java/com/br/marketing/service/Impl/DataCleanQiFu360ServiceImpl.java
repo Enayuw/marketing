@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -30,7 +32,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -55,13 +57,18 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             endQueryDate = paramJson.getString("endQueryDate");
             apiCodeFromJobParam = paramJson.getJSONArray("apiCode");
         }
-        AtomicLong id = new AtomicLong(-1);
+        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5);
         while(true){
             Integer pageSize = dynamicParameterServiceImpl.getPageSize("DataCleanQiFu360");
+            Integer coreNum = marketingCommonConfig.getDataCleanQiFu360CoreAndMaxNum();
+            if(null != coreNum){
+                pushPool.setCorePoolSize(coreNum);
+                pushPool.setMaximumPoolSize(coreNum);
+            }
             // 从数据库读取满足条件的数据
             QueryUserRealMessageExample example = new QueryUserRealMessageExample();
             QueryUserRealMessageExample.Criteria criteria = example.createCriteria();
-            criteria.andStatusEqualTo(1).andIsDeletedEqualTo(0);
+            criteria.andStatusEqualTo(0).andIsDeletedEqualTo(0);
             if(StringUtils.isNotBlank(beginQueryDate) && StringUtils.isNotBlank(endQueryDate) ){
                 SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
                 try {
@@ -72,33 +79,46 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                 } catch (ParseException e) {
                     log.warn("DataCleanQiFu360Job-参数中时间格式格式化异常[{}]",jobParameter);
                 }
-            }else{
-                criteria.andCreateTimeLessThanOrEqualTo(new Date());
             }
             if(null != apiCodeFromJobParam && !apiCodeFromJobParam.isEmpty()){
                 criteria.andApiCodeIn(apiCodeFromJobParam.toJavaList(String.class));
             }
-            if(id.get() > 0){
-                criteria.andIdGreaterThan(id.get());
-            }
-            example.setOrderByClause(String.format(" create_time,id limit %d", pageSize));
+            example.setOrderByClause(String.format(" id limit %d", pageSize));
             List<QueryUserRealMessage> list = queryUserRealMessageMapper.selectByExample(example);
             if(null == list || list.size()<1){
                 break;
             }
+            List<Long> allIdListlist = list.stream().map(QueryUserRealMessage::getId).collect(Collectors.toList());
+            queryUserRealMessageMapper.updateStatusByIdList(1, allIdListlist);
+
             // list数据按照1000条切割
             List<List<QueryUserRealMessage>> list1000 = Lists.partition(list, 1000);
             list1000.forEach((List<QueryUserRealMessage> listQurm)->{
-                // 最后一个对象
-                QueryUserRealMessage queryUserRealMessage = list.get(list.size() - 1);
-                String apiCode = queryUserRealMessage.getApiCode();
-                List<Long> idList = new ArrayList();
-                // 数据清洗
-                List<TransferDataItemDTO> transferDataItemDTOS = dataTransfer(list,idList);
-                id.set(idList.get(idList.size() - 1));
-                // 调用转化接口参数拼接并调用
-                asyncTransferUpload(apiCode, transferDataItemDTOS, idList);
+                pushPool.submit(() -> {
+                    // 最后一个对象
+                    QueryUserRealMessage queryUserRealMessage = list.get(list.size() - 1);
+                    String apiCode = queryUserRealMessage.getApiCode();
+                    List<Long> idList = new ArrayList();
+                    // 数据清洗
+                    List<TransferDataItemDTO> transferDataItemDTOS = dataTransfer(list,idList);
+                    // 调用转化接口参数拼接并调用
+                    asyncTransferUpload(apiCode, transferDataItemDTOS, idList);
+                });
             });
+        }
+        pushPool.shutdown();
+        try {
+            while (!pushPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                // do nothing
+            }
+        } catch (InterruptedException e) {
+            log.error("奇富360-DataCleanQiFu360Job调用转化数据上传接口-线程池中断异常-", e);
+            pushPool.shutdownNow();
+            Thread.currentThread().interrupt();
+        } catch (Exception e){
+            log.error("奇富360-DataCleanQiFu360Job调用转化数据上传接口-线程池停止异常-", e);
+            pushPool.shutdownNow();
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -131,7 +151,11 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                 if(null != object && !object.isEmpty()){
                     lastLoginTime = object.getString("lastLoginTime");
                     name = object.getString("name");
-                    sex = object.getString("sex");
+                    String sexOriginal = object.getString("sex");
+                    String[] sexValue = {"1","0"};
+                    String[] sexKey = {"M","F"};
+                    sexOriginal = emptyDefault(sexOriginal);
+                    sex = getMapByList(sexOriginal,sexKey,sexValue);
                     age = object.getString("age");
 //                    mobileMd5 = object.getString("mobileMd5");
                     String userExtraInfoJsonString = object.getString("userExtraInfo");
@@ -155,8 +179,15 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             if(StringUtils.isNotBlank(tradeMessage)){
                 JSONObject object = JSON.parseObject(tradeMessage);
                 if(null != object && !object.isEmpty()){
-                    isSucc = object.getString("isSucc");
-                    isLoan = object.getString("isLoan");
+                    String isSuccOriginal = object.getString("isSucc");
+                    String[] isSuccValue = {"1","0"};
+                    String[] isSuccKey = {"Y","N"};
+                    isSuccOriginal = emptyDefault(isSuccOriginal);
+                    isSucc = getMapByList(isSuccOriginal,isSuccKey,isSuccValue);
+
+                    String isLoanOriginal = object.getString("isLoan");
+                    isLoanOriginal = emptyDefault(isLoanOriginal);
+                    isLoan = getMapByList(isLoanOriginal,isSuccKey,isSuccValue);
                     succAmtType = object.getString("succAmtType");
                 }
             }
@@ -202,13 +233,37 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
     }
 
     /**
+     * 2023-05-10 11:20
+     * 值为null时，赋值''
+     */
+    private String emptyDefault(String value) {
+        return StringUtils.isNotBlank(value) ? value : "";
+    }
+
+    private String getMapByList(String value, String[] keyArray, String[] valueArray){
+        if(keyArray.length != valueArray.length){
+            log.warn("参数长度不一致value:{}-keyArray[{}]valueArray[{}]",value,keyArray,valueArray);
+            return value;
+        }
+        try{
+            for (int i = 0; i < keyArray.length; i++) {
+                if(value.trim().equals(keyArray[i])){
+                    return valueArray[i];
+                }
+            }
+        }catch (Exception e){
+            log.warn("参数映射异常value:{}-keyArray[{}]valueArray[{}]--",value,keyArray,valueArray,e);
+        }
+        return value;
+    }
+
+    /**
      * 异步上传转化接口
      * @param apiCode apiCode
      * @param dataItems dataItems
      * @param idList idList
      */
     private void asyncTransferUpload(String apiCode, List<TransferDataItemDTO> dataItems, List<Long> idList){
-        ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5);
         PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
         TransferDataDTO transferDataDTO = new TransferDataDTO();
         transferDataDTO.setDataItems(dataItems);
@@ -218,30 +273,14 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
-        pushPool.submit(() -> {
-            marketingApiService.pushMarketingApiTransfer(dto,null, idList, queryUserRealMessageMapper);
-//            // 响应结果解析
-//            if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
-//                // 根据响应结果更新数据库数据表-status成功
-//                queryUserRealMessageMapper.updateStatus
-//            }else{
-//                // 根据响应结果更新数据库数据表-status失败
-//                queryUserRealMessageMapper.updateStatus
-//            }
-        });
-        pushPool.shutdown();
-        try {
-            while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {
-                // do nothing
-            }
-        } catch (InterruptedException e) {
-            log.error("apiCode[{}]requestId[{}]调用转化数据上传接口-线程池中断异常-", apiCode, requestId, e);
-            pushPool.shutdownNow();
-            Thread.currentThread().interrupt();
-        } catch (Exception e){
-            log.error("apiCode[{}]requestId[{}]调用转化数据上传接口-线程池停止异常-", apiCode, requestId, e);
-            pushPool.shutdownNow();
-            Thread.currentThread().interrupt();
+        Result result = marketingApiService.pushMarketingApiTransfer(dto, null);
+        // 响应结果解析
+        if(ResultCode.SUCCESS.getValue().equals(result.getCode())){
+            // 根据响应结果更新数据库数据表-status成功
+            queryUserRealMessageMapper.updateStatusByIdList(2, idList);
+        }else{
+            // 根据响应结果更新数据库数据表-status失败
+            queryUserRealMessageMapper.updateStatusByIdList(3, idList);
         }
     }
 
