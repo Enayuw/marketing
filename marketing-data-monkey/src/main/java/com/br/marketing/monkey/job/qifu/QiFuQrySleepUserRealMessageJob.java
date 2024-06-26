@@ -1,5 +1,6 @@
 package com.br.marketing.monkey.job.qifu;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.Impl.JobManager;
@@ -43,12 +44,16 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
         String parameter = shardingContext.getJobParameter();
         String apiCode = "3710139";
         LocalDate now = LocalDate.now();
-        if (StringUtils.isNotBlank(parameter)) {
-            String[] parames = parameter.split(":");
-            if (parames.length == 1) {
-                apiCode = parames[0];
+
+        if (StringUtils.isNotEmpty(parameter)) {
+            List<Map<String, String>> paramList = JSONObject.parseObject(parameter, List.class);
+            for(Map<String, String> map : paramList){
+                if(!StringUtils.isEmpty(map.get("apiCode"))){
+                    apiCode = map.get("apiCode");
+                }
             }
         }
+
         // 查询今日是否执行过任务
         List<TransferActionFront> actionFrontList = getActionFront(apiCode, now.toString(),actionTypeTransfer);
         int status = 2;
@@ -84,6 +89,5 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
                 .andIsDelEqualTo(1);
         return transferActionFrontMapper.selectByExample(example);
     }
-
 
 }

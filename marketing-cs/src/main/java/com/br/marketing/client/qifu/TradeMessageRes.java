@@ -2,13 +2,8 @@ package com.br.marketing.client.qifu;
 
 public class TradeMessageRes {
 
-    /**
-     *
-     */
     private String isLoan;
-    /**
-     *
-     */
+
     private String isSucc;
 
     public String getIsLoan() {

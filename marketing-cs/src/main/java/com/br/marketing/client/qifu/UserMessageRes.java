@@ -4,25 +4,14 @@ import java.util.List;
 
 public class UserMessageRes {
 
-    /**
-     *
-     */
     private String age;
-    /**
-     *
-     */
+
     private String lastLoginTime;
-    /**
-     *
-     */
+
     private String name;
-    /**
-     *
-     */
+
     private String sex;
-    /**
-     *
-     */
+
     private List<UserExtraInfo> userExtraInfo;
 
     public String getAge() {

@@ -187,7 +187,7 @@ api:
     channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
     isProxy: false
   qifu:
-    baseUri: https://stg1-gws-bps-web.daikuan.360.cn
+    baseUri: https://stg3-gws-bps-web.daikuan.360.cn
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
     qrySleepUserRealMessageUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
     qifuPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwQAaMvE6+7Wy+rf6jfW8OEKhGSmmg6LaiSLaTui3lBA4V4eqfQEpLfL8dGYYcakiH6CUAMPZ0jqNEN/En3Mtfclhr8903m/xG3IOUxhbqiVZBZmQ8esG6nP8MHsFWK2hMHN20xh0qKN6hg0BHQIIkbbnZjN9FGD/hz1t4NJvwIHxqJC+I3pRkCrC+SPWH5djzQdhYczgpyGwNqrGpg5dPibZJ+/qw15Va0vDBMp8cGad+Njcw5n7QcxBvSpViTYl704+wyohX36bF1CkrtfV6z1JnDqR+9KtEaRpfnUC/eh7gvltDbl/vTfeZLuShLs+/csgVshVIXEpL8g9uC0XOQIDAQAB"

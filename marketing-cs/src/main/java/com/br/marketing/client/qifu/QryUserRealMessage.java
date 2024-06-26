@@ -5,25 +5,27 @@ import java.util.List;
 public class QryUserRealMessage {
 
     /**
-     *
+     * 手机号
      */
     private String mobileMd5;
     /**
-     *
+     * 营销信号:Y 停止营销 N 可营销
      */
     private String stopMarketingSign;
     /**
-     *
+     * 交易信息
      */
     private List<TradeMessageRes> tradeMessageRes;
     /**
-     *
+     * 唯一号
      */
     private String uniqueReqNo;
-
+    /**
+     * 授信信息
+     */
     private List<RiskMessageRes> riskMessageRes;
     /**
-     *
+     * 用户完件信息
      */
     private List<UserMessageRes> userMessageRes;
 
