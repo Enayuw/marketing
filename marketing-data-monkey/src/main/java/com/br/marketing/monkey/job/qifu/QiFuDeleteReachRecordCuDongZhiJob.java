@@ -146,7 +146,7 @@ public class QiFuDeleteReachRecordCuDongZhiJob extends AbstractSimpleElasticJob 
     private boolean isRetry(LocalDate now) {
         RetryMainLogExample example = new RetryMainLogExample();
         example.createCriteria()
-                .andRetryMethodEqualTo("callSaveReachDeleteRecord")
+                .andRetryMethodEqualTo("callDeleteReachRecordCuDongZhi")
                 .andRetryStatusEqualTo(1)
                 .andRetryServiceEqualTo("com.br.marketing.strategy.MethodRetryHandlerService")
                 .andCreateTimeBetween(Date.from(now.atTime(LocalTime.MIN).atZone(ZoneId.systemDefault()).toInstant()),
@@ -167,9 +167,9 @@ public class QiFuDeleteReachRecordCuDongZhiJob extends AbstractSimpleElasticJob 
         List<QifuSaveReachDeleteRecordApiPushLog> bizErrorStatistics =
                 qifuSaveReachDeleteRecordApiPushLogMapper.getBizErrorStatistics(apiCode, dateStr);
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
-        String title = "奇富保存触达记录删除接口推送异常信息";
+        String title = "奇富删除触达记录促动支推送异常信息";
         markdown.setTitle(title);
-        StringBuilder sb = new StringBuilder("# 奇富《保存触达记录删除》接口推送异常信息\n");
+        StringBuilder sb = new StringBuilder("# 奇富【删除触达记录促动支】接口推送异常信息\n");
         if (CollectionUtils.isEmpty(apiErrorStatistics) && CollectionUtils.isEmpty(qiFuBizErrorStatistics)
                 && CollectionUtils.isEmpty(bizErrorStatistics)) {
             return;
