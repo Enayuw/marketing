@@ -35,6 +35,9 @@ public class QiFuClients {
     @Value("${api.qifu.saveReachDeleteRecordUrl:}")
     private String saveReachDeleteRecordUrl;
 
+    @Value("${api.qifu.saveReachDeleteRecordCuDongZhiUrl:}")
+    private String saveReachDeleteRecordCuDongZhiUrl;
+
     @Value("${api.qifu.qrySleepUserRealMessageUrl:}")
     private String qrySleepUserRealMessageUrl;
 
@@ -71,6 +74,7 @@ public class QiFuClients {
      */
     private static final List<Boolean> IS_LOG_DEFAULT_LIST;
     private static final String IS_LOG_API_NAME_DELETE_RECORD = "agentOperationSaveReachDeleteRecord";
+    private static final String IS_LOG_API_NAME_DELETE_RECORD_CUDONGZHI = "agentOperationActSaveReachDeleteRecord";
     private static final String CODE_KEY = "httpcode";
     private static final String CONTENT_KEY = "content";
 
@@ -259,5 +263,70 @@ public class QiFuClients {
         }
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
+    }
+
+    /**
+     * 2024-06-27
+     * 奇富删除触达记录接口-促动支
+     *
+     * @param saveReachDeleteRecordReq 触达删除记录
+     * @return 接口响应信息 {@link ResponseData}、加密信息{@link ResultDataObj}及业务信息 {@link SaveReachDeleteRecordResp}
+     */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result<ResponseData<SaveReachDeleteRecordResp>> sendDeleteReachRecordDataCuDongZhi(
+            SaveReachDeleteRecordReq saveReachDeleteRecordReq) {
+        Result<ResponseData<SaveReachDeleteRecordResp>> resultResp = new Result<>();
+        try {
+            // 获取挡板开关
+            HashMap<String, Object> mock = marketingCommonConfig.getQiFuDeleteReachRecordMock();
+            Result<String> result = new Result<>();
+            if ("1".equals(mock.get("switch"))) {
+                log.warn("mock开关开启");
+                Integer code = (Integer) mock.get("code");
+                String message = (String) mock.get("message");
+                if(1!=code){
+                    resultResp.setCode(code);
+                    resultResp.setMessage(message);
+                    return resultResp;
+                }
+                result.setCode(ResultCode.SUCCESS.getValue());
+                result.setDate((String) mock.get("data"));
+            } else{
+                result = sendData(saveReachDeleteRecordReq, saveReachDeleteRecordCuDongZhiUrl
+                        , IS_LOG_API_NAME_DELETE_RECORD_CUDONGZHI);
+            }
+            log.warn("result: {}", JSONObject.toJSON(result));
+
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                ResponseData<SaveReachDeleteRecordResp> responseData = JSON.parseObject(result.getData()
+                        , new TypeReference<ResponseData<SaveReachDeleteRecordResp>>() {
+                        });
+                resultResp.setDate(responseData);
+                switch (CodeEnum.valueof(responseData.getCode())) {
+                    // 成功
+                    case GWS100:
+                        // 解密业务数据
+                        responseData.decryptData(qifuPublicKey, brPrivateKey
+                                , new TypeReference<SaveReachDeleteRecordResp>() {
+                                });
+                        resultResp.setCode(ResultCode.SUCCESS.getValue());
+                        return resultResp;
+                    // 重试
+                    case GWS805:
+                        resultResp.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                        return resultResp;
+                    default:
+                }
+                resultResp.setCode(ResultCode.FAIL.getValue());
+                return resultResp;
+            }
+            resultResp.setCode(result.getCode());
+            resultResp.setMessage(result.getMessage());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            resultResp.setCode(ResultCode.FAIL.getValue());
+            resultResp.setMessage(e.getMessage());
+        }
+        return resultResp;
     }
 }
