@@ -1704,9 +1704,15 @@ public class MarketingCommonConfig {
     private List<String> xieChengCpaExcludeConvTypeConfig = Lists.newArrayList("107","105");
 
     /**
-     * 数禾促首登场景apicode映射配置
+     * 数禾推送客服黑名单促首登场景apicode映射配置
      * eg:{"3710149":["促首登"],"7410727":["促首登"]}
      */
-    private HashMap<String, List<String>> shuHeCuShouDengApiCodeMapping;
+    private HashMap<String, List<String>> shuHeCuShouDengBlackListApiCodeMapping;
+
+    /**
+     * 数禾推送客服转化促首登场景apicode映射配置
+     * eg:{"3710149":["促首登"],"7410727":["促首登"]}
+     */
+    private HashMap<String, List<String>> shuHeCuShouDengTransferApiCodeMapping;
 }
 

@@ -1,5 +1,6 @@
 package com.br.marketing.rule.shuhe;
 
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
@@ -13,10 +14,12 @@ import com.br.marketing.context.impl.ShuHeCuShouDengRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -34,6 +37,9 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class ShuHeCuShouDengCustomerTransferImpl implements AssembleData<ConversionData> {
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -70,7 +76,13 @@ public class ShuHeCuShouDengCustomerTransferImpl implements AssembleData<Convers
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            if (!Objects.equals("促首登", transfer.getUserType())) {
+
+            List<String> userTypeList = marketingCommonConfig.getShuHeCuShouDengBlackListApiCodeMapping().get(context.getApiCode());
+            if (CollectionUtils.isEmpty(userTypeList)) {
+                return false;
+            }
+
+            if (!userTypeList.contains(transfer.getUserType())) {
                 return false;
             }
 
