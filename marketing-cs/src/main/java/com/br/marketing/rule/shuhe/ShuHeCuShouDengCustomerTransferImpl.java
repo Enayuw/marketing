@@ -102,7 +102,7 @@ public class ShuHeCuShouDengCustomerTransferImpl implements AssembleData<Convers
             MarketingSyncUser syncUser = syncUsers.get(0);
             JSONObject json = JSON.parseObject(transfer.getReserveField1());
             Date clcUsrLstAppStaTim = json.getDate("clc_usr_lst_app_sta_tim");
-            if (clcUsrLstAppStaTim.after(syncUser.getAppletTime())) {
+            if (Objects.nonNull(clcUsrLstAppStaTim) && clcUsrLstAppStaTim.after(syncUser.getAppletTime())) {
                 return true;
             }
         }
