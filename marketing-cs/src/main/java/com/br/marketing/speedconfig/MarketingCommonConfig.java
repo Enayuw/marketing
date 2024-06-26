@@ -1251,6 +1251,11 @@ public class MarketingCommonConfig {
     private HashMap<String, Object> baiYingUndoMock;
 
     /**
+     *
+     */
+    private HashMap<String, Object> qiFuDeleteReachRecordMock;
+
+    /**
      * 同程不运营名单推送客户接口线程数
      */
     private Integer tongChengUndoThreadNum;

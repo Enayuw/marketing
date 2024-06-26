@@ -1,6 +1,7 @@
 package com.br.marketing.client.qifu;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
@@ -193,8 +194,26 @@ public class QiFuClients {
             SaveReachDeleteRecordReq saveReachDeleteRecordReq) {
         Result<ResponseData<SaveReachDeleteRecordResp>> resultResp = new Result<>();
         try {
-            Result<String> result = sendData(saveReachDeleteRecordReq, saveReachDeleteRecordCuDongZhiUrl
-                    , IS_LOG_API_NAME_DELETE_RECORD_CUDONGZHI);
+            // 获取挡板开关
+            HashMap<String, Object> mock = marketingCommonConfig.getQiFuDeleteReachRecordMock();
+            Result<String> result = new Result<>();
+            if ("1".equals(mock.get("switch"))) {
+                log.warn("mock开关开启");
+                Integer code = (Integer) mock.get("code");
+                String message = (String) mock.get("message");
+                if(1!=code){
+                    resultResp.setCode(code);
+                    resultResp.setMessage(message);
+                    return resultResp;
+                }
+                result.setCode(ResultCode.SUCCESS.getValue());
+                result.setDate((String) mock.get("data"));
+            } else{
+                result = sendData(saveReachDeleteRecordReq, saveReachDeleteRecordCuDongZhiUrl
+                        , IS_LOG_API_NAME_DELETE_RECORD_CUDONGZHI);
+            }
+            log.warn("result: {}", JSONObject.toJSON(result));
+
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 ResponseData<SaveReachDeleteRecordResp> responseData = JSON.parseObject(result.getData()
                         , new TypeReference<ResponseData<SaveReachDeleteRecordResp>>() {
