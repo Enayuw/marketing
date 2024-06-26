@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.qifu;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.qifu.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -135,14 +136,14 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setUniqueReqNo(qryUserRealMessage.getUniqueReqNo());
                     queryUserRealMessage.setMobileMd5(qryUserRealMessage.getMobileMd5());
                     queryUserRealMessage.setStopMarketingSign(qryUserRealMessage.getStopMarketingSign());
-                    if(!qryUserRealMessage.getUserMessageRes().isEmpty()){
-                        queryUserRealMessage.setUserMessage(qryUserRealMessage.getUserMessageRes().toString());
+                    if(qryUserRealMessage.getUserMessageRes() != null){
+                        queryUserRealMessage.setUserMessage(JSONObject.toJSONString(qryUserRealMessage.getUserMessageRes()));
                     }
-                    if(!qryUserRealMessage.getRiskMessageRes().isEmpty()){
-                        queryUserRealMessage.setRiskMessage(qryUserRealMessage.getRiskMessageRes().toString());
+                    if(qryUserRealMessage.getRiskMessageRes() != null){
+                        queryUserRealMessage.setRiskMessage(JSONObject.toJSONString(qryUserRealMessage.getRiskMessageRes()));
                     }
-                    if(!qryUserRealMessage.getTradeMessageRes().isEmpty()){
-                        queryUserRealMessage.setTradeMessage(qryUserRealMessage.getTradeMessageRes().toString());
+                    if(qryUserRealMessage.getTradeMessageRes() != null){
+                        queryUserRealMessage.setTradeMessage(JSONObject.toJSONString(qryUserRealMessage.getTradeMessageRes()));
                     }
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
                     queryUserRealMessage.setCreateTime(new Date());
