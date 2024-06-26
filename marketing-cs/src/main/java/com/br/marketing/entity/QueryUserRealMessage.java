@@ -54,7 +54,7 @@ public class QueryUserRealMessage {
     private String tradeMessage;
 
     /**
-     * 数据状态：数据待处理-1、处理成功-2、处理失败-3、接口超时-4
+     * 推送状态：0- 待推送, 1-推送中，2推送成功，3-推送失败
      */
     private Integer status;
 
@@ -62,6 +62,11 @@ public class QueryUserRealMessage {
      * 错误原因
      */
     private String errorMsg;
+
+    /**
+     * 创建日期
+     */
+    private String createDate;
 
     /**
      * 是否删除 0:否;1:是;
@@ -172,6 +177,14 @@ public class QueryUserRealMessage {
 
     public void setErrorMsg(String errorMsg) {
         this.errorMsg = errorMsg == null ? null : errorMsg.trim();
+    }
+
+    public String getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(String createDate) {
+        this.createDate = createDate == null ? null : createDate.trim();
     }
 
     public Integer getIsDeleted() {

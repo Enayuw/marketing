@@ -1,11 +1,14 @@
 package com.br.marketing.client.qifu;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
 import com.br.marketing.client.qifu.enums.CodeEnum;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -31,6 +34,9 @@ public class QiFuClients {
 
     @Value("${api.qifu.saveReachDeleteRecordUrl:}")
     private String saveReachDeleteRecordUrl;
+
+    @Value("${api.qifu.qrySleepUserRealMessageUrl:}")
+    private String qrySleepUserRealMessageUrl;
 
     /**
      * 客户公钥
@@ -68,11 +74,90 @@ public class QiFuClients {
     private static final String CODE_KEY = "httpcode";
     private static final String CONTENT_KEY = "content";
 
+    private final static String TITLE = "【奇富批量接口用户查询】";
 
     static {
         IS_LOG_DEFAULT_LIST = Arrays.asList(false, false);
     }
 
+
+    /**
+     * 奇富批量接口用户查询
+     * @return
+     */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result<ResponseData<QrySleepUserRealMessageResp>> qrySleepUserRealMessage(QrySleepUserRealMessageReq bizData) {
+        Result<ResponseData<QrySleepUserRealMessageResp>> resultResp = new Result<>();
+        try {
+            // 调用奇富查询用户接口
+            Result<String> result = queryMessage(bizData,0);
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                ResponseData<QrySleepUserRealMessageResp> responseData = JSON.parseObject(result.getData()
+                        , new TypeReference<ResponseData<QrySleepUserRealMessageResp>>() {
+                        });
+                resultResp.setDate(responseData);
+                switch (CodeEnum.valueof(responseData.getCode())) {
+                    // 成功
+                    case GWS100:
+                        // 解密业务数据
+                        responseData.decryptData(qifuPublicKey, brPrivateKey
+                                , new TypeReference<QrySleepUserRealMessageResp>() {
+                                });
+                        resultResp.setCode(ResultCode.SUCCESS.getValue());
+                        return resultResp;
+                    // 重试
+                    case GWS805:
+                        resultResp.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                        return resultResp;
+                    default:
+                }
+                resultResp.setCode(ResultCode.FAIL.getValue());
+                return resultResp;
+            }
+            resultResp.setCode(result.getCode());
+            resultResp.setMessage(result.getMessage());
+        }catch (Exception e) {
+            log.error(e.getMessage(), e);
+            resultResp.setCode(ResultCode.FAIL.getValue());
+            resultResp.setMessage(e.getMessage());
+        }
+        return resultResp;
+    }
+
+    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
+    public Result<String> queryMessage(QrySleepUserRealMessageReq bizData,Integer retry) {
+        Result<String> result = new Result<>();
+        String qiFuApiPublicKey = marketingCommonConfig.getQiFuApiPublicKey();
+        if (StringUtils.isNotBlank(qiFuApiPublicKey)) {
+            qifuPublicKey = qiFuApiPublicKey;
+        }
+        String qiFuApiAppId = marketingCommonConfig.getQiFuApiAppId();
+        RequestParam requestParam = new RequestParam(StringUtils.isBlank(qiFuApiAppId)
+                ? appId : qiFuApiAppId, bizData, qifuPublicKey, brPrivateKey);
+        try {
+            long start = System.currentTimeMillis();
+            log.warn(TITLE+"调度开始, requestParam{}", JSONObject.toJSONString(bizData));
+            Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(requestParam, qrySleepUserRealMessageUrl, isProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE,
+                    JSON.toJSONString(requestParam), true, true);
+
+            long end = System.currentTimeMillis();
+            log.warn(TITLE+"调度结束, result:{}, 耗时:{}", httpResponseMap, end - start);
+
+            if (String.valueOf(HttpStatus.SC_OK).equals(httpResponseMap.get(CODE_KEY))) {
+                result.setDate(httpResponseMap.get(CONTENT_KEY));
+                result.setCode(ResultCode.SUCCESS.getValue());
+                result.setMessage("");
+                return result;
+            }
+        } catch (Exception e) {
+            String eMsg = "奇富批量用户查询接口异常:" + e.getMessage();
+            log.error(eMsg, e);
+            result.setMessage(eMsg);
+        }
+        result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        return result;
+    }
 
     /**
      * 2023-09-21 15:11
@@ -120,7 +205,6 @@ public class QiFuClients {
         }
         return resultResp;
     }
-
 
     /**
      * 2023-09-21 15:14

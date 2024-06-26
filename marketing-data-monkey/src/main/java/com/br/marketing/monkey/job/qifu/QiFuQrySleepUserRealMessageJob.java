@@ -1,18 +1,21 @@
 package com.br.marketing.monkey.job.qifu;
 
-import com.br.marketing.entity.TransferActionFront;
-import com.br.marketing.entity.TransferActionFrontExample;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
+import com.br.marketing.service.Impl.qifu.QiFuQrySleepUserRealMessageService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.util.List;
+import java.util.*;
+
 
 /**
  * @ClassName QiFuQrySleepUserRealMessageJob
@@ -23,6 +26,9 @@ import java.util.List;
 @Component
 @Slf4j
 public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
+
+    @Autowired
+    QiFuQrySleepUserRealMessageService service;
 
     @Resource
     private TransferActionFrontMapper transferActionFrontMapper;
@@ -38,18 +44,23 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
         String parameter = shardingContext.getJobParameter();
         String apiCode = "3710139";
         LocalDate now = LocalDate.now();
-        if (StringUtils.isNotBlank(parameter)) {
-            String[] parames = parameter.split(":");
-            if (parames.length == 1) {
-                apiCode = parames[0];
+
+        if (StringUtils.isNotEmpty(parameter)) {
+            List<Map<String, String>> paramList = JSONObject.parseObject(parameter, List.class);
+            for(Map<String, String> map : paramList){
+                if(!StringUtils.isEmpty(map.get("apiCode"))){
+                    apiCode = map.get("apiCode");
+                }
             }
         }
+
         // 查询今日是否执行过任务
         List<TransferActionFront> actionFrontList = getActionFront(apiCode, now.toString(),actionTypeTransfer);
         int status = 2;
         if (!actionFrontList.isEmpty()) {
             TransferActionFront actionFront = actionFrontList.get(0);
             if (status == actionFront.getStatus()) {
+                service.process(apiCode);
                 log.warn("api_code:{}【奇富促动支用户信息】该任务今日已经推送", apiCode);
             } else {
                 log.warn("api_code:{}【奇富促动支用户信息】该任务今日已经已有任务在运行"
@@ -57,9 +68,10 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
                 return;
             }
         } else {
-            // 记录作业执行日志
             Long frontId = yiXinTransferService.saveFrontData(apiCode, now.toString(), actionTypeTransfer);
             // 逻辑处理
+            service.process(apiCode);
+            // 记录作业执行日志
             // 处理完成，将作业状态置为执行结束
             yiXinTransferService.updateFrontDataStatus(frontId, 2);
         }
@@ -77,6 +89,5 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
                 .andIsDelEqualTo(1);
         return transferActionFrontMapper.selectByExample(example);
     }
-
 
 }
