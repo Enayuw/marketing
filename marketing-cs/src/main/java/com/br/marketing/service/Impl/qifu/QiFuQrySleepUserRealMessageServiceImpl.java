@@ -77,6 +77,8 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                 // 根据手机号 筛选 未推送过的数据
                 final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getSyncUserByCusBatch(
                         apiCode, tskId, indexId, now, pageSize);
+
+                log.warn(TITLE+"筛选数据:{}", pageList);
                 if (CollectionUtils.isEmpty(pageList)) {
                     break;
                 }
