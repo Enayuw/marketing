@@ -162,9 +162,9 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                     String userExtraInfoJsonString = object.getString("userExtraInfo");
                     if(StringUtils.isNotBlank(userExtraInfoJsonString)){
                         JSONObject userExtraInfoJson = JSON.parseObject(userExtraInfoJsonString);
-                        if(null != object && !object.isEmpty()){
-                            isLightMarkting = object.getString("isLightMarkting");
-                            operationScene = object.getString("operationScene");
+                        if(null != userExtraInfoJson && !userExtraInfoJson.isEmpty()){
+                            isLightMarkting = userExtraInfoJson.getString("isLightMarkting");
+                            operationScene = userExtraInfoJson.getString("operationScene");
                         }
                     }
                 }
