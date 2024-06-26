@@ -108,7 +108,7 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                     }catch (Exception e){
                         log.error("apiCode:{}奇富360数据清洗-线程池中执行异常-", apiCode, e);
                         // 根据响应结果更新数据库数据表-status5数据处理失败
-                        queryUserRealMessageMapper.updateStatusByIdList(5, idList);
+//                        queryUserRealMessageMapper.updateStatusByIdList(5, idList);
                     }
                 });
             });
