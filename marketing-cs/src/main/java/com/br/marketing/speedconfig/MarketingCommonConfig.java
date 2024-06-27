@@ -1734,7 +1734,7 @@ public class MarketingCommonConfig {
      */
     private String CuDongZhiTransferFileExecuteTime;
     /**
-     * 奇富360获取用户信息接口线程数
+     * 奇富360数据清洗调用转化接口线程数
      */
     private Integer dataCleanQiFu360CoreAndMaxNum;
     /**
