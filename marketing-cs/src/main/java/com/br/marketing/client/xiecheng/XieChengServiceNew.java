@@ -1,6 +1,7 @@
 package com.br.marketing.client.xiecheng;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -46,27 +47,6 @@ public class XieChengServiceNew {
     private static final String MARKETTYPE = "SMS";
     private static final Boolean MARKETFINANCEUSER = false;
 
-    @Value("${api.xiecheng.smsColliding.openUrl:0}")
-    private String smsCollidingOpenUrl;
-
-    @Value("${api.xiecheng.smsColliding.appId:0}")
-    private String smsCollidingAppId;
-
-    @Value("${api.xiecheng.smsColliding.key:0}")
-    private String smsCollidingKey;
-
-    @Value("${api.xiecheng.smsColliding.iv:0}")
-    private String smsCollidingIv;
-
-    @Value("${api.xiecheng.smsColliding.singKey:0}")
-    private String smsCollidingSingKey;
-
-    @Value("${api.xiecheng.smsColliding.channel:0}")
-    private String smsCollidingChannel;
-
-    @Value("${api.xiecheng.smsQuit.isProxy:0}")
-    private Boolean smsCollidingIsProxy;
-
     @Autowired
     HttpProxyClient httpProxyClient;
 
@@ -94,12 +74,30 @@ public class XieChengServiceNew {
             if(i%2==0){
                 dataMap.put("result",true);
                 dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
+                dataMap.put("releaseDate", null);
             }else {
                 dataMap.put("result",false);
+                dataMap.put("releaseDate", DateUtil.formatDate(DateUtil.offsetDay(new Date(), RandomUtil.getRandom().nextInt(7)+1)));
             }
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
             dataMap.put("info","测试info");
+            if (marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(3)) {
+                switch (i % 3) {
+                    case 0:
+                        dataMap.put("marketCouponList", JSONArray.parseArray("[{\"couponCode\":\"券码Code\",\"couponDesc\":\"券码描述\"}]"));
+                        break;
+                    case 1:
+                        dataMap.put("marketCouponList", JSONArray.parseArray(
+                            "[{\"couponCode\":\"券码Code1\",\"couponDesc\":\"券码描述1\"},{\"couponCode\":\"券码Code2\",\"couponDesc\":\"券码描述2\"}]"));
+                        break;
+                    case 2:
+                        dataMap.put("marketCouponList", "测试非规定marketCouponList格式，不影响撞库，只是不析出marketCouponList！");
+                        break;
+                    default:
+                        break;
+                }
+            }
             jsonArray.add(dataMap);
         }
         map.put("data",jsonArray);
@@ -124,6 +122,14 @@ public class XieChengServiceNew {
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d,0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result pushXieChengSmsCollidingDataNew(List<String> sha256CodeList) {
+        JSONObject collidingConfig = marketingCommonConfig.getXieChengSmsCollidingConfig();
+        String smsCollidingOpenUrl = collidingConfig.getString("smsCollidingOpenUrl");
+        String smsCollidingAppId = collidingConfig.getString("smsCollidingAppId");
+        String smsCollidingKey = collidingConfig.getString("smsCollidingKey");
+        String smsCollidingIv = collidingConfig.getString("smsCollidingIv");
+        String smsCollidingSingKey = collidingConfig.getString("smsCollidingSingKey");
+        String smsCollidingChannel = collidingConfig.getString("smsCollidingChannel");
+        Boolean smsCollidingIsProxy = collidingConfig.getBoolean("smsCollidingIsProxy");
         /**
          * data 组装
          */

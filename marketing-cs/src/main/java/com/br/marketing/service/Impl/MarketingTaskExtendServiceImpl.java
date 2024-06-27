@@ -67,6 +67,8 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
             baseHeadList.add("result");
             baseHeadList.add("release_time");
             baseHeadList.add("clean_time");
+            baseHeadList.add("coupon_code");
+            baseHeadList.add("coupon_desc");
         }
         List<TaskInfoVO> products = marketingTaskExtendMapper.getProducts(batchNumbers);
         //endregion
