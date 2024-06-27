@@ -62,7 +62,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
 
     private final static String FILE_HEADER = "requestId,requestTime,custNum,cell,userType,userType1" +
             ",registerTime,ifApply,applyDt,applyResult,auditTime,auditAmount,ifLent,lentTime,lentAmount" +
-            ",applyLoan,applyLoanTime,applyLoanAmount,ifActivity,activityTime,unlentAmount,caseEffective";
+            ",applyLoan,applyLoanTime,applyLoanAmount,ifActivity,activityTime,unlentAmount,caseEffective,isBlack";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
