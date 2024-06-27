@@ -1753,5 +1753,15 @@ public class MarketingCommonConfig {
      * eg:{"3710149":["促首登"],"7410727":["促首登"]}
      */
     private HashMap<String, List<String>> shuHeCuShouDengTransferApiCodeMapping;
+
+    /**
+     *  携程撞库推决策分页查询数量
+     */
+    private Integer xiechengZkToPlicyPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengSmsCollidingConfig;
 }
 

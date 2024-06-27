@@ -20,9 +20,9 @@
     </delete>
 
     <insert id="batchSave" parameterType="java.util.List">
-        insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id,package_rule_id,data_source_type,
-                                                   cell_sha256_code_list, release_time, org_channel,
-                                                   mkt_level, info, `result`,
+        insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id, package_rule_id, data_source_type,
+                                                   cell_sha256_code_list, release_time, release_date, org_channel,
+                                                   mkt_level, info, `result`, market_coupon_list, coupon_code, coupon_desc,
                                                    http_code, business_code, return_content, create_time, update_time)
         VALUES
         <foreach collection="collidingLogs" item="item" separator=",">
@@ -32,10 +32,14 @@
              #{item.dataSourceType},
              #{item.cellSha256CodeList},
              #{item.releaseTime},
+             #{item.releaseDate},
              #{item.orgChannel},
              #{item.mktLevel},
              #{item.info},
              #{item.result},
+             #{item.marketCouponList},
+             #{item.couponCode},
+             #{item.couponDesc},
              #{item.httpCode},
              #{item.businessCode},
              #{item.returnContent},
