@@ -233,12 +233,13 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                     String lentTime = removeMillisecond(emptyDefault(transferSyncUser.getLentTime()));
                     String lentAmount = emptyDefault(transferSyncUser.getLentAmount());
                     String reserveField1 = transferSyncUser.getReserveField1();
-                    String ifActivity = null;
-                    String activityTime = null;
-                    String applyLoan = null;
-                    String applyLoanTime = null;
-                    String applyLoanAmount = null;
-                    String unlentAmount = null;
+                    String ifActivity = "";
+                    String activityTime = "";
+                    String applyLoan = "";
+                    String applyLoanTime = "";
+                    String applyLoanAmount = "";
+                    String unlentAmount = "";
+                    String isBlack = "";
                     if (StringUtils.isNotBlank(reserveField1)) {
                         JSONObject jsonObject = JSON.parseObject(reserveField1);
                         ifActivity = jsonObject.getString("ifActivity");
@@ -247,6 +248,10 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                         applyLoanTime = jsonObject.getString("applyLoanTime");
                         applyLoanAmount = jsonObject.getString("applyLoanAmount");
                         unlentAmount = jsonObject.getString("unlentAmount");
+                        isBlack = jsonObject.getString("isBlack");
+                        if (StringUtils.isNotEmpty(isBlack) && !"1".equals(isBlack) && !"0".equals(isBlack)){
+                            isBlack = "是".equals(isBlack) ? "0" : "1";
+                        }
                     }
                     StringBuilder sb = new StringBuilder();
                     String tableFieldUnlentAmount = emptyDefault(transferSyncUser.getUnlentAmount());
@@ -273,7 +278,8 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                         .append(emptyDefault(ifActivity).concat(","))
                         .append(removeMillisecond(emptyDefault(activityTime)).concat(","))
                         .append(emptyDefault(finalAmount).concat(","))
-                        .append(caseEffective)
+                        .append(caseEffective.concat(","))
+                        .append(emptyDefault(isBlack))
                         .append("\r\n");
                     try {
                         fw.append(sb.toString());
