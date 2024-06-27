@@ -250,7 +250,7 @@ public class TransferToFileByRongShuServiceImpl implements ITransferToFileServic
                         unlentAmount = jsonObject.getString("unlentAmount");
                         isBlack = jsonObject.getString("isBlack");
                         if (StringUtils.isNotEmpty(isBlack) && !"1".equals(isBlack) && !"0".equals(isBlack)){
-                            isBlack = "是".equals(isBlack) ? "0" : "1";
+                            isBlack = "是".equals(isBlack) ? "1" : "0";
                         }
                     }
                     StringBuilder sb = new StringBuilder();
