@@ -1741,5 +1741,17 @@ public class MarketingCommonConfig {
      * #奇富360获取用户信息接口挡板 true:开启挡板。false:关闭挡板
      */
     private HashMap<String, Object> qifuQryUserMessageMock;
+
+    /**
+     * 数禾推送客服黑名单促首登场景apicode映射配置
+     * eg:{"3710149":["促首登"],"7410727":["促首登"]}
+     */
+    private HashMap<String, List<String>> shuHeCuShouDengBlackListApiCodeMapping;
+
+    /**
+     * 数禾推送客服转化促首登场景apicode映射配置
+     * eg:{"3710149":["促首登"],"7410727":["促首登"]}
+     */
+    private HashMap<String, List<String>> shuHeCuShouDengTransferApiCodeMapping;
 }
 

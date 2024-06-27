@@ -113,7 +113,8 @@ public final class CallUtils {
     private static String urlEncode(String valueStr, String encodeName) throws UnsupportedEncodingException {
         String encodedStr = URLEncoder.encode(valueStr, encodeName);
         // 将本不应替换的“%”替换回来（%25为%的encoded值）
-        return encodedStr.replace("%25", "%");
+//        return encodedStr.replace("%25", "%");
+        return encodedStr;
     }
 
     /**
