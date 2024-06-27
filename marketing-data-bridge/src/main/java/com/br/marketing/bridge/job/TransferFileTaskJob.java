@@ -197,6 +197,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByRongShuServiceImpl transferToFileByRongShuService;
 
+    /**
+     * 奇富360促动支转化提取
+     */
+    @Resource
+    private TransferToFileByCuDongZhiServiceImpl transferToFileByCuDongZhiService;
+
 
 
     @Resource
@@ -346,7 +352,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             // 滴滴转化数据提取
             .addBind(transferToFileByDiDiService, marketingCommonConfig.getDidiApiCodes())
             // 榕树转化数据提取
-            .addBind(transferToFileByRongShuService, marketingCommonConfig.getRongShuTransferApiCodes()).build();
+            .addBind(transferToFileByRongShuService, marketingCommonConfig.getRongShuTransferApiCodes())
+            .addBind(transferToFileByCuDongZhiService, marketingCommonConfig.getCuDongZhiTransferExtractApiCodes()).build();
     }
 
 

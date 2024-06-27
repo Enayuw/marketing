@@ -1135,6 +1135,12 @@ public class MarketingCommonConfig {
     private Integer qiFuBreakPointDataToJueCeThreadNum;
 
     /**
+     * 2024-06-27
+     * 奇富删除触达记录删除区间
+     */
+    private Integer qiFuDeleteReachRecordDay;
+
+    /**
      * 页数动态调整配置
      * dynamicPageSize={"yxToDx":20000,"yxToCustomer":20000,"yhGet":20000}
      */
@@ -1243,6 +1249,11 @@ public class MarketingCommonConfig {
      *      000000:调用百应黑名单接口成功
      */
     private HashMap<String, Object> baiYingUndoMock;
+
+    /**
+     *
+     */
+    private HashMap<String, Object> qiFuDeleteReachRecordMock;
 
     /**
      * 同程不运营名单推送客户接口线程数
@@ -1702,5 +1713,55 @@ public class MarketingCommonConfig {
      * 携程CPA撞库过滤转化数据convType配置
      */
     private List<String> xieChengCpaExcludeConvTypeConfig = Lists.newArrayList("107","105");
+
+    /**
+     * 奇富360获取用户信息接口线程数
+     */
+    private Integer qiFuQryUserMessageThreadNum;
+
+    /**
+     * 奇富360用户信息接口分页参数
+     */
+    private Integer qiFuQryUserMessageSize;
+
+    /**
+     * 奇富360转化数据提取apiCode集合
+     */
+    private List<String> CuDongZhiTransferExtractApiCodes;
+
+    /**
+     * 奇富360转化数据提取执行时间
+     */
+    private String CuDongZhiTransferFileExecuteTime;
+    /**
+     * 奇富360数据清洗调用转化接口线程数
+     */
+    private Integer dataCleanQiFu360CoreAndMaxNum;
+    /**
+     * #奇富360获取用户信息接口挡板 true:开启挡板。false:关闭挡板
+     */
+    private HashMap<String, Object> qifuQryUserMessageMock;
+
+    /**
+     * 数禾推送客服黑名单促首登场景apicode映射配置
+     * eg:{"3710149":["促首登"],"7410727":["促首登"]}
+     */
+    private HashMap<String, List<String>> shuHeCuShouDengBlackListApiCodeMapping;
+
+    /**
+     * 数禾推送客服转化促首登场景apicode映射配置
+     * eg:{"3710149":["促首登"],"7410727":["促首登"]}
+     */
+    private HashMap<String, List<String>> shuHeCuShouDengTransferApiCodeMapping;
+
+    /**
+     *  携程撞库推决策分页查询数量
+     */
+    private Integer xiechengZkToPlicyPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengSmsCollidingConfig;
 }
 
