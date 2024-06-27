@@ -1,6 +1,5 @@
 package com.br.marketing.client.qifu;
 
-import java.util.List;
 
 public class QryUserRealMessage {
 
@@ -77,8 +76,4 @@ public class QryUserRealMessage {
         this.userMessageRes = userMessageRes;
     }
 
-
-    class RiskMessageRes {
-        private String creditAmt;
-    }
 }

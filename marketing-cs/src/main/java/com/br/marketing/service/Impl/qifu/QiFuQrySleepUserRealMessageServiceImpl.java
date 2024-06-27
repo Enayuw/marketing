@@ -22,10 +22,8 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -86,8 +84,8 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
 
                 List<List<MarketingSyncUser>> partition = ListUtils.partition(pageList, 50);
 
-                partition.forEach(marketingSyncUsers -> {
-                    threadPool.submit(() -> action(marketingSyncUsers, apiCode, tskId));
+                partition.forEach((List<MarketingSyncUser> p) -> {
+                    threadPool.submit(() -> action(p, apiCode, tskId));
                 });
             }
         }
@@ -141,7 +139,8 @@ public class QiFuQrySleepUserRealMessageServiceImpl implements QiFuQrySleepUserR
                     queryUserRealMessage.setUniqueReqNo(marketingSyncUser.getCustNum());
                     queryUserRealMessage.setMobileMd5(marketingSyncUser.getCellMd5());
                     queryUserRealMessage.setStopMarketingSign("N");
-                    queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\",\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
+                    queryUserRealMessage.setUserMessage("{\"age\":\"[28,35]\",\"lastLoginTime\":\"2024-06-19 08:07:42\"," +
+                            "\"name\":\"张*\",\"sex\":\"M\",\"userExtraInfo\":{\"isLightMarkting\":\"N\",\"operationScene\":\"creditT30\"}}");
                     queryUserRealMessage.setRiskMessage("{\"creditAmt\":180000}");
                     queryUserRealMessage.setTradeMessage("{\"isLoan\":\"N\",\"isSucc\":\"N\"}");
                     queryUserRealMessage.setCreateDate(LocalDate.now().toString());
