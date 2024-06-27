@@ -1763,5 +1763,10 @@ public class MarketingCommonConfig {
      *  携程短信撞库接口参数配置
      */
     private JSONObject xieChengSmsCollidingConfig;
+
+    /**
+     *  奇富360推决策策略编号配置
+     */
+    private JSONObject qiFuToPolicyStrategyCodeConfig;
 }
 
