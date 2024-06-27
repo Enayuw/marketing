@@ -244,14 +244,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                                     log.warn("文件名:{};行数:{};错误:{};", fileName, lineNum, errorMsg.toString());
                                     continue;
                                 }
-
-                                //region 抽象的剔除方法和组装逻辑的调用,如未实现走默认的service
-                                Result vaild = iFileToMarketingRuleService.isVaildByList(dataFieldVOS, dataFieldMap);
-                                if (!ResultCode.SUCCESS.getValue().equals(vaild.getCode())) {
-                                    ++errorSum;
-                                    log.warn("文件名:{};行数:{};错误:{};", fileName, lineNum, vaild.getMessage());
-                                    continue;
-                                }
                                 // 行数据拼装
                                 MarketingPreUserDetailDTO make = iFileToMarketingRuleService.make(dataFieldVOS);
                                 syncUsers.add(make);
@@ -267,7 +259,8 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                         }
                     }
                     pushPool.shutdown();
-                    while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {// do nothing
+                    while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {
+                        // do nothing
                     }
                 }catch (InterruptedException  ie){
                     log.error("线程池终止[{}]文件[{}]-行数[{}]-成功数[{}]-失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ie);
@@ -369,12 +362,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             return;
         }
         FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
-        if (fieldVO != null) {
-            BeanUtils.copyProperties(fieldVO, vo);
-        } else {
-            vo.setHeadField(headNm);
-            vo.setInterfaceField(headNm);
-        }
+        BeanUtils.copyProperties(fieldVO, vo);
         vo.setDataValue(value);
         hasSet.add(vo.getInterfaceField());
         dataFieldVOS.add(vo);
