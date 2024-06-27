@@ -274,7 +274,7 @@
     />
     <job:simple id="【monkey】-QiFuQrySleepUserRealMessageJob"
                 class="com.br.marketing.monkey.job.qifu.QiFuQrySleepUserRealMessageJob"
-                cron="30 20 * * * ? "
+                cron="0 30 20 * * ? "
                 description="促动支用户信息查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
