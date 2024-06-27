@@ -152,7 +152,7 @@ api:
     baseCuDongZhiUri: https://gws-bps.daikuan.360.cn
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
     saveReachDeleteRecordCuDongZhiUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/agentOperationActSaveReachDeleteRecord
-    qrySleepUserRealMessageUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
+    qrySleepUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
     qifuPublicKey: ""
     brPrivateKey: ""
     brPublicKey: ""

@@ -193,7 +193,7 @@ api:
     channelIdMap: "{bairong:'3140738836439875',bairongA:'3140738898634899'}"
     isProxy: true
   qifu:
-    baseUri: https://stg3-gws-bps-web.daikuan.360.cn
+    baseUri: https://stg1-gws-bps-web.daikuan.360.cn
     baseCuDongZhiUri: https://stg3-gws-bps-web.daikuan.360.cn
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
     qrySleepUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
