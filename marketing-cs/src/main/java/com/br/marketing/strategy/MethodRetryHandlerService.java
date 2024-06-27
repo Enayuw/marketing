@@ -1145,6 +1145,40 @@ public class MethodRetryHandlerService {
     }
 
     /**
+     * 保存触达删除记录接口
+     *
+     * @param reqBO 封装的数据
+     * @param retry 重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
+    public Result<SaveReachDeleteRecordResp> callDeleteReachRecordCuDongZhi(SaveReachDeleteRecordReqBO reqBO, Integer retry) {
+        Result<SaveReachDeleteRecordResp> result = new Result<>();
+        SaveReachDeleteRecordReq req = reqBO.getReq();
+        Result<ResponseData<SaveReachDeleteRecordResp>> dataResult = qiFuClients.sendDeleteReachRecordDataCuDongZhi(req);
+        result.setCode(dataResult.getCode());
+        if (retry == null && reqBO.getLogId() == null) {
+            result.setDate(insertSaveReachDeleteRecordLog(reqBO, dataResult));
+        } else if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
+            ResponseData<SaveReachDeleteRecordResp> data = dataResult.getData();
+            QifuSaveReachDeleteRecordApiPushLog updateLog = new QifuSaveReachDeleteRecordApiPushLog();
+            updateLog.setId(reqBO.getLogId());
+            // 重试后正常 3
+            updateLog.setStatus(3);
+            updateLog.setRespFlag(data.getFlag().toString());
+            updateLog.setRespCode(data.getCode());
+            updateLog.setRespMsg(data.getMsg());
+            SaveReachDeleteRecordResp t = data.getData().getT();
+            if (Objects.nonNull(t)) {
+                updateLog.setQifuIsSucceed(t.getIsSucceed().toString());
+                updateLog.setQifuMessage(t.getMessage());
+            }
+            qifuSaveReachDeleteRecordApiPushLogMapper.updateByPrimaryKeySelective(updateLog);
+        }
+        return result;
+    }
+
+    /**
      * 众邦财富推送标签评级
      *
      * @param json  封装的数据

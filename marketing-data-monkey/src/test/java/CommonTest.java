@@ -1,7 +1,12 @@
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
+import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
+import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.monkey.MarketingDataMonkeyApplication;
 import com.br.marketing.monkey.job.dewu.DewuCollidingDataToSendJob;
 import com.br.marketing.monkey.job.tongcheng.TongChengOperationPushToCustomerJob;
-import com.br.marketing.service.Impl.tongcheng.TongChengUndoListPushToCustomerService;
+import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -27,6 +32,9 @@ public class CommonTest {
     private TongChengOperationPushToCustomerJob tongchengJob;
 
     @Resource
+    private MethodRetryHandlerService methodRetryHandlerService;
+
+    @Resource
     private DewuCollidingDataToSendJob job;
 
     @Test
@@ -49,5 +57,17 @@ public class CommonTest {
         JobExecutionMultipleShardingContext context = new JobExecutionMultipleShardingContext();
         tongchengJob.process(context);
     }
+
+    @Test
+    public void test3(){
+        SaveReachDeleteRecordReqBO bo = new SaveReachDeleteRecordReqBO();
+        SaveReachDeleteRecordReq saveReachDeleteRecordReq = new SaveReachDeleteRecordReq();
+        saveReachDeleteRecordReq.setBatchNo("3710143_RE6522969066196701184_AGOP6521067035855687912");
+        saveReachDeleteRecordReq.setAgentOperator("bairong");
+        bo.setReq(saveReachDeleteRecordReq);
+        Result<SaveReachDeleteRecordResp> saveReachDeleteRecordRespResult = methodRetryHandlerService.callDeleteReachRecordCuDongZhi(bo, null);
+        log.warn(JSONObject.toJSONString(saveReachDeleteRecordRespResult));
+    }
+
 
 }
