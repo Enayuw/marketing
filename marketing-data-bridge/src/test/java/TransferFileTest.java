@@ -58,7 +58,7 @@ public class TransferFileTest implements ApplicationContextAware {
 
     private final static String FILE_HEADER_PPD = "requestId,requestTime,custNum,cell,userType,userType1,registerTime,ifApply,applyDt,applyResult,"
             + "auditTime,auditAmount,ifLent,lentTime,lentAmount,applyLoan,applyLoanTime,applyLoanAmount,"
-            + "ifActivity,activityTime,unlentAmount,caseEffective";
+            + "ifActivity,activityTime,unlentAmount,caseEffective,isBlack";
     @Resource
     TransferToFileByRongShuServiceImpl transferToFileByRongShuService;
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
@@ -67,7 +67,7 @@ public class TransferFileTest implements ApplicationContextAware {
     public void RSWriteTransferToFile() {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7492801");
-        String myParam = "7492801#2024-06-19";
+        String myParam = "7492801#2024-06-27";
         String dd = isMyParam("7492801", myParam);
         transferFileTask.setStartDate(dd);
         String apiCode = transferFileTask.getApiCode();
