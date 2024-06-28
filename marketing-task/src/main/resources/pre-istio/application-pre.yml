@@ -101,11 +101,11 @@ otherConfig:
   mom:
       appSecretKey: d42726322ba9bda57b74043be21aa2c4
   proxy:
-    proxy_host: squid-proxy2.brapp.com
+    proxy_host: squid-proxy-pre.brapp.com
     proxy_port: 3128
-    proxy_username: bairong
-    proxy_password: Proxy_br
-    proxy_host_zw: 192.168.22.169
+    proxy_username: spmarketing
+    proxy_password: ek1EIgo9
+    proxy_host_zw: 10.100.123.221
 spring:
   rabbitmq:
     zw:

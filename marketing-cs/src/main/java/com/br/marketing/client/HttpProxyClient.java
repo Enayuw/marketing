@@ -307,8 +307,6 @@ public class HttpProxyClient {
             HttpResponse response = null;
             start = System.currentTimeMillis();
             if (isPorxy) {
-                log.warn("squid-proxyHost" + proxyHost);
-                log.warn("squid-proxyHostZW" + proxyHostZW);
                 AuthCache authCache = new BasicAuthCache();
                 AuthScheme authScheme = new BasicScheme(ChallengeState.PROXY);
                 authCache.put(new HttpHost(proxyHost, proxyPort), authScheme);
