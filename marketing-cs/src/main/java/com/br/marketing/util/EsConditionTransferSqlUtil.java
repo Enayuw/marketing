@@ -81,7 +81,7 @@ public class EsConditionTransferSqlUtil {
             case "in":
                 List<String> inList = (List) value;
                 StringBuilder inStrValue = new StringBuilder();
-                inList.forEach(str -> {
+                inList.forEach((String str) -> {
                     inStrValue.append("\"").append(str).append("\"").append(",");
                 });
                 sqlTep = key.concat(" in (").concat(inStrValue.substring(0, inStrValue.length() - 1).concat(" )"));
@@ -89,7 +89,7 @@ public class EsConditionTransferSqlUtil {
             case "not_in":
                 List<String> notinList = (List) value;
                 StringBuilder notStrValue = new StringBuilder();
-                notinList.forEach(str -> {
+                notinList.forEach((String str) -> {
                     notStrValue.append("\"").append(str).append("\"").append(",");
                 });
                 sqlTep = key.concat(" not in (").concat(notStrValue.substring(0, notStrValue.length() - 1).concat(" )"));
