@@ -60,7 +60,7 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser)transmitFact;
         MarketingCustomizeDataValidConfigExample example = new MarketingCustomizeDataValidConfigExample();
-        example.createCriteria().andApiCodeEqualTo(syncUser.getApiCode()).andTaskIdEqualTo(syncUser.getCusBatch())
+        example.createCriteria().andApiCodeEqualTo(syncUser.getApiCode()).andTaskIdEqualTo(syncUser.getCusBatch()).andIsDelEqualTo(1)
             .andValidStartDateLessThanOrEqualTo(DateUtil.today()).andValidEndDateGreaterThanOrEqualTo(DateUtil.today());
         List<MarketingCustomizeDataValidConfig> configList = customizeDataValidConfigMapper.selectByExample(example);
         return CollectionUtil.isNotEmpty(configList);
