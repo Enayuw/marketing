@@ -7,7 +7,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
-import cn.hutool.core.date.DateTime;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -23,6 +22,7 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,7 +67,8 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
         }
         List<MarketingCustomizeDataValidConfig> configList = getValidConfigList(syncUser);
         if (CollectionUtil.isEmpty(configList)) {
-            log.error("奇富360促完件上传数据推决策，未查询到该条上传数据有效期配置：id:{}", syncUser.getId());
+            log.error("奇富360促完件上传数据推决策，未查询到该条上传数据有效期配置：apiCode:{},appletDate:{},userType:{},taskId:{}", syncUser.getApiCode(),
+                syncUser.getAppletDate(), syncUser.getUserType(), syncUser.getCusBatch());
             return false;
         }
         DateTime currentDate = DateUtil.date();
