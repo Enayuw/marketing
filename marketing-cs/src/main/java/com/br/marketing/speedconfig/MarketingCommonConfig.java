@@ -1768,5 +1768,10 @@ public class MarketingCommonConfig {
      *  奇富360推决策策略编号配置
      */
     private JSONObject qiFuToPolicyStrategyCodeConfig;
+
+    /**
+     * 奇富360上传推决策有效期检测延迟时长配置，单位：秒
+     */
+    private Long qiFuSyncToPolicyValidityCheckDelayTime;
 }
 

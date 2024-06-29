@@ -1,10 +1,13 @@
 package com.br.marketing.rule.qifu;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import cn.hutool.core.date.DateTime;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -59,11 +62,39 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser)transmitFact;
+        List<MarketingCustomizeDataValidConfig> configList = getValidConfigList(syncUser);
+        if (CollectionUtil.isEmpty(configList)) {
+            log.error("奇富360促完件上传数据推决策，未查询到该条上传数据有效期配置：id:{}", syncUser.getId());
+            return false;
+        }
+        DateTime currentDate = DateUtil.date();
+        for (MarketingCustomizeDataValidConfig config : configList) {
+            DateTime startDate = DateUtil.parse(config.getValidStartDate());
+            DateTime endDate = DateUtil.parse(config.getValidEndDate());
+            if (currentDate.isAfterOrEquals(startDate) && currentDate.isBeforeOrEquals(endDate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<MarketingCustomizeDataValidConfig> getValidConfigList(MarketingSyncUser syncUser) {
         MarketingCustomizeDataValidConfigExample example = new MarketingCustomizeDataValidConfigExample();
-        example.createCriteria().andApiCodeEqualTo(syncUser.getApiCode()).andTaskIdEqualTo(syncUser.getCusBatch()).andIsDelEqualTo(1)
-            .andValidStartDateLessThanOrEqualTo(DateUtil.today()).andValidEndDateGreaterThanOrEqualTo(DateUtil.today());
+        example.createCriteria().andApiCodeEqualTo(syncUser.getApiCode()).andUserTypeEqualTo(syncUser.getUserType())
+            .andAppletDateEqualTo(syncUser.getAppletDate()).andTaskIdEqualTo(syncUser.getCusBatch()).andIsDelEqualTo(1);
         List<MarketingCustomizeDataValidConfig> configList = customizeDataValidConfigMapper.selectByExample(example);
-        return CollectionUtil.isNotEmpty(configList);
+        if (CollectionUtil.isEmpty(configList)) {
+            log.warn("奇富360促完件上传数据推决策该上传数据未查询到有效配置，id:{}，等待 {} 秒后重试", syncUser.getId(),
+                marketingCommonConfig.getQiFuSyncToPolicyValidityCheckDelayTime());
+            try {
+                TimeUnit.SECONDS.sleep(marketingCommonConfig.getQiFuSyncToPolicyValidityCheckDelayTime());
+            } catch (InterruptedException e) {
+                log.error("奇富360促完件上传数据推决策，未查询到有效期配置等待异常", e);
+                return Collections.emptyList();
+            }
+            configList = customizeDataValidConfigMapper.selectByExample(example);
+        }
+        return configList;
     }
 
     @Override
