@@ -62,6 +62,9 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingSyncUser syncUser = (MarketingSyncUser)transmitFact;
+        if (syncUser.getStatus() != 1) {
+            return false;
+        }
         List<MarketingCustomizeDataValidConfig> configList = getValidConfigList(syncUser);
         if (CollectionUtil.isEmpty(configList)) {
             log.error("奇富360促完件上传数据推决策，未查询到该条上传数据有效期配置：id:{}", syncUser.getId());
