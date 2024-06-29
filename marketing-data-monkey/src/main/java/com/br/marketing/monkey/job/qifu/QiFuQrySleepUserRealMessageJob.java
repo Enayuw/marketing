@@ -30,8 +30,6 @@ public class QiFuQrySleepUserRealMessageJob extends AbstractSimpleElasticJob {
         long start = System.currentTimeMillis();
         String parameter = shardingContext.getJobParameter();
         String apiCode = "3710139";
-        LocalDate now = LocalDate.now();
-
         if (StringUtils.isNotEmpty(parameter)) {
             List<Map<String, String>> paramList = JSONObject.parseObject(parameter, List.class);
             for(Map<String, String> map : paramList){
