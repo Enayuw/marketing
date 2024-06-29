@@ -921,7 +921,6 @@
         where b.api_code =#{apiCode}
           AND b.cus_batch =#{cusBatch}
           AND b.status=1
-          AND b.is_repeat in (1,2)
           AND bq.mobile_md5 IS NULL
         <if test="minId !=null and minId >0">
             and b.id > #{minId}
