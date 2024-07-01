@@ -7,6 +7,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import com.br.common.encryption.Md5Utils;
+import com.br.common.util.BrCipherMaker;
+import com.br.marketing.client.halo.EncryptUtil;
+import com.github.pagehelper.util.StringUtil;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -52,7 +56,26 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
         dto.setPhone(syncUser.getCellMd5());
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
         JSONObject variables = new JSONObject();
-        variables.put("taskId", syncUser.getCusBatch());
+        if (StringUtil.isNotEmpty(syncUser.getCusBatch())) {
+            variables.put("taskId", syncUser.getCusBatch());
+        }
+        if (StringUtil.isNotEmpty(syncUser.getRequestBatch())) {
+            variables.put("requestBatch", syncUser.getRequestBatch());
+        }
+        if (StringUtil.isNotEmpty(syncUser.getIdCard())) {
+            String idCard = BrCipherMaker.getInstance().decode(syncUser.getIdCard());
+            variables.put("idCard", EncryptUtil.getMd5Str(idCard));
+        }
+        if (StringUtil.isNotEmpty(syncUser.getName())) {
+            String name = BrCipherMaker.getInstance().decode(syncUser.getName());
+            variables.put("name", EncryptUtil.getMd5Str(name));
+        }
+        if (StringUtil.isNotEmpty(syncUser.getGroupType())) {
+            variables.put("groupType", syncUser.getGroupType());
+        }
+        if (StringUtil.isNotEmpty(syncUser.getRegisterDate())) {
+            variables.put("registerDate", syncUser.getRegisterDate());
+        }
         for (String key : jsonObject.keySet()) {
             variables.put(key, jsonObject.get(key));
         }
