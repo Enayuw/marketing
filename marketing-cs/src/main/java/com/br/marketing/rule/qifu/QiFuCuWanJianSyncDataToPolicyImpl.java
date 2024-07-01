@@ -52,6 +52,7 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
         dto.setPhone(syncUser.getCellMd5());
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
         JSONObject variables = new JSONObject();
+        variables.put("taskId", syncUser.getCusBatch());
         for (String key : jsonObject.keySet()) {
             variables.put(key, jsonObject.get(key));
         }
