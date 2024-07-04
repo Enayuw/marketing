@@ -238,6 +238,14 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
             if (StringUtils.isBlank(apicode)) {
                 continue;
             }
+
+            String tableName = "b_marketing_sync_" + apicode;
+            try {
+                marketingCustomerMapper.checkTableExist(tableName);
+            }catch (Exception e){
+                continue;
+            }
+
             CustomerScoreRuleVO customerScoreRuleVO = new CustomerScoreRuleVO();
             BeanUtils.copyProperties(scoreRuleConfig, customerScoreRuleVO);
             customerScoreRuleVO.setApiCode(apicode);
