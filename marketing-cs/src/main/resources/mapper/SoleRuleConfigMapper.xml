@@ -50,6 +50,9 @@
         <if test="soleId !=null and soleId!=''">
             and s.sole_id!=#{soleId} and c.id!=#{soleId}
         </if>
+        <if test="allUserType !=null and allUserType!=''">
+            and s.all_user_type != #{allUserType}
+        </if>
     </select>
 
     <update id="updateById" parameterType="com.br.marketing.entity.SoleRuleConfig" >

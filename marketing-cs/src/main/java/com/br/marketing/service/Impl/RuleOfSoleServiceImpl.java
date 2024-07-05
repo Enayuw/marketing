@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
@@ -270,8 +272,14 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         Integer soleCycleTimes = vo.getSoleCycleTimes();
         for (CustUserTypeSelectVO selectVO : vo.getSoleCustom()) {
             Long cid = Long.parseLong(selectVO.getCid());
+            Integer allUserType = selectVO.getAllUserType();
             String conditionInfo = selectVO.getConditionInfo().toJSONString();
-            int count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,conditionInfo);
+            int count = 0;
+            if(null != allUserType && 1 == allUserType){
+                count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,null,allUserType);
+            }else{
+                count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,conditionInfo,null);
+            }
             if(count>0){
                 return false;
             }
@@ -331,7 +339,21 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                 customerSole.setIsDel(1);
                 customerSole.setCreateTime(new Date());
                 customerSole.setUpdateTime(new Date());
-                customerSole.setConditionInfo(s.getConditionInfo().toJSONString());
+                Integer allUserType = s.getAllUserType();
+                if(null != allUserType){
+                    customerSole.setAllUserType(allUserType);
+                }
+                JSONObject conditionInfo = s.getConditionInfo();
+                if(null != conditionInfo){
+                    String conditionInfoString = conditionInfo.toJSONString();
+                    customerSole.setConditionInfo(conditionInfoString);
+                    RuleConditionVo conditionVo = JSON.parseObject(conditionInfoString, new TypeReference<RuleConditionVo>() {
+                    }.getType());
+                    List<RuleConditionFactorVo> operationFactorList = conditionVo.getOperationFactor();
+                    if(null != operationFactorList){
+                        customerSole.setUserTypeCount(operationFactorList.size());
+                    }
+                }
                 customerSoleMapper.insertSelective(customerSole);
                 ruleRedisService.delSoleConfigRedis(s.getApiCode());
             }
