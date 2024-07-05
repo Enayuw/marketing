@@ -15,12 +15,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
-
 import javax.annotation.Resource;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
@@ -50,7 +46,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Resource
     private MarketingCustomizeDataValidConfigMapper marketingCustomizeDataValidConfigMapper;
-
 
     @Override
     public boolean isExpire(Date date, Integer day, Date validityDate) {
@@ -401,7 +396,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        this.configValidDateDefault(syncUser);
         MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
         example.createCriteria()
                 .andApiCodeEqualTo(syncUser.getApiCode())
