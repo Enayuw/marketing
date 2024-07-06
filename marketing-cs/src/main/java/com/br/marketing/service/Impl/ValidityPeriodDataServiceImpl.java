@@ -14,6 +14,8 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.service.ValidityPeriodResendRecordService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -65,6 +67,9 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
 
     @Resource
     private MarketingCustomizeDataValidConfigMapper marketingCustomizeDataValidConfigMapper;
+
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
 
 
 
@@ -185,6 +190,16 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                 return new ApiNoDataResult().setCode(TASK_ID_ERROR.getErrorCode())
                         .setMessage(TASK_ID_ERROR.getErrorMsg());
             }
+            // 查询当前taskId 下的有效期
+            MarketingCustomizeDataValidConfigExample me = new MarketingCustomizeDataValidConfigExample();
+            me.createCriteria().andApiCodeEqualTo(apiCode)
+                            .andTaskIdEqualTo(taskId)
+                                    .andIsDelEqualTo(1);
+            try {
+                sendDingDing(apiCode, me, taskId, effectiveDateTransfer, expireDateTransfer);
+            }catch (Exception e){
+                log.error("360有效期变更发送钉钉通知异常，{}",e);
+            }
 
             // 更新task_id 对应有效期
             MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
@@ -212,11 +227,53 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
     }
 
+    private void sendDingDing(String apiCode, MarketingCustomizeDataValidConfigExample me, String taskId, String effectiveDateTransfer, String expireDateTransfer) {
+        List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigList = marketingCustomizeDataValidConfigMapper.selectByExample(me);
+        if(marketingCustomizeDataValidConfigList.size()==1){
+            MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigOld = marketingCustomizeDataValidConfigList.get(0);
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("客户修改奇富360有效期，主要内容：apiCode： ")
+                    .append(apiCode)
+                    .append("， taskId: ")
+                    .append(taskId)
+                    .append("，数据上传时间：")
+                    .append(marketingCustomizeDataValidConfigOld.getAppletDate())
+                    .append(", 修改前有效期范围：")
+                    .append(marketingCustomizeDataValidConfigOld.getValidStartDate())
+                    .append("~")
+                    .append(marketingCustomizeDataValidConfigOld.getValidEndDate())
+                    .append("。修改后有效期范围：")
+                    .append(effectiveDateTransfer)
+                    .append("~")
+                    .append(expireDateTransfer);
+
+            sendDingDingAlert("奇富360有效期变更",stringBuilder.toString());
+        }
+    }
+
     private String formatDate(String date) throws ParseException {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd");
         SimpleDateFormat simpleDateFormatResult = new SimpleDateFormat("yyyy-MM-dd");
         Date parse = simpleDateFormat.parse(date);
         String format = simpleDateFormatResult.format(parse);
         return format;
+    }
+
+    // 发送通知
+    public void sendDingDingAlert(String title, String text) {
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        markdown.setTitle(title);
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+
+        String token = marketingCommonConfig.getQiFuGroupAccessToken();
+        String secret = marketingCommonConfig.getQiFuGroupSecret();
+        try {
+            dingDingRobotHookService.sendMessageGroup(token,
+                    secret, dingDingMarkdownMessage, true);
+        } catch (Exception e) {
+            log.error(text+" 发送钉钉消息失败:"+e.getMessage(),e);
+        }
     }
 }

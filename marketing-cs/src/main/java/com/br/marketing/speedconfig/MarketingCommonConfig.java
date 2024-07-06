@@ -1773,5 +1773,16 @@ public class MarketingCommonConfig {
      * 奇富360上传推决策有效期检测延迟时长配置，单位：秒
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
+
+    /**
+     * 360 修改有效期钉钉通知accessToken
+     */
+    private String qiFuGroupAccessToken;
+
+    /**
+     * 360 修改有效期钉钉通知Secret
+     */
+    private String qiFuGroupSecret;
+
 }
 
