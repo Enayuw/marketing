@@ -100,11 +100,12 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
             }
         });
         if (resList.size() > 0) {
-            List<CustomerSoleRuleVO> resOrderList = resList.stream()
-                    .sorted(Comparator.comparing(CustomerSoleRuleVO::getUserTypeCount))
-                    .collect(Collectors.toList());
-            ruleRedisService.setSoleConfigRedis(apiCode, resOrderList);
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resOrderList);
+            resList.sort(
+                    Comparator.comparing(CustomerSoleRuleVO::getAllUserType,Comparator.nullsLast(Comparator.naturalOrder()))
+                            .thenComparing(CustomerSoleRuleVO::getUserTypeCount,Comparator.nullsLast(Comparator.naturalOrder()))
+            );
+            ruleRedisService.setSoleConfigRedis(apiCode, resList);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resList);
         }else{
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate("未匹配到用户的去重规则");
         }
