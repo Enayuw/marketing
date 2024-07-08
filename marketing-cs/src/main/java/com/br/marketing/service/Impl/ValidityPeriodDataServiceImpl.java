@@ -249,11 +249,11 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                     .append("~")
                     .append(expireDateTransfer);
 
-
+            log.warn("钉钉通知",stringBuilder);
             Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
             Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.QIFU_VALIDITY_CHANGE
                     .toString());
-            dingDingRobotHookService.sendDingDingTextMessage(stringBuilder.toString(), map);
+            dingDingRobotHookService.sendDingDingTextMessage("hahaahh", map);
         }
     }
 
