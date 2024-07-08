@@ -112,11 +112,11 @@ public class SyncReportController {
             , @ApiImplicitParam(name = "validEndDate", value = "生效结束日期", required = true, paramType = "query", dataType = "String")
     })
     @GetMapping("/updateValidity")
-    public ApiResult<Boolean> updateValidity(@RequestParam Long id
+    public ApiResult<Boolean> updateValidity(@RequestParam List<Long> ids
             , @RequestParam String validStartDate
             , @RequestParam String validEndDate) {
         try {
-            boolean flag = syncReportService.updateById(id, validStartDate, validEndDate);
+            boolean flag = syncReportService.updateById(ids, validStartDate, validEndDate);
             if (flag) {
                 return new ApiResult<Boolean>().success(true, "操作成功！");
             } else {

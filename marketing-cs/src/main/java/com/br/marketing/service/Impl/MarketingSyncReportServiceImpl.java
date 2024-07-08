@@ -576,32 +576,37 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     }
 
     @Override
-    public boolean updateById(Long id, String validStartDate, String validEndDate) {
+    public boolean updateById(List<Long> ids, String validStartDate, String validEndDate) {
         try {
-            MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
-            String apiCode = reportVO.getApiCode();
-            String userType = reportVO.getUserType();
-            String appletDate = reportVO.getAppletDate();
-            MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
-            if (ObjectUtil.isEmpty(data)){
-                log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据",apiCode, userType, appletDate);
-                return false;
-            }
-            MarketingDataValidConfig newData = new MarketingDataValidConfig();
-            validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
-            validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
-            if (validStartDate.equals(data.getValidStartDate()) && validEndDate.equals(data.getValidEndDate())){
-                log.warn("有效期日期未修改,apiCode={},userType={},appletDate={}", apiCode, userType, appletDate);
+            if(ids == null){
                 return true;
             }
-            newData.setId(data.getId());
-            newData.setValidStartDate(validStartDate);
-            newData.setValidEndDate(validEndDate);
-            int i = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
-            entityOptService.writeOptLog(data.getId(), newData, data);
-            if (i == 1){
-                log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
-                recordService.saveRecord(apiCode, userType, newData.getId());
+            for(Long id : ids){
+                MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
+                String apiCode = reportVO.getApiCode();
+                String userType = reportVO.getUserType();
+                String appletDate = reportVO.getAppletDate();
+                MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
+                if (ObjectUtil.isEmpty(data)){
+                    log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据",apiCode, userType, appletDate);
+                    return false;
+                }
+                MarketingDataValidConfig newData = new MarketingDataValidConfig();
+                validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+                validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+                if (validStartDate.equals(data.getValidStartDate()) && validEndDate.equals(data.getValidEndDate())){
+                    log.warn("有效期日期未修改,apiCode={},userType={},appletDate={}", apiCode, userType, appletDate);
+                    return true;
+                }
+                newData.setId(data.getId());
+                newData.setValidStartDate(validStartDate);
+                newData.setValidEndDate(validEndDate);
+                int i = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
+                entityOptService.writeOptLog(data.getId(), newData, data);
+                if (i == 1){
+                    log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
+                    recordService.saveRecord(apiCode, userType, newData.getId());
+                }
             }
             return true;
         } catch (Exception e) {
