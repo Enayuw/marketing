@@ -461,7 +461,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 syncUser.getCusBatch(),
                 syncUser.getUserType(),
                 syncUser.getAppletDate());
-        log.warn("查询的上传输数据信息：{}",marketingSyncByCusBatch.toString());
         Long dataValidConfigId = marketingDataValidConfig.getId();
         MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
         marketingCustomizeDataValidConfig.setApiCode(syncUser.getApiCode());
@@ -469,15 +468,23 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         marketingCustomizeDataValidConfig.setAppletDate(syncUser.getAppletDate());
         marketingCustomizeDataValidConfig.setTaskId(syncUser.getCusBatch());
         try {
-        // reserve_field1: {"operationScene":"creditT30","expireDate":"2024-07-12 23:59:59",
-        // "userType":"1","custGroupName":"T0其他渠道低质量","effectiveDate":"2024-07-06 00:00:00"}
-        JSONObject json = JSON.parseObject(marketingSyncByCusBatch.getReserveField1());
-        String effectiveDate = json.getString("effectiveDate");
-        String expireDate = json.getString("expireDate");
-        log.warn("查询的上传输数据信息effectiveDate：{}",effectiveDate);
-        log.warn("查询的上传输数据信息expireDate：{}",expireDate);
-        marketingCustomizeDataValidConfig.setValidStartDate(DateFormat(effectiveDate));
-        marketingCustomizeDataValidConfig.setValidEndDate(DateFormat(expireDate));
+            // reserve_field1: {"operationScene":"creditT30","expireDate":"2024-07-12 23:59:59",
+            // "userType":"1","custGroupName":"T0其他渠道低质量","effectiveDate":"2024-07-06 00:00:00"}
+            JSONObject json = JSON.parseObject(marketingSyncByCusBatch.getReserveField1());
+            String effectiveDate = json.getString("effectiveDate");
+            String expireDate = json.getString("expireDate");
+            log.warn("查询的上传输数据信息effectiveDate：{}",effectiveDate);
+            log.warn("查询的上传输数据信息expireDate：{}",expireDate);
+            marketingCustomizeDataValidConfig.setValidStartDate(DateFormat(effectiveDate));
+            marketingCustomizeDataValidConfig.setValidEndDate(DateFormat(expireDate));
+            if(StringUtils.isEmpty(effectiveDate) || StringUtils.isEmpty(expireDate)){
+                log.error("奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：" +
+                                "上传数据的api_code:{},id:{},taskId(cus_batch):{},reserve_field1:{},{}",
+                        marketingSyncByCusBatch.getApiCode(),marketingSyncByCusBatch.getId(),
+                        marketingSyncByCusBatch.getCusBatch(),marketingSyncByCusBatch.getReserveField1());
+            }
+            marketingCustomizeDataValidConfig.setValidStartDate(effectiveDate);
+            marketingCustomizeDataValidConfig.setValidEndDate(expireDate);
         }catch (Exception e){
             log.error("奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：" +
                     "上传数据的api_code:{},id:{},taskId(cus_batch):{},reserve_field1:{},{}",
@@ -495,6 +502,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
      * @return
      */
     public String DateFormat(String DateStr) throws ParseException {
+        if (StringUtils.isEmpty(DateStr)) {
+            return "";
+        }
         SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         Date parse = formate.parse(DateStr);
         SimpleDateFormat sdf = new SimpleDateFormat("", Locale.SIMPLIFIED_CHINESE);
