@@ -1774,15 +1774,7 @@ public class MarketingCommonConfig {
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
-    /**
-     * 360 修改有效期钉钉通知accessToken
-     */
-    private String qiFuGroupAccessToken;
 
-    /**
-     * 360 修改有效期钉钉通知Secret
-     */
-    private String qiFuGroupSecret;
 
 }
 

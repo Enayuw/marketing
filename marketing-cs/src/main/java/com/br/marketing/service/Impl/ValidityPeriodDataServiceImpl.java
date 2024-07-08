@@ -7,6 +7,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
 import com.br.marketing.entity.MarketingCustomizeDataValidConfigExample;
 import com.br.marketing.entity.MarketingDataValidConfig;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -27,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static com.br.marketing.common.constants.MarketingErrorInfo.*;
 import static com.br.marketing.common.constants.MarketingErrorInfo.SUCCESS;
@@ -247,7 +249,11 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
                     .append("~")
                     .append(expireDateTransfer);
 
-            sendDingDingAlert("奇富360有效期变更",stringBuilder.toString());
+
+            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+            Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.QIFU_VALIDITY_CHANGE
+                    .toString());
+            dingDingRobotHookService.sendDingDingTextMessage(stringBuilder.toString(), map);
         }
     }
 
@@ -259,21 +265,4 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         return format;
     }
 
-    // 发送通知
-    public void sendDingDingAlert(String title, String text) {
-        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
-        markdown.setTitle(title);
-        markdown.setText(text);
-        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
-        dingDingMarkdownMessage.setMarkdown(markdown);
-
-        String token = marketingCommonConfig.getQiFuGroupAccessToken();
-        String secret = marketingCommonConfig.getQiFuGroupSecret();
-        try {
-            dingDingRobotHookService.sendMessageGroup(token,
-                    secret, dingDingMarkdownMessage, true);
-        } catch (Exception e) {
-            log.error(text+" 发送钉钉消息失败:"+e.getMessage(),e);
-        }
-    }
 }
