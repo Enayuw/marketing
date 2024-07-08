@@ -483,8 +483,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                         marketingSyncByCusBatch.getApiCode(),marketingSyncByCusBatch.getId(),
                         marketingSyncByCusBatch.getCusBatch(),marketingSyncByCusBatch.getReserveField1());
             }
-            marketingCustomizeDataValidConfig.setValidStartDate(effectiveDate);
-            marketingCustomizeDataValidConfig.setValidEndDate(expireDate);
         }catch (Exception e){
             log.error("奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：" +
                     "上传数据的api_code:{},id:{},taskId(cus_batch):{},reserve_field1:{},{}",
