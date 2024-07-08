@@ -91,7 +91,7 @@ public interface MarketingSyncReportService {
      * @param validEndDate
      * @return
      */
-    boolean updateById(List<Long> ids, String validStartDate, String validEndDate);
+    boolean updateById(Long ids, String validStartDate, String validEndDate);
 
 
     /**
