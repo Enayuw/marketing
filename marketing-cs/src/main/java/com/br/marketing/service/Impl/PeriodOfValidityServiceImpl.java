@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -474,8 +476,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         String expireDate = json.getString("expireDate");
         log.warn("查询的上传输数据信息effectiveDate：{}",effectiveDate);
         log.warn("查询的上传输数据信息expireDate：{}",expireDate);
-        marketingCustomizeDataValidConfig.setValidStartDate(effectiveDate);
-        marketingCustomizeDataValidConfig.setValidEndDate(expireDate);
+        marketingCustomizeDataValidConfig.setValidStartDate(DateFormat(effectiveDate));
+        marketingCustomizeDataValidConfig.setValidEndDate(DateFormat(expireDate));
         }catch (Exception e){
             log.error("奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：" +
                     "上传数据的api_code:{},id:{},taskId(cus_batch):{},reserve_field1:{},{}",
@@ -486,6 +488,18 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         marketingCustomizeDataValidConfig.setCreateTime(new Date());
         marketingCustomizeDataValidConfig.setUpdateTime(new Date());
         return marketingCustomizeDataValidConfig;
+    }
+
+    /**
+     * 日期格式化
+     * @return
+     */
+    public String DateFormat(String DateStr) throws ParseException {
+        SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        Date parse = formate.parse(DateStr);
+        SimpleDateFormat sdf = new SimpleDateFormat("", Locale.SIMPLIFIED_CHINESE);
+        sdf.applyPattern("yyyy-MM-dd");
+        return sdf.format(parse);
     }
 
 }
