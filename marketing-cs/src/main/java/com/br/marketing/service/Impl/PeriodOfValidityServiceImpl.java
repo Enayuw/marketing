@@ -457,8 +457,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         MarketingSyncUser marketingSyncByCusBatch = marketingSyncUserMapper.getMarketingSyncByCusBatch(
                 syncUser.getApiCode(),
                 syncUser.getCusBatch(),
+                syncUser.getUserType(),
                 syncUser.getAppletDate());
-
+        log.warn("查询的上传输数据信息：{}",marketingSyncByCusBatch.toString());
         Long dataValidConfigId = marketingDataValidConfig.getId();
         MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
         marketingCustomizeDataValidConfig.setApiCode(syncUser.getApiCode());
@@ -471,6 +472,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         JSONObject json = JSON.parseObject(marketingSyncByCusBatch.getReserveField1());
         String effectiveDate = json.getString("effectiveDate");
         String expireDate = json.getString("expireDate");
+        log.warn("查询的上传输数据信息effectiveDate：{}",effectiveDate);
+        log.warn("查询的上传输数据信息expireDate：{}",expireDate);
         marketingCustomizeDataValidConfig.setValidStartDate(effectiveDate);
         marketingCustomizeDataValidConfig.setValidEndDate(expireDate);
         }catch (Exception e){

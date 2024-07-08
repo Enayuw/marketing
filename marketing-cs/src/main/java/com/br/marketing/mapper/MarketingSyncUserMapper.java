@@ -358,5 +358,6 @@ public interface MarketingSyncUserMapper {
 
     MarketingSyncUser getMarketingSyncByCusBatch(@Param("apiCode") String apiCode,
                                @Param("cusBatch") String cusBatch,
+                               @Param("userType") String userType,
                                @Param("appletDate") String appletDate);
 }
