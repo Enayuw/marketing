@@ -253,7 +253,7 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
             Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
             Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.QIFU_VALIDITY_CHANGE
                     .toString());
-            dingDingRobotHookService.sendDingDingTextMessage("hahaahh", map);
+            dingDingRobotHookService.sendDingDingTextMessage(stringBuilder.toString(), map);
         }
     }
 
