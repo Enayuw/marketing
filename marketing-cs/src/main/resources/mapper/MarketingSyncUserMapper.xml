@@ -929,5 +929,10 @@
         order by b.id asc
         limit #{pageSize}
     </select>
-
+    <select id="getMarketingSyncByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * From  b_marketing_sync_${apiCode}
+        where cus_batch=#{cusBatch} and api_code = #{apiCode} and applet_date = #{appletDate}
+          and user_type =#{userType}
+        and status =1 and is_repeat in (1,2) limit 1
+    </select>
 </mapper>
