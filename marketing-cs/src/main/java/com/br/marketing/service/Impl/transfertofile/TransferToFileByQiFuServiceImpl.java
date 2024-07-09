@@ -59,9 +59,9 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId";
+    private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId,expireDate,effectiveDate";
 
-    final static String EXECUTE_TIME = "10:30:00";
+    final static String EXECUTE_TIME = "12:00:00";
 
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
@@ -88,8 +88,10 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        String extractTime = StringUtils.isBlank(marketingCommonConfig.getQiFuTransferExecuteTime())
-                ? EXECUTE_TIME : marketingCommonConfig.getQiFuTransferExecuteTime();
+        String extractTime = StringUtils.isBlank(marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("extTime"))
+                ? EXECUTE_TIME : marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("extTime");
+        String suffix = StringUtils.isBlank(marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("suffix"))
+                ? EXECUTE_TIME : marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("suffix");
         LocalTime localTime = LocalTime.parse(extractTime);
         boolean isParam = StringUtils.isNotBlank(myParam);
         if (LocalTime.now().isAfter(localTime) || isParam) {
@@ -108,7 +110,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(1);
                 transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName(String.format("transform_qifu_%s.txt", dateyyyymmddStr));
+                transferFileTask.setFileName(String.format("transform_qifu%s_%s.txt", suffix, dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStartDate(date);
                 transferFileTask.setContextId(transferFileContextId);
