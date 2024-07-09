@@ -229,10 +229,13 @@ public class ValidityPeriodDataServiceImpl implements ValidityPeriodDataService 
         return new ApiNoDataResult().setCode(SUCCESS.getErrorCode()).setMessage(SUCCESS.getErrorMsg());
     }
 
-    private void sendDingDing(String apiCode, MarketingCustomizeDataValidConfigExample me, String taskId, String effectiveDateTransfer, String expireDateTransfer) {
-        List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigList = marketingCustomizeDataValidConfigMapper.selectByExample(me);
+    private void sendDingDing(String apiCode, MarketingCustomizeDataValidConfigExample me,
+                              String taskId, String effectiveDateTransfer, String expireDateTransfer) {
+        List<MarketingCustomizeDataValidConfig> marketingCustomizeDataValidConfigList =
+                marketingCustomizeDataValidConfigMapper.selectByExample(me);
         if(marketingCustomizeDataValidConfigList.size()==1){
-            MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigOld = marketingCustomizeDataValidConfigList.get(0);
+            MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfigOld =
+                    marketingCustomizeDataValidConfigList.get(0);
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.append("客户修改奇富360有效期，主要内容：apiCode： ")
                     .append(apiCode)
