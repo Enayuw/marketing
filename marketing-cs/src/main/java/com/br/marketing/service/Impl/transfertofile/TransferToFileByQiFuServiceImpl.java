@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -70,6 +72,8 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
 
     final static String EXECUTE_TIME = "12:00:00";
 
+    final static String SUFFIX = "";
+
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
     /**
@@ -91,30 +95,11 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         return "";
     }
 
-    @Test
-    public void test() {
-//        String qiFuExtDataConfig = "{\"3710053\":{\"suffix\":\"\",\"extTime\":\"12:00:00\"},\"3710138\":{\"suffix\":\"_T8\",\"extTime\":\"12:00:00\"},\"3710147\":{\"suffix\":\"_T0\",\"extTime\":\"12:00:00\"},\"7491630\":{\"suffix\":\"\",\"extTime\":\"12:00:00\"},\"7490138\":{\"suffix\":\"_T8\",\"extTime\":\"12:00:00\"},\"7491637\":{\"suffix\":\"_T0\",\"extTime\":\"12:00:00\"}}";
-//        Map<String, JSONObject> parse = (Map<String, JSONObject>) JSON.parse(qiFuExtDataConfig);
-//        String extractTime = parse.get("3710053").getString("extTime");
-//        System.out.println(extractTime);
-//
-//        Set<String> set = parse.keySet();
-//        System.out.println(set.toString());
-
-//        String s = LocalDate.now().minusDays(10).toString();
-//        System.out.println(s);
-
-        LocalDate localDate = LocalDate.parse("2024-07-09", YYYYMMDDSHORTLINE);
-        System.out.println(localDate);
-    }
-
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        String extractTime = StringUtils.isBlank(marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("extTime"))
-                ? EXECUTE_TIME : marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("extTime");
-        String suffix = StringUtils.isBlank(marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("suffix"))
-                ? EXECUTE_TIME : marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("suffix");
+        String extractTime = marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("extTime");
+        String suffix = marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("suffix");
         LocalTime localTime = LocalTime.parse(extractTime);
         boolean isParam = StringUtils.isNotBlank(myParam);
         if (LocalTime.now().isAfter(localTime) || isParam) {
@@ -282,9 +267,9 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                     .append(loginTime.concat(","))
                     .append(requestTime.concat(","))
                     .append(userType.concat(","))
+                    .append(config.getTaskId().concat(","))
                     .append(config.getValidEndDate().concat(","))
-                    .append(config.getValidStartDate().concat(","))
-                    .append(config.getTaskId())
+                    .append(config.getValidStartDate())
                     .append("\r\n");
             try {
                 fw.append(sb.toString());
@@ -309,7 +294,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         transferData = transferData.stream().filter(data -> {
             String custNum = data.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
-            return syncUserValidityPeriodsBO == null;
+            return syncUserValidityPeriodsBO != null;
         }).collect(Collectors.toList());
         return transferData;
     }
