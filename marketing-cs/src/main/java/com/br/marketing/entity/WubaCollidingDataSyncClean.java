@@ -14,6 +14,11 @@ public class WubaCollidingDataSyncClean {
     private String cell;
 
     /**
+     * 批次号
+     */
+    private String batchNo;
+
+    /**
      * 清洗状态 清洗状态 0-待清洗 1-清洗中，2-已完成
      */
     private Integer cleanStatus;
@@ -52,6 +57,14 @@ public class WubaCollidingDataSyncClean {
 
     public void setCell(String cell) {
         this.cell = cell == null ? null : cell.trim();
+    }
+
+    public String getBatchNo() {
+        return batchNo;
+    }
+
+    public void setBatchNo(String batchNo) {
+        this.batchNo = batchNo == null ? null : batchNo.trim();
     }
 
     public Integer getCleanStatus() {

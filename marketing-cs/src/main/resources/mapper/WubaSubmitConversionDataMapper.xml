@@ -2,4 +2,20 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.WubaSubmitConversionDataMapper" >
 
+    <select id="findByConditionAndPage" resultType="com.br.marketing.entity.WubaSubmitConversionData">
+        select cell, marketing_time
+        from b_wuba_submit_conversion_data
+        where api_code = #{apiCode}
+        and status = #{status}
+        and push_status = #{pushStatus}
+        <if test="extendSql != null and extendSql != ''">
+            ${extendSql}
+        </if>
+        <if test="indexId != null and indexId != ''">
+            and id > #{indexId}
+        </if>
+        order by create_time desc, update_time desc, id desc
+        limit #{pageSize}
+    </select>
+
 </mapper>

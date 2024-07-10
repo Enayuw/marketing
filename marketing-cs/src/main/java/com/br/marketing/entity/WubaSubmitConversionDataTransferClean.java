@@ -14,6 +14,11 @@ public class WubaSubmitConversionDataTransferClean {
     private String cell;
 
     /**
+     * 批次号
+     */
+    private String batchNo;
+
+    /**
      * 最近一次撞库时间
      */
     private Date pushTime;
@@ -92,6 +97,14 @@ public class WubaSubmitConversionDataTransferClean {
 
     public void setCell(String cell) {
         this.cell = cell == null ? null : cell.trim();
+    }
+
+    public String getBatchNo() {
+        return batchNo;
+    }
+
+    public void setBatchNo(String batchNo) {
+        this.batchNo = batchNo == null ? null : batchNo.trim();
     }
 
     public Date getPushTime() {

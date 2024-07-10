@@ -4,6 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.WubaSubmitConversionDataTransferClean" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
     <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="clean_status" property="cleanStatus" jdbcType="INTEGER" />
     <result column="lastLoginTime" property="lastlogintime" jdbcType="VARCHAR" />
@@ -77,7 +78,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cell, push_time, clean_status, lastLoginTime, financeApplyTime, financeCreditStatus, 
+    id, cell, batch_no, push_time, clean_status, lastLoginTime, financeApplyTime, financeCreditStatus, 
     financeCreditFinishTime, debtTime, debtPassTime, loanAmt, extend, is_deleted, create_time, 
     update_time
   </sql>
@@ -115,16 +116,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_wuba_submit_conversion_data_transfer_clean (cell, push_time, clean_status, 
-      lastLoginTime, financeApplyTime, financeCreditStatus, 
-      financeCreditFinishTime, debtTime, debtPassTime, 
-      loanAmt, extend, is_deleted, 
-      create_time, update_time)
-    values (#{cell,jdbcType=VARCHAR}, #{pushTime,jdbcType=TIMESTAMP}, #{cleanStatus,jdbcType=INTEGER}, 
-      #{lastlogintime,jdbcType=VARCHAR}, #{financeapplytime,jdbcType=VARCHAR}, #{financecreditstatus,jdbcType=VARCHAR}, 
-      #{financecreditfinishtime,jdbcType=VARCHAR}, #{debttime,jdbcType=VARCHAR}, #{debtpasstime,jdbcType=VARCHAR}, 
-      #{loanamt,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_wuba_submit_conversion_data_transfer_clean (cell, batch_no, push_time, 
+      clean_status, lastLoginTime, financeApplyTime, 
+      financeCreditStatus, financeCreditFinishTime, 
+      debtTime, debtPassTime, loanAmt, 
+      extend, is_deleted, create_time, 
+      update_time)
+    values (#{cell,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{pushTime,jdbcType=TIMESTAMP}, 
+      #{cleanStatus,jdbcType=INTEGER}, #{lastlogintime,jdbcType=VARCHAR}, #{financeapplytime,jdbcType=VARCHAR}, 
+      #{financecreditstatus,jdbcType=VARCHAR}, #{financecreditfinishtime,jdbcType=VARCHAR}, 
+      #{debttime,jdbcType=VARCHAR}, #{debtpasstime,jdbcType=VARCHAR}, #{loanamt,jdbcType=VARCHAR}, 
+      #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferClean" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -134,6 +137,9 @@
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="cell != null" >
         cell,
+      </if>
+      <if test="batchNo != null" >
+        batch_no,
       </if>
       <if test="pushTime != null" >
         push_time,
@@ -178,6 +184,9 @@
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="cell != null" >
         #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNo != null" >
+        #{batchNo,jdbcType=VARCHAR},
       </if>
       <if test="pushTime != null" >
         #{pushTime,jdbcType=TIMESTAMP},
@@ -235,6 +244,9 @@
       <if test="record.cell != null" >
         cell = #{record.cell,jdbcType=VARCHAR},
       </if>
+      <if test="record.batchNo != null" >
+        batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      </if>
       <if test="record.pushTime != null" >
         push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       </if>
@@ -283,6 +295,7 @@
     update b_wuba_submit_conversion_data_transfer_clean
     set id = #{record.id,jdbcType=BIGINT},
       cell = #{record.cell,jdbcType=VARCHAR},
+      batch_no = #{record.batchNo,jdbcType=VARCHAR},
       push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       clean_status = #{record.cleanStatus,jdbcType=INTEGER},
       lastLoginTime = #{record.lastlogintime,jdbcType=VARCHAR},
@@ -305,6 +318,9 @@
     <set >
       <if test="cell != null" >
         cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNo != null" >
+        batch_no = #{batchNo,jdbcType=VARCHAR},
       </if>
       <if test="pushTime != null" >
         push_time = #{pushTime,jdbcType=TIMESTAMP},
@@ -351,6 +367,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferClean" >
     update b_wuba_submit_conversion_data_transfer_clean
     set cell = #{cell,jdbcType=VARCHAR},
+      batch_no = #{batchNo,jdbcType=VARCHAR},
       push_time = #{pushTime,jdbcType=TIMESTAMP},
       clean_status = #{cleanStatus,jdbcType=INTEGER},
       lastLoginTime = #{lastlogintime,jdbcType=VARCHAR},

@@ -9,9 +9,9 @@ public class WubaCollidingBatchNo {
     private Long id;
 
     /**
-     * 
+     * 批次号
      */
-    private Long batchNo;
+    private String batchNo;
 
     /**
      * 批次类型 1：撞库、2：上报
@@ -56,12 +56,12 @@ public class WubaCollidingBatchNo {
         this.id = id;
     }
 
-    public Long getBatchNo() {
+    public String getBatchNo() {
         return batchNo;
     }
 
-    public void setBatchNo(Long batchNo) {
-        this.batchNo = batchNo;
+    public void setBatchNo(String batchNo) {
+        this.batchNo = batchNo == null ? null : batchNo.trim();
     }
 
     public Integer getBatchType() {
