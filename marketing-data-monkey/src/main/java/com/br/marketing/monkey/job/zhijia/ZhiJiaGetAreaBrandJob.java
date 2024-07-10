@@ -1,7 +1,6 @@
 package com.br.marketing.monkey.job.zhijia;
 
-import com.br.marketing.monkey.service.zhijia.ZhiJiaDataProcessService;
-import com.br.marketing.service.Impl.qifu.QiFuQrySleepUserRealMessageService;
+import com.br.marketing.service.Impl.zhijia.ZhiJiaDataProcessService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
