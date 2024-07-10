@@ -47,4 +47,8 @@ public class Result<T> {
     public T getData() {
         return data;
     }
+
+    public boolean isSuccess() {
+        return ResultCode.SUCCESS.getValue().equals(this.code);
+    }
 }
