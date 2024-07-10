@@ -12,7 +12,7 @@ public class MarketingDataFileConfigExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingDataFileConfigExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingDataFileConfigExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -875,80 +875,459 @@ public class MarketingDataFileConfigExample {
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesIsNull() {
-            addCriterion("validation_rules is null");
+        public Criteria andAutoTableNameIsNull() {
+            addCriterion("auto_table_name is null");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesIsNotNull() {
-            addCriterion("validation_rules is not null");
+        public Criteria andAutoTableNameIsNotNull() {
+            addCriterion("auto_table_name is not null");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesEqualTo(String value) {
-            addCriterion("validation_rules =", value, "validationRules");
+        public Criteria andAutoTableNameEqualTo(String value) {
+            addCriterion("auto_table_name =", value, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesNotEqualTo(String value) {
-            addCriterion("validation_rules <>", value, "validationRules");
+        public Criteria andAutoTableNameNotEqualTo(String value) {
+            addCriterion("auto_table_name <>", value, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesGreaterThan(String value) {
-            addCriterion("validation_rules >", value, "validationRules");
+        public Criteria andAutoTableNameGreaterThan(String value) {
+            addCriterion("auto_table_name >", value, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesGreaterThanOrEqualTo(String value) {
-            addCriterion("validation_rules >=", value, "validationRules");
+        public Criteria andAutoTableNameGreaterThanOrEqualTo(String value) {
+            addCriterion("auto_table_name >=", value, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesLessThan(String value) {
-            addCriterion("validation_rules <", value, "validationRules");
+        public Criteria andAutoTableNameLessThan(String value) {
+            addCriterion("auto_table_name <", value, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesLessThanOrEqualTo(String value) {
-            addCriterion("validation_rules <=", value, "validationRules");
+        public Criteria andAutoTableNameLessThanOrEqualTo(String value) {
+            addCriterion("auto_table_name <=", value, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesLike(String value) {
-            addCriterion("validation_rules like", value, "validationRules");
+        public Criteria andAutoTableNameLike(String value) {
+            addCriterion("auto_table_name like", value, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesNotLike(String value) {
-            addCriterion("validation_rules not like", value, "validationRules");
+        public Criteria andAutoTableNameNotLike(String value) {
+            addCriterion("auto_table_name not like", value, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesIn(List<String> values) {
-            addCriterion("validation_rules in", values, "validationRules");
+        public Criteria andAutoTableNameIn(List<String> values) {
+            addCriterion("auto_table_name in", values, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesNotIn(List<String> values) {
-            addCriterion("validation_rules not in", values, "validationRules");
+        public Criteria andAutoTableNameNotIn(List<String> values) {
+            addCriterion("auto_table_name not in", values, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesBetween(String value1, String value2) {
-            addCriterion("validation_rules between", value1, value2, "validationRules");
+        public Criteria andAutoTableNameBetween(String value1, String value2) {
+            addCriterion("auto_table_name between", value1, value2, "autoTableName");
             return (Criteria) this;
         }
 
-        public Criteria andValidationRulesNotBetween(String value1, String value2) {
-            addCriterion("validation_rules not between", value1, value2, "validationRules");
+        public Criteria andAutoTableNameNotBetween(String value1, String value2) {
+            addCriterion("auto_table_name not between", value1, value2, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnIsNull() {
+            addCriterion("auto_duplicate_column is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnIsNotNull() {
+            addCriterion("auto_duplicate_column is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnEqualTo(String value) {
+            addCriterion("auto_duplicate_column =", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnNotEqualTo(String value) {
+            addCriterion("auto_duplicate_column <>", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnGreaterThan(String value) {
+            addCriterion("auto_duplicate_column >", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnGreaterThanOrEqualTo(String value) {
+            addCriterion("auto_duplicate_column >=", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnLessThan(String value) {
+            addCriterion("auto_duplicate_column <", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnLessThanOrEqualTo(String value) {
+            addCriterion("auto_duplicate_column <=", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnLike(String value) {
+            addCriterion("auto_duplicate_column like", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnNotLike(String value) {
+            addCriterion("auto_duplicate_column not like", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnIn(List<String> values) {
+            addCriterion("auto_duplicate_column in", values, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnNotIn(List<String> values) {
+            addCriterion("auto_duplicate_column not in", values, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnBetween(String value1, String value2) {
+            addCriterion("auto_duplicate_column between", value1, value2, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnNotBetween(String value1, String value2) {
+            addCriterion("auto_duplicate_column not between", value1, value2, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlIsNull() {
+            addCriterion("auto_search_data_sql is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlIsNotNull() {
+            addCriterion("auto_search_data_sql is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlEqualTo(String value) {
+            addCriterion("auto_search_data_sql =", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlNotEqualTo(String value) {
+            addCriterion("auto_search_data_sql <>", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlGreaterThan(String value) {
+            addCriterion("auto_search_data_sql >", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlGreaterThanOrEqualTo(String value) {
+            addCriterion("auto_search_data_sql >=", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlLessThan(String value) {
+            addCriterion("auto_search_data_sql <", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlLessThanOrEqualTo(String value) {
+            addCriterion("auto_search_data_sql <=", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlLike(String value) {
+            addCriterion("auto_search_data_sql like", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlNotLike(String value) {
+            addCriterion("auto_search_data_sql not like", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlIn(List<String> values) {
+            addCriterion("auto_search_data_sql in", values, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlNotIn(List<String> values) {
+            addCriterion("auto_search_data_sql not in", values, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlBetween(String value1, String value2) {
+            addCriterion("auto_search_data_sql between", value1, value2, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlNotBetween(String value1, String value2) {
+            addCriterion("auto_search_data_sql not between", value1, value2, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeIsNull() {
+            addCriterion("auto_clean_way_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeIsNotNull() {
+            addCriterion("auto_clean_way_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeEqualTo(Integer value) {
+            addCriterion("auto_clean_way_type =", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeNotEqualTo(Integer value) {
+            addCriterion("auto_clean_way_type <>", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeGreaterThan(Integer value) {
+            addCriterion("auto_clean_way_type >", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("auto_clean_way_type >=", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeLessThan(Integer value) {
+            addCriterion("auto_clean_way_type <", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("auto_clean_way_type <=", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeIn(List<Integer> values) {
+            addCriterion("auto_clean_way_type in", values, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeNotIn(List<Integer> values) {
+            addCriterion("auto_clean_way_type not in", values, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeBetween(Integer value1, Integer value2) {
+            addCriterion("auto_clean_way_type between", value1, value2, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("auto_clean_way_type not between", value1, value2, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeIsNull() {
+            addCriterion("auto_clean_start_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeIsNotNull() {
+            addCriterion("auto_clean_start_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeEqualTo(Date value) {
+            addCriterion("auto_clean_start_time =", value, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeNotEqualTo(Date value) {
+            addCriterion("auto_clean_start_time <>", value, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeGreaterThan(Date value) {
+            addCriterion("auto_clean_start_time >", value, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("auto_clean_start_time >=", value, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeLessThan(Date value) {
+            addCriterion("auto_clean_start_time <", value, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeLessThanOrEqualTo(Date value) {
+            addCriterion("auto_clean_start_time <=", value, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeIn(List<Date> values) {
+            addCriterion("auto_clean_start_time in", values, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeNotIn(List<Date> values) {
+            addCriterion("auto_clean_start_time not in", values, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeBetween(Date value1, Date value2) {
+            addCriterion("auto_clean_start_time between", value1, value2, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanStartTimeNotBetween(Date value1, Date value2) {
+            addCriterion("auto_clean_start_time not between", value1, value2, "autoCleanStartTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeIsNull() {
+            addCriterion("auto_clean_end_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeIsNotNull() {
+            addCriterion("auto_clean_end_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeEqualTo(Date value) {
+            addCriterion("auto_clean_end_time =", value, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeNotEqualTo(Date value) {
+            addCriterion("auto_clean_end_time <>", value, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeGreaterThan(Date value) {
+            addCriterion("auto_clean_end_time >", value, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("auto_clean_end_time >=", value, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeLessThan(Date value) {
+            addCriterion("auto_clean_end_time <", value, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeLessThanOrEqualTo(Date value) {
+            addCriterion("auto_clean_end_time <=", value, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeIn(List<Date> values) {
+            addCriterion("auto_clean_end_time in", values, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeNotIn(List<Date> values) {
+            addCriterion("auto_clean_end_time not in", values, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeBetween(Date value1, Date value2) {
+            addCriterion("auto_clean_end_time between", value1, value2, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanEndTimeNotBetween(Date value1, Date value2) {
+            addCriterion("auto_clean_end_time not between", value1, value2, "autoCleanEndTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockIsNull() {
+            addCriterion("auto_clean_lock is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockIsNotNull() {
+            addCriterion("auto_clean_lock is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockEqualTo(Integer value) {
+            addCriterion("auto_clean_lock =", value, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockNotEqualTo(Integer value) {
+            addCriterion("auto_clean_lock <>", value, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockGreaterThan(Integer value) {
+            addCriterion("auto_clean_lock >", value, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockGreaterThanOrEqualTo(Integer value) {
+            addCriterion("auto_clean_lock >=", value, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockLessThan(Integer value) {
+            addCriterion("auto_clean_lock <", value, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockLessThanOrEqualTo(Integer value) {
+            addCriterion("auto_clean_lock <=", value, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockIn(List<Integer> values) {
+            addCriterion("auto_clean_lock in", values, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockNotIn(List<Integer> values) {
+            addCriterion("auto_clean_lock not in", values, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockBetween(Integer value1, Integer value2) {
+            addCriterion("auto_clean_lock between", value1, value2, "autoCleanLock");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanLockNotBetween(Integer value1, Integer value2) {
+            addCriterion("auto_clean_lock not between", value1, value2, "autoCleanLock");
             return (Criteria) this;
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }
