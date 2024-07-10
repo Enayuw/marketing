@@ -1,12 +1,13 @@
 package com.br.marketing.service.Impl.transfertofile;
 
-import cn.hutool.core.util.ObjectUtil;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
@@ -15,12 +16,13 @@ import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -31,11 +33,13 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @Author 李广秀
  * @Date 2024/01/04 10:31
  * @Description:奇富360转化数据提取
+ * 2024/07/09 https://c.100credit.cn/pages/viewpage.action?pageId=166648062
  */
 @Slf4j
 @Service
@@ -57,12 +61,14 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
-
+    @Resource
+    private MarketingCustomizeDataValidConfigMapper customizeDataValidConfigMapper;
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId,expireDate,effectiveDate";
 
     final static String EXECUTE_TIME = "12:00:00";
-
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
@@ -83,6 +89,23 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
             }
         }
         return "";
+    }
+
+    @Test
+    public void test() {
+//        String qiFuExtDataConfig = "{\"3710053\":{\"suffix\":\"\",\"extTime\":\"12:00:00\"},\"3710138\":{\"suffix\":\"_T8\",\"extTime\":\"12:00:00\"},\"3710147\":{\"suffix\":\"_T0\",\"extTime\":\"12:00:00\"},\"7491630\":{\"suffix\":\"\",\"extTime\":\"12:00:00\"},\"7490138\":{\"suffix\":\"_T8\",\"extTime\":\"12:00:00\"},\"7491637\":{\"suffix\":\"_T0\",\"extTime\":\"12:00:00\"}}";
+//        Map<String, JSONObject> parse = (Map<String, JSONObject>) JSON.parse(qiFuExtDataConfig);
+//        String extractTime = parse.get("3710053").getString("extTime");
+//        System.out.println(extractTime);
+//
+//        Set<String> set = parse.keySet();
+//        System.out.println(set.toString());
+
+//        String s = LocalDate.now().minusDays(10).toString();
+//        System.out.println(s);
+
+        LocalDate localDate = LocalDate.parse("2024-07-09", YYYYMMDDSHORTLINE);
+        System.out.println(localDate);
     }
 
     @Override
@@ -134,7 +157,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         String apiCode = transferFileTask.getApiCode();
         String date = LocalDate.now().toString();
         date = date.replace("-", "");
-        String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().toString() : jobParameter;
+        String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().minusDays(1).toString() : jobParameter;
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
                 .concat(date).concat("/");
         File writeDic = new File(descPath);
@@ -162,95 +185,133 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
 
     public void writeQifuTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         Long start = System.currentTimeMillis();
-        String tcId = tableCreateService.getTcId(apiCode);
-        Integer page = 0;
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
-        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        LocalDate now = LocalDate.now();
-        LocalDate[] dates;
-        if (localDate.isEqual(now)) {
-            dates = getFirstAndLastDayOfMonth(localDate);
-        } else {
-            dates = getStartAndEndDate(localDate);
+        List<MarketingCustomizeDataValidConfig> configList = getValidConfigs(apiCode, requestDate);
+        if (CollectionUtils.isEmpty(configList)) {
+            log.warn("奇富360转化数据提取-有效期配置表数据为空,apiCode = {},time = {}ms"
+                    , apiCode, System.currentTimeMillis() - start);
+            saveUpdateTask(transferFileTask, totalSize.intValue());
         }
-        LocalDate startDate = dates[0];
-        LocalDate endDate = dates[1];
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
-
+        String tcId = tableCreateService.getTcId(apiCode);
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
         Integer pageSize = dynamicParameterService.getPageSize(null);
-        for (; ; ) {
-            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                    .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
-            if (CollectionUtils.isEmpty(transferData)) {
-                break;
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
+        for (MarketingCustomizeDataValidConfig config : configList) {
+            LocalDate startDate = LocalDate.parse(config.getValidStartDate(), YYYYMMDDSHORTLINE).minusDays(1);
+            LocalDate endDate = LocalDate.parse(config.getValidEndDate(), YYYYMMDDSHORTLINE).plusDays(1);
+            Integer page = 0;
+            for (; ; ) {
+                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
+                        .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
+                if (CollectionUtils.isEmpty(transferData)) {
+                    break;
+                }
+                //有效期过滤
+                List<MarketingTransferSyncUser> transferDataNew = filterTransferDataWithValPerd(apiCode, requestDate, transferData);
+                page++;
+                threadPool.submit(() -> {
+                    writeDataForOneQuery(fw, totalSize, config, transferDataNew);
+                });
             }
-            page++;
-            threadPool.submit(() -> {
-                for (MarketingTransferSyncUser transferFilterData : transferData) {
-                    String custNum = transferFilterData.getCustNum();
-                    Result<String> cellRes = new Result<>();
-                    String taskId = "";
-                    //上传给，根据custNum去关联上传数据的taskId,按照applet_time倒叙取第一条
-                    MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
-                    if (ObjectUtil.isNotEmpty(marketingSyncUser)){
-                        taskId = StringUtils.isNotEmpty(marketingSyncUser.getCusBatch()) ? marketingSyncUser.getCusBatch() : "";
-                    }
-                    custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
-                    String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
-                            ? transferFilterData.getApplyDt().replace(":000","") : "";
-                    String applyResult = StringUtils.isNotEmpty(transferFilterData.getApplyResult())
-                            ? transferFilterData.getApplyResult() : "";
-                    String loginTime = StringUtils.isNotEmpty(transferFilterData.getLoginTime())
-                            ? transferFilterData.getLoginTime().replace(":000","") : "";
-                    String requestTime = StringUtils.isNotEmpty(transferFilterData.getRequestTime())
-                            ? transferFilterData.getRequestTime().replace(":000","") : "";
-                    String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
-                            ? transferFilterData.getUserType() : "";
-                    //custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(custNum.concat(","))
-                            .append(applyDt.concat(","))
-                            .append(applyResult.concat(","))
-                            .append(loginTime.concat(","))
-                            .append(requestTime.concat(","))
-                            .append(userType.concat(","))
-                            .append(taskId)
-                            .append("\r\n");
-                    try {
-                        fw.append(sb.toString());
-                        totalSize.incrementAndGet();
-                    } catch (IOException e) {
-                        log.error(e.getMessage(), e);
+            threadPool.shutdown();
+            try {
+                while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
+                    if (log.isInfoEnabled()) {
+                        long taskCount = threadPool.getTaskCount();
+                        long completedTaskCount = threadPool.getCompletedTaskCount();
+                        log.info("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                                , taskCount, completedTaskCount, taskCount - completedTaskCount);
                     }
                 }
-            });
-
-        }
-        threadPool.shutdown();
-
-        try {
-            while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
-                if (log.isInfoEnabled()) {
-                    long taskCount = threadPool.getTaskCount();
-                    long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
-                            , taskCount, completedTaskCount, taskCount - completedTaskCount);
-                }
+                saveUpdateTask(transferFileTask, totalSize.intValue());
+                log.warn("奇富360转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
+                        , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
+            } catch (InterruptedException e) {
+                log.error("奇富360转化数据提取-本地文件生成失败！" , e);
+                threadPool.shutdownNow();
+                Thread.currentThread().interrupt();
+                transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
             }
-            saveUpdateTask(transferFileTask, totalSize.intValue());
-            log.warn("奇富360转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
-                    , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
-        } catch (InterruptedException e) {
-            log.error("奇富360转化数据提取-本地文件生成失败！" , e);
-            threadPool.shutdownNow();
-            Thread.currentThread().interrupt();
-            transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
+    }
 
+    /**
+     * 获取有效期配置
+     * @param apiCode
+     * @param requestDate
+     * @return
+     */
+    private List<MarketingCustomizeDataValidConfig> getValidConfigs(String apiCode, String requestDate) {
+        MarketingCustomizeDataValidConfigExample example = new MarketingCustomizeDataValidConfigExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1)
+                .andValidStartDateLessThanOrEqualTo(requestDate)
+                .andValidEndDateGreaterThanOrEqualTo(requestDate);
+        List<MarketingCustomizeDataValidConfig> configList = customizeDataValidConfigMapper.selectByExample(example);
+        return configList;
+    }
+
+    /**
+     * 数据写入
+     * @param fw
+     * @param totalSize
+     * @param config
+     * @param transferDataNew
+     */
+    private static void writeDataForOneQuery(Writer fw, AtomicInteger totalSize, MarketingCustomizeDataValidConfig config, List<MarketingTransferSyncUser> transferDataNew) {
+        for (MarketingTransferSyncUser transferFilterData : transferDataNew) {
+            String custNum = transferFilterData.getCustNum();
+            custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
+            String applyDt = StringUtils.isNotEmpty(transferFilterData.getApplyDt())
+                    ? transferFilterData.getApplyDt().replace(":000","") : "";
+            String applyResult = StringUtils.isNotEmpty(transferFilterData.getApplyResult())
+                    ? transferFilterData.getApplyResult() : "";
+            String loginTime = StringUtils.isNotEmpty(transferFilterData.getLoginTime())
+                    ? transferFilterData.getLoginTime().replace(":000","") : "";
+            String requestTime = StringUtils.isNotEmpty(transferFilterData.getRequestTime())
+                    ? transferFilterData.getRequestTime().replace(":000","") : "";
+            String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
+                    ? transferFilterData.getUserType() : "";
+            //custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId
+            StringBuilder sb = new StringBuilder();
+            sb.append(custNum.concat(","))
+                    .append(applyDt.concat(","))
+                    .append(applyResult.concat(","))
+                    .append(loginTime.concat(","))
+                    .append(requestTime.concat(","))
+                    .append(userType.concat(","))
+                    .append(config.getValidEndDate().concat(","))
+                    .append(config.getValidStartDate().concat(","))
+                    .append(config.getTaskId())
+                    .append("\r\n");
+            try {
+                fw.append(sb.toString());
+                totalSize.incrementAndGet();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+    }
+
+    /**
+     * 使用公共方法对转化数据做有效期过滤
+     * @param apiCode
+     * @param requestDate
+     * @param transferData
+     * @return
+     */
+    private List<MarketingTransferSyncUser> filterTransferDataWithValPerd(String apiCode, String requestDate, List<MarketingTransferSyncUser> transferData) {
+        Set<String> custNumSet = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode, LocalDate.parse(requestDate, YYYYMMDDSHORTLINE));
+        transferData = transferData.stream().filter(data -> {
+            String custNum = data.getCustNum();
+            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
+            return syncUserValidityPeriodsBO == null;
+        }).collect(Collectors.toList());
+        return transferData;
     }
 
     private void saveUpdateTask(TransferFileTask transferFileTask, int totalSize) {
@@ -264,16 +325,13 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         transferFileTaskMapper.updateByPrimaryKeySelective(task);
     }
 
-
     private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
         return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
     }
 
-
     public static LocalDate[] getFirstAndLastDayOfMonth(LocalDate date) {
         LocalDate firstDayOfMonth;
         LocalDate lastDayOfMonth;
-
         if (date.getDayOfMonth() == 1) {
             firstDayOfMonth = date.minusMonths(1);
             lastDayOfMonth = date;
@@ -281,14 +339,12 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
             firstDayOfMonth = date.withDayOfMonth(1);
             lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
         }
-
         return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
     }
 
     public static LocalDate[] getStartAndEndDate(LocalDate date) {
         LocalDate firstDayOfMonth;
         LocalDate lastDayOfMonth;
-
         if (date.getDayOfMonth() == 1) {
             firstDayOfMonth = date.minusMonths(1);
             lastDayOfMonth = date;
@@ -299,7 +355,6 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                 lastDayOfMonth = date;
             }
         }
-
         return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
     }
 
