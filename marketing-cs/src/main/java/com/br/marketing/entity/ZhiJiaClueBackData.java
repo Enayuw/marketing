@@ -1,0 +1,382 @@
+package com.br.marketing.entity;
+
+import java.util.Date;
+
+public class ZhiJiaClueBackData {
+    /**
+     * 
+     */
+    private Long id;
+
+    /**
+     * 
+     */
+    private String apiCode;
+
+    /**
+     * 数据批次
+     */
+    private String taskId;
+
+    /**
+     * 线索生成日期
+     */
+    private String clueDt;
+
+    /**
+     * 线索批次
+     */
+    private String clueId;
+
+    /**
+     * 用户ID
+     */
+    private String custNum;
+
+    /**
+     * 通话记录ID
+     */
+    private String callId;
+
+    /**
+     * 姓名
+     */
+    private String name;
+
+    /**
+     * 性别
+     */
+    private String gender;
+
+    /**
+     * 电话
+     */
+    private String cell;
+
+    /**
+     * 意向标签:A、B
+     */
+    private String level;
+
+    /**
+     * 通话状态，如 已接通
+     */
+    private String callStatus;
+
+    /**
+     * 省份
+     */
+    private String province;
+
+    /**
+     * 城市
+     */
+    private String city;
+
+    /**
+     * 区县
+     */
+    private String contry;
+
+    /**
+     * 品牌
+     */
+    private String brandName;
+
+    /**
+     * 车系
+     */
+    private String seriesName;
+
+    /**
+     * 车型
+     */
+    private String seriesType;
+
+    /**
+     * 行驶里程
+     */
+    private String mileAge;
+
+    /**
+     * 首次上牌时间
+     */
+    private String firstRegTime;
+
+    /**
+     * 车牌号前两位
+     */
+    private String plateNum;
+
+    /**
+     * 拓展字段间隔符
+     */
+    private String extend;
+
+    /**
+     * 线索ID
+     */
+    private Integer cclId;
+
+    /**
+     * 初始数据状态 1-正常 2-非正常
+     */
+    private Integer status;
+
+    /**
+     * 数据流转状态 0-未推送；1-推送中；2-推送成功；3-匹配失败；4-推送失败;
+     */
+    private Integer pushStatus;
+
+    /**
+     * 失败原因
+     */
+    private String errorMsg;
+
+    /**
+     * 创建日期
+     */
+    private String createDate;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 修改时间
+     */
+    private Date updateTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(String taskId) {
+        this.taskId = taskId == null ? null : taskId.trim();
+    }
+
+    public String getClueDt() {
+        return clueDt;
+    }
+
+    public void setClueDt(String clueDt) {
+        this.clueDt = clueDt == null ? null : clueDt.trim();
+    }
+
+    public String getClueId() {
+        return clueId;
+    }
+
+    public void setClueId(String clueId) {
+        this.clueId = clueId == null ? null : clueId.trim();
+    }
+
+    public String getCustNum() {
+        return custNum;
+    }
+
+    public void setCustNum(String custNum) {
+        this.custNum = custNum == null ? null : custNum.trim();
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public void setCallId(String callId) {
+        this.callId = callId == null ? null : callId.trim();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name == null ? null : name.trim();
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender == null ? null : gender.trim();
+    }
+
+    public String getCell() {
+        return cell;
+    }
+
+    public void setCell(String cell) {
+        this.cell = cell == null ? null : cell.trim();
+    }
+
+    public String getLevel() {
+        return level;
+    }
+
+    public void setLevel(String level) {
+        this.level = level == null ? null : level.trim();
+    }
+
+    public String getCallStatus() {
+        return callStatus;
+    }
+
+    public void setCallStatus(String callStatus) {
+        this.callStatus = callStatus == null ? null : callStatus.trim();
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province == null ? null : province.trim();
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city == null ? null : city.trim();
+    }
+
+    public String getContry() {
+        return contry;
+    }
+
+    public void setContry(String contry) {
+        this.contry = contry == null ? null : contry.trim();
+    }
+
+    public String getBrandName() {
+        return brandName;
+    }
+
+    public void setBrandName(String brandName) {
+        this.brandName = brandName == null ? null : brandName.trim();
+    }
+
+    public String getSeriesName() {
+        return seriesName;
+    }
+
+    public void setSeriesName(String seriesName) {
+        this.seriesName = seriesName == null ? null : seriesName.trim();
+    }
+
+    public String getSeriesType() {
+        return seriesType;
+    }
+
+    public void setSeriesType(String seriesType) {
+        this.seriesType = seriesType == null ? null : seriesType.trim();
+    }
+
+    public String getMileAge() {
+        return mileAge;
+    }
+
+    public void setMileAge(String mileAge) {
+        this.mileAge = mileAge == null ? null : mileAge.trim();
+    }
+
+    public String getFirstRegTime() {
+        return firstRegTime;
+    }
+
+    public void setFirstRegTime(String firstRegTime) {
+        this.firstRegTime = firstRegTime == null ? null : firstRegTime.trim();
+    }
+
+    public String getPlateNum() {
+        return plateNum;
+    }
+
+    public void setPlateNum(String plateNum) {
+        this.plateNum = plateNum == null ? null : plateNum.trim();
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
+    }
+
+    public Integer getCclId() {
+        return cclId;
+    }
+
+    public void setCclId(Integer cclId) {
+        this.cclId = cclId;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Integer getPushStatus() {
+        return pushStatus;
+    }
+
+    public void setPushStatus(Integer pushStatus) {
+        this.pushStatus = pushStatus;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg == null ? null : errorMsg.trim();
+    }
+
+    public String getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(String createDate) {
+        this.createDate = createDate == null ? null : createDate.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+}
