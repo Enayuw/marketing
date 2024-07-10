@@ -1251,6 +1251,19 @@ public class MarketingCommonConfig {
     private HashMap<String, Object> baiYingUndoMock;
 
     /**
+     * 推送之家创建线索接口挡板开关 true:开启挡板。false:关闭挡板
+     * zhiJiaUndoMock={"switch":true,"httpcode":"200","code":"0"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * httpcode：
+     *      200:请求成功
+     * code：
+     *      0:调用之家创建线索接口成功
+     */
+    private HashMap<String, Object> zhiJiaUndoMock;
+
+    /**
      *
      */
     private HashMap<String, Object> qiFuDeleteReachRecordMock;
