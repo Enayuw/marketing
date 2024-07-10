@@ -1,7 +1,6 @@
-package com.br.marketing.monkey.service.Impl.zhijia;
+package com.br.marketing.service.Impl.zhijia;
 
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.monkey.service.zhijia.ZhiJiaDataProcessService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 

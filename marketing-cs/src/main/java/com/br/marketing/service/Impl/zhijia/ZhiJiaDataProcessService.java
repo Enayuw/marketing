@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.service.zhijia;
+package com.br.marketing.service.Impl.zhijia;
 
 public interface ZhiJiaDataProcessService {
 
