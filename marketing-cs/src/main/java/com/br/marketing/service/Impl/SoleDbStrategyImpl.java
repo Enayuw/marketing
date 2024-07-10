@@ -99,11 +99,11 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
                 dbWhereTodayStr.append(soleStr);
             }
             Integer allUserType = soleRuleVO.getAllUserType();
-            if(null == allUserType || 0 == allUserType){
+            // 默认不支持全场景
+            boolean notAllUserTypeFlag = null == allUserType || 0 == allUserType;
+            if(notAllUserTypeFlag && StringUtils.isNotBlank(soleRuleVO.getConditionDbDesc())){
                 /** 拼接场景条件 */
-                if(StringUtils.isNotBlank(soleRuleVO.getConditionDbDesc())){
-                    dbWhereTodayStr.append(" and ").append(String.format("(%s)",soleRuleVO.getConditionDbDesc()));
-                }
+                dbWhereTodayStr.append(" and ").append(String.format("(%s)",soleRuleVO.getConditionDbDesc()));
             }
 
             /** 去重字段筛选 */

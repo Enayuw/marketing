@@ -258,10 +258,10 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     /**
      * 校验是否有重复的去重规则
-     * @param vo
+     * @param vo 前端传过来的去重规则数据
      * @return
      */
-    public boolean getRuleOfSoleOnly(SoleRuleDetailVO vo){
+    public boolean isRuleOfSoleOnly(SoleRuleDetailVO vo){
         Long soleId = null;
         if (StringUtils.isNotEmpty(vo.getSoleId())){
             soleId = Long.parseLong(vo.getSoleId());
@@ -292,7 +292,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     public ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, MarketingUserDetail userDetail) {
 
         //校验规则是否存在
-        boolean flag = getRuleOfSoleOnly(vo);
+        boolean flag = isRuleOfSoleOnly(vo);
         if (!flag){
             //已存在
             return new ApiResult<Boolean>().success(false, ServiceResultEnum.SUCCESS_3);
