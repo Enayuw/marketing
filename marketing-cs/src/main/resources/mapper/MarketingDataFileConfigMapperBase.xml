@@ -1,40 +1,49 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.MarketingDataFileConfigMapperBase">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDataFileConfig">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
-    <result column="file_id" jdbcType="INTEGER" property="fileId" />
-    <result column="clean_type" jdbcType="INTEGER" property="cleanType" />
-    <result column="rule_name" jdbcType="VARCHAR" property="ruleName" />
-    <result column="field_config" jdbcType="VARCHAR" property="fieldConfig" />
-    <result column="field_config_show" jdbcType="VARCHAR" property="fieldConfigShow" />
-    <result column="service_name" jdbcType="VARCHAR" property="serviceName" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-    <result column="is_del" jdbcType="INTEGER" property="isDel" />
-    <result column="is_checklist_name" jdbcType="TINYINT" property="isChecklistName" />
-    <result column="validation_rules" jdbcType="VARCHAR" property="validationRules" />
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.MarketingDataFileConfigMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingDataFileConfig" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="file_id" property="fileId" jdbcType="INTEGER" />
+    <result column="clean_type" property="cleanType" jdbcType="INTEGER" />
+    <result column="rule_name" property="ruleName" jdbcType="VARCHAR" />
+    <result column="field_config" property="fieldConfig" jdbcType="VARCHAR" />
+    <result column="field_config_show" property="fieldConfigShow" jdbcType="VARCHAR" />
+    <result column="service_name" property="serviceName" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="is_checklist_name" property="isChecklistName" jdbcType="TINYINT" />
+    <result column="auto_table_name" property="autoTableName" jdbcType="VARCHAR" />
+    <result column="auto_duplicate_column" property="autoDuplicateColumn" jdbcType="VARCHAR" />
+    <result column="auto_search_data_sql" property="autoSearchDataSql" jdbcType="VARCHAR" />
+    <result column="auto_clean_way_type" property="autoCleanWayType" jdbcType="INTEGER" />
+    <result column="auto_clean_start_time" property="autoCleanStartTime" jdbcType="TIMESTAMP" />
+    <result column="auto_clean_end_time" property="autoCleanEndTime" jdbcType="TIMESTAMP" />
+    <result column="auto_clean_lock" property="autoCleanLock" jdbcType="INTEGER" />
   </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingDataFileConfig" extends="BaseResultMap" >
+    <result column="validation_rules" property="validationRules" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -45,25 +54,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -74,185 +83,283 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List">
+  <sql id="Base_Column_List" >
     id, api_code, file_id, clean_type, rule_name, field_config, field_config_show, service_name, 
-    create_time, update_time, is_del, is_checklist_name, validation_rules
+    create_time, update_time, is_del, is_checklist_name, auto_table_name, auto_duplicate_column, 
+    auto_search_data_sql, auto_clean_way_type, auto_clean_start_time, auto_clean_end_time, 
+    auto_clean_lock
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" resultMap="BaseResultMap">
+  <sql id="Blob_Column_List" >
+    validation_rules
+  </sql>
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" >
     select
-    <if test="distinct">
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from b_marketing_data_file_config
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" >
+    select
+    <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_marketing_data_file_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null">
+    <if test="orderByClause != null" >
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
     from b_marketing_data_file_config
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_marketing_data_file_config
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample">
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" >
     delete from b_marketing_data_file_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataFileConfig" useGeneratedKeys="true">
+  <insert id="insert" parameterType="com.br.marketing.entity.MarketingDataFileConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_marketing_data_file_config (api_code, file_id, clean_type, 
       rule_name, field_config, field_config_show, 
       service_name, create_time, update_time, 
-      is_del, is_checklist_name, validation_rules
+      is_del, is_checklist_name, auto_table_name, 
+      auto_duplicate_column, auto_search_data_sql, 
+      auto_clean_way_type, auto_clean_start_time, 
+      auto_clean_end_time, auto_clean_lock, validation_rules
       )
     values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=INTEGER}, #{cleanType,jdbcType=INTEGER}, 
       #{ruleName,jdbcType=VARCHAR}, #{fieldConfig,jdbcType=VARCHAR}, #{fieldConfigShow,jdbcType=VARCHAR}, 
       #{serviceName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{isDel,jdbcType=INTEGER}, #{isChecklistName,jdbcType=TINYINT}, #{validationRules,jdbcType=VARCHAR}
+      #{isDel,jdbcType=INTEGER}, #{isChecklistName,jdbcType=TINYINT}, #{autoTableName,jdbcType=VARCHAR}, 
+      #{autoDuplicateColumn,jdbcType=VARCHAR}, #{autoSearchDataSql,jdbcType=VARCHAR}, 
+      #{autoCleanWayType,jdbcType=INTEGER}, #{autoCleanStartTime,jdbcType=TIMESTAMP}, 
+      #{autoCleanEndTime,jdbcType=TIMESTAMP}, #{autoCleanLock,jdbcType=INTEGER}, #{validationRules,jdbcType=LONGVARCHAR}
       )
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingDataFileConfig" useGeneratedKeys="true">
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataFileConfig" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_marketing_data_file_config
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
         api_code,
       </if>
-      <if test="fileId != null">
+      <if test="fileId != null" >
         file_id,
       </if>
-      <if test="cleanType != null">
+      <if test="cleanType != null" >
         clean_type,
       </if>
-      <if test="ruleName != null">
+      <if test="ruleName != null" >
         rule_name,
       </if>
-      <if test="fieldConfig != null">
+      <if test="fieldConfig != null" >
         field_config,
       </if>
-      <if test="fieldConfigShow != null">
+      <if test="fieldConfigShow != null" >
         field_config_show,
       </if>
-      <if test="serviceName != null">
+      <if test="serviceName != null" >
         service_name,
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time,
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time,
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         is_del,
       </if>
-      <if test="isChecklistName != null">
+      <if test="isChecklistName != null" >
         is_checklist_name,
       </if>
-      <if test="validationRules != null">
+      <if test="autoTableName != null" >
+        auto_table_name,
+      </if>
+      <if test="autoDuplicateColumn != null" >
+        auto_duplicate_column,
+      </if>
+      <if test="autoSearchDataSql != null" >
+        auto_search_data_sql,
+      </if>
+      <if test="autoCleanWayType != null" >
+        auto_clean_way_type,
+      </if>
+      <if test="autoCleanStartTime != null" >
+        auto_clean_start_time,
+      </if>
+      <if test="autoCleanEndTime != null" >
+        auto_clean_end_time,
+      </if>
+      <if test="autoCleanLock != null" >
+        auto_clean_lock,
+      </if>
+      <if test="validationRules != null" >
         validation_rules,
       </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="apiCode != null">
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="fileId != null">
+      <if test="fileId != null" >
         #{fileId,jdbcType=INTEGER},
       </if>
-      <if test="cleanType != null">
+      <if test="cleanType != null" >
         #{cleanType,jdbcType=INTEGER},
       </if>
-      <if test="ruleName != null">
+      <if test="ruleName != null" >
         #{ruleName,jdbcType=VARCHAR},
       </if>
-      <if test="fieldConfig != null">
+      <if test="fieldConfig != null" >
         #{fieldConfig,jdbcType=VARCHAR},
       </if>
-      <if test="fieldConfigShow != null">
+      <if test="fieldConfigShow != null" >
         #{fieldConfigShow,jdbcType=VARCHAR},
       </if>
-      <if test="serviceName != null">
+      <if test="serviceName != null" >
         #{serviceName,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="isChecklistName != null">
+      <if test="isChecklistName != null" >
         #{isChecklistName,jdbcType=TINYINT},
       </if>
-      <if test="validationRules != null">
-        #{validationRules,jdbcType=VARCHAR},
+      <if test="autoTableName != null" >
+        #{autoTableName,jdbcType=VARCHAR},
+      </if>
+      <if test="autoDuplicateColumn != null" >
+        #{autoDuplicateColumn,jdbcType=VARCHAR},
+      </if>
+      <if test="autoSearchDataSql != null" >
+        #{autoSearchDataSql,jdbcType=VARCHAR},
+      </if>
+      <if test="autoCleanWayType != null" >
+        #{autoCleanWayType,jdbcType=INTEGER},
+      </if>
+      <if test="autoCleanStartTime != null" >
+        #{autoCleanStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="autoCleanEndTime != null" >
+        #{autoCleanEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="autoCleanLock != null" >
+        #{autoCleanLock,jdbcType=INTEGER},
+      </if>
+      <if test="validationRules != null" >
+        #{validationRules,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" resultType="java.lang.Integer" >
     select count(*) from b_marketing_data_file_config
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map">
+  <update id="updateByExampleSelective" parameterType="map" >
     update b_marketing_data_file_config
-    <set>
-      <if test="record.id != null">
+    <set >
+      <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null">
+      <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.fileId != null">
+      <if test="record.fileId != null" >
         file_id = #{record.fileId,jdbcType=INTEGER},
       </if>
-      <if test="record.cleanType != null">
+      <if test="record.cleanType != null" >
         clean_type = #{record.cleanType,jdbcType=INTEGER},
       </if>
-      <if test="record.ruleName != null">
+      <if test="record.ruleName != null" >
         rule_name = #{record.ruleName,jdbcType=VARCHAR},
       </if>
-      <if test="record.fieldConfig != null">
+      <if test="record.fieldConfig != null" >
         field_config = #{record.fieldConfig,jdbcType=VARCHAR},
       </if>
-      <if test="record.fieldConfigShow != null">
+      <if test="record.fieldConfigShow != null" >
         field_config_show = #{record.fieldConfigShow,jdbcType=VARCHAR},
       </if>
-      <if test="record.serviceName != null">
+      <if test="record.serviceName != null" >
         service_name = #{record.serviceName,jdbcType=VARCHAR},
       </if>
-      <if test="record.createTime != null">
+      <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null">
+      <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.isDel != null">
+      <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
-      <if test="record.isChecklistName != null">
+      <if test="record.isChecklistName != null" >
         is_checklist_name = #{record.isChecklistName,jdbcType=TINYINT},
       </if>
-      <if test="record.validationRules != null">
-        validation_rules = #{record.validationRules,jdbcType=VARCHAR},
+      <if test="record.autoTableName != null" >
+        auto_table_name = #{record.autoTableName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.autoDuplicateColumn != null" >
+        auto_duplicate_column = #{record.autoDuplicateColumn,jdbcType=VARCHAR},
+      </if>
+      <if test="record.autoSearchDataSql != null" >
+        auto_search_data_sql = #{record.autoSearchDataSql,jdbcType=VARCHAR},
+      </if>
+      <if test="record.autoCleanWayType != null" >
+        auto_clean_way_type = #{record.autoCleanWayType,jdbcType=INTEGER},
+      </if>
+      <if test="record.autoCleanStartTime != null" >
+        auto_clean_start_time = #{record.autoCleanStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.autoCleanEndTime != null" >
+        auto_clean_end_time = #{record.autoCleanEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.autoCleanLock != null" >
+        auto_clean_lock = #{record.autoCleanLock,jdbcType=INTEGER},
+      </if>
+      <if test="record.validationRules != null" >
+        validation_rules = #{record.validationRules,jdbcType=LONGVARCHAR},
       </if>
     </set>
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map">
+  <update id="updateByExampleWithBLOBs" parameterType="map" >
     update b_marketing_data_file_config
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -266,54 +373,107 @@
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       is_del = #{record.isDel,jdbcType=INTEGER},
       is_checklist_name = #{record.isChecklistName,jdbcType=TINYINT},
-      validation_rules = #{record.validationRules,jdbcType=VARCHAR}
-    <if test="_parameter != null">
+      auto_table_name = #{record.autoTableName,jdbcType=VARCHAR},
+      auto_duplicate_column = #{record.autoDuplicateColumn,jdbcType=VARCHAR},
+      auto_search_data_sql = #{record.autoSearchDataSql,jdbcType=VARCHAR},
+      auto_clean_way_type = #{record.autoCleanWayType,jdbcType=INTEGER},
+      auto_clean_start_time = #{record.autoCleanStartTime,jdbcType=TIMESTAMP},
+      auto_clean_end_time = #{record.autoCleanEndTime,jdbcType=TIMESTAMP},
+      auto_clean_lock = #{record.autoCleanLock,jdbcType=INTEGER},
+      validation_rules = #{record.validationRules,jdbcType=LONGVARCHAR}
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDataFileConfig">
+  <update id="updateByExample" parameterType="map" >
     update b_marketing_data_file_config
-    <set>
-      <if test="apiCode != null">
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      file_id = #{record.fileId,jdbcType=INTEGER},
+      clean_type = #{record.cleanType,jdbcType=INTEGER},
+      rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      field_config = #{record.fieldConfig,jdbcType=VARCHAR},
+      field_config_show = #{record.fieldConfigShow,jdbcType=VARCHAR},
+      service_name = #{record.serviceName,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      is_checklist_name = #{record.isChecklistName,jdbcType=TINYINT},
+      auto_table_name = #{record.autoTableName,jdbcType=VARCHAR},
+      auto_duplicate_column = #{record.autoDuplicateColumn,jdbcType=VARCHAR},
+      auto_search_data_sql = #{record.autoSearchDataSql,jdbcType=VARCHAR},
+      auto_clean_way_type = #{record.autoCleanWayType,jdbcType=INTEGER},
+      auto_clean_start_time = #{record.autoCleanStartTime,jdbcType=TIMESTAMP},
+      auto_clean_end_time = #{record.autoCleanEndTime,jdbcType=TIMESTAMP},
+      auto_clean_lock = #{record.autoCleanLock,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingDataFileConfig" >
+    update b_marketing_data_file_config
+    <set >
+      <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="fileId != null">
+      <if test="fileId != null" >
         file_id = #{fileId,jdbcType=INTEGER},
       </if>
-      <if test="cleanType != null">
+      <if test="cleanType != null" >
         clean_type = #{cleanType,jdbcType=INTEGER},
       </if>
-      <if test="ruleName != null">
+      <if test="ruleName != null" >
         rule_name = #{ruleName,jdbcType=VARCHAR},
       </if>
-      <if test="fieldConfig != null">
+      <if test="fieldConfig != null" >
         field_config = #{fieldConfig,jdbcType=VARCHAR},
       </if>
-      <if test="fieldConfigShow != null">
+      <if test="fieldConfigShow != null" >
         field_config_show = #{fieldConfigShow,jdbcType=VARCHAR},
       </if>
-      <if test="serviceName != null">
+      <if test="serviceName != null" >
         service_name = #{serviceName,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="isChecklistName != null">
+      <if test="isChecklistName != null" >
         is_checklist_name = #{isChecklistName,jdbcType=TINYINT},
       </if>
-      <if test="validationRules != null">
-        validation_rules = #{validationRules,jdbcType=VARCHAR},
+      <if test="autoTableName != null" >
+        auto_table_name = #{autoTableName,jdbcType=VARCHAR},
+      </if>
+      <if test="autoDuplicateColumn != null" >
+        auto_duplicate_column = #{autoDuplicateColumn,jdbcType=VARCHAR},
+      </if>
+      <if test="autoSearchDataSql != null" >
+        auto_search_data_sql = #{autoSearchDataSql,jdbcType=VARCHAR},
+      </if>
+      <if test="autoCleanWayType != null" >
+        auto_clean_way_type = #{autoCleanWayType,jdbcType=INTEGER},
+      </if>
+      <if test="autoCleanStartTime != null" >
+        auto_clean_start_time = #{autoCleanStartTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="autoCleanEndTime != null" >
+        auto_clean_end_time = #{autoCleanEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="autoCleanLock != null" >
+        auto_clean_lock = #{autoCleanLock,jdbcType=INTEGER},
+      </if>
+      <if test="validationRules != null" >
+        validation_rules = #{validationRules,jdbcType=LONGVARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataFileConfig">
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MarketingDataFileConfig" >
     update b_marketing_data_file_config
     set api_code = #{apiCode,jdbcType=VARCHAR},
       file_id = #{fileId,jdbcType=INTEGER},
@@ -326,7 +486,36 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       is_del = #{isDel,jdbcType=INTEGER},
       is_checklist_name = #{isChecklistName,jdbcType=TINYINT},
-      validation_rules = #{validationRules,jdbcType=VARCHAR}
+      auto_table_name = #{autoTableName,jdbcType=VARCHAR},
+      auto_duplicate_column = #{autoDuplicateColumn,jdbcType=VARCHAR},
+      auto_search_data_sql = #{autoSearchDataSql,jdbcType=VARCHAR},
+      auto_clean_way_type = #{autoCleanWayType,jdbcType=INTEGER},
+      auto_clean_start_time = #{autoCleanStartTime,jdbcType=TIMESTAMP},
+      auto_clean_end_time = #{autoCleanEndTime,jdbcType=TIMESTAMP},
+      auto_clean_lock = #{autoCleanLock,jdbcType=INTEGER},
+      validation_rules = #{validationRules,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingDataFileConfig" >
+    update b_marketing_data_file_config
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      file_id = #{fileId,jdbcType=INTEGER},
+      clean_type = #{cleanType,jdbcType=INTEGER},
+      rule_name = #{ruleName,jdbcType=VARCHAR},
+      field_config = #{fieldConfig,jdbcType=VARCHAR},
+      field_config_show = #{fieldConfigShow,jdbcType=VARCHAR},
+      service_name = #{serviceName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_del = #{isDel,jdbcType=INTEGER},
+      is_checklist_name = #{isChecklistName,jdbcType=TINYINT},
+      auto_table_name = #{autoTableName,jdbcType=VARCHAR},
+      auto_duplicate_column = #{autoDuplicateColumn,jdbcType=VARCHAR},
+      auto_search_data_sql = #{autoSearchDataSql,jdbcType=VARCHAR},
+      auto_clean_way_type = #{autoCleanWayType,jdbcType=INTEGER},
+      auto_clean_start_time = #{autoCleanStartTime,jdbcType=TIMESTAMP},
+      auto_clean_end_time = #{autoCleanEndTime,jdbcType=TIMESTAMP},
+      auto_clean_lock = #{autoCleanLock,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
