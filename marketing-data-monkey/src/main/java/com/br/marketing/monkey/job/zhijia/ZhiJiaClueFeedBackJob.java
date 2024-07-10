@@ -1,17 +1,12 @@
 package com.br.marketing.monkey.job.zhijia;
 
-import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.LocalFileExample;
-import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.service.Impl.zhijia.ZhiJiaClueFeedBackService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * @ClassName ZhiJiaClueFeedBackJob
@@ -23,32 +18,21 @@ import java.util.List;
 @Slf4j
 public class ZhiJiaClueFeedBackJob extends AbstractSimpleElasticJob {
 
-    @Resource
-    private LocalFileMapper localFileMapper;
+    private final static String TITLE = "【之家创建线索】";
+
+    @Autowired
+    ZhiJiaClueFeedBackService service;
 
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        LocalFileExample example = new LocalFileExample();
-        //查询待推送文件
-        example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.ZHIJIACLUE.getValue())
-                .andStatusEqualTo("2").andPushStatusIsNull();
-        List<LocalFile> localFiles = localFileMapper.selectByExample(example);
-        if (CollectionUtils.isEmpty(localFiles)) {
-            return;
-        }
-
         try {
-            localFiles.forEach((LocalFile localFile) -> {
-
-            });
+            long start = System.currentTimeMillis();
+            service.process();
+            long end = System.currentTimeMillis();
+            log.warn(TITLE + "调度结束, 耗时:{}", end - start);
         } catch (Exception e) {
-            //推送异常更新状态,更新为失败status=3
-            LocalFile localFile = new LocalFile();
-            localFile.setPushStatus("3");
-            localFile.setId(localFiles.get(0).getId());
-            localFileMapper.updateByPrimaryKeySelective(localFile);
-            log.error("之家线索回传推送异常", e);
+            log.error(TITLE + "推送异常", e);
         }
     }
 }

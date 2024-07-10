@@ -157,6 +157,13 @@ api:
     brPrivateKey: ""
     brPublicKey: ""
     isProxy: true
+  zhijia:
+    baseUri: https://openapi.autohome.com.cn/che168/apiclueopen
+    addC1HiqClueUrl: ${api.zhijia.baseUri}/CarEstimate/AddC1HiqClue.ashx
+    zhiJiaClientId: JwpfGWx6hkxgIqUI7ncBjy0m7cQg1r39
+    zhiJiaClientSecret: pQDg3DG3qWfkIfDqH8NVLZnhBOvxJjlW
+    zhiJiaClientAppid: 1742
+    zhiJiaClientEncryption: wE2FKj/Vb10=
   tongchengAgentMkt:
     baseUrl: https://mns.lylend.com
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
