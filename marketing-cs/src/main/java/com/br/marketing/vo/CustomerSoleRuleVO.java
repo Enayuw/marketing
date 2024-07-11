@@ -7,5 +7,7 @@ import lombok.Data;
 public class CustomerSoleRuleVO extends SoleRuleConfig {
     private String apiCode;
     private String conditionInfo;
+    private Integer allUserType;
+    private Integer userTypeCount;
     private String conditionDbDesc;
 }
