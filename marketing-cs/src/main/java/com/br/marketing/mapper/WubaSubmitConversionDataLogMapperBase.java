@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface WubaSubmitConversionDataLogMapperBase {
+
     int countByExample(WubaSubmitConversionDataLogExample example);
 
     int deleteByExample(WubaSubmitConversionDataLogExample example);
