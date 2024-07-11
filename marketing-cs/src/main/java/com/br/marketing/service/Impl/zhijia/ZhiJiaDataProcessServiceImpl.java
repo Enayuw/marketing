@@ -11,6 +11,8 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.zhijia.CityCountyDataDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
+import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +49,12 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Resource
+    ZhiJiaCarBrandInfoMapper zhiJiaCarBrandInfoMapper;
+
+    @Resource
+    ZhiJiaCarSeriesInfoMapper zhiJiaCarSeriesInfoMapper;
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
 
@@ -202,6 +210,24 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     }
 
     @Override
+    public List<ZhiJiaCarBrandInfo> getCarBrandInfos() {
+        // 查询品牌
+        ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample = new ZhiJiaCarBrandInfoExample();
+        zhiJiaCarBrandInfoExample.createCriteria().andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString());
+        List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
+        if (zhiJiaCarBrandInfos.isEmpty()) {
+            // 今日配置表为空,报警，并启用原有配置表！
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车品牌配置表为空!"));
+            ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample1 = new ZhiJiaCarBrandInfoExample();
+            zhiJiaCarBrandInfoExample.createCriteria().andAppletDateLessThanOrEqualTo(LocalDate.now().toString());
+            List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos1 = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample1);
+            zhiJiaCarBrandInfos.addAll(zhiJiaCarBrandInfos1);
+
+        }
+        return zhiJiaCarBrandInfos;
+    }
+
+    @Override
     public Result<ZhiJiaCarSeriesInfo> getZhiJiaCarBrandInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos) {
         ZhiJiaCarSeriesInfo data = new ZhiJiaCarSeriesInfo();
         String brandName = removeSpacesAndConvertToUpper(zhiJiaClueBackInfo.getBrandName());
@@ -237,6 +263,27 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         String msg = "匹配车辆品牌失败！配置表中无这个车辆品牌，品牌名称：" + brandName;
         return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
     }
+
+
+    @Override
+    public List<ZhiJiaCarSeriesInfo> getCarSeriesInfos(int brandId) {
+        ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample = new ZhiJiaCarSeriesInfoExample();
+        zhiJiaCarSeriesInfoExample.createCriteria()
+                .andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString())
+                .andBrandIdEqualTo(brandId);
+        List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
+        if (zhiJiaCarSeriesInfos.isEmpty()){
+            // 今日车系配置表为空，报警，并启用原有配置表！
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车系配置表为空!"));
+            ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample1 = new ZhiJiaCarSeriesInfoExample();
+            zhiJiaCarSeriesInfoExample1.createCriteria()
+                    .andBrandIdEqualTo(brandId);
+            List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos1 = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample1);
+            zhiJiaCarSeriesInfos.addAll(zhiJiaCarSeriesInfos1);
+        }
+        return zhiJiaCarSeriesInfos;
+    }
+
 
     @Override
     public Result<ZhiJiaCarSeriesInfo> getZhiJiaCarSeriesInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos) {
@@ -327,11 +374,8 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         String normalizedCarSeries = carSeries.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
         String normalizedPattern = pattern.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
 
-        // 编译正则表达式
-        Pattern compiledPattern = Pattern.compile(normalizedPattern, Pattern.CASE_INSENSITIVE);
-        Matcher matcher = compiledPattern.matcher(normalizedCarSeries);
-
-        return matcher.find();
+        // 检查 pattern 是否包含 carSeries
+        return normalizedPattern.contains(normalizedCarSeries);
     }
 
     /**
