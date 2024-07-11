@@ -493,18 +493,24 @@ public class HttpProxyClient {
      * @author: zhen.Li1
      * @time: 2024-07-11
      */
-    public String get(String uri,Boolean isPorxy) {
+    public HashMap<String, String> get(String uri, Boolean isPorxy) {
+        HashMap<String, String> res = new HashMap<>();
         HttpClient httpClient = getHttpClientInner(isPorxy);
         try {
             HttpGet httpGet = new HttpGet(uri);
             RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
             httpGet.setConfig(requestConfig);
-            log.warn("请求url={}",httpGet.getURI().toString());
+            log.warn("请求url={}", httpGet.getURI().toString());
             HttpResponse response = httpClient.execute(httpGet);
-            return EntityUtils.toString(response.getEntity());
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            res.put("content", result);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("url={}", uri, e);
+            res.put("content", e.getMessage());
         }
+        return res;
     }
 
 
