@@ -1774,6 +1774,31 @@ public class MarketingCommonConfig {
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
+    /**
+     * 58同程撞库提交撞库apiCode集合
+     */
+    private List<String> wubaCollidingApiCodes;
+
+    /**
+     * 58撞库数据同步线程数
+     */
+    private Integer wubaCollidingDataSyncThreadNum;
+
+    /**
+     * 58同步撞库数据分页条数
+     */
+    private Integer wuBaCollidingDataSyncPageSize;
+
+    /**
+     * 58提交撞库开关(true:开启，false关闭)
+     */
+    private Boolean wuBaCollidingDataSwitch;
+
+    /**
+     * 58提交撞库数据分页条数
+     */
+    private Integer wuBaCollidingDataSubmitPageSize;
+
 
     /**
      * 58金融-新客营销名单上报-开关，1-开，0-关

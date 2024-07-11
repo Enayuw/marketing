@@ -17,21 +17,15 @@ public interface MarketingDataFileConfigMapperBase {
 
     int insertSelective(MarketingDataFileConfig record);
 
-    List<MarketingDataFileConfig> selectByExampleWithBLOBs(MarketingDataFileConfigExample example);
-
     List<MarketingDataFileConfig> selectByExample(MarketingDataFileConfigExample example);
 
     MarketingDataFileConfig selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") MarketingDataFileConfig record, @Param("example") MarketingDataFileConfigExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") MarketingDataFileConfig record, @Param("example") MarketingDataFileConfigExample example);
-
     int updateByExample(@Param("record") MarketingDataFileConfig record, @Param("example") MarketingDataFileConfigExample example);
 
     int updateByPrimaryKeySelective(MarketingDataFileConfig record);
-
-    int updateByPrimaryKeyWithBLOBs(MarketingDataFileConfig record);
 
     int updateByPrimaryKey(MarketingDataFileConfig record);
 }

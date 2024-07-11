@@ -39,7 +39,7 @@ public class WuBaServiceClient {
     String submitConversionListUrl;
     @Value("${api.wuba.queryConversionResultUrl:00}")
     String queryConversionResultUrl;
-    @Value("${api.wuba.isProxy:00}")
+    @Value("${api.wuba.isProxy:true}")
     Boolean isProxy;
 
     @Autowired

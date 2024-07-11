@@ -64,6 +64,11 @@ public class MarketingDataFileConfig {
     private Byte isChecklistName;
 
     /**
+     * 表名校验规则
+     */
+    private String validationRules;
+
+    /**
      * 待清洗的数据表
      */
     private String autoTableName;
@@ -97,11 +102,6 @@ public class MarketingDataFileConfig {
      * 清洗锁是否被抢，0 未被抢 1 被抢
      */
     private Integer autoCleanLock;
-
-    /**
-     * 表名校验规则
-     */
-    private String validationRules;
 
     public Long getId() {
         return id;
@@ -199,6 +199,14 @@ public class MarketingDataFileConfig {
         this.isChecklistName = isChecklistName;
     }
 
+    public String getValidationRules() {
+        return validationRules;
+    }
+
+    public void setValidationRules(String validationRules) {
+        this.validationRules = validationRules == null ? null : validationRules.trim();
+    }
+
     public String getAutoTableName() {
         return autoTableName;
     }
@@ -253,13 +261,5 @@ public class MarketingDataFileConfig {
 
     public void setAutoCleanLock(Integer autoCleanLock) {
         this.autoCleanLock = autoCleanLock;
-    }
-
-    public String getValidationRules() {
-        return validationRules;
-    }
-
-    public void setValidationRules(String validationRules) {
-        this.validationRules = validationRules == null ? null : validationRules.trim();
     }
 }

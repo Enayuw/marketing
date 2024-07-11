@@ -875,6 +875,76 @@ public class MarketingDataFileConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andValidationRulesIsNull() {
+            addCriterion("validation_rules is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesIsNotNull() {
+            addCriterion("validation_rules is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesEqualTo(String value) {
+            addCriterion("validation_rules =", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesNotEqualTo(String value) {
+            addCriterion("validation_rules <>", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesGreaterThan(String value) {
+            addCriterion("validation_rules >", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesGreaterThanOrEqualTo(String value) {
+            addCriterion("validation_rules >=", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesLessThan(String value) {
+            addCriterion("validation_rules <", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesLessThanOrEqualTo(String value) {
+            addCriterion("validation_rules <=", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesLike(String value) {
+            addCriterion("validation_rules like", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesNotLike(String value) {
+            addCriterion("validation_rules not like", value, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesIn(List<String> values) {
+            addCriterion("validation_rules in", values, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesNotIn(List<String> values) {
+            addCriterion("validation_rules not in", values, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesBetween(String value1, String value2) {
+            addCriterion("validation_rules between", value1, value2, "validationRules");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidationRulesNotBetween(String value1, String value2) {
+            addCriterion("validation_rules not between", value1, value2, "validationRules");
+            return (Criteria) this;
+        }
+
         public Criteria andAutoTableNameIsNull() {
             addCriterion("auto_table_name is null");
             return (Criteria) this;

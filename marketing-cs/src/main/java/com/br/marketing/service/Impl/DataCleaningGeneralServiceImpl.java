@@ -8,10 +8,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.entity.MarketingCleanDataFile;
-import com.br.marketing.entity.MarketingCleanDataTask;
-import com.br.marketing.entity.MarketingCleanDataTaskExample;
-import com.br.marketing.entity.MarketingDataFileConfig;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
@@ -34,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -87,6 +85,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         example.createCriteria()
                 .andCreateTimeLessThanOrEqualTo(new Date())
                 .andCleanStatusEqualTo(0)
+                .andAutoCleanWayTypeEqualTo(0)
                 .andIsDelEqualTo(1);
         example.setOrderByClause("create_time asc");
         List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
@@ -262,31 +261,32 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     while (!pushPool.awaitTermination(5L, TimeUnit.SECONDS)) {
                         // do nothing
                     }
-                }catch (InterruptedException  ie){
-                    log.error("线程池终止[{}]文件[{}]-行数[{}]-成功数[{}]-失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ie);
+                } catch (InterruptedException ie) {
+                    log.error("线程池终止[{}]文件[{}]-行数[{}]-成功数[{}]-失败数[{}]--", apiCode, fileName, lineNum, pushSum, errorSum, ie);
                     Thread.currentThread().interrupt();
                 } catch (Exception ex) {
-                    log.error("[{}]清洗失败[{}]-行数[{}]-推送成功数[{}]-推送失败数[{}]--",apiCode,fileName,lineNum,pushSum,errorSum,ex);
+                    log.error("[{}]清洗失败[{}]-行数[{}]-推送成功数[{}]-推送失败数[{}]--", apiCode, fileName, lineNum, pushSum, errorSum, ex);
                     marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 3);
                     return;
                 }
                 // 打印处理正确和不正确的条数以及所在行
-                log.warn("[{}]数据清洗文件[{}]-文件行数[{}]-推送成功数[{}]-推送失败数[{}]",apiCode,fileName,lineNum,pushSum,errorSum);
+                log.warn("[{}]数据清洗文件[{}]-文件行数[{}]-推送成功数[{}]-推送失败数[{}]", apiCode, fileName, lineNum, pushSum, errorSum);
             }
             marketingCleanDataTaskMapper.updateMarketingCleanDataTaskById(taskId, 2);
-        }else{
+        } else {
             log.warn("清洗任务未配置文件名");
         }
     }
 
     /**
      * 异步调用上传数据接口
-     * @param apiCode apiCode
-     * @param tasId tasId
+     *
+     * @param apiCode         apiCode
+     * @param tasId           tasId
      * @param requestIdPrefix requestIdPrefix
-     * @param pushPool 上传使用线程池
+     * @param pushPool        上传使用线程池
      * @param pushBatchNumber pushBatchNumber
-     * @param syncUsers 具体数据对象
+     * @param syncUsers       具体数据对象
      */
     private void asyncUploadData(String apiCode, String tasId, String requestIdPrefix
             , ThreadPoolExecutor pushPool, Integer pushBatchNumber, List<MarketingPreUserDetailDTO> syncUsers) {
@@ -304,19 +304,20 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 
     /**
      * 处理每一行数据字段的方法
-     * @param fieldVO 列对应的处理规则（列名可以重复）
+     *
+     * @param fieldVO      列对应的处理规则（列名可以重复）
      * @param list
-     * @param value 列名对应的值
-     * @param tableMap map<表头名字:字段值>
-     * @param fileName 待处理文件名
-     * @param lineNum 待处理文件行号
-     * @param errorMsg 错误信息
-     * @param headNm 列名
+     * @param value        列名对应的值
+     * @param tableMap     map<表头名字:字段值>
+     * @param fileName     待处理文件名
+     * @param lineNum      待处理文件行号
+     * @param errorMsg     错误信息
+     * @param headNm       列名
      * @param hasSet
      * @param dataFieldVOS
      * @param dataFieldMap <表头,表头对应规则list>
      */
-    public void rowFieldHandle(FileToMarketingFieldVO fieldVO,ArrayList<String> list, String value
+    public void rowFieldHandle(FileToMarketingFieldVO fieldVO, ArrayList<String> list, String value
             , Map<String, String> tableMap, String fileName, Integer lineNum
             , StringBuilder errorMsg, String headNm, HashSet hasSet
             , List<FileToMarketingDataFieldVO> dataFieldVOS, HashMap<String, List<FileToMarketingDataFieldVO>> dataFieldMap) {
@@ -368,9 +369,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         dataFieldVOS.add(vo);
         String headField = vo.getHeadField();
         List<FileToMarketingDataFieldVO> fileToMarketingDataFieldVOS = dataFieldMap.get(headField);
-        if(null != fileToMarketingDataFieldVOS){
+        if (null != fileToMarketingDataFieldVOS) {
             fileToMarketingDataFieldVOS.add(vo);
-        }else{
+        } else {
             List<FileToMarketingDataFieldVO> fileToMarketingDataFieldVOS1 = new ArrayList<>();
             fileToMarketingDataFieldVOS1.add(vo);
             dataFieldMap.put(headField, fileToMarketingDataFieldVOS1);
@@ -379,9 +380,10 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 
     /**
      * 处理时间格式的方法
-     * @param value 待处理的时间类型的值
+     *
+     * @param value    待处理的时间类型的值
      * @param fileName 待处理文件名
-     * @param lineNum 待处理文件对应行数
+     * @param lineNum  待处理文件对应行数
      * @return String 格式化后的时间值（yyyy-MM-dd HH:mm:ss）
      */
     private String getFormatterValue(String value, String fileName, Integer lineNum) {
@@ -394,7 +396,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 break;
             } catch (ParseException e) {
                 // 忽略异常，并尝试下一个解析器
-                if(log.isInfoEnabled()){
+                if (log.isInfoEnabled()) {
                     log.info("无法解析日期-文件名:{};行数:{};格式:{};原值:{}", fileName, lineNum, parser, value);
                 }
             }
@@ -437,12 +439,12 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             if (fileToMarketingFieldVOS != null && fileToMarketingFieldVOS.size() > 0) {
                 for (int j = 0; j < fileToMarketingFieldVOS.size(); j++) {
                     fieldVO = fileToMarketingFieldVOS.get(j);
-                    if(fieldVO.getIsExtend()){
+                    if (fieldVO.getIsExtend()) {
                         // 该列字段数据需要写到扩展字段
                         extra.add(s);
                     }
                 }
-            }else{
+            } else {
                 // 该列字段数据需要写到扩展字段
                 extra.add(s);
             }
@@ -488,7 +490,7 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
             //根据当前表头名获取配置信息
             List<FileToMarketingFieldVO> fileToMarketingFieldVOS = fieldVosMap.get(headNm);
             //未获取配置
-            if(CollectionUtils.isEmpty(fileToMarketingFieldVOS)){
+            if (CollectionUtils.isEmpty(fileToMarketingFieldVOS)) {
                 continue;
             }
             Iterator<FileToMarketingFieldVO> itr = fileToMarketingFieldVOS.iterator();
@@ -520,12 +522,12 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                     } catch (IOException ex) {
                         log.error(ex.getMessage(), ex);
                     }
-                    if(StringUtils.isNotEmpty(mappStr)){
+                    if (StringUtils.isNotEmpty(mappStr)) {
                         value = mappStr;
                     }
                 }
                 if (StringUtils.isNotEmpty(value) && null != fieldVO.getIsDateTransform() && fieldVO.getIsDateTransform()) {
-                    value = getFormatterValue(value,marketingCleanDataFile.getFileName(),1);
+                    value = getFormatterValue(value, marketingCleanDataFile.getFileName(), 1);
                 }
                 FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
                 BeanUtils.copyProperties(fieldVO, vo);
@@ -533,9 +535,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 dataFieldVOS.add(vo);
             }
         }
-        Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream().filter(map->  !head.contains(map.getKey()))
+        Map<String, List<FileToMarketingFieldVO>> defaultConfig = fieldVosMap.entrySet().stream().filter(map -> !head.contains(map.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        defaultConfig.forEach((String fileHeader,List<FileToMarketingFieldVO> configList)->{
+        defaultConfig.forEach((String fileHeader, List<FileToMarketingFieldVO> configList) -> {
             FileToMarketingDataFieldVO vo = new FileToMarketingDataFieldVO();
             vo.setDataValue(configList.get(0).getDefaultValue());
             vo.setInterfaceField(configList.get(0).getHeadField());
@@ -552,50 +554,107 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
         return marketingPreUserDTO;
     }
 
-    MarketingPreUserDetailDTO make(List<FileToMarketingDataFieldVO> vos){
+    @Override
+    public void autoCleanDataByTask(MarketingCleanDataTask marketingCleanDataTask) {
+        // 执行当前配置锁对应的清洗需求
+        // while 循环执行清洗查询的sql
+        // 获取到数据后，根据配置的的headerFiled 字段，获取数据
+        // 根据配置的映射组装数据
+
+        // 获取当前任务清洗数据所需要的配置
+        MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigMapper.selectByPrimaryKey(
+                Long.valueOf(marketingCleanDataTask.getConfigId())
+        );
+        // 获取清洗数据
+        String autoSearchDataSql = marketingDataFileConfig.getAutoSearchDataSql();
+        List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(autoSearchDataSql);
+
+
+        if (cleanDataMapList.size() > 0) {
+            Set<String> headers = cleanDataMapList.get(0).keySet();
+            String ruleConfig = marketingDataFileConfig.getFieldConfig();
+            List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(ruleConfig, FileToMarketingFieldVO.class);
+            // 根据 headField 字段分组
+            Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream()
+                    .collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
+            for (int i = 0; i < cleanDataMapList.size(); i++) {
+                try {
+                    MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
+                    Class<?> clazz = marketingPreUserDTO.getClass();
+                    Field[] declaredFields = clazz.getDeclaredFields();
+                    Map<String, Object> processDataMap = cleanDataMapList.get(i);
+                    headers.forEach((String dbColumn) -> {
+                        Object dbValue = processDataMap.get(dbColumn);
+                        fieldVos.forEach((FileToMarketingFieldVO fieldVo) -> {
+                            String headField = fieldVo.getHeadField();
+                            if (headField.equals(dbColumn)) {
+                                String[] split = fieldVo.getInterfaceField().split(",");
+
+                                for(Field field : declaredFields){
+                                    if(field.getName().equals(dbColumn)){}
+                                }
+                            }
+
+
+                        });
+
+
+                    });
+
+                } catch (Exception e) {
+
+                }
+            }
+
+        }
+
+
+    }
+
+    MarketingPreUserDetailDTO make(List<FileToMarketingDataFieldVO> vos) {
         MarketingPreUserDetailDTO dto = new MarketingPreUserDetailDTO();
         JSONObject reserveFieldJo = new JSONObject();
         for (FileToMarketingDataFieldVO vo : vos) {
-            switch (vo.getInterfaceField()){
+            switch (vo.getInterfaceField()) {
                 case "custNum":
                     dto.setCustNum(vo.getDataValue());
                     break;
-                case"cell":
+                case "cell":
                     dto.setCell(vo.getDataValue());
                     break;
-                case"id":
-                    if(com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())){
+                case "id":
+                    if (com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())) {
                         dto.setId(vo.getDataValue());
                     }
                     break;
-                case"name":
-                    if(com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())){
+                case "name":
+                    if (com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())) {
                         dto.setName(vo.getDataValue());
                     }
                     break;
-                case"groupType":
-                    if(com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())){
+                case "groupType":
+                    if (com.br.marketing.common.utils.StringUtils.isNotBlank(vo.getDataValue())) {
                         dto.setGroupType(vo.getDataValue());
                     }
                     break;
-                case"userType":
-                    reserveFieldJo.put("userType",vo.getDataValue());
+                case "userType":
+                    reserveFieldJo.put("userType", vo.getDataValue());
                     break;
-                case"operateType":
-                    reserveFieldJo.put("operateType",vo.getDataValue());
+                case "operateType":
+                    reserveFieldJo.put("operateType", vo.getDataValue());
                     break;
-                case"fileName":
-                    reserveFieldJo.put("fileName",vo.getDataValue());
+                case "fileName":
+                    reserveFieldJo.put("fileName", vo.getDataValue());
                     break;
                 default:
                     break;
             }
-            if(vo.getIsExtend()!=null && vo.getIsExtend()){
-                reserveFieldJo.put(com.br.marketing.common.utils.StringUtils.isBlank(vo.getInterfaceField())?
-                        vo.getHeadField():vo.getInterfaceField(),vo.getDataValue());
+            if (vo.getIsExtend() != null && vo.getIsExtend()) {
+                reserveFieldJo.put(com.br.marketing.common.utils.StringUtils.isBlank(vo.getInterfaceField()) ?
+                        vo.getHeadField() : vo.getInterfaceField(), vo.getDataValue());
             }
         }
-        if (reserveFieldJo.keySet().size()>0) {
+        if (reserveFieldJo.keySet().size() > 0) {
             dto.setReserveField1(JSON.toJSONString(reserveFieldJo));
         }
         return dto;

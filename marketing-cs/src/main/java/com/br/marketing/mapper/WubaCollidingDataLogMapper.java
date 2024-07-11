@@ -1,5 +1,10 @@
 package com.br.marketing.mapper;
 
-public interface WubaCollidingDataLogMapper extends WubaCollidingDataLogMapperBase {
+import com.br.marketing.entity.WubaCollidingDataLog;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
+public interface WubaCollidingDataLogMapper extends WubaCollidingDataLogMapperBase {
+    void batchSaveByBatchNo(@Param("list") List<WubaCollidingDataLog> list);
 }

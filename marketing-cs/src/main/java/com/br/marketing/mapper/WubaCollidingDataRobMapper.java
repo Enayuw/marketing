@@ -1,5 +1,13 @@
 package com.br.marketing.mapper;
 
-public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBase{
+import com.br.marketing.entity.WubaCollidingDataFront;
+import com.br.marketing.entity.WubaCollidingDataRob;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
+public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBase{
+    void batchSaveData(@Param("robs") List<WubaCollidingDataFront> robs);
+    List<WubaCollidingDataRob> selectCollidingData(@Param("pageSize") Integer pageSize);
+    void batchUpdatePushTimeById(@Param("robs") List<WubaCollidingDataRob> robs);
 }

@@ -3,7 +3,10 @@ package com.br.marketing.check.job;
 import com.br.marketing.check.beanhadler.DataCleanFactory;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.entity.MarketingCleanDataTask;
+import com.br.marketing.entity.MarketingCleanDataTaskExample;
 import com.br.marketing.entity.MarketingDataFileConfig;
+import com.br.marketing.entity.MarketingDataFileConfigExample;
+import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.service.IDataCleaningGeneralService;
 import com.br.marketing.service.IFileToMarketingRuleService;
@@ -14,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,11 +28,11 @@ import java.util.List;
 public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
 
     @Resource
-    IDataCleaningGeneralService dataCleaningGeneralService;
+    MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
     @Resource
     MarketingDataFileConfigMapper marketingDataFileConfigMapper;
     @Resource
-    DataCleanFactory dataCleanFactory;
+    IDataCleaningGeneralService iDataCleaningGeneralService;
 
     @Autowired
     RedisChgService redisChgService;
@@ -40,20 +44,40 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
         // 以配置id 为key 作为索引，进行抢锁
         // 抢到锁以后更新当前配置表为锁定状态
         // 释放锁
-        // 执行当前配置锁对应的清洗需求
-        // while 循环执行清洗查询的sql
-        // 获取到数据后，根据配置的的headerFiled 字段，获取数据
-        // 根据配置的映射组装数据
-        // while 循环结束后更新锁状态为释放
-        List<Integer> shardingItems = jobContext.getShardingItems();
-        redisChgService.lock("3333", "4444");
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+
+
+        while (true) {
+//            redisChgService.lock("lock_key_clean_data:99999", "lock_key:99999");
+            MarketingCleanDataTaskExample example = new MarketingCleanDataTaskExample();
+            example.createCriteria()
+                    .andCreateTimeLessThanOrEqualTo(new Date())
+                    .andCleanStatusEqualTo(0)
+                    .andAutoCleanWayTypeEqualTo(1)
+                    .andIsDelEqualTo(1);
+            example.setOrderByClause("create_time asc limit 1");
+            List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
+            if (marketingCleanDataTasks.size() == 0) {
+                break;
+            }
+            MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
+            // 任务设置为清洗中
+            marketingCleanDataTask.setCleanStatus(1);
+            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
+//            redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
+
+            try {
+                // 执行清洗逻辑
+                iDataCleaningGeneralService.autoCleanDataByTask(marketingCleanDataTask);
+                // 更新任务为清洗完成
+//                marketingCleanDataTask.setCleanStatus(2);
+            } catch (Exception e) {
+                // 更新任务为清洗完成
+                marketingCleanDataTask.setCleanStatus(3);
+            }
+//            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
         }
-        redisChgService.unlock("3333","4444");
-        log.warn("测试释放锁。。。。");
+
+
 
     }
 
