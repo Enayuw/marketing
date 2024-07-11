@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.zhijia;
 
 import com.br.common.encryption.Md5Utils;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.zhijia.ZhiJiaClient;
 import com.br.marketing.client.zhijia.input.ReqAddZhiJiaClueDTO;
@@ -12,8 +13,11 @@ import com.br.marketing.dto.zhijia.CityCountyDataDTO;
 import com.br.marketing.dto.zhijia.ZhiJiaCarInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.ZhiJiaClueBackDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.api.client.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -47,6 +51,15 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
     @Resource
     ZhiJiaDataProcessService zhiJiaDataProcessService;
+
+    @Resource
+    private RetryMainLogMapper retryMainLogMapper;
+
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
+
+    @Value("${api.qifu.isProxy:true}")
+    private boolean isProxy;
 
     @Resource
     LocalFileMapper localFileMapper;
@@ -130,33 +143,44 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                                         List<ZhijiaCityConfig> cityConfigList,List<ZhijiaCountyConfig> countyConfigList,
                                         List<ZhiJiaCarBrandInfo> carBrandInfos){
 
+        // 检查异常数据发送告警
+        String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
+
         for (ZhiJiaClueBackData zhiJiaClueBackData : zhiJiaClueBackDataList) {
             Long id = zhiJiaClueBackData.getId();
             try {
                 ReqAddZhiJiaClueDTO reqAddZhiJiaClueDTO = new ReqAddZhiJiaClueDTO();
-                // 匹配省市区信息
-                CityCountyDataDTO cityCountyDataDTO = zhiJiaDataProcessService.matchCityAndCounty(cityConfigList,countyConfigList,zhiJiaClueBackData);
-                if(cityCountyDataDTO.getIsMatch()){
-                    reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
-                    reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
-                }else {
-                    updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
-                    continue;
-                }
-
-                // 匹配车辆信息
-                ZhiJiaCarInfoDTO zhiJiaCarBrandInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackData, carBrandInfos);
-                if(zhiJiaCarBrandInfo.getIsMatch()){
-                    List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
-                    ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
-                    if(zhiJiaCarSeriesInfo.getIsMatch()){
-                        reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
-                        reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
-                    }else {
-                        updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
-                        continue;
-                    }
-                }
+                //// 匹配省市区信息
+                //CityCountyDataDTO cityCountyDataDTO = zhiJiaDataProcessService.matchCityAndCounty(cityConfigList,countyConfigList,zhiJiaClueBackData);
+                //if(cityCountyDataDTO.getIsMatch()){
+                //    reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
+                //    reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
+                //}else {
+                //    updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
+                //    // 钉钉报警
+                //    if (StringUtils.isNotBlank(accessToken)) {
+                //        errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),id,cityCountyDataDTO.getErrorMsg());
+                //    }
+                //    continue;
+                //}
+                //
+                //// 匹配车辆信息
+                //ZhiJiaCarInfoDTO zhiJiaCarBrandInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackData, carBrandInfos);
+                //if(zhiJiaCarBrandInfo.getIsMatch()){
+                //    List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
+                //    ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
+                //    if(zhiJiaCarSeriesInfo.getIsMatch()){
+                //        reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
+                //        reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
+                //    }else {
+                //        updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
+                //        // 钉钉报警
+                //        if (StringUtils.isNotBlank(accessToken)) {
+                //            errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),id,zhiJiaCarSeriesInfo.getErrorMsg());
+                //        }
+                //        continue;
+                //    }
+                //}
 
                 // 组装参数
                 buildAddZhiJiaClue(zhiJiaClueBackData, reqAddZhiJiaClueDTO);
@@ -192,6 +216,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
     private void buildAddZhiJiaClue(ZhiJiaClueBackData zhiJiaClueBackData,ReqAddZhiJiaClueDTO dto) {
         dto.setAccess_token(zhiJiaDataProcessService.getToken());
         dto.setMobile(zhiJiaClueBackData.getCell());
+        dto.setMobilecode(encryptCell(zhiJiaClueBackData.getCell()));
         dto.setMobilecode(encryptCell(zhiJiaClueBackData.getCell()));
         dto.setFirstregtime(zhiJiaClueBackData.getFirstRegTime());
         dto.setMileage(zhiJiaClueBackData.getMileAge());
@@ -234,6 +259,26 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                 log.error(ex.getMessage(), ex);
             }
         }
+    }
+
+    /**
+     * 2023-09-27 18:08
+     * 错误信息告警
+     */
+    private void errorStatistics(String accessToken, String secret,Long id, String errorMsg) {
+
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        String title = "之家线索匹配异常信息";
+        markdown.setTitle(title);
+        StringBuilder sb = new StringBuilder("# 之家省市区、车辆接口匹配异常\n");
+        sb.append("错误数据id：").append(id).append("\n");
+        sb.append("错误原因：").append(errorMsg).append("\n");
+        String text = sb.toString();
+        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), text, title));
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+        dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingMarkdownMessage, isProxy);
     }
 
 }

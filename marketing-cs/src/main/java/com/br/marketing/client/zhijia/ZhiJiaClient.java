@@ -33,6 +33,9 @@ public class ZhiJiaClient {
     @Value("${api.zhijia.addC1HiqClueUrl:00}")
     private String addC1HiqClueUrl;
 
+    @Value("${api.zhijia.getTokenUrl:00}")
+    private String getTokenUrl;
+
     @Value("${api.zhijia.zhiJiaClientId:00}")
     private String clientId;
 
@@ -97,8 +100,8 @@ public class ZhiJiaClient {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("response_type", "token");
         jsonObject.put("client_id", clientId);
-        jsonObject.put("dataList", clientSecret);
-        resMap = httpProxyClient.sendByCodeWithLog(jsonObject, addC1HiqClueUrl, isProxy,
+        jsonObject.put("client_secret", clientSecret);
+        resMap = httpProxyClient.sendByCodeWithLog(jsonObject, getTokenUrl, isProxy,
                 MediaType.APPLICATION_JSON_UTF8_VALUE,
                 JSON.toJSONString(jsonObject), true, true);
 
