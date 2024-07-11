@@ -12,7 +12,7 @@ public class MarketingCleanDataTaskExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingCleanDataTaskExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingCleanDataTaskExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -734,11 +734,70 @@ public class MarketingCleanDataTaskExample {
             addCriterion("is_del not between", value1, value2, "isDel");
             return (Criteria) this;
         }
+
+        public Criteria andAutoCleanWayTypeIsNull() {
+            addCriterion("auto_clean_way_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeIsNotNull() {
+            addCriterion("auto_clean_way_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeEqualTo(Integer value) {
+            addCriterion("auto_clean_way_type =", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeNotEqualTo(Integer value) {
+            addCriterion("auto_clean_way_type <>", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeGreaterThan(Integer value) {
+            addCriterion("auto_clean_way_type >", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("auto_clean_way_type >=", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeLessThan(Integer value) {
+            addCriterion("auto_clean_way_type <", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("auto_clean_way_type <=", value, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeIn(List<Integer> values) {
+            addCriterion("auto_clean_way_type in", values, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeNotIn(List<Integer> values) {
+            addCriterion("auto_clean_way_type not in", values, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeBetween(Integer value1, Integer value2) {
+            addCriterion("auto_clean_way_type between", value1, value2, "autoCleanWayType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoCleanWayTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("auto_clean_way_type not between", value1, value2, "autoCleanWayType");
+            return (Criteria) this;
+        }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

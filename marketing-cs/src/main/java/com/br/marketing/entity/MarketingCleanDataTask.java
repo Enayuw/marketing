@@ -1,15 +1,11 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
-/**
- * b_marketing_clean_data_task
- * @author 
- */
-@Data
-public class MarketingCleanDataTask implements Serializable {
+public class MarketingCleanDataTask {
+    /**
+     * 
+     */
     private Long id;
 
     /**
@@ -38,7 +34,7 @@ public class MarketingCleanDataTask implements Serializable {
     private String testResult;
 
     /**
-     * 清洗类型：-1配置完成，0待清洗，1清洗中，2成功，3失败
+     * 清洗类型：0待清洗，1清洗中，2成功，3失败
      */
     private Integer cleanStatus;
 
@@ -47,6 +43,9 @@ public class MarketingCleanDataTask implements Serializable {
      */
     private Date createTime;
 
+    /**
+     * 
+     */
     private Date updateTime;
 
     /**
@@ -54,5 +53,96 @@ public class MarketingCleanDataTask implements Serializable {
      */
     private Integer isDel;
 
-    private static final long serialVersionUID = 1L;
+    /**
+     * 清洗方式：0 手动 (页面清洗任务对应的配置) 1 自动(程序清洗对应的配置)
+     */
+    private Integer autoCleanWayType;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public Integer getConfigId() {
+        return configId;
+    }
+
+    public void setConfigId(Integer configId) {
+        this.configId = configId;
+    }
+
+    public String getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(String fileId) {
+        this.fileId = fileId == null ? null : fileId.trim();
+    }
+
+    public Integer getCleanType() {
+        return cleanType;
+    }
+
+    public void setCleanType(Integer cleanType) {
+        this.cleanType = cleanType;
+    }
+
+    public String getTestResult() {
+        return testResult;
+    }
+
+    public void setTestResult(String testResult) {
+        this.testResult = testResult == null ? null : testResult.trim();
+    }
+
+    public Integer getCleanStatus() {
+        return cleanStatus;
+    }
+
+    public void setCleanStatus(Integer cleanStatus) {
+        this.cleanStatus = cleanStatus;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
+    }
+
+    public Integer getAutoCleanWayType() {
+        return autoCleanWayType;
+    }
+
+    public void setAutoCleanWayType(Integer autoCleanWayType) {
+        this.autoCleanWayType = autoCleanWayType;
+    }
 }

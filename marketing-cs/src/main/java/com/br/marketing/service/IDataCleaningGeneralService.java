@@ -36,4 +36,9 @@ public interface IDataCleaningGeneralService {
      */
     MarketingPreUserDTO pilotAction(Long id);
 
+    /**
+     * 自动清洗逻辑
+     */
+    void autoCleanDataByTask(MarketingCleanDataTask marketingCleanDataTask);
+
 }

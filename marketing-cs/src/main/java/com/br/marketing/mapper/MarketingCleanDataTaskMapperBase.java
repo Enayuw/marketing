@@ -2,11 +2,12 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.MarketingCleanDataTaskExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 public interface MarketingCleanDataTaskMapperBase {
-    long countByExample(MarketingCleanDataTaskExample example);
+    int countByExample(MarketingCleanDataTaskExample example);
 
     int deleteByExample(MarketingCleanDataTaskExample example);
 
