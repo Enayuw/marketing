@@ -400,17 +400,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
-        example.createCriteria()
-                .andApiCodeEqualTo(syncUser.getApiCode())
-                .andUserTypeEqualTo(syncUser.getUserType())
-                .andAppletDateEqualTo(syncUser.getAppletDate())
-                .andValidTypeEqualTo(1)
-                .andIsDelEqualTo(1);
-        // 检查db中是否已经存在有效期记录
-        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectByExample(example);
-        // 插入子表
-        for (MarketingDataValidConfig marketingDataValidConfig : marketingDataValidConfigs) {
             // 查询子表是否已经生成有效期
             MarketingCustomizeDataValidConfigExample marketingCustomizeDataValidConfigExample =
                     new MarketingCustomizeDataValidConfigExample();
@@ -424,7 +413,7 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             if (i == 0) {
                 // 插入定制表
                 MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig =
-                        getMarketingCustomizeDataValidConfig(syncUser, marketingDataValidConfig);
+                        getMarketingCustomizeDataValidConfig(syncUser);
                 int j = marketingCustomizeDataValidConfigMapper.insertSelective(marketingCustomizeDataValidConfig);
                 if (j < 1) {
                     log.error("生成默认定制有效期入库失败！apiCode:{},userType:{},taskId:{}"
@@ -447,12 +436,10 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
                 }
             }
-        }
         return result;
     }
 
-    private  MarketingCustomizeDataValidConfig getMarketingCustomizeDataValidConfig(MarketingSyncUser syncUser,
-                                                                                          MarketingDataValidConfig marketingDataValidConfig) {
+    private  MarketingCustomizeDataValidConfig getMarketingCustomizeDataValidConfig(MarketingSyncUser syncUser) {
         // 查询当前 api_code ,task_id ,applet_date下的 上传数据获取其中一条解析，reserve_field1 下的开始时间和结束时间
         // reserve_field1: {"operationScene":"creditT30","expireDate":"2024-07-12 23:59:59",
         // "userType":"1","custGroupName":"T0其他渠道低质量","effectiveDate":"2024-07-06 00:00:00"}
@@ -461,10 +448,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 syncUser.getCusBatch(),
                 syncUser.getUserType(),
                 syncUser.getAppletDate());
-        Long dataValidConfigId = marketingDataValidConfig.getId();
         MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
         marketingCustomizeDataValidConfig.setApiCode(syncUser.getApiCode());
-        marketingCustomizeDataValidConfig.setDataValidConfigId(dataValidConfigId);
         marketingCustomizeDataValidConfig.setAppletDate(syncUser.getAppletDate());
         marketingCustomizeDataValidConfig.setTaskId(syncUser.getCusBatch());
         try {
