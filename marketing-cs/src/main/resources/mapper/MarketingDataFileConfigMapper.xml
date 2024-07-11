@@ -20,4 +20,10 @@
     <select id="selectCleanData" resultType="java.util.Map" parameterType="java.lang.String">
         ${sql}
     </select>
+    <update id="updateCleanDataStatus">
+        update ${tableName} set status = #{status} where ${autoDuplicateColumn} in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
 </mapper>

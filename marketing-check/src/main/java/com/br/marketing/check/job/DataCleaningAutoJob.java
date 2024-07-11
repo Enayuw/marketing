@@ -8,6 +8,7 @@ import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.entity.MarketingDataFileConfigExample;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
+import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.IDataCleaningGeneralService;
 import com.br.marketing.service.IFileToMarketingRuleService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -32,7 +33,7 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
     @Resource
     MarketingDataFileConfigMapper marketingDataFileConfigMapper;
     @Resource
-    IDataCleaningGeneralService iDataCleaningGeneralService;
+    DataCleaningAutoService dataCleaningAutoService;
 
     @Autowired
     RedisChgService redisChgService;
@@ -61,13 +62,13 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
             }
             MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
             // 任务设置为清洗中
-            marketingCleanDataTask.setCleanStatus(1);
-            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
+//            marketingCleanDataTask.setCleanStatus(1);
+//            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
 //            redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
 
             try {
                 // 执行清洗逻辑
-                iDataCleaningGeneralService.autoCleanDataByTask(marketingCleanDataTask);
+                dataCleaningAutoService.autoCleanDataByTask(marketingCleanDataTask);
                 // 更新任务为清洗完成
 //                marketingCleanDataTask.setCleanStatus(2);
             } catch (Exception e) {

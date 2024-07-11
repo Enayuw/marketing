@@ -8,7 +8,10 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.MarketingCleanDataFile;
+import com.br.marketing.entity.MarketingCleanDataTask;
+import com.br.marketing.entity.MarketingCleanDataTaskExample;
+import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
@@ -31,7 +34,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -280,7 +282,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 
     /**
      * 异步调用上传数据接口
-     *
      * @param apiCode         apiCode
      * @param tasId           tasId
      * @param requestIdPrefix requestIdPrefix
@@ -304,7 +305,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 
     /**
      * 处理每一行数据字段的方法
-     *
      * @param fieldVO      列对应的处理规则（列名可以重复）
      * @param list
      * @param value        列名对应的值
@@ -380,7 +380,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
 
     /**
      * 处理时间格式的方法
-     *
      * @param value    待处理的时间类型的值
      * @param fileName 待处理文件名
      * @param lineNum  待处理文件对应行数
@@ -552,63 +551,6 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                 .concat(UUID.randomUUID().toString()));
         marketingPreUserDTO.setDataItems(syncUsers);
         return marketingPreUserDTO;
-    }
-
-    @Override
-    public void autoCleanDataByTask(MarketingCleanDataTask marketingCleanDataTask) {
-        // 执行当前配置锁对应的清洗需求
-        // while 循环执行清洗查询的sql
-        // 获取到数据后，根据配置的的headerFiled 字段，获取数据
-        // 根据配置的映射组装数据
-
-        // 获取当前任务清洗数据所需要的配置
-        MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigMapper.selectByPrimaryKey(
-                Long.valueOf(marketingCleanDataTask.getConfigId())
-        );
-        // 获取清洗数据
-        String autoSearchDataSql = marketingDataFileConfig.getAutoSearchDataSql();
-        List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(autoSearchDataSql);
-
-
-        if (cleanDataMapList.size() > 0) {
-            Set<String> headers = cleanDataMapList.get(0).keySet();
-            String ruleConfig = marketingDataFileConfig.getFieldConfig();
-            List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(ruleConfig, FileToMarketingFieldVO.class);
-            // 根据 headField 字段分组
-            Map<String, List<FileToMarketingFieldVO>> fieldVosMap = fieldVos.stream()
-                    .collect(Collectors.groupingBy(FileToMarketingFieldVO::getHeadField));
-            for (int i = 0; i < cleanDataMapList.size(); i++) {
-                try {
-                    MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-                    Class<?> clazz = marketingPreUserDTO.getClass();
-                    Field[] declaredFields = clazz.getDeclaredFields();
-                    Map<String, Object> processDataMap = cleanDataMapList.get(i);
-                    headers.forEach((String dbColumn) -> {
-                        Object dbValue = processDataMap.get(dbColumn);
-                        fieldVos.forEach((FileToMarketingFieldVO fieldVo) -> {
-                            String headField = fieldVo.getHeadField();
-                            if (headField.equals(dbColumn)) {
-                                String[] split = fieldVo.getInterfaceField().split(",");
-
-                                for(Field field : declaredFields){
-                                    if(field.getName().equals(dbColumn)){}
-                                }
-                            }
-
-
-                        });
-
-
-                    });
-
-                } catch (Exception e) {
-
-                }
-            }
-
-        }
-
-
     }
 
     MarketingPreUserDetailDTO make(List<FileToMarketingDataFieldVO> vos) {

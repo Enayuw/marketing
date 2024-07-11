@@ -6,13 +6,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
 import com.br.marketing.client.marketingapi.MarketingApiService;
+import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.ApiReturnEnum;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.PushInfoFilterDTO;
+import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.entity.CustomerInfoPushBatch;
 import com.br.marketing.entity.CustomerInfoPushBatchExample;
 import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
@@ -29,10 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -111,4 +112,8 @@ public class PushInfoServiceImpl implements PushInfoService {
     public Result pushUploadByRetry(UploadDataDTO dto, Integer retry) {
         return marketingApiService.pushUpload(dto);
     }
+
+
+
+
 }

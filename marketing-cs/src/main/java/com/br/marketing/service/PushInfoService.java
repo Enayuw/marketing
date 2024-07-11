@@ -1,5 +1,6 @@
 package com.br.marketing.service;
 
+import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -13,4 +14,6 @@ public interface PushInfoService {
     PageResultReturn getPushInfoList(PushInfoFilterDTO dto);
 
     Result pushUploadByRetry(UploadDataDTO dto, Integer retry);
+
+    Result pushTransferByRetry(PushTransferDataDetailDTO dto, Integer retry);
 }
