@@ -113,4 +113,25 @@ public class ZhiJiaClient {
 
     }
 
+
+    @RetryMethod(retryNowNum = 3)
+    public Result getCityAndCounty(String token) {
+
+        HashMap<String, String> resMap = new HashMap<>();
+        String url = "".concat("?access_token=").concat(token);
+        resMap = httpProxyClient.get(url, isProxy);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("之家获取省市县接口异常-请求url:{};返回:{}", url, JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+        }
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        String returncode = resultJson.getString("returncode");
+        if ("0".equals(returncode)) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultJson);
+        } else {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+        }
+    }
+
 }
