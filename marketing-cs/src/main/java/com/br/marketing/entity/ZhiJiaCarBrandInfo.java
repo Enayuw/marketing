@@ -29,6 +29,11 @@ public class ZhiJiaCarBrandInfo {
     private String newBrandName;
 
     /**
+     * 品牌补充，以英文逗号分割
+     */
+    private String brandExtend;
+
+    /**
      * 上传日期
      */
     private String appletDate;
@@ -47,11 +52,6 @@ public class ZhiJiaCarBrandInfo {
      * 1-有效；9-无效
      */
     private Integer isDel;
-
-    /**
-     * 品牌补充，以英文逗号分割
-     */
-    private String brandExtend;
 
     public Long getId() {
         return id;
@@ -93,6 +93,14 @@ public class ZhiJiaCarBrandInfo {
         this.newBrandName = newBrandName == null ? null : newBrandName.trim();
     }
 
+    public String getBrandExtend() {
+        return brandExtend;
+    }
+
+    public void setBrandExtend(String brandExtend) {
+        this.brandExtend = brandExtend == null ? null : brandExtend.trim();
+    }
+
     public String getAppletDate() {
         return appletDate;
     }
@@ -123,13 +131,5 @@ public class ZhiJiaCarBrandInfo {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
-    }
-
-    public String getBrandExtend() {
-        return brandExtend;
-    }
-
-    public void setBrandExtend(String brandExtend) {
-        this.brandExtend = brandExtend == null ? null : brandExtend.trim();
     }
 }

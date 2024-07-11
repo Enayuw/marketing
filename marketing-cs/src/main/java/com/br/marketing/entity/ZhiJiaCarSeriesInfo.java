@@ -34,6 +34,11 @@ public class ZhiJiaCarSeriesInfo {
     private String newSeriesName;
 
     /**
+     * 车系补充，以英文逗号分割
+     */
+    private String seriesExtend;
+
+    /**
      * 上传日期
      */
     private String appletDate;
@@ -52,11 +57,6 @@ public class ZhiJiaCarSeriesInfo {
      * 1-有效；9-无效
      */
     private Integer isDel;
-
-    /**
-     * 车系补充，以英文逗号分割
-     */
-    private String seriesExtend;
 
     public Long getId() {
         return id;
@@ -106,6 +106,14 @@ public class ZhiJiaCarSeriesInfo {
         this.newSeriesName = newSeriesName == null ? null : newSeriesName.trim();
     }
 
+    public String getSeriesExtend() {
+        return seriesExtend;
+    }
+
+    public void setSeriesExtend(String seriesExtend) {
+        this.seriesExtend = seriesExtend == null ? null : seriesExtend.trim();
+    }
+
     public String getAppletDate() {
         return appletDate;
     }
@@ -136,13 +144,5 @@ public class ZhiJiaCarSeriesInfo {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
-    }
-
-    public String getSeriesExtend() {
-        return seriesExtend;
-    }
-
-    public void setSeriesExtend(String seriesExtend) {
-        this.seriesExtend = seriesExtend == null ? null : seriesExtend.trim();
     }
 }

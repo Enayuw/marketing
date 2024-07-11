@@ -19,6 +19,7 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.StringEntity;
@@ -486,4 +487,33 @@ public class HttpProxyClient {
         }
         return mark;
     }
+
+    /**
+     * @description:get请求封装
+     * @author: zhen.Li1
+     * @time: 2024-07-11
+     */
+    public HashMap<String, String> get(String uri, Boolean isPorxy) {
+        HashMap<String, String> res = new HashMap<>();
+        HttpClient httpClient = getHttpClientInner(isPorxy);
+        try {
+            HttpGet httpGet = new HttpGet(uri);
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
+            httpGet.setConfig(requestConfig);
+            log.warn("请求url={}", httpGet.getURI().toString());
+            HttpResponse response = httpClient.execute(httpGet);
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            res.put("content", result);
+        } catch (Exception e) {
+            log.error("url={}", uri, e);
+            res.put("content", e.getMessage());
+        }
+        return res;
+    }
+
+
+
+
 }

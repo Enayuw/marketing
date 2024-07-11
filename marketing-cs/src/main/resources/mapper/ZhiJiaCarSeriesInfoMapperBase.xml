@@ -14,9 +14,6 @@
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
   </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.ZhiJiaCarSeriesInfo" extends="BaseResultMap" >
-    <result column="series_extend" property="seriesExtend" jdbcType="LONGVARCHAR" />
-  </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
       <foreach collection="oredCriteria" item="criteria" separator="or" >
@@ -76,20 +73,14 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, brand_id, series_id, series_name, series_extend, new_series_name, applet_date, create_time,
+    id, api_code, brand_id, series_id, series_name, new_series_name, series_extend, applet_date, create_time,
     update_time, is_del
   </sql>
-  <sql id="Blob_Column_List" >
-    series_extend
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfoExample" >
+  <select id="selectByExampleWithBLOBs" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfoExample" >
     select
     <if test="distinct" >
       distinct
     </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_zhijia_car_series_information
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
@@ -112,11 +103,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_zhijia_car_series_information
     where id = #{id,jdbcType=BIGINT}
   </select>

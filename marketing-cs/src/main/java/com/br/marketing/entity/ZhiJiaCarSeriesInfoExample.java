@@ -495,6 +495,76 @@ public class ZhiJiaCarSeriesInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andSeriesExtendIsNull() {
+            addCriterion("series_extend is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendIsNotNull() {
+            addCriterion("series_extend is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendEqualTo(String value) {
+            addCriterion("series_extend =", value, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendNotEqualTo(String value) {
+            addCriterion("series_extend <>", value, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendGreaterThan(String value) {
+            addCriterion("series_extend >", value, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendGreaterThanOrEqualTo(String value) {
+            addCriterion("series_extend >=", value, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendLessThan(String value) {
+            addCriterion("series_extend <", value, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendLessThanOrEqualTo(String value) {
+            addCriterion("series_extend <=", value, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendLike(String value) {
+            addCriterion("series_extend like", value, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendNotLike(String value) {
+            addCriterion("series_extend not like", value, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendIn(List<String> values) {
+            addCriterion("series_extend in", values, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendNotIn(List<String> values) {
+            addCriterion("series_extend not in", values, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendBetween(String value1, String value2) {
+            addCriterion("series_extend between", value1, value2, "seriesExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andSeriesExtendNotBetween(String value1, String value2) {
+            addCriterion("series_extend not between", value1, value2, "seriesExtend");
+            return (Criteria) this;
+        }
+
         public Criteria andAppletDateIsNull() {
             addCriterion("applet_date is null");
             return (Criteria) this;

@@ -435,6 +435,76 @@ public class ZhiJiaCarBrandInfoExample {
             return (Criteria) this;
         }
 
+        public Criteria andBrandExtendIsNull() {
+            addCriterion("brand_extend is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendIsNotNull() {
+            addCriterion("brand_extend is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendEqualTo(String value) {
+            addCriterion("brand_extend =", value, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendNotEqualTo(String value) {
+            addCriterion("brand_extend <>", value, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendGreaterThan(String value) {
+            addCriterion("brand_extend >", value, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendGreaterThanOrEqualTo(String value) {
+            addCriterion("brand_extend >=", value, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendLessThan(String value) {
+            addCriterion("brand_extend <", value, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendLessThanOrEqualTo(String value) {
+            addCriterion("brand_extend <=", value, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendLike(String value) {
+            addCriterion("brand_extend like", value, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendNotLike(String value) {
+            addCriterion("brand_extend not like", value, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendIn(List<String> values) {
+            addCriterion("brand_extend in", values, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendNotIn(List<String> values) {
+            addCriterion("brand_extend not in", values, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendBetween(String value1, String value2) {
+            addCriterion("brand_extend between", value1, value2, "brandExtend");
+            return (Criteria) this;
+        }
+
+        public Criteria andBrandExtendNotBetween(String value1, String value2) {
+            addCriterion("brand_extend not between", value1, value2, "brandExtend");
+            return (Criteria) this;
+        }
+
         public Criteria andAppletDateIsNull() {
             addCriterion("applet_date is null");
             return (Criteria) this;

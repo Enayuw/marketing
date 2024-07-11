@@ -1,8 +1,9 @@
 package com.br.marketing.mapper;
 
+import java.util.List;
+
 import com.br.marketing.entity.ZhiJiaCarBrandInfo;
 import com.br.marketing.entity.ZhiJiaCarBrandInfoExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 public interface ZhiJiaCarBrandInfoMapperBase {
@@ -16,21 +17,15 @@ public interface ZhiJiaCarBrandInfoMapperBase {
 
     int insertSelective(ZhiJiaCarBrandInfo record);
 
-    List<ZhiJiaCarBrandInfo> selectByExampleWithBLOBs(ZhiJiaCarBrandInfoExample example);
-
     List<ZhiJiaCarBrandInfo> selectByExample(ZhiJiaCarBrandInfoExample example);
 
     ZhiJiaCarBrandInfo selectByPrimaryKey(Long id);
 
     int updateByExampleSelective(@Param("record") ZhiJiaCarBrandInfo record, @Param("example") ZhiJiaCarBrandInfoExample example);
 
-    int updateByExampleWithBLOBs(@Param("record") ZhiJiaCarBrandInfo record, @Param("example") ZhiJiaCarBrandInfoExample example);
-
     int updateByExample(@Param("record") ZhiJiaCarBrandInfo record, @Param("example") ZhiJiaCarBrandInfoExample example);
 
     int updateByPrimaryKeySelective(ZhiJiaCarBrandInfo record);
-
-    int updateByPrimaryKeyWithBLOBs(ZhiJiaCarBrandInfo record);
 
     int updateByPrimaryKey(ZhiJiaCarBrandInfo record);
 }
