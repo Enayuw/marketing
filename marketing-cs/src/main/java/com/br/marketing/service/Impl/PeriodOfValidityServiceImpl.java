@@ -448,10 +448,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 syncUser.getCusBatch(),
                 syncUser.getUserType(),
                 syncUser.getAppletDate());
-//        Long dataValidConfigId = marketingDataValidConfig.getId();
         MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
         marketingCustomizeDataValidConfig.setApiCode(syncUser.getApiCode());
-//        marketingCustomizeDataValidConfig.setDataValidConfigId(dataValidConfigId);
         marketingCustomizeDataValidConfig.setAppletDate(syncUser.getAppletDate());
         marketingCustomizeDataValidConfig.setTaskId(syncUser.getCusBatch());
         try {
