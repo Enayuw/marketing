@@ -6,6 +6,7 @@ import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.dto.zhijia.ZhiJiaCarInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
 import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
@@ -80,12 +81,6 @@ public class CommonTest {
     @Resource
     ZhiJiaDataProcessService zhiJiaDataProcessService;
 
-    @Resource
-    ZhiJiaCarBrandInfoMapper zhiJiaCarBrandInfoMapper;
-
-    @Resource
-    ZhiJiaCarSeriesInfoMapper zhiJiaCarSeriesInfoMapper;
-
     @Test
     public void testZhiJiaCarInfoGetService(){
         Integer brandId = null;
@@ -95,17 +90,15 @@ public class CommonTest {
         zhiJiaClueBackInfo.setSeriesName("一汽奥迪a4l");
         // 查询品牌
         List<ZhiJiaCarBrandInfo> carBrandInfos = zhiJiaDataProcessService.getCarBrandInfos();
-        Result<ZhiJiaCarSeriesInfo> zhiJiaCarInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackInfo, carBrandInfos);
-        if (zhiJiaCarInfo.getCode().equals(ResultCode.SUCCESS.getValue())){
-            ZhiJiaCarSeriesInfo data = zhiJiaCarInfo.getData();
-            brandId = data.getBrandId();
+        ZhiJiaCarInfoDTO zhiJiaCarInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackInfo, carBrandInfos);
+        if (zhiJiaCarInfo.getIsMatch().equals(Boolean.TRUE)){
+            brandId = zhiJiaCarInfo.getBrandId();
         }
 
         List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(brandId);
-        Result<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackInfo, carSeriesInfos);
-        if (zhiJiaCarSeriesInfo.getCode().equals(ResultCode.SUCCESS.getValue())){
-            ZhiJiaCarSeriesInfo data = zhiJiaCarSeriesInfo.getData();
-            seriesId = data.getSeriesId();
+        ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackInfo, carSeriesInfos);
+        if (zhiJiaCarSeriesInfo.getIsMatch().equals(Boolean.TRUE)){
+            seriesId = zhiJiaCarSeriesInfo.getSeriesId();
         }
 
         System.err.println(brandId + "------------" + seriesId);
