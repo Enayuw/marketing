@@ -1,17 +1,19 @@
 package com.br.marketing.monkey.job.wuba;
 
-import com.br.marketing.service.Impl.tongcheng.TongChengOperationPushToCustomerService;
+import com.br.marketing.entity.WubaSubmitConversionData;
+import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
+import com.br.marketing.service.Impl.wuba.WuBaSubmitConversionService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
 /**
- * 58新客提交营销名单
- *
+ * @Description 58新客提交营销名单
  * @Author lixiang
  * @Date 2024-07-08
  */
@@ -19,14 +21,55 @@ import javax.annotation.Resource;
 @Slf4j
 public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
 
-    @Resource
-    MarketingCommonConfig marketingCommonConfig;
+    private final static String TITLE = "【58新客提交营销名单】";
 
     @Resource
-    TongChengOperationPushToCustomerService service;
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private WuBaSubmitConversionService service;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        try {
+            log.warn(TITLE + "调度开始");
+            // switch
+            if(!checkJobSwitch()) return;
+            // parseJobParameter
+            String apiCode = parseJobParameter(context.getJobParameter());
+            // pageSize
+            Integer pageSize = marketingCommonConfig.getWuBaSubmitConversionPageSize();
 
+            // action
+            WubaSubmitConversionData param = new WubaSubmitConversionData();
+            param.setApiCode(apiCode);
+            param.setStatus(1);
+            param.setPushStatus(0);
+            Page2Condition<WubaSubmitConversionData> condition = new Page2Condition<>();
+            condition.setParam(param);
+            condition.setPageSize(pageSize);
+            service.action(condition);
+            log.warn(TITLE + "调度结束");
+        } catch (Exception e) {
+            log.error(TITLE + "调度异常", e);
+        }
+    }
+
+    private boolean checkJobSwitch() throws Exception {
+        String wuBaSubmitConversionSwitch = marketingCommonConfig.getWuBaSubmitConversionSwitch();
+        if ("1".equals(wuBaSubmitConversionSwitch)) {
+            log.warn(TITLE + "开关打开");
+            return true;
+        }
+        log.warn(TITLE + "开关关闭");
+        return false;
+    }
+
+    private String parseJobParameter(String parameter) throws Exception {
+        String apiCode = "3710155";
+        if (StringUtils.isNotEmpty(parameter)) {
+            apiCode = parameter;
+        }
+        return apiCode;
     }
 }
