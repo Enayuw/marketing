@@ -18,6 +18,10 @@ public interface ZhiJiaDataProcessService {
 
     CityCountyDataDTO matchCityAndCounty(List<ZhijiaCityConfig>cityList, List<ZhijiaCountyConfig>countyList,ZhiJiaClueBackData zhiJiaClueBackInfo);
 
+
+    List<ZhiJiaCarBrandInfo> getCarBrandInfos();
+
+
     /**
      * 根据sftp信息获取车辆品牌
      * @param zhiJiaClueBackInfo
@@ -26,6 +30,9 @@ public interface ZhiJiaDataProcessService {
      */
     Result<ZhiJiaCarSeriesInfo> getZhiJiaCarBrandInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos);
 
+    List<ZhiJiaCarSeriesInfo> getCarSeriesInfos(int brandId);
+
+
     /**
      * 根据sftp信息获取车系信息
      * @param zhiJiaClueBackInfo
@@ -33,5 +40,9 @@ public interface ZhiJiaDataProcessService {
      * @return
      */
     Result<ZhiJiaCarSeriesInfo> getZhiJiaCarSeriesInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos);
+
+    List<ZhijiaCityConfig> getCityConfigList();
+
+    List<ZhijiaCountyConfig> getCountyConfigList();
 
 }

@@ -94,39 +94,15 @@ public class CommonTest {
         zhiJiaClueBackInfo.setBrandName("一汽奥迪");
         zhiJiaClueBackInfo.setSeriesName("一汽奥迪a4l");
         // 查询品牌
-        ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample = new ZhiJiaCarBrandInfoExample();
-        zhiJiaCarBrandInfoExample.createCriteria().andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString());
-        List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
-        if (zhiJiaCarBrandInfos.isEmpty()) {
-            // 今日配置表为空,报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车品牌配置表为空!"));
-            ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample1 = new ZhiJiaCarBrandInfoExample();
-            zhiJiaCarBrandInfoExample.createCriteria().andAppletDateLessThanOrEqualTo(LocalDate.now().toString());
-            List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos1 = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample1);
-            zhiJiaCarBrandInfos.addAll(zhiJiaCarBrandInfos1);
-
-        }
-        Result<ZhiJiaCarSeriesInfo> zhiJiaCarInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackInfo, zhiJiaCarBrandInfos);
+        List<ZhiJiaCarBrandInfo> carBrandInfos = zhiJiaDataProcessService.getCarBrandInfos();
+        Result<ZhiJiaCarSeriesInfo> zhiJiaCarInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackInfo, carBrandInfos);
         if (zhiJiaCarInfo.getCode().equals(ResultCode.SUCCESS.getValue())){
             ZhiJiaCarSeriesInfo data = zhiJiaCarInfo.getData();
             brandId = data.getBrandId();
         }
 
-        ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample = new ZhiJiaCarSeriesInfoExample();
-        zhiJiaCarSeriesInfoExample.createCriteria()
-                .andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString())
-                .andBrandIdEqualTo(brandId);
-        List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
-        if (zhiJiaCarSeriesInfos.isEmpty()){
-            // 今日车系配置表为空，报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车系配置表为空!"));
-            ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample1 = new ZhiJiaCarSeriesInfoExample();
-            zhiJiaCarSeriesInfoExample1.createCriteria()
-                    .andBrandIdEqualTo(brandId);
-            List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos1 = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample1);
-            zhiJiaCarSeriesInfos.addAll(zhiJiaCarSeriesInfos1);
-        }
-        Result<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackInfo, zhiJiaCarSeriesInfos);
+        List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(brandId);
+        Result<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackInfo, carSeriesInfos);
         if (zhiJiaCarSeriesInfo.getCode().equals(ResultCode.SUCCESS.getValue())){
             ZhiJiaCarSeriesInfo data = zhiJiaCarSeriesInfo.getData();
             seriesId = data.getSeriesId();
