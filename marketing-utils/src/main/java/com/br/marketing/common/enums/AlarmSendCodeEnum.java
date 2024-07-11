@@ -42,6 +42,8 @@ public enum AlarmSendCodeEnum {
 
     //众安通话明细回调
     EXCEPTION_ZHONGAN_CALL_RECORD("62008", "众安通话明细回调"),
+    //之家业务告警
+    EXCEPTION_ZHIJIA_ERROR("62009", "之家业务告警"),
 
     //数据治理平台调用marketing-inner-api邮件发送接口使用
     DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),
