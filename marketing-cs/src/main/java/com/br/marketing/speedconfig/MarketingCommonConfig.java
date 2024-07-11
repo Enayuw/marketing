@@ -1773,5 +1773,28 @@ public class MarketingCommonConfig {
      * 奇富360上传推决策有效期检测延迟时长配置，单位：秒
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
+
+
+    /**
+     * 58金融-新客营销名单上报-开关，1-开，0-关
+     */
+    private String wuBaSubmitConversionSwitch;
+
+    /**
+     * 58金融-新客营销名单转化结果查询-开关，1-开，0-关
+     */
+    private String wuBaQueryConversionResultSwitch;
+
+    /**
+     * 58金融-新客营销名单上报-分页条数
+     */
+    private Integer wuBaSubmitConversionPageSize;
+
+    /**
+     * 58金融-新客营销名单上报结果查询-调用线程数
+     */
+    private List<Integer> wuBaSubmitConversionThreadPool;
+
+
 }
 
