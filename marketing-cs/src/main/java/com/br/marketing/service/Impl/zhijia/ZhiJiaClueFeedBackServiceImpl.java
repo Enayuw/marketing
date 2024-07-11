@@ -53,9 +53,6 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
     ZhiJiaDataProcessService zhiJiaDataProcessService;
 
     @Resource
-    private RetryMainLogMapper retryMainLogMapper;
-
-    @Resource
     private DingDingRobotHookService dingDingRobotHookService;
 
     @Value("${api.qifu.isProxy:true}")
@@ -159,7 +156,9 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
                     // 钉钉报警
                     if (StringUtils.isNotBlank(accessToken)) {
-                        errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),id,cityCountyDataDTO.getErrorMsg());
+                        StringBuilder sb = new StringBuilder("# 之家省市区匹配异常\n");
+                        errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),
+                                id,cityCountyDataDTO.getErrorMsg(),sb);
                     }
                     continue;
                 }
@@ -176,12 +175,13 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                         updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
                         // 钉钉报警
                         if (StringUtils.isNotBlank(accessToken)) {
-                            errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),id,zhiJiaCarSeriesInfo.getErrorMsg());
+                            StringBuilder sb = new StringBuilder("# 之家车辆信息匹配异常\n");
+                            errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),
+                                    id,zhiJiaCarSeriesInfo.getErrorMsg(),sb);
                         }
                         continue;
                     }
                 }
-
                 // 组装参数
                 buildAddZhiJiaClue(zhiJiaClueBackData, reqAddZhiJiaClueDTO);
                 // 调用高质线索创建接口
@@ -194,6 +194,12 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                 } else {
                     // 创建线索失败
                     updatePushStatus(id, 3, null, result.getMessage());
+                    // 钉钉报警
+                    if (StringUtils.isNotBlank(accessToken)) {
+                        StringBuilder sb = new StringBuilder("# 之家创建线索异常\n");
+                        errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),
+                                id,result.getMessage(),sb);
+                    }
                 }
             }catch (Exception e){
                 log.error("之家线索创建异常:{}", e.getMessage());
@@ -265,16 +271,18 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
      * 2023-09-27 18:08
      * 错误信息告警
      */
-    private void errorStatistics(String accessToken, String secret,Long id, String errorMsg) {
+    private void errorStatistics(String accessToken, String secret,Long id,
+                                 String errorMsg,StringBuilder sb) {
 
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
-        String title = "之家线索匹配异常信息";
+        String title = "之家线索异常信息";
         markdown.setTitle(title);
-        StringBuilder sb = new StringBuilder("# 之家省市区、车辆接口匹配异常\n");
-        sb.append("错误数据id：").append(id).append("\n");
-        sb.append("错误原因：").append(errorMsg).append("\n");
+        sb.append("错误数据id：").append(id);
+        sb.append("|\n");
+        sb.append("错误原因：").append(errorMsg);
+        sb.append("|\n");
         String text = sb.toString();
-        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), text, title));
+        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), text, title));
         markdown.setText(text);
         DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
         dingDingMarkdownMessage.setMarkdown(markdown);
