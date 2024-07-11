@@ -148,17 +148,19 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 }
 
                 // 模糊匹配
-                if (complexFuzzyMatch(brandName, newBrandName)) {
+                if (complexFuzzyMatch(newBrandName, brandName)) {
                     data.setBrandId(brandId);
                     return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
                 }
 
                 // 补充配置匹配
                 String brandExtend = brandInfo.getBrandExtend();
-                List<String> brandList = Arrays.asList(brandExtend.split(","));
-                if (brandList.contains(brandName)) {
-                    data.setBrandId(brandId);
-                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+                if (StringUtils.isNotBlank(brandExtend)) {
+                    List<String> brandList = Arrays.asList(brandExtend.split(","));
+                    if (brandList.contains(brandName)) {
+                        data.setBrandId(brandId);
+                        return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+                    }
                 }
                 // 未匹配成功
                 String msg = "匹配车辆品牌失败！配置表中无这个车辆品牌，品牌名称：" + brandName;
@@ -190,10 +192,12 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
 
             // 补充配置匹配
             String seriesExtend = seriesInfo.getSeriesExtend();
-            List<String> seriesList = Arrays.asList(seriesExtend.split(","));
-            if (seriesList.contains(seriesName)) {
-                data.setSeriesId(seriesId);
-                return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+            if (StringUtils.isNotBlank(seriesExtend)) {
+                List<String> seriesList = Arrays.asList(seriesExtend.split(","));
+                if (seriesList.contains(seriesName)) {
+                    data.setSeriesId(seriesId);
+                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+                }
             }
             // 未匹配成功
             String msg = "匹配车系失败！配置表中无这个车系，车系名称：" + seriesName;
