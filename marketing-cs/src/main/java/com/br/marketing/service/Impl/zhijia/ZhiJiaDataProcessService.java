@@ -19,7 +19,7 @@ public interface ZhiJiaDataProcessService {
 
     void getBrandAndseries();
 
-    CityCountyDataDTO matchCityAndCounty(List<ZhijiaCityConfig>cityList, List<ZhijiaCountyConfig>countyList,String city,String county);
+    CityCountyDataDTO matchCityAndCounty(List<ZhijiaCityConfig>cityList, List<ZhijiaCountyConfig>countyList,ZhiJiaClueBackData zhiJiaClueBackInfo);
 
     /**
      * 根据sftp信息获取车辆品牌以及车系信息

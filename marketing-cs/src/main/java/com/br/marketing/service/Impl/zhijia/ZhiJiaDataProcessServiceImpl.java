@@ -79,14 +79,14 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
      *
      * @param cityList
      * @param countyList
-     * @param city
-     * @param county
+     * @param zhiJiaClueBackInfo
      * @return CityCountyDataDTO
      * @author zhen.Li1
      * @date 2024/7/10 19:46
      */
     @Override
-    public CityCountyDataDTO matchCityAndCounty(List<ZhijiaCityConfig> cityList, List<ZhijiaCountyConfig> countyList, String city, String county) {
+    public CityCountyDataDTO matchCityAndCounty(List<ZhijiaCityConfig> cityList, List<ZhijiaCountyConfig> countyList, ZhiJiaClueBackData zhiJiaClueBackInfo) {
+        String city = zhiJiaClueBackInfo.getCity();
         CityCountyDataDTO cityCountyDataDTO = new CityCountyDataDTO();
         //精确匹配城市
         List<ZhijiaCityConfig> defineCityList = cityList.stream().filter(zhijiaCityConfig -> zhijiaCityConfig.getCName().equals(city))
