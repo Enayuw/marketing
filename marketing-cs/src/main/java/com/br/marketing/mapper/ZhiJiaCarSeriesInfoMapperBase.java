@@ -1,0 +1,36 @@
+package com.br.marketing.mapper;
+
+import com.br.marketing.entity.ZhiJiaCarSeriesInfo;
+import com.br.marketing.entity.ZhiJiaCarSeriesInfoExample;
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+
+public interface ZhiJiaCarSeriesInfoMapperBase {
+    int countByExample(ZhiJiaCarSeriesInfoExample example);
+
+    int deleteByExample(ZhiJiaCarSeriesInfoExample example);
+
+    int deleteByPrimaryKey(Long id);
+
+    int insert(ZhiJiaCarSeriesInfo record);
+
+    int insertSelective(ZhiJiaCarSeriesInfo record);
+
+    List<ZhiJiaCarSeriesInfo> selectByExampleWithBLOBs(ZhiJiaCarSeriesInfoExample example);
+
+    List<ZhiJiaCarSeriesInfo> selectByExample(ZhiJiaCarSeriesInfoExample example);
+
+    ZhiJiaCarSeriesInfo selectByPrimaryKey(Long id);
+
+    int updateByExampleSelective(@Param("record") ZhiJiaCarSeriesInfo record, @Param("example") ZhiJiaCarSeriesInfoExample example);
+
+    int updateByExampleWithBLOBs(@Param("record") ZhiJiaCarSeriesInfo record, @Param("example") ZhiJiaCarSeriesInfoExample example);
+
+    int updateByExample(@Param("record") ZhiJiaCarSeriesInfo record, @Param("example") ZhiJiaCarSeriesInfoExample example);
+
+    int updateByPrimaryKeySelective(ZhiJiaCarSeriesInfo record);
+
+    int updateByPrimaryKeyWithBLOBs(ZhiJiaCarSeriesInfo record);
+
+    int updateByPrimaryKey(ZhiJiaCarSeriesInfo record);
+}

@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.zhijia;
 
-import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.entity.ZhiJiaCarSeriesInfo;
 import com.br.marketing.entity.ZhiJiaClueBackData;
 
 /**
@@ -18,6 +19,6 @@ public interface ZhiJiaCarInfoGetService {
      * @param zhiJiaClueBackInfo
      * @return java.util.List<ZhiJiaClueBackInfo>
      */
-    JSONObject getZhiJiaCarInfo(ZhiJiaClueBackData zhiJiaClueBackInfo);
+    Result<ZhiJiaCarSeriesInfo> getZhiJiaCarInfo(ZhiJiaClueBackData zhiJiaClueBackInfo);
 
 }
