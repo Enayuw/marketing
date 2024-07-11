@@ -1780,7 +1780,7 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingApiCodes;
 
     /**
-     * 58撞库数据同步线程数
+     * 58同步撞库数据线程数
      */
     private Integer wubaCollidingDataSyncThreadNum;
 
@@ -1799,6 +1799,20 @@ public class MarketingCommonConfig {
      */
     private Integer wuBaCollidingDataSubmitPageSize;
 
+    /**
+     * 58查询撞库结果线程数
+     */
+    private Integer wubaCollidingDataQueryResultThreadNum;
+
+    /**
+     * 58查询撞库结果分页条数
+     */
+    private Integer wuBaCollidingQueryResultPageSize;
+
+    /**
+     * 58查询撞库结果等待时长（分钟）
+     */
+    private Integer wuBaCollidingQueryResultWaitMinutes;
 
     /**
      * 58金融-新客营销名单上报-开关，1-开，0-关
@@ -1819,7 +1833,5 @@ public class MarketingCommonConfig {
      * 58金融-新客营销名单上报结果查询-调用线程数
      */
     private List<Integer> wuBaSubmitConversionThreadPool;
-
-
 }
 
