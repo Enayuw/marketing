@@ -3,9 +3,13 @@ import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.ZhiJiaCarSeriesInfo;
+import com.br.marketing.entity.ZhiJiaClueBackData;
 import com.br.marketing.monkey.MarketingDataMonkeyApplication;
 import com.br.marketing.monkey.job.dewu.DewuCollidingDataToSendJob;
 import com.br.marketing.monkey.job.tongcheng.TongChengOperationPushToCustomerJob;
+import com.br.marketing.service.Impl.zhijia.ZhiJiaDataProcessService;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +71,23 @@ public class CommonTest {
         bo.setReq(saveReachDeleteRecordReq);
         Result<SaveReachDeleteRecordResp> saveReachDeleteRecordRespResult = methodRetryHandlerService.callDeleteReachRecordCuDongZhi(bo, null);
         log.warn(JSONObject.toJSONString(saveReachDeleteRecordRespResult));
+    }
+
+    @Resource
+    ZhiJiaDataProcessService zhiJiaDataProcessService;
+    @Test
+    public void testZhiJiaCarInfoGetService(){
+        ZhiJiaClueBackData zhiJiaClueBackInfo = new ZhiJiaClueBackData();
+        zhiJiaClueBackInfo.setBrandName("一汽奥迪");
+        zhiJiaClueBackInfo.setSeriesName("一汽奥迪a4l");
+        Result<ZhiJiaCarSeriesInfo> zhiJiaCarInfo = zhiJiaDataProcessService.getZhiJiaCarInfo(zhiJiaClueBackInfo);
+        if (zhiJiaCarInfo.getCode().equals(ResultCode.SUCCESS.getValue())){
+            ZhiJiaCarSeriesInfo data = zhiJiaCarInfo.getData();
+            Integer brandId = data.getBrandId();
+            Integer seriesId = data.getSeriesId();
+            System.err.println(brandId + "------------" + seriesId);
+        }
+
     }
 
 
