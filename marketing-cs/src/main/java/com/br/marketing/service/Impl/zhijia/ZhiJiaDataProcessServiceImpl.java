@@ -4,30 +4,22 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import cn.hutool.core.util.ObjectUtil;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.zhijia.ZhiJiaClient;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.zhijia.CityCountyDataDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
-import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
-import io.etcd.jetcd.shaded.javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.UUID;
@@ -53,11 +45,6 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
 
-    @Resource
-    ZhiJiaCarBrandInfoMapper zhiJiaCarBrandInfoMapper;
-
-    @Resource
-    ZhiJiaCarSeriesInfoMapper zhiJiaCarSeriesInfoMapper;
 
     @Override
     public void getCityAndCounty() {
@@ -147,134 +134,81 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     }
 
     @Override
-    public Result<ZhiJiaCarSeriesInfo> getZhiJiaCarInfo(ZhiJiaClueBackData zhiJiaClueBackInfo) {
+    public Result<ZhiJiaCarSeriesInfo> getZhiJiaCarBrandInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos) {
         ZhiJiaCarSeriesInfo data = new ZhiJiaCarSeriesInfo();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         String brandName = removeSpacesAndConvertToUpper(zhiJiaClueBackInfo.getBrandName());
-        String seriesName = removeSpacesAndConvertToUpper(zhiJiaClueBackInfo.getSeriesName());
-        // 查询品牌
-        ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample = new ZhiJiaCarBrandInfoExample();
-        zhiJiaCarBrandInfoExample.createCriteria().andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString());
-        List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
-        if (zhiJiaCarBrandInfos.isEmpty()) {
-            // 今日配置表为空,报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车品牌配置表为空!"));
-            ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample1 = new ZhiJiaCarBrandInfoExample();
-            zhiJiaCarBrandInfoExample.createCriteria().andAppletDateLessThanOrEqualTo(LocalDate.now().toString());
-            List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos1 = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample1);
-            zhiJiaCarBrandInfos.addAll(zhiJiaCarBrandInfos1);
+        for (ZhiJiaCarBrandInfo brandInfo : zhiJiaCarBrandInfos) {
+                Integer brandId = brandInfo.getBrandId();
+                String newBrandName = brandInfo.getNewBrandName();
 
-        }
-        Set<String> brandNameSet = zhiJiaCarBrandInfos.stream().map(ZhiJiaCarBrandInfo::getBrandName).collect(Collectors.toSet());
+                // 精确匹配
+                if (preciseMatch(brandName, newBrandName)) {
+                    data.setBrandId(brandId);
+                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+                }
 
-        if (brandNameSet.contains(brandName)) {
-            for (ZhiJiaCarBrandInfo brandInfo : zhiJiaCarBrandInfos) {
-                threadPool.submit(() -> {
-                    Integer brandId = brandInfo.getBrandId();
-                    String newBrandName = brandInfo.getNewBrandName();
+                // 模糊匹配
+                if (complexFuzzyMatch(newBrandName, brandName)) {
+                    data.setBrandId(brandId);
+                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+                }
 
-                    // 精确匹配
-                    if (preciseMatch(brandName, newBrandName) || preciseMatch(newBrandName, brandName)) {
-                        Integer seriesId = getSeriesId(seriesName, brandId);
-                        if (ObjectUtil.isEmpty(seriesId)) {
-                            String msg = "品牌编号：" + brandId + ", 被匹配车系名：" + seriesName + " 匹配车辆品牌失败！";
-                            return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
-                        }
-                        data.setBrandId(brandId);
-                        data.setSeriesId(seriesId);
-                        return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-                    }
-
-                    // 模糊匹配
-                    if (complexFuzzyMatch(brandName, newBrandName) || complexFuzzyMatch(newBrandName, brandName)) {
-                        Integer seriesId = getSeriesId(seriesName, brandId);
-                        if (ObjectUtil.isEmpty(seriesId)) {
-                            String msg = "品牌编号：" + brandId + ", 被匹配车系名：" + seriesName + " 匹配车辆品牌失败！";
-                            return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
-                        }
-                        data.setBrandId(brandId);
-                        data.setSeriesId(seriesId);
-                        return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-                    }
-
-                    // 补充配置匹配
-                    String brandExtend = brandInfo.getBrandExtend();
+                // 补充配置匹配
+                String brandExtend = brandInfo.getBrandExtend();
+                if (StringUtils.isNotBlank(brandExtend)) {
                     List<String> brandList = Arrays.asList(brandExtend.split(","));
                     if (brandList.contains(brandName)) {
-                        Integer seriesId = getSeriesId(seriesName, brandId);
-                        if (ObjectUtil.isEmpty(seriesId)) {
-                            String msg = "品牌编号：" + brandId + ", 被匹配车系名：" + seriesName + " 匹配车辆品牌失败！";
-                            return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
-                        }
                         data.setBrandId(brandId);
-                        data.setSeriesId(seriesId);
                         return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
                     }
-                    // 未匹配成功
-                    String msg = "匹配车辆品牌失败！配置表中无这个车辆品牌，品牌名称：" + brandName;
-                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
-                });
-            }
-            threadPool.shutdown();
+                }
+                // 未匹配成功
+                String msg = "匹配车辆品牌失败！配置表中无这个车辆品牌，品牌名称：" + brandName;
+                return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
         }
         String msg = "匹配车辆品牌失败！配置表中无这个车辆品牌，品牌名称：" + brandName;
         return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
     }
 
+    @Override
+    public Result<ZhiJiaCarSeriesInfo> getZhiJiaCarSeriesInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos) {
+        ZhiJiaCarSeriesInfo data = new ZhiJiaCarSeriesInfo();
+        String seriesName = removeSpacesAndConvertToUpper(zhiJiaClueBackInfo.getSeriesName());
+        for (ZhiJiaCarSeriesInfo seriesInfo : zhiJiaCarSeriesInfos) {
+            Integer seriesId = seriesInfo.getSeriesId();
+            String newSeriesName = seriesInfo.getNewSeriesName();
 
-    /**
-     * 获取车系id
-     * @author guangxiu.li
-     * @date 2024/7/10 19:57
-     * @param seriesName
-     * @param brandId
-     * @return int
-     */
-    public Integer getSeriesId(String seriesName, Integer brandId) {
-        Integer id = null;
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
-        ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample = new ZhiJiaCarSeriesInfoExample();
-        zhiJiaCarSeriesInfoExample.createCriteria()
-                .andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString())
-                .andBrandIdEqualTo(brandId);
-        List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
-        if (zhiJiaCarSeriesInfos.isEmpty()){
-            // 今日车系配置表为空，报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车系配置表为空!"));
-            ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample1 = new ZhiJiaCarSeriesInfoExample();
-            zhiJiaCarSeriesInfoExample1.createCriteria()
-                    .andBrandIdEqualTo(brandId);
-            List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos1 = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample1);
-            zhiJiaCarSeriesInfos.addAll(zhiJiaCarSeriesInfos1);
-        }
+            // 精确匹配
+            if (preciseMatch(seriesName, newSeriesName)) {
+                data.setSeriesId(seriesId);
+                return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+            }
 
-        for (ZhiJiaCarSeriesInfo zhiJiaCarSeriesInfo : zhiJiaCarSeriesInfos) {
-            threadPool.submit(() -> {
-                String newSeriesName = zhiJiaCarSeriesInfo.getNewSeriesName();
+            // 模糊匹配
+            if (complexCarSeriesFuzzyMatch(seriesName, newSeriesName)) {
+                data.setSeriesId(seriesId);
+                return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+            }
 
-                // 精确匹配
-                if (preciseMatch(seriesName, newSeriesName) || preciseMatch(newSeriesName, seriesName)) {
-                    return zhiJiaCarSeriesInfo.getSeriesId();
-                }
-
-                // 模糊匹配
-                if (complexCarSeriesFuzzyMatch(seriesName, newSeriesName) || complexCarSeriesFuzzyMatch(newSeriesName, seriesName)) {
-                    return zhiJiaCarSeriesInfo.getSeriesId();
-                }
-
-                // 扩展车系匹配
-                String seriesExtend = zhiJiaCarSeriesInfo.getSeriesExtend();
+            // 补充配置匹配
+            String seriesExtend = seriesInfo.getSeriesExtend();
+            if (StringUtils.isNotBlank(seriesExtend)) {
                 List<String> seriesList = Arrays.asList(seriesExtend.split(","));
                 if (seriesList.contains(seriesName)) {
-                    return zhiJiaCarSeriesInfo.getSeriesId();
+                    data.setSeriesId(seriesId);
+                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
                 }
-
-                return null; // 未匹配成功
-            });
+            }
+            // 未匹配成功
+            String msg = "匹配车系失败！配置表中无这个车系，车系名称：" + seriesName;
+            return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
         }
-        threadPool.shutdown();
-        return id;
+        String msg = "匹配车系失败！配置表中无这个车系，车系名称：" + seriesName;
+        return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
     }
+
+
+
     /**
      * 精准匹配两个字符串，返回匹配结果
      * @author guangxiu.li

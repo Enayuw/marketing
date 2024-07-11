@@ -8,6 +8,7 @@
     <result column="series_id" property="seriesId" jdbcType="INTEGER" />
     <result column="series_name" property="seriesName" jdbcType="VARCHAR" />
     <result column="new_series_name" property="newSeriesName" jdbcType="VARCHAR" />
+    <result column="series_extend" property="seriesExtend" jdbcType="VARCHAR" />
     <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -75,7 +76,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, brand_id, series_id, series_name, new_series_name, applet_date, create_time, 
+    id, api_code, brand_id, series_id, series_name, series_extend, new_series_name, applet_date, create_time,
     update_time, is_del
   </sql>
   <sql id="Blob_Column_List" >

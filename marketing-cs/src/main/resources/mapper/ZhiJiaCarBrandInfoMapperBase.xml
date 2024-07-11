@@ -7,6 +7,7 @@
     <result column="brand_id" property="brandId" jdbcType="INTEGER" />
     <result column="brand_name" property="brandName" jdbcType="VARCHAR" />
     <result column="new_brand_name" property="newBrandName" jdbcType="VARCHAR" />
+    <result column="brand_extend" property="brandExtend" jdbcType="VARCHAR" />
     <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -74,7 +75,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, brand_id, brand_name, new_brand_name, applet_date, create_time, update_time, 
+    id, api_code, brand_id, brand_name, new_brand_name, brand_extend, applet_date, create_time, update_time,
     is_del
   </sql>
   <sql id="Blob_Column_List" >

@@ -1,11 +1,14 @@
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.entity.ZhiJiaCarSeriesInfo;
-import com.br.marketing.entity.ZhiJiaClueBackData;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.entity.*;
+import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
+import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
 import com.br.marketing.monkey.MarketingDataMonkeyApplication;
 import com.br.marketing.monkey.job.dewu.DewuCollidingDataToSendJob;
 import com.br.marketing.monkey.job.tongcheng.TongChengOperationPushToCustomerJob;
@@ -20,6 +23,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,19 +79,60 @@ public class CommonTest {
 
     @Resource
     ZhiJiaDataProcessService zhiJiaDataProcessService;
+
+    @Resource
+    ZhiJiaCarBrandInfoMapper zhiJiaCarBrandInfoMapper;
+
+    @Resource
+    ZhiJiaCarSeriesInfoMapper zhiJiaCarSeriesInfoMapper;
+
     @Test
     public void testZhiJiaCarInfoGetService(){
+        Integer brandId = null;
+        Integer seriesId = null;
         ZhiJiaClueBackData zhiJiaClueBackInfo = new ZhiJiaClueBackData();
         zhiJiaClueBackInfo.setBrandName("一汽奥迪");
         zhiJiaClueBackInfo.setSeriesName("一汽奥迪a4l");
-        Result<ZhiJiaCarSeriesInfo> zhiJiaCarInfo = zhiJiaDataProcessService.getZhiJiaCarInfo(zhiJiaClueBackInfo);
+        // 查询品牌
+        ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample = new ZhiJiaCarBrandInfoExample();
+        zhiJiaCarBrandInfoExample.createCriteria().andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString());
+        List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
+        if (zhiJiaCarBrandInfos.isEmpty()) {
+            // 今日配置表为空,报警，并启用原有配置表！
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车品牌配置表为空!"));
+            ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample1 = new ZhiJiaCarBrandInfoExample();
+            zhiJiaCarBrandInfoExample.createCriteria().andAppletDateLessThanOrEqualTo(LocalDate.now().toString());
+            List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos1 = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample1);
+            zhiJiaCarBrandInfos.addAll(zhiJiaCarBrandInfos1);
+
+        }
+        Result<ZhiJiaCarSeriesInfo> zhiJiaCarInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackInfo, zhiJiaCarBrandInfos);
         if (zhiJiaCarInfo.getCode().equals(ResultCode.SUCCESS.getValue())){
             ZhiJiaCarSeriesInfo data = zhiJiaCarInfo.getData();
-            Integer brandId = data.getBrandId();
-            Integer seriesId = data.getSeriesId();
-            System.err.println(brandId + "------------" + seriesId);
+            brandId = data.getBrandId();
         }
 
+        ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample = new ZhiJiaCarSeriesInfoExample();
+        zhiJiaCarSeriesInfoExample.createCriteria()
+                .andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString())
+                .andBrandIdEqualTo(brandId);
+        List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
+        if (zhiJiaCarSeriesInfos.isEmpty()){
+            // 今日车系配置表为空，报警，并启用原有配置表！
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车系配置表为空!"));
+            ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample1 = new ZhiJiaCarSeriesInfoExample();
+            zhiJiaCarSeriesInfoExample1.createCriteria()
+                    .andBrandIdEqualTo(brandId);
+            List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos1 = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample1);
+            zhiJiaCarSeriesInfos.addAll(zhiJiaCarSeriesInfos1);
+        }
+        Result<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackInfo, zhiJiaCarSeriesInfos);
+        if (zhiJiaCarSeriesInfo.getCode().equals(ResultCode.SUCCESS.getValue())){
+            ZhiJiaCarSeriesInfo data = zhiJiaCarSeriesInfo.getData();
+            seriesId = data.getSeriesId();
+        }
+
+        System.err.println(brandId + "------------" + seriesId);
     }
 
 
