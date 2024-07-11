@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import com.br.marketing.mapper.ZhijiaCityConfigMapper;
 import com.br.marketing.mapper.ZhijiaCountyConfigBMapper;
 
@@ -72,8 +73,76 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
 
     @Override
     public void getCityAndCounty() {
-
+        String token = getToken();
+        if (StringUtils.isEmpty(token)) {
+            log.error("获取token异常");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        Result<JSONObject> result = zhiJiaClient.getCityAndCounty(token);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            jsonObject = result.getData();
+        } else {
+            log.error("之家省市区调用异常,result= {}", result.getMessage());
+        }
+        JSONObject resultJson = jsonObject.getJSONObject("result");
+        JSONArray cityList = resultJson.getJSONArray("city");
+        cityList.forEach(cityJson -> {
+            JSONObject city = (JSONObject) cityJson;
+            Integer cid = city.getInteger("cid");
+            String cname = city.getString("cname");
+            ZhijiaCityConfigExample zhijiaCityConfigExample = new ZhijiaCityConfigExample();
+            zhijiaCityConfigExample.createCriteria()
+                    .andCIdEqualTo(cid);
+            List<ZhijiaCityConfig> zhijiaCityConfig = zhijiaCityConfigMapper.selectByExample(zhijiaCityConfigExample);
+            if (CollectionUtils.isEmpty(zhijiaCityConfig)) {
+                ZhijiaCityConfig cityConfig = new ZhijiaCityConfig();
+                cityConfig.setCId(cid);
+                cityConfig.setCName(cname);
+                cityConfig.setCreateTime(new Date());
+                cityConfig.setUpdateTime(new Date());
+                cityConfig.setUploadDate(LocalDate.now().toString());
+                zhijiaCityConfigMapper.insert(cityConfig);
+            } else {
+                ZhijiaCityConfig cityConfig = new ZhijiaCityConfig();
+                cityConfig.setCName(zhijiaCityConfig.get(0).getCName());
+                cityConfig.setUpdateTime(new Date());
+                cityConfig.setUploadDate(LocalDate.now().toString());
+                cityConfig.setId(zhijiaCityConfig.get(0).getId());
+                zhijiaCityConfigMapper.updateByPrimaryKeySelective(cityConfig);
+            }
+        });
+        JSONArray countyList = resultJson.getJSONArray("county");
+        countyList.forEach(countyJson -> {
+            JSONObject county = (JSONObject) countyJson;
+            Integer cid = county.getInteger("cid");
+            Integer countyid = county.getInteger("countyid");
+            String countyname = county.getString("countyname");
+            ZhijiaCountyConfigExample zhijiaCountyConfigExample = new ZhijiaCountyConfigExample();
+            zhijiaCountyConfigExample.createCriteria()
+                    .andCountyIdEqualTo(countyid);
+            List<ZhijiaCountyConfig> countyConfigList = zhijiaCountyConfigBMapper.selectByExample(zhijiaCountyConfigExample);
+            if (CollectionUtils.isEmpty(countyConfigList)) {
+                ZhijiaCountyConfig countyConfig = new ZhijiaCountyConfig();
+                countyConfig.setCId(cid);
+                countyConfig.setCountyId(countyid);
+                countyConfig.setCountyName(countyname);
+                countyConfig.setCreateTime(new Date());
+                countyConfig.setUpdateTime(new Date());
+                countyConfig.setUploadDate(LocalDate.now().toString());
+                zhijiaCountyConfigBMapper.insert(countyConfig);
+            } else {
+                ZhijiaCountyConfig countyConfig = new ZhijiaCountyConfig();
+                countyConfig.setCountyName(countyConfigList.get(0).getCountyName());
+                countyConfig.setCId(cid);
+                countyConfig.setUpdateTime(new Date());
+                countyConfig.setUploadDate(LocalDate.now().toString());
+                countyConfig.setId(countyConfigList.get(0).getId());
+                zhijiaCountyConfigBMapper.updateByPrimaryKeySelective(countyConfig);
+            }
+        });
     }
+
 
     @Override
     public void getBrandAndseries() {
@@ -88,7 +157,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             jsonObject = resultBrand.getData();
         } else {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode()
-                    ,"之家省市区调用异常,result= " + resultBrand.getMessage()));
+                    , "之家省市区调用异常,result= " + resultBrand.getMessage()));
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
         JSONArray brandlist = resultJson.getJSONArray("brandlist");
@@ -113,8 +182,8 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
      */
     @Override
     public CityCountyDataDTO matchCityAndCounty(List<ZhijiaCityConfig> cityList, List<ZhijiaCountyConfig> countyList, ZhiJiaClueBackData zhiJiaClueBackInfo) {
-        String city = zhiJiaClueBackInfo.getCity();
-        String county = zhiJiaClueBackInfo.getContry();
+        String city = zhiJiaClueBackInfo.getCity().replaceAll("\\s*", "");
+        String county = zhiJiaClueBackInfo.getContry().replaceAll("\\s*", "");
         CityCountyDataDTO cityCountyDataDTO = new CityCountyDataDTO();
         //精确匹配城市
         List<ZhijiaCityConfig> defineCityList = cityList.stream().filter(zhijiaCityConfig -> zhijiaCityConfig.getCName().equals(city))
@@ -191,6 +260,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         cityCountyDataDTO.setErrorMsg("区县未匹配成功:county=".concat(county));
         return cityCountyDataDTO;
     }
+
     /**
      * 获取token
      *
@@ -238,7 +308,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
         if (zhiJiaCarBrandInfos.isEmpty()) {
             // 今日配置表为空,报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车品牌配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "今日车品牌配置表为空!"));
             ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample1 = new ZhiJiaCarBrandInfoExample();
             zhiJiaCarBrandInfoExample.createCriteria().andAppletDateLessThanOrEqualTo(LocalDate.now().toString());
             List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos1 = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample1);
@@ -272,7 +342,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 return zhiJiaCarInfoDTO;
             } else {
                 zhiJiaCarInfoDTO.setIsMatch(Boolean.FALSE);
-                zhiJiaCarInfoDTO.setErrorMsg("车辆品牌匹配到多条，品牌名：" +  brandName);
+                zhiJiaCarInfoDTO.setErrorMsg("车辆品牌匹配到多条，品牌名：" + brandName);
                 return zhiJiaCarInfoDTO;
             }
         }
@@ -297,9 +367,9 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 .andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString())
                 .andBrandIdEqualTo(brandId);
         List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
-        if (zhiJiaCarSeriesInfos.isEmpty()){
+        if (zhiJiaCarSeriesInfos.isEmpty()) {
             // 今日车系配置表为空，报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车系配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "今日车系配置表为空!"));
             ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample1 = new ZhiJiaCarSeriesInfoExample();
             zhiJiaCarSeriesInfoExample1.createCriteria()
                     .andBrandIdEqualTo(brandId);
@@ -334,7 +404,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 return zhiJiaCarInfoDTO;
             } else {
                 zhiJiaCarInfoDTO.setIsMatch(Boolean.FALSE);
-                zhiJiaCarInfoDTO.setErrorMsg("车辆车系匹配到多条，车系名：" +  seriesName);
+                zhiJiaCarInfoDTO.setErrorMsg("车辆车系匹配到多条，车系名：" + seriesName);
                 return zhiJiaCarInfoDTO;
             }
         }
@@ -352,14 +422,14 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     }
 
 
-
     /**
      * 精准匹配两个字符串，返回匹配结果
-     * @author guangxiu.li
-     * @date 2024/7/9 17:46
+     *
      * @param str1 第一个字符串
      * @param str2 第二个字符串
      * @return 如果两个字符串相等则返回true，否则返回false
+     * @author guangxiu.li
+     * @date 2024/7/9 17:46
      */
     public static boolean preciseMatch(String str1, String str2) {
         if (str1 == null || str2 == null) {
@@ -371,7 +441,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     /**
      * 车品牌模糊匹配，返回布尔结果
      *
-     * @param brand 被匹配车品牌名称
+     * @param brand   被匹配车品牌名称
      * @param pattern 匹配模板
      * @return 如果brand匹配pattern则返回true，否则返回false
      */
@@ -389,6 +459,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
 
     /**
      * 将给定的字符串转换为全英文大写，并去除非字母数字字符。
+     *
      * @param input 输入的字符串
      * @return 转换后的字符串
      */
