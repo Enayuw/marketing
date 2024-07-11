@@ -62,20 +62,20 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
             }
             MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
             // 任务设置为清洗中
-//            marketingCleanDataTask.setCleanStatus(1);
-//            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
+            marketingCleanDataTask.setCleanStatus(1);
+            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
 //            redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
 
             try {
                 // 执行清洗逻辑
                 dataCleaningAutoService.autoCleanDataByTask(marketingCleanDataTask);
                 // 更新任务为清洗完成
-//                marketingCleanDataTask.setCleanStatus(2);
+                marketingCleanDataTask.setCleanStatus(2);
             } catch (Exception e) {
                 // 更新任务为清洗完成
                 marketingCleanDataTask.setCleanStatus(3);
             }
-//            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
+            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
         }
 
 
