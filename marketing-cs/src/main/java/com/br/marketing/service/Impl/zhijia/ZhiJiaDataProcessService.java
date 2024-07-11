@@ -34,4 +34,8 @@ public interface ZhiJiaDataProcessService {
      */
     Result<ZhiJiaCarSeriesInfo> getZhiJiaCarSeriesInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos);
 
+    List<ZhijiaCityConfig> getCityConfigList();
+
+    List<ZhijiaCountyConfig> getCountyConfigList();
+
 }
