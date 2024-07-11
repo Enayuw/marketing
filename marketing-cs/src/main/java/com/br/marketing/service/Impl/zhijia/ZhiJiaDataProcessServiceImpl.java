@@ -2,18 +2,13 @@ package com.br.marketing.service.Impl.zhijia;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.cloud.web.MethodType;
-import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.client.zhijia.ZhiJiaClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.zhijia.CityCountyDataDTO;
 import com.br.marketing.dto.zhijia.ZhiJiaCarInfoDTO;
@@ -22,18 +17,16 @@ import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
 import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import com.br.marketing.mapper.ZhijiaCityConfigMapper;
 import com.br.marketing.mapper.ZhijiaCountyConfigBMapper;
 
@@ -61,8 +54,6 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     @Resource
     ZhiJiaCarSeriesInfoMapper zhiJiaCarSeriesInfoMapper;
 
-    final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
-
     @Resource
     ZhijiaCityConfigMapper zhijiaCityConfigMapper;
 
@@ -88,17 +79,95 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             jsonObject = resultBrand.getData();
         } else {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode()
-                    ,"之家省市区调用异常,result= " + resultBrand.getMessage()));
+                    , "之家车辆品牌接口调用异常,result= " + resultBrand.getMessage()));
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
         JSONArray brandlist = resultJson.getJSONArray("brandlist");
+        brandlist.forEach(brandGroup -> {
+            JSONArray brandArray = ((JSONObject) brandGroup).getJSONArray("list");
 
-//        String brandBame = zhiJiaClueBackInf.getBrandBame();
-//        String seriesName = zhiJiaClueBackInf.getSeriesName();
-//        String newBrandBame = removeSpacesAndConvertToUpper(brandBame);
-//        String newSeriesName = removeSpacesAndConvertToUpper(seriesName);
-        String appletDate = LocalDate.now().toString();
-        String localDateTime = LocalDateTime.now().format(YYYYMMDDSHORTLINE);
+            brandArray.forEach(brand -> {
+                Integer brandId = ((JSONObject) brand).getInteger("id");
+                String brandName = ((JSONObject) brand).getString("name");
+                ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample = new ZhiJiaCarBrandInfoExample();
+                zhiJiaCarBrandInfoExample.createCriteria()
+                        .andBrandIdEqualTo(brandId);
+                List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
+                if (zhiJiaCarBrandInfos.isEmpty()) {
+                    String newBrandBame = removeSpacesAndConvertToUpper(brandName);
+                    String appletDate = LocalDate.now().toString();
+
+                    ZhiJiaCarBrandInfo brandInfo = new ZhiJiaCarBrandInfo();
+                    brandInfo.setBrandId(brandId);
+                    brandInfo.setBrandName(brandName);
+                    brandInfo.setNewBrandName(newBrandBame);
+                    brandInfo.setAppletDate(appletDate);
+                    brandInfo.setCreateTime(new Date());
+                    brandInfo.setUpdateTime(new Date());
+                    zhiJiaCarBrandInfoMapper.insertSelective(brandInfo);
+                } else {
+                    ZhiJiaCarBrandInfo zhiJiaCarBrandInfo = new ZhiJiaCarBrandInfo();
+                    zhiJiaCarBrandInfo.setBrandName(zhiJiaCarBrandInfos.get(0).getBrandName());
+                    zhiJiaCarBrandInfo.setUpdateTime(new Date());
+                    zhiJiaCarBrandInfo.setAppletDate(LocalDate.now().toString());
+                    zhiJiaCarBrandInfo.setId(zhiJiaCarBrandInfos.get(0).getId());
+                    zhiJiaCarBrandInfo.setNewBrandName(removeSpacesAndConvertToUpper(zhiJiaCarBrandInfos.get(0).getBrandName()));
+                    zhiJiaCarBrandInfoMapper.updateByPrimaryKeySelective(zhiJiaCarBrandInfo);
+                }
+            });
+        });
+        List<ZhiJiaCarBrandInfo> carBrandInfos = getCarBrandInfos();
+        Set<Integer> set = carBrandInfos.stream().map(ZhiJiaCarBrandInfo::getBrandId).collect(Collectors.toSet());
+        for (Integer brandId : set) {
+            getSeries(brandId);
+        }
+    }
+
+    public void getSeries(Integer brandId) {
+        String token = getToken();
+        if (StringUtils.isEmpty(token)) {
+            log.error("获取token异常");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        Result<JSONObject> resultBrand = zhiJiaClient.getSeries(token, brandId.toString());
+        if (ResultCode.SUCCESS.getValue().equals(resultBrand.getCode())) {
+            jsonObject = resultBrand.getData();
+        } else {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode()
+                    , "之家车辆车系接口调用异常,result= " + resultBrand.getMessage()));
+        }
+        JSONObject resultJson = jsonObject.getJSONObject("result");
+        JSONArray serieslist = resultJson.getJSONArray("serieslist");
+        serieslist.forEach(seriesJson -> {
+            JSONObject seriesInfo = (JSONObject) seriesJson;
+            Integer seriesId = seriesInfo.getInteger("id");
+            String seriesName = seriesInfo.getString("name");
+            String newSeriesName = removeSpacesAndConvertToUpper(seriesName);
+            ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample = new ZhiJiaCarSeriesInfoExample();
+            zhiJiaCarSeriesInfoExample.createCriteria()
+                    .andBrandIdEqualTo(brandId).andSeriesIdEqualTo(seriesId);
+            List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
+            if (CollectionUtils.isEmpty(zhiJiaCarSeriesInfos)) {
+                ZhiJiaCarSeriesInfo zhiJiaCarSeriesInfo = new ZhiJiaCarSeriesInfo();
+                zhiJiaCarSeriesInfo.setBrandId(brandId);
+                zhiJiaCarSeriesInfo.setSeriesId(seriesId);
+                zhiJiaCarSeriesInfo.setSeriesName(seriesName);
+                zhiJiaCarSeriesInfo.setNewSeriesName(newSeriesName);
+                zhiJiaCarSeriesInfo.setCreateTime(new Date());
+                zhiJiaCarSeriesInfo.setUpdateTime(new Date());
+                zhiJiaCarSeriesInfo.setAppletDate(LocalDate.now().toString());
+                zhiJiaCarSeriesInfoMapper.insertSelective(zhiJiaCarSeriesInfo);
+            } else {
+                ZhiJiaCarSeriesInfo zhiJiaCarSeriesInfo = new ZhiJiaCarSeriesInfo();
+                zhiJiaCarSeriesInfo.setSeriesName(zhiJiaCarSeriesInfos.get(0).getSeriesName());
+                zhiJiaCarSeriesInfo.setNewSeriesName(newSeriesName);
+                zhiJiaCarSeriesInfo.setUpdateTime(new Date());
+                zhiJiaCarSeriesInfo.setAppletDate(LocalDate.now().toString());
+                zhiJiaCarSeriesInfo.setId(zhiJiaCarSeriesInfos.get(0).getId());
+                zhiJiaCarSeriesInfoMapper.updateByPrimaryKeySelective(zhiJiaCarSeriesInfo);
+            }
+        });
     }
 
     /**
@@ -191,6 +260,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         cityCountyDataDTO.setErrorMsg("区县未匹配成功:county=".concat(county));
         return cityCountyDataDTO;
     }
+
     /**
      * 获取token
      *
@@ -238,7 +308,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
         if (zhiJiaCarBrandInfos.isEmpty()) {
             // 今日配置表为空,报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车品牌配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "今日车品牌配置表为空!"));
             ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample1 = new ZhiJiaCarBrandInfoExample();
             zhiJiaCarBrandInfoExample.createCriteria().andAppletDateLessThanOrEqualTo(LocalDate.now().toString());
             List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos1 = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample1);
@@ -272,7 +342,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 return zhiJiaCarInfoDTO;
             } else {
                 zhiJiaCarInfoDTO.setIsMatch(Boolean.FALSE);
-                zhiJiaCarInfoDTO.setErrorMsg("车辆品牌匹配到多条，品牌名：" +  brandName);
+                zhiJiaCarInfoDTO.setErrorMsg("车辆品牌匹配到多条，品牌名：" + brandName);
                 return zhiJiaCarInfoDTO;
             }
         }
@@ -297,9 +367,9 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 .andAppletDateGreaterThanOrEqualTo(LocalDate.now().toString())
                 .andBrandIdEqualTo(brandId);
         List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
-        if (zhiJiaCarSeriesInfos.isEmpty()){
+        if (zhiJiaCarSeriesInfos.isEmpty()) {
             // 今日车系配置表为空，报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),"今日车系配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "今日车系配置表为空!"));
             ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample1 = new ZhiJiaCarSeriesInfoExample();
             zhiJiaCarSeriesInfoExample1.createCriteria()
                     .andBrandIdEqualTo(brandId);
@@ -334,7 +404,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 return zhiJiaCarInfoDTO;
             } else {
                 zhiJiaCarInfoDTO.setIsMatch(Boolean.FALSE);
-                zhiJiaCarInfoDTO.setErrorMsg("车辆车系匹配到多条，车系名：" +  seriesName);
+                zhiJiaCarInfoDTO.setErrorMsg("车辆车系匹配到多条，车系名：" + seriesName);
                 return zhiJiaCarInfoDTO;
             }
         }
@@ -352,14 +422,14 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     }
 
 
-
     /**
      * 精准匹配两个字符串，返回匹配结果
-     * @author guangxiu.li
-     * @date 2024/7/9 17:46
+     *
      * @param str1 第一个字符串
      * @param str2 第二个字符串
      * @return 如果两个字符串相等则返回true，否则返回false
+     * @author guangxiu.li
+     * @date 2024/7/9 17:46
      */
     public static boolean preciseMatch(String str1, String str2) {
         if (str1 == null || str2 == null) {
@@ -371,7 +441,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     /**
      * 车品牌模糊匹配，返回布尔结果
      *
-     * @param brand 被匹配车品牌名称
+     * @param brand   被匹配车品牌名称
      * @param pattern 匹配模板
      * @return 如果brand匹配pattern则返回true，否则返回false
      */
@@ -389,6 +459,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
 
     /**
      * 将给定的字符串转换为全英文大写，并去除非字母数字字符。
+     *
      * @param input 输入的字符串
      * @return 转换后的字符串
      */
