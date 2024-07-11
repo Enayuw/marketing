@@ -2,11 +2,13 @@ package com.br.marketing.client.zhijia;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.zhijia.input.ReqAddZhiJiaClueDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,18 @@ public class ZhiJiaClient {
 
     @Value("${api.zhijia.zhiJiaClientSecret:00}")
     private String clientSecret;
+
+    @Value("${api.zhijia.brandUrl:00}")
+    private String brandUrl;
+
+    @Value("${api.zhijia.seriesUrl:00}")
+    private String seriesUrl;
+
+    @Value("${api.zhijia.appId:0}")
+    private String appId;
+
+    @Value("${api.zhijia.querykey:0}")
+    private String querykey;
 
     @Autowired
     HttpProxyClient httpProxyClient;
@@ -122,6 +136,50 @@ public class ZhiJiaClient {
         resMap = httpProxyClient.get(url, isProxy);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error("之家获取省市县接口异常-请求url:{};返回:{}", url, JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+        }
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        String returncode = resultJson.getString("returncode");
+        if ("0".equals(returncode)) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultJson);
+        } else {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+        }
+    }
+
+    @RetryMethod(retryNowNum = 3)
+    public Result getBrand(String token) {
+
+        HashMap<String, String> resMap = new HashMap<>();
+        String url = brandUrl.concat("?access_token=").concat(token).concat("&appid=").concat(appId) .concat("&querykey=").concat(querykey);
+        resMap = httpProxyClient.get(url, isProxy);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode()
+                    ,"之家获取车辆品牌接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+        }
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        String returncode = resultJson.getString("returncode");
+        if ("0".equals(returncode)) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultJson);
+        } else {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+        }
+    }
+
+    @RetryMethod(retryNowNum = 3)
+    public Result getSeries(String token, String brandId) {
+        HashMap<String, String> resMap = new HashMap<>();
+        String url = seriesUrl.concat("?access_token=").concat(token)
+                .concat("&appid=").concat(appId)
+                .concat("&querykey=").concat(querykey)
+                .concat("&brandId=").concat(brandId);
+        resMap = httpProxyClient.get(url, isProxy);
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode()
+                    ,"之家获取车辆车系接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");

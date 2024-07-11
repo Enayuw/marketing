@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.zhijia;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
@@ -67,23 +69,6 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     @Resource
     ZhijiaCountyConfigBMapper zhijiaCountyConfigBMapper;
 
-    @Resource
-    HttpProxyClient httpProxyClient;
-
-    @Value("${api.zhijiaCarInfo.isProxy:false}")
-    Boolean isProxy;
-
-    @Value("${api.zhijiaCarInfo.brandUrl:00}")
-    private String brandUrl;
-
-    @Value("${api.zhijiaCarInfo.seriesUrl:00}")
-    private String seriesUrl;
-
-    @Value("${api.zhijiaCarInfo.appId:0}")
-    private String appId;
-
-    @Value("${api.zhijiaCarInfo.querykey:0}")
-    private String querykey;
 
     @Override
     public void getCityAndCounty() {
@@ -91,12 +76,22 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     }
 
     @Override
-    @RetryMethod(retryNowNum = 3)
-    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public void getBrandAndseries() {
-        String url = brandUrl + "?access_token=" + getToken() + "&appid=" + appId + "&querykey=" + querykey;
-        HashMap<String, String> stringStringHashMap = httpProxyClient.get(url, isProxy);
-        String s = stringStringHashMap.get("content");
+        String token = getToken();
+        if (StringUtils.isEmpty(token)) {
+            log.error("获取token异常");
+            return;
+        }
+        JSONObject jsonObject = new JSONObject();
+        Result<JSONObject> resultBrand = zhiJiaClient.getBrand(token);
+        if (ResultCode.SUCCESS.getValue().equals(resultBrand.getCode())) {
+            jsonObject = resultBrand.getData();
+        } else {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode()
+                    ,"之家省市区调用异常,result= " + resultBrand.getMessage()));
+        }
+        JSONObject resultJson = jsonObject.getJSONObject("result");
+        JSONArray brandlist = resultJson.getJSONArray("brandlist");
 
 //        String brandBame = zhiJiaClueBackInf.getBrandBame();
 //        String seriesName = zhiJiaClueBackInf.getSeriesName();

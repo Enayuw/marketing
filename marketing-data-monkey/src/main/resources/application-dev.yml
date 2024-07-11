@@ -120,19 +120,15 @@ api:
   zhijia:
     baseUri: https://openapi.autohome.com.cn/che168/apiclueopen
     addC1HiqClueUrl: ${api.zhijia.baseUri}/CarEstimate/AddC1HiqClue.ashx
+    brandUrl: ${api.zhijiaCarInfo.baseUri}/public/getbrands.ashx
+    seriesUrl: ${api.zhijiaCarInfo.baseUri}/public/getseriesbybrandId.ashx
+    cityInfoUrl: ${api.zhijiaCarInfo.baseUri}/public/queryarea.ashx
     zhiJiaClientId: JwpfGWx6hkxgIqUI7ncBjy0m7cQg1r39
     zhiJiaClientSecret: pQDg3DG3qWfkIfDqH8NVLZnhBOvxJjlW
     zhiJiaClientAppid: 1742
     zhiJiaClientEncryption: wE2FKj/Vb10=
-  zhijiaCarInfo:
-    baseUri: https://openapi.autohome.com.cn
-    brandUrl: ${api.zhijiaCarInfo.baseUri}/che168/apiclueopen/public/getbrands.ashx
-    seriesUrl: ${api.zhijiaCarInfo.baseUri}/che168/apiclueopen/public/getseriesbybrandId.ashx
     appId: "1743"
     querykey: "DrD5488reZE="
-  zhijiaCityInfo:
-    baseUri: https://openapi.autohome.com.cn
-    cityInfoUrl: ${api.zhijiaCarInfo.baseUri}/che168/apiclueopen/public/queryarea.ashx
   tongchengAgentMkt:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
