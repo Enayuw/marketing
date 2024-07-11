@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.WubaCollidingBatchNoMapper" >
+    <insert id="saveDataByBatchNo">
+        insert into b_wuba_colliding_batchNo(batch_no, batch_type, push_time)
+        values (#{batchNo}, #{batchType}, now())
+    </insert>
 
 </mapper>

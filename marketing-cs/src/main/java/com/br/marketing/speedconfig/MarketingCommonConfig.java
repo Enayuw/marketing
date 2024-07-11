@@ -1788,5 +1788,15 @@ public class MarketingCommonConfig {
      * 58同步撞库数据分页条数
      */
     private Integer wuBaCollidingDataSyncPageSize;
+
+    /**
+     * 58提交撞库开关(true:开启，false关闭)
+     */
+    private Boolean wuBaCollidingDataSwitch;
+
+    /**
+     * 58提交撞库数据分页条数
+     */
+    private Integer wuBaCollidingDataSubmitPageSize;
 }
 

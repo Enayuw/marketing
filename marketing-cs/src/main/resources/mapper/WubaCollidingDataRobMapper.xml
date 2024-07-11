@@ -8,4 +8,17 @@
             (#{item.cell})
         </foreach>
     </insert>
+
+    <select id="selectCollidingData" resultType="com.br.marketing.entity.WubaCollidingDataRob">
+        select id, cell from b_wuba_colliding_data_rob
+        where is_delete = 0 and push_time is null limit #{pageSize}
+    </select>
+
+    <update id="batchUpdatePushTimeById">
+        update b_wuba_colliding_data_rob set push_time = now()
+        where id in
+        <foreach collection="robs" item="rob" open="(" close=")" separator=",">
+            #{rob.id}
+        </foreach>
+    </update>
 </mapper>
