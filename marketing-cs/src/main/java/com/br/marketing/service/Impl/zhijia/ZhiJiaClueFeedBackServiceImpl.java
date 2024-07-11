@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.zhijia;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.zhijia.ZhiJiaClient;
@@ -10,6 +9,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.zhijia.CityCountyDataDTO;
+import com.br.marketing.dto.zhijia.ZhiJiaCarInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhiJiaClueBackDataMapper;
@@ -72,6 +72,10 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
         Long st1 = System.currentTimeMillis();
         localFile.setPushStartTime(new Date());
+        // 获取省市区、车辆信息初始化配置
+        List<ZhijiaCityConfig> cityConfigList = zhiJiaDataProcessService.getCityConfigList();
+        List<ZhijiaCountyConfig> countyConfigList = zhiJiaDataProcessService.getCountyConfigList();
+        List<ZhiJiaCarBrandInfo> carBrandInfos = zhiJiaDataProcessService.getCarBrandInfos();
 
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
@@ -88,7 +92,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             List<List<ZhiJiaClueBackData>> partition = ListUtils.partition(zhiJiaClueBackDataList, 1000);
 
             partition.forEach((List<ZhiJiaClueBackData> p) -> {
-                zhiJiaCollidingThread.submit(() -> pushZhiJiaCollidingSync(p));
+                zhiJiaCollidingThread.submit(() -> pushZhiJiaCollidingSync(p,
+                        cityConfigList,countyConfigList,carBrandInfos));
             });
 
         }
@@ -121,14 +126,16 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false).setMessage("成功");
     }
 
-    public void pushZhiJiaCollidingSync(List<ZhiJiaClueBackData> zhiJiaClueBackDataList){
+    public void pushZhiJiaCollidingSync(List<ZhiJiaClueBackData> zhiJiaClueBackDataList,
+                                        List<ZhijiaCityConfig> cityConfigList,List<ZhijiaCountyConfig> countyConfigList,
+                                        List<ZhiJiaCarBrandInfo> carBrandInfos){
 
         for (ZhiJiaClueBackData zhiJiaClueBackData : zhiJiaClueBackDataList) {
             Long id = zhiJiaClueBackData.getId();
             try {
                 ReqAddZhiJiaClueDTO reqAddZhiJiaClueDTO = new ReqAddZhiJiaClueDTO();
-                // 调用省市区接口
-                CityCountyDataDTO cityCountyDataDTO = zhiJiaDataProcessService.matchCityAndCounty(null,null,zhiJiaClueBackData);
+                // 匹配省市区信息
+                CityCountyDataDTO cityCountyDataDTO = zhiJiaDataProcessService.matchCityAndCounty(cityConfigList,countyConfigList,zhiJiaClueBackData);
                 if(cityCountyDataDTO.getIsMatch()){
                     reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
                     reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
@@ -137,31 +144,35 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     continue;
                 }
 
-                // 调用车辆信息接口
-                Result<ZhiJiaCarSeriesInfo> zhiJiaCarInfo = zhiJiaDataProcessService.getZhiJiaCarInfo(zhiJiaClueBackData);
-                if(ResultCode.SUCCESS.getValue().equals(zhiJiaCarInfo.getCode())){
-                    ZhiJiaCarSeriesInfo data = zhiJiaCarInfo.getData();
-                    reqAddZhiJiaClueDTO.setBrandid(data.getBrandId() != null ? String.valueOf(data.getBrandId()) : "");
-                    reqAddZhiJiaClueDTO.setSeriesid(data.getSeriesId() != null ? String.valueOf(data.getSeriesId()) : "");
-                }else {
-                    updatePushStatus(id, 4, null, zhiJiaCarInfo.getMessage());
-                    continue;
+                // 匹配车辆信息
+                ZhiJiaCarInfoDTO zhiJiaCarBrandInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackData, carBrandInfos);
+                if(zhiJiaCarBrandInfo.getIsMatch()){
+                    List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
+                    ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
+                    if(zhiJiaCarSeriesInfo.getIsMatch()){
+                        reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
+                        reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
+                    }else {
+                        updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
+                        continue;
+                    }
                 }
 
+                // 组装参数
+                buildAddZhiJiaClue(zhiJiaClueBackData, reqAddZhiJiaClueDTO);
                 // 调用高质线索创建接口
-                Result<Integer> result = zhiJiaClient.addZhiJiaClue(buildAddZhiJiaClue(zhiJiaClueBackData,reqAddZhiJiaClueDTO));
+                Result<Integer> result = zhiJiaClient.addZhiJiaClue(reqAddZhiJiaClueDTO);
                 // 更新结果
                 if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    // 匹配成功则更新状态和cclId
+                    // 创建线索成功则更新状态和cclId
                     Integer cclId = result.getData();
                     updatePushStatus(id, 2, cclId, result.getMessage());
                 } else {
-                    // 匹配失败更新
-                    updatePushStatus(id, 4, null, result.getMessage());
+                    // 创建线索失败
+                    updatePushStatus(id, 3, null, result.getMessage());
                 }
             }catch (Exception e){
-                updatePushStatus(id, 3, null, e.getMessage());
-                log.error("调用高质线索创建接口异常！", e.getMessage());
+                log.error("之家线索创建异常:{}", e.getMessage());
             }
         }
     }
@@ -178,16 +189,20 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         zhiJiaClueBackDataMapper.updateByExampleSelective(record,example);
     }
 
-    private ReqAddZhiJiaClueDTO buildAddZhiJiaClue(ZhiJiaClueBackData zhiJiaClueBackData,ReqAddZhiJiaClueDTO dto) {
+    private void buildAddZhiJiaClue(ZhiJiaClueBackData zhiJiaClueBackData,ReqAddZhiJiaClueDTO dto) {
         dto.setAccess_token(zhiJiaDataProcessService.getToken());
         dto.setMobile(zhiJiaClueBackData.getCell());
         dto.setMobilecode(encryptCell(zhiJiaClueBackData.getCell()));
         dto.setFirstregtime(zhiJiaClueBackData.getFirstRegTime());
         dto.setMileage(zhiJiaClueBackData.getMileAge());
-        dto.setAppid(Integer.valueOf(zhiJiaClientAppid));
-        return dto;
+        dto.setAppid(StringUtils.isNotBlank(zhiJiaClientAppid) ? Integer.parseInt(zhiJiaClientAppid) : 1742);
     }
 
+    /**
+     * 手机号加密
+     * @param cell
+     * @return
+     */
     public String encryptCell(String cell) {
         String keyStr = StringUtils.substring(Md5Utils.cell32(zhiJiaClientAppid), 0, 16);
         String ivStr = reverseString(keyStr);
