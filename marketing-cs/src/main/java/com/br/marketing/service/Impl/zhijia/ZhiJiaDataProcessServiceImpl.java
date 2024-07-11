@@ -1,7 +1,11 @@
 package com.br.marketing.service.Impl.zhijia;
 
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -16,6 +20,7 @@ import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
 import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -23,12 +28,9 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import com.br.marketing.mapper.ZhijiaCityConfigMapper;
 import com.br.marketing.mapper.ZhijiaCountyConfigBMapper;
@@ -65,6 +67,23 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     @Resource
     ZhijiaCountyConfigBMapper zhijiaCountyConfigBMapper;
 
+    @Resource
+    HttpProxyClient httpProxyClient;
+
+    @Value("${api.zhijiaCarInfo.isProxy:false}")
+    Boolean isProxy;
+
+    @Value("${api.zhijiaCarInfo.brandUrl:00}")
+    private String brandUrl;
+
+    @Value("${api.zhijiaCarInfo.seriesUrl:00}")
+    private String seriesUrl;
+
+    @Value("${api.zhijiaCarInfo.appId:0}")
+    private String appId;
+
+    @Value("${api.zhijiaCarInfo.querykey:0}")
+    private String querykey;
 
     @Override
     public void getCityAndCounty() {
@@ -72,7 +91,13 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     }
 
     @Override
+    @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public void getBrandAndseries() {
+        String url = brandUrl + "?access_token=" + getToken() + "&appid=" + appId + "&querykey=" + querykey;
+        HashMap<String, String> stringStringHashMap = httpProxyClient.get(url, isProxy);
+        String s = stringStringHashMap.get("content");
+
 //        String brandBame = zhiJiaClueBackInf.getBrandBame();
 //        String seriesName = zhiJiaClueBackInf.getSeriesName();
 //        String newBrandBame = removeSpacesAndConvertToUpper(brandBame);
@@ -305,7 +330,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         }
         // 模糊匹配
         List<ZhiJiaCarSeriesInfo> carSeriesInfos1 = zhiJiaCarSeriesInfos.stream()
-                .filter(seriesInfo -> complexCarSeriesFuzzyMatch(seriesName, seriesInfo.getNewSeriesName()))
+                .filter(seriesInfo -> seriesInfo.getNewSeriesName().contains(seriesName))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carSeriesInfos1)) {
             if (carSeriesInfos1.size() == 1) {
@@ -368,42 +393,17 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     }
 
     /**
-     * 车系模糊匹配，返回布尔结果
-     *
-     * @param carSeries 被匹配车系名称
-     * @param pattern 匹配模板
-     * @return 如果carSeries匹配pattern则返回true，否则返回false
+     * 将给定的字符串转换为全英文大写，并去除非字母数字字符。
+     * @param input 输入的字符串
+     * @return 转换后的字符串
      */
-    public static boolean complexCarSeriesFuzzyMatch(String carSeries, String pattern) {
-        if (carSeries == null || pattern == null) {
-            return false;
-        }
-
-        // 忽略大小写并去除非字母数字字符进行匹配
-        String normalizedCarSeries = carSeries.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
-        String normalizedPattern = pattern.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
-
-        // 检查 pattern 是否包含 carSeries
-        return normalizedPattern.contains(normalizedCarSeries);
-    }
-
-    /**
-     * 去除字符串里的空格，并将其转为全大写字符串
-     *
-     * @param str
-     * @return java.lang.String
-     * @author guangxiu.li
-     * @date 2024/7/9 17:46
-     */
-    public static String removeSpacesAndConvertToUpper(String str) {
-        if (str == null) {
+    public static String removeSpacesAndConvertToUpper(String input) {
+        if (input == null) {
             return null;
         }
-        // 去除所有空格
-        String noSpaces = str.replaceAll("\\s+", "");
-        // 转为大写
-        String upperCase = noSpaces.toUpperCase();
-        return upperCase;
+
+        // 去除非字母数字字符并转换为大写
+        return input.replaceAll("[^a-zA-Z0-9]", "").toUpperCase();
     }
 
     /**
