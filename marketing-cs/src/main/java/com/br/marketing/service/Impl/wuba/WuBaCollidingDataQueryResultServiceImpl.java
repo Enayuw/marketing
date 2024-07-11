@@ -90,44 +90,38 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         }
 
         Result result = wuBaServiceClient.queryCredentialStuffingResult(batchNo);
+        String title = "";
         String msg = "";
         if (Objects.equals(result.getCode(), ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
             JSONObject resMap = JSONObject.parseObject(result.getData().toString());
 
             if (!"200".equals(resMap.getString("httpcode")) || StringUtils.isBlank(resMap.getString("content"))) {
-                msg = "";
+                title = "58查询撞库结果，调用客户接口异常";
+                msg = title + "，响应内容：" + JSON.toJSONString(resMap);
+                wuBaServiceClient.sendDingDingAlert("58查询撞库结果，调用客户接口异常", msg);
                 return;
             }
 
             // 9991
-            msg = "";
+            title = "58查询撞库结果，code返回9991";
+            msg = title + "，响应内容：" + JSON.toJSONString(resMap);
+            wuBaServiceClient.sendDingDingAlert("58查询撞库结果，code返回9991", msg);
             return;
         }
 
         if (Objects.equals(result.getCode(), ResultCode.FAIL.getValue())) {
-            msg = "";
+            JSONObject resMap = JSONObject.parseObject(result.getData().toString());
+
+            title = "58查询撞库结果，code码异常";
+            msg = title + "，响应内容：" + JSON.toJSONString(resMap);
+            wuBaServiceClient.sendDingDingAlert("58查询撞库结果，code码异常", msg);
             updateQueryStatus(wubaCollidingBatchNo, 2);
+            return;
         }
 
         if (Objects.equals(result.getCode(), ResultCode.SUCCESS.getValue())) {
             updateQueryStatus(wubaCollidingBatchNo, 1);
-            // 根据批次号更新log表撞库结果
-            JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(result.getData()));
-            ArrayList<String> resultList = Lists.newArrayList();
-            for (Object o : jsonArray) {
-                JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(o));
-                String mobileEncrypt = jsonObject.getString("mobileEncrypt");
-                resultList.add(mobileEncrypt);
-            }
-
-            List<WubaCollidingDataLog> logs = getLogs(batchNo);
-            List<WubaCollidingDataLog> trueDataLogs =
-                    logs.stream().filter((WubaCollidingDataLog t) -> resultList.contains(t.getCell())).collect(Collectors.toList());
-            saveResult(trueDataLogs, Boolean.TRUE);
-
-            List<WubaCollidingDataLog> falseDataLogs =
-                    logs.stream().filter((WubaCollidingDataLog t) -> !resultList.contains(t.getCell())).collect(Collectors.toList());
-            saveResult(falseDataLogs, Boolean.FALSE);
+            ArrayList<String> resultList = updateLogResultByBatchNo(result, batchNo);
 
             if (CollectionUtils.isEmpty(resultList)) {
                 return;
@@ -139,6 +133,27 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             // 可营销数据保存到上传清洗表
             wubaCollidingDataSyncCleanMapper.batchSaveData(resultList, batchNo);
         }
+    }
+
+    private ArrayList<String> updateLogResultByBatchNo(Result result, String batchNo) {
+        // 根据批次号更新log表撞库结果
+        JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(result.getData()));
+        ArrayList<String> resultList = Lists.newArrayList();
+        for (Object o : jsonArray) {
+            JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(o));
+            String mobileEncrypt = jsonObject.getString("mobileEncrypt");
+            resultList.add(mobileEncrypt);
+        }
+
+        List<WubaCollidingDataLog> logs = getLogs(batchNo);
+        List<WubaCollidingDataLog> trueDataLogs =
+                logs.stream().filter((WubaCollidingDataLog t) -> resultList.contains(t.getCell())).collect(Collectors.toList());
+        saveResult(trueDataLogs, Boolean.TRUE);
+
+        List<WubaCollidingDataLog> falseDataLogs =
+                logs.stream().filter((WubaCollidingDataLog t) -> !resultList.contains(t.getCell())).collect(Collectors.toList());
+        saveResult(falseDataLogs, Boolean.FALSE);
+        return resultList;
     }
 
     private void saveResult(List<WubaCollidingDataLog> logs, Boolean result) {

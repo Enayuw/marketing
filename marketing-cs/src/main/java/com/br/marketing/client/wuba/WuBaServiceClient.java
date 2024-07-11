@@ -10,6 +10,8 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,8 @@ public class WuBaServiceClient {
 
     @Autowired
     HttpProxyClient httpProxyClient;
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
@@ -175,5 +180,22 @@ public class WuBaServiceClient {
 
     private HashMap<String, String> getMock() {
         return new HashMap<>();
+    }
+
+    public void sendDingDingAlert(String title, String text) {
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        markdown.setTitle(title);
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+
+        String token = marketingCommonConfig.getQiFuDingDingAccessToken();
+        String secret = marketingCommonConfig.getQiFuDingDingSecret();
+        try {
+            dingDingRobotHookService.sendMessageGroup(token,
+                    secret, dingDingMarkdownMessage, isProxy);
+        } catch (Exception e) {
+            log.error(text+" 发送钉钉消息失败:"+e.getMessage(),e);
+        }
     }
 }
