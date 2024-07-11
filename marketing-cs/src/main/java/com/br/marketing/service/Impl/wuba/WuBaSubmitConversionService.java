@@ -1,0 +1,138 @@
+package com.br.marketing.service.Impl.wuba;
+
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.entity.WubaCollidingBatchNo;
+import com.br.marketing.entity.WubaSubmitConversionData;
+import com.br.marketing.entity.WubaSubmitConversionDataExample;
+import com.br.marketing.entity.WubaSubmitConversionDataLog;
+import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
+import com.br.marketing.mapper.WubaSubmitConversionDataLogMapper;
+import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
+import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * @Description 58新客提交营销名单
+ * @Author lixiang
+ * @Date 2024-07-10
+ */
+@Service
+@Slf4j
+public class WuBaSubmitConversionService {
+
+    private final static String TITLE = "【58新客提交营销名单】";
+
+    @Resource
+    private WubaSubmitConversionDataMapper wubaSubmitConversionDataMapper;
+
+    @Resource
+    private WubaCollidingBatchNoMapper wubaCollidingBatchNoMapper;
+
+    @Resource
+    private WubaSubmitConversionDataLogMapper wubaSubmitConversionDataLogMapper;
+
+
+    public void action(Page2Condition<WubaSubmitConversionData> condition) {
+        scanData(condition);
+    }
+
+    public void scanData(Page2Condition<WubaSubmitConversionData> condition) {
+        WubaSubmitConversionData param = condition.getParam();
+        String apiCode = param.getApiCode();
+        Integer status = param.getStatus();
+        Integer pushStatus = param.getPushStatus();
+        Integer pageSize = condition.getPageSize();
+
+        Long indexId = null;
+        while (true) {
+            // 循环获取条件数据，每次pageSize条
+            final List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
+                    apiCode, status, pushStatus, "", indexId, pageSize);
+
+            if (CollectionUtils.isEmpty(pageList)) {
+                log.warn(TITLE+"未获取到数据");
+                break;
+            }
+
+            indexId = pageList.get(pageList.size() - 1).getId();
+
+            processData(pageList, condition);
+
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public Result<?> processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition) {
+        // call
+        Result<?> result = callAction(pageList, condition);
+        if(!result.isSuccess() || result.getData()==null){
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
+
+        result.getData();
+
+        // 上报批次表
+        String batchNo = "";
+        WubaCollidingBatchNo batchRecord = new WubaCollidingBatchNo();
+        batchRecord.setBatchNo(batchNo);
+        batchRecord.setBatchType(2);
+        batchRecord.setPushTime(new Date());
+        batchRecord.setQueryStatus(0);
+        int insert = wubaCollidingBatchNoMapper.insert(batchRecord);
+        if(insert < 1){
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+
+        // 上报日志表
+        List<WubaSubmitConversionDataLog> dataLogList = pageList.stream().map((WubaSubmitConversionData data) -> {
+            WubaSubmitConversionDataLog dataLogRecord = new WubaSubmitConversionDataLog();
+            dataLogRecord.setApiCode(data.getApiCode());
+            dataLogRecord.setDataId(data.getId());
+            dataLogRecord.setCell(data.getCell());
+            dataLogRecord.setBatchNo(batchNo);
+            dataLogRecord.setSubmitResult(0);
+            return dataLogRecord;
+        }).collect(Collectors.toList());
+
+        int batchAdd = wubaSubmitConversionDataLogMapper.batchAdd(dataLogList);
+        if(batchAdd != dataLogList.size()){
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+
+        //营销名单上报表push_status置为1-推送中
+        WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
+        dataUpdate.setPushStatus(1);
+        WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
+        List<Long> ids = pageList.stream().map((WubaSubmitConversionData data) -> data.getId()).collect(Collectors.toList());
+        dataExample.createCriteria().andIdIn(ids);
+        int updateStatus = wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
+        return new Result();
+    }
+
+    public Result<?> callAction(List<WubaSubmitConversionData> outputDataList, Page2Condition<WubaSubmitConversionData> condition) {
+        Result<Object> result = new Result<>();
+        if (CollectionUtils.isEmpty(outputDataList)) {
+            result.setCode(ResultCode.FAIL.getValue());
+            return result;
+        }
+
+        int magnitudes = outputDataList.size();
+        long startTime = System.currentTimeMillis();
+        // byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+        long endTime = System.currentTimeMillis();
+        log.warn(TITLE+"callAction, 量级{}, 耗时{}", magnitudes, (endTime-startTime));
+        return result;
+    }
+}
