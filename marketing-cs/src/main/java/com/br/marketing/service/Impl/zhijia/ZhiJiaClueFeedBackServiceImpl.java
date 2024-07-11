@@ -150,37 +150,37 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             Long id = zhiJiaClueBackData.getId();
             try {
                 ReqAddZhiJiaClueDTO reqAddZhiJiaClueDTO = new ReqAddZhiJiaClueDTO();
-                //// 匹配省市区信息
-                //CityCountyDataDTO cityCountyDataDTO = zhiJiaDataProcessService.matchCityAndCounty(cityConfigList,countyConfigList,zhiJiaClueBackData);
-                //if(cityCountyDataDTO.getIsMatch()){
-                //    reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
-                //    reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
-                //}else {
-                //    updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
-                //    // 钉钉报警
-                //    if (StringUtils.isNotBlank(accessToken)) {
-                //        errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),id,cityCountyDataDTO.getErrorMsg());
-                //    }
-                //    continue;
-                //}
-                //
-                //// 匹配车辆信息
-                //ZhiJiaCarInfoDTO zhiJiaCarBrandInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackData, carBrandInfos);
-                //if(zhiJiaCarBrandInfo.getIsMatch()){
-                //    List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
-                //    ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
-                //    if(zhiJiaCarSeriesInfo.getIsMatch()){
-                //        reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
-                //        reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
-                //    }else {
-                //        updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
-                //        // 钉钉报警
-                //        if (StringUtils.isNotBlank(accessToken)) {
-                //            errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),id,zhiJiaCarSeriesInfo.getErrorMsg());
-                //        }
-                //        continue;
-                //    }
-                //}
+                // 匹配省市区信息
+                CityCountyDataDTO cityCountyDataDTO = zhiJiaDataProcessService.matchCityAndCounty(cityConfigList,countyConfigList,zhiJiaClueBackData);
+                if(cityCountyDataDTO.getIsMatch()){
+                    reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
+                    reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
+                }else {
+                    updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
+                    // 钉钉报警
+                    if (StringUtils.isNotBlank(accessToken)) {
+                        errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),id,cityCountyDataDTO.getErrorMsg());
+                    }
+                    continue;
+                }
+
+                // 匹配车辆信息
+                ZhiJiaCarInfoDTO zhiJiaCarBrandInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackData, carBrandInfos);
+                if(zhiJiaCarBrandInfo.getIsMatch()){
+                    List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
+                    ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
+                    if(zhiJiaCarSeriesInfo.getIsMatch()){
+                        reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
+                        reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
+                    }else {
+                        updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
+                        // 钉钉报警
+                        if (StringUtils.isNotBlank(accessToken)) {
+                            errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),id,zhiJiaCarSeriesInfo.getErrorMsg());
+                        }
+                        continue;
+                    }
+                }
 
                 // 组装参数
                 buildAddZhiJiaClue(zhiJiaClueBackData, reqAddZhiJiaClueDTO);
