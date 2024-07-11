@@ -1,21 +1,25 @@
 package com.br.marketing.service.Impl.zhijia;
 
-import cn.hutool.core.util.ObjectUtil;
-import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import cn.hutool.core.util.ObjectUtil;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.zhijia.ZhiJiaClient;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.zhijia.CityCountyDataDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
 import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
 import io.etcd.jetcd.shaded.javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -26,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -38,6 +43,13 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
+
+
+    @Resource
+    private ZhiJiaClient zhiJiaClient;
+
+    @Autowired
+    RedisChgService redisChgService;
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
 
@@ -93,6 +105,45 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         }
 
         return cityCountyDataDTO;
+    }
+
+    /**
+     * 获取token
+     *
+     * @return String
+     * @author zhen.Li1
+     * @date 2024/7/11 10:10
+     */
+    @Override
+    public String getToken() {
+        String redisKey = RedisKeyConstant.ZHIJIA_GET_TOKEN_KEY;
+        String redisKeyLock = RedisKeyConstant.ZHIJIA_GET_TOKEN_KEY_LOCK;
+        String value = UUID.randomUUID().toString();
+        String token = null;
+        try {
+            token = redisChgService.get(redisKey);
+            if (StringUtils.isNotEmpty(token)) {
+                return token;
+            } else {
+                boolean lock = redisChgService.lock(redisKeyLock, value, 3000L);
+                if (lock == true) {
+                    //获取锁成功，调接口
+                    Result<String> result = zhiJiaClient.getToken();
+                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                        token = result.getData();
+                        //写入redis
+                        redisChgService.setex(redisKey, token, 5400);
+                    } else {
+                        log.error("之家获取token调用异常,result= {}", result.getMessage());
+                    }
+                    redisChgService.unlock(redisKeyLock, value);
+                }
+            }
+        } catch (Exception e) {
+            redisChgService.unlock(redisKeyLock, value);
+            log.error("之家获取token程序异常异常", e);
+        }
+        return token;
     }
 
     @Override

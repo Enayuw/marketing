@@ -9,6 +9,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,12 @@ public class ZhiJiaClient {
     @Value("${api.zhijia.addC1HiqClueUrl:00}")
     private String addC1HiqClueUrl;
 
+    @Value("${api.zhijia.zhiJiaClientId:00}")
+    private String clientId;
+
+    @Value("${api.zhijia.zhiJiaClientSecret:00}")
+    private String clientSecret;
+
     @Autowired
     HttpProxyClient httpProxyClient;
 
@@ -42,7 +49,7 @@ public class ZhiJiaClient {
     private final static String TITLE = "【推送之家创建接口】";
 
     @RetryMethod(retryNowNum = 3)
-    public Result addZhiJiaClue(ReqAddZhiJiaClueDTO dto){
+    public Result addZhiJiaClue(ReqAddZhiJiaClueDTO dto) {
 
         HashMap<String, String> resMap = new HashMap<>();
         // 获取挡板开关
@@ -55,16 +62,16 @@ public class ZhiJiaClient {
             resMap.put("httpcode", mock.get("httpcode").toString());
         } else {
             long start = System.currentTimeMillis();
-            log.warn(TITLE+"调度开始, requestParam{}", JSONObject.toJSONString(dto));
+            log.warn(TITLE + "调度开始, requestParam{}", JSONObject.toJSONString(dto));
             resMap = httpProxyClient.sendByCodeWithLog(dto, addC1HiqClueUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(dto), true, true);
             long end = System.currentTimeMillis();
-            log.warn(TITLE+"调度结束, result:{}, 耗时:{}", resMap, end - start);
+            log.warn(TITLE + "调度结束, result:{}, 耗时:{}", resMap, end - start);
         }
 
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error(TITLE+"接口异常-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
+            log.error(TITLE + "接口异常-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
 
@@ -73,12 +80,36 @@ public class ZhiJiaClient {
         String returncode = resultJson.getString("returncode");
 
         if ("0".equals(returncode)) {
-            log.warn(TITLE+"接口，返回returncode为0，请求正常");
+            log.warn(TITLE + "接口，返回returncode为0，请求正常");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
-        }else {
-            log.error(TITLE+"接口异常，返回returncode非0，最多重试三次");
+        } else {
+            log.error(TITLE + "接口异常，返回returncode非0，最多重试三次");
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
+    }
+
+
+    @RetryMethod(retryNowNum = 3)
+    public Result getToken() {
+
+        HashMap<String, String> resMap = new HashMap<>();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("response_type", "token");
+        jsonObject.put("client_id", clientId);
+        jsonObject.put("dataList", clientSecret);
+        resMap = httpProxyClient.sendByCodeWithLog(jsonObject, addC1HiqClueUrl, isProxy,
+                MediaType.APPLICATION_JSON_UTF8_VALUE,
+                JSON.toJSONString(jsonObject), true, true);
+
+        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+            log.error("之家获取token接口异常-请求参数:{};返回:{}", JSON.toJSONString(jsonObject), JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+        }
+        String content = resMap.get("content");
+        JSONObject resultJson = JSONObject.parseObject(content);
+        JSONObject data = resultJson.getJSONObject("data");
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(data.getString("access_token"));
+
     }
 
 }

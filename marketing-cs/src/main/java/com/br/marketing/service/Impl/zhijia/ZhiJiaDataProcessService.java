@@ -11,6 +11,9 @@ import java.util.List;
 
 public interface ZhiJiaDataProcessService {
 
+    String getToken();
+
+
 
     void getCityAndCounty();
 

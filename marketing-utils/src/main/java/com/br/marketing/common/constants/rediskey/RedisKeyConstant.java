@@ -209,4 +209,14 @@ public class RedisKeyConstant {
      */
     public static final String XIECHENG_RELEASE_TIME = prefix.concat("xiecheng:releaseTime:");
 
+    /**
+     * 之家获取token
+     */
+    public static final String ZHIJIA_GET_TOKEN_KEY = prefix.concat("zhijia:get:token");
+
+    /**
+     * 之家获取token加锁key
+     */
+    public static final String ZHIJIA_GET_TOKEN_KEY_LOCK = prefix.concat("zhijia:get:token:lock");
+
 }
