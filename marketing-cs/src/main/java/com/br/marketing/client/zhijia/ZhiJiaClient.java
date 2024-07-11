@@ -9,7 +9,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +19,7 @@ import java.util.HashMap;
 
 /**
  * @ClassName ZhiJiaClient
- * @Description TODO
+ * @Description 推送之家创建接口
  * @Author kongbx
  * @Date 2024/7/10 16:49
  */
@@ -54,22 +53,24 @@ public class ZhiJiaClient {
         HashMap<String, String> resMap = new HashMap<>();
         // 获取挡板开关
         HashMap<String, Object> mock = marketingCommonConfig.getZhiJiaUndoMock();
-        if (mock.get("switch") == Boolean.TRUE) {
+        if (mock.get("switch") == Boolean.FALSE) {
+            long start = System.currentTimeMillis();
+            log.warn(TITLE + "调度开始, 入参:{}", JSONObject.toJSONString(dto));
+
+            resMap = httpProxyClient.sendByCodeWithLog(dto, addC1HiqClueUrl, isProxy,
+                    MediaType.APPLICATION_JSON_UTF8_VALUE,
+                    JSON.toJSONString(dto), true, true);
+
+            log.warn(TITLE + "调度结束, 返回值:{}, 耗时:{}", resMap, System.currentTimeMillis() - start);
+        } else {
             JSONObject mockJson = new JSONObject();
             mockJson.put("returncode", mock.get("code"));
             mockJson.put("message", "处理成功");
             resMap.put("content", JSON.toJSONString(mockJson));
             resMap.put("httpcode", mock.get("httpcode").toString());
-        } else {
-            long start = System.currentTimeMillis();
-            log.warn(TITLE + "调度开始, requestParam{}", JSONObject.toJSONString(dto));
-            resMap = httpProxyClient.sendByCodeWithLog(dto, addC1HiqClueUrl, isProxy,
-                    MediaType.APPLICATION_JSON_UTF8_VALUE,
-                    JSON.toJSONString(dto), true, true);
-            long end = System.currentTimeMillis();
-            log.warn(TITLE + "调度结束, result:{}, 耗时:{}", resMap, end - start);
         }
 
+        // 请求异常
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.error(TITLE + "接口异常-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
@@ -77,17 +78,17 @@ public class ZhiJiaClient {
 
         String content = resMap.get("content");
         JSONObject resultJson = JSONObject.parseObject(content);
+        JSONObject data = resultJson.getJSONObject("result");
         String returncode = resultJson.getString("returncode");
 
         if ("0".equals(returncode)) {
             log.warn(TITLE + "接口，返回returncode为0，请求正常");
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(data.getString("cclid"));
         } else {
             log.error(TITLE + "接口异常，返回returncode非0，最多重试三次");
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
     }
-
 
     @RetryMethod(retryNowNum = 3)
     public Result getToken() {
