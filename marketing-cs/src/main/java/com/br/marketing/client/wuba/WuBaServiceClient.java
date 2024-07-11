@@ -95,7 +95,7 @@ public class WuBaServiceClient {
 
         // 处理响应
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         }
 
         String content = resMap.get("content");
@@ -103,6 +103,8 @@ public class WuBaServiceClient {
         Integer code = resultJson.getInteger("code");
         if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultJson.get("data"));
+        } else if (code == 9991) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
@@ -156,7 +158,7 @@ public class WuBaServiceClient {
 
         // 处理响应
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         }
 
         String content = resMap.get("content");
@@ -164,6 +166,8 @@ public class WuBaServiceClient {
         Integer code = resultJson.getInteger("code");
         if (code == 0) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultJson.get("data"));
+        } else if (code == 9991) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
