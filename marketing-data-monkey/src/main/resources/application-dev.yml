@@ -120,6 +120,7 @@ api:
   zhijia:
     baseUri: https://openapi.autohome.com.cn/che168/apiclueopen
     addC1HiqClueUrl: ${api.zhijia.baseUri}/CarEstimate/AddC1HiqClue.ashx
+    getTokenUrl: https://openapi.autohome.com.cn/api/oauth2/authorize
     brandUrl: ${api.zhijiaCarInfo.baseUri}/public/getbrands.ashx
     seriesUrl: ${api.zhijiaCarInfo.baseUri}/public/getseriesbybrandId.ashx
     cityInfoUrl: ${api.zhijiaCarInfo.baseUri}/public/queryarea.ashx

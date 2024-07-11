@@ -206,6 +206,7 @@ api:
   zhijia:
     baseUri: https://openapi.autohome.com.cn/che168/apiclueopen
     addC1HiqClueUrl: ${api.zhijia.baseUri}/CarEstimate/AddC1HiqClue.ashx
+    getTokenUrl: https://openapi.autohome.com.cn/api/oauth2/authorize
     zhiJiaClientId: JwpfGWx6hkxgIqUI7ncBjy0m7cQg1r39
     zhiJiaClientSecret: pQDg3DG3qWfkIfDqH8NVLZnhBOvxJjlW
     zhiJiaClientAppid: 1742
