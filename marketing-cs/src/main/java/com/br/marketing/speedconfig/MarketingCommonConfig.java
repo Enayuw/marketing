@@ -1773,5 +1773,20 @@ public class MarketingCommonConfig {
      * 奇富360上传推决策有效期检测延迟时长配置，单位：秒
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
+
+    /**
+     * 58同程撞库提交撞库apiCode集合
+     */
+    private List<String> wubaCollidingApiCodes;
+
+    /**
+     * 58撞库数据同步线程数
+     */
+    private Integer wubaCollidingDataSyncThreadNum;
+
+    /**
+     * 58同步撞库数据分页条数
+     */
+    private Integer wuBaCollidingDataSyncPageSize;
 }
 

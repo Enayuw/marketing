@@ -188,14 +188,6 @@ api:
     rsapKey: MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCVuaxc7ZznPdvsH0nhd2eQ/uhu/LewJqUVMvdYUKwXPxzGBUz8cVKyltwpMJ03uMPx+RStWnkWcmCSeQdqiw27FtaPELOxxQQc06OGBXfp5R86MKp2+bkdPRSkpUKK2X8vCyiopQojBXbaVzRUwjPPsQAsDinCGkSUirWETxfCxwIDAQAB
     xdCode: 07brdyy01
     bxCode: 3360001
-  wuba:
-    baseUrl: http://common-gateway.58.com
-    submitCredentialStuffingListUrl: ${api.wuba.baseUrl}/thirdpartnar/v2/submitCredentialStuffingList
-    queryCredentialStuffingResultUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/queryCredentialStuffingResult
-    submitConversionListUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/submitConversionList
-    queryConversionResultUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/queryConversionResult
-    orgCode: bairongkj
-    isProxy: true
   marketing:
     baseUrl: http://k8s.brapp.com/compass-api/api/marketing-api
     transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
