@@ -10,6 +10,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.zhijia.CityCountyDataDTO;
+import com.br.marketing.dto.zhijia.ZhiJiaCarInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
 import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
@@ -228,40 +229,44 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     }
 
     @Override
-    public Result<ZhiJiaCarSeriesInfo> getZhiJiaCarBrandInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos) {
-        ZhiJiaCarSeriesInfo data = new ZhiJiaCarSeriesInfo();
+    public ZhiJiaCarInfoDTO getZhiJiaCarBrandInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos) {
+        ZhiJiaCarInfoDTO zhiJiaCarInfoDTO = new ZhiJiaCarInfoDTO();
         String brandName = removeSpacesAndConvertToUpper(zhiJiaClueBackInfo.getBrandName());
-        for (ZhiJiaCarBrandInfo brandInfo : zhiJiaCarBrandInfos) {
-                Integer brandId = brandInfo.getBrandId();
-                String newBrandName = brandInfo.getNewBrandName();
-
-                // 精确匹配
-                if (preciseMatch(brandName, newBrandName)) {
-                    data.setBrandId(brandId);
-                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-                }
-
-                // 模糊匹配
-                if (complexFuzzyMatch(newBrandName, brandName)) {
-                    data.setBrandId(brandId);
-                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-                }
-
-                // 补充配置匹配
-                String brandExtend = brandInfo.getBrandExtend();
-                if (StringUtils.isNotBlank(brandExtend)) {
-                    List<String> brandList = Arrays.asList(brandExtend.split(","));
-                    if (brandList.contains(brandName)) {
-                        data.setBrandId(brandId);
-                        return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-                    }
-                }
-                // 未匹配成功
-                String msg = "匹配车辆品牌失败！配置表中无这个车辆品牌，品牌名称：" + brandName;
-                return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
+        // 精确匹配
+        List<ZhiJiaCarBrandInfo> carBrandInfos = zhiJiaCarBrandInfos.stream()
+                .filter(brandInfo -> preciseMatch(brandInfo.getNewBrandName(), brandName))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(carBrandInfos)) {
+            zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+            zhiJiaCarInfoDTO.setBrandId(carBrandInfos.get(0).getBrandId());
+            return zhiJiaCarInfoDTO;
         }
-        String msg = "匹配车辆品牌失败！配置表中无这个车辆品牌，品牌名称：" + brandName;
-        return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
+        // 模糊匹配
+        List<ZhiJiaCarBrandInfo> carBrandInfos1 = zhiJiaCarBrandInfos.stream()
+                .filter(brandInfo -> complexFuzzyMatch(brandInfo.getNewBrandName(), brandName))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(carBrandInfos1)) {
+            if (carBrandInfos1.size() == 1) {
+                zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+                zhiJiaCarInfoDTO.setBrandId(carBrandInfos1.get(0).getBrandId());
+                return zhiJiaCarInfoDTO;
+            } else {
+                zhiJiaCarInfoDTO.setIsMatch(Boolean.FALSE);
+                zhiJiaCarInfoDTO.setErrorMsg("车辆品牌匹配到多条，品牌名：" +  brandName);
+                return zhiJiaCarInfoDTO;
+            }
+        }
+        //扩展配置匹配
+        List<ZhiJiaCarBrandInfo> carBrandInfos2 = zhiJiaCarBrandInfos.stream().filter(brandInfo ->
+                Arrays.asList(brandInfo.getBrandExtend().split(",")).contains(brandName)).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(carBrandInfos2)) {
+            zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+            zhiJiaCarInfoDTO.setBrandId(carBrandInfos2.get(0).getBrandId());
+            return zhiJiaCarInfoDTO;
+        }
+        zhiJiaCarInfoDTO.setIsMatch(Boolean.FALSE);
+        zhiJiaCarInfoDTO.setErrorMsg("车辆品牌匹配失败，品牌名：" + brandName);
+        return zhiJiaCarInfoDTO;
     }
 
 
@@ -286,40 +291,44 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
 
 
     @Override
-    public Result<ZhiJiaCarSeriesInfo> getZhiJiaCarSeriesInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos) {
-        ZhiJiaCarSeriesInfo data = new ZhiJiaCarSeriesInfo();
+    public ZhiJiaCarInfoDTO getZhiJiaCarSeriesInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos) {
         String seriesName = removeSpacesAndConvertToUpper(zhiJiaClueBackInfo.getSeriesName());
-        for (ZhiJiaCarSeriesInfo seriesInfo : zhiJiaCarSeriesInfos) {
-            Integer seriesId = seriesInfo.getSeriesId();
-            String newSeriesName = seriesInfo.getNewSeriesName();
-
-            // 精确匹配
-            if (preciseMatch(seriesName, newSeriesName)) {
-                data.setSeriesId(seriesId);
-                return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-            }
-
-            // 模糊匹配
-            if (complexCarSeriesFuzzyMatch(seriesName, newSeriesName)) {
-                data.setSeriesId(seriesId);
-                return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-            }
-
-            // 补充配置匹配
-            String seriesExtend = seriesInfo.getSeriesExtend();
-            if (StringUtils.isNotBlank(seriesExtend)) {
-                List<String> seriesList = Arrays.asList(seriesExtend.split(","));
-                if (seriesList.contains(seriesName)) {
-                    data.setSeriesId(seriesId);
-                    return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
-                }
-            }
-            // 未匹配成功
-            String msg = "匹配车系失败！配置表中无这个车系，车系名称：" + seriesName;
-            return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
+        ZhiJiaCarInfoDTO zhiJiaCarInfoDTO = new ZhiJiaCarInfoDTO();
+        // 精确匹配
+        List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaCarSeriesInfos.stream()
+                .filter(seriesInfo -> preciseMatch(seriesInfo.getNewSeriesName(), seriesName))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(carSeriesInfos)) {
+            zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+            zhiJiaCarInfoDTO.setSeriesId(carSeriesInfos.get(0).getSeriesId());
+            return zhiJiaCarInfoDTO;
         }
-        String msg = "匹配车系失败！配置表中无这个车系，车系名称：" + seriesName;
-        return new Result<ZhiJiaCarSeriesInfo>().setCode(ResultCode.FAIL.getValue()).setMessage(msg);
+        // 模糊匹配
+        List<ZhiJiaCarSeriesInfo> carSeriesInfos1 = zhiJiaCarSeriesInfos.stream()
+                .filter(seriesInfo -> complexCarSeriesFuzzyMatch(seriesName, seriesInfo.getNewSeriesName()))
+                .collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(carSeriesInfos1)) {
+            if (carSeriesInfos1.size() == 1) {
+                zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+                zhiJiaCarInfoDTO.setSeriesId(carSeriesInfos1.get(0).getSeriesId());
+                return zhiJiaCarInfoDTO;
+            } else {
+                zhiJiaCarInfoDTO.setIsMatch(Boolean.FALSE);
+                zhiJiaCarInfoDTO.setErrorMsg("车辆车系匹配到多条，车系名：" +  seriesName);
+                return zhiJiaCarInfoDTO;
+            }
+        }
+        //扩展配置匹配
+        List<ZhiJiaCarSeriesInfo> carSeriesInfos2 = zhiJiaCarSeriesInfos.stream().filter(seriesInfo ->
+                Arrays.asList(seriesInfo.getSeriesExtend().split(",")).contains(seriesName)).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(carSeriesInfos2)) {
+            zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+            zhiJiaCarInfoDTO.setSeriesId(carSeriesInfos2.get(0).getSeriesId());
+            return zhiJiaCarInfoDTO;
+        }
+        zhiJiaCarInfoDTO.setIsMatch(Boolean.FALSE);
+        zhiJiaCarInfoDTO.setErrorMsg("车辆品牌匹配失败，车系名：" + seriesName);
+        return zhiJiaCarInfoDTO;
     }
 
 

@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.zhijia;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.zhijia.CityCountyDataDTO;
+import com.br.marketing.dto.zhijia.ZhiJiaCarInfoDTO;
 import com.br.marketing.entity.*;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public interface ZhiJiaDataProcessService {
      * @param zhiJiaCarBrandInfos
      * @return
      */
-    Result<ZhiJiaCarSeriesInfo> getZhiJiaCarBrandInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos);
+    ZhiJiaCarInfoDTO getZhiJiaCarBrandInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos);
 
     List<ZhiJiaCarSeriesInfo> getCarSeriesInfos(int brandId);
 
@@ -39,7 +40,7 @@ public interface ZhiJiaDataProcessService {
      * @param zhiJiaCarSeriesInfos
      * @return
      */
-    Result<ZhiJiaCarSeriesInfo> getZhiJiaCarSeriesInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos);
+    ZhiJiaCarInfoDTO getZhiJiaCarSeriesInfo(ZhiJiaClueBackData zhiJiaClueBackInfo, List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos);
 
     List<ZhijiaCityConfig> getCityConfigList();
 
