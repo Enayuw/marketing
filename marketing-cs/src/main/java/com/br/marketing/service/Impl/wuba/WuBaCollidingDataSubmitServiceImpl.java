@@ -62,12 +62,12 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             return;
         }
 
-        // 更新非周期表
-        wubaCollidingDataRobMapper.batchUpdatePushTimeById(robs);
-
         // 保存批次号表
         String batchNo = result.getData().toString();
         wubaCollidingBatchNoMapper.saveDataByBatchNo(batchNo, 1);
+
+        // 更新非周期表
+        wubaCollidingDataRobMapper.batchUpdatePushTimeById(robs);
 
         // 保存log表
         List<WubaCollidingDataLog> logList = Lists.newArrayList();

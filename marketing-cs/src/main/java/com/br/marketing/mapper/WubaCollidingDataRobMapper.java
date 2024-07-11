@@ -10,4 +10,5 @@ public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBa
     void batchSaveData(@Param("robs") List<WubaCollidingDataFront> robs);
     List<WubaCollidingDataRob> selectCollidingData(@Param("pageSize") Integer pageSize);
     void batchUpdatePushTimeById(@Param("robs") List<WubaCollidingDataRob> robs);
+    void batchDeleteByCell(@Param("cells") List<String> cells);
 }

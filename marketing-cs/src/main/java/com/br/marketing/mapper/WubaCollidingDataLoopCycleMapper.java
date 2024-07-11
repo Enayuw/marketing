@@ -1,5 +1,9 @@
 package com.br.marketing.mapper;
 
-public interface WubaCollidingDataLoopCycleMapper extends WubaCollidingDataLoopCycleMapperBase{
+import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
+public interface WubaCollidingDataLoopCycleMapper extends WubaCollidingDataLoopCycleMapperBase{
+    void batchSaveData(@Param("list") List<String> list);
 }

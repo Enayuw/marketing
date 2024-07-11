@@ -21,4 +21,12 @@
             #{rob.id}
         </foreach>
     </update>
+
+    <update id="batchDeleteByCell">
+        update b_wuba_colliding_data_rob set is_delete = 1
+        where cell in
+        <foreach collection="cells" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </update>
 </mapper>

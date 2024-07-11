@@ -23,8 +23,7 @@
 
     <update id="batchUpdatePushStatusByCell">
         update b_wuba_colliding_data_front set push_status = 2,update_time = now()
-        where local_id = #{localId}
-        and cell in
+        where cell in
         <foreach collection="list" item="front" open="(" separator="," close=")">
             #{front.cell}
         </foreach>

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface WuBaCollidingDataBusinessService {
     void insertToRobAndUpdateFront(List<WubaCollidingDataFront> wubaCollidingDataFronts, LocalFile localFile);
+    void saveLoopAnddeleteRob(List<String> cells);
 }
