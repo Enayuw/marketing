@@ -402,8 +402,19 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             return null;
         }
 
-        // 去除非字母数字字符并转换为大写
-        return input.replaceAll("[^a-zA-Z0-9]", "").toUpperCase();
+        // 去除非字母数字字符，保留中文字符并转换为大写
+        StringBuilder normalizedString = new StringBuilder();
+        for (char ch : input.toCharArray()) {
+            if (Character.isLetterOrDigit(ch) || Character.isIdeographic(ch)) {
+                if (Character.isLowerCase(ch)) {
+                    normalizedString.append(Character.toUpperCase(ch));
+                } else {
+                    normalizedString.append(ch);
+                }
+            }
+        }
+
+        return normalizedString.toString();
     }
 
     /**
