@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.ZhiJiaCarBrandInfoMapperBase" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ZhiJiaCarSeriesInfo" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ZhiJiaCarBrandInfo" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="brand_id" property="brandId" jdbcType="INTEGER" />
-    <result column="series_id" property="seriesId" jdbcType="INTEGER" />
-    <result column="series_name" property="seriesName" jdbcType="VARCHAR" />
-    <result column="new_series_name" property="newSeriesName" jdbcType="VARCHAR" />
-    <result column="series_extend" property="seriesExtend" jdbcType="VARCHAR" />
+    <result column="brand_name" property="brandName" jdbcType="VARCHAR" />
+    <result column="new_brand_name" property="newBrandName" jdbcType="VARCHAR" />
+    <result column="brand_extend" property="brandExtend" jdbcType="VARCHAR" />
     <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -73,16 +72,16 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, brand_id, series_id, series_name, new_series_name, series_extend, applet_date,
-    create_time, update_time, is_del
+    id, api_code, brand_id, brand_name, new_brand_name, brand_extend, applet_date, create_time,
+    update_time, is_del
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfoExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhiJiaCarBrandInfoExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
-    from b_zhijia_car_series_information
+    from b_zhijia_car_brand_information
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -93,37 +92,37 @@
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select
     <include refid="Base_Column_List" />
-    from b_zhijia_car_series_information
+    from b_zhijia_car_brand_information
     where id = #{id,jdbcType=BIGINT}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_zhijia_car_series_information
+    delete from b_zhijia_car_brand_information
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfoExample" >
-    delete from b_zhijia_car_series_information
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ZhiJiaCarBrandInfoExample" >
+    delete from b_zhijia_car_brand_information
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfo" >
+  <insert id="insert" parameterType="com.br.marketing.entity.ZhiJiaCarBrandInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_zhijia_car_series_information (api_code, brand_id, series_id,
-    series_name, new_series_name, series_extend,
-    applet_date, create_time, update_time,
-    is_del)
-    values (#{apiCode,jdbcType=VARCHAR}, #{brandId,jdbcType=INTEGER}, #{seriesId,jdbcType=INTEGER},
-    #{seriesName,jdbcType=VARCHAR}, #{newSeriesName,jdbcType=VARCHAR}, #{seriesExtend,jdbcType=VARCHAR},
-    #{appletDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
-    #{isDel,jdbcType=INTEGER})
+    insert into b_zhijia_car_brand_information (api_code, brand_id, brand_name,
+    new_brand_name, brand_extend, applet_date,
+    create_time, update_time, is_del
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{brandId,jdbcType=INTEGER}, #{brandName,jdbcType=VARCHAR},
+    #{newBrandName,jdbcType=VARCHAR}, #{brandExtend,jdbcType=VARCHAR}, #{appletDate,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
+    )
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfo" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhiJiaCarBrandInfo" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_zhijia_car_series_information
+    insert into b_zhijia_car_brand_information
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
         api_code,
@@ -131,17 +130,14 @@
       <if test="brandId != null" >
         brand_id,
       </if>
-      <if test="seriesId != null" >
-        series_id,
+      <if test="brandName != null" >
+        brand_name,
       </if>
-      <if test="seriesName != null" >
-        series_name,
+      <if test="newBrandName != null" >
+        new_brand_name,
       </if>
-      <if test="newSeriesName != null" >
-        new_series_name,
-      </if>
-      <if test="seriesExtend != null" >
-        series_extend,
+      <if test="brandExtend != null" >
+        brand_extend,
       </if>
       <if test="appletDate != null" >
         applet_date,
@@ -163,17 +159,14 @@
       <if test="brandId != null" >
         #{brandId,jdbcType=INTEGER},
       </if>
-      <if test="seriesId != null" >
-        #{seriesId,jdbcType=INTEGER},
+      <if test="brandName != null" >
+        #{brandName,jdbcType=VARCHAR},
       </if>
-      <if test="seriesName != null" >
-        #{seriesName,jdbcType=VARCHAR},
+      <if test="newBrandName != null" >
+        #{newBrandName,jdbcType=VARCHAR},
       </if>
-      <if test="newSeriesName != null" >
-        #{newSeriesName,jdbcType=VARCHAR},
-      </if>
-      <if test="seriesExtend != null" >
-        #{seriesExtend,jdbcType=VARCHAR},
+      <if test="brandExtend != null" >
+        #{brandExtend,jdbcType=VARCHAR},
       </if>
       <if test="appletDate != null" >
         #{appletDate,jdbcType=VARCHAR},
@@ -189,14 +182,14 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfoExample" resultType="java.lang.Integer" >
-    select count(*) from b_zhijia_car_series_information
+  <select id="countByExample" parameterType="com.br.marketing.entity.ZhiJiaCarBrandInfoExample" resultType="java.lang.Integer" >
+    select count(*) from b_zhijia_car_brand_information
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
   <update id="updateByExampleSelective" parameterType="map" >
-    update b_zhijia_car_series_information
+    update b_zhijia_car_brand_information
     <set >
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
@@ -207,17 +200,14 @@
       <if test="record.brandId != null" >
         brand_id = #{record.brandId,jdbcType=INTEGER},
       </if>
-      <if test="record.seriesId != null" >
-        series_id = #{record.seriesId,jdbcType=INTEGER},
+      <if test="record.brandName != null" >
+        brand_name = #{record.brandName,jdbcType=VARCHAR},
       </if>
-      <if test="record.seriesName != null" >
-        series_name = #{record.seriesName,jdbcType=VARCHAR},
+      <if test="record.newBrandName != null" >
+        new_brand_name = #{record.newBrandName,jdbcType=VARCHAR},
       </if>
-      <if test="record.newSeriesName != null" >
-        new_series_name = #{record.newSeriesName,jdbcType=VARCHAR},
-      </if>
-      <if test="record.seriesExtend != null" >
-        series_extend = #{record.seriesExtend,jdbcType=VARCHAR},
+      <if test="record.brandExtend != null" >
+        brand_extend = #{record.brandExtend,jdbcType=VARCHAR},
       </if>
       <if test="record.appletDate != null" >
         applet_date = #{record.appletDate,jdbcType=VARCHAR},
@@ -237,14 +227,13 @@
     </if>
   </update>
   <update id="updateByExample" parameterType="map" >
-    update b_zhijia_car_series_information
+    update b_zhijia_car_brand_information
     set id = #{record.id,jdbcType=BIGINT},
     api_code = #{record.apiCode,jdbcType=VARCHAR},
     brand_id = #{record.brandId,jdbcType=INTEGER},
-    series_id = #{record.seriesId,jdbcType=INTEGER},
-    series_name = #{record.seriesName,jdbcType=VARCHAR},
-    new_series_name = #{record.newSeriesName,jdbcType=VARCHAR},
-    series_extend = #{record.seriesExtend,jdbcType=VARCHAR},
+    brand_name = #{record.brandName,jdbcType=VARCHAR},
+    new_brand_name = #{record.newBrandName,jdbcType=VARCHAR},
+    brand_extend = #{record.brandExtend,jdbcType=VARCHAR},
     applet_date = #{record.appletDate,jdbcType=VARCHAR},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
     update_time = #{record.updateTime,jdbcType=TIMESTAMP},
@@ -253,8 +242,8 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfo" >
-    update b_zhijia_car_series_information
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ZhiJiaCarBrandInfo" >
+    update b_zhijia_car_brand_information
     <set >
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
@@ -262,17 +251,14 @@
       <if test="brandId != null" >
         brand_id = #{brandId,jdbcType=INTEGER},
       </if>
-      <if test="seriesId != null" >
-        series_id = #{seriesId,jdbcType=INTEGER},
+      <if test="brandName != null" >
+        brand_name = #{brandName,jdbcType=VARCHAR},
       </if>
-      <if test="seriesName != null" >
-        series_name = #{seriesName,jdbcType=VARCHAR},
+      <if test="newBrandName != null" >
+        new_brand_name = #{newBrandName,jdbcType=VARCHAR},
       </if>
-      <if test="newSeriesName != null" >
-        new_series_name = #{newSeriesName,jdbcType=VARCHAR},
-      </if>
-      <if test="seriesExtend != null" >
-        series_extend = #{seriesExtend,jdbcType=VARCHAR},
+      <if test="brandExtend != null" >
+        brand_extend = #{brandExtend,jdbcType=VARCHAR},
       </if>
       <if test="appletDate != null" >
         applet_date = #{appletDate,jdbcType=VARCHAR},
@@ -289,14 +275,13 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhiJiaCarSeriesInfo" >
-    update b_zhijia_car_series_information
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhiJiaCarBrandInfo" >
+    update b_zhijia_car_brand_information
     set api_code = #{apiCode,jdbcType=VARCHAR},
         brand_id = #{brandId,jdbcType=INTEGER},
-        series_id = #{seriesId,jdbcType=INTEGER},
-        series_name = #{seriesName,jdbcType=VARCHAR},
-        new_series_name = #{newSeriesName,jdbcType=VARCHAR},
-        series_extend = #{seriesExtend,jdbcType=VARCHAR},
+        brand_name = #{brandName,jdbcType=VARCHAR},
+        new_brand_name = #{newBrandName,jdbcType=VARCHAR},
+        brand_extend = #{brandExtend,jdbcType=VARCHAR},
         applet_date = #{appletDate,jdbcType=VARCHAR},
         create_time = #{createTime,jdbcType=TIMESTAMP},
         update_time = #{updateTime,jdbcType=TIMESTAMP},
