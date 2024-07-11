@@ -138,7 +138,8 @@ public class ZhiJiaClient {
         String url = "".concat("?access_token=").concat(token);
         resMap = httpProxyClient.get(url, isProxy);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("之家获取省市县接口异常-请求url:{};返回:{}", url, JSON.toJSONString(resMap));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),
+                    "之家获取省市县接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");
@@ -155,11 +156,11 @@ public class ZhiJiaClient {
     public Result getBrand(String token) {
 
         HashMap<String, String> resMap = new HashMap<>();
-        String url = brandUrl.concat("?access_token=").concat(token).concat("&appid=").concat(appId) .concat("&querykey=").concat(querykey);
+        String url = brandUrl.concat("?access_token=").concat(token).concat("&appid=").concat(appId).concat("&querykey=").concat(querykey);
         resMap = httpProxyClient.get(url, isProxy);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode()
-                    ,"之家获取车辆品牌接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
+                    , "之家获取车辆品牌接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");
@@ -182,7 +183,7 @@ public class ZhiJiaClient {
         resMap = httpProxyClient.get(url, isProxy);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode()
-                    ,"之家获取车辆车系接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
+                    , "之家获取车辆车系接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");

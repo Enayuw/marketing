@@ -52,13 +52,13 @@ public class ZhiJiaGetAreaBrandJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
 
         //获取市区县
-        getCity();
+        zhiJiaDataProcessService.getCityAndCounty();
         //获取品牌和车系
         zhiJiaDataProcessService.getBrandAndseries();
 
     }
 
-    private void getCity() {
+    /*private void getCity() {
         String token = zhiJiaDataProcessService.getToken();
         if (StringUtils.isEmpty(token)) {
             log.error("获取token异常");
@@ -128,5 +128,5 @@ public class ZhiJiaGetAreaBrandJob extends AbstractSimpleElasticJob {
             }
         });
 
-    }
+    }*/
 }
