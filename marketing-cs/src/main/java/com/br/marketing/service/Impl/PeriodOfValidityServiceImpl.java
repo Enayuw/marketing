@@ -400,17 +400,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-//        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
-//        example.createCriteria()
-//                .andApiCodeEqualTo(syncUser.getApiCode())
-//                .andUserTypeEqualTo(syncUser.getUserType())
-//                .andAppletDateEqualTo(syncUser.getAppletDate())
-//                .andValidTypeEqualTo(1)
-//                .andIsDelEqualTo(1);
-//        // 检查db中是否已经存在有效期记录
-//        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectByExample(example);
-        // 插入子表
-//        for (MarketingDataValidConfig marketingDataValidConfig : marketingDataValidConfigs) {
             // 查询子表是否已经生成有效期
             MarketingCustomizeDataValidConfigExample marketingCustomizeDataValidConfigExample =
                     new MarketingCustomizeDataValidConfigExample();
@@ -447,7 +436,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
                 }
             }
-//        }
         return result;
     }
 
