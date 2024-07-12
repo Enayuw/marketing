@@ -74,7 +74,7 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
 
             // local_id and status =1 and push_status =1
-            List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDate(localFile.getId(),
+            List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDatetikv_(localFile.getId(),
                     apiCode, minId, pageSize);
             if (CollectionUtils.isEmpty(wubaCollidingDataFronts)) {
                 break;

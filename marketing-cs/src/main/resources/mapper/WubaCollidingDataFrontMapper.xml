@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.WubaCollidingDataFrontMapper">
-    <select id="selectNoDupDataByCurDate" resultType="com.br.marketing.entity.WubaCollidingDataFront">
+    <select id="selectNoDupDataByCurDatetikv_" resultType="com.br.marketing.entity.WubaCollidingDataFront">
         select c.*
-        from (SELECT a.id, a.cell, ROW_NUMBER() OVER (PARTITION BY cell ORDER BY id) AS row_num
+        from (SELECT a.id, a.cell, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
         from b_wuba_colliding_data_front a
         left join b_wuba_colliding_data_rob b
         on a.cell = b.cell
