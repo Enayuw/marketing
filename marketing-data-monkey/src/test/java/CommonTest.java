@@ -104,5 +104,10 @@ public class CommonTest {
         System.err.println(brandId + "------------" + seriesId);
     }
 
+    @Test
+    public void testGetBrandAndseries(){
+        zhiJiaDataProcessService.getBrandAndseries();
+    }
+
 
 }

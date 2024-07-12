@@ -1791,5 +1791,10 @@ public class MarketingCommonConfig {
      * 之家创建线索程池数
      */
     private Integer zhiJiaCollidingThread;
+
+    /**
+     * 之家落库apiCode
+     */
+    private String zhiJiaApiCode;
 }
 
