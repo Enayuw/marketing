@@ -183,7 +183,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         if (CollectionUtils.isEmpty(savelogs)) {
             return;
         }
-        wubaCollidingDataLogMapper.batchUpdateResultById(savelogs);
+        wubaCollidingDataLogMapper.batchUpdateResultById(savelogs, result);
     }
 
     private List<WubaCollidingDataLog> getLogs(String batchNo, String apiCode) {
