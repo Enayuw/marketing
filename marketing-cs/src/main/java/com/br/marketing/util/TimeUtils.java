@@ -11,9 +11,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,6 +37,23 @@ public class TimeUtils {
     public static final String DATE_STRING = "yyyyMMdd";
     public static final String YMDHMS = "yyyyMMddHHmmss";
 
+
+
+    public static List<String> pattern = Arrays.asList(
+            "yyyy-MM-dd",
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy/MM/dd",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy-M-dd",
+            "yyyy-M-dd HH:mm:ss",
+            "yyyy/M/dd",
+            "yyyy/M/dd HH:mm:ss",
+            "MM-dd-yyyy",
+            "MM-dd-yyyy HH:mm:ss",
+            "dd-MM-yyyy",
+            "dd-MM-yyyy HH:mm:ss"
+            // 可以添加更多可能的格式
+    );
     /**
      * 转化日期
      *
@@ -381,6 +396,36 @@ public class TimeUtils {
         LocalTime localEndTime = LocalTime.parse(endTime,dtf);
         return LocalTime.now().isAfter(localStartTime) && LocalTime.now().isBefore(localEndTime);
     }
+    /**
+     * 处理时间格式的方法
+     *
+     * @param value 待处理的时间类型的值
+     * @return String 格式化后的时间值（yyyy-MM-dd HH:mm:ss）
+     */
+    public static String getFormatterValue(String value) {
+        Date date = null;
+        for (String parser : pattern) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(parser);
+                date = sdf.parse(value);
+                // 如果解析成功，则跳出循环
+                break;
+            } catch (ParseException e) {
+                // 忽略异常，并尝试下一个解析器
+                if (log.isInfoEnabled()) {
+                    log.warn("无法解析日期;格式:{};原值:{}", parser, value);
+                }
+            }
+        }
+        if (date != null) {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            value = formatter.format(date);
+        } else {
+            log.error("无法解析日期:{}", value);
+        }
+        return value;
+    }
+
     //7883
     public static void main(String[] args) {
         System.out.println(getRemainSecondsOneDay(new Date()));

@@ -66,14 +66,16 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
     }
 
     private void process(LocalFile localFile) {
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(20, 20);
+        String apiCode = localFile.getApiCode();
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(marketingCommonConfig.getWubaCollidingDataSyncThreadNum(),
+                marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
         Long minId = null;
         while (true) {
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
 
             // local_id and status =1 and push_status =1
             List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDate(localFile.getId(),
-                    localFile.getApiCode(), minId, pageSize);
+                    apiCode, minId, pageSize);
             if (CollectionUtils.isEmpty(wubaCollidingDataFronts)) {
                 break;
             }

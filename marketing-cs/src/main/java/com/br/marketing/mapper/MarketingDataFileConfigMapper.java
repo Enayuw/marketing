@@ -14,7 +14,7 @@ public interface MarketingDataFileConfigMapper extends MarketingDataFileConfigMa
     List<Map<String,Object>> selectCleanData(@Param("sql") String sql);
 
     void updateCleanDataStatus(@Param("tableName") String tableName,
-                               @Param("status") String status,
+                               @Param("cleanStatus") String cleanStatus,
                                @Param("autoDuplicateColumn") String autoDuplicateColumn,
                                @Param("list") Set<Object> list);
 

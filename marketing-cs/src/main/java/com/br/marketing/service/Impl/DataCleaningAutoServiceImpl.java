@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.marketingapi.MarketingApiService;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
@@ -19,6 +18,7 @@ import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.PushInfoService;
+import com.br.marketing.util.TimeUtils;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +28,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -57,25 +55,23 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
 
 
-    public static List<String> pattern = Arrays.asList(
-            "yyyy-MM-dd",
-            "yyyy-MM-dd HH:mm:ss",
-            "yyyy/MM/dd",
-            "yyyy/MM/dd HH:mm:ss",
-            "yyyy-M-dd",
-            "yyyy-M-dd HH:mm:ss",
-            "yyyy/M/dd",
-            "yyyy/M/dd HH:mm:ss",
-            "MM-dd-yyyy",
-            "MM-dd-yyyy HH:mm:ss",
-            "dd-MM-yyyy",
-            "dd-MM-yyyy HH:mm:ss"
-            // 可以添加更多可能的格式
-    );
 
     @Override
     public void autoCleanDataByTask(MarketingCleanDataTask marketingCleanDataTask) {
+        try {
+            doAutoCleanData(marketingCleanDataTask);
+            // 更新任务为清洗完成
+            marketingCleanDataTask.setCleanStatus(2);
+        } catch (Exception e) {
+            log.error("清洗任务异常：{}", e);
+            // 更新任务为清洗完成
+            marketingCleanDataTask.setCleanStatus(3);
+        }
+        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
+    }
 
+    private void doAutoCleanData(MarketingCleanDataTask marketingCleanDataTask) throws IOException, IllegalAccessException {
+        // 执行清洗逻辑
         // 获取当前任务清洗数据所需要的配置
         MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigMapper.selectByPrimaryKey(
                 marketingCleanDataTask.getConfigId()
@@ -86,7 +82,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
         while (true) {
             List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(autoSearchDataSql);
-            if (cleanDataMapList.size() == 0) {
+            if (cleanDataMapList.isEmpty()) {
                 break;
             }
             String autoTableName = marketingDataFileConfig.getAutoTableName();
@@ -94,17 +90,13 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             Integer cleanType = marketingDataFileConfig.getCleanType();
             Set<Object> collect = cleanDataMapList.stream().map(map -> map.get(autoDuplicateColumn)).collect(Collectors.toSet());
             marketingDataFileConfigMapper.updateCleanDataStatus(autoTableName, "1", autoDuplicateColumn, collect);
-            List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(
-                    marketingDataFileConfig.getFieldConfig(),
-                    FileToMarketingFieldVO.class
-            );
             // 上传
             if (cleanType == 0) {
-                processUploadCleanData(cleanDataMapList, fieldVos, apiCode, threadPool, collect, marketingDataFileConfig);
+                doProcessUploadDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, threadPool, collect);
             }
             // 转化
             if (cleanType == 1) {
-                processTransferCleanData(cleanDataMapList, fieldVos, apiCode, threadPool, collect, marketingDataFileConfig);
+                doProcessTransferDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, threadPool, collect);
             }
         }
         // 关闭线程池
@@ -120,65 +112,98 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         }
     }
 
-    private void processTransferCleanData(List<Map<String, Object>> cleanDataMapList, List<FileToMarketingFieldVO> fieldVos,
-                                          String apiCode, ThreadPoolExecutor threadPool, Set<Object> collect,
-                                          MarketingDataFileConfig marketingDataFileConfig) {
-        List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
-        for (int i = 0; i < cleanDataMapList.size(); i++) {
-            Map<String, Object> cleanDataMap = cleanDataMapList.get(i);
-            try {
-                TransferDataItemDTO o = new TransferDataItemDTO();
-                JSONObject reserveFieldJo = new JSONObject();
-                cleanData(fieldVos, cleanDataMap, o, reserveFieldJo);
-                if (reserveFieldJo.keySet().size() > 0) {
-                    String reserveField1 = o.getReserveField1();
-                    JSONObject parse = JSON.parseObject(reserveField1);
-                    reserveFieldJo.putAll(parse);
-                    o.setReserveField1(JSON.toJSONString(reserveFieldJo));
-                }
-                transferDataItemDTOS.add(o);
-            } catch (Exception e) {
-                log.error("上传清洗异常", e);
-            }
-        }
-        asyncTransferData(transferDataItemDTOS, apiCode, threadPool, collect, marketingDataFileConfig);
+    private void doProcessUploadDataClean(List<Map<String, Object>> cleanDataMapList, MarketingDataFileConfig marketingDataFileConfig, String apiCode, ThreadPoolExecutor threadPool, Set<Object> collect) throws IOException, IllegalAccessException {
+        //清洗数据处理
+        List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = processUploadCleanData(cleanDataMapList, marketingDataFileConfig);
+        // 上传数据组装
+        UploadDataDTO uploadDataDTO = initUploadData(apiCode, marketingPreUserDetailDTOS);
+        // 上传数据异步推送
+        pushAsyncUploadData(threadPool, uploadDataDTO, collect, marketingDataFileConfig);
     }
 
-    private void processUploadCleanData(List<Map<String, Object>> cleanDataMapList, List<FileToMarketingFieldVO> fieldVos,
-                                        String apiCode, ThreadPoolExecutor threadPool, Set<Object> collect,
-                                        MarketingDataFileConfig marketingDataFileConfig) {
+    private void doProcessTransferDataClean(List<Map<String, Object>> cleanDataMapList, MarketingDataFileConfig marketingDataFileConfig, String apiCode, ThreadPoolExecutor threadPool, Set<Object> collect) throws IOException, IllegalAccessException {
+        // 转化数据处理
+        List<TransferDataItemDTO> transferDataItemDTOS = processTransferCleanData(cleanDataMapList, marketingDataFileConfig);
+        // 转化数据组装
+        PushTransferDataDetailDTO pushTransferDataDetailDTO = initTransferData(transferDataItemDTOS, apiCode);
+        // 转化数据异步推送
+        pushAsyncTransferData(threadPool, pushTransferDataDetailDTO, collect, marketingDataFileConfig);
+    }
+
+    private void pushAsyncUploadData(ThreadPoolExecutor threadPool, UploadDataDTO uploadDataDTO, Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig) {
+        threadPool.submit(() -> {
+            Result result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+            updateStatus(collect, marketingDataFileConfig, result);
+        });
+    }
+
+    private void pushAsyncTransferData(ThreadPoolExecutor threadPool, PushTransferDataDetailDTO pushTransferDataDetailDTO, Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig) {
+        threadPool.submit(() -> {
+            Result result = pushInfoService.pushTransferByRetry(pushTransferDataDetailDTO, null);
+            updateStatus(collect, marketingDataFileConfig, result);
+        });
+    }
+    private List<MarketingPreUserDetailDTO> processUploadCleanData(List<Map<String, Object>> cleanDataMapList,
+                                                                   MarketingDataFileConfig marketingDataFileConfig) throws IOException, IllegalAccessException {
         List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = new ArrayList<>();
-        for (int i = 0; i < cleanDataMapList.size(); i++) {
-            Map<String, Object> cleanDataMap = cleanDataMapList.get(i);
-            try {
-                MarketingPreUserDetailDTO o = new MarketingPreUserDetailDTO();
-                JSONObject reserveFieldJo = new JSONObject();
-                // 字段映射逻辑
-                cleanData(fieldVos, cleanDataMap, o, reserveFieldJo);
-                // 处理扩展
-                if (reserveFieldJo.keySet().size() > 0) {
-                    String reserveField1 = o.getReserveField1();
-                    JSONObject parse = JSON.parseObject(reserveField1);
-                    reserveFieldJo.putAll(parse);
-                    o.setReserveField1(JSON.toJSONString(reserveFieldJo));
-                }
-                marketingPreUserDetailDTOS.add(o);
-            } catch (Exception e) {
-                log.error("转化清洗异常", e);
-            }
+        for (Map<String, Object> cleanDataMap : cleanDataMapList) {
+            MarketingPreUserDetailDTO o = new MarketingPreUserDetailDTO();
+            JSONObject reserveFieldJo = new JSONObject();
+            cleanData(marketingDataFileConfig, cleanDataMap, o, reserveFieldJo);
+            uploadExtendData(reserveFieldJo, o);
+            marketingPreUserDetailDTOS.add(o);
         }
-        asyncUploadDataNew(apiCode, threadPool, marketingPreUserDetailDTOS, collect, marketingDataFileConfig);
+        return marketingPreUserDetailDTOS;
+    }
+    private List<TransferDataItemDTO> processTransferCleanData(List<Map<String, Object>> cleanDataMapList,
+                                                               MarketingDataFileConfig marketingDataFileConfig) throws IOException, IllegalAccessException {
+        List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
+        for (Map<String, Object> cleanDataMap : cleanDataMapList) {
+            TransferDataItemDTO o = new TransferDataItemDTO();
+            JSONObject reserveFieldJo = new JSONObject();
+            cleanData(marketingDataFileConfig, cleanDataMap, o, reserveFieldJo);
+            transferExtendData(reserveFieldJo, o);
+            transferDataItemDTOS.add(o);
+        }
+        return transferDataItemDTOS;
+
     }
 
-    private <T> void cleanData(List<FileToMarketingFieldVO> fieldVos,
+    private void uploadExtendData(JSONObject reserveFieldJo, MarketingPreUserDetailDTO o) {
+        if (!reserveFieldJo.keySet().isEmpty()) {
+            String reserveField1 = o.getReserveField1();
+            getReserveFiledValue(reserveFieldJo, reserveField1);
+            o.setReserveField1(JSON.toJSONString(reserveFieldJo));
+        }
+    }
+
+    private void transferExtendData(JSONObject reserveFieldJo, TransferDataItemDTO o) {
+        if (!reserveFieldJo.keySet().isEmpty()) {
+            String reserveField1 = o.getReserveField1();
+            getReserveFiledValue(reserveFieldJo, reserveField1);
+            o.setReserveField1(JSON.toJSONString(reserveFieldJo));
+        }
+    }
+
+    private static void getReserveFiledValue(JSONObject reserveFieldJo, String reserveField1) {
+        if (StringUtils.isNotBlank(reserveField1)) {
+            JSONObject parse = JSON.parseObject(reserveField1);
+            reserveFieldJo.putAll(parse);
+        }
+    }
+
+    private <T> void cleanData(MarketingDataFileConfig marketingDataFileConfig,
                                Map<String, Object> cleanDataMap, T o,
                                JSONObject reserveFieldJo) throws IOException, IllegalAccessException {
+        List<FileToMarketingFieldVO> fieldVos = JSON.parseArray(
+                marketingDataFileConfig.getFieldConfig(),
+                FileToMarketingFieldVO.class
+        );
         Field[] declaredFields = o.getClass().getDeclaredFields();
-        for (int f = 0; f < declaredFields.length; f++) {
-            for (int j = 0; j < fieldVos.size(); j++) {
-                FileToMarketingFieldVO fileToMarketingFieldVO = fieldVos.get(j);
-                if (declaredFields[f].getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
-                    declaredFields[f].setAccessible(true);
+        for (Field declaredField : declaredFields) {
+            for (FileToMarketingFieldVO fileToMarketingFieldVO : fieldVos) {
+                if (declaredField.getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
+                    declaredField.setAccessible(true);
                     Object fieldValue;
                     // 处理默认值
                     if (StringUtils.isNotBlank(fileToMarketingFieldVO.getDefaultValue())) {
@@ -188,7 +213,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
                     }
                     // 时间格式转换
                     if (fileToMarketingFieldVO.getIsDateTransform()) {
-                        fieldValue = getFormatterValue(String.valueOf(fieldValue));
+                        fieldValue = TimeUtils.getFormatterValue(String.valueOf(fieldValue));
                     }
                     // 处理字段转换 男 - > 1 女 -> 2
                     if (StringUtils.isNotBlank(fileToMarketingFieldVO.getConversion())) {
@@ -201,10 +226,10 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
                             fieldValue = genderMapping.get(fieldValue);
                         }
                     }
-                    declaredFields[f].set(o, fieldValue);
+                    declaredField.set(o, fieldValue);
                     // 扩展字段容器
                     if (fileToMarketingFieldVO.getIsExtend()) {
-                        reserveFieldJo.put(declaredFields[f].getName(), fieldValue);
+                        reserveFieldJo.put(declaredField.getName(), fieldValue);
                     }
                     break;
                 }
@@ -213,44 +238,12 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
     }
 
     /**
-     * @param apiCode
-     * @param cleanType  0 上传 1 转化
-     * @param configName b_marketing_data_file_config 表中的rule_name 唯一
-     */
-    @Override
-    public void saveCleanTask(String apiCode, Integer cleanType, String configName) {
-        MarketingDataFileConfigExample mc = new MarketingDataFileConfigExample();
-        mc.createCriteria().andApiCodeEqualTo(apiCode)
-                .andRuleNameEqualTo(configName)
-                .andIsDelEqualTo(1);
-        List<MarketingDataFileConfig> marketingDataFileConfigs = marketingDataFileConfigMapper.selectByExample(mc);
-        if (marketingDataFileConfigs.size() == 1) {
-            MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigs.get(0);
-            //保存任务
-            MarketingCleanDataTask task = new MarketingCleanDataTask();
-            task.setConfigId(marketingDataFileConfig.getId());
-            task.setCleanType(cleanType);
-            task.setUpdateTime(new Date());
-            task.setCleanStatus(0);
-            task.setApiCode(apiCode);
-            task.setCreateTime(new Date());
-            marketingCleanDataTaskMapper.insertSelective(task);
-        }else {
-            log.error("清洗创建任务失败：{}",configName);
-        }
-    }
-
-
-    /**
      * 异步调用上传数据接口
      *
      * @param apiCode   apiCode
-     * @param threadPool  线程池
      * @param syncUsers 具体数据对象
      */
-    private void asyncUploadDataNew(String apiCode
-            , ThreadPoolExecutor threadPool, List<MarketingPreUserDetailDTO> syncUsers
-            , Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig) {
+    private UploadDataDTO initUploadData(String apiCode, List<MarketingPreUserDetailDTO> syncUsers) {
         String tasId = getTaskId(apiCode);
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(tasId);
@@ -259,22 +252,17 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-        threadPool.submit(() -> {
-            Result result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-            updateStatus(collect, marketingDataFileConfig, result);
-        });
+        log.warn("上传数据：{}", uploadDataDTO);
+        return uploadDataDTO;
     }
 
     /**
      * 异步调用转化数据接口
      *
-     * @param apiCode  apiCode
-     * @param threadPool 线程池
+     * @param apiCode apiCode
      */
 
-    private void asyncTransferData(List<TransferDataItemDTO> transferDataItemDTOS, String apiCode,
-                                   ThreadPoolExecutor threadPool, Set<Object> collect,
-                                   MarketingDataFileConfig marketingDataFileConfig) {
+    private PushTransferDataDetailDTO initTransferData(List<TransferDataItemDTO> transferDataItemDTOS, String apiCode) {
         // 数据清洗
         PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
         TransferDataDTO transferDataDTO = new TransferDataDTO();
@@ -284,10 +272,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
-        threadPool.submit(() -> {
-            Result result = pushInfoService.pushTransferByRetry(dto, null);
-            updateStatus(collect, marketingDataFileConfig, result);
-        });
+        return dto;
     }
 
     private void updateStatus(Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig, Result result) {
@@ -312,33 +297,33 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         return taskId;
     }
 
+
+
     /**
-     * 处理时间格式的方法
-     *
-     * @param value 待处理的时间类型的值
-     * @return String 格式化后的时间值（yyyy-MM-dd HH:mm:ss）
+     * @param apiCode
+     * @param cleanType  0 上传 1 转化
+     * @param configName b_marketing_data_file_config 表中的rule_name 唯一
      */
-    private String getFormatterValue(String value) {
-        Date date = null;
-        for (String parser : pattern) {
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat(parser);
-                date = sdf.parse(value);
-                // 如果解析成功，则跳出循环
-                break;
-            } catch (ParseException e) {
-                // 忽略异常，并尝试下一个解析器
-                if (log.isInfoEnabled()) {
-                    log.warn("无法解析日期;格式:{};原值:{}", parser, value);
-                }
-            }
-        }
-        if (date != null) {
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            value = formatter.format(date);
+    @Override
+    public void saveCleanTask(String apiCode, Integer cleanType, String configName) {
+        MarketingDataFileConfigExample mc = new MarketingDataFileConfigExample();
+        mc.createCriteria().andApiCodeEqualTo(apiCode)
+                .andRuleNameEqualTo(configName)
+                .andIsDelEqualTo(1);
+        List<MarketingDataFileConfig> marketingDataFileConfigs = marketingDataFileConfigMapper.selectByExample(mc);
+        if (marketingDataFileConfigs.size() == 1) {
+            MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigs.get(0);
+            //保存任务
+            MarketingCleanDataTask task = new MarketingCleanDataTask();
+            task.setConfigId(marketingDataFileConfig.getId());
+            task.setCleanType(cleanType);
+            task.setUpdateTime(new Date());
+            task.setCleanStatus(0);
+            task.setApiCode(apiCode);
+            task.setCreateTime(new Date());
+            marketingCleanDataTaskMapper.insertSelective(task);
         } else {
-            log.error("无法解析日期:{}", value);
+            log.error("清洗创建任务失败：{}", configName);
         }
-        return value;
     }
 }

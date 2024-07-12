@@ -8,7 +8,9 @@
         left join b_wuba_colliding_data_rob b
         on a.cell = b.cell
         <![CDATA[ and b.create_time >= curdate() and b.create_time < date_add(curdate(), interval 1 day) ]]>
+        and b.api_code = #{apiCode} and b.is_deleted = 0
         where b.id is null
+        and a.is_deleted = 0
         and a.api_code = #{apiCode}
         and a.local_id = #{localId}
         and a.push_status = 1
@@ -23,7 +25,7 @@
 
     <update id="batchUpdatePushStatusByCell">
         update b_wuba_colliding_data_front set push_status = 2,update_time = now()
-        where cell in
+        where is_deleted = 0 and api_code = #{apiCode} and cell in
         <foreach collection="list" item="front" open="(" separator="," close=")">
             #{front.cell}
         </foreach>

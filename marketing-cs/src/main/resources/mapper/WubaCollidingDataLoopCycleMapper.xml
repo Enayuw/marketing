@@ -2,10 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper">
     <insert id="batchSaveData">
-        INSERT INTO b_wuba_colliding_data_loop_cycle (cell,push_time)
+        INSERT INTO b_wuba_colliding_data_loop_cycle (cell,push_time,api_code)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item}, now())
+            (#{item}, now(), #{apiCode})
         </foreach>
     </insert>
 </mapper>
