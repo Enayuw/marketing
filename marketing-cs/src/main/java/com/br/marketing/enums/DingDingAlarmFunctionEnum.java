@@ -18,6 +18,7 @@ public enum DingDingAlarmFunctionEnum {
     //跑分结果异常告警
     TASKSCORE_HXRESULT_ERROR_MESSAGE,
     XIECHENG_TRUE_DELETE_NOTICE,
+    ZHIJIA_CLUEFEEDBACK_MSG,
 
     ;
 }

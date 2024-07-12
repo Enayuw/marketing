@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.zhijia;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
@@ -12,8 +13,8 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.zhijia.CityCountyDataDTO;
 import com.br.marketing.dto.zhijia.ZhiJiaCarInfoDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.RetryMainLogMapper;
 import com.br.marketing.mapper.ZhiJiaClueBackDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
@@ -30,6 +31,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -72,6 +74,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
     @Override
     public Result process(Long id) {
+
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
@@ -103,7 +106,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
             partition.forEach((List<ZhiJiaClueBackData> p) -> {
                 zhiJiaCollidingThread.submit(() -> pushZhiJiaCollidingSync(p,
-                        cityConfigList,countyConfigList,carBrandInfos));
+                        cityConfigList,countyConfigList,
+                        carBrandInfos));
             });
 
         }
@@ -140,9 +144,6 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                                         List<ZhijiaCityConfig> cityConfigList,List<ZhijiaCountyConfig> countyConfigList,
                                         List<ZhiJiaCarBrandInfo> carBrandInfos){
 
-        // 检查异常数据发送告警
-        String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
-
         for (ZhiJiaClueBackData zhiJiaClueBackData : zhiJiaClueBackDataList) {
             Long id = zhiJiaClueBackData.getId();
             try {
@@ -155,11 +156,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                 }else {
                     updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
                     // 钉钉报警
-                    if (StringUtils.isNotBlank(accessToken)) {
-                        StringBuilder sb = new StringBuilder("# 之家省市区匹配异常\n");
-                        errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),
-                                id,cityCountyDataDTO.getErrorMsg(),sb);
-                    }
+                    StringBuilder sb = new StringBuilder("# 之家省市区匹配异常\n");
+                    errorStatistics(id,cityCountyDataDTO.getErrorMsg(),sb);
                     continue;
                 }
 
@@ -174,11 +172,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     }else {
                         updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
                         // 钉钉报警
-                        if (StringUtils.isNotBlank(accessToken)) {
-                            StringBuilder sb = new StringBuilder("# 之家车辆信息匹配异常\n");
-                            errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),
-                                    id,zhiJiaCarSeriesInfo.getErrorMsg(),sb);
-                        }
+                        StringBuilder sb = new StringBuilder("# 之家车辆信息匹配异常\n");
+                        errorStatistics(id,zhiJiaCarSeriesInfo.getErrorMsg(),sb);
                         continue;
                     }
                 }
@@ -195,11 +190,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     // 创建线索失败
                     updatePushStatus(id, 3, null, result.getMessage());
                     // 钉钉报警
-                    if (StringUtils.isNotBlank(accessToken)) {
-                        StringBuilder sb = new StringBuilder("# 之家创建线索异常\n");
-                        errorStatistics(accessToken, marketingCommonConfig.getQiFuDingDingSecret(),
-                                id,result.getMessage(),sb);
-                    }
+                    StringBuilder sb = new StringBuilder("# 之家创建线索异常\n");
+                    errorStatistics(id,result.getMessage(),sb);
                 }
             }catch (Exception e){
                 log.error("之家线索创建异常:{}", e.getMessage());
@@ -271,22 +263,24 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
      * 2023-09-27 18:08
      * 错误信息告警
      */
-    private void errorStatistics(String accessToken, String secret,Long id,
+    private void errorStatistics(Long id,
                                  String errorMsg,StringBuilder sb) {
+
+        // 之家告警参数
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
 
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
         String title = "之家线索异常信息";
         markdown.setTitle(title);
-        sb.append("错误数据id：").append(id);
-        sb.append("|\n");
-        sb.append("错误原因：").append(errorMsg);
-        sb.append("|\n");
+        sb.append("错误数据id：").append(id+"|\n");
+        sb.append("错误原因：").append(errorMsg+"|\n");
         String text = sb.toString();
         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), text, title));
         markdown.setText(text);
         DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
         dingDingMarkdownMessage.setMarkdown(markdown);
-        dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingMarkdownMessage, isProxy);
+        dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString(), dingDingMarkdownMessage, isProxy);
     }
 
 }
