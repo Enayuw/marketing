@@ -3,11 +3,12 @@
 <mapper namespace="com.br.marketing.mapper.WubaCollidingDataSyncCleanMapperBase" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.WubaCollidingDataSyncClean" >
     <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
     <result column="clean_status" property="cleanStatus" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
-    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+    <result column="is_deleted" property="isDeleted" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -70,7 +71,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cell, batch_no, clean_status, extend, is_delete, create_time, update_time
+    id, api_code, cell, batch_no, clean_status, extend, is_deleted, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.WubaCollidingDataSyncCleanExample" >
     select
@@ -106,12 +107,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_wuba_colliding_data_sync_clean (cell, batch_no, clean_status, 
-      extend, is_delete, create_time, 
-      update_time)
-    values (#{cell,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, #{cleanStatus,jdbcType=INTEGER}, 
-      #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_wuba_colliding_data_sync_clean (api_code, cell, batch_no, 
+      clean_status, extend, is_deleted, 
+      create_time, update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
+      #{cleanStatus,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.WubaCollidingDataSyncClean" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -119,6 +120,9 @@
     </selectKey>
     insert into b_wuba_colliding_data_sync_clean
     <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
       <if test="cell != null" >
         cell,
       </if>
@@ -131,8 +135,8 @@
       <if test="extend != null" >
         extend,
       </if>
-      <if test="isDelete != null" >
-        is_delete,
+      <if test="isDeleted != null" >
+        is_deleted,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -142,6 +146,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="cell != null" >
         #{cell,jdbcType=VARCHAR},
       </if>
@@ -154,8 +161,8 @@
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
       </if>
-      <if test="isDelete != null" >
-        #{isDelete,jdbcType=INTEGER},
+      <if test="isDeleted != null" >
+        #{isDeleted,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -177,6 +184,9 @@
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="record.cell != null" >
         cell = #{record.cell,jdbcType=VARCHAR},
       </if>
@@ -189,8 +199,8 @@
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
-      <if test="record.isDelete != null" >
-        is_delete = #{record.isDelete,jdbcType=INTEGER},
+      <if test="record.isDeleted != null" >
+        is_deleted = #{record.isDeleted,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -206,11 +216,12 @@
   <update id="updateByExample" parameterType="map" >
     update b_wuba_colliding_data_sync_clean
     set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
       cell = #{record.cell,jdbcType=VARCHAR},
       batch_no = #{record.batchNo,jdbcType=VARCHAR},
       clean_status = #{record.cleanStatus,jdbcType=INTEGER},
       extend = #{record.extend,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
+      is_deleted = #{record.isDeleted,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
@@ -220,6 +231,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.WubaCollidingDataSyncClean" >
     update b_wuba_colliding_data_sync_clean
     <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="cell != null" >
         cell = #{cell,jdbcType=VARCHAR},
       </if>
@@ -232,8 +246,8 @@
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
-      <if test="isDelete != null" >
-        is_delete = #{isDelete,jdbcType=INTEGER},
+      <if test="isDeleted != null" >
+        is_deleted = #{isDeleted,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -246,11 +260,12 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.WubaCollidingDataSyncClean" >
     update b_wuba_colliding_data_sync_clean
-    set cell = #{cell,jdbcType=VARCHAR},
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
       batch_no = #{batchNo,jdbcType=VARCHAR},
       clean_status = #{cleanStatus,jdbcType=INTEGER},
       extend = #{extend,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
+      is_deleted = #{isDeleted,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}

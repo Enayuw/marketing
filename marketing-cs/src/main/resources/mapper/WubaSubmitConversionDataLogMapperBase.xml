@@ -8,13 +8,13 @@
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
     <result column="submit_result" property="submitResult" jdbcType="BIT" />
-    <result column="lastLoginTime" property="lastlogintime" jdbcType="VARCHAR" />
-    <result column="financeApplyTime" property="financeapplytime" jdbcType="VARCHAR" />
-    <result column="financeCreditStatus" property="financecreditstatus" jdbcType="VARCHAR" />
-    <result column="financeCreditFinishTime" property="financecreditfinishtime" jdbcType="VARCHAR" />
-    <result column="debtTime" property="debttime" jdbcType="VARCHAR" />
-    <result column="debtPassTime" property="debtpasstime" jdbcType="VARCHAR" />
-    <result column="loanAmt" property="loanamt" jdbcType="VARCHAR" />
+    <result column="last_login_time" property="lastLoginTime" jdbcType="VARCHAR" />
+    <result column="finance_apply_time" property="financeApplyTime" jdbcType="VARCHAR" />
+    <result column="finance_credit_status" property="financeCreditStatus" jdbcType="VARCHAR" />
+    <result column="finance_credit_finish_time" property="financeCreditFinishTime" jdbcType="VARCHAR" />
+    <result column="debt_time" property="debtTime" jdbcType="VARCHAR" />
+    <result column="debt_pass_time" property="debtPassTime" jdbcType="VARCHAR" />
+    <result column="loan_amt" property="loanAmt" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="is_deleted" property="isDeleted" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -79,9 +79,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, data_id, cell, batch_no, submit_result, lastLoginTime, financeApplyTime, 
-    financeCreditStatus, financeCreditFinishTime, debtTime, debtPassTime, loanAmt, extend, 
-    is_deleted, create_time, update_time
+    id, api_code, data_id, cell, batch_no, submit_result, last_login_time, finance_apply_time, 
+    finance_credit_status, finance_credit_finish_time, debt_time, debt_pass_time, loan_amt, 
+    extend, is_deleted, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.WubaSubmitConversionDataLogExample" >
     select
@@ -118,16 +118,16 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_wuba_submit_conversion_data_log (api_code, data_id, cell, 
-      batch_no, submit_result, lastLoginTime, 
-      financeApplyTime, financeCreditStatus, 
-      financeCreditFinishTime, debtTime, debtPassTime, 
-      loanAmt, extend, is_deleted, 
+      batch_no, submit_result, last_login_time, 
+      finance_apply_time, finance_credit_status, 
+      finance_credit_finish_time, debt_time, debt_pass_time, 
+      loan_amt, extend, is_deleted, 
       create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{dataId,jdbcType=BIGINT}, #{cell,jdbcType=VARCHAR}, 
-      #{batchNo,jdbcType=VARCHAR}, #{submitResult,jdbcType=BIT}, #{lastlogintime,jdbcType=VARCHAR}, 
-      #{financeapplytime,jdbcType=VARCHAR}, #{financecreditstatus,jdbcType=VARCHAR}, 
-      #{financecreditfinishtime,jdbcType=VARCHAR}, #{debttime,jdbcType=VARCHAR}, #{debtpasstime,jdbcType=VARCHAR}, 
-      #{loanamt,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, 
+      #{batchNo,jdbcType=VARCHAR}, #{submitResult,jdbcType=BIT}, #{lastLoginTime,jdbcType=VARCHAR}, 
+      #{financeApplyTime,jdbcType=VARCHAR}, #{financeCreditStatus,jdbcType=VARCHAR}, 
+      #{financeCreditFinishTime,jdbcType=VARCHAR}, #{debtTime,jdbcType=VARCHAR}, #{debtPassTime,jdbcType=VARCHAR}, 
+      #{loanAmt,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.WubaSubmitConversionDataLog" >
@@ -151,26 +151,26 @@
       <if test="submitResult != null" >
         submit_result,
       </if>
-      <if test="lastlogintime != null" >
-        lastLoginTime,
+      <if test="lastLoginTime != null" >
+        last_login_time,
       </if>
-      <if test="financeapplytime != null" >
-        financeApplyTime,
+      <if test="financeApplyTime != null" >
+        finance_apply_time,
       </if>
-      <if test="financecreditstatus != null" >
-        financeCreditStatus,
+      <if test="financeCreditStatus != null" >
+        finance_credit_status,
       </if>
-      <if test="financecreditfinishtime != null" >
-        financeCreditFinishTime,
+      <if test="financeCreditFinishTime != null" >
+        finance_credit_finish_time,
       </if>
-      <if test="debttime != null" >
-        debtTime,
+      <if test="debtTime != null" >
+        debt_time,
       </if>
-      <if test="debtpasstime != null" >
-        debtPassTime,
+      <if test="debtPassTime != null" >
+        debt_pass_time,
       </if>
-      <if test="loanamt != null" >
-        loanAmt,
+      <if test="loanAmt != null" >
+        loan_amt,
       </if>
       <if test="extend != null" >
         extend,
@@ -201,26 +201,26 @@
       <if test="submitResult != null" >
         #{submitResult,jdbcType=BIT},
       </if>
-      <if test="lastlogintime != null" >
-        #{lastlogintime,jdbcType=VARCHAR},
+      <if test="lastLoginTime != null" >
+        #{lastLoginTime,jdbcType=VARCHAR},
       </if>
-      <if test="financeapplytime != null" >
-        #{financeapplytime,jdbcType=VARCHAR},
+      <if test="financeApplyTime != null" >
+        #{financeApplyTime,jdbcType=VARCHAR},
       </if>
-      <if test="financecreditstatus != null" >
-        #{financecreditstatus,jdbcType=VARCHAR},
+      <if test="financeCreditStatus != null" >
+        #{financeCreditStatus,jdbcType=VARCHAR},
       </if>
-      <if test="financecreditfinishtime != null" >
-        #{financecreditfinishtime,jdbcType=VARCHAR},
+      <if test="financeCreditFinishTime != null" >
+        #{financeCreditFinishTime,jdbcType=VARCHAR},
       </if>
-      <if test="debttime != null" >
-        #{debttime,jdbcType=VARCHAR},
+      <if test="debtTime != null" >
+        #{debtTime,jdbcType=VARCHAR},
       </if>
-      <if test="debtpasstime != null" >
-        #{debtpasstime,jdbcType=VARCHAR},
+      <if test="debtPassTime != null" >
+        #{debtPassTime,jdbcType=VARCHAR},
       </if>
-      <if test="loanamt != null" >
-        #{loanamt,jdbcType=VARCHAR},
+      <if test="loanAmt != null" >
+        #{loanAmt,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
@@ -263,26 +263,26 @@
       <if test="record.submitResult != null" >
         submit_result = #{record.submitResult,jdbcType=BIT},
       </if>
-      <if test="record.lastlogintime != null" >
-        lastLoginTime = #{record.lastlogintime,jdbcType=VARCHAR},
+      <if test="record.lastLoginTime != null" >
+        last_login_time = #{record.lastLoginTime,jdbcType=VARCHAR},
       </if>
-      <if test="record.financeapplytime != null" >
-        financeApplyTime = #{record.financeapplytime,jdbcType=VARCHAR},
+      <if test="record.financeApplyTime != null" >
+        finance_apply_time = #{record.financeApplyTime,jdbcType=VARCHAR},
       </if>
-      <if test="record.financecreditstatus != null" >
-        financeCreditStatus = #{record.financecreditstatus,jdbcType=VARCHAR},
+      <if test="record.financeCreditStatus != null" >
+        finance_credit_status = #{record.financeCreditStatus,jdbcType=VARCHAR},
       </if>
-      <if test="record.financecreditfinishtime != null" >
-        financeCreditFinishTime = #{record.financecreditfinishtime,jdbcType=VARCHAR},
+      <if test="record.financeCreditFinishTime != null" >
+        finance_credit_finish_time = #{record.financeCreditFinishTime,jdbcType=VARCHAR},
       </if>
-      <if test="record.debttime != null" >
-        debtTime = #{record.debttime,jdbcType=VARCHAR},
+      <if test="record.debtTime != null" >
+        debt_time = #{record.debtTime,jdbcType=VARCHAR},
       </if>
-      <if test="record.debtpasstime != null" >
-        debtPassTime = #{record.debtpasstime,jdbcType=VARCHAR},
+      <if test="record.debtPassTime != null" >
+        debt_pass_time = #{record.debtPassTime,jdbcType=VARCHAR},
       </if>
-      <if test="record.loanamt != null" >
-        loanAmt = #{record.loanamt,jdbcType=VARCHAR},
+      <if test="record.loanAmt != null" >
+        loan_amt = #{record.loanAmt,jdbcType=VARCHAR},
       </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
@@ -309,13 +309,13 @@
       cell = #{record.cell,jdbcType=VARCHAR},
       batch_no = #{record.batchNo,jdbcType=VARCHAR},
       submit_result = #{record.submitResult,jdbcType=BIT},
-      lastLoginTime = #{record.lastlogintime,jdbcType=VARCHAR},
-      financeApplyTime = #{record.financeapplytime,jdbcType=VARCHAR},
-      financeCreditStatus = #{record.financecreditstatus,jdbcType=VARCHAR},
-      financeCreditFinishTime = #{record.financecreditfinishtime,jdbcType=VARCHAR},
-      debtTime = #{record.debttime,jdbcType=VARCHAR},
-      debtPassTime = #{record.debtpasstime,jdbcType=VARCHAR},
-      loanAmt = #{record.loanamt,jdbcType=VARCHAR},
+      last_login_time = #{record.lastLoginTime,jdbcType=VARCHAR},
+      finance_apply_time = #{record.financeApplyTime,jdbcType=VARCHAR},
+      finance_credit_status = #{record.financeCreditStatus,jdbcType=VARCHAR},
+      finance_credit_finish_time = #{record.financeCreditFinishTime,jdbcType=VARCHAR},
+      debt_time = #{record.debtTime,jdbcType=VARCHAR},
+      debt_pass_time = #{record.debtPassTime,jdbcType=VARCHAR},
+      loan_amt = #{record.loanAmt,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR},
       is_deleted = #{record.isDeleted,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -342,26 +342,26 @@
       <if test="submitResult != null" >
         submit_result = #{submitResult,jdbcType=BIT},
       </if>
-      <if test="lastlogintime != null" >
-        lastLoginTime = #{lastlogintime,jdbcType=VARCHAR},
+      <if test="lastLoginTime != null" >
+        last_login_time = #{lastLoginTime,jdbcType=VARCHAR},
       </if>
-      <if test="financeapplytime != null" >
-        financeApplyTime = #{financeapplytime,jdbcType=VARCHAR},
+      <if test="financeApplyTime != null" >
+        finance_apply_time = #{financeApplyTime,jdbcType=VARCHAR},
       </if>
-      <if test="financecreditstatus != null" >
-        financeCreditStatus = #{financecreditstatus,jdbcType=VARCHAR},
+      <if test="financeCreditStatus != null" >
+        finance_credit_status = #{financeCreditStatus,jdbcType=VARCHAR},
       </if>
-      <if test="financecreditfinishtime != null" >
-        financeCreditFinishTime = #{financecreditfinishtime,jdbcType=VARCHAR},
+      <if test="financeCreditFinishTime != null" >
+        finance_credit_finish_time = #{financeCreditFinishTime,jdbcType=VARCHAR},
       </if>
-      <if test="debttime != null" >
-        debtTime = #{debttime,jdbcType=VARCHAR},
+      <if test="debtTime != null" >
+        debt_time = #{debtTime,jdbcType=VARCHAR},
       </if>
-      <if test="debtpasstime != null" >
-        debtPassTime = #{debtpasstime,jdbcType=VARCHAR},
+      <if test="debtPassTime != null" >
+        debt_pass_time = #{debtPassTime,jdbcType=VARCHAR},
       </if>
-      <if test="loanamt != null" >
-        loanAmt = #{loanamt,jdbcType=VARCHAR},
+      <if test="loanAmt != null" >
+        loan_amt = #{loanAmt,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
@@ -385,13 +385,13 @@
       cell = #{cell,jdbcType=VARCHAR},
       batch_no = #{batchNo,jdbcType=VARCHAR},
       submit_result = #{submitResult,jdbcType=BIT},
-      lastLoginTime = #{lastlogintime,jdbcType=VARCHAR},
-      financeApplyTime = #{financeapplytime,jdbcType=VARCHAR},
-      financeCreditStatus = #{financecreditstatus,jdbcType=VARCHAR},
-      financeCreditFinishTime = #{financecreditfinishtime,jdbcType=VARCHAR},
-      debtTime = #{debttime,jdbcType=VARCHAR},
-      debtPassTime = #{debtpasstime,jdbcType=VARCHAR},
-      loanAmt = #{loanamt,jdbcType=VARCHAR},
+      last_login_time = #{lastLoginTime,jdbcType=VARCHAR},
+      finance_apply_time = #{financeApplyTime,jdbcType=VARCHAR},
+      finance_credit_status = #{financeCreditStatus,jdbcType=VARCHAR},
+      finance_credit_finish_time = #{financeCreditFinishTime,jdbcType=VARCHAR},
+      debt_time = #{debtTime,jdbcType=VARCHAR},
+      debt_pass_time = #{debtPassTime,jdbcType=VARCHAR},
+      loan_amt = #{loanAmt,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR},
       is_deleted = #{isDeleted,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},

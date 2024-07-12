@@ -9,14 +9,14 @@ public class WubaCollidingDataLoopCycle {
     private Long id;
 
     /**
+     * 
+     */
+    private String apiCode;
+
+    /**
      * md5手机号
      */
     private String cell;
-
-    /**
-     * 批次号
-     */
-    private String batchNo;
 
     /**
      * 最近一次撞库时间
@@ -31,7 +31,7 @@ public class WubaCollidingDataLoopCycle {
     /**
      * 状态 0-正常 1-删除
      */
-    private Integer isDelete;
+    private Integer isDeleted;
 
     /**
      * 创建时间
@@ -51,20 +51,20 @@ public class WubaCollidingDataLoopCycle {
         this.id = id;
     }
 
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
     public String getCell() {
         return cell;
     }
 
     public void setCell(String cell) {
         this.cell = cell == null ? null : cell.trim();
-    }
-
-    public String getBatchNo() {
-        return batchNo;
-    }
-
-    public void setBatchNo(String batchNo) {
-        this.batchNo = batchNo == null ? null : batchNo.trim();
     }
 
     public Date getPushTime() {
@@ -83,12 +83,12 @@ public class WubaCollidingDataLoopCycle {
         this.extend = extend == null ? null : extend.trim();
     }
 
-    public Integer getIsDelete() {
-        return isDelete;
+    public Integer getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
+    public void setIsDeleted(Integer isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public Date getCreateTime() {
