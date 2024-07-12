@@ -137,7 +137,7 @@ public class WuBaSubmitConversionService {
         List<Long> ids = pageList.stream().map((WubaSubmitConversionData data) -> data.getId()).collect(Collectors.toList());
         WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
         dataExample.createCriteria().andIdIn(ids);
-        int updateStatus = wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
+        wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
         return new Result();
     }
 

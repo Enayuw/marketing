@@ -36,8 +36,7 @@ public class WuBaQueryConversionResultJob extends AbstractSimpleElasticJob {
             log.warn(TITLE + "调度开始");
             // switch
             if(!checkJobSwitch()) return;
-            // parseJobParameter
-            // String apiCode = parseJobParameter(context.getJobParameter());
+
             // action
             WubaCollidingBatchNo param = new WubaCollidingBatchNo();
             param.setBatchType(2);
@@ -46,6 +45,7 @@ public class WuBaQueryConversionResultJob extends AbstractSimpleElasticJob {
             Page2Condition<WubaCollidingBatchNo> condition = new Page2Condition<>();
             condition.setParam(param);
             service.action(condition);
+
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
             log.error(TITLE + "调度异常", e);
