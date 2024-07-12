@@ -34,6 +34,11 @@ public class WubaCollidingDataFront {
     private Integer status;
 
     /**
+     * 状态 0-正常 1-删除
+     */
+    private Integer isDeleted;
+
+    /**
      * 数据描述
      */
     private String dataMessage;
@@ -104,6 +109,14 @@ public class WubaCollidingDataFront {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public Integer getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(Integer isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public String getDataMessage() {

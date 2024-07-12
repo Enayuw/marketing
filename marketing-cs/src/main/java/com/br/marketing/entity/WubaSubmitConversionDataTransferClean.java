@@ -9,6 +9,11 @@ public class WubaSubmitConversionDataTransferClean {
     private Long id;
 
     /**
+     * 
+     */
+    private String apiCode;
+
+    /**
      * md5手机号
      */
     private String cell;
@@ -24,44 +29,44 @@ public class WubaSubmitConversionDataTransferClean {
     private Date pushTime;
 
     /**
-     * 清洗状态 0-待清洗 1-已清洗
+     * 清洗状态 清洗状态 0-待清洗 1-清洗中，2-已完成
      */
     private Integer cleanStatus;
 
     /**
      * 最后登录时间
      */
-    private String lastlogintime;
+    private String lastLoginTime;
 
     /**
      * 授信申请时间
      */
-    private String financeapplytime;
+    private String financeApplyTime;
 
     /**
      * 金融授信状态：0 失败 1 成功
      */
-    private String financecreditstatus;
+    private String financeCreditStatus;
 
     /**
      * 授信完成时间
      */
-    private String financecreditfinishtime;
+    private String financeCreditFinishTime;
 
     /**
      * 提现申请时间
      */
-    private String debttime;
+    private String debtTime;
 
     /**
      * 提现通过时间
      */
-    private String debtpasstime;
+    private String debtPassTime;
 
     /**
      * 提现金额
      */
-    private String loanamt;
+    private String loanAmt;
 
     /**
      * 扩展字段
@@ -89,6 +94,14 @@ public class WubaSubmitConversionDataTransferClean {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public String getCell() {
@@ -123,60 +136,60 @@ public class WubaSubmitConversionDataTransferClean {
         this.cleanStatus = cleanStatus;
     }
 
-    public String getLastlogintime() {
-        return lastlogintime;
+    public String getLastLoginTime() {
+        return lastLoginTime;
     }
 
-    public void setLastlogintime(String lastlogintime) {
-        this.lastlogintime = lastlogintime == null ? null : lastlogintime.trim();
+    public void setLastLoginTime(String lastLoginTime) {
+        this.lastLoginTime = lastLoginTime == null ? null : lastLoginTime.trim();
     }
 
-    public String getFinanceapplytime() {
-        return financeapplytime;
+    public String getFinanceApplyTime() {
+        return financeApplyTime;
     }
 
-    public void setFinanceapplytime(String financeapplytime) {
-        this.financeapplytime = financeapplytime == null ? null : financeapplytime.trim();
+    public void setFinanceApplyTime(String financeApplyTime) {
+        this.financeApplyTime = financeApplyTime == null ? null : financeApplyTime.trim();
     }
 
-    public String getFinancecreditstatus() {
-        return financecreditstatus;
+    public String getFinanceCreditStatus() {
+        return financeCreditStatus;
     }
 
-    public void setFinancecreditstatus(String financecreditstatus) {
-        this.financecreditstatus = financecreditstatus == null ? null : financecreditstatus.trim();
+    public void setFinanceCreditStatus(String financeCreditStatus) {
+        this.financeCreditStatus = financeCreditStatus == null ? null : financeCreditStatus.trim();
     }
 
-    public String getFinancecreditfinishtime() {
-        return financecreditfinishtime;
+    public String getFinanceCreditFinishTime() {
+        return financeCreditFinishTime;
     }
 
-    public void setFinancecreditfinishtime(String financecreditfinishtime) {
-        this.financecreditfinishtime = financecreditfinishtime == null ? null : financecreditfinishtime.trim();
+    public void setFinanceCreditFinishTime(String financeCreditFinishTime) {
+        this.financeCreditFinishTime = financeCreditFinishTime == null ? null : financeCreditFinishTime.trim();
     }
 
-    public String getDebttime() {
-        return debttime;
+    public String getDebtTime() {
+        return debtTime;
     }
 
-    public void setDebttime(String debttime) {
-        this.debttime = debttime == null ? null : debttime.trim();
+    public void setDebtTime(String debtTime) {
+        this.debtTime = debtTime == null ? null : debtTime.trim();
     }
 
-    public String getDebtpasstime() {
-        return debtpasstime;
+    public String getDebtPassTime() {
+        return debtPassTime;
     }
 
-    public void setDebtpasstime(String debtpasstime) {
-        this.debtpasstime = debtpasstime == null ? null : debtpasstime.trim();
+    public void setDebtPassTime(String debtPassTime) {
+        this.debtPassTime = debtPassTime == null ? null : debtPassTime.trim();
     }
 
-    public String getLoanamt() {
-        return loanamt;
+    public String getLoanAmt() {
+        return loanAmt;
     }
 
-    public void setLoanamt(String loanamt) {
-        this.loanamt = loanamt == null ? null : loanamt.trim();
+    public void setLoanAmt(String loanAmt) {
+        this.loanAmt = loanAmt == null ? null : loanAmt.trim();
     }
 
     public String getExtend() {

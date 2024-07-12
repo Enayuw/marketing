@@ -37,7 +37,7 @@ public class WuBaQueryConversionResultJob extends AbstractSimpleElasticJob {
             // switch
             if(!checkJobSwitch()) return;
             // parseJobParameter
-            String apiCode = parseJobParameter(context.getJobParameter());
+            // String apiCode = parseJobParameter(context.getJobParameter());
             // action
             WubaCollidingBatchNo param = new WubaCollidingBatchNo();
             param.setBatchType(2);

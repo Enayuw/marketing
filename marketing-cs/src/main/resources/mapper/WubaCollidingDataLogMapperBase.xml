@@ -3,12 +3,13 @@
 <mapper namespace="com.br.marketing.mapper.WubaCollidingDataLogMapperBase" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.WubaCollidingDataLog" >
     <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="data_id" property="dataId" jdbcType="BIGINT" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
     <result column="result" property="result" jdbcType="BIT" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
-    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+    <result column="is_deleted" property="isDeleted" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -71,7 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, data_id, cell, batch_no, `result`, extend, is_delete, create_time, update_time
+    id, api_code, data_id, cell, batch_no, `result`, extend, is_deleted, create_time, 
+    update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.WubaCollidingDataLogExample" >
     select
@@ -107,12 +109,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_wuba_colliding_data_log (data_id, cell, batch_no, 
-      `result`, extend, is_delete, 
-      create_time, update_time)
-    values (#{dataId,jdbcType=BIGINT}, #{cell,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
-      #{result,jdbcType=BIT}, #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_wuba_colliding_data_log (api_code, data_id, cell, 
+      batch_no, `result`, extend, 
+      is_deleted, create_time, update_time
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{dataId,jdbcType=BIGINT}, #{cell,jdbcType=VARCHAR}, 
+      #{batchNo,jdbcType=VARCHAR}, #{result,jdbcType=BIT}, #{extend,jdbcType=VARCHAR}, 
+      #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.WubaCollidingDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -120,6 +124,9 @@
     </selectKey>
     insert into b_wuba_colliding_data_log
     <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
       <if test="dataId != null" >
         data_id,
       </if>
@@ -135,8 +142,8 @@
       <if test="extend != null" >
         extend,
       </if>
-      <if test="isDelete != null" >
-        is_delete,
+      <if test="isDeleted != null" >
+        is_deleted,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -146,6 +153,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="dataId != null" >
         #{dataId,jdbcType=BIGINT},
       </if>
@@ -161,8 +171,8 @@
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
       </if>
-      <if test="isDelete != null" >
-        #{isDelete,jdbcType=INTEGER},
+      <if test="isDeleted != null" >
+        #{isDeleted,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -184,6 +194,9 @@
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="record.dataId != null" >
         data_id = #{record.dataId,jdbcType=BIGINT},
       </if>
@@ -199,8 +212,8 @@
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
-      <if test="record.isDelete != null" >
-        is_delete = #{record.isDelete,jdbcType=INTEGER},
+      <if test="record.isDeleted != null" >
+        is_deleted = #{record.isDeleted,jdbcType=INTEGER},
       </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -216,12 +229,13 @@
   <update id="updateByExample" parameterType="map" >
     update b_wuba_colliding_data_log
     set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
       data_id = #{record.dataId,jdbcType=BIGINT},
       cell = #{record.cell,jdbcType=VARCHAR},
       batch_no = #{record.batchNo,jdbcType=VARCHAR},
       `result` = #{record.result,jdbcType=BIT},
       extend = #{record.extend,jdbcType=VARCHAR},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
+      is_deleted = #{record.isDeleted,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
@@ -231,6 +245,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.WubaCollidingDataLog" >
     update b_wuba_colliding_data_log
     <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
       <if test="dataId != null" >
         data_id = #{dataId,jdbcType=BIGINT},
       </if>
@@ -246,8 +263,8 @@
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
-      <if test="isDelete != null" >
-        is_delete = #{isDelete,jdbcType=INTEGER},
+      <if test="isDeleted != null" >
+        is_deleted = #{isDeleted,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -260,12 +277,13 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.WubaCollidingDataLog" >
     update b_wuba_colliding_data_log
-    set data_id = #{dataId,jdbcType=BIGINT},
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      data_id = #{dataId,jdbcType=BIGINT},
       cell = #{cell,jdbcType=VARCHAR},
       batch_no = #{batchNo,jdbcType=VARCHAR},
       `result` = #{result,jdbcType=BIT},
       extend = #{extend,jdbcType=VARCHAR},
-      is_delete = #{isDelete,jdbcType=INTEGER},
+      is_deleted = #{isDeleted,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}

@@ -9,6 +9,11 @@ public class WubaCollidingDataSyncClean {
     private Long id;
 
     /**
+     * 
+     */
+    private String apiCode;
+
+    /**
      * md5手机号
      */
     private String cell;
@@ -31,7 +36,7 @@ public class WubaCollidingDataSyncClean {
     /**
      *  状态 0-正常 1-删除
      */
-    private Integer isDelete;
+    private Integer isDeleted;
 
     /**
      *  创建时间
@@ -49,6 +54,14 @@ public class WubaCollidingDataSyncClean {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public String getCell() {
@@ -83,12 +96,12 @@ public class WubaCollidingDataSyncClean {
         this.extend = extend == null ? null : extend.trim();
     }
 
-    public Integer getIsDelete() {
-        return isDelete;
+    public Integer getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
+    public void setIsDeleted(Integer isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public Date getCreateTime() {

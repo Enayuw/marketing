@@ -1,7 +1,10 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.br.marketing.client.wuba.WuBaServiceClient;
+import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.orika.OrikaBeanMapperUtil;
 import com.br.marketing.entity.WubaCollidingBatchNo;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.entity.WubaSubmitConversionDataExample;
@@ -13,6 +16,7 @@ import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -38,6 +42,12 @@ public class WuBaSubmitConversionService {
 
     @Resource
     private WubaSubmitConversionDataLogMapper wubaSubmitConversionDataLogMapper;
+
+    @Resource
+    private WuBaServiceClient wuBaServiceClient;
+
+    @Resource
+    private WuBaDingDingService wuBaDingDingService;
 
 
     public void action(Page2Condition<WubaSubmitConversionData> condition) {
@@ -75,16 +85,20 @@ public class WuBaSubmitConversionService {
     }
 
     public Result<?> processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition) {
-        // call
-        Result<?> result = callAction(pageList, condition);
-        if(!result.isSuccess() || result.getData()==null){
+        // callClient
+        Result<String> result = callClient(pageList);
+        if(result == null || !result.isSuccess() || result.getData()==null){
+            // Alert
+            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: "+condition.getParam().getApiCode());
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
 
-        result.getData();
+        String batchNo = result.getData();
+        if(StringUtils.isEmpty(batchNo)){
+            return new Result().setCode(ResultCode.FAIL.getValue());
+        }
 
-        // 上报批次表
-        String batchNo = "";
+        // 上报批次表增加记录，query_status置为0-未查询
         WubaCollidingBatchNo batchRecord = new WubaCollidingBatchNo();
         batchRecord.setBatchNo(batchNo);
         batchRecord.setBatchType(2);
@@ -95,7 +109,7 @@ public class WuBaSubmitConversionService {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
 
-        // 上报日志表
+        // 上报日志表增加记录，submit_result置为0-上报中
         List<WubaSubmitConversionDataLog> dataLogList = pageList.stream().map((WubaSubmitConversionData data) -> {
             WubaSubmitConversionDataLog dataLogRecord = new WubaSubmitConversionDataLog();
             dataLogRecord.setApiCode(data.getApiCode());
@@ -121,8 +135,8 @@ public class WuBaSubmitConversionService {
         return new Result();
     }
 
-    public Result<?> callAction(List<WubaSubmitConversionData> outputDataList, Page2Condition<WubaSubmitConversionData> condition) {
-        Result<Object> result = new Result<>();
+    public Result<String> callClient(List<WubaSubmitConversionData> outputDataList) {
+        Result result = new Result<>();
         if (CollectionUtils.isEmpty(outputDataList)) {
             result.setCode(ResultCode.FAIL.getValue());
             return result;
@@ -130,9 +144,20 @@ public class WuBaSubmitConversionService {
 
         int magnitudes = outputDataList.size();
         long startTime = System.currentTimeMillis();
-        // byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+        // TODO mapping
+        List<WuBaSubmitDTO> wuBaSubmitDTOS = OrikaBeanMapperUtil.mapAsList(outputDataList, WuBaSubmitDTO.class);
+        Result callResult = wuBaServiceClient.submitConversionList(wuBaSubmitDTOS);
+        if(!callResult.isSuccess() || callResult.getData()==null){
+            result.setCode(ResultCode.FAIL.getValue());
+            return result;
+        }
+        String batchNo = (String) callResult.getData();
+        if(StringUtils.isEmpty(batchNo)){
+            result.setCode(ResultCode.FAIL.getValue());
+            return result;
+        }
         long endTime = System.currentTimeMillis();
-        log.warn(TITLE+"callAction, 量级{}, 耗时{}", magnitudes, (endTime-startTime));
-        return result;
+        log.warn(TITLE+"callClient, 量级{}, 耗时{}", magnitudes, (endTime-startTime));
+        return result.setCode(ResultCode.SUCCESS.getValue()).setDate(batchNo);
     }
 }

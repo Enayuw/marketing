@@ -1,5 +1,8 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
@@ -20,9 +23,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class WuBaQueryConversionResultService {
 
-    private final static String TITLE = "【58新客提交营销名单结果查询】";
+    private static final String TITLE = "【58新客提交营销名单结果查询】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -52,6 +53,12 @@ public class WuBaQueryConversionResultService {
 
     @Resource
     private WubaSubmitConversionDataTransferCleanMapper dataTransferCleanMapper;
+
+    @Resource
+    private WuBaServiceClient wuBaServiceClient;
+
+    @Resource
+    private WuBaDingDingService wuBaDingDingService;
 
 
     public void action(Page2Condition<WubaCollidingBatchNo> condition) {
@@ -94,7 +101,20 @@ public class WuBaQueryConversionResultService {
         result.setCode(ResultCode.FAIL.getValue());
         // callClient
         Result<List<ConversionReponseDTO>> callResult = callClient(wubaCollidingBatchNo, condition);
-        if(!callResult.isSuccess() || callResult.getData()==null){
+        if(callResult == null){
+            return result;
+        }
+
+        if(!callResult.isSuccess()){
+            if(callResult.getCode()==9991){
+                return result;
+            }
+            Result updateBatchNoResult = updateBatchNoStatus(wubaCollidingBatchNo, 2);
+            if(updateBatchNoResult==null || !updateBatchNoResult.isSuccess()){
+                return result;
+            }
+            // Alert
+            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, batchNo: "+wubaCollidingBatchNo.getBatchNo());
             return result;
         }
 
@@ -141,10 +161,38 @@ public class WuBaQueryConversionResultService {
         result.setCode(ResultCode.FAIL.getValue());
         // call
         long startTime = System.currentTimeMillis();
-        // byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+        Result callResult = wuBaServiceClient.queryConversionResult(wubaCollidingBatchNo.getBatchNo());
+        if(callResult == null){
+            return result;
+        }
+        if(!callResult.isSuccess()){
+            if(callResult.getData()== null){
+                return result;
+            }
+            String data = String.valueOf(callResult.getData());
+            JSONObject resultMap = JSONObject.parseObject(data);
+            JSONObject content = resultMap.getJSONObject("content");
+            Integer code = content.getInteger("code");
+            if (code == 9991){
+                return result.setCode(9991);
+            }
+            return result;
+        }
+        // 成功
+        String data = String.valueOf(callResult.getData());
+        JSONArray ja = JSONObject.parseArray(data);
+        List<ConversionReponseDTO> dtoList = ja.stream().map((Object obj) -> {
+            JSONObject jo = (JSONObject) obj;
+            ConversionReponseDTO dto = OrikaBeanMapperUtil.map(jo, ConversionReponseDTO.class);
+            dto.setId(jo.getInteger("id"));
+            Set<String> knowFields = marketingCommonConfig.getWuBaSubmitConversionKnowFields();
+            dto.setExtend(getExtraFields(jo, knowFields));
+            return dto;
+        }).collect(Collectors.toList());
+
         long endTime = System.currentTimeMillis();
         log.warn(TITLE+"callClient, 耗时{}", (endTime-startTime));
-        return result;
+        return result.setCode(ResultCode.SUCCESS.getValue()).setDate(dtoList);
     }
 
     public void processSuccessDto(ConversionReponseDTO dto, List<WubaSubmitConversionDataTransferClean> dataTransferCleanList,
@@ -205,7 +253,7 @@ public class WuBaQueryConversionResultService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public Result<?> updateBatchNoStatus(WubaCollidingBatchNo wubaCollidingBatchNo, Integer queryStatus){
+    public Result updateBatchNoStatus(WubaCollidingBatchNo wubaCollidingBatchNo, Integer queryStatus){
         // 上报批次表query_status置为1-已查询
         WubaCollidingBatchNo batchNoUpdate = new WubaCollidingBatchNo();
         batchNoUpdate.setBatchType(2);
@@ -221,7 +269,7 @@ public class WuBaQueryConversionResultService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public Result<?> updateDataStatus(List<String> cellList, Integer pushStatus){
+    public Result updateDataStatus(List<String> cellList, Integer pushStatus){
         WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
         dataUpdate.setPushStatus(pushStatus);
         //
@@ -234,7 +282,7 @@ public class WuBaQueryConversionResultService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public Result<?> updateDataLongStatus(WubaCollidingBatchNo wubaCollidingBatchNo, List<String> cellList, Integer submitResult){
+    public Result updateDataLongStatus(WubaCollidingBatchNo wubaCollidingBatchNo, List<String> cellList, Integer submitResult){
         WubaSubmitConversionDataLog dataLogUpdate = new WubaSubmitConversionDataLog();
         dataLogUpdate.setSubmitResult(submitResult);
         //
@@ -257,5 +305,16 @@ public class WuBaQueryConversionResultService {
 
         queryPool.setCorePoolSize(queryPoolSize);
         queryPool.setMaximumPoolSize(queryPoolSize);
+    }
+
+    private String getExtraFields(JSONObject jo, Set<String> knowFields){
+        JSONObject res = new JSONObject();
+        Set<String> keySet = jo.keySet();
+        for (String key : keySet) {
+            if(!knowFields.contains(key)){
+                res.put(key, jo.get(key));
+            }
+        }
+        return res.toJSONString();
     }
 }

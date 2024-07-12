@@ -9,6 +9,11 @@ public class WubaCollidingBatchNo {
     private Long id;
 
     /**
+     * 
+     */
+    private String apiCode;
+
+    /**
      * 批次号
      */
     private String batchNo;
@@ -36,7 +41,7 @@ public class WubaCollidingBatchNo {
     /**
      * 状态 0-正常1 删除
      */
-    private Integer isDelete;
+    private Integer isDeleted;
 
     /**
      * 创建时间
@@ -54,6 +59,14 @@ public class WubaCollidingBatchNo {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public String getBatchNo() {
@@ -96,12 +109,12 @@ public class WubaCollidingBatchNo {
         this.extend = extend == null ? null : extend.trim();
     }
 
-    public Integer getIsDelete() {
-        return isDelete;
+    public Integer getIsDeleted() {
+        return isDeleted;
     }
 
-    public void setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
+    public void setIsDeleted(Integer isDeleted) {
+        this.isDeleted = isDeleted;
     }
 
     public Date getCreateTime() {
