@@ -23,7 +23,12 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -65,65 +70,79 @@ public class WuBaQueryConversionResultService {
         scanData(condition);
     }
 
-    public void scanData(Page2Condition<WubaCollidingBatchNo> condition) {
-        Result<?> result = new Result<>();
-        result.setCode(ResultCode.SUCCESS.getValue());
+    public Result scanData(Page2Condition<WubaCollidingBatchNo> condition) {
+        Result result = new Result<>().failure();
         // queryPool
         ThreadPoolExecutor queryPool = BrExecutors.getThreadPool(12, 12, 20);
         // futureList
         List<Future<Result<WubaCollidingBatchNo>>> futureList = new ArrayList<>();
 
+        // param
         WubaCollidingBatchNo param = condition.getParam();
         Integer batchType = param.getBatchType();
         Date pushTime = param.getPushTime();
         Integer queryStatus = param.getQueryStatus();
+        LocalDate curLocalDate = LocalDate.now();
+        LocalDate startLocalDate = curLocalDate.plusDays(-2);
+        Date startDate = Date.from(startLocalDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant());
 
+        //
         WubaCollidingBatchNoExample batchNoExample = new WubaCollidingBatchNoExample();
         batchNoExample.createCriteria().andBatchTypeEqualTo(batchType).andQueryStatusEqualTo(queryStatus)
-                .andPushTimeBetween(new Date(), new Date());
+                .andPushTimeBetween(startDate, new Date());
         final List<WubaCollidingBatchNo> batchNoList = batchNoMapper.selectByExample(batchNoExample);
 
         if (CollectionUtils.isEmpty(batchNoList)) {
-            log.warn(TITLE+"未获取到数据");
-            return;
+            log.warn(TITLE+"未获取到批次数据");
+            return result;
         }
 
-        for(WubaCollidingBatchNo b: batchNoList){
+        for(WubaCollidingBatchNo wubaCollidingBatchNo: batchNoList) {
             setThreadPoolParam(queryPool);
-            futureList.add(queryPool.submit(() -> processData(b, condition)));
+            futureList.add(queryPool.submit(() -> processData(wubaCollidingBatchNo, condition)));
         }
+        return result.success();
 
     }
 
-    @Transactional
-    public Result<WubaCollidingBatchNo> processData(WubaCollidingBatchNo wubaCollidingBatchNo, Page2Condition<WubaCollidingBatchNo> condition) {
-        Result<WubaCollidingBatchNo> result = new Result();
-        result.setCode(ResultCode.FAIL.getValue());
+    public Result<WubaCollidingBatchNo> processData(WubaCollidingBatchNo wubaCollidingBatchNo,
+                                                    Page2Condition<WubaCollidingBatchNo> condition) throws Exception {
+        Result<WubaCollidingBatchNo> result = new Result().failure();
         // callClient
         Result<List<ConversionReponseDTO>> callResult = callClient(wubaCollidingBatchNo, condition);
-        if(callResult == null){
+        if (callResult == null) {
             return result;
         }
 
-        if(!callResult.isSuccess()){
-            if(callResult.getCode()==9991){
+        if (!callResult.isSuccess()) {
+            if (callResult.getCode() == 9991) {
                 return result;
             }
             Result updateBatchNoResult = updateBatchNoStatus(wubaCollidingBatchNo, 2);
-            if(updateBatchNoResult==null || !updateBatchNoResult.isSuccess()){
+            if (updateBatchNoResult == null || !updateBatchNoResult.isSuccess()) {
                 return result;
             }
             // Alert
-            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, batchNo: "+wubaCollidingBatchNo.getBatchNo());
+            log.warn(TITLE + "调用接口失败, batchNo: " + wubaCollidingBatchNo.getBatchNo());
+            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, batchNo: " + wubaCollidingBatchNo.getBatchNo());
             return result;
         }
 
-        List<ConversionReponseDTO> dtoList= callResult.getData();
+        List<ConversionReponseDTO> dtoList = callResult.getData();
         if (CollectionUtils.isEmpty(dtoList)) {
-            log.warn(TITLE+"返回列表为空");
+            log.warn(TITLE + "返回列表为空");
             return result;
         }
 
+        processCallSuccess(wubaCollidingBatchNo, dtoList);
+        return result.success();
+    }
+
+    @Transactional
+    public Result<WubaCollidingBatchNo> processCallSuccess(WubaCollidingBatchNo wubaCollidingBatchNo,
+                                                           List<ConversionReponseDTO> dtoList) throws Exception {
+        Result<WubaCollidingBatchNo> result = new Result().failure();
+        // call success
         // 返回数据分流处理
         List<WubaSubmitConversionDataTransferClean> dataTransferCleanList = new ArrayList<>();
         List<WubaSubmitConversionDataLog> datalogSuccessList = new ArrayList<>();
@@ -150,10 +169,9 @@ public class WuBaQueryConversionResultService {
         processFailureSubmit(wubaCollidingBatchNo, datalogFailureList);
 
         // 上报批次表query_status置为1-已查询
-        Result<?> updateBatchNoStatusResult = updateBatchNoStatus(wubaCollidingBatchNo, 1);
+        updateBatchNoStatus(wubaCollidingBatchNo, 1);
 
-
-        return new Result<>();
+        return result.success();
     }
 
     public Result<List<ConversionReponseDTO>> callClient(WubaCollidingBatchNo wubaCollidingBatchNo, Page2Condition<WubaCollidingBatchNo> condition) {
@@ -219,11 +237,11 @@ public class WuBaQueryConversionResultService {
 
     public Result<?> processSuccessSubmit(WubaCollidingBatchNo wubaCollidingBatchNo,
             List<WubaSubmitConversionDataTransferClean> dataTransferCleanList,
-            List<WubaSubmitConversionDataLog> datalogSuccessList) {
+            List<WubaSubmitConversionDataLog> datalogSuccessList) throws Exception {
         // 转化结果表增加记录
         int batchAddResult = dataTransferCleanMapper.batchAdd(dataTransferCleanList);
         if(batchAddResult != dataTransferCleanList.size()){
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            throw new Exception(TITLE+"上报日志表增加记录异常");
         }
 
         // 上报日志表记录转化数据，submit_result置为1-上报成功
@@ -241,7 +259,7 @@ public class WuBaQueryConversionResultService {
     }
 
     public Result<?> processFailureSubmit(WubaCollidingBatchNo wubaCollidingBatchNo,
-            List<WubaSubmitConversionDataLog> datalogFailureList) {
+            List<WubaSubmitConversionDataLog> datalogFailureList) throws Exception {
 
         List<String> cellList = datalogFailureList.stream().map(WubaSubmitConversionDataLog::getCell).collect(Collectors.toList());
         // 上报日志表submit_result置为2-上报失败
@@ -269,7 +287,7 @@ public class WuBaQueryConversionResultService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    public Result updateDataStatus(List<String> cellList, Integer pushStatus){
+    public Result updateDataStatus(List<String> cellList, Integer pushStatus) throws Exception {
         WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
         dataUpdate.setPushStatus(pushStatus);
         //
@@ -277,12 +295,13 @@ public class WuBaQueryConversionResultService {
         dataUpdateExample.createCriteria().andCellIn(cellList);
         int dataUpdateResult = dataMapper.updateByExample(dataUpdate, dataUpdateExample);
         if(dataUpdateResult != cellList.size()){
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            throw new Exception(TITLE+"营销名单上报表更新状态异常");
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+        return new Result().success();
     }
 
-    public Result updateDataLongStatus(WubaCollidingBatchNo wubaCollidingBatchNo, List<String> cellList, Integer submitResult){
+    public Result updateDataLongStatus(WubaCollidingBatchNo wubaCollidingBatchNo, List<String> cellList,
+                                       Integer submitResult) throws Exception {
         WubaSubmitConversionDataLog dataLogUpdate = new WubaSubmitConversionDataLog();
         dataLogUpdate.setSubmitResult(submitResult);
         //
@@ -290,9 +309,9 @@ public class WuBaQueryConversionResultService {
         dataLogUpdateExample.createCriteria().andBatchNoEqualTo(wubaCollidingBatchNo.getBatchNo()).andCellIn(cellList);
         int dataLogUpdateResult = dataLogMapper.updateByExample(dataLogUpdate, dataLogUpdateExample);
         if(dataLogUpdateResult != cellList.size()){
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            throw new Exception(TITLE+"营销名单上报日志表更新状态异常");
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+        return new Result().success();
     }
 
     private void setThreadPoolParam(ThreadPoolExecutor queryPool) {

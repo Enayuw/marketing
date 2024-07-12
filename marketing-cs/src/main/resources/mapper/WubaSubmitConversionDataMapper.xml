@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.WubaSubmitConversionDataMapper" >
 
     <select id="findByConditionAndPage" resultType="com.br.marketing.entity.WubaSubmitConversionData">
-        select cell, marketing_time
+        select id, api_code, cell, marketing_time, push_status, status
         from b_wuba_submit_conversion_data
         where api_code = #{apiCode}
         and status = #{status}
