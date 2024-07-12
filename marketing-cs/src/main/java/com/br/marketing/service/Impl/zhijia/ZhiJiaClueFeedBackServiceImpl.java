@@ -29,6 +29,8 @@ import javax.annotation.Resource;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -167,8 +169,10 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
                     ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
                     if(zhiJiaCarSeriesInfo.getIsMatch()){
-                        reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
-                        reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ? String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
+                        reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ?
+                                String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
+                        reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ?
+                                String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
                     }else {
                         updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
                         // 钉钉报警
@@ -244,8 +248,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             SecretKeySpec keySpec = new SecretKeySpec(keyStr.getBytes(), "AES");
             IvParameterSpec ivSpec = new IvParameterSpec(ivStr.getBytes());
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
-            byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
-            return new String(Base64.encodeBase64(encryptedBytes));
+            byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+            return URLEncoder.encode(new String(Base64.encodeBase64(encryptedBytes)), StandardCharsets.UTF_8.toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -275,8 +279,9 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
         String title = "之家线索异常信息";
         markdown.setTitle(title);
-        sb.append("错误数据id：").append(id+"|\n");
-        sb.append("错误原因：").append(errorMsg+"|\n");
+        sb.append("错误数据id：").append(id).append("|\n")
+                .append("错误原因：").append(errorMsg)
+                .append("|\n");
         String text = sb.toString();
         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), text, title));
         markdown.setText(text);

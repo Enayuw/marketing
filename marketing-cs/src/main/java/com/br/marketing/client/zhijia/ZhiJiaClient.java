@@ -53,10 +53,10 @@ public class ZhiJiaClient {
     @Value("${api.zhijia.seriesUrl:00}")
     private String seriesUrl;
 
-    @Value("${api.zhijia.appId:0}")
+    @Value("${api.zhijia.zhiJiaClientAppid:0}")
     private String appId;
 
-    @Value("${api.zhijia.querykey:0}")
+    @Value("${api.zhijia.zhiJiaClientEncryption:0}")
     private String querykey;
 
     @Autowired
