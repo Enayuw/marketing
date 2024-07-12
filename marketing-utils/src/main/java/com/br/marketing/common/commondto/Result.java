@@ -51,4 +51,14 @@ public class Result<T> {
     public boolean isSuccess() {
         return ResultCode.SUCCESS.getValue().equals(this.code);
     }
+
+    public Result success() {
+        this.setCode(ResultCode.SUCCESS.getValue());
+        return this;
+    }
+
+    public Result failure() {
+        this.setCode(ResultCode.FAIL.getValue());
+        return this;
+    }
 }
