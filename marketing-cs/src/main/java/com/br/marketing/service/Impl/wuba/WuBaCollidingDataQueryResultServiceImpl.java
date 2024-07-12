@@ -11,9 +11,12 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.WubaCollidingBatchNo;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
+import com.br.marketing.entity.WubaCollidingDataSyncClean;
+import com.br.marketing.entity.WubaCollidingDataSyncCleanExample;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
+import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.collect.Lists;
@@ -52,6 +55,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     WuBaCollidingDataBusinessService wuBaCollidingDataBusinessService;
     @Autowired
     WuBaServiceClient wuBaServiceClient;
+    @Autowired
+    DataCleaningAutoService cleaningAutoService;
     ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10);
 
     @Override
@@ -81,6 +86,15 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         }
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        List<String> batchNos = wubaCollidingBatchNos.stream().map(WubaCollidingBatchNo::getBatchNo).collect(Collectors.toList());
+        int cleanCount = getCleanCountByBatchNos(batchNos);
+        if (cleanCount <= 0) {
+            return;
+        }
+
+        String apiCode = marketingCommonConfig.getWubaCollidingApiCode();
+        cleaningAutoService.saveCleanTask(apiCode,0,"58新客_上传清洗规则勿动");
     }
 
     private void queryAndSaveResult(WubaCollidingBatchNo wubaCollidingBatchNo) {
@@ -182,5 +196,14 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         collidingBatchNo.setId(wubaCollidingBatchNo.getId());
         collidingBatchNo.setQueryStatus(queryStatus);
         wubaCollidingBatchNoMapper.updateByPrimaryKeySelective(collidingBatchNo);
+    }
+
+    private int getCleanCountByBatchNos(List<String> batchNos){
+        WubaCollidingDataSyncCleanExample example = new WubaCollidingDataSyncCleanExample();
+        example.createCriteria().andIsDeleteEqualTo(0)
+                .andBatchNoIn(batchNos)
+                .andCleanStatusEqualTo(0);
+        List<WubaCollidingDataSyncClean> wubaCollidingDataSyncCleans = wubaCollidingDataSyncCleanMapper.selectByExample(example);
+        return wubaCollidingDataSyncCleans.size();
     }
 }
