@@ -483,6 +483,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carSeriesInfos)) {
             zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+            zhiJiaCarInfoDTO.setBrandId(carSeriesInfos.get(0).getBrandId());
             zhiJiaCarInfoDTO.setSeriesId(carSeriesInfos.get(0).getSeriesId());
             return zhiJiaCarInfoDTO;
         }
@@ -493,6 +494,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         if (!CollectionUtils.isEmpty(carSeriesInfos1)) {
             if (carSeriesInfos1.size() == 1) {
                 zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+                zhiJiaCarInfoDTO.setBrandId(carSeriesInfos.get(0).getBrandId());
                 zhiJiaCarInfoDTO.setSeriesId(carSeriesInfos1.get(0).getSeriesId());
                 return zhiJiaCarInfoDTO;
             } else {
@@ -506,6 +508,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 Arrays.asList(seriesInfo.getSeriesExtend().split(",")).contains(seriesName)).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carSeriesInfos2)) {
             zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
+            zhiJiaCarInfoDTO.setBrandId(carSeriesInfos.get(0).getBrandId());
             zhiJiaCarInfoDTO.setSeriesId(carSeriesInfos2.get(0).getSeriesId());
             return zhiJiaCarInfoDTO;
         }
