@@ -5,7 +5,7 @@
         insert into b_wuba_colliding_data_log (data_id,cell,batch_no,api_code)
         values
         <foreach collection="list" item="item" separator=",">
-            (#{item.dataId},#{item.cell},#{item.batchNo},#{apiCode})
+            (#{item.dataId},#{item.cell},#{item.batchNo},#{item.apiCode})
         </foreach>
     </insert>
 
