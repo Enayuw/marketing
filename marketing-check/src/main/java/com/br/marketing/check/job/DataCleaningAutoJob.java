@@ -30,56 +30,50 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
 
     @Resource
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
-    @Resource
-    MarketingDataFileConfigMapper marketingDataFileConfigMapper;
+
     @Resource
     DataCleaningAutoService dataCleaningAutoService;
 
-    @Autowired
+    @Resource
     RedisChgService redisChgService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobContext) {
+
+
+        while (true) {
+            MarketingCleanDataTask marketingCleanDataTask = getMarketingCleanDataTask();
+            if (marketingCleanDataTask == null) break;
+            // 执行清洗逻辑
+            dataCleaningAutoService.autoCleanDataByTask(marketingCleanDataTask);
+        }
+    }
+
+    private MarketingCleanDataTask getMarketingCleanDataTask() {
         // 查询待执行的配置表的需要自动执行的配置
         // 判断当前时间是否>=清洗开始时间 且小于清洗结束时间
         // 以配置id 为key 作为索引，进行抢锁
         // 抢到锁以后更新当前配置表为锁定状态
         // 释放锁
 
-
-        while (true) {
-//            redisChgService.lock("lock_key_clean_data:99999", "lock_key:99999");
-            MarketingCleanDataTaskExample example = new MarketingCleanDataTaskExample();
-            example.createCriteria()
-                    .andCreateTimeLessThanOrEqualTo(new Date())
-                    .andCleanStatusEqualTo(0)
-                    .andAutoCleanWayTypeEqualTo(1)
-                    .andIsDelEqualTo(1);
-            example.setOrderByClause("create_time asc limit 1");
-            List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
-            if (marketingCleanDataTasks.size() == 0) {
-                break;
-            }
-            MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
-            // 任务设置为清洗中
-            marketingCleanDataTask.setCleanStatus(1);
-            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
-//            redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
-
-            try {
-                // 执行清洗逻辑
-                dataCleaningAutoService.autoCleanDataByTask(marketingCleanDataTask);
-                // 更新任务为清洗完成
-                marketingCleanDataTask.setCleanStatus(2);
-            } catch (Exception e) {
-                // 更新任务为清洗完成
-                marketingCleanDataTask.setCleanStatus(3);
-            }
-            marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
+        //            redisChgService.lock("lock_key_clean_data:99999", "lock_key:99999");
+        MarketingCleanDataTaskExample example = new MarketingCleanDataTaskExample();
+        example.createCriteria()
+                .andCreateTimeLessThanOrEqualTo(new Date())
+                .andCleanStatusEqualTo(0)
+                .andAutoCleanWayTypeEqualTo(1)
+                .andIsDelEqualTo(1);
+        example.setOrderByClause("create_time asc limit 1");
+        List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
+        if (marketingCleanDataTasks.size() == 0) {
+            return null;
         }
-
-
-
+        MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
+        // 任务设置为清洗中
+        marketingCleanDataTask.setCleanStatus(1);
+        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
+//            redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
+        return marketingCleanDataTask;
     }
 
 }

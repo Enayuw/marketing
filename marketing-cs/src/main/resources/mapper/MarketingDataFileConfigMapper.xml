@@ -21,7 +21,7 @@
         ${sql}
     </select>
     <update id="updateCleanDataStatus">
-        update ${tableName} set status = #{status} where ${autoDuplicateColumn} in
+        update ${tableName} set clean_status = #{cleanStatus} where ${autoDuplicateColumn} in
         <foreach collection="list" item="item" open="(" close=")" separator=",">
             #{item}
         </foreach>
