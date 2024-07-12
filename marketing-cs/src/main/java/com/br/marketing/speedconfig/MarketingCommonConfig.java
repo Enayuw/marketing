@@ -1833,5 +1833,10 @@ public class MarketingCommonConfig {
      * 58金融-新客营销名单上报结果查询-调用线程数
      */
     private List<Integer> wuBaSubmitConversionThreadPool;
+
+    /**
+     * 58金融-新客营销名单上报结果查询-调用线程数
+     */
+    private Set<String> wuBaSubmitConversionKnowFields;
 }
 
