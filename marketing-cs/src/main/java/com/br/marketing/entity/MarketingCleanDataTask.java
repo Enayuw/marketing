@@ -16,7 +16,7 @@ public class MarketingCleanDataTask {
     /**
      * 规则配置id
      */
-    private Integer configId;
+    private Long configId;
 
     /**
      * 文件id,多个用,分割
@@ -74,11 +74,11 @@ public class MarketingCleanDataTask {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
-    public Integer getConfigId() {
+    public Long getConfigId() {
         return configId;
     }
 
-    public void setConfigId(Integer configId) {
+    public void setConfigId(Long configId) {
         this.configId = configId;
     }
 

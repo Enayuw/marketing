@@ -4,7 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCleanDataTask" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="config_id" property="configId" jdbcType="INTEGER" />
+    <result column="config_id" property="configId" jdbcType="BIGINT" />
     <result column="file_id" property="fileId" jdbcType="VARCHAR" />
     <result column="clean_type" property="cleanType" jdbcType="INTEGER" />
     <result column="test_result" property="testResult" jdbcType="VARCHAR" />
@@ -73,7 +73,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, config_id, file_id, clean_type, test_result, clean_status, create_time,
+    id, api_code, config_id, file_id, clean_type, test_result, clean_status, create_time, 
     update_time, is_del, auto_clean_way_type
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCleanDataTaskExample" >
@@ -91,7 +91,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select
+    select 
     <include refid="Base_Column_List" />
     from b_marketing_clean_data_task
     where id = #{id,jdbcType=BIGINT}
@@ -110,14 +110,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_clean_data_task (api_code, config_id, file_id,
-    clean_type, test_result, clean_status,
-    create_time, update_time, is_del,
-    auto_clean_way_type)
-    values (#{apiCode,jdbcType=VARCHAR}, #{configId,jdbcType=INTEGER}, #{fileId,jdbcType=VARCHAR},
-    #{cleanType,jdbcType=INTEGER}, #{testResult,jdbcType=VARCHAR}, #{cleanStatus,jdbcType=INTEGER},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER},
-    #{autoCleanWayType,jdbcType=INTEGER})
+    insert into b_marketing_clean_data_task (api_code, config_id, file_id, 
+      clean_type, test_result, clean_status, 
+      create_time, update_time, is_del, 
+      auto_clean_way_type)
+    values (#{apiCode,jdbcType=VARCHAR}, #{configId,jdbcType=BIGINT}, #{fileId,jdbcType=VARCHAR}, 
+      #{cleanType,jdbcType=INTEGER}, #{testResult,jdbcType=VARCHAR}, #{cleanStatus,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, 
+      #{autoCleanWayType,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCleanDataTask" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -161,7 +161,7 @@
         #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="configId != null" >
-        #{configId,jdbcType=INTEGER},
+        #{configId,jdbcType=BIGINT},
       </if>
       <if test="fileId != null" >
         #{fileId,jdbcType=VARCHAR},
@@ -205,7 +205,7 @@
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
       <if test="record.configId != null" >
-        config_id = #{record.configId,jdbcType=INTEGER},
+        config_id = #{record.configId,jdbcType=BIGINT},
       </if>
       <if test="record.fileId != null" >
         file_id = #{record.fileId,jdbcType=VARCHAR},
@@ -239,16 +239,16 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_clean_data_task
     set id = #{record.id,jdbcType=BIGINT},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    config_id = #{record.configId,jdbcType=INTEGER},
-    file_id = #{record.fileId,jdbcType=VARCHAR},
-    clean_type = #{record.cleanType,jdbcType=INTEGER},
-    test_result = #{record.testResult,jdbcType=VARCHAR},
-    clean_status = #{record.cleanStatus,jdbcType=INTEGER},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    is_del = #{record.isDel,jdbcType=INTEGER},
-    auto_clean_way_type = #{record.autoCleanWayType,jdbcType=INTEGER}
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      config_id = #{record.configId,jdbcType=BIGINT},
+      file_id = #{record.fileId,jdbcType=VARCHAR},
+      clean_type = #{record.cleanType,jdbcType=INTEGER},
+      test_result = #{record.testResult,jdbcType=VARCHAR},
+      clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      auto_clean_way_type = #{record.autoCleanWayType,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -260,7 +260,7 @@
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="configId != null" >
-        config_id = #{configId,jdbcType=INTEGER},
+        config_id = #{configId,jdbcType=BIGINT},
       </if>
       <if test="fileId != null" >
         file_id = #{fileId,jdbcType=VARCHAR},
@@ -292,15 +292,15 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCleanDataTask" >
     update b_marketing_clean_data_task
     set api_code = #{apiCode,jdbcType=VARCHAR},
-        config_id = #{configId,jdbcType=INTEGER},
-        file_id = #{fileId,jdbcType=VARCHAR},
-        clean_type = #{cleanType,jdbcType=INTEGER},
-        test_result = #{testResult,jdbcType=VARCHAR},
-        clean_status = #{cleanStatus,jdbcType=INTEGER},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        is_del = #{isDel,jdbcType=INTEGER},
-        auto_clean_way_type = #{autoCleanWayType,jdbcType=INTEGER}
+      config_id = #{configId,jdbcType=BIGINT},
+      file_id = #{fileId,jdbcType=VARCHAR},
+      clean_type = #{cleanType,jdbcType=INTEGER},
+      test_result = #{testResult,jdbcType=VARCHAR},
+      clean_status = #{cleanStatus,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_del = #{isDel,jdbcType=INTEGER},
+      auto_clean_way_type = #{autoCleanWayType,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

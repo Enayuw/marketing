@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -58,7 +60,10 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         Result result = wuBaServiceClient.submitCredentialStuffingList(cells);
 
         if (Objects.equals(result.getCode(), ResultCode.FAIL.getValue())) {
-            // todo 钉钉告警
+            JSONObject resMap = JSONObject.parseObject(result.getData().toString());
+            String title = "58提交撞库名单，调用客户接口异常";
+            String msg = title + "，响应内容：" + JSON.toJSONString(resMap);
+            wuBaServiceClient.sendDingDingAlert("58提交撞库名单，调用客户接口异常", msg);
             return;
         }
 

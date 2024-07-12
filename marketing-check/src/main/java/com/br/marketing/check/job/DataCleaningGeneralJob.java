@@ -37,8 +37,7 @@ public class DataCleaningGeneralJob extends AbstractSimpleElasticJob {
         log.warn("DataCleaningGeneralJob--开始执行-{}",jobParameter);
         MarketingCleanDataTask task = dataCleaningGeneralService.getAction();
         if(null != task){
-            Integer configId = task.getConfigId();
-            MarketingDataFileConfig config = marketingDataFileConfigMapper.selectByPrimaryKey(configId.longValue());
+            MarketingDataFileConfig config = marketingDataFileConfigMapper.selectByPrimaryKey(task.getConfigId());
             IFileToMarketingRuleService fileToMarketingRuleService = dataCleanFactory.getFileToMarketingRuleService(config);
             dataCleaningGeneralService.action(task,fileToMarketingRuleService,config);
         }else{
