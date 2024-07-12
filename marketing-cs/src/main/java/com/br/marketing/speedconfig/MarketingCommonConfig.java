@@ -1838,5 +1838,10 @@ public class MarketingCommonConfig {
      * 58金融-新客营销名单-转化数据-通用字段配置
      */
     private Set<String> wuBaSubmitConversionKnowFields;
+
+    /**
+     * 通用清洗线程池
+     */
+    private Integer autoCleanDataThreadNum;
 }
 

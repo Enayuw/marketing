@@ -1,20 +1,13 @@
 package com.br.marketing.check.job;
 
-import com.br.marketing.check.beanhadler.DataCleanFactory;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.MarketingCleanDataTaskExample;
-import com.br.marketing.entity.MarketingDataFileConfig;
-import com.br.marketing.entity.MarketingDataFileConfigExample;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
-import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.service.DataCleaningAutoService;
-import com.br.marketing.service.IDataCleaningGeneralService;
-import com.br.marketing.service.IFileToMarketingRuleService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -39,41 +32,38 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobContext) {
-
-
         while (true) {
             MarketingCleanDataTask marketingCleanDataTask = getMarketingCleanDataTask();
-            if (marketingCleanDataTask == null) break;
-            // 执行清洗逻辑
+            if (marketingCleanDataTask == null) {break;}
             dataCleaningAutoService.autoCleanDataByTask(marketingCleanDataTask);
         }
     }
 
     private MarketingCleanDataTask getMarketingCleanDataTask() {
-        // 查询待执行的配置表的需要自动执行的配置
-        // 判断当前时间是否>=清洗开始时间 且小于清洗结束时间
-        // 以配置id 为key 作为索引，进行抢锁
-        // 抢到锁以后更新当前配置表为锁定状态
-        // 释放锁
-
         //            redisChgService.lock("lock_key_clean_data:99999", "lock_key:99999");
         MarketingCleanDataTaskExample example = new MarketingCleanDataTaskExample();
+        exampleCreateCriteria(example);
+        List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
+        if (marketingCleanDataTasks.isEmpty()) {
+            return null;
+        }
+        MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
+        log.warn("任务id：{},获取锁成功",marketingCleanDataTask.getId());
+        // 任务设置为清洗中
+        marketingCleanDataTask.setCleanStatus(1);
+        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
+//            redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
+        log.warn("任务id：{},释放锁成功",marketingCleanDataTask.getId());
+        return marketingCleanDataTask;
+    }
+
+    private static void exampleCreateCriteria(MarketingCleanDataTaskExample example) {
         example.createCriteria()
                 .andCreateTimeLessThanOrEqualTo(new Date())
                 .andCleanStatusEqualTo(0)
                 .andAutoCleanWayTypeEqualTo(1)
                 .andIsDelEqualTo(1);
         example.setOrderByClause("create_time asc limit 1");
-        List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
-        if (marketingCleanDataTasks.size() == 0) {
-            return null;
-        }
-        MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
-        // 任务设置为清洗中
-        marketingCleanDataTask.setCleanStatus(1);
-        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
-//            redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
-        return marketingCleanDataTask;
     }
 
 }
