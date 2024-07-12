@@ -1796,5 +1796,8 @@ public class MarketingCommonConfig {
      * 之家落库apiCode
      */
     private String zhiJiaApiCode;
+
+
+
 }
 

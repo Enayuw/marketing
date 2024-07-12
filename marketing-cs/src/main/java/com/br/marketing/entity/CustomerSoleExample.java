@@ -534,6 +534,126 @@ public class CustomerSoleExample {
             addCriterion("condition_info not between", value1, value2, "conditionInfo");
             return (Criteria) this;
         }
+
+        public Criteria andUserTypeCountIsNull() {
+            addCriterion("user_type_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountIsNotNull() {
+            addCriterion("user_type_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountEqualTo(Integer value) {
+            addCriterion("user_type_count =", value, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountNotEqualTo(Integer value) {
+            addCriterion("user_type_count <>", value, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountGreaterThan(Integer value) {
+            addCriterion("user_type_count >", value, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("user_type_count >=", value, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountLessThan(Integer value) {
+            addCriterion("user_type_count <", value, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountLessThanOrEqualTo(Integer value) {
+            addCriterion("user_type_count <=", value, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountIn(List<Integer> values) {
+            addCriterion("user_type_count in", values, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountNotIn(List<Integer> values) {
+            addCriterion("user_type_count not in", values, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountBetween(Integer value1, Integer value2) {
+            addCriterion("user_type_count between", value1, value2, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserTypeCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("user_type_count not between", value1, value2, "userTypeCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeIsNull() {
+            addCriterion("all_user_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeIsNotNull() {
+            addCriterion("all_user_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeEqualTo(Integer value) {
+            addCriterion("all_user_type =", value, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeNotEqualTo(Integer value) {
+            addCriterion("all_user_type <>", value, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeGreaterThan(Integer value) {
+            addCriterion("all_user_type >", value, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("all_user_type >=", value, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeLessThan(Integer value) {
+            addCriterion("all_user_type <", value, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("all_user_type <=", value, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeIn(List<Integer> values) {
+            addCriterion("all_user_type in", values, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeNotIn(List<Integer> values) {
+            addCriterion("all_user_type not in", values, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeBetween(Integer value1, Integer value2) {
+            addCriterion("all_user_type between", value1, value2, "allUserType");
+            return (Criteria) this;
+        }
+
+        public Criteria andAllUserTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("all_user_type not between", value1, value2, "allUserType");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
