@@ -57,6 +57,9 @@ public class WuBaQueryConversionResultService {
     @Resource
     private WuBaServiceClient wuBaServiceClient;
 
+    @Resource
+    private WuBaDingDingService wuBaDingDingService;
+
 
     public void action(Page2Condition<WubaCollidingBatchNo> condition) {
         scanData(condition);
@@ -110,8 +113,8 @@ public class WuBaQueryConversionResultService {
             if(updateBatchNoResult==null || !updateBatchNoResult.isSuccess()){
                 return result;
             }
-            // Alarm
-
+            // Alert
+            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, batchNo: "+wubaCollidingBatchNo.getBatchNo());
             return result;
         }
 

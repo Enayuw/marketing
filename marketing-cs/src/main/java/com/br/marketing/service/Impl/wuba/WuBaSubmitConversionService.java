@@ -46,6 +46,9 @@ public class WuBaSubmitConversionService {
     @Resource
     private WuBaServiceClient wuBaServiceClient;
 
+    @Resource
+    private WuBaDingDingService wuBaDingDingService;
+
 
     public void action(Page2Condition<WubaSubmitConversionData> condition) {
         scanData(condition);
@@ -84,7 +87,9 @@ public class WuBaSubmitConversionService {
     public Result<?> processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition) {
         // callClient
         Result<String> result = callClient(pageList);
-        if(!result.isSuccess() || result.getData()==null){
+        if(result == null || !result.isSuccess() || result.getData()==null){
+            // Alert
+            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: "+condition.getParam().getApiCode());
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
 
