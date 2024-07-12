@@ -1262,6 +1262,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @param custNumSet     custNum集合
      * @param apiCode        apiCode
      * @param requestDateObj 日期
+     * @Param taskIds        批次号集合
      * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
      * @author senyang.zheng
      * @date 2024/01/15
@@ -1269,7 +1270,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     @Override
     public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndTaskId(Set<String> custNumSet,
                                                                                        String apiCode,
-                                                                                       Object requestDateObj) {
+                                                                                       Object requestDateObj,
+                                                                                       List<String> taskIds) {
         if (CollectionUtils.isEmpty(custNumSet) || StringUtils.isEmpty(apiCode)) {
             return Collections.emptyMap();
         }
@@ -1280,6 +1282,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         MarketingCustomizeDataValidConfigExample example = new MarketingCustomizeDataValidConfigExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andValidStartDateLessThanOrEqualTo(requestDateStr)
             .andValidEndDateGreaterThanOrEqualTo(requestDateStr);
+        if (!CollectionUtils.isEmpty(taskIds)) {
+            example.createCriteria().andTaskIdIn(taskIds);
+        }
         List<MarketingCustomizeDataValidConfig> configList = customizeDataValidConfigMapper.selectByExample(example);
 
         if (CollectionUtil.isEmpty(configList)) {

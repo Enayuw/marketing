@@ -1,5 +1,6 @@
 package com.br.marketing.util;
 
+import com.br.marketing.vo.TimeRange;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -11,9 +12,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**

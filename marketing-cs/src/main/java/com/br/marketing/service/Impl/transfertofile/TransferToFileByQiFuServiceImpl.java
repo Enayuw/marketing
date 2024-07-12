@@ -1,7 +1,5 @@
 package com.br.marketing.service.Impl.transfertofile;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -20,6 +18,7 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.TimeRange;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,10 +68,6 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId,expireDate,effectiveDate";
-
-    final static String EXECUTE_TIME = "12:00:00";
-
-    final static String SUFFIX = "";
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
@@ -168,6 +163,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         return result;
     }
 
+
     public void writeQifuTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         Long start = System.currentTimeMillis();
         AtomicInteger totalSize = new AtomicInteger(0);
@@ -178,15 +174,25 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                     , apiCode, System.currentTimeMillis() - start);
             saveUpdateTask(transferFileTask, totalSize.intValue());
         }
+        Map<String, List<MarketingCustomizeDataValidConfig>> configs = configList.stream().collect(Collectors.groupingBy(MarketingCustomizeDataValidConfig::getTaskId));
+        List<TimeRange> timeRanges = new ArrayList<>();
+        configs.forEach((key, value) -> {
+            String validStartDate = value.stream().min(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidStartDate();
+            String validEndDate = value.stream().max(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidEndDate();
+            timeRanges.add(new TimeRange(key, validStartDate, validEndDate));
+        });
         String tcId = tableCreateService.getTcId(apiCode);
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
         Integer pageSize = dynamicParameterService.getPageSize(null);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
-        for (MarketingCustomizeDataValidConfig config : configList) {
-            LocalDate startDate = LocalDate.parse(config.getValidStartDate(), YYYYMMDDSHORTLINE).minusDays(1);
-            LocalDate endDate = LocalDate.parse(config.getValidEndDate(), YYYYMMDDSHORTLINE).plusDays(1);
+        for (TimeRange timeRange : timeRanges) {
+            List<MarketingCustomizeDataValidConfig> configsForTaskId = configs.get(timeRange.getTaskId());
+            MarketingCustomizeDataValidConfig config = configsForTaskId.stream()
+                    .max(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get();
+            LocalDate startDate = LocalDate.parse(timeRange.getStartDate(), YYYYMMDDSHORTLINE).minusDays(1);
+            LocalDate endDate = LocalDate.parse(timeRange.getEndDate(), YYYYMMDDSHORTLINE).plusDays(1);
             Integer page = 0;
             for (; ; ) {
                 List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
@@ -195,7 +201,10 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
                     break;
                 }
                 //有效期过滤
-                List<MarketingTransferSyncUser> transferDataNew = filterTransferDataWithValPerd(apiCode, requestDate, transferData);
+                List<MarketingTransferSyncUser> transferDataNew = filterTransferDataWithValPerd(apiCode, requestDate, transferData, timeRange.getTaskId());
+                if (CollectionUtils.isEmpty(transferDataNew)) {
+                    continue;
+                }
                 page++;
                 threadPool.submit(() -> {
                     writeDataForOneQuery(fw, totalSize, config, transferDataNew);
@@ -282,21 +291,23 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
 
     /**
      * 使用公共方法对转化数据做有效期过滤
+     *
      * @param apiCode
      * @param requestDate
      * @param transferData
+     * @param taskId
      * @return
      */
-    private List<MarketingTransferSyncUser> filterTransferDataWithValPerd(String apiCode, String requestDate, List<MarketingTransferSyncUser> transferData) {
+    private List<MarketingTransferSyncUser> filterTransferDataWithValPerd(String apiCode, String requestDate, List<MarketingTransferSyncUser> transferData, String taskId) {
         Set<String> custNumSet = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode, LocalDate.parse(requestDate, YYYYMMDDSHORTLINE));
-        transferData = transferData.stream().filter(data -> {
+                transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode, LocalDate.parse(requestDate, YYYYMMDDSHORTLINE), Arrays.asList(new String[]{taskId}));
+        List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter(data -> {
             String custNum = data.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
             return syncUserValidityPeriodsBO != null;
         }).collect(Collectors.toList());
-        return transferData;
+        return transferDataNew;
     }
 
     private void saveUpdateTask(TransferFileTask transferFileTask, int totalSize) {
@@ -342,5 +353,7 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         }
         return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
     }
+
+
 
 }

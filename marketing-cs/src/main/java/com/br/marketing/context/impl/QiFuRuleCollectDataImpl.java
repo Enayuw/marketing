@@ -12,10 +12,7 @@ import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +37,7 @@ public class QiFuRuleCollectDataImpl  extends CommonMethodHandlerService{
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(set, context.getApiCode(), new Date());
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(set, context.getApiCode(), new Date(), new ArrayList<>());
             QiFuRuleCollectDataImpl.QiFuRuleNecessaryData qiFuRuleNecessaryData = new QiFuRuleCollectDataImpl.QiFuRuleNecessaryData();
             qiFuRuleNecessaryData.setCustomerMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(qiFuRuleNecessaryData);
