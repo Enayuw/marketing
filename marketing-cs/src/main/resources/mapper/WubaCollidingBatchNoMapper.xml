@@ -2,14 +2,14 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.WubaCollidingBatchNoMapper">
     <insert id="saveDataByBatchNo">
-        insert into b_wuba_colliding_batchNo(batch_no, batch_type, push_time)
-        values (#{batchNo}, #{batchType}, now())
+        insert into b_wuba_colliding_batchNo(batch_no, batch_type, push_time, api_code)
+        values (#{batchNo}, #{batchType}, now(), #{apiCode})
     </insert>
 
     <select id="selectCollidingDataResult" resultType="com.br.marketing.entity.WubaCollidingBatchNo">
-        select id, batch_no
+        select id, batch_no, api_code
         from b_wuba_colliding_batchNo
-        where query_status = 0 and batch_type = 1
+        where query_status = 0 and batch_type = 1 and api_code = #{apiCode} and is_deleted = 0
         <![CDATA[ and push_time < #{pushTime} ]]>
         order by id limit #{pageSize}
     </select>

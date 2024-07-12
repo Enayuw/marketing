@@ -50,39 +50,43 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         }
 
         Integer pagesize = marketingCommonConfig.getWuBaCollidingDataSubmitPageSize();
-        List<WubaCollidingDataRob> robs = wubaCollidingDataRobMapper.selectCollidingData(pagesize);
-        if (CollectionUtils.isEmpty(robs)) {
-            return;
-        }
+        marketingCommonConfig.getWubaCollidingApiCodes().forEach((String apiCode) -> {
+            List<WubaCollidingDataRob> robs = wubaCollidingDataRobMapper.selectCollidingData(pagesize, apiCode);
+            if (CollectionUtils.isEmpty(robs)) {
+                return;
+            }
 
-        List<String> cells = robs.stream().map(WubaCollidingDataRob::getCell).collect(Collectors.toList());
+            List<String> cells = robs.stream().map(WubaCollidingDataRob::getCell).collect(Collectors.toList());
 
-        Result result = wuBaServiceClient.submitCredentialStuffingList(cells);
+            Result result = wuBaServiceClient.submitCredentialStuffingList(cells);
 
-        if (Objects.equals(result.getCode(), ResultCode.FAIL.getValue())) {
-            JSONObject resMap = JSONObject.parseObject(result.getData().toString());
-            String title = "58提交撞库名单，调用客户接口异常";
-            String msg = title + "，响应内容：" + JSON.toJSONString(resMap);
-            wuBaServiceClient.sendDingDingAlert("58提交撞库名单，调用客户接口异常", msg);
-            return;
-        }
+            if (Objects.equals(result.getCode(), ResultCode.FAIL.getValue())) {
+                JSONObject resMap = JSONObject.parseObject(result.getData().toString());
+                String title = "58提交撞库名单，调用客户接口异常";
+                String msg = title + "，响应内容：" + JSON.toJSONString(resMap);
+                wuBaServiceClient.sendDingDingAlert("58提交撞库名单，调用客户接口异常", msg);
+                return;
+            }
 
-        // 保存批次号表
-        String batchNo = result.getData().toString();
-        wubaCollidingBatchNoMapper.saveDataByBatchNo(batchNo, 1);
+            // 保存批次号表
+            String batchNo = result.getData().toString();
+            wubaCollidingBatchNoMapper.saveDataByBatchNo(batchNo, 1, apiCode);
 
-        // 更新非周期表
-        wubaCollidingDataRobMapper.batchUpdatePushTimeById(robs);
+            // 更新非周期表
+            wubaCollidingDataRobMapper.batchUpdatePushTimeById(robs);
 
-        // 保存log表
-        List<WubaCollidingDataLog> logList = Lists.newArrayList();
-        for (WubaCollidingDataRob rob : robs) {
-            WubaCollidingDataLog log = new WubaCollidingDataLog();
-            log.setDataId(rob.getId());
-            log.setCell(rob.getCell());
-            log.setBatchNo(batchNo);
-            logList.add(log);
-        }
-        wubaCollidingDataLogMapper.batchSaveByBatchNo(logList);
+            // 保存log表
+            List<WubaCollidingDataLog> logList = Lists.newArrayList();
+            for (WubaCollidingDataRob rob : robs) {
+                WubaCollidingDataLog log = new WubaCollidingDataLog();
+                log.setDataId(rob.getId());
+                log.setCell(rob.getCell());
+                log.setBatchNo(batchNo);
+                log.setApiCode(apiCode);
+                logList.add(log);
+            }
+            wubaCollidingDataLogMapper.batchSaveByBatchNo(logList);
+        });
+
     }
 }

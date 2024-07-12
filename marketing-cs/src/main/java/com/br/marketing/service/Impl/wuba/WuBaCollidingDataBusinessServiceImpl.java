@@ -30,16 +30,16 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     @Transactional(rollbackFor = Exception.class)
     public void insertToRobAndUpdateFront(List<WubaCollidingDataFront> wubaCollidingDataFronts, LocalFile localFile) {
         try {
-            wubaCollidingDataRobMapper.batchSaveData(wubaCollidingDataFronts);
-            wubaCollidingDataFrontMapper.batchUpdatePushStatusByCell(wubaCollidingDataFronts, localFile.getId());
+            wubaCollidingDataRobMapper.batchSaveData(wubaCollidingDataFronts, localFile.getApiCode());
+            wubaCollidingDataFrontMapper.batchUpdatePushStatusByCell(wubaCollidingDataFronts, localFile.getId(), localFile.getApiCode());
         } catch (Exception e) {
             log.error("58撞库数据同步作业，子线程处理异常！", e);
         }
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void saveLoopAnddeleteRob(List<String> cells){
-        wubaCollidingDataLoopCycleMapper.batchSaveData(cells);
-        wubaCollidingDataRobMapper.batchDeleteByCell(cells);
+    public void saveLoopAnddeleteRob(List<String> cells, String apiCode){
+        wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode);
+        wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
     }
 }
