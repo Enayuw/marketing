@@ -4,7 +4,6 @@ import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.orika.OrikaBeanMapperUtil;
 import com.br.marketing.entity.WubaCollidingBatchNo;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.entity.WubaSubmitConversionDataExample;
@@ -15,6 +14,7 @@ import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -63,39 +63,44 @@ public class WuBaSubmitConversionService {
 
         Long indexId = null;
         while (true) {
-            // 循环获取条件数据，每次pageSize条
-            final List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
-                    apiCode, status, pushStatus, "", indexId, pageSize);
-
-            if (CollectionUtils.isEmpty(pageList)) {
-                log.warn(TITLE+"未获取到数据");
-                break;
-            }
-
-            indexId = pageList.get(pageList.size() - 1).getId();
-
-            processData(pageList, condition);
-
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            try{
+                // 循环获取条件数据，每次pageSize条
+                final List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
+                        apiCode, status, pushStatus, "", indexId, pageSize);
+                if (CollectionUtils.isEmpty(pageList)) {
+                    log.warn(TITLE+"未获取到数据");
+                    break;
+                }
+                indexId = pageList.get(pageList.size() - 1).getId();
+                // process submit data
+                processData(pageList, condition);
+                // 按indexId 每页间隔5s
+                    Thread.sleep(5000);
+            } catch (Exception e) {
+                log.warn(TITLE+"上报异常");
             }
         }
     }
 
-    public Result<?> processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition) {
+    @Transactional
+    public Result<?> processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition)
+            throws Exception {
+        Result result = new Result().failure();
+
+        String apiCode = condition.getParam().getApiCode();
         // callClient
-        Result<String> result = callClient(pageList);
-        if(result == null || !result.isSuccess() || result.getData()==null){
-            // Alert
-            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: "+condition.getParam().getApiCode());
-            return new Result().setCode(ResultCode.FAIL.getValue());
+        Result<String> callResult = callClient(pageList);
+        if(callResult == null || !callResult.isSuccess() || result.getData()==null){
+            // call failure, alert
+            log.warn(TITLE+"调用接口失败" + apiCode);
+            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: " + apiCode);
+            return result;
         }
 
-        String batchNo = result.getData();
+        // call success
+        String batchNo = callResult.getData();
         if(StringUtils.isEmpty(batchNo)){
-            return new Result().setCode(ResultCode.FAIL.getValue());
+            return result;
         }
 
         // 上报批次表增加记录，query_status置为0-未查询
@@ -106,7 +111,7 @@ public class WuBaSubmitConversionService {
         batchRecord.setQueryStatus(0);
         int insert = wubaCollidingBatchNoMapper.insert(batchRecord);
         if(insert < 1){
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            throw new Exception(TITLE+"上报批次表增加记录异常");
         }
 
         // 上报日志表增加记录，submit_result置为0-上报中
@@ -122,38 +127,41 @@ public class WuBaSubmitConversionService {
 
         int batchAdd = wubaSubmitConversionDataLogMapper.batchAdd(dataLogList);
         if(batchAdd != dataLogList.size()){
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            throw new Exception(TITLE+"上报日志表增加记录异常");
         }
 
-        //营销名单上报表push_status置为1-推送中
+        // 营销名单上报表push_status置为1-推送中
         WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
         dataUpdate.setPushStatus(1);
-        WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
+        //
         List<Long> ids = pageList.stream().map((WubaSubmitConversionData data) -> data.getId()).collect(Collectors.toList());
+        WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
         dataExample.createCriteria().andIdIn(ids);
         int updateStatus = wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
         return new Result();
     }
 
     public Result<String> callClient(List<WubaSubmitConversionData> outputDataList) {
-        Result result = new Result<>();
+        Result result = new Result<>().failure();
         if (CollectionUtils.isEmpty(outputDataList)) {
-            result.setCode(ResultCode.FAIL.getValue());
             return result;
         }
 
         int magnitudes = outputDataList.size();
         long startTime = System.currentTimeMillis();
-        // TODO mapping
-        List<WuBaSubmitDTO> wuBaSubmitDTOS = OrikaBeanMapperUtil.mapAsList(outputDataList, WuBaSubmitDTO.class);
+        List<WuBaSubmitDTO> wuBaSubmitDTOS = outputDataList.stream().map((WubaSubmitConversionData data) -> {
+            WuBaSubmitDTO wuBaSubmitDTO = new WuBaSubmitDTO();
+            wuBaSubmitDTO.setMobile(data.getCell());
+            wuBaSubmitDTO.setMarketingTime(data.getMarketingTime());
+            return wuBaSubmitDTO;
+        }).collect(Collectors.toList());
+
         Result callResult = wuBaServiceClient.submitConversionList(wuBaSubmitDTOS);
-        if(!callResult.isSuccess() || callResult.getData()==null){
-            result.setCode(ResultCode.FAIL.getValue());
+        if(callResult==null || !callResult.isSuccess() || callResult.getData()==null){
             return result;
         }
         String batchNo = (String) callResult.getData();
         if(StringUtils.isEmpty(batchNo)){
-            result.setCode(ResultCode.FAIL.getValue());
             return result;
         }
         long endTime = System.currentTimeMillis();

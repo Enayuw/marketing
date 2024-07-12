@@ -1,7 +1,10 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
 import java.util.Date;
 
+@Data
 public class WubaSubmitConversionDataLog {
     /**
      * 
@@ -31,7 +34,7 @@ public class WubaSubmitConversionDataLog {
     /**
      * 上报结果， 0-上报中，1-转化成功，2-转化失败
      */
-    private Boolean submitResult;
+    private Integer submitResult;
 
     /**
      * 最后登录时间
@@ -87,140 +90,4 @@ public class WubaSubmitConversionDataLog {
      * 更新时间
      */
     private Date updateTime;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public Long getDataId() {
-        return dataId;
-    }
-
-    public void setDataId(Long dataId) {
-        this.dataId = dataId;
-    }
-
-    public String getCell() {
-        return cell;
-    }
-
-    public void setCell(String cell) {
-        this.cell = cell == null ? null : cell.trim();
-    }
-
-    public String getBatchNo() {
-        return batchNo;
-    }
-
-    public void setBatchNo(String batchNo) {
-        this.batchNo = batchNo == null ? null : batchNo.trim();
-    }
-
-    public Boolean getSubmitResult() {
-        return submitResult;
-    }
-
-    public void setSubmitResult(Boolean submitResult) {
-        this.submitResult = submitResult;
-    }
-
-    public String getLastLoginTime() {
-        return lastLoginTime;
-    }
-
-    public void setLastLoginTime(String lastLoginTime) {
-        this.lastLoginTime = lastLoginTime == null ? null : lastLoginTime.trim();
-    }
-
-    public String getFinanceApplyTime() {
-        return financeApplyTime;
-    }
-
-    public void setFinanceApplyTime(String financeApplyTime) {
-        this.financeApplyTime = financeApplyTime == null ? null : financeApplyTime.trim();
-    }
-
-    public String getFinanceCreditStatus() {
-        return financeCreditStatus;
-    }
-
-    public void setFinanceCreditStatus(String financeCreditStatus) {
-        this.financeCreditStatus = financeCreditStatus == null ? null : financeCreditStatus.trim();
-    }
-
-    public String getFinanceCreditFinishTime() {
-        return financeCreditFinishTime;
-    }
-
-    public void setFinanceCreditFinishTime(String financeCreditFinishTime) {
-        this.financeCreditFinishTime = financeCreditFinishTime == null ? null : financeCreditFinishTime.trim();
-    }
-
-    public String getDebtTime() {
-        return debtTime;
-    }
-
-    public void setDebtTime(String debtTime) {
-        this.debtTime = debtTime == null ? null : debtTime.trim();
-    }
-
-    public String getDebtPassTime() {
-        return debtPassTime;
-    }
-
-    public void setDebtPassTime(String debtPassTime) {
-        this.debtPassTime = debtPassTime == null ? null : debtPassTime.trim();
-    }
-
-    public String getLoanAmt() {
-        return loanAmt;
-    }
-
-    public void setLoanAmt(String loanAmt) {
-        this.loanAmt = loanAmt == null ? null : loanAmt.trim();
-    }
-
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
-    }
-
-    public Integer getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Integer isDeleted) {
-        this.isDeleted = isDeleted;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
 }

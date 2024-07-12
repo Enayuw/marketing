@@ -49,13 +49,14 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
             condition.setParam(param);
             condition.setPageSize(pageSize);
             service.action(condition);
+
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
             log.error(TITLE + "调度异常", e);
         }
     }
 
-    private boolean checkJobSwitch() throws Exception {
+    private boolean checkJobSwitch(){
         String wuBaSubmitConversionSwitch = marketingCommonConfig.getWuBaSubmitConversionSwitch();
         if ("1".equals(wuBaSubmitConversionSwitch)) {
             log.warn(TITLE + "开关打开");
@@ -65,7 +66,7 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
         return false;
     }
 
-    private String parseJobParameter(String parameter) throws Exception {
+    private String parseJobParameter(String parameter){
         String apiCode = "3710155";
         if (StringUtils.isNotEmpty(parameter)) {
             apiCode = parameter;
