@@ -156,7 +156,7 @@ public class WuBaServiceClient {
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(batchNo), true, false);
         }
 
-        // 处理响应
+        // 处理响应  {"httpcode":"200","content":{"code":"0","data":[]}}
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         }
