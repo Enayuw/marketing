@@ -109,5 +109,10 @@ public class CommonTest {
         zhiJiaDataProcessService.getBrandAndseries();
     }
 
+    @Test
+    public void testGetCityAndCounty(){
+        zhiJiaDataProcessService.getCityAndCounty();
+    }
+
 
 }

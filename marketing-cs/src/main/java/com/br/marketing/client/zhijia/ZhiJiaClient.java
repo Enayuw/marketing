@@ -44,6 +44,9 @@ public class ZhiJiaClient {
     @Value("${api.zhijia.zhiJiaClientSecret:00}")
     private String clientSecret;
 
+    @Value("${api.zhijia.cityInfoUrl:00}")
+    private String cityInfoUrl;
+
     @Value("${api.zhijia.brandUrl:00}")
     private String brandUrl;
 
@@ -137,7 +140,7 @@ public class ZhiJiaClient {
     public Result getCityAndCounty(String token) {
 
         HashMap<String, String> resMap = new HashMap<>();
-        String url = "".concat("?access_token=").concat(token);
+        String url = cityInfoUrl.concat("?access_token=").concat(token);
         resMap = httpProxyClient.get(url, isProxy);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),

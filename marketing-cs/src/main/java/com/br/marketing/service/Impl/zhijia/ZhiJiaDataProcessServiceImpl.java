@@ -75,6 +75,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             log.error("获取token异常");
             return;
         }
+        String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
         JSONObject jsonObject = new JSONObject();
         Result<JSONObject> result = zhiJiaClient.getCityAndCounty(token);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -94,6 +95,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             List<ZhijiaCityConfig> zhijiaCityConfig = zhijiaCityConfigMapper.selectByExample(zhijiaCityConfigExample);
             if (CollectionUtils.isEmpty(zhijiaCityConfig)) {
                 ZhijiaCityConfig cityConfig = new ZhijiaCityConfig();
+                cityConfig.setApiCode(zhiJiaApiCode);
                 cityConfig.setCId(cid);
                 cityConfig.setCName(cname);
                 cityConfig.setCreateTime(new Date());
@@ -102,6 +104,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 zhijiaCityConfigMapper.insert(cityConfig);
             } else {
                 ZhijiaCityConfig cityConfig = new ZhijiaCityConfig();
+                cityConfig.setApiCode(zhiJiaApiCode);
                 cityConfig.setCName(zhijiaCityConfig.get(0).getCName());
                 cityConfig.setUpdateTime(new Date());
                 cityConfig.setUploadDate(LocalDate.now().toString());
@@ -121,6 +124,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             List<ZhijiaCountyConfig> countyConfigList = zhijiaCountyConfigBMapper.selectByExample(zhijiaCountyConfigExample);
             if (CollectionUtils.isEmpty(countyConfigList)) {
                 ZhijiaCountyConfig countyConfig = new ZhijiaCountyConfig();
+                countyConfig.setApiCode(zhiJiaApiCode);
                 countyConfig.setCId(cid);
                 countyConfig.setCountyId(countyid);
                 countyConfig.setCountyName(countyname);
@@ -130,6 +134,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 zhijiaCountyConfigBMapper.insert(countyConfig);
             } else {
                 ZhijiaCountyConfig countyConfig = new ZhijiaCountyConfig();
+                countyConfig.setApiCode(zhiJiaApiCode);
                 countyConfig.setCountyName(countyConfigList.get(0).getCountyName());
                 countyConfig.setCId(cid);
                 countyConfig.setUpdateTime(new Date());
