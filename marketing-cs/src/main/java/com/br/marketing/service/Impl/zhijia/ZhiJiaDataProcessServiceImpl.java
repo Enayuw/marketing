@@ -85,7 +85,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
         JSONArray cityList = resultJson.getJSONArray("city");
-        cityList.forEach(cityJson -> {
+        cityList.forEach((Object cityJson)-> {
             JSONObject city = (JSONObject) cityJson;
             Integer cid = city.getInteger("cid");
             String cname = city.getString("cname");
@@ -113,7 +113,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             }
         });
         JSONArray countyList = resultJson.getJSONArray("county");
-        countyList.forEach(countyJson -> {
+        countyList.forEach((Object countyJson) -> {
             JSONObject county = (JSONObject) countyJson;
             Integer cid = county.getInteger("cid");
             Integer countyid = county.getInteger("countyid");
@@ -268,6 +268,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         }
     }
 
+
     /**
      * 匹配区县数据逻辑
      *
@@ -279,7 +280,8 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
      * @date 2024/7/10 19:46
      */
     @Override
-    public CityCountyDataDTO matchCityAndCounty(List<ZhijiaCityConfig> cityList, List<ZhijiaCountyConfig> countyList, ZhiJiaClueBackData zhiJiaClueBackInfo) {
+    public CityCountyDataDTO matchCityAndCounty(List<ZhijiaCityConfig> cityList, List<ZhijiaCountyConfig> countyList, ZhiJiaClueBackData
+            zhiJiaClueBackInfo) {
         String city = zhiJiaClueBackInfo.getCity().replaceAll("\\s*", "");
         String county = zhiJiaClueBackInfo.getContry().replaceAll("\\s*", "");
         CityCountyDataDTO cityCountyDataDTO = new CityCountyDataDTO();
