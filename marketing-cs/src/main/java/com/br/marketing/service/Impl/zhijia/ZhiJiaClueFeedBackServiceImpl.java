@@ -180,12 +180,14 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                 // 组装参数
                 buildAddZhiJiaClue(zhiJiaClueBackData, reqAddZhiJiaClueDTO);
                 // 调用高质线索创建接口
-                Result<Integer> result = zhiJiaClient.addZhiJiaClue(reqAddZhiJiaClueDTO);
+                Result<String> result = zhiJiaClient.addZhiJiaClue(reqAddZhiJiaClueDTO);
                 // 更新结果
                 if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                     // 创建线索成功则更新状态和cclId
-                    Integer cclId = result.getData();
-                    updatePushStatus(id, 2, cclId, result.getMessage());
+                    if(StringUtils.isNotEmpty(result.getData())){
+                        int cclId = Integer.parseInt(result.getData());
+                        updatePushStatus(id, 2, cclId, result.getMessage());
+                    }
                 } else {
                     // 创建线索失败
                     updatePushStatus(id, 3, null, result.getMessage());

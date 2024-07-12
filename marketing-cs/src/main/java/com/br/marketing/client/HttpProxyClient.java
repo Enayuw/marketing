@@ -218,7 +218,10 @@ public class HttpProxyClient {
                 StringBuilder paramStr = new StringBuilder();
                 BeanMap beanMap = BeanMap.create(param);
                 for (Object o : beanMap.keySet()) {
-                    paramStr.append(String.format("%s=%s&", o.toString(), URLEncoder.encode(beanMap.get(o).toString(), "utf-8")));
+                    Object value = beanMap.get(o);
+                    if (value != null) {
+                        paramStr.append(String.format("%s=%s&", o.toString(), URLEncoder.encode(beanMap.get(o).toString(), "utf-8")));
+                    }
                 }
                 interfaceLog.setRequestParam(paramStr.toString());
                 requestEntity = new StringEntity(paramStr.toString(), CHARSET_UTF8);

@@ -65,7 +65,7 @@ public class ZhiJiaClient {
     private final static String TITLE = "【推送之家创建接口】";
 
     @RetryMethod(retryNowNum = 3)
-    public Result addZhiJiaClue(ReqAddZhiJiaClueDTO dto) {
+    public Result<String> addZhiJiaClue(ReqAddZhiJiaClueDTO dto) {
 
         HashMap<String, String> resMap = new HashMap<>();
         // 获取挡板开关
@@ -74,9 +74,11 @@ public class ZhiJiaClient {
             long start = System.currentTimeMillis();
             log.warn(TITLE + "调度开始, 入参:{}", JSONObject.toJSONString(dto));
 
-            resMap = httpProxyClient.sendByCodeWithLog(dto, addC1HiqClueUrl, isProxy,
-                    MediaType.APPLICATION_JSON_UTF8_VALUE,
-                    JSON.toJSONString(dto), true, true);
+            resMap = httpProxyClient.sendByCode(dto
+                    , addC1HiqClueUrl
+                    , isProxy
+                    , MediaType.APPLICATION_FORM_URLENCODED_VALUE
+                    , "");
 
             log.warn(TITLE + "调度结束, 返回值:{}, 耗时:{}", resMap, System.currentTimeMillis() - start);
         } else {
