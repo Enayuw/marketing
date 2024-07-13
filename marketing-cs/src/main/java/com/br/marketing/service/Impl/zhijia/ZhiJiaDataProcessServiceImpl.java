@@ -447,8 +447,16 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             }
         }
         //扩展配置匹配
-        List<ZhiJiaCarBrandInfo> carBrandInfos2 = zhiJiaCarBrandInfos.stream().filter(brandInfo ->
-                Arrays.asList(brandInfo.getBrandExtend().split(",")).contains(brandName)).collect(Collectors.toList());
+        List<ZhiJiaCarBrandInfo> carBrandInfos2 = zhiJiaCarBrandInfos.stream()
+                .filter((ZhiJiaCarBrandInfo brandInfo) -> {
+                    String brandExtend = brandInfo.getBrandExtend();
+                    if (brandExtend != null) {
+                        List<String> brandList = Arrays.asList(brandExtend.split(","));
+                        return brandList.contains(brandName);
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carBrandInfos2)) {
             zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
             zhiJiaCarInfoDTO.setBrandId(carBrandInfos2.get(0).getBrandId());
@@ -501,7 +509,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         if (!CollectionUtils.isEmpty(carSeriesInfos1)) {
             if (carSeriesInfos1.size() == 1) {
                 zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
-                zhiJiaCarInfoDTO.setBrandId(carSeriesInfos.get(0).getBrandId());
+                zhiJiaCarInfoDTO.setBrandId(carSeriesInfos1.get(0).getBrandId());
                 zhiJiaCarInfoDTO.setSeriesId(carSeriesInfos1.get(0).getSeriesId());
                 return zhiJiaCarInfoDTO;
             } else {
@@ -511,11 +519,19 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             }
         }
         //扩展配置匹配
-        List<ZhiJiaCarSeriesInfo> carSeriesInfos2 = zhiJiaCarSeriesInfos.stream().filter(seriesInfo ->
-                Arrays.asList(seriesInfo.getSeriesExtend().split(",")).contains(seriesName)).collect(Collectors.toList());
+        List<ZhiJiaCarSeriesInfo> carSeriesInfos2 = zhiJiaCarSeriesInfos.stream()
+                .filter((ZhiJiaCarSeriesInfo seriesInfo) -> {
+                    String seriesExtend = seriesInfo.getSeriesExtend();
+                    if (seriesExtend != null) {
+                        List<String> seriesList = Arrays.asList(seriesExtend.split(","));
+                        return seriesList.contains(seriesName);
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carSeriesInfos2)) {
             zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
-            zhiJiaCarInfoDTO.setBrandId(carSeriesInfos.get(0).getBrandId());
+            zhiJiaCarInfoDTO.setBrandId(carSeriesInfos2.get(0).getBrandId());
             zhiJiaCarInfoDTO.setSeriesId(carSeriesInfos2.get(0).getSeriesId());
             return zhiJiaCarInfoDTO;
         }
