@@ -3,9 +3,9 @@ package com.br.marketing.dto.wuba;
 import lombok.Data;
 
 @Data
-public class ConversionReponseDTO {
+public class ConversionResponseDTO {
 
-    private Long id;
+    // private Long id;
     private String mobileEncrypt;
     private String lastLoginTime;
     private String financeApplyTime;
