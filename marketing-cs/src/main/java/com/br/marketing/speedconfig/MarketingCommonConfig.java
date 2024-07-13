@@ -1847,6 +1847,6 @@ public class MarketingCommonConfig {
     /**
      * 通用Mock配置
      */
-    private JSONObject commonMockConfig;
+    private Map<String, JSONObject> commonMockConfig;
 }
 
