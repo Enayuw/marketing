@@ -259,15 +259,21 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
      */
     private UploadDataDTO initUploadData(String apiCode, List<MarketingPreUserDetailDTO> syncUsers) {
         String taskId = getTaskId(apiCode);
+        String requestId = getRequestId(taskId);
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(taskId);
-        marketingPreUserDTO.setRequestId(taskId);
+        marketingPreUserDTO.setRequestId(requestId);
         marketingPreUserDTO.setDataItems(syncUsers);
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
         log.warn("上传数据：{}", uploadDataDTO);
         return uploadDataDTO;
+    }
+
+    private static String getRequestId(String taskId) {
+        String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
+        return requestId;
     }
 
     /**
@@ -282,7 +288,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
         transferDataDTO.setDataItems(transferDataItemDTOS);
         String taskId = getTaskId(apiCode);
-        String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
+        String requestId = getRequestId(taskId);
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
