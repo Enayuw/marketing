@@ -208,39 +208,44 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         Field[] declaredFields = o.getClass().getDeclaredFields();
         for (Field declaredField : declaredFields) {
             for (FileToMarketingFieldVO fileToMarketingFieldVO : fieldVos) {
-                if (declaredField.getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
+                // 扩展字段容器
+                if (fileToMarketingFieldVO.getIsExtend()) {
+                    Object fieldValue = fieldMapping(cleanDataMap, fileToMarketingFieldVO);
+                    reserveFieldJo.put(fileToMarketingFieldVO.getInterfaceField(),fieldValue );
+                }else if (declaredField.getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
                     declaredField.setAccessible(true);
-                    Object fieldValue;
-                    // 处理默认值
-                    if (StringUtils.isNotBlank(fileToMarketingFieldVO.getDefaultValue())) {
-                        fieldValue = fileToMarketingFieldVO.getDefaultValue();
-                    } else {
-                        fieldValue = cleanDataMap.get(fileToMarketingFieldVO.getHeadField());
-                    }
-                    // 时间格式转换
-                    if (fileToMarketingFieldVO.getIsDateTransform()) {
-                        fieldValue = TimeUtils.getFormatterValue(String.valueOf(fieldValue));
-                    }
-                    // 处理字段转换 男 - > 1 女 -> 2
-                    if (StringUtils.isNotBlank(fileToMarketingFieldVO.getConversion())) {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        List<Map<String, String>> genderMappings = objectMapper.readValue(
-                                fileToMarketingFieldVO.getConversion(), List.class
-                        );
-                        if (!genderMappings.isEmpty()) {
-                            Map<String, String> genderMapping = genderMappings.get(0);
-                            fieldValue = genderMapping.get(fieldValue);
-                        }
-                    }
+                    Object fieldValue = fieldMapping(cleanDataMap, fileToMarketingFieldVO);
                     declaredField.set(o, fieldValue);
-                    // 扩展字段容器
-                    if (fileToMarketingFieldVO.getIsExtend()) {
-                        reserveFieldJo.put(declaredField.getName(), fieldValue);
-                    }
                     break;
                 }
             }
         }
+    }
+
+    private static Object fieldMapping(Map<String, Object> cleanDataMap, FileToMarketingFieldVO fileToMarketingFieldVO) throws IOException {
+        Object fieldValue;
+        // 处理默认值
+        if (StringUtils.isNotBlank(fileToMarketingFieldVO.getDefaultValue())) {
+            fieldValue = fileToMarketingFieldVO.getDefaultValue();
+        } else {
+            fieldValue = cleanDataMap.get(fileToMarketingFieldVO.getHeadField());
+        }
+        // 时间格式转换
+        if (fileToMarketingFieldVO.getIsDateTransform()) {
+            fieldValue = TimeUtils.getFormatterValue(String.valueOf(fieldValue));
+        }
+        // 处理字段转换 男 - > 1 女 -> 2
+        if (StringUtils.isNotBlank(fileToMarketingFieldVO.getConversion())) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Map<String, String>> genderMappings = objectMapper.readValue(
+                    fileToMarketingFieldVO.getConversion(), List.class
+            );
+            if (!genderMappings.isEmpty()) {
+                Map<String, String> genderMapping = genderMappings.get(0);
+                fieldValue = genderMapping.get(fieldValue);
+            }
+        }
+        return fieldValue;
     }
 
     /**
@@ -278,6 +283,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
+        log.warn("推送转化数据：{}",dto);
         return dto;
     }
 

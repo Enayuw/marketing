@@ -18,10 +18,6 @@
     <result column="auto_table_name" property="autoTableName" jdbcType="VARCHAR" />
     <result column="auto_duplicate_column" property="autoDuplicateColumn" jdbcType="VARCHAR" />
     <result column="auto_search_data_sql" property="autoSearchDataSql" jdbcType="VARCHAR" />
-    <result column="auto_clean_way_type" property="autoCleanWayType" jdbcType="INTEGER" />
-    <result column="auto_clean_start_time" property="autoCleanStartTime" jdbcType="TIMESTAMP" />
-    <result column="auto_clean_end_time" property="autoCleanEndTime" jdbcType="TIMESTAMP" />
-    <result column="auto_clean_lock" property="autoCleanLock" jdbcType="INTEGER" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -84,8 +80,7 @@
   <sql id="Base_Column_List" >
     id, api_code, file_id, clean_type, rule_name, field_config, field_config_show, service_name, 
     create_time, update_time, is_del, is_checklist_name, validation_rules, auto_table_name, 
-    auto_duplicate_column, auto_search_data_sql, auto_clean_way_type, auto_clean_start_time, 
-    auto_clean_end_time, auto_clean_lock
+    auto_duplicate_column, auto_search_data_sql
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingDataFileConfigExample" >
     select
@@ -125,16 +120,14 @@
       rule_name, field_config, field_config_show, 
       service_name, create_time, update_time, 
       is_del, is_checklist_name, validation_rules, 
-      auto_table_name, auto_duplicate_column, auto_search_data_sql, 
-      auto_clean_way_type, auto_clean_start_time, 
-      auto_clean_end_time, auto_clean_lock)
+      auto_table_name, auto_duplicate_column, auto_search_data_sql
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=INTEGER}, #{cleanType,jdbcType=INTEGER}, 
       #{ruleName,jdbcType=VARCHAR}, #{fieldConfig,jdbcType=VARCHAR}, #{fieldConfigShow,jdbcType=VARCHAR}, 
       #{serviceName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
       #{isDel,jdbcType=INTEGER}, #{isChecklistName,jdbcType=TINYINT}, #{validationRules,jdbcType=VARCHAR}, 
-      #{autoTableName,jdbcType=VARCHAR}, #{autoDuplicateColumn,jdbcType=VARCHAR}, #{autoSearchDataSql,jdbcType=VARCHAR}, 
-      #{autoCleanWayType,jdbcType=INTEGER}, #{autoCleanStartTime,jdbcType=TIMESTAMP}, 
-      #{autoCleanEndTime,jdbcType=TIMESTAMP}, #{autoCleanLock,jdbcType=INTEGER})
+      #{autoTableName,jdbcType=VARCHAR}, #{autoDuplicateColumn,jdbcType=VARCHAR}, #{autoSearchDataSql,jdbcType=VARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingDataFileConfig" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -187,18 +180,6 @@
       <if test="autoSearchDataSql != null" >
         auto_search_data_sql,
       </if>
-      <if test="autoCleanWayType != null" >
-        auto_clean_way_type,
-      </if>
-      <if test="autoCleanStartTime != null" >
-        auto_clean_start_time,
-      </if>
-      <if test="autoCleanEndTime != null" >
-        auto_clean_end_time,
-      </if>
-      <if test="autoCleanLock != null" >
-        auto_clean_lock,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -245,18 +226,6 @@
       </if>
       <if test="autoSearchDataSql != null" >
         #{autoSearchDataSql,jdbcType=VARCHAR},
-      </if>
-      <if test="autoCleanWayType != null" >
-        #{autoCleanWayType,jdbcType=INTEGER},
-      </if>
-      <if test="autoCleanStartTime != null" >
-        #{autoCleanStartTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="autoCleanEndTime != null" >
-        #{autoCleanEndTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="autoCleanLock != null" >
-        #{autoCleanLock,jdbcType=INTEGER},
       </if>
     </trim>
   </insert>
@@ -317,18 +286,6 @@
       <if test="record.autoSearchDataSql != null" >
         auto_search_data_sql = #{record.autoSearchDataSql,jdbcType=VARCHAR},
       </if>
-      <if test="record.autoCleanWayType != null" >
-        auto_clean_way_type = #{record.autoCleanWayType,jdbcType=INTEGER},
-      </if>
-      <if test="record.autoCleanStartTime != null" >
-        auto_clean_start_time = #{record.autoCleanStartTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.autoCleanEndTime != null" >
-        auto_clean_end_time = #{record.autoCleanEndTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.autoCleanLock != null" >
-        auto_clean_lock = #{record.autoCleanLock,jdbcType=INTEGER},
-      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -351,11 +308,7 @@
       validation_rules = #{record.validationRules,jdbcType=VARCHAR},
       auto_table_name = #{record.autoTableName,jdbcType=VARCHAR},
       auto_duplicate_column = #{record.autoDuplicateColumn,jdbcType=VARCHAR},
-      auto_search_data_sql = #{record.autoSearchDataSql,jdbcType=VARCHAR},
-      auto_clean_way_type = #{record.autoCleanWayType,jdbcType=INTEGER},
-      auto_clean_start_time = #{record.autoCleanStartTime,jdbcType=TIMESTAMP},
-      auto_clean_end_time = #{record.autoCleanEndTime,jdbcType=TIMESTAMP},
-      auto_clean_lock = #{record.autoCleanLock,jdbcType=INTEGER}
+      auto_search_data_sql = #{record.autoSearchDataSql,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -408,18 +361,6 @@
       <if test="autoSearchDataSql != null" >
         auto_search_data_sql = #{autoSearchDataSql,jdbcType=VARCHAR},
       </if>
-      <if test="autoCleanWayType != null" >
-        auto_clean_way_type = #{autoCleanWayType,jdbcType=INTEGER},
-      </if>
-      <if test="autoCleanStartTime != null" >
-        auto_clean_start_time = #{autoCleanStartTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="autoCleanEndTime != null" >
-        auto_clean_end_time = #{autoCleanEndTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="autoCleanLock != null" >
-        auto_clean_lock = #{autoCleanLock,jdbcType=INTEGER},
-      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -439,11 +380,7 @@
       validation_rules = #{validationRules,jdbcType=VARCHAR},
       auto_table_name = #{autoTableName,jdbcType=VARCHAR},
       auto_duplicate_column = #{autoDuplicateColumn,jdbcType=VARCHAR},
-      auto_search_data_sql = #{autoSearchDataSql,jdbcType=VARCHAR},
-      auto_clean_way_type = #{autoCleanWayType,jdbcType=INTEGER},
-      auto_clean_start_time = #{autoCleanStartTime,jdbcType=TIMESTAMP},
-      auto_clean_end_time = #{autoCleanEndTime,jdbcType=TIMESTAMP},
-      auto_clean_lock = #{autoCleanLock,jdbcType=INTEGER}
+      auto_search_data_sql = #{autoSearchDataSql,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
