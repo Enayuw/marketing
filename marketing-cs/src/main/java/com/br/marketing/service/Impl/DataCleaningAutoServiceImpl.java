@@ -2,10 +2,12 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
@@ -69,7 +71,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             // 更新任务为清洗完成
             marketingCleanDataTask.setCleanStatus(2);
         } catch (Exception e) {
-            log.error("清洗任务异常：", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗任务异常！"), e);
             // 更新任务为清洗完成
             marketingCleanDataTask.setCleanStatus(3);
         }
@@ -104,11 +106,11 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("清洗数据：线程池关闭");
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗任务异常！"));
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.error("清洗数据：线程池结束异常！", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗数据：线程池结束异常！！"), ex);
             Thread.currentThread().interrupt();
         }
     }
@@ -335,7 +337,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             task.setCreateTime(new Date());
             marketingCleanDataTaskMapper.insertSelective(task);
         } else {
-            log.error("清洗创建任务失败：{}", configName);
+            log.warn("清洗创建任务失败！{}", configName);
         }
     }
 }
