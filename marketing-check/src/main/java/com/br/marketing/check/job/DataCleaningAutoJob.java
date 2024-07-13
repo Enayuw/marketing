@@ -34,13 +34,15 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobContext) {
         while (true) {
             MarketingCleanDataTask marketingCleanDataTask = getMarketingCleanDataTask();
-            if (marketingCleanDataTask == null) {break;}
+            if (marketingCleanDataTask == null) {
+                break;
+            }
             dataCleaningAutoService.autoCleanDataByTask(marketingCleanDataTask);
         }
     }
 
     private MarketingCleanDataTask getMarketingCleanDataTask() {
-        //            redisChgService.lock("lock_key_clean_data:99999", "lock_key:99999");
+        redisChgService.lock("lock_key_clean_data:99999", "lock_key:99999");
         MarketingCleanDataTaskExample example = new MarketingCleanDataTaskExample();
         exampleCreateCriteria(example);
         List<MarketingCleanDataTask> marketingCleanDataTasks = marketingCleanDataTaskMapper.selectByExample(example);
@@ -48,12 +50,12 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
             return null;
         }
         MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
-        log.warn("任务id：{},获取锁成功",marketingCleanDataTask.getId());
+        log.warn("任务id：{},获取锁成功", marketingCleanDataTask.getId());
         // 任务设置为清洗中
         marketingCleanDataTask.setCleanStatus(1);
         marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
-//            redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
-        log.warn("任务id：{},释放锁成功",marketingCleanDataTask.getId());
+        redisChgService.unlock("lock_key_clean_data:99999", "lock_key:99999");
+        log.warn("任务id：{},释放锁成功", marketingCleanDataTask.getId());
         return marketingCleanDataTask;
     }
 
