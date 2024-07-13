@@ -109,13 +109,13 @@ public class PushInfoServiceImpl implements PushInfoService {
 
     @Override
     @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
-    public Result pushUploadByRetry(UploadDataDTO dto, Integer retry) {
+    public Result<Boolean> pushUploadByRetry(UploadDataDTO dto, Integer retry) {
         return marketingApiService.pushUpload(dto);
     }
 
     @Override
     @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
-    public Result pushTransferByRetry(PushTransferDataDetailDTO dto, Integer retry) {
+    public Result<Boolean> pushTransferByRetry(PushTransferDataDetailDTO dto, Integer retry) {
         return marketingApiService.pushMarketingApiTransfer(dto,retry);
     }
 

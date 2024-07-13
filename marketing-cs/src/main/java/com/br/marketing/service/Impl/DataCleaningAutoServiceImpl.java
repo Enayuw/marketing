@@ -18,6 +18,7 @@ import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.MarketingDataFileConfigMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.PushInfoService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.TimeUtils;
 import com.br.marketing.vo.FileToMarketingFieldVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -37,24 +39,28 @@ import java.util.stream.Collectors;
 
 /**
  * 数据清洗处理接口
- *
- * @Author: guangchao.zhang
- * @Date: 2024-07-11
+ * {@code @Author:} guangchao.zhang
+ * {@code @Date:} 2024-07-11
  */
 @Service
 @Slf4j
 public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
 
-    @Resource
-    MarketingDataFileConfigMapper marketingDataFileConfigMapper;
+    public static final String CLEAN_STATUS_1 = "1";
+    public static final String CLEAN_STATUS_2 = "2";
+    public static final String CLEAN_STATUS_3 = "3";
 
     @Resource
-    PushInfoService pushInfoService;
+    private MarketingDataFileConfigMapper marketingDataFileConfigMapper;
 
     @Resource
-    MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
+    private PushInfoService pushInfoService;
 
+    @Resource
+    private MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public void autoCleanDataByTask(MarketingCleanDataTask marketingCleanDataTask) {
@@ -63,7 +69,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             // 更新任务为清洗完成
             marketingCleanDataTask.setCleanStatus(2);
         } catch (Exception e) {
-            log.error("清洗任务异常：{}", e);
+            log.error("清洗任务异常：", e);
             // 更新任务为清洗完成
             marketingCleanDataTask.setCleanStatus(3);
         }
@@ -71,16 +77,14 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
     }
 
     private void doAutoCleanData(MarketingCleanDataTask marketingCleanDataTask) throws IOException, IllegalAccessException {
-        // 执行清洗逻辑
-        // 获取当前任务清洗数据所需要的配置
         MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigMapper.selectByPrimaryKey(
                 marketingCleanDataTask.getConfigId()
         );
-        // 获取清洗数据
         String autoSearchDataSql = marketingDataFileConfig.getAutoSearchDataSql();
         String apiCode = marketingDataFileConfig.getApiCode();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getAutoCleanDataThreadNum(), marketingCommonConfig.getAutoCleanDataThreadNum());
         while (true) {
+            modifyThreadPool(threadPool);
             List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(autoSearchDataSql);
             if (cleanDataMapList.isEmpty()) {
                 break;
@@ -89,17 +93,14 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             String autoDuplicateColumn = marketingDataFileConfig.getAutoDuplicateColumn();
             Integer cleanType = marketingDataFileConfig.getCleanType();
             Set<Object> collect = cleanDataMapList.stream().map(map -> map.get(autoDuplicateColumn)).collect(Collectors.toSet());
-            marketingDataFileConfigMapper.updateCleanDataStatus(autoTableName, "1", autoDuplicateColumn, collect);
-            // 上传
+            marketingDataFileConfigMapper.updateCleanDataStatus(autoTableName, CLEAN_STATUS_1, autoDuplicateColumn, collect);
             if (cleanType == 0) {
                 doProcessUploadDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, threadPool, collect);
             }
-            // 转化
             if (cleanType == 1) {
                 doProcessTransferDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, threadPool, collect);
             }
         }
-        // 关闭线程池
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -112,8 +113,13 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         }
     }
 
+    private void modifyThreadPool(ThreadPoolExecutor threadPool) {
+        threadPool.setMaximumPoolSize(marketingCommonConfig.getAutoCleanDataThreadNum());
+        threadPool.setCorePoolSize(marketingCommonConfig.getAutoCleanDataThreadNum());
+    }
+
     private void doProcessUploadDataClean(List<Map<String, Object>> cleanDataMapList, MarketingDataFileConfig marketingDataFileConfig, String apiCode, ThreadPoolExecutor threadPool, Set<Object> collect) throws IOException, IllegalAccessException {
-        //清洗数据处理
+        // 上传数据处理
         List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = processUploadCleanData(cleanDataMapList, marketingDataFileConfig);
         // 上传数据组装
         UploadDataDTO uploadDataDTO = initUploadData(apiCode, marketingPreUserDetailDTOS);
@@ -132,14 +138,14 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
 
     private void pushAsyncUploadData(ThreadPoolExecutor threadPool, UploadDataDTO uploadDataDTO, Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig) {
         threadPool.submit(() -> {
-            Result result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+            Result<Boolean> result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
             updateStatus(collect, marketingDataFileConfig, result);
         });
     }
 
     private void pushAsyncTransferData(ThreadPoolExecutor threadPool, PushTransferDataDetailDTO pushTransferDataDetailDTO, Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig) {
         threadPool.submit(() -> {
-            Result result = pushInfoService.pushTransferByRetry(pushTransferDataDetailDTO, null);
+            Result<Boolean> result = pushInfoService.pushTransferByRetry(pushTransferDataDetailDTO, null);
             updateStatus(collect, marketingDataFileConfig, result);
         });
     }
@@ -244,10 +250,10 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
      * @param syncUsers 具体数据对象
      */
     private UploadDataDTO initUploadData(String apiCode, List<MarketingPreUserDetailDTO> syncUsers) {
-        String tasId = getTaskId(apiCode);
+        String taskId = getTaskId(apiCode);
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
-        marketingPreUserDTO.setTaskId(tasId);
-        marketingPreUserDTO.setRequestId(tasId);
+        marketingPreUserDTO.setTaskId(taskId);
+        marketingPreUserDTO.setRequestId(taskId);
         marketingPreUserDTO.setDataItems(syncUsers);
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
@@ -265,7 +271,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
     private PushTransferDataDetailDTO initTransferData(List<TransferDataItemDTO> transferDataItemDTOS, String apiCode) {
         // 数据清洗
         PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
-        TransferDataDTO transferDataDTO = new TransferDataDTO();
+        TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
         transferDataDTO.setDataItems(transferDataItemDTOS);
         String taskId = getTaskId(apiCode);
         String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
@@ -275,17 +281,17 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         return dto;
     }
 
-    private void updateStatus(Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig, Result result) {
+    private void updateStatus(Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig, Result<Boolean> result) {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             marketingDataFileConfigMapper.updateCleanDataStatus(
                     marketingDataFileConfig.getAutoTableName(),
-                    "2",
+                    CLEAN_STATUS_2,
                     marketingDataFileConfig.getAutoDuplicateColumn(),
                     collect);
         } else {
             marketingDataFileConfigMapper.updateCleanDataStatus(
                     marketingDataFileConfig.getAutoTableName(),
-                    "3",
+                    CLEAN_STATUS_3,
                     marketingDataFileConfig.getAutoDuplicateColumn(),
                     collect);
         }
@@ -293,14 +299,13 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
 
     private static String getTaskId(String apiCode) {
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String taskId = apiCode.concat("_").concat(yyyyMMdd);
-        return taskId;
+        return apiCode.concat("_").concat(yyyyMMdd);
     }
 
 
 
     /**
-     * @param apiCode
+     * @param apiCode apiCode
      * @param cleanType  0 上传 1 转化
      * @param configName b_marketing_data_file_config 表中的rule_name 唯一
      */

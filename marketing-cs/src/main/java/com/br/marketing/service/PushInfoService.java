@@ -13,7 +13,7 @@ public interface PushInfoService {
      */
     PageResultReturn getPushInfoList(PushInfoFilterDTO dto);
 
-    Result pushUploadByRetry(UploadDataDTO dto, Integer retry);
+    Result<Boolean> pushUploadByRetry(UploadDataDTO dto, Integer retry);
 
-    Result pushTransferByRetry(PushTransferDataDetailDTO dto, Integer retry);
+    Result<Boolean> pushTransferByRetry(PushTransferDataDetailDTO dto, Integer retry);
 }

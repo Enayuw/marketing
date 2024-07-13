@@ -1840,6 +1840,11 @@ public class MarketingCommonConfig {
     private Set<String> wuBaSubmitConversionKnowFields;
 
     /**
+     * 通用清洗线程池
+     */
+    private Integer autoCleanDataThreadNum;
+
+    /**
      * 通用Mock配置
      */
     private JSONObject CommonMockConfig;

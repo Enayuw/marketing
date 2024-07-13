@@ -66,7 +66,7 @@ public class MarketingApiService {
      * @return Result<Boolean>
      */
     @RetryMethod(retryNowNum = 2)
-    public Result pushMarketingApiTransfer(PushTransferDataDetailDTO dto, Integer retry) {
+    public Result<Boolean> pushMarketingApiTransfer(PushTransferDataDetailDTO dto, Integer retry) {
         try{
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,interfaceLogDbpool)
                     .setUrl(transferUrl)
