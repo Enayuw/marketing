@@ -9,6 +9,8 @@ import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.enums.MockInterfaceCodeEnum;
+import com.br.marketing.mock.MockService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
@@ -52,6 +54,9 @@ public class WuBaServiceClient {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private MockService mockService;
+
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result submitCredentialStuffingList(List<String> cells) {
         // 封装请求
@@ -62,8 +67,8 @@ public class WuBaServiceClient {
 
         // 调用客户接口
         // todo 修改挡板
-        if (marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)) {
-            resMap = getMock();
+        if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_01.getCode())) {
+            resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_01.getCode());
         } else {
             resMap = httpProxyClient.sendByCodeWithLog(retMap, submitCredentialStuffingListUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(cells), true, false);
@@ -91,8 +96,8 @@ public class WuBaServiceClient {
 
         // 调用客户接口
         // todo 修改挡板
-        if (marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)) {
-            resMap = getMock();
+        if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_02.getCode())) {
+            resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_02.getCode());
         } else {
             resMap = httpProxyClient.sendByCodeWithLog(batchNo, queryCredentialStuffingResultUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(batchNo), true, false);
@@ -125,8 +130,8 @@ public class WuBaServiceClient {
 
         // 调用客户接口
         // todo 修改挡板
-        if (marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)) {
-            resMap = getMock();
+        if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_03.getCode())) {
+            resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_03.getCode());
         } else {
             resMap = httpProxyClient.sendByCodeWithLog(retMap, submitConversionListUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(wuBaSubmitDTOS), true, false);
@@ -154,8 +159,8 @@ public class WuBaServiceClient {
 
         // 调用客户接口
         // todo 修改挡板
-        if (marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(0)) {
-            resMap = getMock();
+        if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_04.getCode())) {
+            resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_04.getCode());
         } else {
             resMap = httpProxyClient.sendByCodeWithLog(batchNo, queryConversionResultUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(batchNo), true, false);
@@ -178,7 +183,8 @@ public class WuBaServiceClient {
         }
     }
 
-    private HashMap<String, String> getMock() {
+    private HashMap<String, String> getMockCon() {
+
         return new HashMap<>();
     }
 

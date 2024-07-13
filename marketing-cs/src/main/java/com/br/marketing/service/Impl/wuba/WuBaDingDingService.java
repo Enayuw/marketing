@@ -26,7 +26,7 @@ public class WuBaDingDingService {
     @Resource
     private DingDingRobotHookService dingDingRobotHookService;
 
-    @Value("${api.qifu.isProxy:true}")
+    @Value("${api.wuba.isProxy:true}")
     private boolean isProxy;
 
     public void sendAlert(String title, String text){
