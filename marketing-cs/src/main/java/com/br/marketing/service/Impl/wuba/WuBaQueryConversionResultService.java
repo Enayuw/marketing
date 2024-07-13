@@ -2,9 +2,11 @@ package com.br.marketing.service.Impl.wuba;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.orika.OrikaBeanMapperUtil;
 import com.br.marketing.dto.wuba.ConversionReponseDTO;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -101,6 +104,37 @@ public class WuBaQueryConversionResultService {
             setThreadPoolParam(queryPool);
             futureList.add(queryPool.submit(() -> processData(wubaCollidingBatchNo, condition)));
         }
+
+        for (Future<Result<WubaCollidingBatchNo>> future : futureList) {
+            try {
+                future.get(1, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                        , TITLE), e);
+//                future.cancel(true);
+                result.setCode(ResultCode.FAIL.getValue());
+            }
+        }
+
+        long taskCount = -1;
+        queryPool.shutdown();
+        try {
+            while (!queryPool.awaitTermination(30, TimeUnit.SECONDS)) {
+                long completedTask2Count = queryPool.getCompletedTaskCount();
+                if (taskCount == completedTask2Count) {
+                    result.setCode(ResultCode.FAIL.getValue());
+                    log.warn(TITLE+"业务线程等待超时");
+                    break;
+                }
+                taskCount = completedTask2Count;
+            }
+        } catch (InterruptedException e) {
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                    , TITLE), e);
+            result.setCode(ResultCode.FAIL.getValue());
+            Thread.currentThread().interrupt();
+        }
+
         return result.success();
 
     }
@@ -201,8 +235,7 @@ public class WuBaQueryConversionResultService {
         JSONArray ja = JSONObject.parseArray(data);
         List<ConversionReponseDTO> dtoList = ja.stream().map((Object obj) -> {
             JSONObject jo = (JSONObject) obj;
-            ConversionReponseDTO dto = OrikaBeanMapperUtil.map(jo, ConversionReponseDTO.class);
-            dto.setId(jo.getInteger("id"));
+            ConversionReponseDTO dto = JSONObject.parseObject(JSONObject.toJSONString(jo), ConversionReponseDTO.class);
             Set<String> knowFields = marketingCommonConfig.getWuBaSubmitConversionKnowFields();
             dto.setExtend(getExtraFields(jo, knowFields));
             return dto;

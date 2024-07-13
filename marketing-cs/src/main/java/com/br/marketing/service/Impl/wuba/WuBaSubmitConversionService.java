@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
@@ -18,6 +19,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -150,9 +154,17 @@ public class WuBaSubmitConversionService {
         int magnitudes = outputDataList.size();
         long startTime = System.currentTimeMillis();
         List<WuBaSubmitDTO> wuBaSubmitDTOS = outputDataList.stream().map((WubaSubmitConversionData data) -> {
+            String marketingTime ="";
+            try {
+                String createDateStr = String.valueOf(data.getCreateDate());
+                Date createDate = DateUtils.parse(createDateStr, "yyyyMMdd");
+                marketingTime = DateUtils.format(createDate, "yyyy-MM-dd 00:00:00");
+            } catch (ParseException e) {
+                marketingTime = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
+            }
             WuBaSubmitDTO wuBaSubmitDTO = new WuBaSubmitDTO();
             wuBaSubmitDTO.setMobile(data.getCell());
-            wuBaSubmitDTO.setMarketingTime(data.getMarketingTime());
+            wuBaSubmitDTO.setMarketingTime(marketingTime);
             return wuBaSubmitDTO;
         }).collect(Collectors.toList());
 

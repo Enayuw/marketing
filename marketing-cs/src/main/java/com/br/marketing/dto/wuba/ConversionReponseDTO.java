@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class ConversionReponseDTO {
 
-    private Integer id;
+    private Long id;
     private String mobileEncrypt;
     private String lastLoginTime;
     private String financeApplyTime;
