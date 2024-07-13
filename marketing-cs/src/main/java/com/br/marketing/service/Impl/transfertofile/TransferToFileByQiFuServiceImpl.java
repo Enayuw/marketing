@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
+public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiFuService {
 
     @Autowired
     SyncConfigService syncConfigService;
@@ -54,20 +54,14 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
     private TransferFileTaskMapper transferFileTaskMapper;
     @Autowired
     private TableCreateServiceImpl tableCreateService;
-    @Autowired
-    private RuleRedisServiceImpl ruleRedisService;
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private MarketingSyncUserMapper marketingSyncUserMapper;
-    @Resource
     private MarketingCustomizeDataValidConfigMapper customizeDataValidConfigMapper;
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
-
-    private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId,expireDate,effectiveDate";
 
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
@@ -91,79 +85,16 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
     }
 
     @Override
-    public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
-        List<TransferFileTask> resultList = new ArrayList<>();
-        String extractTime = marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("extTime");
-        String suffix = marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("suffix");
-        LocalTime localTime = LocalTime.parse(extractTime);
-        boolean isParam = StringUtils.isNotBlank(myParam);
-        if (LocalTime.now().isAfter(localTime) || isParam) {
-            // 指定日期提取，生成指定日期的记录，不是当天的记录
-            String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-            String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-            TransferFileTaskExample taskExample = new TransferFileTaskExample();
-            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(date)
-                    .andFileTypeEqualTo(1);
-            List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-            if (CollectionUtils.isEmpty(transferFileTasks)) {
-                log.warn("奇富360转化数据提取-开始执行,apiCode ={}", apiCode);
-                Long transferFileContextId = ruleRedisService.getTransferFileContextId();
-                String batchNumber = createBatchNumber(apiCode, transferFileContextId, dateyyyymmddStr);
-                TransferFileTask transferFileTask = new TransferFileTask();
-                transferFileTask.setApiCode(apiCode);
-                transferFileTask.setFileType(1);
-                transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName(String.format("transform_qifu%s_%s.txt", suffix, dateyyyymmddStr));
-                transferFileTask.setTaskNumber(0);
-                transferFileTask.setStartDate(date);
-                transferFileTask.setContextId(transferFileContextId);
-                transferFileTask.setCreateTime(new Date());
-                transferFileTask.setUpdateTime(new Date());
-                transferFileTaskMapper.insertSelective(transferFileTask);
-                resultList.add(transferFileTask);
-            }
-
-        }
-        Result<List<TransferFileTask>> result = new Result<>();
-        result.setCode(ResultCode.SUCCESS.getValue());
-        result.setDate(resultList);
-        return result;
+    String getExtractTime(String apiCode) {
+        return marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("extTime");
     }
 
     @Override
-    public Result actionTransferToFile(TransferFileTask transferFileTask,String jobParameter) {
-        log.warn("奇富360转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
-        Result<String> result = new Result<>();
-        String apiCode = transferFileTask.getApiCode();
-        String date = LocalDate.now().toString();
-        date = date.replace("-", "");
-        String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().minusDays(1).toString() : jobParameter;
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
-                .concat(date).concat("/");
-        File writeDic = new File(descPath);
-        if (!writeDic.exists()) {
-            boolean mkdirs = writeDic.mkdirs();
-            if (!mkdirs) {
-                log.error(descPath + "目录创建失败！");
-            }
-        }
-        String fileAllPath = descPath.concat(transferFileTask.getFileName());
-        transferFileTask.setFilePath(descPath);
-        File file = new File(fileAllPath);
-        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
-            fw.append(TABLE_HEAD_TRANSFER);
-            fw.append("\r\n");
-            writeQifuTransferToFile(fw, apiCode, transferFileTask, requestDate);
-        } catch (Exception ex) {
-            log.error("写入文件错误！",ex);
-            result.setCode(ResultCode.FAIL.getValue());
-            result.setMessage(ex.getMessage());
-        }
-        result.setCode(ResultCode.SUCCESS.getValue());
-        return result;
+    String getSuffix(String apiCode) {
+        return marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getString("suffix");
     }
 
-
+    @Override
     public void writeQifuTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         Long start = System.currentTimeMillis();
         AtomicInteger totalSize = new AtomicInteger(0);
@@ -291,7 +222,6 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
 
     /**
      * 使用公共方法对转化数据做有效期过滤
-     *
      * @param apiCode
      * @param requestDate
      * @param transferData
@@ -320,40 +250,5 @@ public class TransferToFileByQiFuServiceImpl implements ITransferToFileService {
         task.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(task);
     }
-
-    private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
-        return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
-    }
-
-    public static LocalDate[] getFirstAndLastDayOfMonth(LocalDate date) {
-        LocalDate firstDayOfMonth;
-        LocalDate lastDayOfMonth;
-        if (date.getDayOfMonth() == 1) {
-            firstDayOfMonth = date.minusMonths(1);
-            lastDayOfMonth = date;
-        } else {
-            firstDayOfMonth = date.withDayOfMonth(1);
-            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
-        }
-        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
-    }
-
-    public static LocalDate[] getStartAndEndDate(LocalDate date) {
-        LocalDate firstDayOfMonth;
-        LocalDate lastDayOfMonth;
-        if (date.getDayOfMonth() == 1) {
-            firstDayOfMonth = date.minusMonths(1);
-            lastDayOfMonth = date;
-        } else {
-            firstDayOfMonth = date.withDayOfMonth(1);
-            lastDayOfMonth = date.withDayOfMonth(date.lengthOfMonth());
-            if (date.isBefore(lastDayOfMonth)) {
-                lastDayOfMonth = date;
-            }
-        }
-        return new LocalDate[]{firstDayOfMonth, lastDayOfMonth};
-    }
-
-
 
 }

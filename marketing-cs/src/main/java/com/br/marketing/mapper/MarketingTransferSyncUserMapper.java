@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUserMapperBase {
@@ -586,5 +587,7 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("extendSql") String extendSql,
             @Param("indexId") Long indexId,
             @Param("pageSize") Integer pageSize);
+
+    List<Map<String, Object>> selectPerMinuteCountstiflash_();
 
 }
