@@ -1096,13 +1096,13 @@ public class MarketingCommonConfig {
      * 2023-09-27 19:12
      * 奇富钉钉告警机器人token
      */
-    private String qiFuDingDingAccessToken = "b1d0849bd627e067d1c3be1ad8a82fa265dcb9afec94197859b0e08bda0dbaf2";
+    private String qiFuDingDingAccessToken = "7f32618dafd2d2126f5564aaf57a35867c8775baf78777140990c16d56edc457";
 
     /**
      * 2023-09-27 19:12
      * 奇富钉钉告警机器人密钥
      */
-    private String qiFuDingDingSecret = "SEC0d7cfb05455c035eea424a4824e63c75dd287a86d796cc96826ba7fb3f51e07e";
+    private String qiFuDingDingSecret = "SEC4d2d8a91842ad25136e92213a852ebe5cf1c22ddaf49dcfd352d5a9323eb1ca8";
 
     /**
      * 2023-09-27 19:12
@@ -1847,6 +1847,6 @@ public class MarketingCommonConfig {
     /**
      * 通用Mock配置
      */
-    private Map<String, JSONObject> commonMockConfig;
+    private JSONObject commonMockConfig;
 }
 

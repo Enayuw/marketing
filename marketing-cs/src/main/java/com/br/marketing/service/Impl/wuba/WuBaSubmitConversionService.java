@@ -3,7 +3,6 @@ package com.br.marketing.service.Impl.wuba;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.WubaCollidingBatchNo;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.entity.WubaSubmitConversionDataExample;
@@ -75,7 +74,7 @@ public class WuBaSubmitConversionService {
                 // process submit data
                 processData(pageList, condition);
                 // 按indexId 每页间隔5s
-                    Thread.sleep(5000);
+                Thread.sleep(5000);
             } catch (Exception e) {
                 log.warn(TITLE+"上报异常");
             }
@@ -90,7 +89,7 @@ public class WuBaSubmitConversionService {
         String apiCode = condition.getParam().getApiCode();
         // callClient
         Result<String> callResult = callClient(pageList);
-        if(callResult == null || !callResult.isSuccess() || result.getData()==null){
+        if(callResult == null || !callResult.isSuccess() || callResult.getData()==null){
             // call failure, alert
             log.warn(TITLE+"调用接口失败" + apiCode);
             wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: " + apiCode);
@@ -105,11 +104,12 @@ public class WuBaSubmitConversionService {
 
         // 上报批次表增加记录，query_status置为0-未查询
         WubaCollidingBatchNo batchRecord = new WubaCollidingBatchNo();
+        batchRecord.setApiCode(apiCode);
         batchRecord.setBatchNo(batchNo);
         batchRecord.setBatchType(2);
         batchRecord.setPushTime(new Date());
         batchRecord.setQueryStatus(0);
-        int insert = wubaCollidingBatchNoMapper.insert(batchRecord);
+        int insert = wubaCollidingBatchNoMapper.insertSelective(batchRecord);
         if(insert < 1){
             throw new Exception(TITLE+"上报批次表增加记录异常");
         }
@@ -138,7 +138,7 @@ public class WuBaSubmitConversionService {
         WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
         dataExample.createCriteria().andIdIn(ids);
         wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
-        return new Result();
+        return result.success();
     }
 
     public Result<String> callClient(List<WubaSubmitConversionData> outputDataList) {
@@ -166,6 +166,6 @@ public class WuBaSubmitConversionService {
         }
         long endTime = System.currentTimeMillis();
         log.warn(TITLE+"callClient, 量级{}, 耗时{}", magnitudes, (endTime-startTime));
-        return result.setCode(ResultCode.SUCCESS.getValue()).setDate(batchNo);
+        return result.success().setDate(batchNo);
     }
 }
