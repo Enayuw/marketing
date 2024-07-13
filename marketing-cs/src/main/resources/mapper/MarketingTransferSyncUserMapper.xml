@@ -642,7 +642,7 @@
 
     <select id="getRongShuTransferDatatikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select duplicate.*
-        from (select *, row_number() over (partition by cust_num order by request_time desc ) as row_num
+        from (select *, row_number() over (partition by cust_num order by insert_time desc ) as row_num
         from b_marketing_transfer_sync_${tCid} a
         where a.api_code = #{apiCode}
         and a.request_data = #{requestDate}

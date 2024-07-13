@@ -197,7 +197,10 @@ api:
     isProxy: true
   qifu:
     baseUri: https://gws-bps.daikuan.360.cn
+    baseCuDongZhiUri: https://gws-bps.daikuan.360.cn
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    saveReachDeleteRecordCuDongZhiUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/agentOperationActSaveReachDeleteRecord
+    qrySleepUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
     qifuPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAklMx0hZ1QqNZ+zavehNklYY8dvhIyg1wN4S8Bg+VZ6a1+dEDyy0b0nhXXZ+TwRc5zbHakE0XMo0Rssfi7KHQiOEhj65lxI/uODIK46yYy5IJKYJePyp9hPNT5vSfujF+R6QQ1/B3moyV5HNSAaFGGTdfxOA0jMg618PyhIfZjFpgXMiTp54bmUPVH34XvPKLnH8Sh1ITNK4ozxdKZg0vkz/Ob5kfYwSzmL8oio7TFEpFhXGdU15ymx5Hd8VCTJ9LEuS4m3FVMc2IVqlm8trEq+ZJQkvAtUVMPW19Ia7mg877pU5FKcBHKv3GL7sahc6nMIC3s+UajvjD65NqPD3DbQIDAQAB"
     appId: "qifu2bairong"
     brPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxCYC32ffpgmFXEIIDsRX4S5G1KO+rgGv5dxrmk0SeHKsaiOqvpOP0kVPnC4k4vyf9PmHr/bMmwAFICvOfk3OCZthRHjgMegThwkKrOIkWc5pddnKsu4n8fsIW7HuVSMA87weK+HgWZmg17ygssKVdAWfsgYHMkuAikrdETdeyAUqCMAjUm8OVLyf7Aoc3VJcnezbACYCwUrCW/eGEY+GQQTHkxY+6BUMMG1qjYKTl/LFYOcyGISrhFUKWUoz5BRGhKYk+/0CsVgdZ9gm+JOhO2fNaJUPjSPNfUOWQueNo1ModpERN0Ri4uI9uZGREFVT8vs+nGloq1kPdq9IKwYPxwIDAQAB"

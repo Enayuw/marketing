@@ -320,7 +320,7 @@ public class TransferToFileByYiXinV4ServiceImpl implements ITransferToFileServic
                                 .append(usedAmount).append(",")
                                 .append(availableAmount).append(",")
                                 .append(settleRatio).append(",")
-                                .append(recommendType).append(",");
+                                .append(recommendType);
                         sb.append("\r\n");
                         fw.append(sb.toString());
                         totalSize.incrementAndGet();

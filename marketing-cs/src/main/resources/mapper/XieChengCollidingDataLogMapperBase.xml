@@ -9,10 +9,14 @@
     <result column="data_source_type" property="dataSourceType" jdbcType="VARCHAR" />
     <result column="cell_sha256_code_list" property="cellSha256CodeList" jdbcType="VARCHAR" />
     <result column="release_time" property="releaseTime" jdbcType="VARCHAR" />
+    <result column="release_date" property="releaseDate" jdbcType="VARCHAR" />
     <result column="org_channel" property="orgChannel" jdbcType="VARCHAR" />
     <result column="mkt_level" property="mktLevel" jdbcType="VARCHAR" />
     <result column="info" property="info" jdbcType="VARCHAR" />
     <result column="result" property="result" jdbcType="BIT" />
+    <result column="market_coupon_list" property="marketCouponList" jdbcType="VARCHAR" />
+    <result column="coupon_code" property="couponCode" jdbcType="VARCHAR" />
+    <result column="coupon_desc" property="couponDesc" jdbcType="VARCHAR" />
     <result column="http_code" property="httpCode" jdbcType="INTEGER" />
     <result column="business_code" property="businessCode" jdbcType="INTEGER" />
     <result column="return_content" property="returnContent" jdbcType="VARCHAR" />
@@ -81,8 +85,9 @@
   </sql>
   <sql id="Base_Column_List" >
     id, sms_colliding_data_id, package_id, package_rule_id, data_source_type, cell_sha256_code_list, 
-    release_time, org_channel, mkt_level, info, `result`, http_code, business_code, return_content, 
-    extend, is_delete, create_time, update_time
+    release_time, release_date, org_channel, mkt_level, info, `result`, market_coupon_list, 
+    coupon_code, coupon_desc, http_code, business_code, return_content, extend, is_delete, 
+    create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengCollidingDataLogExample" >
     select
@@ -120,16 +125,20 @@
     </selectKey>
     insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id, package_rule_id, 
       data_source_type, cell_sha256_code_list, release_time, 
-      org_channel, mkt_level, info, 
-      `result`, http_code, business_code, 
-      return_content, extend, is_delete, 
-      create_time, update_time)
+      release_date, org_channel, mkt_level, 
+      info, `result`, market_coupon_list, 
+      coupon_code, coupon_desc, http_code, 
+      business_code, return_content, extend, 
+      is_delete, create_time, update_time
+      )
     values (#{smsCollidingDataId,jdbcType=BIGINT}, #{packageId,jdbcType=BIGINT}, #{packageRuleId,jdbcType=BIGINT}, 
       #{dataSourceType,jdbcType=VARCHAR}, #{cellSha256CodeList,jdbcType=VARCHAR}, #{releaseTime,jdbcType=VARCHAR}, 
-      #{orgChannel,jdbcType=VARCHAR}, #{mktLevel,jdbcType=VARCHAR}, #{info,jdbcType=VARCHAR}, 
-      #{result,jdbcType=BIT}, #{httpCode,jdbcType=INTEGER}, #{businessCode,jdbcType=INTEGER}, 
-      #{returnContent,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{releaseDate,jdbcType=VARCHAR}, #{orgChannel,jdbcType=VARCHAR}, #{mktLevel,jdbcType=VARCHAR}, 
+      #{info,jdbcType=VARCHAR}, #{result,jdbcType=BIT}, #{marketCouponList,jdbcType=VARCHAR}, 
+      #{couponCode,jdbcType=VARCHAR}, #{couponDesc,jdbcType=VARCHAR}, #{httpCode,jdbcType=INTEGER}, 
+      #{businessCode,jdbcType=INTEGER}, #{returnContent,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
+      #{isDelete,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -155,6 +164,9 @@
       <if test="releaseTime != null" >
         release_time,
       </if>
+      <if test="releaseDate != null" >
+        release_date,
+      </if>
       <if test="orgChannel != null" >
         org_channel,
       </if>
@@ -166,6 +178,15 @@
       </if>
       <if test="result != null" >
         `result`,
+      </if>
+      <if test="marketCouponList != null" >
+        market_coupon_list,
+      </if>
+      <if test="couponCode != null" >
+        coupon_code,
+      </if>
+      <if test="couponDesc != null" >
+        coupon_desc,
       </if>
       <if test="httpCode != null" >
         http_code,
@@ -208,6 +229,9 @@
       <if test="releaseTime != null" >
         #{releaseTime,jdbcType=VARCHAR},
       </if>
+      <if test="releaseDate != null" >
+        #{releaseDate,jdbcType=VARCHAR},
+      </if>
       <if test="orgChannel != null" >
         #{orgChannel,jdbcType=VARCHAR},
       </if>
@@ -219,6 +243,15 @@
       </if>
       <if test="result != null" >
         #{result,jdbcType=BIT},
+      </if>
+      <if test="marketCouponList != null" >
+        #{marketCouponList,jdbcType=VARCHAR},
+      </if>
+      <if test="couponCode != null" >
+        #{couponCode,jdbcType=VARCHAR},
+      </if>
+      <if test="couponDesc != null" >
+        #{couponDesc,jdbcType=VARCHAR},
       </if>
       <if test="httpCode != null" >
         #{httpCode,jdbcType=INTEGER},
@@ -273,6 +306,9 @@
       <if test="record.releaseTime != null" >
         release_time = #{record.releaseTime,jdbcType=VARCHAR},
       </if>
+      <if test="record.releaseDate != null" >
+        release_date = #{record.releaseDate,jdbcType=VARCHAR},
+      </if>
       <if test="record.orgChannel != null" >
         org_channel = #{record.orgChannel,jdbcType=VARCHAR},
       </if>
@@ -284,6 +320,15 @@
       </if>
       <if test="record.result != null" >
         `result` = #{record.result,jdbcType=BIT},
+      </if>
+      <if test="record.marketCouponList != null" >
+        market_coupon_list = #{record.marketCouponList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.couponCode != null" >
+        coupon_code = #{record.couponCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.couponDesc != null" >
+        coupon_desc = #{record.couponDesc,jdbcType=VARCHAR},
       </if>
       <if test="record.httpCode != null" >
         http_code = #{record.httpCode,jdbcType=INTEGER},
@@ -320,10 +365,14 @@
       data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
       cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
       release_time = #{record.releaseTime,jdbcType=VARCHAR},
+      release_date = #{record.releaseDate,jdbcType=VARCHAR},
       org_channel = #{record.orgChannel,jdbcType=VARCHAR},
       mkt_level = #{record.mktLevel,jdbcType=VARCHAR},
       info = #{record.info,jdbcType=VARCHAR},
       `result` = #{record.result,jdbcType=BIT},
+      market_coupon_list = #{record.marketCouponList,jdbcType=VARCHAR},
+      coupon_code = #{record.couponCode,jdbcType=VARCHAR},
+      coupon_desc = #{record.couponDesc,jdbcType=VARCHAR},
       http_code = #{record.httpCode,jdbcType=INTEGER},
       business_code = #{record.businessCode,jdbcType=INTEGER},
       return_content = #{record.returnContent,jdbcType=VARCHAR},
@@ -356,6 +405,9 @@
       <if test="releaseTime != null" >
         release_time = #{releaseTime,jdbcType=VARCHAR},
       </if>
+      <if test="releaseDate != null" >
+        release_date = #{releaseDate,jdbcType=VARCHAR},
+      </if>
       <if test="orgChannel != null" >
         org_channel = #{orgChannel,jdbcType=VARCHAR},
       </if>
@@ -367,6 +419,15 @@
       </if>
       <if test="result != null" >
         `result` = #{result,jdbcType=BIT},
+      </if>
+      <if test="marketCouponList != null" >
+        market_coupon_list = #{marketCouponList,jdbcType=VARCHAR},
+      </if>
+      <if test="couponCode != null" >
+        coupon_code = #{couponCode,jdbcType=VARCHAR},
+      </if>
+      <if test="couponDesc != null" >
+        coupon_desc = #{couponDesc,jdbcType=VARCHAR},
       </if>
       <if test="httpCode != null" >
         http_code = #{httpCode,jdbcType=INTEGER},
@@ -400,10 +461,14 @@
       data_source_type = #{dataSourceType,jdbcType=VARCHAR},
       cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
       release_time = #{releaseTime,jdbcType=VARCHAR},
+      release_date = #{releaseDate,jdbcType=VARCHAR},
       org_channel = #{orgChannel,jdbcType=VARCHAR},
       mkt_level = #{mktLevel,jdbcType=VARCHAR},
       info = #{info,jdbcType=VARCHAR},
       `result` = #{result,jdbcType=BIT},
+      market_coupon_list = #{marketCouponList,jdbcType=VARCHAR},
+      coupon_code = #{couponCode,jdbcType=VARCHAR},
+      coupon_desc = #{couponDesc,jdbcType=VARCHAR},
       http_code = #{httpCode,jdbcType=INTEGER},
       business_code = #{businessCode,jdbcType=INTEGER},
       return_content = #{returnContent,jdbcType=VARCHAR},

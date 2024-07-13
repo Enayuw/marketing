@@ -13,6 +13,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.entity.XieChengCollidingDataRob;
@@ -37,7 +38,7 @@ public class XieChengCollidingResultHandleService {
     private XieChengCollidingDataLogService xieChengCollidingDataLogService;
 
     @Transactional(rollbackFor = Exception.class)
-    public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto, Long packageId) {
+    public void cycleDataHandle(XieChengCollidingDataLoopCycle loopCycleDto, Long packageId, Date releaseDate) {
         // 更新true数据表
         loopCycleDto.setIsDelete(1);
         loopCycleDto.setPushTime(new Date());
@@ -49,6 +50,7 @@ public class XieChengCollidingResultHandleService {
         robDto.setDataSourceType("T");
         robDto.setCellSha256CodeList(loopCycleDto.getCellSha256CodeList());
         robDto.setPushTime(new Date());
+        robDto.setReleaseDate(releaseDate);
         robDto.setCreateTime(new Date());
         robDto.setUpdateTime(new Date());
 
@@ -83,6 +85,9 @@ public class XieChengCollidingResultHandleService {
                     robData.setPushTime(new Date());
                     robData.setRetryCount(0);
                     robData.setUpdateTime(new Date());
+                    Date releaseDate = StringUtils.isNotEmpty(returnData.getString("releaseDate"))
+                        ? DateUtil.parse(returnData.getString("releaseDate")) : null;
+                    robData.setReleaseDate(releaseDate);
                     xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
                 }
                 collidingLogs.add(xieChengCollidingDataLogService.buildSuccessXieChengCollidingDataLog(robData.getId(), robData.getPackageId(),
@@ -111,6 +116,20 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataLoopCycle.setDataSourceType("F");
         xieChengCollidingDataLoopCycle.setCellSha256CodeList(returnData.getString("sha256Code"));
         xieChengCollidingDataLoopCycle.setReleaseTime(DateUtil.parse(returnData.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
+        try {
+            JSONArray jsonArray = returnData.getJSONArray("marketCouponList");
+            if (jsonArray != null && !jsonArray.isEmpty()) {
+                xieChengCollidingDataLoopCycle.setMarketCouponList(jsonArray.toJSONString());
+                JSONObject firstCoupon = jsonArray.getJSONObject(0);
+                String couponCode = firstCoupon.getString("couponCode");
+                String couponDesc = firstCoupon.getString("couponDesc");
+                xieChengCollidingDataLoopCycle.setCouponCode(couponCode);
+                xieChengCollidingDataLoopCycle.setCouponDesc(couponDesc);
+            }
+        } catch (Exception e) {
+            xieChengCollidingDataLoopCycle.setMarketCouponList(String.valueOf(returnData.get("marketCouponList")));
+            log.error("携程非周期撞库析出marketCouponList异常", e);
+        }
         xieChengCollidingDataLoopCycle.setPushTime(new Date());
         xieChengCollidingDataLoopCycle.setRetryCount(0);
         xieChengCollidingDataLoopCycle.setCreateTime(new Date());

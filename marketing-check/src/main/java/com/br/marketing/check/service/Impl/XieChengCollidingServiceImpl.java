@@ -111,12 +111,12 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             log.error("携程撞库推送决策缺少release_time，请检查");
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
-        JSONObject releaseTimeJson = (JSONObject) releaseTime;
-        String condition = EsConditionTransferSqlUtil.assemblefiled(releaseTimeJson.getString("key"), releaseTimeJson.getString("operation"),
-                releaseTimeJson.get("value"));
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        XieChengEsJsonHandler.handlerJson(jsonRule, collidingFilterDTO);
+        String condition =XieChengEsJsonHandler.zkTrueCondition(collidingFilterDTO);
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
-        Integer pageSize = 3000;
+        Integer pageSize = marketingCommonConfig.getXiechengZkToPlicyPageSize();
         Long minId = null;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 200);
         List<Future<Result<Integer>>> resList = new ArrayList<>();

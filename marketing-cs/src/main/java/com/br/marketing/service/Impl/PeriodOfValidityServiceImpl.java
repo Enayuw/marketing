@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -15,12 +17,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
-
 import javax.annotation.Resource;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
@@ -50,7 +50,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
 
     @Resource
     private MarketingCustomizeDataValidConfigMapper marketingCustomizeDataValidConfigMapper;
-
 
     @Override
     public boolean isExpire(Date date, Integer day, Date validityDate) {
@@ -401,18 +400,6 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         Result<Boolean> result = new Result<>();
         result.setCode(ResultCode.SUCCESS.getValue());
         result.setDate(false);
-        this.configValidDateDefault(syncUser);
-        MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
-        example.createCriteria()
-                .andApiCodeEqualTo(syncUser.getApiCode())
-                .andUserTypeEqualTo(syncUser.getUserType())
-                .andAppletDateEqualTo(syncUser.getAppletDate())
-                .andValidTypeEqualTo(1)
-                .andIsDelEqualTo(1);
-        // 检查db中是否已经存在有效期记录
-        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectByExample(example);
-        // 插入子表
-        for (MarketingDataValidConfig marketingDataValidConfig : marketingDataValidConfigs) {
             // 查询子表是否已经生成有效期
             MarketingCustomizeDataValidConfigExample marketingCustomizeDataValidConfigExample =
                     new MarketingCustomizeDataValidConfigExample();
@@ -426,31 +413,86 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             if (i == 0) {
                 // 插入定制表
                 MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig =
-                        getMarketingCustomizeDataValidConfig(syncUser, marketingDataValidConfig);
+                        getMarketingCustomizeDataValidConfig(syncUser);
                 int j = marketingCustomizeDataValidConfigMapper.insertSelective(marketingCustomizeDataValidConfig);
                 if (j < 1) {
                     log.error("生成默认定制有效期入库失败！apiCode:{},userType:{},taskId:{}"
                             , syncUser.getApiCode(), syncUser.getUserType(), syncUser.getCusBatch());
+                }else {
+                    try {
+                    //  更新通用有效期配置表
+                    MarketingDataValidConfig mc = new MarketingDataValidConfig();
+                    mc.setValidStartDate(marketingCustomizeDataValidConfig.getValidStartDate());
+                    mc.setValidEndDate(marketingCustomizeDataValidConfig.getValidEndDate());
+                    MarketingDataValidConfigExample mcExample = new MarketingDataValidConfigExample();
+                    mcExample.createCriteria().andApiCodeEqualTo(marketingCustomizeDataValidConfig.getApiCode())
+                                    .andAppletDateEqualTo(marketingCustomizeDataValidConfig.getAppletDate())
+                                    .andUserTypeEqualTo(marketingCustomizeDataValidConfig.getUserType())
+                                    .andIsDelEqualTo(1);
+                        marketingDataValidConfigMapper.updateByExampleSelective(mc,mcExample);
+                    }catch (Exception e){
+                        log.error("奇富360 有效期变更 更新通用表数据失败，不影响业务使用，研发人员需要关注。{}",e);
+                    }
+
                 }
             }
-        }
         return result;
     }
 
-    private static MarketingCustomizeDataValidConfig getMarketingCustomizeDataValidConfig(MarketingSyncUser syncUser,
-                                                                                          MarketingDataValidConfig marketingDataValidConfig) {
-        Long dataValidConfigId = marketingDataValidConfig.getId();
+    private  MarketingCustomizeDataValidConfig getMarketingCustomizeDataValidConfig(MarketingSyncUser syncUser) {
+        // 查询当前 api_code ,task_id ,applet_date下的 上传数据获取其中一条解析，reserve_field1 下的开始时间和结束时间
+        // reserve_field1: {"operationScene":"creditT30","expireDate":"2024-07-12 23:59:59",
+        // "userType":"1","custGroupName":"T0其他渠道低质量","effectiveDate":"2024-07-06 00:00:00"}
+        MarketingSyncUser marketingSyncByCusBatch = marketingSyncUserMapper.getMarketingSyncByCusBatch(
+                syncUser.getApiCode(),
+                syncUser.getCusBatch(),
+                syncUser.getUserType(),
+                syncUser.getAppletDate());
         MarketingCustomizeDataValidConfig marketingCustomizeDataValidConfig = new MarketingCustomizeDataValidConfig();
         marketingCustomizeDataValidConfig.setApiCode(syncUser.getApiCode());
-        marketingCustomizeDataValidConfig.setDataValidConfigId(dataValidConfigId);
         marketingCustomizeDataValidConfig.setAppletDate(syncUser.getAppletDate());
         marketingCustomizeDataValidConfig.setTaskId(syncUser.getCusBatch());
-        marketingCustomizeDataValidConfig.setValidStartDate(marketingDataValidConfig.getValidStartDate());
-        marketingCustomizeDataValidConfig.setValidEndDate(marketingDataValidConfig.getValidEndDate());
-        marketingCustomizeDataValidConfig.setUserType(marketingDataValidConfig.getUserType());
+        try {
+            // reserve_field1: {"operationScene":"creditT30","expireDate":"2024-07-12 23:59:59",
+            // "userType":"1","custGroupName":"T0其他渠道低质量","effectiveDate":"2024-07-06 00:00:00"}
+            JSONObject json = JSON.parseObject(marketingSyncByCusBatch.getReserveField1());
+            String effectiveDate = json.getString("effectiveDate");
+            String expireDate = json.getString("expireDate");
+            log.warn("查询的上传输数据信息effectiveDate：{}",effectiveDate);
+            log.warn("查询的上传输数据信息expireDate：{}",expireDate);
+            marketingCustomizeDataValidConfig.setValidStartDate(DateFormat(effectiveDate));
+            marketingCustomizeDataValidConfig.setValidEndDate(DateFormat(expireDate));
+            if(StringUtils.isEmpty(effectiveDate) || StringUtils.isEmpty(expireDate)){
+                log.error("奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：" +
+                                "上传数据的api_code:{},id:{},taskId(cus_batch):{},reserve_field1:{},{}",
+                        marketingSyncByCusBatch.getApiCode(),marketingSyncByCusBatch.getId(),
+                        marketingSyncByCusBatch.getCusBatch(),marketingSyncByCusBatch.getReserveField1());
+            }
+        }catch (Exception e){
+            log.error("奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：" +
+                    "上传数据的api_code:{},id:{},taskId(cus_batch):{},reserve_field1:{},{}",
+                    marketingSyncByCusBatch.getApiCode(),marketingSyncByCusBatch.getId(),
+                    marketingSyncByCusBatch.getCusBatch(),marketingSyncByCusBatch.getReserveField1(),e);
+        }
+        marketingCustomizeDataValidConfig.setUserType(syncUser.getUserType());
         marketingCustomizeDataValidConfig.setCreateTime(new Date());
         marketingCustomizeDataValidConfig.setUpdateTime(new Date());
         return marketingCustomizeDataValidConfig;
+    }
+
+    /**
+     * 日期格式化
+     * @return
+     */
+    public String DateFormat(String DateStr) throws ParseException {
+        if (StringUtils.isEmpty(DateStr)) {
+            return "";
+        }
+        SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        Date parse = formate.parse(DateStr);
+        SimpleDateFormat sdf = new SimpleDateFormat("", Locale.SIMPLIFIED_CHINESE);
+        sdf.applyPattern("yyyy-MM-dd");
+        return sdf.format(parse);
     }
 
 }

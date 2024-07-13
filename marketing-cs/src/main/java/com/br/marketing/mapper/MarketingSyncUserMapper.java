@@ -349,4 +349,15 @@ public interface MarketingSyncUserMapper {
 
 
     List<MarketingSyncUser> getSyncUserByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
+
+    List<MarketingSyncUser> getSyncUserByCusBatch(@Param("apiCode") String apiCode,
+                                                  @Param("cusBatch") String cusBatch,
+                                                  @Param("minId") Long minId,
+                                                  @Param("createDate") String createDate,
+                                                  @Param("pageSize") Integer pageSize);
+
+    MarketingSyncUser getMarketingSyncByCusBatch(@Param("apiCode") String apiCode,
+                               @Param("cusBatch") String cusBatch,
+                               @Param("userType") String userType,
+                               @Param("appletDate") String appletDate);
 }
