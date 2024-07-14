@@ -179,7 +179,7 @@ public class WuBaQueryConversionResultService {
         return result.success();
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Result<WubaCollidingBatchNo> processCallSuccess(WubaCollidingBatchNo wubaCollidingBatchNo,
                                                            List<ConversionResponseDTO> dtoList) throws Exception {
         Result<WubaCollidingBatchNo> result = new Result().failure();
@@ -312,18 +312,19 @@ public class WuBaQueryConversionResultService {
         return new Result().success();
     }
 
-    public Result updateBatchNoStatus(WubaCollidingBatchNo wubaCollidingBatchNo, Integer queryStatus){
+    public Result updateBatchNoStatus(WubaCollidingBatchNo wubaCollidingBatchNo, Integer queryStatus) throws Exception {
         WubaCollidingBatchNo batchNoUpdate = new WubaCollidingBatchNo();
         batchNoUpdate.setBatchType(2);
         batchNoUpdate.setQueryStatus(queryStatus);
         //
         WubaCollidingBatchNoExample batchNoUpdateExample = new WubaCollidingBatchNoExample();
-        batchNoUpdateExample.createCriteria().andBatchNoEqualTo(wubaCollidingBatchNo.getBatchNo());
+        String batchNo = wubaCollidingBatchNo.getBatchNo();
+        batchNoUpdateExample.createCriteria().andBatchNoEqualTo(batchNo);
         int batchNoUpdateResult = batchNoMapper.updateByExampleSelective(batchNoUpdate, batchNoUpdateExample);
-        if(batchNoUpdateResult < 1){
-            log.warn(TITLE+"更新上报批次表状态异常, batchNo: {}, queryStatus: {}", queryStatus, wubaCollidingBatchNo.getBatchNo());
-            // TODO
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        if (batchNoUpdateResult < 1) {
+            String errorMsg = String.format("更新上报批次表状态异常, batchNo: %d, queryStatus: %s", queryStatus, batchNo);
+            log.warn(TITLE + errorMsg);
+            throw new Exception(TITLE + errorMsg);
         }
         return new Result().success();
     }

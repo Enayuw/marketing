@@ -82,13 +82,13 @@ public class WuBaSubmitConversionService {
                 // 按indexId 每页间隔5s
                 Thread.sleep(5000);
             } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
-                        TITLE+ e.getMessage()));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
+                Thread.currentThread().interrupt();
             }
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Result<?> processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition)
             throws Exception {
         Result result = new Result().failure();

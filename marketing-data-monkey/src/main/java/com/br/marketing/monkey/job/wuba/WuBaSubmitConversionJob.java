@@ -36,7 +36,9 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
         try {
             log.warn(TITLE + "调度开始");
             // switch
-            if(!checkJobSwitch()) return;
+            if(!checkJobSwitch()) {
+                return;
+            }
             // jobParameter
             String apiCode = parseJobParameter(context.getJobParameter());
             // pageSize

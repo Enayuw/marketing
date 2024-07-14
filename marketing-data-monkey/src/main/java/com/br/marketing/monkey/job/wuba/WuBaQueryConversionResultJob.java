@@ -45,7 +45,9 @@ public class WuBaQueryConversionResultJob extends AbstractSimpleElasticJob {
         try {
             log.warn(TITLE + "调度开始");
             // switch
-            if(!checkJobSwitch()) return;
+            if(!checkJobSwitch()) {
+                return;
+            }
 
             // pushTimeInterval
             Map<String, Object> pushTimeInterval = acquirePushTimeInterval();
