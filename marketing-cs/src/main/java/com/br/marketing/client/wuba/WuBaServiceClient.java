@@ -129,7 +129,6 @@ public class WuBaServiceClient {
         HashMap<String, String> resMap;
 
         // 调用客户接口
-        // todo 修改挡板
         if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_03.getCode())) {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_03.getCode());
         } else {
@@ -158,7 +157,6 @@ public class WuBaServiceClient {
         HashMap<String, String> resMap;
 
         // 调用客户接口
-        // todo 修改挡板
         if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_04.getCode())) {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_04.getCode());
         } else {
@@ -183,11 +181,6 @@ public class WuBaServiceClient {
         }
     }
 
-    private HashMap<String, String> getMockCon() {
-
-        return new HashMap<>();
-    }
-
     public void sendDingDingAlert(String title, String text) {
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
         markdown.setTitle(title);
@@ -198,8 +191,7 @@ public class WuBaServiceClient {
         String token = marketingCommonConfig.getQiFuDingDingAccessToken();
         String secret = marketingCommonConfig.getQiFuDingDingSecret();
         try {
-            dingDingRobotHookService.sendMessageGroup(token,
-                    secret, dingDingMarkdownMessage, isProxy);
+            dingDingRobotHookService.sendMessageGroup(token, secret, dingDingMarkdownMessage, isProxy);
         } catch (Exception e) {
             log.error(text+" 发送钉钉消息失败:"+e.getMessage(),e);
         }

@@ -1815,29 +1815,34 @@ public class MarketingCommonConfig {
     private Integer wuBaCollidingQueryResultWaitMinutes;
 
     /**
-     * 58金融-新客营销名单上报-开关，1-开，0-关
+     * 58新客-营销名单上报-开关，1-开，0-关
      */
     private String wuBaSubmitConversionSwitch;
 
     /**
-     * 58金融-新客营销名单转化结果查询-开关，1-开，0-关
-     */
-    private String wuBaQueryConversionResultSwitch;
-
-    /**
-     * 58金融-新客营销名单上报-分页条数
+     * 58新客-营销名单上报-分页条数
      */
     private Integer wuBaSubmitConversionPageSize;
 
     /**
-     * 58金融-新客营销名单上报结果查询-调用线程数
+     * 58新客-营销转化结果查询-开关，1-开，0-关
      */
-    private List<Integer> wuBaSubmitConversionThreadPool;
+    private String wuBaQueryConversionSwitch;
 
     /**
-     * 58金融-新客营销名单-转化数据-通用字段配置
+     * 58新客-营销转化结果查询-pushTime查询区间
      */
-    private Set<String> wuBaSubmitConversionKnowFields;
+    private JSONObject wuBaQueryConversionPushTimeInterval;
+
+    /**
+     * 58新客-营销转化结果查询-调用线程数
+     */
+    private List<Integer> wuBaQueryConversionThreadPool;
+
+    /**
+     * 58新客-营销转化结果查询-通用字段配置
+     */
+    private Set<String> wuBaQueryConversionKnowFields;
 
     /**
      * 通用清洗线程池

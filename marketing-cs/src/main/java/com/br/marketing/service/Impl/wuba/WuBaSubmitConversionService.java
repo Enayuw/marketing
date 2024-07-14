@@ -1,9 +1,11 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.WubaCollidingBatchNo;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.entity.WubaSubmitConversionDataExample;
@@ -80,7 +82,8 @@ public class WuBaSubmitConversionService {
                 // 按indexId 每页间隔5s
                 Thread.sleep(5000);
             } catch (Exception e) {
-                log.warn(TITLE+"上报异常");
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                        TITLE+ e.getMessage()));
             }
         }
     }
@@ -94,8 +97,9 @@ public class WuBaSubmitConversionService {
         // callClient
         Result<String> callResult = callClient(pageList);
         if(callResult == null || !callResult.isSuccess() || callResult.getData()==null){
-            // call failure, alert
-            log.warn(TITLE+"调用接口失败" + apiCode);
+            // Alert
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                    TITLE+"调用接口失败, apiCode: " + apiCode));
             wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: " + apiCode);
             return result;
         }
@@ -168,6 +172,7 @@ public class WuBaSubmitConversionService {
             return wuBaSubmitDTO;
         }).collect(Collectors.toList());
 
+        // call submitConversionList
         Result callResult = wuBaServiceClient.submitConversionList(wuBaSubmitDTOS);
         if(callResult==null || !callResult.isSuccess() || callResult.getData()==null){
             return result;

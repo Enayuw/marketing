@@ -10,6 +10,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.orika.OrikaBeanMapperUtil;
 import com.br.marketing.dto.wuba.ConversionResponseDTO;
+import com.br.marketing.dto.wuba.WubaQueryConversionDto;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataLogMapper;
@@ -25,8 +26,6 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -69,37 +68,35 @@ public class WuBaQueryConversionResultService {
     private WuBaDingDingService wuBaDingDingService;
 
 
-    public void action(Page2Condition<WubaCollidingBatchNo> condition) {
+    public void action(Page2Condition<WubaQueryConversionDto> condition) {
         scanData(condition);
     }
 
-    public Result scanData(Page2Condition<WubaCollidingBatchNo> condition) {
+    public Result scanData(Page2Condition<WubaQueryConversionDto> condition) {
         Result result = new Result<>().failure();
-        // queryPool
-        ThreadPoolExecutor queryPool = BrExecutors.getThreadPool(12, 12, 20);
-        // futureList
-        List<Future<Result<WubaCollidingBatchNo>>> futureList = new ArrayList<>();
 
+        // 扫描批次, BatchType 2-上报, QueryStatus 0-未查询
         // param
-        WubaCollidingBatchNo param = condition.getParam();
+        WubaQueryConversionDto param = condition.getParam();
         Integer batchType = param.getBatchType();
-        Date pushTime = param.getPushTime();
         Integer queryStatus = param.getQueryStatus();
-        LocalDate curLocalDate = LocalDate.now();
-        LocalDate startLocalDate = curLocalDate.plusDays(-2);
-        Date startDate = Date.from(startLocalDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant());
+        Date pushTimeStart = param.getPushTimeStart();
+        Date pushTimeEnd = param.getPushTimeEnd();
 
-        //
         WubaCollidingBatchNoExample batchNoExample = new WubaCollidingBatchNoExample();
         batchNoExample.createCriteria().andBatchTypeEqualTo(batchType).andQueryStatusEqualTo(queryStatus)
-                .andPushTimeBetween(startDate, new Date());
+                .andPushTimeBetween(pushTimeStart, pushTimeEnd);
         final List<WubaCollidingBatchNo> batchNoList = batchNoMapper.selectByExample(batchNoExample);
 
         if (CollectionUtils.isEmpty(batchNoList)) {
             log.warn(TITLE+"未获取到批次数据");
             return result;
         }
+        // queryPool
+        ThreadPoolExecutor queryPool = BrExecutors.getThreadPool(12, 12, 20);
 
+        // futureList
+        List<Future<Result<WubaCollidingBatchNo>>> futureList = new ArrayList<>();
         for(WubaCollidingBatchNo wubaCollidingBatchNo: batchNoList) {
             setThreadPoolParam(queryPool);
             futureList.add(queryPool.submit(() -> processData(wubaCollidingBatchNo, condition)));
@@ -109,7 +106,7 @@ public class WuBaQueryConversionResultService {
             try {
                 future.get(1, TimeUnit.MINUTES);
             } catch (Exception e) {
-                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),e.getMessage()
                         , TITLE), e);
 //                future.cancel(true);
                 result.setCode(ResultCode.FAIL.getValue());
@@ -123,54 +120,62 @@ public class WuBaQueryConversionResultService {
                 long completedTask2Count = queryPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
                     result.setCode(ResultCode.FAIL.getValue());
-                    log.warn(TITLE+"业务线程等待超时");
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                            TITLE + "业务线程等待超时"));
                     break;
                 }
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                    , TITLE), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                    TITLE + "业务线程中断"));
             result.setCode(ResultCode.FAIL.getValue());
             Thread.currentThread().interrupt();
         }
 
         return result.success();
-
     }
 
     public Result<WubaCollidingBatchNo> processData(WubaCollidingBatchNo wubaCollidingBatchNo,
-                                                    Page2Condition<WubaCollidingBatchNo> condition) throws Exception {
+                                                    Page2Condition<WubaQueryConversionDto> condition) throws Exception {
         Result<WubaCollidingBatchNo> result = new Result().failure();
-        // callClient
-        Result<List<ConversionResponseDTO>> callResult = callClient(wubaCollidingBatchNo, condition);
-        //
-        if (callResult == null) {
-            return result;
-        }
-        if (!callResult.isSuccess()) {
-            // code 9991
-            if (callResult.getCode() == 9991) {
+        try {
+            // callClient
+            String batchNo = wubaCollidingBatchNo.getBatchNo();
+            Result<List<ConversionResponseDTO>> callResult = callClient(wubaCollidingBatchNo);
+            //
+            if (callResult == null) {
                 return result;
             }
-            // 上报批次表query_status置为2-查询异常
-            Result updateBatchNoResult = updateBatchNoStatus(wubaCollidingBatchNo, 2);
-            if (updateBatchNoResult == null || !updateBatchNoResult.isSuccess()) {
+            if (!callResult.isSuccess()) {
+                // code 9991
+                if (callResult.getCode() == 9991) {
+                    return result;
+                }
+                // 上报批次表query_status置为2-查询异常
+                Result updateBatchNoResult = updateBatchNoStatus(wubaCollidingBatchNo, 2);
+                if (updateBatchNoResult == null || !updateBatchNoResult.isSuccess()) {
+                    return result;
+                }
+                // Alert
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                        TITLE + "调用接口失败, batchNo: " + batchNo));
+                wuBaDingDingService.sendAlert(TITLE, "调用接口失败, batchNo: " + batchNo);
                 return result;
             }
-            // Alert
-            log.warn(TITLE + "调用接口失败, batchNo: " + wubaCollidingBatchNo.getBatchNo());
-            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, batchNo: " + wubaCollidingBatchNo.getBatchNo());
-            return result;
-        }
 
-        List<ConversionResponseDTO> dtoList = callResult.getData();
-        if (CollectionUtils.isEmpty(dtoList)) {
-            log.warn(TITLE + "返回列表为空");
-            return result;
-        }
+            // call success
+            List<ConversionResponseDTO> dtoList = callResult.getData();
+            if (CollectionUtils.isEmpty(dtoList)) {
+                log.warn(TITLE + "返回列表为空");
+                return result;
+            }
 
-        processCallSuccess(wubaCollidingBatchNo, dtoList);
+            processCallSuccess(wubaCollidingBatchNo, dtoList);
+        } catch (Exception e){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                    TITLE+ e.getMessage()));
+        }
         return result.success();
     }
 
@@ -209,7 +214,7 @@ public class WuBaQueryConversionResultService {
         return result.success();
     }
 
-    public Result<List<ConversionResponseDTO>> callClient(WubaCollidingBatchNo wubaCollidingBatchNo, Page2Condition<WubaCollidingBatchNo> condition) {
+    public Result<List<ConversionResponseDTO>> callClient(WubaCollidingBatchNo wubaCollidingBatchNo) {
         Result<List<ConversionResponseDTO>> result = new Result<>().failure();
 
         // call queryConversionResult
@@ -239,7 +244,7 @@ public class WuBaQueryConversionResultService {
         List<ConversionResponseDTO> dtoList = ja.stream().map((Object obj) -> {
             JSONObject jo = (JSONObject) obj;
             ConversionResponseDTO dto = JSONObject.parseObject(JSONObject.toJSONString(jo), ConversionResponseDTO.class);
-            Set<String> knowFields = marketingCommonConfig.getWuBaSubmitConversionKnowFields();
+            Set<String> knowFields = marketingCommonConfig.getWuBaQueryConversionKnowFields();
             dto.setExtend(getExtraFields(jo, knowFields));
             return dto;
         }).collect(Collectors.toList());
@@ -353,7 +358,7 @@ public class WuBaQueryConversionResultService {
     }
 
     private void setThreadPoolParam(ThreadPoolExecutor queryPool) {
-        List<Integer> list = marketingCommonConfig.getWuBaSubmitConversionThreadPool();
+        List<Integer> list = marketingCommonConfig.getWuBaQueryConversionThreadPool();
         int queryPoolSize = list.get(0);
 
         if (ObjectUtils.isEmpty(queryPoolSize) || queryPoolSize < 1) {
