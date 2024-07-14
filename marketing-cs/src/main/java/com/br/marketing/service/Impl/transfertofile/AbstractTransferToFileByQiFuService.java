@@ -126,4 +126,15 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
     private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
         return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
     }
+
+    void saveUpdateTask(TransferFileTask transferFileTask, int totalSize) {
+        TransferFileTask task = new TransferFileTask();
+        task.setId(transferFileTask.getId());
+        task.setFileName(transferFileTask.getFileName());
+        task.setFilePath(transferFileTask.getFilePath());
+        task.setStatus(2);
+        task.setTaskNumber(totalSize);
+        task.setUpdateTime(new Date());
+        transferFileTaskMapper.updateByPrimaryKeySelective(task);
+    }
 }

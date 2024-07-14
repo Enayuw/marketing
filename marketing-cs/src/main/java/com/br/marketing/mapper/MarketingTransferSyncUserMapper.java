@@ -588,6 +588,10 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("indexId") Long indexId,
             @Param("pageSize") Integer pageSize);
 
-    List<Map<String, Object>> selectPerMinuteCountstiflash_();
-
+    List<Map<String, Object>> selectTransferWithValid(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("isCustom")int isCustom,
+            @Param("orderByClause")String orderByClause,
+            @Param("rowCount")int rowCount,
+            @Param("offset")int offset);
 }

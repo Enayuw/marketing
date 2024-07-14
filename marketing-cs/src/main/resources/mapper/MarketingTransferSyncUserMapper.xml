@@ -1072,4 +1072,46 @@
         </if>
         order by id asc limit #{pageSize}
     </select>
+
+    <select id="selectTransferWithValid" resultType="java.util.Map">
+        select transfer.id as id,
+               transfer.cust_num as custNum,
+               transfer.apply_dt as applyDt ,
+               transfer.apply_result as applyResult,
+               transfer.login_time as loginTime,
+               transfer.request_time as requestTime,
+               transfer.user_type as userType,
+               sync.cus_batch as taskId,
+               config.valid_end_date as validEndDate,
+               config.valid_start_date as validStartDate
+        from b_marketing_transfer_sync_${transferSyncUser.tCid} transfer
+            inner join b_marketing_sync_${transferSyncUser.apiCode} sync
+                on transfer.cust_num = sync.cust_num and transfer.user_type = sync.user_type
+            inner join
+        <if test="isCustom != null">
+            <choose>
+                <when test="isCustom == 1">
+                    b_marketing_customize_data_valid_config config
+                        on config.task_id = sync.cus_batch and
+                </when>
+                <otherwise>
+                    b_marketing_data_valid_config config on
+                </otherwise>
+            </choose>
+        </if>
+            config.applet_date = sync.applet_date
+        <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+        where transfer.api_code = #{transferSyncUser.apiCode}
+        </if>
+        order by
+        <choose>
+            <when test="orderByClause != null and orderByClause.trim() neq ''">
+                ${orderByClause}
+            </when>
+            <otherwise>
+                id
+            </otherwise>
+        </choose>
+        limit ${rowCount},${offset}
+    </select>
 </mapper>

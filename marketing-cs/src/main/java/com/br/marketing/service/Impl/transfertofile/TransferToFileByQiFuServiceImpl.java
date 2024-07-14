@@ -141,25 +141,25 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                     writeDataForOneQuery(fw, totalSize, config, transferDataNew);
                 });
             }
-            threadPool.shutdown();
-            try {
-                while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
-                    if (log.isInfoEnabled()) {
-                        long taskCount = threadPool.getTaskCount();
-                        long completedTaskCount = threadPool.getCompletedTaskCount();
-                        log.info("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
-                                , taskCount, completedTaskCount, taskCount - completedTaskCount);
-                    }
+        }
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(timeout, TimeUnit.SECONDS)) {
+                if (log.isInfoEnabled()) {
+                    long taskCount = threadPool.getTaskCount();
+                    long completedTaskCount = threadPool.getCompletedTaskCount();
+                    log.info("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                            , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
-                saveUpdateTask(transferFileTask, totalSize.intValue());
-                log.warn("奇富360转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
-                        , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
-            } catch (InterruptedException e) {
-                log.error("奇富360转化数据提取-本地文件生成失败！" , e);
-                threadPool.shutdownNow();
-                Thread.currentThread().interrupt();
-                transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
             }
+            saveUpdateTask(transferFileTask, totalSize.intValue());
+            log.warn("奇富360转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
+                    , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
+        } catch (InterruptedException e) {
+            log.error("奇富360转化数据提取-本地文件生成失败！" , e);
+            threadPool.shutdownNow();
+            Thread.currentThread().interrupt();
+            transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
     }
 
@@ -238,17 +238,6 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
             return syncUserValidityPeriodsBO != null;
         }).collect(Collectors.toList());
         return transferDataNew;
-    }
-
-    private void saveUpdateTask(TransferFileTask transferFileTask, int totalSize) {
-        TransferFileTask task = new TransferFileTask();
-        task.setId(transferFileTask.getId());
-        task.setFileName(transferFileTask.getFileName());
-        task.setFilePath(transferFileTask.getFilePath());
-        task.setStatus(2);
-        task.setTaskNumber(totalSize);
-        task.setUpdateTime(new Date());
-        transferFileTaskMapper.updateByPrimaryKeySelective(task);
     }
 
 }
