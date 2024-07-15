@@ -33,10 +33,19 @@
           and is_del = 1
           and valid_type = 1
         <if test="userTypeSet != null and userTypeSet.size() > 0">
-            and user_type in
-            <foreach collection="userTypeSet" item="userType" separator="," open="(" close=")">
-                '${userType}'
-            </foreach>
+            <choose>
+                <when test="userTypeSet.size() = 1">
+                    <foreach collection="userTypeSet" item="userType" separator="" open="" close="">
+                        and user_type='${userType}'
+                    </foreach>
+                </when>
+                <otherwise>
+                    and user_type in
+                    <foreach collection="userTypeSet" item="userType" separator="," open="(" close=")">
+                        '${userType}'
+                    </foreach>
+                </otherwise>
+            </choose>
         </if>
         and <![CDATA[ valid_start_date <= '${dateStr}' ]]>
         and <![CDATA[ valid_end_date >= '${dateStr}'

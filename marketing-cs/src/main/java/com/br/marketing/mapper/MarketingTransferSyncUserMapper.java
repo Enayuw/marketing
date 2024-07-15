@@ -159,16 +159,6 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
      */
     List<MarketingTransferSyncUser> getTransferOrderRequestTimeByCustNum(@Param("cid") String cid, @Param("custNums") List<String> custNums, @Param("date") String date);
 
-    /**
-     * 数禾转化数据提取，按场景
-     *
-     * @param tCid    cid
-     * @param sqlPart sql片段
-     * @return {@link MarketingTransferSyncUser}
-     * @author Guo Zeqiang
-     * @dateTime 2022/4/15 11:43
-     */
-    List<MarketingTransferSyncUser> findShuHeTransferList(@Param("tCid") String tCid, @Param("sqlPart") String sqlPart);
 
     /**
      * 根据apiCode,create_time获取数据
@@ -586,5 +576,20 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("extendSql") String extendSql,
             @Param("indexId") Long indexId,
             @Param("pageSize") Integer pageSize);
+
+    /**
+     * 根据获取分页数据
+     *
+     * @param example 条件
+     * @param limit   限制
+     * @return List
+     * @author Guo Zeqiang
+     * @dateTime 2022/5/27 11:43
+     */
+    List<MarketingTransferSyncUser> selectByExampleAndMaxIdList(
+            @Param("example") MarketingTransferSyncUserExample example
+            , @Param("maxId") Long maxId
+            , @Param("limit") int limit
+    );
 
 }
