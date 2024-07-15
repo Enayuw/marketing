@@ -54,6 +54,9 @@ public class WuBaSubmitConversionService {
     @Resource
     private WuBaDingDingService wuBaDingDingService;
 
+    @Resource
+    private WuBaSubmitConversionSoleProcessor soleProcessor;
+
 
     public void action(Page2Condition<WubaSubmitConversionData> condition) {
         scanData(condition);
@@ -64,19 +67,32 @@ public class WuBaSubmitConversionService {
         String apiCode = param.getApiCode();
         Integer status = param.getStatus();
         Integer pushStatus = param.getPushStatus();
+        Integer createDate = param.getCreateDate();
         Integer pageSize = condition.getPageSize();
 
         Long indexId = null;
         while (true) {
             try{
                 // 循环获取条件数据，每次pageSize条
-                final List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
-                        apiCode, status, pushStatus, "", indexId, pageSize);
+                List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
+                        apiCode, status, pushStatus, createDate, "", indexId, pageSize);
                 if (CollectionUtils.isEmpty(pageList)) {
                     log.warn(TITLE+"未获取到数据");
                     break;
                 }
                 indexId = pageList.get(pageList.size() - 1).getId();
+
+                // 去重
+                List<Long> noPushIds = soleProcessor.checkExists(pageList, param);
+                if(!CollectionUtils.isEmpty(noPushIds)){
+                    // 营销名单上报表status置为3-重复数据
+                    WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
+                    dataUpdate.setStatus(3);
+                    WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
+                    dataExample.createCriteria().andIdIn(noPushIds);
+                    wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
+                }
+
                 // process submit data
                 processData(pageList, condition);
                 // 按indexId 每页间隔5s
@@ -88,25 +104,28 @@ public class WuBaSubmitConversionService {
         }
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    public Result<?> processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition)
+    public Result processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition)
             throws Exception {
         Result result = new Result().failure();
+        if (CollectionUtils.isEmpty(pageList)) {
+            log.warn(TITLE+"processData无数据");
+            return result.success();
+        }
 
         String apiCode = condition.getParam().getApiCode();
         // callClient
         Result<String> callResult = callClient(pageList);
-        if(callResult == null || !callResult.isSuccess() || callResult.getData()==null){
+        if (callResult == null || !callResult.isSuccess() || callResult.getData() == null) {
             // Alert
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
-                    TITLE+"调用接口失败, apiCode: " + apiCode));
+                    TITLE + "调用接口失败, apiCode: " + apiCode));
             wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: " + apiCode);
             return result;
         }
 
         // call success
         String batchNo = callResult.getData();
-        if(StringUtils.isEmpty(batchNo)){
+        if (StringUtils.isEmpty(batchNo)) {
             return result;
         }
 
@@ -118,12 +137,25 @@ public class WuBaSubmitConversionService {
         batchRecord.setPushTime(new Date());
         batchRecord.setQueryStatus(0);
         int insert = wubaCollidingBatchNoMapper.insertSelective(batchRecord);
-        if(insert < 1){
-            throw new Exception(TITLE+"上报批次表增加记录异常");
+        if (insert < 1) {
+            throw new Exception(TITLE + "上报批次表增加记录异常");
+        }
+
+        processSuccess(pageList, batchNo);
+        return result.success();
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Result processSuccess(List<WubaSubmitConversionData> pushList, String batchNo)
+        throws Exception {
+        Result result = new Result().failure();
+        if (CollectionUtils.isEmpty(pushList)) {
+            log.warn(TITLE+"processData无数据");
+            return result.success();
         }
 
         // 上报日志表增加记录，submit_result置为0-上报中
-        List<WubaSubmitConversionDataLog> dataLogList = pageList.stream().map((WubaSubmitConversionData data) -> {
+        List<WubaSubmitConversionDataLog> dataLogList = pushList.stream().map((WubaSubmitConversionData data) -> {
             WubaSubmitConversionDataLog dataLogRecord = new WubaSubmitConversionDataLog();
             dataLogRecord.setApiCode(data.getApiCode());
             dataLogRecord.setDataId(data.getId());
@@ -142,10 +174,13 @@ public class WuBaSubmitConversionService {
         WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
         dataUpdate.setPushStatus(1);
         //
-        List<Long> ids = pageList.stream().map((WubaSubmitConversionData data) -> data.getId()).collect(Collectors.toList());
+        List<Long> ids = pushList.stream().map((WubaSubmitConversionData data) -> data.getId()).collect(Collectors.toList());
         WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
         dataExample.createCriteria().andIdIn(ids);
         wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
+
+        // addDistributeLog
+        soleProcessor.addDistributeLog(pushList);
         return result.success();
     }
 
