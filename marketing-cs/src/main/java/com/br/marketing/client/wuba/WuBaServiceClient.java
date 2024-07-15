@@ -215,7 +215,7 @@ public class WuBaServiceClient {
     private HashMap<String, String> getMock(String batchNo, HashMap<String, String> resMap) {
         HashMap<String, String> resMock = new HashMap<>();
         JSONObject content = JSONObject.parseObject(resMap.get("content"));
-        if (Objects.equals(content.get("code"), 66666)) {
+        if (Objects.equals(content.get("code"), "66666")) {
             if (StringUtils.isEmpty(batchNo)) {
                 HashMap<String, Object> contentMock = new HashMap<>();
                 contentMock.put("code", 0);
@@ -224,7 +224,7 @@ public class WuBaServiceClient {
                 contentMock.put("data", batchNoMock);
 
                 resMock.put("httpcode", "200");
-                resMock.put("content", contentMock.toString());
+                resMock.put("content", JSON.toJSONString(contentMock));
                 return resMock;
             }
 
@@ -250,8 +250,7 @@ public class WuBaServiceClient {
             contentMock.put("data", array);
 
             resMock.put("httpcode", "200");
-            resMock.put("content", contentMock.toString());
-
+            resMock.put("content", JSON.toJSONString(contentMock));
             return resMock;
         } else {
             return resMap;
