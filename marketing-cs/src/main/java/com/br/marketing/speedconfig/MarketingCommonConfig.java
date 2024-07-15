@@ -1774,6 +1774,21 @@ public class MarketingCommonConfig {
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
+    /**
+     * 苏商推送通话明细apiCode
+     */
+    private List<String> suShangApiCodes;
+
+    /**
+     * 苏商查询数据 limit 量级
+     */
+    private Integer suShangSearchPageSize;
+
+    /**
+     * 苏商推送数据线程数
+     */
+    private Integer suShangPushThreadNum;
+
 
 
 }

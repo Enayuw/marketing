@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.SushangTransferDataMapper">
+
+    <select id="getMinOrderDateDatatikv_" resultType="com.br.marketing.entity.SushangTransferData">
+
+        Select b.*
+        From (select a.id,a.api_code,a.local_id,a.cust_num,a.extend03,
+        row_number() over(partition by cust_num order by extend03 asc) as rn
+        From b_sushang_transfer_data a
+        where local_id =#{local_id}
+        and extend03 is not null
+        ) b
+        Where b.rn = 1
+        <if test="indexId != null and indexId!=''">
+            and b.id > #{indexId}
+        </if>
+        order by b.id asc limit #{pageSize};
+    </select>
+
+</mapper>
