@@ -40,17 +40,11 @@ public class TimeUtils {
 
 
     public static List<String> pattern = Arrays.asList(
-            "yyyy-MM-dd",
             "yyyy-MM-dd HH:mm:ss",
-            "yyyy/MM/dd",
             "yyyy/MM/dd HH:mm:ss",
-            "yyyy-M-dd",
             "yyyy-M-dd HH:mm:ss",
-            "yyyy/M/dd",
             "yyyy/M/dd HH:mm:ss",
-            "MM-dd-yyyy",
             "MM-dd-yyyy HH:mm:ss",
-            "dd-MM-yyyy",
             "dd-MM-yyyy HH:mm:ss"
             // 可以添加更多可能的格式
     );
