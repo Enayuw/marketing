@@ -401,9 +401,7 @@ public class TimeUtils {
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat(pattern);
                 date = sdf.parse(value);
-                // 如果解析成功，则跳出循环
             } catch (ParseException e) {
-                // 忽略异常，并尝试下一个解析器
                 if (log.isInfoEnabled()) {
                     log.warn("无法解析日期;格式:{};原值:{}", pattern, value);
                 }
