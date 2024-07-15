@@ -505,7 +505,7 @@ public class HttpProxyClient {
             HttpGet httpGet = new HttpGet(uri);
             RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
             httpGet.setConfig(requestConfig);
-            log.warn("请求url={}", httpGet.getURI().toString());
+            log.warn("请求url={},proxy={}", httpGet.getURI().toString(),isPorxy);
             HttpResponse response = httpClient.execute(httpGet);
             int statusCode = response.getStatusLine().getStatusCode();
             res.put("httpcode", String.valueOf(statusCode));
