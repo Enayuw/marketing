@@ -111,8 +111,9 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             return;
         }
 
-        log.warn("58查询撞库结果，调用客户接口batchNo：{}", batchNo);
+        long start = System.currentTimeMillis();
         Result result = wuBaServiceClient.queryCredentialStuffingResult(batchNo);
+        log.warn("58查询撞库结果，调用客户接口batchNo：{}，接口耗时：{}ms", batchNo, System.currentTimeMillis() - start);
         String title;
         String msg;
         if (Objects.equals(result.getCode(), ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
