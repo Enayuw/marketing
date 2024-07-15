@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,15 +54,10 @@ public class WuBaQueryConversionResultJob extends AbstractSimpleElasticJob {
             Map<String, Object> pushTimeInterval = acquirePushTimeInterval();
 
             // action
-            WubaQueryConversionDto param = new WubaQueryConversionDto();
-            param.setBatchType(2);
-            param.setQueryStatus(0);
-            param.setPushTimeStart((Date) pushTimeInterval.get(PUSH_TIME_START));
-            param.setPushTimeEnd((Date) pushTimeInterval.get(PUSH_TIME_END));
-
-            Page2Condition<WubaQueryConversionDto> condition = new Page2Condition<>();
-            condition.setParam(param);
-            service.action(condition);
+            List<String> apiCodes = marketingCommonConfig.getWuBaQueryConversionApiCodes();
+            for (String apiCode: apiCodes) {
+                actionByApiCode(apiCode, pushTimeInterval);
+            }
 
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
@@ -109,5 +105,18 @@ public class WuBaQueryConversionResultJob extends AbstractSimpleElasticJob {
         res.put(PUSH_TIME_END, pushTimeEnd);
 
         return res;
+    }
+
+    private void actionByApiCode(String apiCode, Map<String, Object> pushTimeInterval) {
+        WubaQueryConversionDto param = new WubaQueryConversionDto();
+        param.setBatchType(2);
+        param.setQueryStatus(0);
+        param.setApiCode(apiCode);
+        param.setPushTimeStart((Date) pushTimeInterval.get(PUSH_TIME_START));
+        param.setPushTimeEnd((Date) pushTimeInterval.get(PUSH_TIME_END));
+
+        Page2Condition<WubaQueryConversionDto> condition = new Page2Condition<>();
+        condition.setParam(param);
+        service.action(condition);
     }
 }

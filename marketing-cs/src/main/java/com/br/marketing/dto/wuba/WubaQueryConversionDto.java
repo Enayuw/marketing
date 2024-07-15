@@ -9,6 +9,7 @@ public class WubaQueryConversionDto {
 
     private Integer batchType;
     private Integer queryStatus;
+    private String apiCode;
     private Date pushTimeStart;
     private Date pushTimeEnd;
 

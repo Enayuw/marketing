@@ -1830,12 +1830,17 @@ public class MarketingCommonConfig {
     private String wuBaQueryConversionSwitch;
 
     /**
+     * 58新客-营销转化结果查询-apiCode集合
+     */
+    private List<String> wuBaQueryConversionApiCodes;
+
+    /**
      * 58新客-营销转化结果查询-pushTime查询区间
      */
     private JSONObject wuBaQueryConversionPushTimeInterval;
 
     /**
-     * 58新客-营销转化结果查询-调用线程数
+     * 58新客-营销转化结果查询-调用线程
      */
     private List<Integer> wuBaQueryConversionThreadPool;
 

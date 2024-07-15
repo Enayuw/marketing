@@ -17,6 +17,7 @@ import com.br.marketing.mapper.WubaSubmitConversionDataLogMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataTransferCleanMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
+import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -67,6 +68,12 @@ public class WuBaQueryConversionResultService {
     @Resource
     private WuBaDingDingService wuBaDingDingService;
 
+    @Resource
+    private WubaSubmitConversionDataTransferCleanMapper transferCleanMapper;
+
+    @Resource
+    private DataCleaningAutoService cleaningAutoService;
+
 
     public void action(Page2Condition<WubaQueryConversionDto> condition) {
         scanData(condition);
@@ -80,6 +87,7 @@ public class WuBaQueryConversionResultService {
         WubaQueryConversionDto param = condition.getParam();
         Integer batchType = param.getBatchType();
         Integer queryStatus = param.getQueryStatus();
+        String apiCode = param.getApiCode();
         Date pushTimeStart = param.getPushTimeStart();
         Date pushTimeEnd = param.getPushTimeEnd();
 
@@ -133,6 +141,13 @@ public class WuBaQueryConversionResultService {
             Thread.currentThread().interrupt();
         }
 
+        List<String> batchNos = batchNoList.stream().map(WubaCollidingBatchNo::getBatchNo).collect(Collectors.toList());
+        int cleanCount = getCleanCountByBatchNos(batchNos, apiCode);
+        if (cleanCount <= 0) {
+            result.success();
+        }
+
+        cleaningAutoService.saveCleanTask(apiCode, 1, "58新客_转化清洗规则勿动");
         return result.success();
     }
 
@@ -379,5 +394,14 @@ public class WuBaQueryConversionResultService {
             }
         }
         return res.toJSONString();
+    }
+
+    private int getCleanCountByBatchNos(List<String> batchNos, String apiCode) {
+        WubaSubmitConversionDataTransferCleanExample example = new WubaSubmitConversionDataTransferCleanExample();
+        example.createCriteria().andIsDeletedEqualTo(0)
+                .andBatchNoIn(batchNos).andApiCodeEqualTo(apiCode)
+                .andCleanStatusEqualTo(0);
+        List<WubaSubmitConversionDataTransferClean> transferCleans = transferCleanMapper.selectByExample(example);
+        return transferCleans.size();
     }
 }
