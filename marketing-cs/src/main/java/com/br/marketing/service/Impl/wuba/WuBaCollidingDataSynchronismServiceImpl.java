@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.LocalFile;
@@ -59,7 +61,9 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
                 } catch (Exception e) {
                     //推送异常更新状态,更新为失败status=3
                     updatePushStatus(localFile, "3");
-                    log.error("58撞库数据同步作业异常，localFIleId：{}", localFile.getId(), e);
+                    String subject = "58撞库数据同步作业异常,localFIleId:" + localFile.getId();
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                            , subject), e);
                 }
             }
         });
@@ -73,7 +77,7 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         while (true) {
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
 
-            // local_id and status =1 and push_status =1
+            // local_id and status =1 and push_status =1，前置表去重后与非周期表去重
             List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDatetikv_(localFile.getId(),
                     apiCode, minId, pageSize);
             if (CollectionUtils.isEmpty(wubaCollidingDataFronts)) {
@@ -106,7 +110,8 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.error("58撞库数据同步作业，日志保存线程池结束异常！", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), ex.getMessage()
+                    , "58撞库数据同步作业，日志保存线程池结束异常"), ex);
             Thread.currentThread().interrupt();
         }
     }

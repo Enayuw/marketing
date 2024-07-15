@@ -3,9 +3,11 @@ package com.br.marketing.service.Impl.wuba;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.WubaCollidingBatchNo;
@@ -81,7 +83,9 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                     try {
                         queryAndSaveResult(wubaCollidingBatchNo);
                     } catch (Exception e) {
-                        log.error("58查询撞库结果作业，子线程异常", e.getMessage(), e);
+                        String subject = "58查询撞库结果作业，子线程处理异常！";
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                                , subject), e);
                     }
                 }, pool));
             }
@@ -106,8 +110,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         }
 
         Result result = wuBaServiceClient.queryCredentialStuffingResult(batchNo);
-        String title = "";
-        String msg = "";
+        String title;
+        String msg;
         if (Objects.equals(result.getCode(), ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
             JSONObject resMap = JSONObject.parseObject(result.getData().toString());
 

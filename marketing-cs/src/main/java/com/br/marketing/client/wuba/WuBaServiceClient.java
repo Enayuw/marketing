@@ -4,10 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.enums.MockInterfaceCodeEnum;
 import com.br.marketing.mock.MockService;
@@ -193,7 +195,9 @@ public class WuBaServiceClient {
         try {
             dingDingRobotHookService.sendMessageGroup(token, secret, dingDingMarkdownMessage, isProxy);
         } catch (Exception e) {
-            log.error(text+" 发送钉钉消息失败:"+e.getMessage(),e);
+            String subject = text + ",发送钉钉消息失败";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                    , subject), e);
         }
     }
 }

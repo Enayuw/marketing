@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.WubaCollidingDataFront;
 import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
@@ -33,7 +35,9 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
             wubaCollidingDataRobMapper.batchSaveData(wubaCollidingDataFronts, localFile.getApiCode());
             wubaCollidingDataFrontMapper.batchUpdatePushStatusByCell(wubaCollidingDataFronts, localFile.getId(), localFile.getApiCode());
         } catch (Exception e) {
-            log.error("58撞库数据同步作业，子线程处理异常！", e);
+            String subject = "58同步撞库数据作业，子线程处理异常！";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                    , subject), e);
         }
     }
 
