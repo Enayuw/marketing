@@ -94,7 +94,8 @@ public class ZhiJiaClient {
 
         // 请求异常
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error(TITLE + "接口异常-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),
+                    TITLE + "接口异常-请求参数:" + JSON.toJSONString(dto) + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
 
@@ -107,7 +108,7 @@ public class ZhiJiaClient {
             log.warn(TITLE + "接口，返回returncode为0，请求正常");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(data.getString("cclid"));
         } else {
-            log.error(TITLE + "接口异常，返回returncode非0，最多重试三次");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), TITLE + "接口异常，返回returncode非0，最多重试三次"));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
     }
@@ -125,7 +126,8 @@ public class ZhiJiaClient {
                 JSON.toJSONString(jsonObject), true, true);
 
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("之家获取token接口异常-请求参数:{};返回:{}", JSON.toJSONString(jsonObject), JSON.toJSONString(resMap));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(),
+                    "之之家获取token接口异常-请求参数:" + JSON.toJSONString(jsonObject) + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");
