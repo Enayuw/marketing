@@ -90,7 +90,9 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         );
         while (true) {
             modifyThreadPool(threadPool);
-            List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(autoSearchDataSql);
+            List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(
+                    autoSearchDataSql,marketingDataFileConfig.getId()
+            );
             if (cleanDataMapList.isEmpty()) {
                 break;
             }
@@ -348,7 +350,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
      * @param configName b_marketing_data_file_config 表中的rule_name 唯一
      */
     @Override
-    public void saveCleanTask(String apiCode, Integer cleanType, String configName) {
+    public Long saveCleanTask(String apiCode, Integer cleanType, String configName) {
         MarketingDataFileConfigExample mc = new MarketingDataFileConfigExample();
         mc.createCriteria().andApiCodeEqualTo(apiCode)
                 .andRuleNameEqualTo(configName)
@@ -361,13 +363,14 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             task.setConfigId(marketingDataFileConfig.getId());
             task.setCleanType(cleanType);
             task.setUpdateTime(new Date());
-            task.setCleanStatus(0);
             task.setApiCode(apiCode);
             task.setCreateTime(new Date());
             task.setAutoCleanWayType(1);
             marketingCleanDataTaskMapper.insertSelective(task);
+            return task.getId();
         } else {
             log.warn("清洗创建任务失败！{}", configName);
         }
+        return null;
     }
 }

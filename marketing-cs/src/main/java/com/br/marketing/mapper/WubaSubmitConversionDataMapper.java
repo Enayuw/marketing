@@ -11,6 +11,7 @@ public interface WubaSubmitConversionDataMapper extends WubaSubmitConversionData
             @Param("apiCode") String apiCode,
             @Param("status") Integer requestDate,
             @Param("pushStatus") Integer pushStatus,
+            @Param("createDate") Integer createDate,
             @Param("extendSql") String extendSql,
             @Param("indexId") Long indexId,
             @Param("pageSize") Integer pageSize);

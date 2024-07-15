@@ -1234,6 +1234,66 @@ public class WubaSubmitConversionDataTransferCleanExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andTaskIdIsNull() {
+            addCriterion("task_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdIsNotNull() {
+            addCriterion("task_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdEqualTo(Long value) {
+            addCriterion("task_id =", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdNotEqualTo(Long value) {
+            addCriterion("task_id <>", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdGreaterThan(Long value) {
+            addCriterion("task_id >", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("task_id >=", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdLessThan(Long value) {
+            addCriterion("task_id <", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdLessThanOrEqualTo(Long value) {
+            addCriterion("task_id <=", value, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdIn(List<Long> values) {
+            addCriterion("task_id in", values, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdNotIn(List<Long> values) {
+            addCriterion("task_id not in", values, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdBetween(Long value1, Long value2) {
+            addCriterion("task_id between", value1, value2, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andTaskIdNotBetween(Long value1, Long value2) {
+            addCriterion("task_id not between", value1, value2, "taskId");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

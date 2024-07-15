@@ -88,6 +88,11 @@ public class WubaSubmitConversionDataTransferClean {
      */
     private Date updateTime;
 
+    /**
+     * 任务id
+     */
+    private Long taskId;
+
     public Long getId() {
         return id;
     }
@@ -222,5 +227,13 @@ public class WubaSubmitConversionDataTransferClean {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
 }

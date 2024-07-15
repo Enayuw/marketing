@@ -6,14 +6,15 @@
         select id, api_code, cell, marketing_time, push_status, status, create_date
         from b_wuba_submit_conversion_data
         where api_code = #{apiCode}
-        and status = #{status}
-        and push_status = #{pushStatus}
-        <if test="extendSql != null and extendSql != ''">
-            ${extendSql}
-        </if>
-        <if test="indexId != null and indexId != ''">
-            and id > #{indexId}
-        </if>
+            and create_date = #{createDate}
+            and status = #{status}
+            and push_status = #{pushStatus}
+            <if test="extendSql != null and extendSql != ''">
+                ${extendSql}
+            </if>
+            <if test="indexId != null and indexId != ''">
+                and id > #{indexId}
+            </if>
         order by create_time desc, update_time desc, id desc
         limit #{pageSize}
     </select>

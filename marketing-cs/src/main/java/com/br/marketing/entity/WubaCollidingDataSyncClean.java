@@ -29,6 +29,11 @@ public class WubaCollidingDataSyncClean {
     private Integer cleanStatus;
 
     /**
+     * 
+     */
+    private Long taskId;
+
+    /**
      *  扩展字段
      */
     private String extend;
@@ -86,6 +91,14 @@ public class WubaCollidingDataSyncClean {
 
     public void setCleanStatus(Integer cleanStatus) {
         this.cleanStatus = cleanStatus;
+    }
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
     }
 
     public String getExtend() {

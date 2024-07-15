@@ -118,6 +118,11 @@ public class RedisKeyConstant {
     public static final String YIXIN_TRANSFER_PUSH_BAIYING_REDIS_SLOE = prefix.concat("sole:redis");
 
     /**
+     * 58新客提交营销名单去重锁
+     */
+    public static final String WUBA_SUBMIT_CONVERSION_DISTRIBUTE_DATA_SLOE_LOCK = prefix.concat("wuba:distributeData:cell");
+
+    /**
      * 榕树推送人工Ibu手机号加锁  key
      */
     public static final String pushRongShuDaasIbuKey = prefix.concat("rongshu:pushdaasibu:cell");
