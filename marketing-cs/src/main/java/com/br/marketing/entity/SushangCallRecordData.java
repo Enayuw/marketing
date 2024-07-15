@@ -27,7 +27,7 @@ public class SushangCallRecordData implements Serializable {
     /**
      * 批次号
      */
-    private String tskId;
+    private String taskId;
 
     /**
      * 客户号

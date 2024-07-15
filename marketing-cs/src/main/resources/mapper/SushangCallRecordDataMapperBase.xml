@@ -6,7 +6,7 @@
     <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
     <result column="local_id" jdbcType="BIGINT" property="localId" />
     <result column="type" jdbcType="VARCHAR" property="type" />
-    <result column="tsk_id" jdbcType="VARCHAR" property="tskId" />
+    <result column="task_id" jdbcType="VARCHAR" property="taskId" />
     <result column="cust_num" jdbcType="VARCHAR" property="custNum" />
     <result column="touch_type" jdbcType="VARCHAR" property="touchType" />
     <result column="call_time" jdbcType="VARCHAR" property="callTime" />
@@ -78,7 +78,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List">
-    id, api_code, local_id, `type`, tsk_id, cust_num, touch_type, call_time, push_time, 
+    id, api_code, local_id, `type`, task_id, cust_num, touch_type, call_time, push_time, 
     push_status, `status`, data_message, extend, create_date, create_time, update_time
   </sql>
   <select id="selectByExample" parameterType="com.br.marketing.entity.SushangCallRecordDataExample" resultMap="BaseResultMap">
@@ -113,13 +113,13 @@
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.SushangCallRecordData" useGeneratedKeys="true">
     insert into b_sushang_call_record_data (api_code, local_id, `type`, 
-      tsk_id, cust_num, touch_type, 
+      task_id, cust_num, touch_type, 
       call_time, push_time, push_status, 
       `status`, data_message, extend, 
       create_date, create_time, update_time
       )
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
-      #{tskId,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{touchType,jdbcType=VARCHAR}, 
+      #{taskId,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{touchType,jdbcType=VARCHAR}, 
       #{callTime,jdbcType=VARCHAR}, #{pushTime,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, 
       #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
       #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
@@ -137,8 +137,8 @@
       <if test="type != null">
         `type`,
       </if>
-      <if test="tskId != null">
-        tsk_id,
+      <if test="taskId != null">
+        task_id,
       </if>
       <if test="custNum != null">
         cust_num,
@@ -184,8 +184,8 @@
       <if test="type != null">
         #{type,jdbcType=VARCHAR},
       </if>
-      <if test="tskId != null">
-        #{tskId,jdbcType=VARCHAR},
+      <if test="taskId != null">
+        #{taskId,jdbcType=VARCHAR},
       </if>
       <if test="custNum != null">
         #{custNum,jdbcType=VARCHAR},
@@ -243,8 +243,8 @@
       <if test="record.type != null">
         `type` = #{record.type,jdbcType=VARCHAR},
       </if>
-      <if test="record.tskId != null">
-        tsk_id = #{record.tskId,jdbcType=VARCHAR},
+      <if test="record.taskId != null">
+        task_id = #{record.taskId,jdbcType=VARCHAR},
       </if>
       <if test="record.custNum != null">
         cust_num = #{record.custNum,jdbcType=VARCHAR},
@@ -290,7 +290,7 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       local_id = #{record.localId,jdbcType=BIGINT},
       `type` = #{record.type,jdbcType=VARCHAR},
-      tsk_id = #{record.tskId,jdbcType=VARCHAR},
+      task_id = #{record.taskId,jdbcType=VARCHAR},
       cust_num = #{record.custNum,jdbcType=VARCHAR},
       touch_type = #{record.touchType,jdbcType=VARCHAR},
       call_time = #{record.callTime,jdbcType=VARCHAR},
@@ -318,8 +318,8 @@
       <if test="type != null">
         `type` = #{type,jdbcType=VARCHAR},
       </if>
-      <if test="tskId != null">
-        tsk_id = #{tskId,jdbcType=VARCHAR},
+      <if test="taskId != null">
+        task_id = #{taskId,jdbcType=VARCHAR},
       </if>
       <if test="custNum != null">
         cust_num = #{custNum,jdbcType=VARCHAR},
@@ -362,7 +362,7 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       local_id = #{localId,jdbcType=BIGINT},
       `type` = #{type,jdbcType=VARCHAR},
-      tsk_id = #{tskId,jdbcType=VARCHAR},
+      task_id = #{taskId,jdbcType=VARCHAR},
       cust_num = #{custNum,jdbcType=VARCHAR},
       touch_type = #{touchType,jdbcType=VARCHAR},
       call_time = #{callTime,jdbcType=VARCHAR},

@@ -295,73 +295,73 @@ public class SushangPushResultDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andTskIdIsNull() {
-            addCriterion("tsk_id is null");
+        public Criteria andTaskIdIsNull() {
+            addCriterion("task_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdIsNotNull() {
-            addCriterion("tsk_id is not null");
+        public Criteria andTaskIdIsNotNull() {
+            addCriterion("task_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdEqualTo(String value) {
-            addCriterion("tsk_id =", value, "tskId");
+        public Criteria andTaskIdEqualTo(String value) {
+            addCriterion("task_id =", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdNotEqualTo(String value) {
-            addCriterion("tsk_id <>", value, "tskId");
+        public Criteria andTaskIdNotEqualTo(String value) {
+            addCriterion("task_id <>", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdGreaterThan(String value) {
-            addCriterion("tsk_id >", value, "tskId");
+        public Criteria andTaskIdGreaterThan(String value) {
+            addCriterion("task_id >", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdGreaterThanOrEqualTo(String value) {
-            addCriterion("tsk_id >=", value, "tskId");
+        public Criteria andTaskIdGreaterThanOrEqualTo(String value) {
+            addCriterion("task_id >=", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdLessThan(String value) {
-            addCriterion("tsk_id <", value, "tskId");
+        public Criteria andTaskIdLessThan(String value) {
+            addCriterion("task_id <", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdLessThanOrEqualTo(String value) {
-            addCriterion("tsk_id <=", value, "tskId");
+        public Criteria andTaskIdLessThanOrEqualTo(String value) {
+            addCriterion("task_id <=", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdLike(String value) {
-            addCriterion("tsk_id like", value, "tskId");
+        public Criteria andTaskIdLike(String value) {
+            addCriterion("task_id like", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdNotLike(String value) {
-            addCriterion("tsk_id not like", value, "tskId");
+        public Criteria andTaskIdNotLike(String value) {
+            addCriterion("task_id not like", value, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdIn(List<String> values) {
-            addCriterion("tsk_id in", values, "tskId");
+        public Criteria andTaskIdIn(List<String> values) {
+            addCriterion("task_id in", values, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdNotIn(List<String> values) {
-            addCriterion("tsk_id not in", values, "tskId");
+        public Criteria andTaskIdNotIn(List<String> values) {
+            addCriterion("task_id not in", values, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdBetween(String value1, String value2) {
-            addCriterion("tsk_id between", value1, value2, "tskId");
+        public Criteria andTaskIdBetween(String value1, String value2) {
+            addCriterion("task_id between", value1, value2, "taskId");
             return (Criteria) this;
         }
 
-        public Criteria andTskIdNotBetween(String value1, String value2) {
-            addCriterion("tsk_id not between", value1, value2, "tskId");
+        public Criteria andTaskIdNotBetween(String value1, String value2) {
+            addCriterion("task_id not between", value1, value2, "taskId");
             return (Criteria) this;
         }
 
