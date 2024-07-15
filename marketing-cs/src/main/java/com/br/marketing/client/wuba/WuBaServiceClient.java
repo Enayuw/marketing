@@ -1,6 +1,7 @@
 package com.br.marketing.client.wuba;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
@@ -11,7 +12,10 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.WubaCollidingDataLog;
+import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.enums.MockInterfaceCodeEnum;
+import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mock.MockService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
@@ -27,6 +31,7 @@ import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @Description WuBaServiceClient
@@ -55,6 +60,8 @@ public class WuBaServiceClient {
     private DingDingRobotHookService dingDingRobotHookService;
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+    @Autowired
+    WubaCollidingDataLogMapper wubaCollidingDataLogMapper;
 
     @Resource
     private MockService mockService;
@@ -68,7 +75,6 @@ public class WuBaServiceClient {
         HashMap<String, String> resMap;
 
         // 调用客户接口
-        // todo 修改挡板
         if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_01.getCode())) {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_01.getCode());
         } else {
@@ -97,9 +103,9 @@ public class WuBaServiceClient {
         HashMap<String, String> resMap;
 
         // 调用客户接口
-        // todo 修改挡板
         if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_02.getCode())) {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_02.getCode());
+            resMap = getMock(batchNo, resMap);
         } else {
             resMap = httpProxyClient.sendByCodeWithLog(batchNo, queryCredentialStuffingResultUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(batchNo), true, false);
@@ -119,6 +125,38 @@ public class WuBaServiceClient {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
+        }
+    }
+
+    private HashMap<String, String> getMock(String batchNo, HashMap<String, String> resMap) {
+        HashMap<String, String> resMock = new HashMap<>();
+        JSONObject content = JSONObject.parseObject(resMap.get("content"));
+        if (Objects.equals(content.get("code"), 66666)) {
+            WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
+            logExample.createCriteria().andBatchNoEqualTo(batchNo).andIsDeletedEqualTo(0);
+            List<WubaCollidingDataLog> logs = wubaCollidingDataLogMapper.selectByExample(logExample);
+
+            JSONArray array = new JSONArray();
+            for (WubaCollidingDataLog collidingDataLog : logs) {
+                JSONObject jsonObject = new JSONObject();
+                if (collidingDataLog.getId().intValue() % 2 == 1) {
+                    jsonObject.put("id", Long.valueOf("12345678901"));
+                    jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
+                    array.add(jsonObject);
+                }
+            }
+
+            HashMap<String, Object> contentMock = new HashMap<>();
+            contentMock.put("code", 0);
+            contentMock.put("msg", "成功");
+            contentMock.put("data", array);
+
+            resMock.put("httpcode", "200");
+            resMock.put("content", contentMock.toString());
+
+            return resMock;
+        } else {
+            return resMap;
         }
     }
 
