@@ -2,6 +2,7 @@ package com.br.marketing.check.service.Impl.sushang;
 
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.SushangCallRecordDataMapper;
 import com.br.marketing.mapper.SushangPushResultDataMapper;
 import com.br.marketing.mapper.SushangTransferDataMapper;
@@ -44,6 +45,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private LocalFileMapper localFileMapper;
 
     @Override
     public void pushCallRecordHandler(LocalFile localFile, LocalFile callRecordFile) {
@@ -103,6 +107,10 @@ public class SuShangPushServiceImpl implements SuShangPushService {
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
+        //更新为推送成功状态
+        localFile.setPushStatus("2");
+        localFile.setId(localFile.getId());
+        localFileMapper.updateByPrimaryKeySelective(localFile);
     }
 
     private void pushNoDealData(List<SushangCallRecordData> callRecordData) {

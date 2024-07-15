@@ -22,7 +22,7 @@
     </select>
 
 
-    <select id="getHalfYearCallRecord" resultType="com.br.marketing.entity.SushangTransferData">
+    <select id="getHalfYearCallRecord" resultType="com.br.marketing.entity.SushangCallRecordData">
 
         Select *
         From b_sushang_call_record_data
