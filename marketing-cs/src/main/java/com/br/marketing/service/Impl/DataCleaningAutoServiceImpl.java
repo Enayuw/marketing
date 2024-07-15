@@ -255,7 +255,10 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         }
         // 时间格式转换
         if (fileToMarketingFieldVO.getIsDateTransform()) {
-            fieldValue = TimeUtils.getFormatterValue(String.valueOf(fieldValue));
+            fieldValue = TimeUtils.getFormatterValue(
+                    String.valueOf(fieldValue),
+                    fileToMarketingFieldVO.getDateTransformPattern()
+            );
         }
         // 处理字段转换 男 - > 1 女 -> 2
         if (StringUtils.isNotBlank(fileToMarketingFieldVO.getConversion())) {

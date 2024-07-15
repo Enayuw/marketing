@@ -28,10 +28,14 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * @Description WuBaServiceClient
@@ -77,6 +81,7 @@ public class WuBaServiceClient {
         // 调用客户接口
         if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_01.getCode())) {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_01.getCode());
+            resMap = getMock(null, resMap);
         } else {
             resMap = httpProxyClient.sendByCodeWithLog(retMap, submitCredentialStuffingListUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(cells), true, false);
@@ -125,38 +130,6 @@ public class WuBaServiceClient {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
-        }
-    }
-
-    private HashMap<String, String> getMock(String batchNo, HashMap<String, String> resMap) {
-        HashMap<String, String> resMock = new HashMap<>();
-        JSONObject content = JSONObject.parseObject(resMap.get("content"));
-        if (Objects.equals(content.get("code"), 66666)) {
-            WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
-            logExample.createCriteria().andBatchNoEqualTo(batchNo).andIsDeletedEqualTo(0);
-            List<WubaCollidingDataLog> logs = wubaCollidingDataLogMapper.selectByExample(logExample);
-
-            JSONArray array = new JSONArray();
-            for (WubaCollidingDataLog collidingDataLog : logs) {
-                JSONObject jsonObject = new JSONObject();
-                if (collidingDataLog.getId().intValue() % 2 == 1) {
-                    jsonObject.put("id", Long.valueOf("12345678901"));
-                    jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
-                    array.add(jsonObject);
-                }
-            }
-
-            HashMap<String, Object> contentMock = new HashMap<>();
-            contentMock.put("code", 0);
-            contentMock.put("msg", "成功");
-            contentMock.put("data", array);
-
-            resMock.put("httpcode", "200");
-            resMock.put("content", contentMock.toString());
-
-            return resMock;
-        } else {
-            return resMap;
         }
     }
 
@@ -236,6 +209,51 @@ public class WuBaServiceClient {
             String subject = text + ",发送钉钉消息失败";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
                     , subject), e);
+        }
+    }
+
+    private HashMap<String, String> getMock(String batchNo, HashMap<String, String> resMap) {
+        HashMap<String, String> resMock = new HashMap<>();
+        JSONObject content = JSONObject.parseObject(resMap.get("content"));
+        if (Objects.equals(content.get("code"), "66666")) {
+            if (StringUtils.isEmpty(batchNo)) {
+                HashMap<String, Object> contentMock = new HashMap<>();
+                contentMock.put("code", 0);
+                contentMock.put("msg", "成功");
+                String batchNoMock = "csl_bairongkj_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+                contentMock.put("data", batchNoMock);
+
+                resMock.put("httpcode", "200");
+                resMock.put("content", JSON.toJSONString(contentMock));
+                return resMock;
+            }
+
+            WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
+            logExample.createCriteria().andBatchNoEqualTo(batchNo).andIsDeletedEqualTo(0);
+            List<WubaCollidingDataLog> logs = wubaCollidingDataLogMapper.selectByExample(logExample);
+
+            JSONArray array = new JSONArray();
+            for (WubaCollidingDataLog collidingDataLog : logs) {
+                JSONObject jsonObject = new JSONObject();
+                if (collidingDataLog.getId().intValue() % 2 == 1) {
+                    String randomNumber = new Random().ints(1, 10)
+                            .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
+                    jsonObject.put("id", randomNumber);
+                    jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
+                    array.add(jsonObject);
+                }
+            }
+
+            HashMap<String, Object> contentMock = new HashMap<>();
+            contentMock.put("code", 0);
+            contentMock.put("msg", "成功");
+            contentMock.put("data", array);
+
+            resMock.put("httpcode", "200");
+            resMock.put("content", JSON.toJSONString(contentMock));
+            return resMock;
+        } else {
+            return resMap;
         }
     }
 }
