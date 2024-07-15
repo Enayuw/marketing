@@ -1,0 +1,140 @@
+package com.br.marketing.service.Impl.wuba;
+
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.DistributeSourceTypeEnum;
+import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.entity.DataDistributeDetailLog;
+import com.br.marketing.entity.DataDistributeDetailLogExample;
+import com.br.marketing.entity.WubaSubmitConversionData;
+import com.br.marketing.mapper.DataDistributeDetailLogMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@Slf4j
+public class WuBaSubmitConversionSoleProcessor {
+
+    private final static String TITLE = "【58新客提交营销名单】";
+
+    @Resource
+    private RedisChgService redisChgService;
+
+    @Resource
+    private DataDistributeDetailLogMapper distributeLogMapper;
+
+    public List<Long> process(List<WubaSubmitConversionData> pushList){
+        List<Long> notPushIds = new ArrayList<>();
+        String key = RedisKeyConstant.WUBA_SUBMIT_CONVERSION_DISTRIBUTE_DATA_SLOE_LOCK;
+        Integer distributeType = DistributeTypeEnum.WUBA_SUBMIT_CONVERSION.getValue();
+        Integer soleDay = 0;
+
+        if(CollectionUtils.isEmpty(pushList)) {
+            return notPushIds;
+        }
+
+        Iterator<WubaSubmitConversionData> iterator = pushList.iterator();
+        long startTime = System.currentTimeMillis();
+        while(iterator.hasNext()){
+            WubaSubmitConversionData next = iterator.next();
+            String apiCode = next.getApiCode();
+            String cell = next.getCell();
+            key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, cell));
+            String lockValue = UUID.randomUUID().toString();
+            try {
+                redisChgService.lock(key, lockValue);
+                String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
+                logExample.setOrderByClause(" id limit 1 ");
+                DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria();
+                criteria.andApiCodeEqualTo(apiCode)
+                        .andDistributeTypeEqualTo(distributeType)
+                        .andDistributeDateEqualTo(distributeDate)
+                        .andCellEqualTo(cell)
+                        ;
+                List<DataDistributeDetailLog> dataDistributeDetailLogs = distributeLogMapper.selectByExample(logExample);
+                if (dataDistributeDetailLogs.size() > 0) {
+                    notPushIds.add(next.getId());
+                    iterator.remove();
+                    redisChgService.unlock(key, lockValue);
+                    continue;
+                } else {
+                    DataDistributeDetailLog distributeLog = new DataDistributeDetailLog();
+                    distributeLog.setApiCode(apiCode);
+                    distributeLog.setCustNum("");
+                    distributeLog.setCell(next.getCell());
+                    distributeLog.setStatus("1");
+                    distributeLog.setpStatus(2);
+                    distributeLog.setDistributeDate(distributeDate);
+                    distributeLog.setDistributeType(distributeType);
+                    distributeLog.setSuccessDate(distributeDate);
+                    distributeLog.setCreateTime(new Date());
+                    distributeLog.setSourceId(next.getId());
+                    distributeLog.setSourceType(DistributeSourceTypeEnum.TRANSFER.getValue());
+                    distributeLogMapper.insertSelective(distributeLog);
+                }
+                redisChgService.unlock(key, lockValue);
+            }catch (Exception e){
+                redisChgService.unlock(key, lockValue);
+            }
+        }
+        long endTime = System.currentTimeMillis();
+        log.warn(TITLE+"去重一次的耗时："+(endTime-startTime));
+        return notPushIds;
+    }
+
+    public List<Long> checkExists(List<WubaSubmitConversionData> pushList, WubaSubmitConversionData param){
+        List<Long> notPushIds = new ArrayList<>();
+        if(CollectionUtils.isEmpty(pushList)) {
+            return notPushIds;
+        }
+        String apiCode = param.getApiCode();
+        Integer distributeType = DistributeTypeEnum.WUBA_SUBMIT_CONVERSION.getValue();
+        String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        Set<String> cells = pushList.stream().map(WubaSubmitConversionData::getCell).collect(Collectors.toSet());
+        Set<String> distributeCellSet = distributeLogMapper.findDistributeLogCellSet(apiCode, distributeType, distributeDate, cells);
+        Iterator<WubaSubmitConversionData> iterator = pushList.iterator();
+        while (iterator.hasNext()){
+            WubaSubmitConversionData next = iterator.next();
+            if(distributeCellSet.contains(next.getCell())){
+                notPushIds.add(next.getId());
+                iterator.remove();
+            }
+        }
+        return notPushIds;
+    }
+
+    public void addDistributeLog(List<WubaSubmitConversionData> pushList) {
+        Integer distributeType = DistributeTypeEnum.WUBA_SUBMIT_CONVERSION.getValue();
+        String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        if(CollectionUtils.isEmpty(pushList)) {
+            return;
+        }
+        List<DataDistributeDetailLog> distributeLogList = pushList.stream().map((WubaSubmitConversionData data) -> {
+            DataDistributeDetailLog distributeLog = new DataDistributeDetailLog();
+            distributeLog.setApiCode(data.getApiCode());
+            distributeLog.setCustNum("");
+            distributeLog.setCell(data.getCell());
+            distributeLog.setStatus("1");
+            distributeLog.setpStatus(2);
+            distributeLog.setDistributeDate(distributeDate);
+            distributeLog.setDistributeType(distributeType);
+            distributeLog.setSuccessDate(distributeDate);
+            distributeLog.setCreateTime(new Date());
+            distributeLog.setUpdateTime(new Date());
+            distributeLog.setSourceId(data.getId());
+            distributeLog.setSourceType(DistributeSourceTypeEnum.TRANSFER.getValue());
+            return distributeLog;
+        }).collect(Collectors.toList());
+        distributeLogMapper.insertBatch(distributeLogList);
+    }
+
+}
