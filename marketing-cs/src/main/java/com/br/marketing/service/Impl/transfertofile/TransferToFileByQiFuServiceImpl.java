@@ -100,7 +100,7 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
         Map<String, List<MarketingCustomizeDataValidConfig>> configs = configList.stream()
                 .collect(Collectors.groupingBy(MarketingCustomizeDataValidConfig::getTaskId));
         List<TimeRange> timeRanges = new ArrayList<>();
-        configs.forEach((taskId, configsForOneTask) -> {
+        configs.forEach((String taskId, List<MarketingCustomizeDataValidConfig> configsForOneTask) -> {
             String validStartDate = configsForOneTask.stream()
                     .min(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidStartDate();
             String validEndDate = configsForOneTask.stream()
@@ -234,7 +234,7 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
                 transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode,
                         LocalDate.parse(requestDate, YYYYMMDDSHORTLINE), Arrays.asList(new String[]{taskId}));
-        List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter(transfer -> {
+        List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter((MarketingTransferSyncUser transfer) -> {
             String custNum = transfer.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
             return syncUserValidityPeriodsBO != null;
