@@ -9,11 +9,9 @@ import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.SyncConfigService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
-import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -40,7 +38,8 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
     @Autowired
     private RuleRedisServiceImpl ruleRedisService;
 
-    private final static String TABLE_HEAD_TRANSFER = "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId,expireDate,effectiveDate";
+    private final static String TABLE_HEAD_TRANSFER =
+            "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId,expireDate,effectiveDate";
 
     @Override
     public abstract String isMyParam(String apiCode, String jobParameter);

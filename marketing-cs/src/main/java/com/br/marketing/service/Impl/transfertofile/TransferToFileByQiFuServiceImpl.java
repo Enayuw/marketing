@@ -1,34 +1,26 @@
 package com.br.marketing.service.Impl.transfertofile;
 
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
-import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
-import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.TimeRange;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -105,12 +97,15 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                     , apiCode, System.currentTimeMillis() - start);
             saveUpdateTask(transferFileTask, totalSize.intValue());
         }
-        Map<String, List<MarketingCustomizeDataValidConfig>> configs = configList.stream().collect(Collectors.groupingBy(MarketingCustomizeDataValidConfig::getTaskId));
+        Map<String, List<MarketingCustomizeDataValidConfig>> configs = configList.stream()
+                .collect(Collectors.groupingBy(MarketingCustomizeDataValidConfig::getTaskId));
         List<TimeRange> timeRanges = new ArrayList<>();
-        configs.forEach((key, value) -> {
-            String validStartDate = value.stream().min(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidStartDate();
-            String validEndDate = value.stream().max(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidEndDate();
-            timeRanges.add(new TimeRange(key, validStartDate, validEndDate));
+        configs.forEach((taskId, configsForOneTask) -> {
+            String validStartDate = configsForOneTask.stream()
+                    .min(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidStartDate();
+            String validEndDate = configsForOneTask.stream()
+                    .max(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidEndDate();
+            timeRanges.add(new TimeRange(taskId, validStartDate, validEndDate));
         });
         String tcId = tableCreateService.getTcId(apiCode);
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
@@ -132,7 +127,8 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                     break;
                 }
                 //有效期过滤
-                List<MarketingTransferSyncUser> transferDataNew = filterTransferDataWithValPerd(apiCode, requestDate, transferData, timeRange.getTaskId());
+                List<MarketingTransferSyncUser> transferDataNew =
+                        filterTransferDataWithValPerd(apiCode, requestDate, transferData, timeRange.getTaskId());
                 if (CollectionUtils.isEmpty(transferDataNew)) {
                     continue;
                 }
@@ -185,7 +181,10 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
      * @param config
      * @param transferDataNew
      */
-    private static void writeDataForOneQuery(Writer fw, AtomicInteger totalSize, MarketingCustomizeDataValidConfig config, List<MarketingTransferSyncUser> transferDataNew) {
+    private static void writeDataForOneQuery(Writer fw,
+                                             AtomicInteger totalSize,
+                                             MarketingCustomizeDataValidConfig config,
+                                             List<MarketingTransferSyncUser> transferDataNew) {
         for (MarketingTransferSyncUser transferFilterData : transferDataNew) {
             String custNum = transferFilterData.getCustNum();
             custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
@@ -199,7 +198,6 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                     ? transferFilterData.getRequestTime().replace(":000","") : "";
             String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
                     ? transferFilterData.getUserType() : "";
-            //custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId
             StringBuilder sb = new StringBuilder();
             sb.append(custNum.concat(","))
                     .append(applyDt.concat(","))
@@ -228,12 +226,16 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
      * @param taskId
      * @return
      */
-    private List<MarketingTransferSyncUser> filterTransferDataWithValPerd(String apiCode, String requestDate, List<MarketingTransferSyncUser> transferData, String taskId) {
+    private List<MarketingTransferSyncUser> filterTransferDataWithValPerd(String apiCode,
+                                                                          String requestDate,
+                                                                          List<MarketingTransferSyncUser> transferData,
+                                                                          String taskId) {
         Set<String> custNumSet = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode, LocalDate.parse(requestDate, YYYYMMDDSHORTLINE), Arrays.asList(new String[]{taskId}));
-        List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter(data -> {
-            String custNum = data.getCustNum();
+                transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode,
+                        LocalDate.parse(requestDate, YYYYMMDDSHORTLINE), Arrays.asList(new String[]{taskId}));
+        List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter(transfer -> {
+            String custNum = transfer.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
             return syncUserValidityPeriodsBO != null;
         }).collect(Collectors.toList());
