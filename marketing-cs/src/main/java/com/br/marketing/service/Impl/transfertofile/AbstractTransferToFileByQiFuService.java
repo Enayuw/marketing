@@ -41,6 +41,13 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
     private final static String TABLE_HEAD_TRANSFER =
             "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId,expireDate,effectiveDate";
 
+    /**
+     * 实现ITransferToFileService的方法，需要被实现类具体实现
+     * @author hedongshuo
+     * @param apiCode
+     * @param jobParameter
+     * @return
+     */
     @Override
     public abstract String isMyParam(String apiCode, String jobParameter);
 
@@ -116,10 +123,30 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
         return result;
     }
 
+    /**
+     * 获得提取时间
+     * @author hedongshuo
+     * @param apiCode
+     * @return
+     */
     abstract String getExtractTime(String apiCode);
 
+    /**
+     * 获得文件路径后缀
+     * @author hedongshuo
+     * @param apiCode
+     * @return
+     */
     abstract String getSuffix(String apiCode);
 
+    /**
+     * 取数逻辑，数据写入文件
+     * @author hedongshuo
+     * @param fw
+     * @param apiCode
+     * @param transferFileTask
+     * @param requestDate
+     */
     abstract void writeQifuTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate);
 
     private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
