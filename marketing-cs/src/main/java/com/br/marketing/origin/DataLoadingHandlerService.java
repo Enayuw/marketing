@@ -99,7 +99,9 @@ public class DataLoadingHandlerService {
      *
      * @param userType 场景
      * @return null时为当前月底
+     * @deprecated 已弃用，判断规则使用{@link com.br.marketing.service.TransferDataValidityPeriodService}
      */
+    @Deprecated
     public Integer getShuHePeriodOfValidityDay(String userType) throws IllegalAccessException {
         Assert.notNull(userType, "场景不可为null");
         Map<String, String> shuHePeriodOfValidityDayMap = marketingCommonConfig.getShuHePeriodOfValidityDayMap();

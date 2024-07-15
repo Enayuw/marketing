@@ -181,7 +181,9 @@ public abstract class IUserType {
      * @return true or false 在有效期内为true 否则为false
      * @author Guo Zeqiang
      * @dateTime 2022/3/22 15:48
+     * @deprecated 已迁移使用新版有效期
      */
+    @Deprecated
     public boolean dataPeriodOfValidity(IMarketingSyncUserService iMarketingSyncUserService
             , Date tCreatTime, Integer day, Date creatTime) {
         return iMarketingSyncUserService.isPeriodOfValidity(tCreatTime, day, creatTime);

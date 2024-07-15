@@ -14,6 +14,7 @@ import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.ShuheBlackPhoneRecordMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,7 +23,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -55,12 +58,18 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
 
     @Resource
     private IMarketingSyncUserService iMarketingSyncUserService;
+
     @Resource
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
+
     @Resource
     private ShuheBlackPhoneRecordMapper shuheBlackPhoneRecordMapper;
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
     public void ruleNecessaryData(List transmitFacts, ProcessHandlerContext context) {
@@ -89,7 +98,17 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
                         shuHeRuleNecessaryData.getCaseShuheUser().getMobile());
                 shuHeRuleNecessaryData.setNonBlackListCount(count);
             }
-
+            /**
+             * 2024年7月15日 需求
+             * D20240703数禾全场景取值逻辑&有效期变更-337
+             * https://c.100credit.cn/pages/viewpage.action?pageId=166647068
+             */
+            List<MarketingTransferSyncUser> list = (List<MarketingTransferSyncUser>) transmitFacts;
+            Set<String> custNumSet = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> periods = transferDataValidityPeriodService
+                    .getValidityPeriodsByCustNumAndUserType(custNumSet, transfer.getUserType(), context.getApiCode()
+                            , LocalDate.now().minusDays(1));
+            shuHeRuleNecessaryData.setUserValidityPeriodsBOMap(periods);
         }
     }
 
@@ -108,7 +127,10 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
         private IUserType iUserType;
         /**
          * 上传数据创建时间
+         *
+         * @deprecated 使用有效期中最新的上传数据时间
          */
+        @Deprecated
         private Date creatTime;
 
         /**
