@@ -21,6 +21,7 @@ import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,6 +94,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
             List<String> batchNos = wubaCollidingBatchNos.stream().map(WubaCollidingBatchNo::getBatchNo).collect(Collectors.toList());
+            log.warn("58查询撞库结果，该批次号集合数据生成一个清洗任务，batchNos：{}", Joiner.on(",").join(batchNos));
             int cleanCount = getCleanCountByBatchNos(batchNos, apiCode);
             if (cleanCount <= 0) {
                 return;
@@ -109,6 +111,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             return;
         }
 
+        log.warn("58查询撞库结果，调用客户接口batchNo：{}", batchNo);
         Result result = wuBaServiceClient.queryCredentialStuffingResult(batchNo);
         String title;
         String msg;
