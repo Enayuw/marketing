@@ -588,10 +588,11 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("indexId") Long indexId,
             @Param("pageSize") Integer pageSize);
 
-    List<Map<String, Object>> selectTransferWithValid(
+    List<Map<String, Object>> selectFullTransferWithValid(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser);
+
+    List<MarketingTransferSyncUser> selectTransferWithValid(
             @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
-            @Param("isCustom")int isCustom,
-            @Param("orderByClause")String orderByClause,
-            @Param("rowCount")int rowCount,
-            @Param("offset")int offset);
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate);
 }

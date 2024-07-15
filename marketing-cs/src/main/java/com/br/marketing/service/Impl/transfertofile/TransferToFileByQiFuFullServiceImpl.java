@@ -16,11 +16,14 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
 /**
  * @Author 贺东硕
  * @Date 2024/07/13 10:46
@@ -65,22 +68,25 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
         MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
         transferSyncUser.settCid(tcId);
         transferSyncUser.setApiCode(apiCode);
-        Integer pageSize = dynamicParameterService.getPageSize(null);
-        Integer page = 0;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
-        int isCustom = 0;
-        if (marketingCommonConfig.getValidityPeriodApiCodeList().contains(apiCode)) {
-            isCustom = 1;
-        }
         for (; ; ) {
-            List<Map<String, Object>> result = marketingTransferSyncUserMapper
-                    .selectTransferWithValid(transferSyncUser, isCustom, null, page * pageSize, pageSize);
+            List<Map<String, Object>> result = marketingTransferSyncUserMapper.selectFullTransferWithValid(transferSyncUser);
             if (CollectionUtils.isEmpty(result)) {
                 break;
             }
-            page++;
+            Long minId = Long.valueOf(String.valueOf(result.get(result.size() - 1).get("id"))) + 1;
+            transferSyncUser.setId(minId);
+            List<Map<String, Object>> extData = result.stream()
+                    .filter(transfer -> transfer.get("taskId") != null)
+                    .collect(Collectors.groupingBy(transfer -> transfer.get("id").toString()))
+                    .entrySet()
+                    .stream()
+                    .map(entry -> {
+                        List<Map<String, Object>> transfers = entry.getValue();
+                        return transfers.stream().max(Comparator.comparing(transfer -> transfer.getOrDefault("validEndDate", "").toString())).get();
+                    }).collect(Collectors.toList());
             threadPool.submit(() -> {
-                writeDataForOneQuery(fw, totalSize, result);
+                writeDataForOneQuery(fw, totalSize, extData);
             });
         }
         threadPool.shutdown();

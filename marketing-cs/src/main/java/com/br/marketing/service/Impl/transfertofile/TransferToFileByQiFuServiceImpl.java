@@ -111,7 +111,6 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        Integer pageSize = dynamicParameterService.getPageSize(null);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
         for (TimeRange timeRange : timeRanges) {
             List<MarketingCustomizeDataValidConfig> configsForTaskId = configs.get(timeRange.getTaskId());
@@ -119,20 +118,23 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                     .max(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get();
             LocalDate startDate = LocalDate.parse(timeRange.getStartDate(), YYYYMMDDSHORTLINE).minusDays(1);
             LocalDate endDate = LocalDate.parse(timeRange.getEndDate(), YYYYMMDDSHORTLINE).plusDays(1);
-            Integer page = 0;
+            syncUser.setId(null);
             for (; ; ) {
+//                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
+//                        .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
                 List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                        .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
+                        .selectTransferWithValid(syncUser, startDate.toString(), endDate.toString());
                 if (CollectionUtils.isEmpty(transferData)) {
                     break;
                 }
+                Long minId = transferData.get(transferData.size() - 1).getId() + 1;
+                syncUser.setId(minId);
                 //有效期过滤
                 List<MarketingTransferSyncUser> transferDataNew =
-                        filterTransferDataWithValPerd(apiCode, requestDate, transferData, timeRange.getTaskId());
+                        filterTransferDataWithValPerd(apiCode, requestDate, transferData);
                 if (CollectionUtils.isEmpty(transferDataNew)) {
                     continue;
                 }
-                page++;
                 threadPool.submit(() -> {
                     writeDataForOneQuery(fw, totalSize, config, transferDataNew);
                 });
@@ -223,17 +225,15 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
      * @param apiCode
      * @param requestDate
      * @param transferData
-     * @param taskId
      * @return
      */
     private List<MarketingTransferSyncUser> filterTransferDataWithValPerd(String apiCode,
                                                                           String requestDate,
-                                                                          List<MarketingTransferSyncUser> transferData,
-                                                                          String taskId) {
+                                                                          List<MarketingTransferSyncUser> transferData) {
         Set<String> custNumSet = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
                 transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode,
-                        LocalDate.parse(requestDate, YYYYMMDDSHORTLINE), Arrays.asList(new String[]{taskId}));
+                        LocalDate.parse(requestDate, YYYYMMDDSHORTLINE));
         List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter((MarketingTransferSyncUser transfer) -> {
             String custNum = transfer.getCustNum();
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
