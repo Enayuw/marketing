@@ -2,10 +2,12 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
@@ -69,7 +71,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             // 更新任务为清洗完成
             marketingCleanDataTask.setCleanStatus(2);
         } catch (Exception e) {
-            log.error("清洗任务异常：", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗任务异常！"), e);
             // 更新任务为清洗完成
             marketingCleanDataTask.setCleanStatus(3);
         }
@@ -104,11 +106,11 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("清洗数据：线程池关闭");
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗任务异常！"));
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.error("清洗数据：线程池结束异常！", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗数据：线程池结束异常！！"), ex);
             Thread.currentThread().interrupt();
         }
     }
@@ -208,39 +210,44 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         Field[] declaredFields = o.getClass().getDeclaredFields();
         for (Field declaredField : declaredFields) {
             for (FileToMarketingFieldVO fileToMarketingFieldVO : fieldVos) {
-                if (declaredField.getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
+                // 扩展字段容器
+                if (fileToMarketingFieldVO.getIsExtend()) {
+                    Object fieldValue = fieldMapping(cleanDataMap, fileToMarketingFieldVO);
+                    reserveFieldJo.put(fileToMarketingFieldVO.getInterfaceField(),fieldValue );
+                }else if (declaredField.getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
                     declaredField.setAccessible(true);
-                    Object fieldValue;
-                    // 处理默认值
-                    if (StringUtils.isNotBlank(fileToMarketingFieldVO.getDefaultValue())) {
-                        fieldValue = fileToMarketingFieldVO.getDefaultValue();
-                    } else {
-                        fieldValue = cleanDataMap.get(fileToMarketingFieldVO.getHeadField());
-                    }
-                    // 时间格式转换
-                    if (fileToMarketingFieldVO.getIsDateTransform()) {
-                        fieldValue = TimeUtils.getFormatterValue(String.valueOf(fieldValue));
-                    }
-                    // 处理字段转换 男 - > 1 女 -> 2
-                    if (StringUtils.isNotBlank(fileToMarketingFieldVO.getConversion())) {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        List<Map<String, String>> genderMappings = objectMapper.readValue(
-                                fileToMarketingFieldVO.getConversion(), List.class
-                        );
-                        if (!genderMappings.isEmpty()) {
-                            Map<String, String> genderMapping = genderMappings.get(0);
-                            fieldValue = genderMapping.get(fieldValue);
-                        }
-                    }
+                    Object fieldValue = fieldMapping(cleanDataMap, fileToMarketingFieldVO);
                     declaredField.set(o, fieldValue);
-                    // 扩展字段容器
-                    if (fileToMarketingFieldVO.getIsExtend()) {
-                        reserveFieldJo.put(declaredField.getName(), fieldValue);
-                    }
                     break;
                 }
             }
         }
+    }
+
+    private static Object fieldMapping(Map<String, Object> cleanDataMap, FileToMarketingFieldVO fileToMarketingFieldVO) throws IOException {
+        Object fieldValue;
+        // 处理默认值
+        if (StringUtils.isNotBlank(fileToMarketingFieldVO.getDefaultValue())) {
+            fieldValue = fileToMarketingFieldVO.getDefaultValue();
+        } else {
+            fieldValue = cleanDataMap.get(fileToMarketingFieldVO.getHeadField());
+        }
+        // 时间格式转换
+        if (fileToMarketingFieldVO.getIsDateTransform()) {
+            fieldValue = TimeUtils.getFormatterValue(String.valueOf(fieldValue));
+        }
+        // 处理字段转换 男 - > 1 女 -> 2
+        if (StringUtils.isNotBlank(fileToMarketingFieldVO.getConversion())) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<Map<String, String>> genderMappings = objectMapper.readValue(
+                    fileToMarketingFieldVO.getConversion(), List.class
+            );
+            if (!genderMappings.isEmpty()) {
+                Map<String, String> genderMapping = genderMappings.get(0);
+                fieldValue = genderMapping.get(fieldValue);
+            }
+        }
+        return fieldValue;
     }
 
     /**
@@ -251,15 +258,21 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
      */
     private UploadDataDTO initUploadData(String apiCode, List<MarketingPreUserDetailDTO> syncUsers) {
         String taskId = getTaskId(apiCode);
+        String requestId = getRequestId(taskId);
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         marketingPreUserDTO.setTaskId(taskId);
-        marketingPreUserDTO.setRequestId(taskId);
+        marketingPreUserDTO.setRequestId(requestId);
         marketingPreUserDTO.setDataItems(syncUsers);
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
         log.warn("上传数据：{}", uploadDataDTO);
         return uploadDataDTO;
+    }
+
+    private static String getRequestId(String taskId) {
+        String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
+        return requestId;
     }
 
     /**
@@ -274,10 +287,11 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
         transferDataDTO.setDataItems(transferDataItemDTOS);
         String taskId = getTaskId(apiCode);
-        String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
+        String requestId = getRequestId(taskId);
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
+        log.warn("推送转化数据：{}",dto);
         return dto;
     }
 
@@ -326,9 +340,10 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             task.setCleanStatus(0);
             task.setApiCode(apiCode);
             task.setCreateTime(new Date());
+            task.setAutoCleanWayType(1);
             marketingCleanDataTaskMapper.insertSelective(task);
         } else {
-            log.error("清洗创建任务失败：{}", configName);
+            log.warn("清洗创建任务失败！{}", configName);
         }
     }
 }

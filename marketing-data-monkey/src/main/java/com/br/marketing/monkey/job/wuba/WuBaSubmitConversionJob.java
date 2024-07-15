@@ -1,5 +1,7 @@
 package com.br.marketing.monkey.job.wuba;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.service.Impl.wuba.WuBaSubmitConversionService;
@@ -34,8 +36,10 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
         try {
             log.warn(TITLE + "调度开始");
             // switch
-            if(!checkJobSwitch()) return;
-            // parseJobParameter
+            if(!checkJobSwitch()) {
+                return;
+            }
+            // jobParameter
             String apiCode = parseJobParameter(context.getJobParameter());
             // pageSize
             Integer pageSize = marketingCommonConfig.getWuBaSubmitConversionPageSize();
@@ -52,7 +56,8 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
 
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
-            log.error(TITLE + "调度异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),e.getMessage()
+                    , TITLE), e);
         }
     }
 

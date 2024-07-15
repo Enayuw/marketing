@@ -1096,13 +1096,13 @@ public class MarketingCommonConfig {
      * 2023-09-27 19:12
      * 奇富钉钉告警机器人token
      */
-    private String qiFuDingDingAccessToken = "b1d0849bd627e067d1c3be1ad8a82fa265dcb9afec94197859b0e08bda0dbaf2";
+    private String qiFuDingDingAccessToken = "7f32618dafd2d2126f5564aaf57a35867c8775baf78777140990c16d56edc457";
 
     /**
      * 2023-09-27 19:12
      * 奇富钉钉告警机器人密钥
      */
-    private String qiFuDingDingSecret = "SEC0d7cfb05455c035eea424a4824e63c75dd287a86d796cc96826ba7fb3f51e07e";
+    private String qiFuDingDingSecret = "SEC4d2d8a91842ad25136e92213a852ebe5cf1c22ddaf49dcfd352d5a9323eb1ca8";
 
     /**
      * 2023-09-27 19:12
@@ -1815,29 +1815,39 @@ public class MarketingCommonConfig {
     private Integer wuBaCollidingQueryResultWaitMinutes;
 
     /**
-     * 58金融-新客营销名单上报-开关，1-开，0-关
+     * 58新客-营销名单上报-开关，1-开，0-关
      */
     private String wuBaSubmitConversionSwitch;
 
     /**
-     * 58金融-新客营销名单转化结果查询-开关，1-开，0-关
-     */
-    private String wuBaQueryConversionResultSwitch;
-
-    /**
-     * 58金融-新客营销名单上报-分页条数
+     * 58新客-营销名单上报-分页条数
      */
     private Integer wuBaSubmitConversionPageSize;
 
     /**
-     * 58金融-新客营销名单上报结果查询-调用线程数
+     * 58新客-营销转化结果查询-开关，1-开，0-关
      */
-    private List<Integer> wuBaSubmitConversionThreadPool;
+    private String wuBaQueryConversionSwitch;
 
     /**
-     * 58金融-新客营销名单-转化数据-通用字段配置
+     * 58新客-营销转化结果查询-apiCode集合
      */
-    private Set<String> wuBaSubmitConversionKnowFields;
+    private List<String> wuBaQueryConversionApiCodes;
+
+    /**
+     * 58新客-营销转化结果查询-pushTime查询区间
+     */
+    private JSONObject wuBaQueryConversionPushTimeInterval;
+
+    /**
+     * 58新客-营销转化结果查询-调用线程
+     */
+    private List<Integer> wuBaQueryConversionThreadPool;
+
+    /**
+     * 58新客-营销转化结果查询-通用字段配置
+     */
+    private Set<String> wuBaQueryConversionKnowFields;
 
     /**
      * 通用清洗线程池
@@ -1847,6 +1857,6 @@ public class MarketingCommonConfig {
     /**
      * 通用Mock配置
      */
-    private Map<String, JSONObject> commonMockConfig;
+    private JSONObject commonMockConfig;
 }
 

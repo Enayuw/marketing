@@ -1,9 +1,11 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.br.common.log.AlertLog;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.WubaCollidingBatchNo;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.entity.WubaSubmitConversionDataExample;
@@ -19,6 +21,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,14 +80,15 @@ public class WuBaSubmitConversionService {
                 // process submit data
                 processData(pageList, condition);
                 // 按indexId 每页间隔5s
-                    Thread.sleep(5000);
+                Thread.sleep(5000);
             } catch (Exception e) {
-                log.warn(TITLE+"上报异常");
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
+                Thread.currentThread().interrupt();
             }
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Result<?> processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition)
             throws Exception {
         Result result = new Result().failure();
@@ -90,9 +96,10 @@ public class WuBaSubmitConversionService {
         String apiCode = condition.getParam().getApiCode();
         // callClient
         Result<String> callResult = callClient(pageList);
-        if(callResult == null || !callResult.isSuccess() || result.getData()==null){
-            // call failure, alert
-            log.warn(TITLE+"调用接口失败" + apiCode);
+        if(callResult == null || !callResult.isSuccess() || callResult.getData()==null){
+            // Alert
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                    TITLE+"调用接口失败, apiCode: " + apiCode));
             wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: " + apiCode);
             return result;
         }
@@ -105,11 +112,12 @@ public class WuBaSubmitConversionService {
 
         // 上报批次表增加记录，query_status置为0-未查询
         WubaCollidingBatchNo batchRecord = new WubaCollidingBatchNo();
+        batchRecord.setApiCode(apiCode);
         batchRecord.setBatchNo(batchNo);
         batchRecord.setBatchType(2);
         batchRecord.setPushTime(new Date());
         batchRecord.setQueryStatus(0);
-        int insert = wubaCollidingBatchNoMapper.insert(batchRecord);
+        int insert = wubaCollidingBatchNoMapper.insertSelective(batchRecord);
         if(insert < 1){
             throw new Exception(TITLE+"上报批次表增加记录异常");
         }
@@ -138,7 +146,7 @@ public class WuBaSubmitConversionService {
         WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
         dataExample.createCriteria().andIdIn(ids);
         wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
-        return new Result();
+        return result.success();
     }
 
     public Result<String> callClient(List<WubaSubmitConversionData> outputDataList) {
@@ -150,12 +158,21 @@ public class WuBaSubmitConversionService {
         int magnitudes = outputDataList.size();
         long startTime = System.currentTimeMillis();
         List<WuBaSubmitDTO> wuBaSubmitDTOS = outputDataList.stream().map((WubaSubmitConversionData data) -> {
+            String marketingTime ="";
+            try {
+                String createDateStr = String.valueOf(data.getCreateDate());
+                Date createDate = DateUtils.parse(createDateStr, "yyyyMMdd");
+                marketingTime = DateUtils.format(createDate, "yyyy-MM-dd 00:00:00");
+            } catch (ParseException e) {
+                marketingTime = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
+            }
             WuBaSubmitDTO wuBaSubmitDTO = new WuBaSubmitDTO();
             wuBaSubmitDTO.setMobile(data.getCell());
-            wuBaSubmitDTO.setMarketingTime(data.getMarketingTime());
+            wuBaSubmitDTO.setMarketingTime(marketingTime);
             return wuBaSubmitDTO;
         }).collect(Collectors.toList());
 
+        // call submitConversionList
         Result callResult = wuBaServiceClient.submitConversionList(wuBaSubmitDTOS);
         if(callResult==null || !callResult.isSuccess() || callResult.getData()==null){
             return result;
@@ -166,6 +183,6 @@ public class WuBaSubmitConversionService {
         }
         long endTime = System.currentTimeMillis();
         log.warn(TITLE+"callClient, 量级{}, 耗时{}", magnitudes, (endTime-startTime));
-        return result.setCode(ResultCode.SUCCESS.getValue()).setDate(batchNo);
+        return result.success().setDate(batchNo);
     }
 }

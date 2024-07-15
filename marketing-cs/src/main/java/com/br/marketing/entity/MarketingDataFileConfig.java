@@ -83,26 +83,6 @@ public class MarketingDataFileConfig {
      */
     private String autoSearchDataSql;
 
-    /**
-     * 清洗方式：0 手动 (页面清洗任务对应的配置) 1 自动(程序清洗对应的配置)
-     */
-    private Integer autoCleanWayType;
-
-    /**
-     * 清洗开始时间
-     */
-    private Date autoCleanStartTime;
-
-    /**
-     * 清洗结束时间
-     */
-    private Date autoCleanEndTime;
-
-    /**
-     * 清洗锁是否被抢，0 未被抢 1 被抢
-     */
-    private Integer autoCleanLock;
-
     public Long getId() {
         return id;
     }
@@ -229,37 +209,5 @@ public class MarketingDataFileConfig {
 
     public void setAutoSearchDataSql(String autoSearchDataSql) {
         this.autoSearchDataSql = autoSearchDataSql == null ? null : autoSearchDataSql.trim();
-    }
-
-    public Integer getAutoCleanWayType() {
-        return autoCleanWayType;
-    }
-
-    public void setAutoCleanWayType(Integer autoCleanWayType) {
-        this.autoCleanWayType = autoCleanWayType;
-    }
-
-    public Date getAutoCleanStartTime() {
-        return autoCleanStartTime;
-    }
-
-    public void setAutoCleanStartTime(Date autoCleanStartTime) {
-        this.autoCleanStartTime = autoCleanStartTime;
-    }
-
-    public Date getAutoCleanEndTime() {
-        return autoCleanEndTime;
-    }
-
-    public void setAutoCleanEndTime(Date autoCleanEndTime) {
-        this.autoCleanEndTime = autoCleanEndTime;
-    }
-
-    public Integer getAutoCleanLock() {
-        return autoCleanLock;
-    }
-
-    public void setAutoCleanLock(Integer autoCleanLock) {
-        this.autoCleanLock = autoCleanLock;
     }
 }

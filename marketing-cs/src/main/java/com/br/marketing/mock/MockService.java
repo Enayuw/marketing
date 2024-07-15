@@ -1,6 +1,5 @@
 package com.br.marketing.mock;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +17,7 @@ import java.util.Map;
 @Service
 @Slf4j
 public class MockService {
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -28,25 +28,18 @@ public class MockService {
     }
 
     public HashMap<String, String> getMockContent(String interfaceCode) {
+        HashMap<String, String> res = new HashMap<>();
         JSONObject mockConfig = getMockConfig(interfaceCode);
-        HashMap<String, String> mockContent = convertJsonToHashMap(mockConfig.getString("mockContent"));
-        return mockContent;
+        JSONObject mockContent = mockConfig.getJSONObject("mockContent");
+        for(Map.Entry<String, Object> entry : mockContent.entrySet()){
+            res.put(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        return res;
     }
 
     public JSONObject getMockConfig(String interfaceCode){
-        Map<String, JSONObject> commonMockConfig = marketingCommonConfig.getCommonMockConfig();
-        JSONObject mockConfig = commonMockConfig.get(interfaceCode);
+        JSONObject commonMockConfig = marketingCommonConfig.getCommonMockConfig();
+        JSONObject mockConfig = commonMockConfig.getJSONObject(interfaceCode);
         return mockConfig;
-    }
-
-    public static HashMap<String, String> convertJsonToHashMap(String jsonString) {
-        JSONObject jsonObject = JSON.parseObject(jsonString);
-
-        HashMap<String, String> map = new HashMap<>();
-        for (String key : jsonObject.keySet()) {
-            map.put(key, jsonObject.getString(key));
-        }
-
-        return map;
     }
 }

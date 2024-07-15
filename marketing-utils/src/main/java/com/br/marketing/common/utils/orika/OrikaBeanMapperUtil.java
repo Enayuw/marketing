@@ -9,19 +9,19 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 
 public class OrikaBeanMapperUtil {
-    private static final MapperFacade mapperFacade;
+    private static final MapperFacade MAPPER_FACADE;
 
     static {
         MapperFactory mapperFactory = new DefaultMapperFactory.Builder().useAutoMapping(true).mapNulls(true).build();
-        mapperFacade = mapperFactory.getMapperFacade();
+        MAPPER_FACADE = mapperFactory.getMapperFacade();
     }
 
     public static <S, D> void map(S from, D to) {
-        mapperFacade.map(from, to);
+        MAPPER_FACADE.map(from, to);
     }
 
     public static <S, D> D map(S from, Class<D> clazz) {
-        return mapperFacade.map(from, clazz);
+        return MAPPER_FACADE.map(from, clazz);
     }
 
     public static <S, D> D map(S from, Class<S> source, Class<D> target, List<MappingItem> itemList) {
@@ -41,10 +41,10 @@ public class OrikaBeanMapperUtil {
     }
 
     public static MapperFacade getMapperFacade() {
-        return mapperFacade;
+        return MAPPER_FACADE;
     }
 
     public static <S, D> List<D> mapAsList(Iterable<S> source, Class<D> destinationClass) {
-        return mapperFacade.mapAsList(source, destinationClass);
+        return MAPPER_FACADE.mapAsList(source, destinationClass);
     }
 }
