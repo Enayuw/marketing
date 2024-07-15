@@ -214,7 +214,6 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
                 if (fileToMarketingFieldVO.getIsExtend()) {
                     Object fieldValue = fieldMapping(cleanDataMap, fileToMarketingFieldVO);
                     reserveFieldJo.put(fileToMarketingFieldVO.getInterfaceField(),fieldValue );
-                    break;
                 }else if (declaredField.getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
                     declaredField.setAccessible(true);
                     Object fieldValue = fieldMapping(cleanDataMap, fileToMarketingFieldVO);
