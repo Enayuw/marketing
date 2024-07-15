@@ -2,9 +2,12 @@ package com.br.marketing.service.Impl.wuba;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataRob;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
@@ -12,7 +15,6 @@ import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
-import com.google.api.client.util.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +44,8 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     WubaCollidingBatchNoMapper wubaCollidingBatchNoMapper;
     @Resource
     WubaCollidingDataLogMapper wubaCollidingDataLogMapper;
+    private final static int PARTATION_SIZE = 50;
+    ThreadPoolExecutor pool = BrExecutors.getThreadPool(20, 20);
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -58,7 +63,9 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
 
             List<String> cells = robs.stream().map(WubaCollidingDataRob::getCell).collect(Collectors.toList());
 
+            long start = System.currentTimeMillis();
             Result result = wuBaServiceClient.submitCredentialStuffingList(cells);
+            log.warn("58提交撞库名单，接口耗时：{}ms", System.currentTimeMillis() - start);
 
             if (Objects.equals(result.getCode(), ResultCode.FAIL.getValue())) {
                 JSONObject resMap = JSONObject.parseObject(result.getData().toString());
@@ -77,17 +84,30 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             wubaCollidingDataRobMapper.batchUpdatePushTimeById(robs);
 
             // 保存log表
-            List<WubaCollidingDataLog> logList = Lists.newArrayList();
-            for (WubaCollidingDataRob rob : robs) {
+            pool.setCorePoolSize(marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
+            pool.setMaximumPoolSize(marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
+            List<List<WubaCollidingDataRob>> partitions = com.google.common.collect.Lists.partition(robs, PARTATION_SIZE);
+            for (List<WubaCollidingDataRob> partition : partitions) {
+                pool.submit(() -> batchSaveLog(apiCode, partition, batchNo));
+            }
+        });
+    }
+
+    private void batchSaveLog(String apiCode, List<WubaCollidingDataRob> robs, String batchNo) {
+        try {
+            List<WubaCollidingDataLog> logs = robs.stream().map((WubaCollidingDataRob rob) -> {
                 WubaCollidingDataLog log = new WubaCollidingDataLog();
                 log.setDataId(rob.getId());
                 log.setCell(rob.getCell());
                 log.setBatchNo(batchNo);
                 log.setApiCode(apiCode);
-                logList.add(log);
-            }
-            wubaCollidingDataLogMapper.batchSaveByBatchNo(logList);
-        });
+                return log;
+            }).collect(Collectors.toList());
 
+            wubaCollidingDataLogMapper.batchSaveByBatchNo(logs);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                    , "58提交撞库，子线程保存撞库日志处理异常"), e);
+        }
     }
 }
