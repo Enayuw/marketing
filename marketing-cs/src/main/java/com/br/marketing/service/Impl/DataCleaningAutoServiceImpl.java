@@ -91,7 +91,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         while (true) {
             modifyThreadPool(threadPool);
             List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(
-                    autoSearchDataSql,marketingDataFileConfig.getId()
+                    autoSearchDataSql,marketingCleanDataTask.getId()
             );
             if (cleanDataMapList.isEmpty()) {
                 break;
