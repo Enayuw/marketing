@@ -72,7 +72,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getCityAndCounty() {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.error("获取token异常");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -81,7 +81,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             jsonObject = result.getData();
         } else {
-            log.error("之家省市区调用异常,result= {}", result.getMessage());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "之家省市区调用异常,result= " + result.getMessage()));
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
         JSONArray cityList = resultJson.getJSONArray("city");
@@ -150,7 +150,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getBrandAndseries() {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.error("获取token异常");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -211,7 +211,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getSeries(Integer brandId) {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.error("获取token异常");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -388,14 +388,14 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                         //写入redis
                         redisChgService.setex(redisKey, token, 5400);
                     } else {
-                        log.error("之家获取token调用异常,result= {}", result.getMessage());
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "之家获取token调用异常,result= " + result.getMessage()));
                     }
                     redisChgService.unlock(redisKeyLock, value);
                 }
             }
         } catch (Exception e) {
             redisChgService.unlock(redisKeyLock, value);
-            log.error("之家获取token程序异常异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "之家获取token程序异常异常!"), e);
         }
         return token;
     }

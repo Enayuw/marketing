@@ -120,7 +120,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             }
         } catch (InterruptedException ex) {
             zhiJiaCollidingThread.shutdownNow();
-            log.error("之家创建线索接口线程池关闭！异常", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "之家创建线索接口线程池关闭！异常"), ex);
             Thread.currentThread().interrupt();
         }
 
@@ -200,7 +200,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     errorStatistics(id,result.getMessage(),sb);
                 }
             }catch (Exception e){
-                log.error("之家线索创建异常:{}", e.getMessage());
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "之家线索创建异常！"), e);
             }
         }
     }
@@ -260,7 +260,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             try {
                 alarmClient.sendAlarm("推送失败条数=" + failNum, title, AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode());
             } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), ex.getMessage()), ex);
             }
         }
     }

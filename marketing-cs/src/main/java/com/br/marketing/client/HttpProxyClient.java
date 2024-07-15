@@ -3,6 +3,8 @@ package com.br.marketing.client;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.BrCipherMaker;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
@@ -510,7 +512,7 @@ public class HttpProxyClient {
             String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
             res.put("content", result);
         } catch (Exception e) {
-            log.error("url={}", uri, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "url=" + uri), e);
             res.put("content", e.getMessage());
         }
         return res;

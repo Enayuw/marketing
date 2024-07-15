@@ -1,5 +1,7 @@
 package com.br.marketing.monkey.job.zhijia;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
@@ -50,7 +52,7 @@ public class ZhiJiaClueFeedBackJob extends AbstractSimpleElasticJob {
             localFile.setPushStatus("3");
             localFile.setId(localFiles.get(0).getId());
             localFileMapper.updateByPrimaryKeySelective(localFile);
-            log.error("【之家创建线索】推送异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "【之家创建线索】推送异常！"), e);
         }
 
     }

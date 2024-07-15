@@ -1,15 +1,10 @@
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordReq;
 import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.zhijia.ZhiJiaCarInfoDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.ZhiJiaCarBrandInfoMapper;
-import com.br.marketing.mapper.ZhiJiaCarSeriesInfoMapper;
 import com.br.marketing.monkey.MarketingDataMonkeyApplication;
 import com.br.marketing.monkey.job.dewu.DewuCollidingDataToSendJob;
 import com.br.marketing.monkey.job.tongcheng.TongChengOperationPushToCustomerJob;
@@ -24,7 +19,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
