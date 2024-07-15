@@ -209,4 +209,9 @@ public class RedisKeyConstant {
      */
     public static final String XIECHENG_RELEASE_TIME = prefix.concat("xiecheng:releaseTime:");
 
+    /**
+     * 清洗流程任务锁
+     */
+    public static final String LOCK_KEY_CLEAN_DATA = prefix.concat("lock_key_clean_data_auto");
+
 }
