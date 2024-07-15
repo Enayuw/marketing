@@ -107,7 +107,7 @@ public class WuBaQueryConversionResultService {
         List<Future<Result<WubaCollidingBatchNo>>> futureList = new ArrayList<>();
         for(WubaCollidingBatchNo wubaCollidingBatchNo: batchNoList) {
             setThreadPoolParam(queryPool);
-            futureList.add(queryPool.submit(() -> processData(wubaCollidingBatchNo, condition)));
+            futureList.add(queryPool.submit(() -> processData(wubaCollidingBatchNo)));
         }
 
         for (Future<Result<WubaCollidingBatchNo>> future : futureList) {
@@ -151,8 +151,7 @@ public class WuBaQueryConversionResultService {
         return result.success();
     }
 
-    public Result<WubaCollidingBatchNo> processData(WubaCollidingBatchNo wubaCollidingBatchNo,
-                                                    Page2Condition<WubaQueryConversionDto> condition) throws Exception {
+    public Result<WubaCollidingBatchNo> processData(WubaCollidingBatchNo wubaCollidingBatchNo) throws Exception {
         Result<WubaCollidingBatchNo> result = new Result().failure();
         try {
             // callClient
