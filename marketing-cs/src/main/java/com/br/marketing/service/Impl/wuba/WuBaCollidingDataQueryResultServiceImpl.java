@@ -144,8 +144,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             // 可营销数据保存到周期表，并从非周期表删除
             wuBaCollidingDataBusinessService.saveLoopAnddeleteRob(resultList, apiCode);
 
-            // 可营销数据保存到上传清洗表
             Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58新客_上传清洗规则勿动");
+            // 可营销数据保存到上传清洗表
             wubaCollidingDataSyncCleanMapper.batchSaveData(resultList, batchNo, apiCode, taskId);
             log.warn("58查询撞库结果，并生成清洗任务，batchNo：{}，taskId：{}", batchNo, taskId);
         }
