@@ -84,7 +84,10 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         );
         String autoSearchDataSql = marketingDataFileConfig.getAutoSearchDataSql();
         String apiCode = marketingDataFileConfig.getApiCode();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(marketingCommonConfig.getAutoCleanDataThreadNum(), marketingCommonConfig.getAutoCleanDataThreadNum());
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(
+                marketingCommonConfig.getAutoCleanDataThreadNum(),
+                marketingCommonConfig.getAutoCleanDataThreadNum()
+        );
         while (true) {
             modifyThreadPool(threadPool);
             List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(autoSearchDataSql);
@@ -120,7 +123,12 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         threadPool.setCorePoolSize(marketingCommonConfig.getAutoCleanDataThreadNum());
     }
 
-    private void doProcessUploadDataClean(List<Map<String, Object>> cleanDataMapList, MarketingDataFileConfig marketingDataFileConfig, String apiCode, ThreadPoolExecutor threadPool, Set<Object> collect) throws IOException, IllegalAccessException {
+    private void doProcessUploadDataClean(
+            List<Map<String, Object>> cleanDataMapList,
+            MarketingDataFileConfig marketingDataFileConfig,
+            String apiCode,
+            ThreadPoolExecutor threadPool,
+            Set<Object> collect) throws IOException, IllegalAccessException {
         // 上传数据处理
         List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = processUploadCleanData(cleanDataMapList, marketingDataFileConfig);
         // 上传数据组装
@@ -129,7 +137,12 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         pushAsyncUploadData(threadPool, uploadDataDTO, collect, marketingDataFileConfig);
     }
 
-    private void doProcessTransferDataClean(List<Map<String, Object>> cleanDataMapList, MarketingDataFileConfig marketingDataFileConfig, String apiCode, ThreadPoolExecutor threadPool, Set<Object> collect) throws IOException, IllegalAccessException {
+    private void doProcessTransferDataClean(
+            List<Map<String, Object>> cleanDataMapList,
+            MarketingDataFileConfig marketingDataFileConfig,
+            String apiCode,
+            ThreadPoolExecutor threadPool,
+            Set<Object> collect) throws IOException, IllegalAccessException {
         // 转化数据处理
         List<TransferDataItemDTO> transferDataItemDTOS = processTransferCleanData(cleanDataMapList, marketingDataFileConfig);
         // 转化数据组装
@@ -145,14 +158,19 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         });
     }
 
-    private void pushAsyncTransferData(ThreadPoolExecutor threadPool, PushTransferDataDetailDTO pushTransferDataDetailDTO, Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig) {
+    private void pushAsyncTransferData(
+            ThreadPoolExecutor threadPool,
+            PushTransferDataDetailDTO pushTransferDataDetailDTO,
+            Set<Object> collect,
+            MarketingDataFileConfig marketingDataFileConfig) {
         threadPool.submit(() -> {
             Result<Boolean> result = pushInfoService.pushTransferByRetry(pushTransferDataDetailDTO, null);
             updateStatus(collect, marketingDataFileConfig, result);
         });
     }
-    private List<MarketingPreUserDetailDTO> processUploadCleanData(List<Map<String, Object>> cleanDataMapList,
-                                                                   MarketingDataFileConfig marketingDataFileConfig) throws IOException, IllegalAccessException {
+    private List<MarketingPreUserDetailDTO> processUploadCleanData(
+            List<Map<String, Object>> cleanDataMapList,
+            MarketingDataFileConfig marketingDataFileConfig) throws IOException, IllegalAccessException {
         List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = new ArrayList<>();
         for (Map<String, Object> cleanDataMap : cleanDataMapList) {
             MarketingPreUserDetailDTO o = new MarketingPreUserDetailDTO();
@@ -163,8 +181,9 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         }
         return marketingPreUserDetailDTOS;
     }
-    private List<TransferDataItemDTO> processTransferCleanData(List<Map<String, Object>> cleanDataMapList,
-                                                               MarketingDataFileConfig marketingDataFileConfig) throws IOException, IllegalAccessException {
+    private List<TransferDataItemDTO> processTransferCleanData(
+            List<Map<String, Object>> cleanDataMapList,
+            MarketingDataFileConfig marketingDataFileConfig) throws IOException, IllegalAccessException {
         List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
         for (Map<String, Object> cleanDataMap : cleanDataMapList) {
             TransferDataItemDTO o = new TransferDataItemDTO();
@@ -224,7 +243,9 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         }
     }
 
-    private static Object fieldMapping(Map<String, Object> cleanDataMap, FileToMarketingFieldVO fileToMarketingFieldVO) throws IOException {
+    private static Object fieldMapping(
+            Map<String, Object> cleanDataMap,
+            FileToMarketingFieldVO fileToMarketingFieldVO) throws IOException {
         Object fieldValue;
         // 处理默认值
         if (StringUtils.isNotBlank(fileToMarketingFieldVO.getDefaultValue())) {
