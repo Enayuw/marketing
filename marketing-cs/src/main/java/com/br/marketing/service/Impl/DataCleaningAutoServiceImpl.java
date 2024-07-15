@@ -340,6 +340,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             task.setCleanStatus(0);
             task.setApiCode(apiCode);
             task.setCreateTime(new Date());
+            task.setAutoCleanWayType(1);
             marketingCleanDataTaskMapper.insertSelective(task);
         } else {
             log.warn("清洗创建任务失败！{}", configName);
