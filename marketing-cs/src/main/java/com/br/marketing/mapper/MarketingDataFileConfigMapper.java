@@ -11,7 +11,7 @@ public interface MarketingDataFileConfigMapper extends MarketingDataFileConfigMa
 
     List<DataCleanConfigVO> getList(@Param("apiCode")String apiCode, @Param("fileType")String fileType);
 
-    List<Map<String,Object>> selectCleanData(@Param("sql") String sql);
+    List<Map<String,Object>> selectCleanData(@Param("sql") String sql,@Param("taskId") Long taskId);
 
     void updateCleanDataStatus(@Param("tableName") String tableName,
                                @Param("cleanStatus") String cleanStatus,

@@ -22,6 +22,6 @@ public interface DataCleaningAutoService {
     /**
      * 保存清洗任务
      */
-    void saveCleanTask(String apiCode,Integer cleanType,String configName);
+    Long saveCleanTask(String apiCode,Integer cleanType,String configName);
 
 }
