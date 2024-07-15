@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -78,8 +80,11 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
 
             // local_id and status =1 and push_status =1，前置表去重后与非周期表去重
+            Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+
             List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDatetikv_(localFile.getId(),
-                    apiCode, minId, pageSize);
+                    apiCode, minId, pageSize, today, tomorrow);
             if (CollectionUtils.isEmpty(wubaCollidingDataFronts)) {
                 break;
             }

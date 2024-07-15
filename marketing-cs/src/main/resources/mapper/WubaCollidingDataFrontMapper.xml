@@ -7,7 +7,7 @@
         from b_wuba_colliding_data_front a
         left join b_wuba_colliding_data_rob b
         on a.cell = b.cell
-        <![CDATA[ and b.create_time >= curdate() and b.create_time < date_add(curdate(), interval 1 day) ]]>
+        <![CDATA[ and b.create_time >= #{today} and b.create_time < #{tomorrow} ]]>
         and b.api_code = #{apiCode} and b.is_deleted = 0
         where b.id is null
         and a.is_deleted = 0
