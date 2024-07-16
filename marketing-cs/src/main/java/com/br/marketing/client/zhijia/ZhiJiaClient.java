@@ -29,7 +29,7 @@ import java.util.HashMap;
 @Slf4j
 public class ZhiJiaClient {
 
-    @Value("${api.zhongAn.isProxy:false}")
+    @Value("${api.zhijia.isProxy:false}")
     Boolean isProxy;
 
     @Value("${api.zhijia.addC1HiqClueUrl:00}")

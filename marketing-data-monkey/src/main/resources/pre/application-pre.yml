@@ -214,6 +214,7 @@ api:
     zhiJiaClientSecret: pQDg3DG3qWfkIfDqH8NVLZnhBOvxJjlW
     zhiJiaClientAppid: 1742
     zhiJiaClientEncryption: wE2FKj/Vb10=
+    isProxy: true
   tongchengAgentMkt:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
