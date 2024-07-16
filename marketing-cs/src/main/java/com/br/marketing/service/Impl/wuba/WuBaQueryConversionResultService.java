@@ -273,7 +273,7 @@ public class WuBaQueryConversionResultService {
         String batchNo = wubaCollidingBatchNo.getBatchNo();
 
         // 清洗任务
-        Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58新客_上传清洗规则勿动");
+        Long taskId = cleaningAutoService.saveCleanTask(apiCode, 1, "58新客_转化清洗规则勿动");
 
         // 转化结果表增加记录
         List<WubaSubmitConversionDataTransferClean> dataTransferCleanList = responseDtoList.stream()
