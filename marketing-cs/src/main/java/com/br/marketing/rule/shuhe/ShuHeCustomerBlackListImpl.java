@@ -31,7 +31,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
-    public static final DateTimeFormatter ymhdms = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+    public static final DateTimeFormatter YMHDMS = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
 
     @Override
     public BlackDetailDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -42,7 +42,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
         }
         String endTime = LocalDateTime.now()
                 .withHour(23).withMinute(59).withSecond(59)
-                .plusDays(blackDays).format(ymhdms);
+                .plusDays(blackDays).format(YMHDMS);
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
