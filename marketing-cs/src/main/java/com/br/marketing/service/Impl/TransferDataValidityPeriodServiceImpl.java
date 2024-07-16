@@ -1524,6 +1524,9 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @return 合并时间段集合
      */
     private List<MarketingDataValidConfig> mergeValidityPeriod(List<MarketingDataValidConfig> list) {
+        if (CollectionUtils.isEmpty(list) || list.size() == 1) {
+            return list;
+        }
         List<MarketingDataValidConfig> mergeList = new ArrayList<>();
         list.sort(Comparator.comparing(config -> LocalDate.parse(config.getValidStartDate())));
         for (MarketingDataValidConfig validConfig : list) {

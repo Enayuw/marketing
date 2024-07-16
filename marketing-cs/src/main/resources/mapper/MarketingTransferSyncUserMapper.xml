@@ -1083,7 +1083,7 @@
             </otherwise>
         </choose>
         <if test="limit>0">
-            limit $limit
+            limit ${limit}
         </if>
     </select>
 

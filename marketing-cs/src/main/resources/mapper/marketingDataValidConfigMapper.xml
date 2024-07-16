@@ -34,7 +34,7 @@
           and valid_type = 1
         <if test="userTypeSet != null and userTypeSet.size() > 0">
             <choose>
-                <when test="userTypeSet.size() = 1">
+                <when test="userTypeSet.size() == 1">
                     <foreach collection="userTypeSet" item="userType" separator="" open="" close="">
                         and user_type='${userType}'
                     </foreach>
