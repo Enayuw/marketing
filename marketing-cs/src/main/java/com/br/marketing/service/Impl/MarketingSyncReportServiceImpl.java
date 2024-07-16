@@ -578,9 +578,11 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Override
     public boolean updateById(List<Long> ids, String validStartDate, String validEndDate) {
         try {
-            if(ids == null){
+            if(ids.isEmpty()){
                 return true;
             }
+            List<String> list = new ArrayList<>();
+            String str = "";
             for(Long id : ids){
                 MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
                 String apiCode = reportVO.getApiCode();
@@ -603,7 +605,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 newData.setValidEndDate(validEndDate);
                 int i = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
                 entityOptService.writeOptLog(data.getId(), newData, data);
-                if (i == 1){
+
+                str = apiCode + userType;
+                if (i == 1 && !list.contains(str)){
+                    list.add(str);
                     log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
                     recordService.saveRecord(apiCode, userType, newData.getId());
                 }
