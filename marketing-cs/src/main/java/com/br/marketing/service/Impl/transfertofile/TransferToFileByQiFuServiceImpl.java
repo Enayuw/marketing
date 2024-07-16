@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
@@ -13,13 +14,13 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.marketing.vo.TimeRange;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.io.*;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -97,48 +98,41 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                     , apiCode, System.currentTimeMillis() - start);
             saveUpdateTask(transferFileTask, totalSize.intValue());
         }
-        Map<String, List<MarketingCustomizeDataValidConfig>> configs = configList.stream()
-                .collect(Collectors.groupingBy(MarketingCustomizeDataValidConfig::getTaskId));
-        List<TimeRange> timeRanges = new ArrayList<>();
-        configs.forEach((String taskId, List<MarketingCustomizeDataValidConfig> configsForOneTask) -> {
-            String validStartDate = configsForOneTask.stream()
-                    .min(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidStartDate();
-            String validEndDate = configsForOneTask.stream()
-                    .max(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidEndDate();
-            timeRanges.add(new TimeRange(taskId, validStartDate, validEndDate));
-        });
+        String validStartDate = configList.stream()
+                .min(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidStartDate)).get().getValidStartDate();
+        String validEndDate = configList.stream()
+                .max(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get().getValidEndDate();
         String tcId = tableCreateService.getTcId(apiCode);
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
-        for (TimeRange timeRange : timeRanges) {
-            List<MarketingCustomizeDataValidConfig> configsForTaskId = configs.get(timeRange.getTaskId());
-            MarketingCustomizeDataValidConfig config = configsForTaskId.stream()
-                    .max(Comparator.comparing(MarketingCustomizeDataValidConfig::getValidEndDate)).get();
-            LocalDate startDate = LocalDate.parse(timeRange.getStartDate(), YYYYMMDDSHORTLINE).minusDays(1);
-            LocalDate endDate = LocalDate.parse(timeRange.getEndDate(), YYYYMMDDSHORTLINE).plusDays(1);
-            syncUser.setId(null);
-            for (; ; ) {
-//                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-//                        .getTransferByStartAndEndDate(syncUser, startDate.toString(), endDate.toString(), null, page * pageSize, pageSize);
-                List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                        .selectTransferWithValid(syncUser, startDate.toString(), endDate.toString());
-                if (CollectionUtils.isEmpty(transferData)) {
-                    break;
-                }
-                Long minId = transferData.get(transferData.size() - 1).getId() + 1;
-                syncUser.setId(minId);
-                //有效期过滤
-                List<MarketingTransferSyncUser> transferDataNew =
-                        filterTransferDataWithValPerd(apiCode, requestDate, transferData);
-                if (CollectionUtils.isEmpty(transferDataNew)) {
-                    continue;
-                }
-                threadPool.submit(() -> {
-                    writeDataForOneQuery(fw, totalSize, config, transferDataNew);
-                });
+        LocalDate startDate = LocalDate.parse(validStartDate, YYYYMMDDSHORTLINE).minusDays(1);
+        LocalDate endDate = LocalDate.parse(validEndDate, YYYYMMDDSHORTLINE).plusDays(1);
+        for (; ; ) {
+            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
+                    .selectTransferWithValid(syncUser, startDate.toString(), endDate.toString());
+            if (CollectionUtils.isEmpty(transferData)) {
+                break;
             }
+            Long minId = transferData.get(transferData.size() - 1).getId() + 1;
+            syncUser.setId(minId);
+            //有效期过滤
+            Set<String> custNumSet = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode,
+                            LocalDate.parse(requestDate, YYYYMMDDSHORTLINE));
+            List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter((MarketingTransferSyncUser transfer) -> {
+                String custNum = transfer.getCustNum();
+                SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
+                return syncUserValidityPeriodsBO != null;
+            }).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(transferDataNew)) {
+                continue;
+            }
+            threadPool.submit(() -> {
+                writeDataForOneQuery(fw, totalSize, transferDataNew, validityPeriodsByCustNum);
+            });
         }
         threadPool.shutdown();
         try {
@@ -180,13 +174,13 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
      * 数据写入
      * @param fw
      * @param totalSize
-     * @param config
      * @param transferDataNew
+     * @param validityPeriodsByCustNum
      */
     private static void writeDataForOneQuery(Writer fw,
                                              AtomicInteger totalSize,
-                                             MarketingCustomizeDataValidConfig config,
-                                             List<MarketingTransferSyncUser> transferDataNew) {
+                                             List<MarketingTransferSyncUser> transferDataNew,
+                                             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum) {
         for (MarketingTransferSyncUser transferFilterData : transferDataNew) {
             String custNum = transferFilterData.getCustNum();
             custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
@@ -200,6 +194,11 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                     ? transferFilterData.getRequestTime().replace(":000","") : "";
             String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
                     ? transferFilterData.getUserType() : "";
+            MarketingSyncUser marketingSyncUser = validityPeriodsByCustNum.get(custNum).getSyncUsers().get(0);
+            PeriodOfValidityBO bo = validityPeriodsByCustNum.get(custNum).getBuilders().get(0).builder();
+            SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd");
+            String validStartDate = simpleDateFormat.format(bo.getBeginDate());
+            String validEndDate = simpleDateFormat.format(bo.getEnDate());
             StringBuilder sb = new StringBuilder();
             sb.append(custNum.concat(","))
                     .append(applyDt.concat(","))
@@ -207,9 +206,9 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                     .append(loginTime.concat(","))
                     .append(requestTime.concat(","))
                     .append(userType.concat(","))
-                    .append(config.getTaskId().concat(","))
-                    .append(config.getValidEndDate().concat(","))
-                    .append(config.getValidStartDate())
+                    .append(marketingSyncUser.getCusBatch().concat(","))
+                    .append(validEndDate.concat(","))
+                    .append(validStartDate)
                     .append("\r\n");
             try {
                 fw.append(sb.toString());
