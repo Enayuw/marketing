@@ -118,21 +118,17 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                         iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                         shuHeContext.setContinueJudgeRule(false);
                         bool = Boolean.TRUE;
-                    } else if (baseUserType instanceof CuFuJie && ((CuFuJie) baseUserType).ifTransfer(caseShuheUser
-                            , marketingSyncUser.getAppletTime(), marketingCommonConfig)) {
-                        // 转化
-                        transferSyncUser.setIfTransform("1");
-                        ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
-                        iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
-                        shuHeContext.setContinueJudgeRule(false);
-                        bool = Boolean.TRUE;
-                    } else if (baseUserType.ifTransfer(caseShuheUser, marketingSyncUser.getAppletTime())) {
-                        // 转化
-                        transferSyncUser.setIfTransform("1");
-                        ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
-                        iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
-                        shuHeContext.setContinueJudgeRule(false);
-                        bool = Boolean.TRUE;
+                    } else {
+                        boolean cuFuJieBool = (baseUserType instanceof CuFuJie && ((CuFuJie) baseUserType).ifTransfer(
+                                caseShuheUser, marketingSyncUser.getAppletTime(), marketingCommonConfig));
+                        if (cuFuJieBool || baseUserType.ifTransfer(caseShuheUser, marketingSyncUser.getAppletTime())) {
+                            // 转化
+                            transferSyncUser.setIfTransform("1");
+                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
+                            iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
+                            shuHeContext.setContinueJudgeRule(false);
+                            bool = Boolean.TRUE;
+                        }
                     }
                     shuHeContext.setTransfer(null);
                 }
