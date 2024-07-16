@@ -161,7 +161,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         String groupType = map.get("groupType").toString();
         BaseUserType baseUserType = UserTypeStrategyFactory.getUserTypeStrategy(groupType);
         if (baseUserType instanceof CuFuJie) {
-            return cuFuJie(dto, groupType, baseUserType);
+            return cuFuJie(dto, groupType);
         }
         boolean intentionGrade = false;
         if (!"促申完".equals(groupType) && !"促首借".equals(groupType)) {
@@ -334,7 +334,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         return "true";
     }
 
-    private boolean cuFuJie(CallRecordBO dto, String groupType, BaseUserType baseUserType) throws IllegalAccessException {
+    private boolean cuFuJie(CallRecordBO dto, String groupType) throws IllegalAccessException {
         HashMap<String, List<String>> statusMap = marketingCommonConfig.getShuHePushDXStatusMap();
         List<String> status;
         if (statusMap == null
