@@ -23,6 +23,7 @@ import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,9 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     DataCleaningAutoService cleaningAutoService;
     @Autowired
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
+
+    private final static int PARTATION_SIZE = 50;
+
     ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10);
 
     @Override
@@ -80,25 +84,26 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
             pool.setCorePoolSize(marketingCommonConfig.getWubaCollidingDataQueryResultThreadNum());
             pool.setMaximumPoolSize(marketingCommonConfig.getWubaCollidingDataQueryResultThreadNum());
-            List<CompletableFuture<Void>> futures = Lists.newArrayList();
+
+            Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58新客_上传清洗规则勿动");
 
             for (WubaCollidingBatchNo wubaCollidingBatchNo : wubaCollidingBatchNos) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        queryAndSaveResult(wubaCollidingBatchNo);
-                    } catch (Exception e) {
-                        String subject = "58查询撞库结果作业，子线程处理异常！";
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
-                                , subject), e);
-                    }
-                }, pool));
+                queryAndSaveResult(wubaCollidingBatchNo, taskId);
             }
 
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            List<String> batchNos = wubaCollidingBatchNos.stream().map(WubaCollidingBatchNo::getBatchNo).collect(Collectors.toList());
+            int cleanCount = getCleanCountByBatchNos(batchNos, apiCode);
+            if (cleanCount <= 0) {
+                return;
+            }
+
+            // 更新数据清洗任务表状态为待清洗
+            updateTaskCleanStatusById(taskId);
+            log.warn("58查询撞库结果，并生成清洗任务，batchNo：{}，taskId：{}", Joiner.on(",").join(batchNos), taskId);
         });
     }
 
-    private void queryAndSaveResult(WubaCollidingBatchNo wubaCollidingBatchNo) {
+    private void queryAndSaveResult(WubaCollidingBatchNo wubaCollidingBatchNo, Long taskId) {
         String batchNo = wubaCollidingBatchNo.getBatchNo();
         String apiCode = wubaCollidingBatchNo.getApiCode();
         if (StringUtils.isEmpty(batchNo)) {
@@ -145,17 +150,32 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 return;
             }
 
-            // 可营销数据保存到周期表，并从非周期表删除
-            wuBaCollidingDataBusinessService.saveLoopAnddeleteRob(resultList, apiCode);
+            List<CompletableFuture<Void>> futures = Lists.newArrayList();
 
-            Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58新客_上传清洗规则勿动");
-            // 可营销数据保存到上传清洗表
-            wubaCollidingDataSyncCleanMapper.batchSaveData(resultList, batchNo, apiCode, taskId);
+            List<List<String>> partitions = Lists.partition(resultList, PARTATION_SIZE);
 
-            // 更新数据清洗任务表状态为待清洗
-            updateTaskCleanStatusById(taskId);
-            log.warn("58查询撞库结果，并生成清洗任务，batchNo：{}，taskId：{}", batchNo, taskId);
+            for (List<String> partition : partitions) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        saveAndDelete(partition, apiCode, batchNo, taskId);
+                    } catch (Exception e) {
+                        String subject = "58查询撞库结果作业，子线程处理异常！";
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                                , subject), e);
+                    }
+                }, pool));
+            }
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
+    }
+
+    private void saveAndDelete(List<String> resultList, String apiCode, String batchNo, Long taskId) {
+        // 可营销数据保存到周期表，并从非周期表删除
+        wuBaCollidingDataBusinessService.saveLoopAnddeleteRob(resultList, apiCode);
+
+        // 可营销数据保存到上传清洗表
+        wubaCollidingDataSyncCleanMapper.batchSaveData(resultList, batchNo, apiCode, taskId);
     }
 
     private void updateTaskCleanStatusById(Long taskId) {

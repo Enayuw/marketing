@@ -41,7 +41,8 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
     WubaCollidingDataFrontMapper wubaCollidingDataFrontMapper;
     @Resource
     WuBaCollidingDataBusinessService wuBaCollidingDataBusinessService;
-    private final static int PARTATION_SIZE = 2000;
+
+    private final static int PARTATION_SIZE = 50;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
