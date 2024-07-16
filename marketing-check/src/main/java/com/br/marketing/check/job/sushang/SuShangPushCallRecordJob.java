@@ -46,11 +46,11 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
         //查询待推送文件
         LocalFileExample example = new LocalFileExample();
         example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_TRANSFER.getValue()).andFileNameLike("%" + dateTodayReduceTwo + "%")
-                .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeIn(marketingCommonConfig.getXieChengSmsQuitApiCodes());
+                .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
         List<LocalFile> transferFiles = localFileMapper.selectByExample(example);
         LocalFileExample exampleCallRecord = new LocalFileExample();
         exampleCallRecord.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_CALLRECORD.getValue()).andFileNameLike("%" + dateToday + "%")
-                .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeIn(marketingCommonConfig.getXieChengSmsQuitApiCodes());
+                .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
         List<LocalFile> callRecordFiles = localFileMapper.selectByExample(exampleCallRecord);
         //T日通话明细和T-2日转化数据
         if (CollectionUtils.isEmpty(transferFiles) || CollectionUtils.isEmpty(callRecordFiles)) {
