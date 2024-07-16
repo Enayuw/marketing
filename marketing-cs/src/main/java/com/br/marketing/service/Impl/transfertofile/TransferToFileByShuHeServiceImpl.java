@@ -452,7 +452,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "is_black")
                 + separator +
-                (StringUtils.isEmpty(transfer.getLoginTime()) ? defaultValue : transfer.getLoginTime())
+                getOrDefault(transfer.getLoginTime(), defaultValue)
                 + separator +
                 getOrDefault(json, "clc_usr_lst_app_sta_tim")
                 + separator +
@@ -464,11 +464,11 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 + separator +
                 getOrDefault(json, "clc_usr_iso_inf_tim")
                 + separator +
-                (StringUtils.isEmpty(transfer.getApplyTime()) ? defaultValue : transfer.getApplyTime())
+                getOrDefault(transfer.getApplyTime(), defaultValue)
                 + separator +
-                (StringUtils.isEmpty(transfer.getAuditTime()) ? defaultValue : transfer.getAuditTime())
+                getOrDefault(transfer.getAuditTime(), defaultValue)
                 + separator +
-                (StringUtils.isEmpty(transfer.getAuditAmount()) ? defaultValue : transfer.getAuditAmount())
+                getOrDefault(transfer.getAuditAmount(), defaultValue)
                 + separator +
                 getOrDefault(json, "applyLoanTime") + separator +
                 (StringUtils.isEmpty(transfer.getLentTime()) ? defaultValue : transfer.getLentTime())
@@ -485,5 +485,13 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
      */
     private String getOrDefault(JSONObject reserveField1Json, String key) {
         return reserveField1Json.getOrDefault(key, "").toString();
+    }
+
+    /**
+     * 2024-07-16 11:02
+     * null 值设置默认值
+     */
+    private String getOrDefault(String value, String defaultValue) {
+        return (StringUtils.isEmpty(value) ? defaultValue : value);
     }
 }
