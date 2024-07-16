@@ -294,7 +294,7 @@ public class TransferToFileByShuHeServiceImpl implements ITransferToFileService 
                 example.settCid(tCid);
                 example.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType)
                         .andRequestDataGreaterThan(validConfig.getValidStartDate())
-                        .andRequestDataLessThan(LocalDate.parse(validConfig.getValidEndDate()).plusDays(1).toString());
+                        .andRequestDataLessThanOrEqualTo(validConfig.getValidEndDate() + " 23:59:59");
                 Long maxId = 0L;
                 int size = 0;
                 while (list == null || size == pageSize) {
