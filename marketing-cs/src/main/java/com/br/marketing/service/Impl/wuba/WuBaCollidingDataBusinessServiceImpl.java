@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBusinessService{
+public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBusinessService {
     @Resource
     WubaCollidingDataFrontMapper wubaCollidingDataFrontMapper;
     @Resource
@@ -42,7 +42,7 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void saveLoopAnddeleteRob(List<String> cells, String apiCode){
+    public void saveLoopAnddeleteRob(List<String> cells, String apiCode) {
         wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode);
         wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
     }

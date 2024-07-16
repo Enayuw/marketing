@@ -10,7 +10,6 @@ import javax.annotation.Resource;
 
 /**
  * 58撞库数据同步作业
- *
  * @Author chenh
  * @Date 2024-07-10
  */
