@@ -1501,19 +1501,19 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         String requestDateStr = switchDateStr(requestDateObj);
         Set<String> set = Collections.singleton(userType);
         List<MarketingDataValidConfig> mergeList = new ArrayList<>();
-        while (!Thread.currentThread().isInterrupted()) {
+        for (; true; ) {
             List<MarketingDataValidConfig> list = getDataValidConfig(apiCode, requestDateStr, set, pageNo, pageSize);
             if (list.isEmpty()) {
                 break;
             }
-            pageNo++;
             // 收集分页的合并结果
             mergeList.addAll(mergeValidityPeriod(list));
             if (list.size() < pageSize) {
                 break;
             }
+            pageNo++;
         }
-        return mergeValidityPeriod(mergeList);
+        return pageNo > 0 ? mergeValidityPeriod(mergeList) : mergeList;
     }
 
     /**
