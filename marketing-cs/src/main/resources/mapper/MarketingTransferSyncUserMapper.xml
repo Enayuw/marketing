@@ -1082,8 +1082,8 @@
                transfer.request_time as requestTime,
                transfer.user_type as userType,
                sync.cus_batch as taskId,
-               json_extract(sync.reserve_field1, "$.valid_end_date") as validEndDate,
-               json_extract(sync.reserve_field1, "$.valid_start_date") as validStartDate
+               json_extract(sync.reserve_field1, "$.expireDate") as expireDate,
+               json_extract(sync.reserve_field1, "$.effectiveDate") as effectiveDate
         from
             (select id,
                    cust_num,

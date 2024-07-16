@@ -126,10 +126,10 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                     "" : String.valueOf(data.get("userType"));
             String taskId = ObjectUtils.isEmpty(data.get("taskId")) ?
                     "" : String.valueOf(data.get("taskId"));
-            String validEndDate = ObjectUtils.isEmpty(data.get("validEndDate")) ?
-                    "" : String.valueOf(data.get("validEndDate"));
-            String validStartDate = ObjectUtils.isEmpty(data.get("validStartDate")) ?
-                    "" : String.valueOf(data.get("validStartDate"));
+            String expireDate = ObjectUtils.isEmpty(data.get("expireDate")) ?
+                    "" : String.valueOf(data.get("expireDate"));
+            String effectiveDate = ObjectUtils.isEmpty(data.get("effectiveDate")) ?
+                    "" : String.valueOf(data.get("effectiveDate"));
             StringBuilder sb = new StringBuilder();
             sb.append(custNum.concat(","))
                     .append(applyDt.concat(","))
@@ -138,8 +138,8 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                     .append(requestTime.concat(","))
                     .append(userType.concat(","))
                     .append(taskId.concat(","))
-                    .append(validEndDate.concat(","))
-                    .append(validStartDate)
+                    .append(expireDate.concat(","))
+                    .append(effectiveDate)
                     .append("\r\n");
             try {
                 fw.append(sb.toString());
