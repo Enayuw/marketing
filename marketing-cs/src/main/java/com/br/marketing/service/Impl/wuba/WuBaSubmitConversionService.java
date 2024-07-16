@@ -77,10 +77,11 @@ public class WuBaSubmitConversionService {
                 List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
                         apiCode, status, pushStatus, createDate, "", indexId, pageSize);
                 if (CollectionUtils.isEmpty(pageList)) {
-                    log.warn(TITLE+"未获取到数据");
+                    log.warn(TITLE+"scanData, 未获取到数据");
                     break;
                 }
                 indexId = pageList.get(pageList.size() - 1).getId();
+                log.warn(TITLE + "scanData 获取到数据, 条数{}", pageList.size());
 
                 // 去重
                 List<Long> noPushIds = soleProcessor.checkExists(pageList, param);
@@ -92,6 +93,7 @@ public class WuBaSubmitConversionService {
                     dataExample.createCriteria().andIdIn(noPushIds);
                     wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
                 }
+                log.warn(TITLE + "scanData, 去重条数{}, 推送条数{}", noPushIds.size(), pageList.size());
 
                 // process submit data
                 processData(pageList, condition);
@@ -122,12 +124,14 @@ public class WuBaSubmitConversionService {
             wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: " + apiCode);
             return result;
         }
+        log.warn(TITLE + "调用接口成功{}", apiCode);
 
         // call success
         String batchNo = callResult.getData();
         if (StringUtils.isEmpty(batchNo)) {
             return result;
         }
+        log.warn(TITLE + "batchNo{}", batchNo);
 
         // 上报批次表增加记录，query_status置为0-未查询
         WubaCollidingBatchNo batchRecord = new WubaCollidingBatchNo();
@@ -140,6 +144,7 @@ public class WuBaSubmitConversionService {
         if (insert < 1) {
             throw new Exception(TITLE + "上报批次表增加记录异常");
         }
+        log.warn(TITLE + "上报批次表增加记录成功, batchNo{}", batchNo);
 
         processSuccess(pageList, batchNo);
         return result.success();
@@ -169,6 +174,7 @@ public class WuBaSubmitConversionService {
         if(batchAdd != dataLogList.size()){
             throw new Exception(TITLE+"上报日志表增加记录异常");
         }
+        log.warn(TITLE + "上报日志表增加记录成功, batchNo{}", batchNo);
 
         // 营销名单上报表push_status置为1-推送中
         WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
@@ -178,9 +184,11 @@ public class WuBaSubmitConversionService {
         WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
         dataExample.createCriteria().andIdIn(ids);
         wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
+        log.warn(TITLE + "营销名单上报表push_status置为1成功, batchNo{}", batchNo);
 
         // addDistributeLog
         soleProcessor.addDistributeLog(pushList);
+        log.warn(TITLE + "去重表增加记录成功, batchNo{}", batchNo);
         return result.success();
     }
 
