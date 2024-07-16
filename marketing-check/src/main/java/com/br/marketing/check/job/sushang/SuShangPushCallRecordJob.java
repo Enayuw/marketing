@@ -1,6 +1,8 @@
 package com.br.marketing.check.job.sushang;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.Impl.sushang.SuShangPushService;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
@@ -50,10 +52,11 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
         exampleCallRecord.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_CALLRECORD.getValue()).andFileNameLike("%" + dateToday + "%")
                 .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeIn(marketingCommonConfig.getXieChengSmsQuitApiCodes());
         List<LocalFile> callRecordFiles = localFileMapper.selectByExample(exampleCallRecord);
+        //T日通话明细和T-2日转化数据
         if (CollectionUtils.isEmpty(transferFiles) || CollectionUtils.isEmpty(callRecordFiles)) {
+            log.warn("苏商自动化回传，通话明细或转化文件为空");
             return;
         }
-
         transferFiles.forEach((LocalFile localFile) -> {
             try {
                 suShangPushService.pushCallRecordHandler(localFile, callRecordFiles.get(0));
@@ -62,7 +65,7 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
                 localFile.setPushStatus("3");
                 localFile.setId(localFile.getId());
                 localFileMapper.updateByPrimaryKeySelective(localFile);
-                log.error("携程短信退订推送异常", e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商推送通话明细异常！"), e);
             }
         });
     }

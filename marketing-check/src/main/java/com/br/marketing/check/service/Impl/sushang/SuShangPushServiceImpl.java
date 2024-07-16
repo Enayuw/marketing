@@ -1,5 +1,7 @@
 package com.br.marketing.check.service.Impl.sushang;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LocalFileMapper;
@@ -55,10 +57,12 @@ public class SuShangPushServiceImpl implements SuShangPushService {
         Long callRecordLocalId = callRecordFile.getId();
         ThreadPoolExecutor transferPool = BrExecutors.getThreadPool(50, 50, 50);
         ThreadPoolExecutor callRecordPool = BrExecutors.getThreadPool(50, 50, 50);
-        //
+        //转化数据（已成交）推送
+        long start = System.currentTimeMillis();
         Long indexId = null;
         Integer pageSize = marketingCommonConfig.getSuShangSearchPageSize();
         while (true) {
+            //取extend03非空，最早（距离当前最远）的已成交数据
             List<SushangTransferData> sushangTransferList = sushangTransferDataMapper.getMinOrderDateDatatikv_(transferLocalId,
                     indexId, pageSize);
             if (CollectionUtils.isEmpty(sushangTransferList)) {
@@ -78,13 +82,14 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                 log.info("等待线程池结束");
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商推送规则一线程池停止异常！"), ex);
         }
+        log.warn("苏商推送规则一(已成交)运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
         //插入180天通话明细数据
+        long startTwo = System.currentTimeMillis();
         indexId = null;
         String beginDate = LocalDate.now().minusDays(179).toString();
         String endDate = LocalDate.now().minusDays(1).toString();
-
         while (true) {
             List<SushangCallRecordData> callRecordDataList = sushangCallRecordDataMapper.getHalfYearCallRecord(callRecordLocalId,
                     indexId, pageSize, beginDate, endDate);
@@ -105,8 +110,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                 log.info("等待线程池结束");
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商推送规则二线程池停止异常！"), ex);
         }
+        log.warn("苏商推送规则二(非成交)运行耗时：{}s", (System.currentTimeMillis() - startTwo) / 1000);
         //更新为推送成功状态
         localFile.setPushStatus("2");
         localFile.setId(localFile.getId());
@@ -120,7 +126,7 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             String date = LocalDate.now().toString();
             List<SushangPushResultData> pushDealList = sushangPushResultDataMapper.getDealDataByCustNum(custNums, date);
             Set<String> dealCustNums = pushDealList.stream().map(SushangPushResultData::getCustNum).collect(Collectors.toSet());
-            //剔除
+            //剔除规则一
             callRecordData.removeIf(recordData -> dealCustNums.contains(recordData.getCustNum()));
             callRecordData.forEach(callRecord -> {
                 SushangPushResultData pushResultData = new SushangPushResultData();
@@ -135,7 +141,7 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             //批量插入
             sushangPushResultDataMapper.insertBatch(resultDataList);
         } catch (Exception e) {
-            log.error("苏商银行规则二插入通话明细异常", e.getMessage());
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商银行规则二插入通话明细异常！"), e);
         }
     }
 
@@ -145,7 +151,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             for (SushangTransferData sushangTransferData : transferList) {
                 String minDealTime = sushangTransferData.getExtend03();
                 String custNum = sushangTransferData.getCustNum();
+                //查询最接近该日期的外呼时间
                 SushangCallRecordData callRecordData = sushangCallRecordDataMapper.getLastedCallData(callRecordLocalId, minDealTime, custNum);
+                //日期后的所有外呼明细
                 List<SushangCallRecordData> callRecordDataList = sushangCallRecordDataMapper.getCallRecordList(callRecordLocalId,
                         callRecordData.getCallTime(), callRecordData.getCustNum());
                 for (SushangCallRecordData callRecord : callRecordDataList) {
@@ -162,7 +170,7 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             //批量插入
             sushangPushResultDataMapper.insertBatch(resultDataList);
         } catch (Exception e) {
-            log.error("苏商银行规则一插入通话明细异常", e.getMessage());
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商银行规则一插入通话明细异常！"), e);
         }
     }
 
