@@ -15,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
@@ -156,6 +157,11 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                 String custNum = sushangTransferData.getCustNum();
                 //查询最接近该日期的外呼时间
                 SushangCallRecordData callRecordData = sushangCallRecordDataMapper.getLastedCallData(callRecordLocalId, minDealTime, custNum);
+                if (ObjectUtils.isEmpty(callRecordData)) {
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "custNum=" + custNum +
+                            "苏商银行规则一未查询到通话明细！"));
+                    continue;
+                }
                 //日期后的所有外呼明细
                 List<SushangCallRecordData> callRecordDataList = sushangCallRecordDataMapper.getCallRecordList(callRecordLocalId,
                         callRecordData.getCallTime(), callRecordData.getCustNum());
