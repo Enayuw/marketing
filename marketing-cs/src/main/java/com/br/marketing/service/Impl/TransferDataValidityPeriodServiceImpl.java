@@ -1534,13 +1534,18 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             LocalDate startDate = LocalDate.parse(validConfig.getValidStartDate());
             LocalDate mergeEndDate;
             MarketingDataValidConfig mergeValidConfig;
-            if (mergeList.isEmpty() || startDate.isAfter(mergeEndDate = LocalDate.parse((
-                    mergeValidConfig = mergeList.get(mergeList.size() - 1)).getValidEndDate()))) {
+            if (mergeList.isEmpty()) {
                 mergeList.add(validConfig);
             } else {
-                LocalDate endDate = LocalDate.parse(validConfig.getValidEndDate());
-                mergeValidConfig.setValidEndDate(mergeEndDate.isAfter(endDate)
-                        ? mergeValidConfig.getValidEndDate() : validConfig.getValidEndDate());
+                mergeValidConfig = mergeList.get(mergeList.size() - 1);
+                mergeEndDate = LocalDate.parse(mergeValidConfig.getValidEndDate());
+                if (startDate.isAfter(mergeEndDate)) {
+                    mergeList.add(validConfig);
+                } else {
+                    LocalDate endDate = LocalDate.parse(validConfig.getValidEndDate());
+                    mergeValidConfig.setValidEndDate(mergeEndDate.isAfter(endDate)
+                            ? mergeValidConfig.getValidEndDate() : validConfig.getValidEndDate());
+                }
             }
         }
         return mergeList;
