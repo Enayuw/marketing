@@ -203,6 +203,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByCuDongZhiServiceImpl transferToFileByCuDongZhiService;
 
+    /**
+     * 苏商自动化回传-3710114
+     */
+    @Resource
+    private TransferToFileBySuShangServiceImpl transferToFileBySuShangService;
+
 
 
     @Resource
@@ -353,7 +359,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
             .addBind(transferToFileByDiDiService, marketingCommonConfig.getDidiApiCodes())
             // 榕树转化数据提取
             .addBind(transferToFileByRongShuService, marketingCommonConfig.getRongShuTransferApiCodes())
-            .addBind(transferToFileByCuDongZhiService, marketingCommonConfig.getCuDongZhiTransferExtractApiCodes()).build();
+            .addBind(transferToFileByCuDongZhiService, marketingCommonConfig.getCuDongZhiTransferExtractApiCodes())
+            .addBind(transferToFileBySuShangService, marketingCommonConfig.getSuShangTransferExtractApiCodes()).build();
     }
 
 

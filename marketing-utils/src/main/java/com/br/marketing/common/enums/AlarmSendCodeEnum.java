@@ -39,7 +39,8 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_NEW_FIELD_CHECK("62006", "接口字段新增检查"),
     // 一般通知,阶梯推送，一般
     EXCEPTION_USUAL_NOTICE("62007", "通知"),
-
+    //业务未知错误,立即推送，63000
+    SERVICEERROR_UNKNOWN("63000", "业务未知错误"),
     //众安通话明细回调
     EXCEPTION_ZHONGAN_CALL_RECORD("62008", "众安通话明细回调"),
 

@@ -1789,7 +1789,15 @@ public class MarketingCommonConfig {
      */
     private Integer suShangPushThreadNum;
 
+    /**
+     * 苏商自动化回传apiCode集合
+     */
+    private List<String> SuShangTransferExtractApiCodes;
 
+    /**
+     * 苏商自动化回传执行时间
+     */
+    private String SuShangTransferFileExecuteTime;
 
 }
 

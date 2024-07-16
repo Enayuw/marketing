@@ -44,4 +44,15 @@
         </foreach>
 
     </select>
+
+    <select id="getTransferByRequestDateSuShang" resultType="com.br.marketing.entity.SushangPushResultData">
+        select * from b_sushang_push_result_data
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode}
+        </if>
+        <![CDATA[ and upload_date = #{requestDate} ]]>
+        <![CDATA[ and id >= #{beginId} and id < #{endId} ]]>
+        order by id
+    </select>
 </mapper>
