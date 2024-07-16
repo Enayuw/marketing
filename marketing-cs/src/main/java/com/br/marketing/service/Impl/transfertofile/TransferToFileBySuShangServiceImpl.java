@@ -113,7 +113,7 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(1);
                 transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName(String.format("br_returnlist_%s.txt", dateyyyymmddStr));
+                transferFileTask.setFileName(String.format("br_returnlist_%s_01.txt", dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStartDate(date);
                 transferFileTask.setContextId(transferFileContextId);

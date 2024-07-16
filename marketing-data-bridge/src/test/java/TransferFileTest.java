@@ -117,7 +117,7 @@ public class TransferFileTest implements ApplicationContextAware {
         String recordDate = transferFileTask.getStartDate();
         boolean isParam = StringUtils.isNotBlank(dd);
         String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        transferFileTask.setFileName(String.format("br_returnlist_%s.txt", dateyyyymmddStr));
+        transferFileTask.setFileName(String.format("br_returnlist_%s_01.txt", dateyyyymmddStr));
         log.warn("苏商自动化回传-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
