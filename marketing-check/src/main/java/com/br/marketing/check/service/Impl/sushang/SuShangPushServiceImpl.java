@@ -138,6 +138,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                 pushResultData.setStatus(1);
                 resultDataList.add(pushResultData);
             });
+            if(CollectionUtils.isEmpty(resultDataList)) {
+                return;
+            }
             //批量插入
             sushangPushResultDataMapper.insertBatch(resultDataList);
         } catch (Exception e) {
@@ -166,6 +169,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                     pushResultData.setStatus(1);
                     resultDataList.add(pushResultData);
                 }
+            }
+            if(CollectionUtils.isEmpty(resultDataList)){
+                return;
             }
             //批量插入
             sushangPushResultDataMapper.insertBatch(resultDataList);
