@@ -52,7 +52,7 @@ public class ZhiJiaClueFeedBackJob extends AbstractSimpleElasticJob {
             localFile.setPushStatus("3");
             localFile.setId(localFiles.get(0).getId());
             localFileMapper.updateByPrimaryKeySelective(localFile);
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "【之家创建线索】推送异常！"), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "【之家创建线索】推送异常！"), e);
         }
 
     }
