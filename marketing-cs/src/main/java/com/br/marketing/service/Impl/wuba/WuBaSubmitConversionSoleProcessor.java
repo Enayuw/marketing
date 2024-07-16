@@ -98,15 +98,23 @@ public class WuBaSubmitConversionSoleProcessor {
         String apiCode = param.getApiCode();
         Integer distributeType = DistributeTypeEnum.WUBA_SUBMIT_CONVERSION.getValue();
         String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        Set<String> cells = pushList.stream().map(WubaSubmitConversionData::getCell).collect(Collectors.toSet());
-        Set<String> distributeCellSet = distributeLogMapper.findDistributeLogCellSet(apiCode, distributeType, distributeDate, cells);
+        // soleCellSet
+        Set<String> soleCellSet = new HashSet<>();
+        // allCells
+        Set<String> allCells = pushList.stream().map(WubaSubmitConversionData::getCell).collect(Collectors.toSet());
+        // distributeCellSet
+        Set<String> distributeCellSet = distributeLogMapper.findDistributeLogCellSet(apiCode, distributeType, distributeDate, allCells);
+        // iterator pushList
         Iterator<WubaSubmitConversionData> iterator = pushList.iterator();
         while (iterator.hasNext()){
             WubaSubmitConversionData next = iterator.next();
-            if(distributeCellSet.contains(next.getCell())){
+            String cell = next.getCell();
+            if(distributeCellSet.contains(cell) || soleCellSet.contains(cell)){
                 notPushIds.add(next.getId());
                 iterator.remove();
+                continue;
             }
+            soleCellSet.add(cell);
         }
         return notPushIds;
     }
