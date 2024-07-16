@@ -82,8 +82,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 return;
             }
 
-            pool.setCorePoolSize(marketingCommonConfig.getWubaCollidingDataQueryResultThreadNum());
-            pool.setMaximumPoolSize(marketingCommonConfig.getWubaCollidingDataQueryResultThreadNum());
+            pool.setCorePoolSize(marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
+            pool.setMaximumPoolSize(marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
 
             Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58新客_上传清洗规则勿动");
 
@@ -94,6 +94,10 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             List<String> batchNos = wubaCollidingBatchNos.stream().map(WubaCollidingBatchNo::getBatchNo).collect(Collectors.toList());
             int cleanCount = getCleanCountByBatchNos(batchNos, apiCode);
             if (cleanCount <= 0) {
+                MarketingCleanDataTask cleanDataTask = new MarketingCleanDataTask();
+                cleanDataTask.setId(taskId);
+                cleanDataTask.setIsDel(9);
+                marketingCleanDataTaskMapper.updateByPrimaryKeySelective(cleanDataTask);
                 return;
             }
 
