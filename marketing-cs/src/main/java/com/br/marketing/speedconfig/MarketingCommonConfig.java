@@ -1780,7 +1780,7 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingApiCodes;
 
     /**
-     * 58同步撞库数据线程数
+     * 58撞库数据落库线程数（同步、提交撞库、查询撞库结果）
      */
     private Integer wubaCollidingDataSyncThreadNum;
 
@@ -1798,11 +1798,6 @@ public class MarketingCommonConfig {
      * 58提交撞库数据分页条数
      */
     private Integer wuBaCollidingDataSubmitPageSize;
-
-    /**
-     * 58查询撞库结果线程数
-     */
-    private Integer wubaCollidingDataQueryResultThreadNum;
 
     /**
      * 58查询撞库结果分页条数

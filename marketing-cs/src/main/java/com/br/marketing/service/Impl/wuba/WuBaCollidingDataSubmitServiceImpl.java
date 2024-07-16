@@ -77,7 +77,6 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
 
             // 保存批次号表
             String batchNo = result.getData().toString();
-            log.warn("58提交撞库名单，客户返回batchNo：{}", batchNo);
             wubaCollidingBatchNoMapper.saveDataByBatchNo(batchNo, 1, apiCode);
 
             // 更新非周期表
