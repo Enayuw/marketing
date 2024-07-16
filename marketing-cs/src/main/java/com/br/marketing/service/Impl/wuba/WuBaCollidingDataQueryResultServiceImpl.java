@@ -10,11 +10,13 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.WubaCollidingBatchNo;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.entity.WubaCollidingDataSyncClean;
 import com.br.marketing.entity.WubaCollidingDataSyncCleanExample;
+import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
@@ -59,6 +61,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     WuBaServiceClient wuBaServiceClient;
     @Autowired
     DataCleaningAutoService cleaningAutoService;
+    @Autowired
+    MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
     ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10);
 
     @Override
@@ -147,8 +151,18 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58新客_上传清洗规则勿动");
             // 可营销数据保存到上传清洗表
             wubaCollidingDataSyncCleanMapper.batchSaveData(resultList, batchNo, apiCode, taskId);
+
+            // 更新数据清洗任务表状态为待清洗
+            updateTaskCleanStatusById(taskId);
             log.warn("58查询撞库结果，并生成清洗任务，batchNo：{}，taskId：{}", batchNo, taskId);
         }
+    }
+
+    private void updateTaskCleanStatusById(Long taskId) {
+        MarketingCleanDataTask cleanDataTask = new MarketingCleanDataTask();
+        cleanDataTask.setId(taskId);
+        cleanDataTask.setCleanStatus(0);
+        marketingCleanDataTaskMapper.updateByPrimaryKeySelective(cleanDataTask);
     }
 
     private ArrayList<String> updateLogResultByBatchNo(Result result, String batchNo, String apiCode) {
