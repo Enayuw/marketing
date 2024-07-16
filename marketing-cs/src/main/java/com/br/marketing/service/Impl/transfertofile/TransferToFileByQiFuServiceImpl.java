@@ -219,26 +219,4 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
         }
     }
 
-    /**
-     * 使用公共方法对转化数据做有效期过滤
-     * @param apiCode
-     * @param requestDate
-     * @param transferData
-     * @return
-     */
-    private List<MarketingTransferSyncUser> filterTransferDataWithValPerd(String apiCode,
-                                                                          String requestDate,
-                                                                          List<MarketingTransferSyncUser> transferData) {
-        Set<String> custNumSet = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode,
-                        LocalDate.parse(requestDate, YYYYMMDDSHORTLINE));
-        List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter((MarketingTransferSyncUser transfer) -> {
-            String custNum = transfer.getCustNum();
-            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
-            return syncUserValidityPeriodsBO != null;
-        }).collect(Collectors.toList());
-        return transferDataNew;
-    }
-
 }

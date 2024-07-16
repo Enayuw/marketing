@@ -74,17 +74,17 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
             if (CollectionUtils.isEmpty(result)) {
                 break;
             }
-            Long minId = Long.valueOf(String.valueOf(result.get(result.size() - 1).get("id"))) + 1;
+            Long minId = Long.parseLong(String.valueOf(result.get(result.size() - 1).get("id"))) + 1;
             transferSyncUser.setId(minId);
             List<Map<String, Object>> extData = result.stream()
                     .filter(transfer -> transfer.get("taskId") != null)
                     .collect(Collectors.groupingBy(transfer -> transfer.get("id").toString()))
-                    .entrySet()
+                    .values()
                     .stream()
-                    .map(entry -> {
-                        List<Map<String, Object>> transfers = entry.getValue();
-                        return transfers.stream().max(Comparator.comparing(transfer -> transfer.getOrDefault("validEndDate", "").toString())).get();
-                    }).collect(Collectors.toList());
+                    .map((List<Map<String, Object>> transfers) ->
+                            transfers.stream().max(Comparator.comparing(transfer ->
+                                    transfer.getOrDefault("validEndDate", "").toString())).get()
+                    ).collect(Collectors.toList());
             threadPool.submit(() -> {
                 writeDataForOneQuery(fw, totalSize, extData);
             });
