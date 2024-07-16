@@ -12,10 +12,7 @@ import com.br.marketing.common.utils.orika.OrikaBeanMapperUtil;
 import com.br.marketing.dto.wuba.ConversionResponseDTO;
 import com.br.marketing.dto.wuba.WubaQueryConversionDto;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
-import com.br.marketing.mapper.WubaSubmitConversionDataLogMapper;
-import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
-import com.br.marketing.mapper.WubaSubmitConversionDataTransferCleanMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -74,6 +71,9 @@ public class WuBaQueryConversionResultService {
     @Resource
     private DataCleaningAutoService cleaningAutoService;
 
+    @Resource
+    private MarketingCleanDataTaskMapper cleanDataTaskMapper;
+
 
     public void action(Page2Condition<WubaQueryConversionDto> condition) {
         scanData(condition);
@@ -100,6 +100,7 @@ public class WuBaQueryConversionResultService {
             log.warn(TITLE+"未获取到批次数据");
             return result;
         }
+
         // queryPool
         ThreadPoolExecutor queryPool = BrExecutors.getThreadPool(12, 12, 20);
 
@@ -141,21 +142,15 @@ public class WuBaQueryConversionResultService {
             Thread.currentThread().interrupt();
         }
 
-        List<String> batchNos = batchNoList.stream().map(WubaCollidingBatchNo::getBatchNo).collect(Collectors.toList());
-        int cleanCount = getCleanCountByBatchNos(batchNos, apiCode);
-        if (cleanCount <= 0) {
-            result.success();
-        }
-
-        cleaningAutoService.saveCleanTask(apiCode, 1, "58新客_转化清洗规则勿动");
         return result.success();
     }
 
     public Result<WubaCollidingBatchNo> processData(WubaCollidingBatchNo wubaCollidingBatchNo) throws Exception {
         Result<WubaCollidingBatchNo> result = new Result().failure();
+        String batchNo = wubaCollidingBatchNo.getBatchNo();
+        log.warn(TITLE + "processData start, batchNo: {}", batchNo);
         try {
             // callClient
-            String batchNo = wubaCollidingBatchNo.getBatchNo();
             Result<List<ConversionResponseDTO>> callResult = callClient(wubaCollidingBatchNo);
             //
             if (callResult == null) {
@@ -190,6 +185,7 @@ public class WuBaQueryConversionResultService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
                     TITLE+ e.getMessage()));
         }
+        log.warn(TITLE + "processData end, batchNo: {}", batchNo);
         return result.success();
     }
 
@@ -273,6 +269,11 @@ public class WuBaQueryConversionResultService {
         if(CollectionUtils.isEmpty(responseDtoList)){
             return new Result().success();
         }
+        String apiCode = wubaCollidingBatchNo.getApiCode();
+        String batchNo = wubaCollidingBatchNo.getBatchNo();
+
+        // 清洗任务
+        Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58新客_上传清洗规则勿动");
 
         // 转化结果表增加记录
         List<WubaSubmitConversionDataTransferClean> dataTransferCleanList = responseDtoList.stream()
@@ -284,6 +285,7 @@ public class WuBaQueryConversionResultService {
             dataTransferClean.setBatchNo(wubaCollidingBatchNo.getBatchNo());
             dataTransferClean.setPushTime(wubaCollidingBatchNo.getPushTime());
             dataTransferClean.setCleanStatus(0);
+            dataTransferClean.setTaskId(taskId);
             return dataTransferClean;
         }).collect(Collectors.toList());
 
@@ -291,6 +293,7 @@ public class WuBaQueryConversionResultService {
         if(batchAddResult != dataTransferCleanList.size()){
             throw new Exception(TITLE+"保存转化结果异常");
         }
+        log.warn(TITLE + "保存转化结果成功, batchNo: {}", batchNo);
 
         // 上报日志表, add转化数据，submit_result置为1-上报成功
         for(ConversionResponseDTO dto: responseDtoList){
@@ -302,10 +305,19 @@ public class WuBaQueryConversionResultService {
                     .andCellEqualTo(dto.getMobileEncrypt());
             dataLogMapper.updateByExampleSelective(dataLog, dataLogExample);
         }
+        log.warn(TITLE + "保存上报日志成功, batchNo: {}", batchNo);
 
         // 营销名单上报表, push_status置为2-推送成功
         List<String> successCellList = responseDtoList.stream().map(ConversionResponseDTO::getMobileEncrypt).collect(Collectors.toList());
         updateDataStatus(successCellList,2);
+        log.warn(TITLE + "营销名单上报成功, batchNo: {}", batchNo);
+
+        // 更新清洗任务表
+        MarketingCleanDataTask cleanDataTaskUpdate = new MarketingCleanDataTask();
+        cleanDataTaskUpdate.setId(taskId);
+        cleanDataTaskUpdate.setCleanStatus(0);
+        cleanDataTaskMapper.updateByPrimaryKeySelective(cleanDataTaskUpdate);
+        log.warn(TITLE + "更新清洗任务成功, batchNo: {}", batchNo);
 
         return new Result().success();
     }
