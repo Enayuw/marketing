@@ -7,7 +7,7 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -85,8 +85,8 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
             Date creatTime = iMarketingSyncUserService.getCreatTimeByCustNumAndUserType(transfer.getApiCode()
                     , transfer.getCustNum(), transfer.getUserType());
             shuHeRuleNecessaryData.setCreatTime(creatTime);
-            IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
-            shuHeRuleNecessaryData.setIUserType(iUserType);
+            BaseUserType baseUserType = UserTypeStrategyFactory.getUserTypeStrategy(transfer.getUserType());
+            shuHeRuleNecessaryData.setBaseUserType(baseUserType);
             shuHeRuleNecessaryData.setContinueJudgeRule(true);
             caseShuheUserAdapter(transfer, shuHeRuleNecessaryData);
             MarketingSyncUser marketingSyncUserByCell = marketingSyncInfoMapper.getNewestPreUserByCell(context.getApiCode(),
@@ -124,7 +124,7 @@ public class ShuHeRuleCollectDataImpl extends CommonMethodHandlerService {
         /**
          * 场景策略
          */
-        private IUserType iUserType;
+        private BaseUserType baseUserType;
         /**
          * 上传数据创建时间
          *

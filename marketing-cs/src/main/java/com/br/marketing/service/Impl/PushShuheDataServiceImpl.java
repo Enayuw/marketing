@@ -28,7 +28,7 @@ import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.dto.shuhe.factory.CaseShuheUserFactory;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.UnknownUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CaseShuheUploadDataMapper;
@@ -145,10 +145,10 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                  */
                 userType = iMarketingSyncUserService.getUserTypeLatestByCustNum(apiCode, jsonDTO.getOrderId());
             }
-            final IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
-            CaseShuheUser caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(iUserType
+            final BaseUserType baseUserType = UserTypeStrategyFactory.getUserTypeStrategy(userType);
+            CaseShuheUser caseShuheUser = CaseShuheUserFactory.newInstance().getCaseShuheUser(baseUserType
                     , jsonDTO, apiCode, jsonData);
-            boolean sendToQueueBool = iUserType instanceof UnknownUserType;
+            boolean sendToQueueBool = baseUserType instanceof UnknownUserType;
             if (sendToQueueBool) {
                 caseShuheUser.setStatus(1);
                 msg = "未知的业务类型\"" + userType + "\"!";
@@ -156,9 +156,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
                 caseShuheUser.setErrorInfo("#1" + responseShuheDTO.getDesc());
                 this.sendAlarmMgs(title, msg.concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                                 .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^")
-                                ,alarmClient);
-            } else if (!iUserType.getApiCodes().contains(apiCode)) {
-                log.warn("场景(".concat(iUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n")
+                        , alarmClient);
+            } else if (!baseUserType.getApiCodes().contains(apiCode)) {
+                log.warn("场景(".concat(baseUserType.getApiCodes().toString()).concat(")与对应apiCode不匹配\n")
                         .concat(userType).concat("\napiCode“").concat(apiCode).concat("”\n案件编号“")
                         .concat(jsonDTO.getOrderId()).concat("”\n").concat("请及时跟进或与数禾客户及时沟通^_^"));
             }

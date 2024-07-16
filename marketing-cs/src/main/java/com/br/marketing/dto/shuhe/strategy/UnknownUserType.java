@@ -14,7 +14,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2022/2/11 14:09
  */
-public class UnknownUserType extends IUserType {
+public class UnknownUserType extends BaseUserType {
     public UnknownUserType(String... api2Codes) {
         super(api2Codes);
     }

@@ -21,7 +21,7 @@ public class UserTypeStrategyFactory {
 
     private static MarketingCommonConfig marketingCommonConfig;
 
-    private final static Map<String, IUserType> USER_TYPE_CACHE = new ConcurrentHashMap<>();
+    private final static Map<String, BaseUserType> USER_TYPE_CACHE = new ConcurrentHashMap<>();
 
     static {
         USER_TYPE_CACHE.put("促首登", new CuShouDeng());
@@ -40,18 +40,18 @@ public class UserTypeStrategyFactory {
         return USER_TYPE_CACHE.keySet();
     }
 
-    public static IUserType getUserTypeStrategy(String userType) {
+    public static BaseUserType getUserTypeStrategy(String userType) {
         if (userType == null) {
             return new UnknownUserType();
         }
-        IUserType iUserType = USER_TYPE_CACHE.getOrDefault(userType, new UnknownUserType()).setUserType(userType);
+        BaseUserType baseUserType = USER_TYPE_CACHE.getOrDefault(userType, new UnknownUserType()).setUserType(userType);
         try {
             Map<String, List<String>> mappingMap = marketingCommonConfig.getShuHeUserTypeAndApiCodeMappingMap();
             List<String> apiCodeList = mappingMap.get(userType);
             if (apiCodeList == null) {
-                return iUserType;
+                return baseUserType;
             }
-            List<String> apiCodes = iUserType.getApiCodes();
+            List<String> apiCodes = baseUserType.getApiCodes();
             if (apiCodeList.size() == 0) {
                 apiCodes.clear();
             } else {
@@ -64,7 +64,7 @@ public class UserTypeStrategyFactory {
             }
         } catch (Exception ignored) {
         }
-        return iUserType;
+        return baseUserType;
     }
 
 }

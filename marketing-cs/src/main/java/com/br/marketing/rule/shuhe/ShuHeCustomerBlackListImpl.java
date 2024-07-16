@@ -5,7 +5,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
@@ -64,9 +64,9 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
                 ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                         (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
                 if (shuHeContext.isContinueJudgeRule()) {
-                    IUserType iUserType = shuHeContext.getIUserType();
+                    BaseUserType baseUserType = shuHeContext.getBaseUserType();
                     CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                    if (shuHeContext.getNonBlackListCount() == 0 && iUserType.isBlack(caseShuheUser)) {
+                    if (shuHeContext.getNonBlackListCount() == 0 && baseUserType.isBlack(caseShuheUser)) {
                         shuHeContext.setContinueJudgeRule(false);
                         bool = Boolean.TRUE;
                     }

@@ -21,19 +21,19 @@ import java.util.*;
  * @author Guo Zeqiang
  * @dateTime 2022/2/10 16:54
  */
-public abstract class IUserType {
+public abstract class BaseUserType {
     protected String userType;
     protected final String Y = "Y";
     protected final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[:SSS]");
     protected final DateTimeFormatter dateTime2Formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     protected List<String> apiCodes = new ArrayList<>(Collections.singletonList("7410785"));
 
-    public IUserType setUserType(String userType) {
+    public BaseUserType setUserType(String userType) {
         this.userType = userType;
         return this;
     }
 
-    IUserType(String... api2Codes) {
+    BaseUserType(String... api2Codes) {
         Collections.addAll(apiCodes, api2Codes);
     }
 

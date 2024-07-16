@@ -8,8 +8,8 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -92,7 +92,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                 ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                         (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
                 if (shuHeContext.isContinueJudgeRule()) {
-                    IUserType iUserType = shuHeContext.getIUserType();
+                    BaseUserType baseUserType = shuHeContext.getBaseUserType();
                     CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                     /* 2024-04-12 13:50 需求：
                      * title：D20240408数禾促复借数据有效期变更-3710043
@@ -112,13 +112,13 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                     transferSyncUser.setId(transfer.getId());
                     transferSyncUser.settCid(transfer.gettCid());
                     shuHeContext.setTransfer(transfer);
-                    if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
+                    if (baseUserType.isTurn(caseShuheUser) || baseUserType.isEmpty(caseShuheUser)) {
                         transferSyncUser.setIfTransform("2");
                         ((MarketingTransferSyncUser) transmitFact).setIfTransform("2");
                         iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                         shuHeContext.setContinueJudgeRule(false);
                         bool = Boolean.TRUE;
-                    } else if (iUserType instanceof CuFuJie && ((CuFuJie) iUserType).ifTransfer(caseShuheUser
+                    } else if (baseUserType instanceof CuFuJie && ((CuFuJie) baseUserType).ifTransfer(caseShuheUser
                             , marketingSyncUser.getAppletTime(), marketingCommonConfig)) {
                         // 转化
                         transferSyncUser.setIfTransform("1");
@@ -126,7 +126,7 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                         iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
                         shuHeContext.setContinueJudgeRule(false);
                         bool = Boolean.TRUE;
-                    } else if (iUserType.ifTransfer(caseShuheUser, marketingSyncUser.getAppletTime())) {
+                    } else if (baseUserType.ifTransfer(caseShuheUser, marketingSyncUser.getAppletTime())) {
                         // 转化
                         transferSyncUser.setIfTransform("1");
                         ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
