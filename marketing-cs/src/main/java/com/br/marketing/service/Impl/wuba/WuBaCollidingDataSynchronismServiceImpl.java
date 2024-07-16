@@ -57,7 +57,6 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
 
             for (LocalFile localFile : localFiles) {
                 try {
-                    localFile.setPushStartTime(new Date());
                     process(localFile);
                     updatePushStatus(localFile, "2");
                 } catch (Exception e) {
@@ -122,7 +121,6 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
     }
 
     private void updatePushStatus(LocalFile localFile, String pushStatus) {
-        localFile.setPushEndTime(new Date());
         localFile.setPushStatus(pushStatus);
         localFileMapper.updateByPrimaryKeySelective(localFile);
     }
