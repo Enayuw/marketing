@@ -512,7 +512,7 @@ public class HttpProxyClient {
             String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
             res.put("content", result);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_ZHIJIA_ERROR.getCode(), "url=" + uri), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(), "url=" + uri), e);
             res.put("content", e.getMessage());
         }
         return res;
