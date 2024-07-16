@@ -109,16 +109,16 @@ public class TransferFileTest implements ApplicationContextAware {
     @Test
     public void SuShangWriteTransferToFile() {
         TransferFileTask transferFileTask = new TransferFileTask();
-        transferFileTask.setApiCode("7492801");
-        String myParam = "7492801#2024-06-27";
-        String dd = isMyParam("7492801", myParam);
+        transferFileTask.setApiCode("7491726");
+        String myParam = "7491726#2024-07-16";
+        String dd = isMyParam("7491726", myParam);
         transferFileTask.setStartDate(dd);
         String apiCode = transferFileTask.getApiCode();
         String recordDate = transferFileTask.getStartDate();
         boolean isParam = StringUtils.isNotBlank(dd);
         String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         transferFileTask.setFileName(String.format("br_returnlist_%s.txt", dateyyyymmddStr));
-        log.warn("榕树转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        log.warn("苏商自动化回传-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
         String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
         File writeDic = new File(descPath);

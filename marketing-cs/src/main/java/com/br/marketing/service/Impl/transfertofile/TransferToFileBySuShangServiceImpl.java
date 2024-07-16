@@ -29,7 +29,6 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.SyncConfigService;
@@ -62,8 +61,6 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
     private SyncConfigService syncConfigService;
     @Resource
     private TableCreateServiceImpl tableCreateService;
-    @Resource
-    private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private SushangPushResultDataMapper sushangPushResultDataMapper;
     @Resource
@@ -174,8 +171,8 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
         // 创建线程池
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(12, 12, 100);
         Integer pageSize = null;
-        Long beginId = marketingTransferSyncUserMapper.minIdByCid(tcId, apiCode, localDate.toString());
-        Long endId = marketingTransferSyncUserMapper.maxIdByCid(tcId, apiCode, localDate.toString());
+        Long beginId = sushangPushResultDataMapper.minId(apiCode, localDate.toString());
+        Long endId = sushangPushResultDataMapper.maxId(apiCode, localDate.toString());
         Long middleId;
         Boolean continueFlag = Boolean.TRUE;
         while (continueFlag) {

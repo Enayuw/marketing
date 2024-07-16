@@ -55,4 +55,28 @@
         <![CDATA[ and id >= #{beginId} and id < #{endId} ]]>
         order by id
     </select>
+
+    <select id="maxId" resultType="java.lang.Long">
+        SELECT
+        max(id) as id
+        FROM
+        b_sushang_push_result_data
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        upload_date = #{requestDate}
+    </select>
+
+    <select id="minId" resultType="java.lang.Long">
+        SELECT
+        min(id) as id
+        FROM
+        b_sushang_push_result_data
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        upload_date = #{requestDate}
+    </select>
 </mapper>

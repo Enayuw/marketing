@@ -23,4 +23,22 @@ public interface SushangPushResultDataMapper extends SushangPushResultDataMapper
             , @Param("requestDate") String requestDate
             , @Param("beginId") Long beginId
             , @Param("endId") Long endId);
+
+    /**
+     * 获取满足条件的最小id
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @return Long
+     */
+    Long minId(@Param("apiCode") String apiCode, @Param("requestDate") String requestDate);
+
+    /**
+     * 获取满足条件的最大id
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @return Long
+     */
+    Long maxId(@Param("apiCode") String apiCode, @Param("requestDate") String requestDate);
+
+
 }
