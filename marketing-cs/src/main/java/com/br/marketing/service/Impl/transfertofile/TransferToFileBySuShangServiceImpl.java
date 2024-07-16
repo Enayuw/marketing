@@ -49,7 +49,7 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
 
     final static String EXECUTE_TIME = "10:00:00";
 
-    private final static String FILE_HEADER = "tskId,custNum,touchType,callTime,pushTime";
+    private final static String FILE_HEADER = "taskId,custNum,touchType,callTime,pushTime";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;

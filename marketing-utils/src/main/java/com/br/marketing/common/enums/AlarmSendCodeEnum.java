@@ -41,12 +41,12 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_USUAL_NOTICE("62007", "通知"),
     //众安通话明细回调,
     EXCEPTION_ZHONGAN_CALL_RECORD("62008", "众安通话明细回调"),
-    //携程业务报错
+    //携程业务报错，立即推送
     XIECHENG_RECORD("62009", "携程业务报错"),
     //业务未知错误,立即推送，63000
-        SERVICEERROR_UNKNOWN("63000", "业务实现未知错误"),
-    //三方接口错误,立即推送，64000
-    INTERFACE_ERROR("64000", "调用三方接口错误"),
+    SERVICEERROR_UNKNOWN("63000", "业务实现未知错误"),
+    //三方接口错误,告警周期和告警次数，64000
+    INTERFACE_ERROR("64000", "三方接口错误"),
 
     //数据治理平台调用marketing-inner-api邮件发送接口使用
     DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),

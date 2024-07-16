@@ -104,7 +104,7 @@ public class TransferFileTest implements ApplicationContextAware {
     @Resource
     TransferToFileBySuShangServiceImpl transferToFileBySuShangService;
 
-    private final static String FILE_HEADER = "tskId,custNum,touchType,callTime,pushTime";
+    private final static String FILE_HEADER = "taskId,custNum,touchType,callTime,pushTime";
 
     @Test
     public void SuShangWriteTransferToFile() {
