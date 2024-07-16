@@ -101,17 +101,17 @@ public class ZhiJiaClueBackData {
     /**
      * 行驶里程
      */
-    private String mileAge;
+    private String mileage;
 
     /**
      * 首次上牌时间
      */
-    private String firstRegTime;
+    private String firstregtime;
 
     /**
      * 车牌号前两位
      */
-    private String plateNum;
+    private String platenum;
 
     /**
      * 拓展字段间隔符
@@ -310,28 +310,28 @@ public class ZhiJiaClueBackData {
         this.seriesType = seriesType == null ? null : seriesType.trim();
     }
 
-    public String getMileAge() {
-        return mileAge;
+    public String getMileage() {
+        return mileage;
     }
 
-    public void setMileAge(String mileAge) {
-        this.mileAge = mileAge == null ? null : mileAge.trim();
+    public void setMileage(String mileage) {
+        this.mileage = mileage == null ? null : mileage.trim();
     }
 
-    public String getFirstRegTime() {
-        return firstRegTime;
+    public String getFirstregtime() {
+        return firstregtime;
     }
 
-    public void setFirstRegTime(String firstRegTime) {
-        this.firstRegTime = firstRegTime == null ? null : firstRegTime.trim();
+    public void setFirstregtime(String firstregtime) {
+        this.firstregtime = firstregtime == null ? null : firstregtime.trim();
     }
 
-    public String getPlateNum() {
-        return plateNum;
+    public String getPlatenum() {
+        return platenum;
     }
 
-    public void setPlateNum(String plateNum) {
-        this.plateNum = plateNum == null ? null : plateNum.trim();
+    public void setPlatenum(String platenum) {
+        this.platenum = platenum == null ? null : platenum.trim();
     }
 
     public String getExtend() {

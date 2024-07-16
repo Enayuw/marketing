@@ -222,8 +222,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         dto.setMobile(zhiJiaClueBackData.getCell());
         dto.setMobilecode(encryptCell(zhiJiaClueBackData.getCell()));
         dto.setMobilecode(encryptCell(zhiJiaClueBackData.getCell()));
-        dto.setFirstregtime(zhiJiaClueBackData.getFirstRegTime());
-        dto.setMileage(zhiJiaClueBackData.getMileAge());
+        dto.setFirstregtime(zhiJiaClueBackData.getFirstregtime());
+        dto.setMileage(zhiJiaClueBackData.getMileage());
         dto.setAppid(StringUtils.isNotBlank(zhiJiaClientAppid) ? Integer.parseInt(zhiJiaClientAppid) : 1742);
     }
 

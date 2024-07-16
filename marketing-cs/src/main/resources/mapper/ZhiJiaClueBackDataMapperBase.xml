@@ -21,9 +21,9 @@
     <result column="brand_name" property="brandName" jdbcType="VARCHAR" />
     <result column="series_name" property="seriesName" jdbcType="VARCHAR" />
     <result column="series_type" property="seriesType" jdbcType="VARCHAR" />
-    <result column="mile_age" property="mileAge" jdbcType="VARCHAR" />
-    <result column="first_reg_time" property="firstRegTime" jdbcType="VARCHAR" />
-    <result column="plate_num" property="plateNum" jdbcType="VARCHAR" />
+    <result column="mileage" property="mileage" jdbcType="VARCHAR" />
+    <result column="firstregtime" property="firstregtime" jdbcType="VARCHAR" />
+    <result column="platenum" property="platenum" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="ccl_id" property="cclId" jdbcType="INTEGER" />
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
@@ -95,7 +95,7 @@
   <sql id="Base_Column_List" >
     id, api_code, local_id, task_id, clue_dt, clue_id, cust_num, call_id, `name`, gender, 
     cell, `level`, call_status, province, city, contry, brand_name, series_name, series_type, 
-    mile_age, first_reg_time, plate_num, extend, ccl_id, push_status, `status`, data_message, 
+    mileage, firstregtime, platenum, extend, ccl_id, push_status, `status`, data_message, 
     is_delete, create_date, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhiJiaClueBackDataExample" >
@@ -138,7 +138,7 @@
       cell, `level`, call_status, 
       province, city, contry, 
       brand_name, series_name, series_type, 
-      mile_age, first_reg_time, plate_num, 
+      mileage, firstregtime, platenum, 
       extend, ccl_id, push_status, 
       `status`, data_message, is_delete, 
       create_date, create_time, update_time
@@ -149,7 +149,7 @@
       #{cell,jdbcType=VARCHAR}, #{level,jdbcType=VARCHAR}, #{callStatus,jdbcType=VARCHAR}, 
       #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{contry,jdbcType=VARCHAR}, 
       #{brandName,jdbcType=VARCHAR}, #{seriesName,jdbcType=VARCHAR}, #{seriesType,jdbcType=VARCHAR}, 
-      #{mileAge,jdbcType=VARCHAR}, #{firstRegTime,jdbcType=VARCHAR}, #{plateNum,jdbcType=VARCHAR}, 
+      #{mileage,jdbcType=VARCHAR}, #{firstregtime,jdbcType=VARCHAR}, #{platenum,jdbcType=VARCHAR}, 
       #{extend,jdbcType=VARCHAR}, #{cclId,jdbcType=INTEGER}, #{pushStatus,jdbcType=INTEGER}, 
       #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, 
       #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
@@ -215,14 +215,14 @@
       <if test="seriesType != null" >
         series_type,
       </if>
-      <if test="mileAge != null" >
-        mile_age,
+      <if test="mileage != null" >
+        mileage,
       </if>
-      <if test="firstRegTime != null" >
-        first_reg_time,
+      <if test="firstregtime != null" >
+        firstregtime,
       </if>
-      <if test="plateNum != null" >
-        plate_num,
+      <if test="platenum != null" >
+        platenum,
       </if>
       <if test="extend != null" >
         extend,
@@ -307,14 +307,14 @@
       <if test="seriesType != null" >
         #{seriesType,jdbcType=VARCHAR},
       </if>
-      <if test="mileAge != null" >
-        #{mileAge,jdbcType=VARCHAR},
+      <if test="mileage != null" >
+        #{mileage,jdbcType=VARCHAR},
       </if>
-      <if test="firstRegTime != null" >
-        #{firstRegTime,jdbcType=VARCHAR},
+      <if test="firstregtime != null" >
+        #{firstregtime,jdbcType=VARCHAR},
       </if>
-      <if test="plateNum != null" >
-        #{plateNum,jdbcType=VARCHAR},
+      <if test="platenum != null" >
+        #{platenum,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
@@ -411,14 +411,14 @@
       <if test="record.seriesType != null" >
         series_type = #{record.seriesType,jdbcType=VARCHAR},
       </if>
-      <if test="record.mileAge != null" >
-        mile_age = #{record.mileAge,jdbcType=VARCHAR},
+      <if test="record.mileage != null" >
+        mileage = #{record.mileage,jdbcType=VARCHAR},
       </if>
-      <if test="record.firstRegTime != null" >
-        first_reg_time = #{record.firstRegTime,jdbcType=VARCHAR},
+      <if test="record.firstregtime != null" >
+        firstregtime = #{record.firstregtime,jdbcType=VARCHAR},
       </if>
-      <if test="record.plateNum != null" >
-        plate_num = #{record.plateNum,jdbcType=VARCHAR},
+      <if test="record.platenum != null" >
+        platenum = #{record.platenum,jdbcType=VARCHAR},
       </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
@@ -473,9 +473,9 @@
       brand_name = #{record.brandName,jdbcType=VARCHAR},
       series_name = #{record.seriesName,jdbcType=VARCHAR},
       series_type = #{record.seriesType,jdbcType=VARCHAR},
-      mile_age = #{record.mileAge,jdbcType=VARCHAR},
-      first_reg_time = #{record.firstRegTime,jdbcType=VARCHAR},
-      plate_num = #{record.plateNum,jdbcType=VARCHAR},
+      mileage = #{record.mileage,jdbcType=VARCHAR},
+      firstregtime = #{record.firstregtime,jdbcType=VARCHAR},
+      platenum = #{record.platenum,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR},
       ccl_id = #{record.cclId,jdbcType=INTEGER},
       push_status = #{record.pushStatus,jdbcType=INTEGER},
@@ -546,14 +546,14 @@
       <if test="seriesType != null" >
         series_type = #{seriesType,jdbcType=VARCHAR},
       </if>
-      <if test="mileAge != null" >
-        mile_age = #{mileAge,jdbcType=VARCHAR},
+      <if test="mileage != null" >
+        mileage = #{mileage,jdbcType=VARCHAR},
       </if>
-      <if test="firstRegTime != null" >
-        first_reg_time = #{firstRegTime,jdbcType=VARCHAR},
+      <if test="firstregtime != null" >
+        firstregtime = #{firstregtime,jdbcType=VARCHAR},
       </if>
-      <if test="plateNum != null" >
-        plate_num = #{plateNum,jdbcType=VARCHAR},
+      <if test="platenum != null" >
+        platenum = #{platenum,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
@@ -605,9 +605,9 @@
       brand_name = #{brandName,jdbcType=VARCHAR},
       series_name = #{seriesName,jdbcType=VARCHAR},
       series_type = #{seriesType,jdbcType=VARCHAR},
-      mile_age = #{mileAge,jdbcType=VARCHAR},
-      first_reg_time = #{firstRegTime,jdbcType=VARCHAR},
-      plate_num = #{plateNum,jdbcType=VARCHAR},
+      mileage = #{mileage,jdbcType=VARCHAR},
+      firstregtime = #{firstregtime,jdbcType=VARCHAR},
+      platenum = #{platenum,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR},
       ccl_id = #{cclId,jdbcType=INTEGER},
       push_status = #{pushStatus,jdbcType=INTEGER},

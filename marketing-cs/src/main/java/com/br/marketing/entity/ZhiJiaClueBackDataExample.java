@@ -1415,213 +1415,213 @@ public class ZhiJiaClueBackDataExample {
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeIsNull() {
-            addCriterion("mile_age is null");
+        public Criteria andMileageIsNull() {
+            addCriterion("mileage is null");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeIsNotNull() {
-            addCriterion("mile_age is not null");
+        public Criteria andMileageIsNotNull() {
+            addCriterion("mileage is not null");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeEqualTo(String value) {
-            addCriterion("mile_age =", value, "mileAge");
+        public Criteria andMileageEqualTo(String value) {
+            addCriterion("mileage =", value, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeNotEqualTo(String value) {
-            addCriterion("mile_age <>", value, "mileAge");
+        public Criteria andMileageNotEqualTo(String value) {
+            addCriterion("mileage <>", value, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeGreaterThan(String value) {
-            addCriterion("mile_age >", value, "mileAge");
+        public Criteria andMileageGreaterThan(String value) {
+            addCriterion("mileage >", value, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeGreaterThanOrEqualTo(String value) {
-            addCriterion("mile_age >=", value, "mileAge");
+        public Criteria andMileageGreaterThanOrEqualTo(String value) {
+            addCriterion("mileage >=", value, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeLessThan(String value) {
-            addCriterion("mile_age <", value, "mileAge");
+        public Criteria andMileageLessThan(String value) {
+            addCriterion("mileage <", value, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeLessThanOrEqualTo(String value) {
-            addCriterion("mile_age <=", value, "mileAge");
+        public Criteria andMileageLessThanOrEqualTo(String value) {
+            addCriterion("mileage <=", value, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeLike(String value) {
-            addCriterion("mile_age like", value, "mileAge");
+        public Criteria andMileageLike(String value) {
+            addCriterion("mileage like", value, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeNotLike(String value) {
-            addCriterion("mile_age not like", value, "mileAge");
+        public Criteria andMileageNotLike(String value) {
+            addCriterion("mileage not like", value, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeIn(List<String> values) {
-            addCriterion("mile_age in", values, "mileAge");
+        public Criteria andMileageIn(List<String> values) {
+            addCriterion("mileage in", values, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeNotIn(List<String> values) {
-            addCriterion("mile_age not in", values, "mileAge");
+        public Criteria andMileageNotIn(List<String> values) {
+            addCriterion("mileage not in", values, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeBetween(String value1, String value2) {
-            addCriterion("mile_age between", value1, value2, "mileAge");
+        public Criteria andMileageBetween(String value1, String value2) {
+            addCriterion("mileage between", value1, value2, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andMileAgeNotBetween(String value1, String value2) {
-            addCriterion("mile_age not between", value1, value2, "mileAge");
+        public Criteria andMileageNotBetween(String value1, String value2) {
+            addCriterion("mileage not between", value1, value2, "mileage");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeIsNull() {
-            addCriterion("first_reg_time is null");
+        public Criteria andFirstregtimeIsNull() {
+            addCriterion("firstregtime is null");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeIsNotNull() {
-            addCriterion("first_reg_time is not null");
+        public Criteria andFirstregtimeIsNotNull() {
+            addCriterion("firstregtime is not null");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeEqualTo(String value) {
-            addCriterion("first_reg_time =", value, "firstRegTime");
+        public Criteria andFirstregtimeEqualTo(String value) {
+            addCriterion("firstregtime =", value, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeNotEqualTo(String value) {
-            addCriterion("first_reg_time <>", value, "firstRegTime");
+        public Criteria andFirstregtimeNotEqualTo(String value) {
+            addCriterion("firstregtime <>", value, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeGreaterThan(String value) {
-            addCriterion("first_reg_time >", value, "firstRegTime");
+        public Criteria andFirstregtimeGreaterThan(String value) {
+            addCriterion("firstregtime >", value, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeGreaterThanOrEqualTo(String value) {
-            addCriterion("first_reg_time >=", value, "firstRegTime");
+        public Criteria andFirstregtimeGreaterThanOrEqualTo(String value) {
+            addCriterion("firstregtime >=", value, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeLessThan(String value) {
-            addCriterion("first_reg_time <", value, "firstRegTime");
+        public Criteria andFirstregtimeLessThan(String value) {
+            addCriterion("firstregtime <", value, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeLessThanOrEqualTo(String value) {
-            addCriterion("first_reg_time <=", value, "firstRegTime");
+        public Criteria andFirstregtimeLessThanOrEqualTo(String value) {
+            addCriterion("firstregtime <=", value, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeLike(String value) {
-            addCriterion("first_reg_time like", value, "firstRegTime");
+        public Criteria andFirstregtimeLike(String value) {
+            addCriterion("firstregtime like", value, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeNotLike(String value) {
-            addCriterion("first_reg_time not like", value, "firstRegTime");
+        public Criteria andFirstregtimeNotLike(String value) {
+            addCriterion("firstregtime not like", value, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeIn(List<String> values) {
-            addCriterion("first_reg_time in", values, "firstRegTime");
+        public Criteria andFirstregtimeIn(List<String> values) {
+            addCriterion("firstregtime in", values, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeNotIn(List<String> values) {
-            addCriterion("first_reg_time not in", values, "firstRegTime");
+        public Criteria andFirstregtimeNotIn(List<String> values) {
+            addCriterion("firstregtime not in", values, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeBetween(String value1, String value2) {
-            addCriterion("first_reg_time between", value1, value2, "firstRegTime");
+        public Criteria andFirstregtimeBetween(String value1, String value2) {
+            addCriterion("firstregtime between", value1, value2, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andFirstRegTimeNotBetween(String value1, String value2) {
-            addCriterion("first_reg_time not between", value1, value2, "firstRegTime");
+        public Criteria andFirstregtimeNotBetween(String value1, String value2) {
+            addCriterion("firstregtime not between", value1, value2, "firstregtime");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumIsNull() {
-            addCriterion("plate_num is null");
+        public Criteria andPlatenumIsNull() {
+            addCriterion("platenum is null");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumIsNotNull() {
-            addCriterion("plate_num is not null");
+        public Criteria andPlatenumIsNotNull() {
+            addCriterion("platenum is not null");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumEqualTo(String value) {
-            addCriterion("plate_num =", value, "plateNum");
+        public Criteria andPlatenumEqualTo(String value) {
+            addCriterion("platenum =", value, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumNotEqualTo(String value) {
-            addCriterion("plate_num <>", value, "plateNum");
+        public Criteria andPlatenumNotEqualTo(String value) {
+            addCriterion("platenum <>", value, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumGreaterThan(String value) {
-            addCriterion("plate_num >", value, "plateNum");
+        public Criteria andPlatenumGreaterThan(String value) {
+            addCriterion("platenum >", value, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumGreaterThanOrEqualTo(String value) {
-            addCriterion("plate_num >=", value, "plateNum");
+        public Criteria andPlatenumGreaterThanOrEqualTo(String value) {
+            addCriterion("platenum >=", value, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumLessThan(String value) {
-            addCriterion("plate_num <", value, "plateNum");
+        public Criteria andPlatenumLessThan(String value) {
+            addCriterion("platenum <", value, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumLessThanOrEqualTo(String value) {
-            addCriterion("plate_num <=", value, "plateNum");
+        public Criteria andPlatenumLessThanOrEqualTo(String value) {
+            addCriterion("platenum <=", value, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumLike(String value) {
-            addCriterion("plate_num like", value, "plateNum");
+        public Criteria andPlatenumLike(String value) {
+            addCriterion("platenum like", value, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumNotLike(String value) {
-            addCriterion("plate_num not like", value, "plateNum");
+        public Criteria andPlatenumNotLike(String value) {
+            addCriterion("platenum not like", value, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumIn(List<String> values) {
-            addCriterion("plate_num in", values, "plateNum");
+        public Criteria andPlatenumIn(List<String> values) {
+            addCriterion("platenum in", values, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumNotIn(List<String> values) {
-            addCriterion("plate_num not in", values, "plateNum");
+        public Criteria andPlatenumNotIn(List<String> values) {
+            addCriterion("platenum not in", values, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumBetween(String value1, String value2) {
-            addCriterion("plate_num between", value1, value2, "plateNum");
+        public Criteria andPlatenumBetween(String value1, String value2) {
+            addCriterion("platenum between", value1, value2, "platenum");
             return (Criteria) this;
         }
 
-        public Criteria andPlateNumNotBetween(String value1, String value2) {
-            addCriterion("plate_num not between", value1, value2, "plateNum");
+        public Criteria andPlatenumNotBetween(String value1, String value2) {
+            addCriterion("platenum not between", value1, value2, "platenum");
             return (Criteria) this;
         }
 
