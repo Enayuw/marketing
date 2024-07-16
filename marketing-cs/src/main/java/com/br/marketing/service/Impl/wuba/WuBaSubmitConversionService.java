@@ -164,7 +164,7 @@ public class WuBaSubmitConversionService {
             dataLogRecord.setSubmitResult(0);
             return dataLogRecord;
         }).collect(Collectors.toList());
-
+        //
         int batchAdd = wubaSubmitConversionDataLogMapper.batchAdd(dataLogList);
         if(batchAdd != dataLogList.size()){
             throw new Exception(TITLE+"上报日志表增加记录异常");

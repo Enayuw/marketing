@@ -17,6 +17,7 @@ import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.enums.MockInterfaceCodeEnum;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mock.MockService;
+import com.br.marketing.mock.custom.wuba.WuBaMockService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
@@ -69,6 +70,8 @@ public class WuBaServiceClient {
 
     @Resource
     private MockService mockService;
+    @Resource
+    private WuBaMockService wuBaMockService;
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result submitCredentialStuffingList(List<String> cells) {
@@ -144,6 +147,7 @@ public class WuBaServiceClient {
         // 调用客户接口
         if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_03.getCode())) {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_03.getCode());
+            resMap = wuBaMockService.getMock03(resMap);
         } else {
             resMap = httpProxyClient.sendByCodeWithLog(retMap, submitConversionListUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(wuBaSubmitDTOS), true, false);
@@ -172,6 +176,7 @@ public class WuBaServiceClient {
         // 调用客户接口
         if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_04.getCode())) {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_04.getCode());
+            resMap = wuBaMockService.getMock04(batchNo, resMap);
         } else {
             resMap = httpProxyClient.sendByCodeWithLog(batchNo, queryConversionResultUrl, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(batchNo), true, false);

@@ -93,7 +93,7 @@ public class WuBaQueryConversionResultService {
 
         WubaCollidingBatchNoExample batchNoExample = new WubaCollidingBatchNoExample();
         batchNoExample.createCriteria().andBatchTypeEqualTo(batchType).andQueryStatusEqualTo(queryStatus)
-                .andPushTimeBetween(pushTimeStart, pushTimeEnd);
+                .andPushTimeBetween(pushTimeStart, pushTimeEnd).andIsDeletedEqualTo(0);
         final List<WubaCollidingBatchNo> batchNoList = batchNoMapper.selectByExample(batchNoExample);
 
         if (CollectionUtils.isEmpty(batchNoList)) {
