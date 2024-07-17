@@ -40,6 +40,7 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -582,6 +583,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 return true;
             }
             List<String> list = new ArrayList<>();
+            List<Long> validIds = new ArrayList<>();
             String str = "";
             for(Long id : ids){
                 MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
@@ -591,32 +593,32 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
                 if (ObjectUtil.isEmpty(data)){
                     log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据",apiCode, userType, appletDate);
-                    return false;
+                    continue;
                 }
+                validIds.add(data.getId());
                 MarketingDataValidConfig newData = new MarketingDataValidConfig();
-                validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
-                validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
-                if (validStartDate.equals(data.getValidStartDate()) && validEndDate.equals(data.getValidEndDate())){
-                    log.warn("有效期日期未修改,apiCode={},userType={},appletDate={}", apiCode, userType, appletDate);
-                    return true;
-                }
                 newData.setId(data.getId());
                 newData.setValidStartDate(validStartDate);
                 newData.setValidEndDate(validEndDate);
-                int i = marketingDataValidConfigMapper.updateByPrimaryKeySelective(newData);
                 entityOptService.writeOptLog(data.getId(), newData, data);
 
                 str = apiCode + userType;
-                if (i == 1 && !list.contains(str)){
+                if (!list.contains(str)){
                     list.add(str);
-                    log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, newData.getId());
-                    recordService.saveRecord(apiCode, userType, newData.getId());
+                    log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, data.getId());
+                    recordService.saveRecord(apiCode, userType, data.getId());
                 }
+            }
+            log.warn("更新有效期的ids, validIds={}", validIds);
+            if(!validIds.isEmpty()){
+                validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+                validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
+                marketingDataValidConfigMapper.updateBatchById(validIds,validStartDate,validEndDate);
             }
             return true;
         } catch (Exception e) {
             e.printStackTrace();
-            log.error(e.getMessage(), e);
+            log.warn("更新有效期报错, msg={}", e.getMessage());
             return false;
         }
     }
