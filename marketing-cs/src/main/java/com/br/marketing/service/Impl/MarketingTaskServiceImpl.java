@@ -700,9 +700,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             for(Long dataId : dataIdDesc){
                 TaskSelectSaveDTO singeDTO = new TaskSelectSaveDTO();
                 BeanUtils.copyProperties(singeDTO, dto);
-                List<Long> dataIdDList = dto.getDataIdDesc();
-                dataIdDList.add(dataId);
-                singeDTO.setDataIdDesc(dataIdDList);
+                List<Long> dataIdList = new ArrayList<>();
+                dataIdList.add(dataId);
+                singeDTO.setDataIdDesc(dataIdList);
                 Result<List<Long>> singleResult = saveTaskSelect(singeDTO);
                 if(ResultCode.SUCCESS.getValue().equals(singleResult.getCode())){
                     resIds.addAll(singleResult.getData());

@@ -61,6 +61,8 @@ public interface MarketingTaskService {
 
     Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo, List<String> userTypeList);
 
+    Result<List<Long>> saveTaskSelectV2(@Valid TaskSelectSaveDTO dto);
+
     Result<List<Long>> saveTaskSelect(@Valid TaskSelectSaveDTO dto);
 
     Result<List<StatisticsDataDayVO>> getStatisticsDataDay(@Valid @NotNull(message = "apiCode不能为空") String apiCode);
