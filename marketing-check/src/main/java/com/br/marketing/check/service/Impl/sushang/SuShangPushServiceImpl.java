@@ -101,7 +101,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             modifyCorePoolSize(callRecordPool);
             List<List<SushangCallRecordData>> partition = Lists.partition(callRecordDataList, 500);
             partition.forEach((List<SushangCallRecordData> callRecordData) -> {
-                callRecordPool.submit(() -> pushNoDealData(callRecordData));
+                List<SushangCallRecordData> list = new ArrayList<>();
+                list.addAll(callRecordData);
+                callRecordPool.submit(() -> pushNoDealData(list));
             });
         }
         // 关闭线程池
