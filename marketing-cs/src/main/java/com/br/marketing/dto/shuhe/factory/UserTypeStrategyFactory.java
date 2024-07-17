@@ -42,7 +42,7 @@ public class UserTypeStrategyFactory {
 
     public static IUserType getUserTypeStrategy(String userType) {
         if (userType == null) {
-            return new UnknownUserType();
+            return new DefaultUserType();
         }
         IUserType iUserType = USER_TYPE_CACHE.getOrDefault(userType, new DefaultUserType()).setUserType(userType);
         try {
