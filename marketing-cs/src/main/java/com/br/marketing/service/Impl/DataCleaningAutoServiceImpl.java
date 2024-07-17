@@ -50,6 +50,8 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
     public static final String CLEAN_STATUS_1 = "1";
     public static final String CLEAN_STATUS_2 = "2";
     public static final String CLEAN_STATUS_3 = "3";
+    public static final int CLEAN_TYPE_UPLOAD = 0;
+    public static final int CLEAN_TYPE_TRANSFER = 1;
 
     @Resource
     private MarketingDataFileConfigMapper marketingDataFileConfigMapper;
@@ -101,10 +103,10 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             Set<Object> collect = cleanDataMapList.stream().map(map -> map.get(autoDuplicateColumn)).collect(Collectors.toSet());
             marketingDataFileConfigMapper.updateCleanDataStatus(autoTableName, CLEAN_STATUS_1, autoDuplicateColumn, collect);
             threadPool.submit(()->{
-                if (cleanType == 0) {
+                if (cleanType == CLEAN_TYPE_UPLOAD) {
                     doProcessUploadDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, collect);
                 }
-                if (cleanType == 1) {
+                if (cleanType == CLEAN_TYPE_TRANSFER) {
                     doProcessTransferDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, collect);
                 }
             });
@@ -113,7 +115,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗任务异常！"));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗数据线程池结束异常！"));
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
@@ -151,7 +153,6 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             MarketingDataFileConfig marketingDataFileConfig,
             String apiCode,
             Set<Object> collect) {
-
         try {
             // 转化数据处理
             List<TransferDataItemDTO> transferDataItemDTOS = processTransferCleanData(cleanDataMapList, marketingDataFileConfig);
@@ -280,7 +281,9 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             );
             if (!genderMappings.isEmpty()) {
                 Map<String, String> genderMapping = genderMappings.get(0);
-                fieldValue = genderMapping.get(fieldValue);
+                if(fieldValue != null){
+                    fieldValue = genderMapping.get(fieldValue);
+                }
             }
         }
         return fieldValue;
@@ -302,7 +305,6 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-        log.warn("上传数据：{}", uploadDataDTO);
         return uploadDataDTO;
     }
 
@@ -326,7 +328,6 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
-        log.warn("推送转化数据：{}", dto);
         return dto;
     }
 
@@ -366,7 +367,6 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         List<MarketingDataFileConfig> marketingDataFileConfigs = marketingDataFileConfigMapper.selectByExample(mc);
         if (marketingDataFileConfigs.size() == 1) {
             MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigs.get(0);
-            //保存任务
             MarketingCleanDataTask task = new MarketingCleanDataTask();
             task.setConfigId(marketingDataFileConfig.getId());
             task.setCleanType(cleanType);
