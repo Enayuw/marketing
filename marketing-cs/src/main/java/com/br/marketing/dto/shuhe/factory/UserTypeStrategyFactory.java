@@ -42,9 +42,9 @@ public class UserTypeStrategyFactory {
 
     public static BaseUserType getUserTypeStrategy(String userType) {
         if (userType == null) {
-            return new UnknownUserType();
+            return new DefaultUserType();
         }
-        BaseUserType baseUserType = USER_TYPE_CACHE.getOrDefault(userType, new UnknownUserType()).setUserType(userType);
+        BaseUserType baseUserType = USER_TYPE_CACHE.getOrDefault(userType, new DefaultUserType()).setUserType(userType);
         try {
             Map<String, List<String>> mappingMap = marketingCommonConfig.getShuHeUserTypeAndApiCodeMappingMap();
             List<String> apiCodeList = mappingMap.get(userType);
