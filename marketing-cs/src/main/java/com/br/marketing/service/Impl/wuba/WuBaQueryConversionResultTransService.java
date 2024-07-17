@@ -86,9 +86,10 @@ public class WuBaQueryConversionResultTransService {
                 failureDtoList.add(dto);
                 continue;
             }
-            if(!StringUtils.isEmpty(dto.getLastLoginTime())
-                    && !StringUtils.isEmpty(dto.getFinanceApplyTime())
-                    && !StringUtils.isEmpty(dto.getFinanceCreditFinishTime())){
+            if (!StringUtils.isEmpty(dto.getLastLoginTime()) || !StringUtils.isEmpty(dto.getFinanceApplyTime())
+                    || !StringUtils.isEmpty(dto.getFinanceCreditStatus()) || !StringUtils.isEmpty(dto.getFinanceCreditFinishTime())
+                    || !StringUtils.isEmpty(dto.getDebtTime()) || !StringUtils.isEmpty(dto.getDebtPassTime())
+                    || !StringUtils.isEmpty(dto.getLoanAmt())) {
                 successDtoList.add(dto);
                 continue;
             }

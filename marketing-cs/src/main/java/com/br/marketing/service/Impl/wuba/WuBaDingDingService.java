@@ -40,11 +40,9 @@ public class WuBaDingDingService {
     }
 
     public void sendAlert(String title, String text, String accessToken, String secret){
+        // DingDingAlert
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
         markdown.setTitle(title);
-        // AlertLog
-        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), text, title));
-        // DingDingAlert
         markdown.setText(text);
         DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
         dingDingMarkdownMessage.setMarkdown(markdown);
