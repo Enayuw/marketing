@@ -1,13 +1,18 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.DataDistributeDetailLog;
 import com.br.marketing.entity.DataDistributeDetailLogExample;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -16,6 +21,8 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,12 +30,18 @@ import java.util.stream.Collectors;
 public class WuBaSubmitConversionSoleProcessor {
 
     private final static String TITLE = "【58新客提交营销名单】";
+    private static final Integer PARTITION_SIZE = 2000;
+
+    ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(10, 10);
 
     @Resource
     private RedisChgService redisChgService;
 
     @Resource
     private DataDistributeDetailLogMapper distributeLogMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     public List<Long> process(List<WubaSubmitConversionData> pushList){
         List<Long> notPushIds = new ArrayList<>();
@@ -142,7 +155,23 @@ public class WuBaSubmitConversionSoleProcessor {
             distributeLog.setSourceType(DistributeSourceTypeEnum.TRANSFER.getValue());
             return distributeLog;
         }).collect(Collectors.toList());
-        distributeLogMapper.insertBatch(distributeLogList);
-    }
 
+        dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+
+        List<CompletableFuture<Void>> distributeLogFutures = Lists.newArrayList();
+        List<List<DataDistributeDetailLog>> distributeLogPartitions = Lists.partition(distributeLogList, PARTITION_SIZE);
+        for (List<DataDistributeDetailLog> partition : distributeLogPartitions) {
+            distributeLogFutures.add(CompletableFuture.runAsync(() -> {
+                try {
+                    distributeLogMapper.insertBatch(partition);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                            TITLE + "批量保存去重数据异常"));
+                }
+            }, dbActionPool));
+        }
+        CompletableFuture.allOf(distributeLogFutures.toArray(new CompletableFuture[0])).join();
+        log.warn(TITLE + "批量保存去重数据成功");
+    }
 }

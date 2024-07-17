@@ -29,7 +29,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
@@ -51,6 +50,8 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
     public static final String CLEAN_STATUS_1 = "1";
     public static final String CLEAN_STATUS_2 = "2";
     public static final String CLEAN_STATUS_3 = "3";
+    public static final int CLEAN_TYPE_UPLOAD = 0;
+    public static final int CLEAN_TYPE_TRANSFER = 1;
 
     @Resource
     private MarketingDataFileConfigMapper marketingDataFileConfigMapper;
@@ -78,7 +79,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
     }
 
-    private void doAutoCleanData(MarketingCleanDataTask marketingCleanDataTask) throws IOException, IllegalAccessException {
+    private void doAutoCleanData(MarketingCleanDataTask marketingCleanDataTask) {
         MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigMapper.selectByPrimaryKey(
                 marketingCleanDataTask.getConfigId()
         );
@@ -91,7 +92,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         while (true) {
             modifyThreadPool(threadPool);
             List<Map<String, Object>> cleanDataMapList = marketingDataFileConfigMapper.selectCleanData(
-                    autoSearchDataSql,marketingCleanDataTask.getId()
+                    autoSearchDataSql, marketingCleanDataTask.getId()
             );
             if (cleanDataMapList.isEmpty()) {
                 break;
@@ -101,17 +102,20 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             Integer cleanType = marketingDataFileConfig.getCleanType();
             Set<Object> collect = cleanDataMapList.stream().map(map -> map.get(autoDuplicateColumn)).collect(Collectors.toSet());
             marketingDataFileConfigMapper.updateCleanDataStatus(autoTableName, CLEAN_STATUS_1, autoDuplicateColumn, collect);
-            if (cleanType == 0) {
-                doProcessUploadDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, threadPool, collect);
-            }
-            if (cleanType == 1) {
-                doProcessTransferDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, threadPool, collect);
-            }
+            threadPool.submit(()->{
+                if (cleanType == CLEAN_TYPE_UPLOAD) {
+                    doProcessUploadDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, collect);
+                }
+                if (cleanType == CLEAN_TYPE_TRANSFER) {
+                    doProcessTransferDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, collect);
+                }
+            });
+
         }
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗任务异常！"));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗数据线程池结束异常！"));
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
@@ -129,47 +133,53 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             List<Map<String, Object>> cleanDataMapList,
             MarketingDataFileConfig marketingDataFileConfig,
             String apiCode,
-            ThreadPoolExecutor threadPool,
-            Set<Object> collect) throws IOException, IllegalAccessException {
-        // 上传数据处理
-        List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = processUploadCleanData(cleanDataMapList, marketingDataFileConfig);
-        // 上传数据组装
-        UploadDataDTO uploadDataDTO = initUploadData(apiCode, marketingPreUserDetailDTOS);
-        // 上传数据异步推送
-        pushAsyncUploadData(threadPool, uploadDataDTO, collect, marketingDataFileConfig);
+            Set<Object> collect) {
+        try {
+            // 上传数据处理
+            List<MarketingPreUserDetailDTO> marketingPreUserDetailDTOS = processUploadCleanData(cleanDataMapList, marketingDataFileConfig);
+            // 上传数据组装
+            UploadDataDTO uploadDataDTO = initUploadData(apiCode, marketingPreUserDetailDTOS);
+            // 上传数据异步推送
+            pushAsyncUploadData(uploadDataDTO, collect, marketingDataFileConfig);
+        } catch (IOException | IllegalAccessException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                    "上传数据清洗数据异常！！"), e);
+        }
+
     }
 
     private void doProcessTransferDataClean(
             List<Map<String, Object>> cleanDataMapList,
             MarketingDataFileConfig marketingDataFileConfig,
             String apiCode,
-            ThreadPoolExecutor threadPool,
-            Set<Object> collect) throws IOException, IllegalAccessException {
-        // 转化数据处理
-        List<TransferDataItemDTO> transferDataItemDTOS = processTransferCleanData(cleanDataMapList, marketingDataFileConfig);
-        // 转化数据组装
-        PushTransferDataDetailDTO pushTransferDataDetailDTO = initTransferData(transferDataItemDTOS, apiCode);
-        // 转化数据异步推送
-        pushAsyncTransferData(threadPool, pushTransferDataDetailDTO, collect, marketingDataFileConfig);
+            Set<Object> collect) {
+        try {
+            // 转化数据处理
+            List<TransferDataItemDTO> transferDataItemDTOS = processTransferCleanData(cleanDataMapList, marketingDataFileConfig);
+            // 转化数据组装
+            PushTransferDataDetailDTO pushTransferDataDetailDTO = initTransferData(transferDataItemDTOS, apiCode);
+            // 转化数据异步推送
+            pushAsyncTransferData(pushTransferDataDetailDTO, collect, marketingDataFileConfig);
+        } catch (IOException  | IllegalAccessException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                    "转化数据清洗数据异常！！"), e);
+        }
+
     }
 
-    private void pushAsyncUploadData(ThreadPoolExecutor threadPool, UploadDataDTO uploadDataDTO, Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig) {
-        threadPool.submit(() -> {
-            Result<Boolean> result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-            updateStatus(collect, marketingDataFileConfig, result);
-        });
+    private void pushAsyncUploadData(UploadDataDTO uploadDataDTO, Set<Object> collect, MarketingDataFileConfig marketingDataFileConfig) {
+        Result<Boolean> result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+        updateStatus(collect, marketingDataFileConfig, result);
     }
 
     private void pushAsyncTransferData(
-            ThreadPoolExecutor threadPool,
             PushTransferDataDetailDTO pushTransferDataDetailDTO,
             Set<Object> collect,
             MarketingDataFileConfig marketingDataFileConfig) {
-        threadPool.submit(() -> {
-            Result<Boolean> result = pushInfoService.pushTransferByRetry(pushTransferDataDetailDTO, null);
-            updateStatus(collect, marketingDataFileConfig, result);
-        });
+        Result<Boolean> result = pushInfoService.pushTransferByRetry(pushTransferDataDetailDTO, null);
+        updateStatus(collect, marketingDataFileConfig, result);
     }
+
     private List<MarketingPreUserDetailDTO> processUploadCleanData(
             List<Map<String, Object>> cleanDataMapList,
             MarketingDataFileConfig marketingDataFileConfig) throws IOException, IllegalAccessException {
@@ -183,6 +193,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         }
         return marketingPreUserDetailDTOS;
     }
+
     private List<TransferDataItemDTO> processTransferCleanData(
             List<Map<String, Object>> cleanDataMapList,
             MarketingDataFileConfig marketingDataFileConfig) throws IOException, IllegalAccessException {
@@ -234,8 +245,8 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
                 // 扩展字段容器
                 if (fileToMarketingFieldVO.getIsExtend()) {
                     Object fieldValue = fieldMapping(cleanDataMap, fileToMarketingFieldVO);
-                    reserveFieldJo.put(fileToMarketingFieldVO.getInterfaceField(),fieldValue );
-                }else if (declaredField.getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
+                    reserveFieldJo.put(fileToMarketingFieldVO.getInterfaceField(), fieldValue);
+                } else if (declaredField.getName().equals(fileToMarketingFieldVO.getInterfaceField())) {
                     declaredField.setAccessible(true);
                     Object fieldValue = fieldMapping(cleanDataMap, fileToMarketingFieldVO);
                     declaredField.set(o, fieldValue);
@@ -270,7 +281,9 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             );
             if (!genderMappings.isEmpty()) {
                 Map<String, String> genderMapping = genderMappings.get(0);
-                fieldValue = genderMapping.get(fieldValue);
+                if(fieldValue != null){
+                    fieldValue = genderMapping.get(fieldValue);
+                }
             }
         }
         return fieldValue;
@@ -292,13 +305,11 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
         uploadDataDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-        log.warn("上传数据：{}", uploadDataDTO);
         return uploadDataDTO;
     }
 
     private static String getRequestId(String taskId) {
-        String requestId = taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
-        return requestId;
+        return taskId.concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
     }
 
     /**
@@ -317,7 +328,6 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         transferDataDTO.setRequestId(requestId);
         dto.setApiCode(apiCode);
         dto.setJsonData(JSON.toJSONString(transferDataDTO));
-        log.warn("推送转化数据：{}",dto);
         return dto;
     }
 
@@ -343,9 +353,8 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
     }
 
 
-
     /**
-     * @param apiCode apiCode
+     * @param apiCode    apiCode
      * @param cleanType  0 上传 1 转化
      * @param configName b_marketing_data_file_config 表中的rule_name 唯一
      */
@@ -358,7 +367,6 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
         List<MarketingDataFileConfig> marketingDataFileConfigs = marketingDataFileConfigMapper.selectByExample(mc);
         if (marketingDataFileConfigs.size() == 1) {
             MarketingDataFileConfig marketingDataFileConfig = marketingDataFileConfigs.get(0);
-            //保存任务
             MarketingCleanDataTask task = new MarketingCleanDataTask();
             task.setConfigId(marketingDataFileConfig.getId());
             task.setCleanType(cleanType);
@@ -369,7 +377,8 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             marketingCleanDataTaskMapper.insertSelective(task);
             return task.getId();
         } else {
-            log.warn("清洗创建任务失败！{}", configName);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                    "清洗任务生成时未找到清洗对应的配置！！"));
         }
         return null;
     }

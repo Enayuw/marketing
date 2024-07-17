@@ -6,15 +6,16 @@ import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.entity.WubaCollidingBatchNo;
-import com.br.marketing.entity.WubaSubmitConversionData;
-import com.br.marketing.entity.WubaSubmitConversionDataExample;
-import com.br.marketing.entity.WubaSubmitConversionDataLog;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataLogMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -26,6 +27,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +41,9 @@ import java.util.stream.Collectors;
 public class WuBaSubmitConversionService {
 
     private final static String TITLE = "【58新客提交营销名单】";
+    private static final Integer PARTITION_SIZE = 2000;
+
+    ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(10, 10);
 
     @Resource
     private WubaSubmitConversionDataMapper wubaSubmitConversionDataMapper;
@@ -57,6 +63,9 @@ public class WuBaSubmitConversionService {
     @Resource
     private WuBaSubmitConversionSoleProcessor soleProcessor;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
 
     public void action(Page2Condition<WubaSubmitConversionData> condition) {
         scanData(condition);
@@ -70,39 +79,32 @@ public class WuBaSubmitConversionService {
         Integer createDate = param.getCreateDate();
         Integer pageSize = condition.getPageSize();
 
-        Long indexId = null;
-        while (true) {
-            try{
-                // 循环获取条件数据，每次pageSize条
-                List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
-                        apiCode, status, pushStatus, createDate, "", indexId, pageSize);
-                if (CollectionUtils.isEmpty(pageList)) {
-                    log.warn(TITLE+"scanData, 未获取到数据");
-                    break;
-                }
-                indexId = pageList.get(pageList.size() - 1).getId();
-                log.warn(TITLE + "scanData 获取到数据, 条数{}", pageList.size());
-
-                // 去重
-                List<Long> noPushIds = soleProcessor.checkExists(pageList, param);
-                if(!CollectionUtils.isEmpty(noPushIds)){
-                    // 营销名单上报表status置为3-重复数据
-                    WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
-                    dataUpdate.setStatus(3);
-                    WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
-                    dataExample.createCriteria().andIdIn(noPushIds);
-                    wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
-                }
-                log.warn(TITLE + "scanData, 去重条数{}, 推送条数{}", noPushIds.size(), pageList.size());
-
-                // process submit data
-                processData(pageList, condition);
-                // 按indexId 每页间隔5s
-                Thread.sleep(5000);
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
-                Thread.currentThread().interrupt();
+        try{
+            // 循环获取条件数据，每次pageSize条
+            List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
+                    apiCode, status, pushStatus, createDate, "", null, pageSize);
+            if (CollectionUtils.isEmpty(pageList)) {
+                log.warn(TITLE+"scanData, 未获取到数据");
             }
+            log.warn(TITLE + "scanData 获取到数据, 条数{}", pageList.size());
+
+            // 去重
+            List<Long> noPushIds = soleProcessor.checkExists(pageList, param);
+            if(!CollectionUtils.isEmpty(noPushIds)){
+                // 营销名单上报表status置为3-重复数据
+                WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
+                dataUpdate.setStatus(3);
+                WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
+                dataExample.createCriteria().andIdIn(noPushIds);
+                wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
+            }
+            log.warn(TITLE + "scanData, 去重条数{}, 推送条数{}", noPushIds.size(), pageList.size());
+
+            // process submit data
+            processData(pageList, condition);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -121,7 +123,7 @@ public class WuBaSubmitConversionService {
             // Alert
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
                     TITLE + "调用接口失败, apiCode: " + apiCode));
-            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: " + apiCode);
+            wuBaDingDingService.sendAlert(TITLE, TITLE+"调用接口失败, apiCode: " + apiCode);
             return result;
         }
         log.warn(TITLE + "调用接口成功{}", apiCode);
@@ -146,7 +148,8 @@ public class WuBaSubmitConversionService {
         }
         log.warn(TITLE + "上报批次表增加记录成功, batchNo{}", batchNo);
 
-        processSuccess(pageList, batchNo);
+        WuBaSubmitConversionService service = (WuBaSubmitConversionService) AopContext.currentProxy();
+        service.processSuccess(pageList, batchNo);
         return result.success();
     }
 
@@ -169,11 +172,24 @@ public class WuBaSubmitConversionService {
             dataLogRecord.setSubmitResult(0);
             return dataLogRecord;
         }).collect(Collectors.toList());
-        //
-        int batchAdd = wubaSubmitConversionDataLogMapper.batchAdd(dataLogList);
-        if(batchAdd != dataLogList.size()){
-            throw new Exception(TITLE+"上报日志表增加记录异常");
+
+        // batAddDataTransferClean
+        dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+
+        List<CompletableFuture<Void>> dataLogFutures = Lists.newArrayList();
+        List<List<WubaSubmitConversionDataLog>> dataLogPartitions = Lists.partition(dataLogList, PARTITION_SIZE);
+        for (List<WubaSubmitConversionDataLog> partition : dataLogPartitions) {
+            dataLogFutures.add(CompletableFuture.runAsync(() -> {
+                try {
+                    wubaSubmitConversionDataLogMapper.batchAdd(partition);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
+                            TITLE + "上报日志表增加记录异常"));
+                }
+            }, dbActionPool));
         }
+        CompletableFuture.allOf(dataLogFutures.toArray(new CompletableFuture[0])).join();
         log.warn(TITLE + "上报日志表增加记录成功, batchNo{}", batchNo);
 
         // 营销名单上报表push_status置为1-推送中

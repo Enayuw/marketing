@@ -1815,9 +1815,24 @@ public class MarketingCommonConfig {
     private String wuBaSubmitConversionSwitch;
 
     /**
+     * 58新客-营销名单上报-条件参数
+     */
+    private List<Map<String, String>> wuBaSubmitConversionParams;
+
+    /**
      * 58新客-营销名单上报-分页条数
      */
     private Integer wuBaSubmitConversionPageSize;
+
+    /**
+     * 58新客-修改营销名单上报批次-开关，1-开，0-关
+     */
+    private String wuBaChangeQueryBatchSwitch;
+
+    /**
+     * 58新客-修改营销名单上报批次-pushTime查询区间
+     */
+    private JSONObject wuBaChangeQueryBatchPushTimeInterval;
 
     /**
      * 58新客-营销转化结果查询-开关，1-开，0-关
@@ -1838,6 +1853,11 @@ public class MarketingCommonConfig {
      * 58新客-营销转化结果查询-调用线程
      */
     private List<Integer> wuBaQueryConversionThreadPool;
+
+    /**
+     * 58新客-营销转化结果查询-批量DB线程
+     */
+    private Integer wuBaQueryConversionBatDBThreadPool;
 
     /**
      * 58新客-营销转化结果查询-通用字段配置

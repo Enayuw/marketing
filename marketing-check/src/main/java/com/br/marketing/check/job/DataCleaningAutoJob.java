@@ -55,12 +55,10 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
                 return null;
             }
             MarketingCleanDataTask marketingCleanDataTask = marketingCleanDataTasks.get(0);
-            log.warn("任务id：{},获取锁成功", marketingCleanDataTask.getId());
             // 任务设置为清洗中
             marketingCleanDataTask.setCleanStatus(1);
             marketingCleanDataTaskMapper.updateByPrimaryKeySelective(marketingCleanDataTask);
             redisChgService.unlock(LOCK_KEY_CLEAN_DATA, LOCK_KEY_CLEAN_DATA+"9999");
-            log.warn("任务id：{},释放锁成功", marketingCleanDataTask.getId());
             return marketingCleanDataTask;
         }catch (Exception e){
             redisChgService.unlock(LOCK_KEY_CLEAN_DATA, LOCK_KEY_CLEAN_DATA+"9999");

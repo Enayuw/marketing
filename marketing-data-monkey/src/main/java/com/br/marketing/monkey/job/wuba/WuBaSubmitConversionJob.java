@@ -1,6 +1,5 @@
 package com.br.marketing.monkey.job.wuba;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -15,7 +14,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Description 58新客提交营销名单
@@ -42,8 +43,8 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
             if(!checkJobSwitch()) {
                 return;
             }
-            // jobParameter
-            List<Map<String, String>> paramList = parseJobParameter(context.getJobParameter());
+            // Params
+            List<Map<String, String>> paramList = parseParameter();
             // pageSize
             Integer pageSize = marketingCommonConfig.getWuBaSubmitConversionPageSize();
 
@@ -57,8 +58,7 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
 
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),e.getMessage()
-                    , TITLE), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),e.getMessage(), TITLE), e);
         }
     }
 
@@ -88,27 +88,18 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
      * 解析Job参数，格式如下：
      * e.g [{"apiCode":"3710155","bizDate":"2024-07-11"},{"apiCode":"3710155","bizDate":"2024-07-12"}]
      */
-    private List<Map<String, String>> parseJobParameter(String parameter) throws Exception {
-        List<Map<String, String>> paramList = new ArrayList<>();
+    private List<Map<String, String>> parseParameter() throws Exception {
+        List<Map<String, String>> paramList = marketingCommonConfig.getWuBaSubmitConversionParams();
         String curDate = DateUtils.format(new Date(), "yyyy-MM-dd");
 
-        if (StringUtils.isNotEmpty(parameter)) {
-            paramList = JSONObject.parseObject(parameter, List.class);
-            for(Map<String, String> map : paramList){
-                if(StringUtils.isEmpty(map.get("apiCode"))){
-                    throw new Exception("Job参数格式不正确");
-                }
-                if(StringUtils.isEmpty(map.get("bizDate"))){
-                    map.put("bizDate", curDate);
-                }
+        for(Map<String, String> map : paramList){
+            if(StringUtils.isEmpty(map.get("apiCode"))){
+                throw new Exception("Job参数格式不正确");
             }
-            return paramList;
+            if(StringUtils.isEmpty(map.get("bizDate"))){
+                map.put("bizDate", curDate);
+            }
         }
-
-        Map<String, String> map = new HashMap<>();
-        map.put("apiCode", "3710155");
-        map.put("bizDate", curDate);
-        paramList.add(map);
         return paramList;
     }
 }
