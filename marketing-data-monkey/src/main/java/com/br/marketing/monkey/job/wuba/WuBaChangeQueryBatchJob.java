@@ -2,9 +2,12 @@ package com.br.marketing.monkey.job.wuba;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.wuba.WubaQueryConversionDto;
+import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
+import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.wuba.WuBaChangeQueryBatchService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -39,6 +42,9 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
     @Resource
     private WuBaChangeQueryBatchService service;
 
+    @Resource
+    private JobManager jobManager;
+
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         try {
@@ -65,7 +71,7 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
     }
 
     private boolean checkJobSwitch(){
-        String wuBaSubmitConversionSwitch = marketingCommonConfig.getWuBaSubmitConversionSwitch();
+        String wuBaSubmitConversionSwitch = marketingCommonConfig.getWuBaChangeQueryBatchSwitch();
         if ("1".equals(wuBaSubmitConversionSwitch)) {
             log.warn(TITLE + "开关打开");
             return true;
@@ -76,9 +82,9 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
 
     private Map<String, Object> acquirePushTimeInterval() throws Exception {
         Map<String, Object> res = new HashMap<>();
-        JSONObject interval = marketingCommonConfig.getWuBaQueryConversionPushTimeInterval();
-        Integer pushStart = -2;
-        Integer pushEnd = -1;
+        JSONObject interval = marketingCommonConfig.getWuBaChangeQueryBatchPushTimeInterval();
+        Integer pushStart = -1;
+        Integer pushEnd = 0;
         if(interval != null){
             Integer pushStartSpeed = interval.getInteger("pushStart");
             Integer pushEndSpeed = interval.getInteger("pushEnd");
@@ -105,6 +111,24 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
     }
 
     private void actionByApiCode(String apiCode, Map<String, Object> pushTimeInterval) {
+        // actionFront
+        int actionType = JobManager.ActionTypeEnum.WUBA_CHANGE_QUERY_BATCH.getActionType();
+
+        String bizDate = "";
+        TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionType, null);
+        if (actionFront != null) {
+            if (2 == actionFront.getStatus()) {
+                log.warn(TITLE+"今日已经更新完成"+"api_code:{}, biz_date:{}", apiCode, bizDate);
+                return;
+            }
+        } else {
+            actionFront = jobManager.saveFront(apiCode, bizDate, actionType);
+            if (actionFront.getId() == null) {
+                log.warn(TITLE+ "更新失败, {}, {}", apiCode, bizDate);
+                return;
+            }
+        }
+
         WubaQueryConversionDto param = new WubaQueryConversionDto();
         param.setBatchType(2);
         param.setApiCode(apiCode);
@@ -113,6 +137,10 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
 
         Page2Condition<WubaQueryConversionDto> condition = new Page2Condition<>();
         condition.setParam(param);
-        service.action(condition);
+        Result actionResult = service.action(condition);
+
+        if (actionResult!=null && actionResult.isSuccess()){
+            jobManager.updateFrontDataStatus(actionFront.getId(), 2);
+        }
     }
 }

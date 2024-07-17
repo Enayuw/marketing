@@ -1827,6 +1827,16 @@ public class MarketingCommonConfig {
     /**
      * 58新客-营销转化结果查询-开关，1-开，0-关
      */
+    private String wuBaChangeQueryBatchSwitch;
+
+    /**
+     * 58新客-营销转化结果查询-pushTime查询区间
+     */
+    private JSONObject wuBaChangeQueryBatchPushTimeInterval;
+
+    /**
+     * 58新客-营销转化结果查询-开关，1-开，0-关
+     */
     private String wuBaQueryConversionSwitch;
 
     /**

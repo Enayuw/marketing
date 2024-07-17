@@ -27,8 +27,8 @@ public class WuBaChangeQueryBatchService {
     private WubaCollidingBatchNoMapper batchNoMapper;
 
 
-    public void action(Page2Condition<WubaQueryConversionDto> condition) {
-        scanData(condition);
+    public Result action(Page2Condition<WubaQueryConversionDto> condition) {
+        return scanData(condition);
     }
 
     public Result scanData(Page2Condition<WubaQueryConversionDto> condition) {
