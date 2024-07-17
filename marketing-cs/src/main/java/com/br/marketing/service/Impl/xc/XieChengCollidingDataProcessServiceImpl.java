@@ -29,7 +29,6 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -227,32 +226,37 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         AtomicInteger totalDeleteCount = new AtomicInteger(0);
         String conditions = task.getTaskExecutionConditions();
         String extend = "携程撞库数据清洗任务删除，任务id：" + task.getId();
-
-        // 获取跑分数据查询条件
-        String queryRuleScoreDataSql = getQueryRuleScoreDataSql(task, conditions);
-        log.warn("携程撞库数据清洗任务，TRUE数据保留查询条件:{}", queryRuleScoreDataSql);
-
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        Long minId = null;
-        while (true) {
-            List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql);
-            if (CollectionUtils.isEmpty(longs)) {
-                break;
+        for (String batchNumber : task.getBatchNumber().split(",")) {
+            if (StringUtils.isEmpty(batchNumber)) {
+                continue;
             }
 
-            modifyThreadPool(threadPool);
-            minId = longs.get(longs.size() - 1);
+            String tableName = "b_xiecheng_colliding_" + batchNumber;
+            String queryRuleScoreDataSql = "select id, cell, is_delete from "
+                    + tableName + " where " + conditions;
 
-            futures.add(CompletableFuture.runAsync(() -> {
-                try {
-                    totalDeleteCount.addAndGet(cycleMapper.updateIsDeleteByIds(longs, extend));
-                } catch (Exception e) {
-                    log.error("携程撞库TRUE数据删除，单线程处理异常：" + e.getMessage(), e);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            Long minId = null;
+            while (true) {
+                List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName);
+                if (CollectionUtils.isEmpty(longs)) {
+                    break;
                 }
-            }, threadPool));
-        }
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+                modifyThreadPool(threadPool);
+                minId = longs.get(longs.size() - 1);
+
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        totalDeleteCount.addAndGet(cycleMapper.updateIsDeleteByIds(longs, extend));
+                    } catch (Exception e) {
+                        log.error("携程撞库TRUE数据删除，单线程处理异常：" + e.getMessage(), e);
+                    }
+                }, threadPool));
+            }
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        }
 
         // 发送钉钉告警
         int count = totalDeleteCount.get();
@@ -265,35 +269,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
 
         return count;
-    }
-
-    /**
-     * 根据batchNum拼接跑分数据查询条件
-     * @param task
-     * @param conditions
-     * @return
-     */
-    private String getQueryRuleScoreDataSql(XiechengCollidingDataProcessTask task, String conditions) {
-        List<String> batchNumberList = Arrays.asList(task.getBatchNumber().split(","));
-        String queryRuleScoreDataSql = "";
-        for (int i = 0; i < batchNumberList.size(); i++) {
-            String batchNumber = batchNumberList.get(i);
-            if (StringUtils.isEmpty(batchNumber)) {
-                continue;
-            }
-
-            if (i == batchNumberList.size() - 1) {
-                queryRuleScoreDataSql = queryRuleScoreDataSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumber).concat(" " +
-                                "where ")
-                        .concat(conditions).concat(" and is_delete=0 ");
-            } else {
-                queryRuleScoreDataSql = queryRuleScoreDataSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumber).concat(" " +
-                                "where ")
-                        .concat(conditions).concat(" and is_delete=0 ").concat(" union all ");
-            }
-        }
-
-        return queryRuleScoreDataSql;
     }
 
     /**
