@@ -2,6 +2,7 @@ package com.br.marketing.monkey.job.wuba;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.wuba.WubaQueryConversionDto;
@@ -65,8 +66,7 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
 
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),e.getMessage()
-                    , TITLE), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),e.getMessage(), TITLE), e);
         }
     }
 
@@ -80,11 +80,11 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
         return false;
     }
 
-    private Map<String, Object> acquirePushTimeInterval() throws Exception {
+    private Map<String, Object> acquirePushTimeInterval(){
         Map<String, Object> res = new HashMap<>();
         JSONObject interval = marketingCommonConfig.getWuBaChangeQueryBatchPushTimeInterval();
-        Integer pushStart = -1;
-        Integer pushEnd = 0;
+        Integer pushStart = -2;
+        Integer pushEnd = -1;
         if(interval != null){
             Integer pushStartSpeed = interval.getInteger("pushStart");
             Integer pushEndSpeed = interval.getInteger("pushEnd");
@@ -114,17 +114,17 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
         // actionFront
         int actionType = JobManager.ActionTypeEnum.WUBA_CHANGE_QUERY_BATCH.getActionType();
 
-        String bizDate = "";
+        String bizDate = DateUtils.format(new Date(), "yyyy-MM-dd");
         TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionType, null);
         if (actionFront != null) {
             if (2 == actionFront.getStatus()) {
-                log.warn(TITLE+"今日已经更新完成"+"api_code:{}, biz_date:{}", apiCode, bizDate);
+                log.warn(TITLE+"今日已经更新完成, apiCode:{}, bizDate:{}", apiCode, bizDate);
                 return;
             }
         } else {
             actionFront = jobManager.saveFront(apiCode, bizDate, actionType);
             if (actionFront.getId() == null) {
-                log.warn(TITLE+ "更新失败, {}, {}", apiCode, bizDate);
+                log.warn(TITLE+ "更新失败, apiCode:{}, bizDate:{}", apiCode, bizDate);
                 return;
             }
         }
@@ -141,6 +141,7 @@ public class WuBaChangeQueryBatchJob extends AbstractSimpleElasticJob {
 
         if (actionResult!=null && actionResult.isSuccess()){
             jobManager.updateFrontDataStatus(actionFront.getId(), 2);
+            log.warn(TITLE+"今日更新成功, apiCode:{}, bizDate:{}", apiCode, bizDate);
         }
     }
 }

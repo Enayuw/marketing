@@ -65,7 +65,7 @@ public class WuBaQueryConversionResultJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private boolean checkJobSwitch() throws Exception {
+    private boolean checkJobSwitch(){
         String wuBaQueryConversionResultSwitch = marketingCommonConfig.getWuBaQueryConversionSwitch();
         if ("1".equals(wuBaQueryConversionResultSwitch)) {
             log.warn(TITLE + "开关打开");

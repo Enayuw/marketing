@@ -37,6 +37,7 @@ public class WuBaChangeQueryBatchService {
         // 扫描批次, BatchType 2-上报
         WubaQueryConversionDto param = condition.getParam();
         Integer batchType = param.getBatchType();
+        String apiCode = param.getApiCode();
         Date pushTimeStart = param.getPushTimeStart();
         Date pushTimeEnd = param.getPushTimeEnd();
 
@@ -44,6 +45,7 @@ public class WuBaChangeQueryBatchService {
         batchUpdate.setQueryStatus(0);
         WubaCollidingBatchNoExample batchExample = new WubaCollidingBatchNoExample();
         batchExample.createCriteria().andBatchTypeEqualTo(batchType)
+                .andApiCodeEqualTo(apiCode)
                 .andPushTimeGreaterThanOrEqualTo(pushTimeStart)
                 .andPushTimeLessThan(pushTimeEnd)
                 .andIsDeletedEqualTo(0);

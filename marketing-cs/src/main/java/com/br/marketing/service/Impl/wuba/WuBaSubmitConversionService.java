@@ -122,7 +122,7 @@ public class WuBaSubmitConversionService {
             // Alert
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
                     TITLE + "调用接口失败, apiCode: " + apiCode));
-            wuBaDingDingService.sendAlert(TITLE, "调用接口失败, apiCode: " + apiCode);
+            wuBaDingDingService.sendAlert(TITLE, TITLE+"调用接口失败, apiCode: " + apiCode);
             return result;
         }
         log.warn(TITLE + "调用接口成功{}", apiCode);

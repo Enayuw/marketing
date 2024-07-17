@@ -1825,12 +1825,12 @@ public class MarketingCommonConfig {
     private Integer wuBaSubmitConversionPageSize;
 
     /**
-     * 58新客-营销转化结果查询-开关，1-开，0-关
+     * 58新客-修改营销名单上报批次-开关，1-开，0-关
      */
     private String wuBaChangeQueryBatchSwitch;
 
     /**
-     * 58新客-营销转化结果查询-pushTime查询区间
+     * 58新客-修改营销名单上报批次-pushTime查询区间
      */
     private JSONObject wuBaChangeQueryBatchPushTimeInterval;
 
