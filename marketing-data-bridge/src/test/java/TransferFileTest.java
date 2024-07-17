@@ -110,7 +110,7 @@ public class TransferFileTest implements ApplicationContextAware {
     public void SuShangWriteTransferToFile() {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7491726");
-        String myParam = "7491726#2024-07-16";
+        String myParam = "7491726#2024-07-17";
         String dd = isMyParam("7491726", myParam);
         transferFileTask.setStartDate(dd);
         String apiCode = transferFileTask.getApiCode();

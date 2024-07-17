@@ -190,8 +190,14 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
                     String taskId = emptyDefault(transferFilterData.getTaskId());
                     String custNum = emptyDefault(transferFilterData.getCustNum());
                     String touchType = emptyDefault(transferFilterData.getTouchType());
-                    String callTime = LocalDate.parse(transferFilterData.getCallTime(), YYYYMMDDSHORTLINE).toString();
-                    String pushTime = LocalDate.parse(transferFilterData.getPushTime(), YYYYMMDDSHORTLINE).toString();
+                    String callTime = "";
+                    if (StringUtils.isNotEmpty(transferFilterData.getCallTime())){
+                        callTime = LocalDate.parse(transferFilterData.getCallTime(), YYYYMMDDSHORTLINE).toString();
+                    }
+                    String pushTime = "";
+                    if (StringUtils.isNotEmpty(transferFilterData.getPushTime())){
+                        pushTime = LocalDate.parse(transferFilterData.getPushTime(), YYYYMMDDSHORTLINE).toString();
+                    }
                     StringBuilder sb = new StringBuilder();
                     try {
                         sb.append(taskId).append(",")
