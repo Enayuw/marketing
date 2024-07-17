@@ -103,8 +103,29 @@ public class ApiCallerUtil {
         return exchange.getBody();
     }
 
-    public ResponseEntity<String> getReponse() {
+    public ResponseEntity<String> getReponse(String paramJson) {
+        InterfaceLog interfaceLog = new InterfaceLog();
+        interfaceLog.setRequestId(UUID.randomUUID().toString());
+        interfaceLog.setRequestParam(paramJson);
+        interfaceLog.setUrl(url);
+        interfaceLog.setExtendInfo(paramJson);
+        interfaceLog.setCreateTime(new Date());
+        long start = System.currentTimeMillis();
         ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, createHttpEntity(), String.class);
+        Long l = System.currentTimeMillis() - start;
+        if(interfaceLogMapper != null) {
+            try {
+                interfaceLog.setResult(exchange.getBody());
+                interfaceLog.setHttpCode(exchange.getStatusCodeValue());
+                interfaceLog.setExpire(l.toString());
+                logDbPool.submit(()->{
+                    interfaceLogMapper.insertSelective(interfaceLog);
+                });
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            }
+        }
+
         return exchange;
     }
 

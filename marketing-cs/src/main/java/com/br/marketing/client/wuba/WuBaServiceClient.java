@@ -135,7 +135,7 @@ public class WuBaServiceClient {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_02.getCode());
             resMap = getMock(batchNo, resMap);
         } else {
-            resMap = getWuBaServerQueryResult(batchNo);
+            resMap = getWuBaServerQueryResult(queryCredentialStuffingResultUrl, batchNo);
         }
 
         // 处理响应
@@ -197,7 +197,7 @@ public class WuBaServiceClient {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_04.getCode());
             resMap = wuBaMockService.getMock04(batchNo, resMap);
         } else {
-            resMap = getWuBaServerQueryResult(batchNo);
+            resMap = getWuBaServerQueryResult(queryConversionResultUrl, batchNo);
         }
 
         // 处理响应  {"httpcode":"200","content":{"code":"0","data":[]}}
@@ -217,7 +217,7 @@ public class WuBaServiceClient {
         }
     }
 
-    private HashMap<String, String> getWuBaServerQueryResult(String batchNo){
+    private HashMap<String, String> getWuBaServerQueryResult(String url, String batchNo) {
         RestTemplate restTemplateCall;
         if (isProxy) {
             restTemplateCall = restTemplateByProxy;
@@ -226,13 +226,13 @@ public class WuBaServiceClient {
         }
 
         String param = "batchNo=" + batchNo;
-        String url = queryCredentialStuffingResultUrl + "?" + param;
+        String urlConcatParam = url + "?" + param;
         ResponseEntity<String> reponse = new ApiCallerUtil(restTemplateCall, interfaceLogMapper, interfaceLogDbpool)
-                .setUrl(url).getReponse();
+                .setUrl(urlConcatParam).getReponse(JSON.toJSONString(param));
 
         HashMap<String, String> resMap = new HashMap<>();
-        resMap.put("httpcode",String.valueOf(reponse.getStatusCodeValue()));
-        resMap.put("content",reponse.getBody());
+        resMap.put("httpcode", String.valueOf(reponse.getStatusCodeValue()));
+        resMap.put("content", reponse.getBody());
         return resMap;
     }
 
