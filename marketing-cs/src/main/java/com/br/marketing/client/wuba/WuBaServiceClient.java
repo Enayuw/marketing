@@ -225,7 +225,7 @@ public class WuBaServiceClient {
                 HashMap<String, Object> contentMock = new HashMap<>();
                 contentMock.put("code", 0);
                 contentMock.put("msg", "成功");
-                String batchNoMock = "csl_bairongkj_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+                String batchNoMock = "wuba_zk_test" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
                 contentMock.put("data", batchNoMock);
 
                 resMock.put("httpcode", "200");
