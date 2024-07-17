@@ -63,6 +63,7 @@ import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -688,6 +689,28 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         return saveTask(apiCode, number, vo, vo.getStartDate(), count, 2, showStr.toString(), userTypeList);
 
+    }
+
+    @Override
+    public Result<List<Long>> saveTaskSelectV2(TaskSelectSaveDTO dto) {
+        Integer taskCreateMethod = dto.getTaskCreateMethod();
+        if("2".equals(taskCreateMethod)) {
+            List<Long> dataIdDesc = dto.getDataIdDesc();
+            List<Long> resIds = dto.getDataIdDesc();
+            for(Long dataId : dataIdDesc){
+                TaskSelectSaveDTO singeDTO = new TaskSelectSaveDTO();
+                BeanUtils.copyProperties(singeDTO, dto);
+                List<Long> dataIdDList = dto.getDataIdDesc();
+                dataIdDList.add(dataId);
+                singeDTO.setDataIdDesc(dataIdDList);
+                Result<List<Long>> singleResult = saveTaskSelect(singeDTO);
+                if(ResultCode.SUCCESS.getValue().equals(singleResult.getCode())){
+                    resIds.addAll(singleResult.getData());
+                }
+            }
+            new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resIds);
+        }
+        return saveTaskSelect(dto);
     }
 
     @Override
