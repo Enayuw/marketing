@@ -77,7 +77,7 @@ public class WuBaMockService {
                 jsonObject.put("loanAmt", "");
                 jsonObject.put("field1", "field1");
                 jsonObject.put("field2", "field2");
-                if (log.getId().intValue() % 3 == 1 || log.getId().intValue() % 3 == 2) {
+                if (log.getId().intValue() % 5 == 1) {
                     jsonObject.put("lastLoginTime", "2024-07-12 09:00:00");
                     jsonObject.put("financeApplyTime", "2024-07-12 09:00:00");
                     jsonObject.put("financeCreditStatus", "1");
@@ -87,6 +87,52 @@ public class WuBaMockService {
                     jsonObject.put("loanAmt", "1000.00");
                     jsonObject.put("field1", "field1");
                     jsonObject.put("field2", "field2");
+                }
+                array.add(jsonObject);
+            }
+
+            HashMap<String, Object> contentMock = new HashMap<>();
+            contentMock.put("code", 0);
+            contentMock.put("msg", "成功");
+            contentMock.put("data", array);
+
+            resMock.put("httpcode", "200");
+            resMock.put("content", JSON.toJSONString(contentMock));
+            return resMock;
+        } else if (Objects.equals(content.get("code"), "888") ) {
+            WubaSubmitConversionDataLogExample example = new WubaSubmitConversionDataLogExample();
+            example.createCriteria().andBatchNoEqualTo(batchNo).andIsDeletedEqualTo(0);
+            List<WubaSubmitConversionDataLog> logs = wubaSubmitConversionDataLogMapper.selectByExample(example);
+
+            JSONArray array = new JSONArray();
+            for (WubaSubmitConversionDataLog log : logs) {
+                JSONObject jsonObject = new JSONObject();
+                //
+                String randomNumber = new Random().ints(1, 10)
+                        .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
+                jsonObject.put("id", randomNumber);
+                jsonObject.put("mobileEncrypt", log.getCell());
+                jsonObject.put("lastLoginTime", "");
+                jsonObject.put("financeApplyTime", "");
+                jsonObject.put("financeCreditStatus", "");
+                jsonObject.put("financeCreditFinishTime", "");
+                jsonObject.put("debtTime", "");
+                jsonObject.put("debtPassTime", "");
+                jsonObject.put("loanAmt", "");
+                jsonObject.put("field1", "field1");
+                jsonObject.put("field2", "field2");
+                jsonObject.put("field3", "field3");
+                if (log.getId().intValue() % 5 == 1 || log.getId().intValue() % 5 == 2) {
+                    jsonObject.put("lastLoginTime", "2024-07-12 11:00:00");
+                    jsonObject.put("financeApplyTime", "2024-07-12 11:00:00");
+                    jsonObject.put("financeCreditStatus", "1");
+                    jsonObject.put("financeCreditFinishTime", "2024-07-12 11:00:00");
+                    jsonObject.put("debtTime", "2024-07-12 11:00:00");
+                    jsonObject.put("debtPassTime", "2024-07-12 11:00:00");
+                    jsonObject.put("loanAmt", "2000");
+                    jsonObject.put("field1", "field1");
+                    jsonObject.put("field2", "field2");
+                    jsonObject.put("field3", "field3");
                 }
                 array.add(jsonObject);
             }
