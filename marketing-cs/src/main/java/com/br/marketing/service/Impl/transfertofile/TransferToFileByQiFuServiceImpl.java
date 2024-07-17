@@ -16,6 +16,7 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -121,21 +122,24 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
             Long minId = transferData.get(transferData.size() - 1).getId() + 1;
             syncUser.setId(minId);
             //有效期过滤
-            Set<String> custNumSet = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode,
-                            LocalDate.parse(requestDate, YYYYMMDDSHORTLINE));
-            List<MarketingTransferSyncUser> transferDataNew = transferData.stream().filter((MarketingTransferSyncUser transfer) -> {
-                String custNum = transfer.getCustNum();
-                SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
-                return syncUserValidityPeriodsBO != null;
-            }).collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(transferDataNew)) {
-                continue;
-            }
-            threadPool.submit(() -> {
-                writeDataForOneQuery(fw, totalSize, transferDataNew, validityPeriodsByCustNum);
+            List<List<MarketingTransferSyncUser>> partitionList = Lists.partition(transferData, 50);
+            partitionList.forEach((List<MarketingTransferSyncUser> list) -> {
+                Set<String> custNumSet = list.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+                threadPool.submit(() -> {
+                    Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                            transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode,
+                                    LocalDate.parse(requestDate, YYYYMMDDSHORTLINE));
+                    List<MarketingTransferSyncUser> transferDataNew = list.stream().filter((MarketingTransferSyncUser transfer) -> {
+                        String custNum = transfer.getCustNum();
+                        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
+                        return syncUserValidityPeriodsBO != null;
+                    }).collect(Collectors.toList());
+                    if (!CollectionUtils.isEmpty(transferDataNew)) {
+                        writeDataForOneQuery(fw, totalSize, transferDataNew, validityPeriodsByCustNum);
+                    }
+                });
             });
+
         }
         threadPool.shutdown();
         try {

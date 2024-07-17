@@ -12,8 +12,10 @@ import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.scurrilous.circe.Hash;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -81,14 +83,12 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                 break;
             }
             List<Map<String, Object>> extData = result.stream()
-                    .filter(transfer -> transfer.get("taskId") != null)
                     .collect(Collectors.
                             groupingBy((Map<String, Object> transfer) -> transfer.get("id").toString()))
                     .values()
                     .stream()
                     .map((List<Map<String, Object>> transfers) ->
-                            transfers.stream().max(Comparator.comparing(transfer ->
-                                    transfer.getOrDefault("validEndDate", "").toString())).get()
+                            transfers.stream().max(Comparator.comparing(transfer -> getEndDate(transfer))).get()
                     ).collect(Collectors.toList());
             List<Map<String, Object>> finalExtData = extData.stream()
                     .map((Map<String, Object> transfer) -> {
@@ -140,6 +140,46 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
+    }
+
+    private String getEndDate(Map<String, Object> transfer) {
+        try {
+            String reserveField1 = ObjectUtils.isEmpty(transfer.get("reserveField1")) ?
+                    "" : transfer.get("reserveField1").toString();
+            JSONObject reserveField1JSON = JSON.parseObject(reserveField1);
+            String expireTime = reserveField1JSON.containsKey("expireDate") ?
+                    reserveField1JSON.getString("expireDate") : "";
+            return expireTime;
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+
+    @Test
+    public void test() {
+
+        HashMap<String, Object> map1 = new HashMap<>();
+        HashMap<String, Object> map2 = new HashMap<>();
+        HashMap<String, Object> map3 = new HashMap<>();
+        map1.put("id", 1);
+        map2.put("id", 2);
+        map1.put("id", 3);
+        map1.put("id1", "2024-06-30");
+        map2.put("id1", "2023-06-30");
+        map3.put("id1", "");
+        List<Map<String, Object>> list = new ArrayList<>();
+        list.add(map1);
+        list.add(map2);
+        list.add(map3);
+        Map<String, Object> hha = list.stream().max(Comparator.comparing(map -> map.getOrDefault("id1", "").toString())).get();
+        System.out.println(hha.get("id"));
+
+        Map<String, Object> minIdData = list.stream()
+                .max(Comparator.comparing((Map<String, Object> map) ->
+                        Long.parseLong(String.valueOf(map.get("id"))))).get();
+        System.out.println(minIdData.get("id"));
+
     }
 
     private void writeDataForOneQuery(Writer fw, AtomicInteger totalSize, List<Map<String, Object>> result) {
