@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class WuBaSubmitConversionSoleProcessor {
 
     private final static String TITLE = "【58新客提交营销名单】";
-    private static final Integer PARTITION_SIZE = 2000;
+    private static Integer PARTITION_SIZE = 50;
 
     ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(10, 10);
 
@@ -158,6 +158,7 @@ public class WuBaSubmitConversionSoleProcessor {
 
         dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
         dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        PARTITION_SIZE = marketingCommonConfig.getWuBaQueryConversionBatDBPartitionSize();
 
         List<CompletableFuture<Void>> distributeLogFutures = Lists.newArrayList();
         List<List<DataDistributeDetailLog>> distributeLogPartitions = Lists.partition(distributeLogList, PARTITION_SIZE);

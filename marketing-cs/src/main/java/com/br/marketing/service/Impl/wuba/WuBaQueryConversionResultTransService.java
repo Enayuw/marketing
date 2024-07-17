@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class WuBaQueryConversionResultTransService {
 
     private static final String TITLE = "【58新客提交营销名单结果查询】";
-    private static final Integer PARTITION_SIZE = 2000;
+    private static Integer PARTITION_SIZE = 50;
 
     ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(10, 10);
 
@@ -132,6 +132,7 @@ public class WuBaQueryConversionResultTransService {
 
         dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
         dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        PARTITION_SIZE = marketingCommonConfig.getWuBaQueryConversionBatDBPartitionSize();
 
         // batAddDataTransferClean
         List<CompletableFuture<Void>> dataTransferCleanFutures = Lists.newArrayList();

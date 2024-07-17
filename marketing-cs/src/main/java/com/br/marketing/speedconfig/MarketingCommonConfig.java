@@ -1860,6 +1860,11 @@ public class MarketingCommonConfig {
     private Integer wuBaQueryConversionBatDBThreadPool;
 
     /**
+     * 58新客-营销转化结果查询-批量DB分页条数
+     */
+    private Integer wuBaQueryConversionBatDBPartitionSize;
+
+    /**
      * 58新客-营销转化结果查询-通用字段配置
      */
     private Set<String> wuBaQueryConversionKnowFields;
