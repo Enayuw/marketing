@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.wuba;
 
 import com.br.common.log.AlertLog;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -20,6 +21,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -167,7 +169,7 @@ public class WuBaQueryConversionResultTransService {
 
         // 营销名单上报表, push_status置为2-推送成功
         List<String> successCellList = responseDtoList.stream().map(ConversionResponseDTO::getMobileEncrypt).collect(Collectors.toList());
-        updateDataStatus(successCellList,2);
+        updateDataStatus(successCellList,2, apiCode, wubaCollidingBatchNo.getPushTime());
         log.warn(TITLE + "更新营销名单上报状态成功, batchNo: {}", batchNo);
 
         // 更新清洗任务表
@@ -191,7 +193,7 @@ public class WuBaQueryConversionResultTransService {
         updateDataLogStatus(wubaCollidingBatchNo, failureCellList, 2);
 
         // 营销名单上报表, push_status置为3-推送失败
-        updateDataStatus(failureCellList, 3);
+        updateDataStatus(failureCellList, 3, wubaCollidingBatchNo.getApiCode(), wubaCollidingBatchNo.getPushTime());
 
         return new Result().success();
     }
@@ -213,12 +215,15 @@ public class WuBaQueryConversionResultTransService {
         return new Result().success();
     }
 
-    public Result updateDataStatus(List<String> cellList, Integer pushStatus) throws Exception {
+    public Result updateDataStatus(List<String> cellList, Integer pushStatus, String apiCode, Date pushTime) {
         WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
         dataUpdate.setPushStatus(pushStatus);
         //
+        Integer createDate = Integer.parseInt(DateUtils.format(pushTime, "yyyyMMdd"));
         WubaSubmitConversionDataExample dataUpdateExample = new WubaSubmitConversionDataExample();
-        dataUpdateExample.createCriteria().andCellIn(cellList);
+        dataUpdateExample.createCriteria().andCellIn(cellList)
+                .andApiCodeEqualTo(apiCode)
+                .andCreateDateEqualTo(createDate);
         int dataUpdateResult = dataMapper.updateByExampleSelective(dataUpdate, dataUpdateExample);
         if(dataUpdateResult != cellList.size()){
             log.warn(TITLE+"更新营销名单上报状态{}, 批次返回cell与上报表不一致", pushStatus);
