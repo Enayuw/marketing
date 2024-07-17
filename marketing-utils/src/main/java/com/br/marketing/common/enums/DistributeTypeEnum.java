@@ -13,7 +13,7 @@ public enum DistributeTypeEnum {
     ZHONGAN_PUSH_DETAIL(5, "众安明细推送"),
     YIXIN_TRANSFER_PUSH_BAIYING(6, "宜信转化推送百应"),
     YIXIN_REALTIME_POLICYDATA(7, "宜信实时推决策数据"),
-    WUBA_SUBMIT_CONVERSION(1, "58新客提交营销名单"),
+    WUBA_SUBMIT_CONVERSION(5, "58新客提交营销名单"),
 
     ;
 

@@ -1815,6 +1815,11 @@ public class MarketingCommonConfig {
     private String wuBaSubmitConversionSwitch;
 
     /**
+     * 58新客-营销名单上报-条件参数
+     */
+    private List<Map<String, String>> wuBaSubmitConversionParams;
+
+    /**
      * 58新客-营销名单上报-分页条数
      */
     private Integer wuBaSubmitConversionPageSize;

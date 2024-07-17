@@ -15,6 +15,7 @@ import com.br.marketing.mapper.WubaSubmitConversionDataLogMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -146,7 +147,8 @@ public class WuBaSubmitConversionService {
         }
         log.warn(TITLE + "上报批次表增加记录成功, batchNo{}", batchNo);
 
-        processSuccess(pageList, batchNo);
+        WuBaSubmitConversionService service = (WuBaSubmitConversionService) AopContext.currentProxy();
+        service.processSuccess(pageList, batchNo);
         return result.success();
     }
 
