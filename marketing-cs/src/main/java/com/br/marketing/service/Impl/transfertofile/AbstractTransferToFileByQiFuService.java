@@ -13,7 +13,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -66,7 +65,8 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
         boolean isParam = StringUtils.isNotBlank(myParam);
         if (LocalTime.now().isAfter(localTime) || isParam) {
             // 指定日期提取，生成指定日期的记录，不是当天的记录
-            String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+            String dateyyyymmddStr = isParam ? myParam.replace("-", "")
+                    : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(date)
@@ -104,7 +104,10 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
         String date = LocalDate.now().toString();
         date = date.replace("-", "");
         String requestDate = StringUtils.isBlank(jobParameter) ? LocalDate.now().minusDays(1).toString() : jobParameter;
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
+        String descPath = syncConfigService.getPath()
+                .concat("transferToFile/")
+                .concat(apiCode)
+                .concat("/")
                 .concat(date).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {

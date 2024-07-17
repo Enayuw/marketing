@@ -14,7 +14,6 @@ import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -82,6 +81,7 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                 break;
             }
             List<Map<String, Object>> extData = result.stream()
+                    .filter(transfer -> transfer.get("taskId") != null)
                     .collect(Collectors.
                             groupingBy((Map<String, Object> transfer) -> transfer.get("id").toString()))
                     .values()
