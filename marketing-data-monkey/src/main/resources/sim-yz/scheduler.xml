@@ -329,7 +329,7 @@
     />
     <job:simple id="【monkey】-WuBaSubmitConversionJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaSubmitConversionJob"
-                cron="0 0/5 5-23 * * ?"
+                cron="0/5 * 5-23 * * ?"
                 description="58新客提交营销名单"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -357,7 +357,7 @@
     />
     <job:simple id="【monkey】-WuBaQueryConversionResultJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaQueryConversionResultJob"
-                cron="0 0/5 5-23 * * ?"
+                cron="0/5 * 5-23 * * ?"
                 description="58新客提交营销名单结果查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
