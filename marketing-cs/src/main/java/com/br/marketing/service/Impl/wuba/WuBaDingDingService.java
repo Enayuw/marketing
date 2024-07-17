@@ -30,9 +30,13 @@ public class WuBaDingDingService {
     private boolean isProxy;
 
     public void sendAlert(String title, String text){
-        String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
-        String secret = marketingCommonConfig.getQiFuDingDingSecret();
-        sendAlert(title, text, accessToken, secret);
+        try {
+            String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
+            String secret = marketingCommonConfig.getQiFuDingDingSecret();
+            sendAlert(title, text, accessToken, secret);
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()));
+        }
     }
 
     public void sendAlert(String title, String text, String accessToken, String secret){

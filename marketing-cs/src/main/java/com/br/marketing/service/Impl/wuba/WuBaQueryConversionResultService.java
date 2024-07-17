@@ -8,6 +8,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.wuba.ConversionResponseDTO;
 import com.br.marketing.dto.wuba.WubaQueryConversionDto;
 import com.br.marketing.entity.WubaCollidingBatchNo;
@@ -142,7 +143,7 @@ public class WuBaQueryConversionResultService {
             }
             if (!callResult.isSuccess()) {
                 // code 9991
-                if (callResult.getCode() == 9991) {
+                if (callResult.getCode() == 9991 || callResult.getCode() == 500) {
                     return result;
                 }
                 // 上报批次表query_status置为2-查询异常
@@ -150,10 +151,6 @@ public class WuBaQueryConversionResultService {
                 if (updateBatchNoResult == null || !updateBatchNoResult.isSuccess()) {
                     return result;
                 }
-                // Alert
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
-                        TITLE + "调用接口失败, batchNo: " + batchNo));
-                wuBaDingDingService.sendAlert(TITLE, TITLE+"调用接口失败, batchNo: " + batchNo);
                 return result;
             }
 
@@ -185,11 +182,20 @@ public class WuBaQueryConversionResultService {
             return result;
         }
         if(!callResult.isSuccess()){
+            // Alert
+            String msg = String.format(TITLE + "调用接口失败, batchNo: %s, resMap: %s",
+                    wubaCollidingBatchNo.getBatchNo(), JSONObject.toJSONString(callResult.getData()));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg));
+            wuBaDingDingService.sendAlert(TITLE, msg);
+
             if(callResult.getData()== null){
                 return result;
             }
             String data = String.valueOf(callResult.getData());
             JSONObject resultMap = JSONObject.parseObject(data);
+            if (!"200".equals(resultMap.get("httpcode")) || StringUtils.isEmpty(resultMap.get("content"))) {
+                return result.setCode(500);
+            }
             JSONObject content = resultMap.getJSONObject("content");
             Integer code = content.getInteger("code");
             if (code == 9991){
@@ -197,6 +203,7 @@ public class WuBaQueryConversionResultService {
             }
             return result;
         }
+
         // call success
         String data = String.valueOf(callResult.getData());
         JSONArray ja = JSONObject.parseArray(data);

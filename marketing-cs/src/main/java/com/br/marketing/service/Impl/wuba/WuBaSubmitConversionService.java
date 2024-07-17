@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
@@ -120,10 +121,6 @@ public class WuBaSubmitConversionService {
         // callClient
         Result<String> callResult = callClient(pageList);
         if (callResult == null || !callResult.isSuccess() || callResult.getData() == null) {
-            // Alert
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
-                    TITLE + "调用接口失败, apiCode: " + apiCode));
-            wuBaDingDingService.sendAlert(TITLE, TITLE+"调用接口失败, apiCode: " + apiCode);
             return result;
         }
         log.warn(TITLE + "调用接口成功{}", apiCode);
@@ -235,6 +232,16 @@ public class WuBaSubmitConversionService {
         // call submitConversionList
         Result callResult = wuBaServiceClient.submitConversionList(wuBaSubmitDTOS);
         if(callResult==null || !callResult.isSuccess() || callResult.getData()==null){
+            // Alert
+            String resMapStr;
+            if (callResult == null || callResult.getData() == null) {
+                resMapStr = "调用接口失败";
+            } else {
+                resMapStr = JSONObject.toJSONString(callResult.getData());
+            }
+            String msg = String.format(TITLE + "调用接口失败, resMap: %s", resMapStr);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg));
+            wuBaDingDingService.sendAlert(TITLE, msg);
             return result;
         }
         String batchNo = (String) callResult.getData();
