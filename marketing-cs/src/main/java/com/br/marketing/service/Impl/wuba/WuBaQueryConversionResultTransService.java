@@ -130,8 +130,8 @@ public class WuBaQueryConversionResultTransService {
         }).collect(Collectors.toList());
 
 
-        dbActionPool.setCorePoolSize(marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
-        dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
+        dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
 
         // batAddDataTransferClean
         List<CompletableFuture<Void>> dataTransferCleanFutures = Lists.newArrayList();

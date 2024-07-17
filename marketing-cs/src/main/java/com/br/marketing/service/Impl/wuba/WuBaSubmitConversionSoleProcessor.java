@@ -11,6 +11,7 @@ import com.br.marketing.entity.DataDistributeDetailLog;
 import com.br.marketing.entity.DataDistributeDetailLogExample;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,9 @@ public class WuBaSubmitConversionSoleProcessor {
 
     @Resource
     private DataDistributeDetailLogMapper distributeLogMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     public List<Long> process(List<WubaSubmitConversionData> pushList){
         List<Long> notPushIds = new ArrayList<>();
@@ -151,6 +155,9 @@ public class WuBaSubmitConversionSoleProcessor {
             distributeLog.setSourceType(DistributeSourceTypeEnum.TRANSFER.getValue());
             return distributeLog;
         }).collect(Collectors.toList());
+
+        dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
+        dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
 
         List<CompletableFuture<Void>> distributeLogFutures = Lists.newArrayList();
         List<List<DataDistributeDetailLog>> distributeLogPartitions = Lists.partition(distributeLogList, PARTITION_SIZE);
