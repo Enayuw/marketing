@@ -4,6 +4,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByRongShuServiceImpl;
+import com.br.marketing.service.Impl.transfertofile.TransferToFileBySuShangServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -61,6 +62,7 @@ public class TransferFileTest implements ApplicationContextAware {
             + "ifActivity,activityTime,unlentAmount,caseEffective,isBlack";
     @Resource
     TransferToFileByRongShuServiceImpl transferToFileByRongShuService;
+
     final static DateTimeFormatter YYYYMMDDSHORTLINE = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_FORMAT);
 
     @Test
@@ -93,6 +95,43 @@ public class TransferFileTest implements ApplicationContextAware {
             fw.append(FILE_HEADER_PPD);
             fw.append("\r\n");
             transferToFileByRongShuService.writeTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+    }
+
+
+    @Resource
+    TransferToFileBySuShangServiceImpl transferToFileBySuShangService;
+
+    private final static String FILE_HEADER = "taskId,custNum,touchType,callTime,pushTime";
+
+    @Test
+    public void SuShangWriteTransferToFile() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7491726");
+        String myParam = "7491726#2024-07-17";
+        String dd = isMyParam("7491726", myParam);
+        transferFileTask.setStartDate(dd);
+        String apiCode = transferFileTask.getApiCode();
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("br_returnlist_%s_01.txt", dateyyyymmddStr));
+        log.warn("苏商自动化回传-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(FILE_HEADER);
+            fw.append("\r\n");
+            transferToFileBySuShangService.writeSuShangTransferToFile(fw,apiCode,transferFileTask, recordDate);
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }
