@@ -36,7 +36,6 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobContext) {
-        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), "清洗任务异常，Redis 锁已经释放！"));
         while (true) {
             MarketingCleanDataTask marketingCleanDataTask = getMarketingCleanDataTask();
             if (marketingCleanDataTask == null) {
