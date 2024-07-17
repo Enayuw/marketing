@@ -1,5 +1,9 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.TransferFileTask;
@@ -9,6 +13,8 @@ import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -16,9 +22,9 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -60,7 +66,8 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
     }
 
     @Override
-    void writeQifuTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
+    void writeQifuTransferToFile(Writer fw, String apiCode,
+                                 TransferFileTask transferFileTask, String requestDate, Integer qiFuFullExtDataSoleNum) {
         Long start = System.currentTimeMillis();
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
@@ -68,25 +75,49 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
         MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
         transferSyncUser.settCid(tcId);
         transferSyncUser.setApiCode(apiCode);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(qiFuFullExtDataSoleNum, qiFuFullExtDataSoleNum, 1);
         for (; ; ) {
             List<Map<String, Object>> result = marketingTransferSyncUserMapper.selectFullTransferWithValid(transferSyncUser);
             if (CollectionUtils.isEmpty(result)) {
                 break;
             }
-            Long minId = Long.parseLong(String.valueOf(result.get(result.size() - 1).get("id"))) + 1;
-            transferSyncUser.setId(minId);
             List<Map<String, Object>> extData = result.stream()
-                    .filter(transfer -> transfer.get("taskId") != null)
-                    .collect(Collectors.groupingBy(transfer -> transfer.get("id").toString()))
+                    .collect(Collectors.
+                            groupingBy((Map<String, Object> transfer) -> transfer.get("id").toString()))
                     .values()
                     .stream()
                     .map((List<Map<String, Object>> transfers) ->
                             transfers.stream().max(Comparator.comparing(transfer ->
                                     transfer.getOrDefault("validEndDate", "").toString())).get()
                     ).collect(Collectors.toList());
+            List<Map<String, Object>> finalExtData = extData.stream()
+                    .map((Map<String, Object> transfer) -> {
+                        String id = transfer.get("id").toString();
+                        try {
+                            String reserveField1 = ObjectUtils.isEmpty(transfer.get("reserveField1")) ?
+                                    "" : transfer.get("reserveField1").toString();
+                            JSONObject reserveField1JSON = JSON.parseObject(reserveField1);
+                            String expireTime = reserveField1JSON.containsKey("expireDate") ?
+                                    reserveField1JSON.getString("expireDate") : "";
+                            String effectiveTime = reserveField1JSON.containsKey("effectiveDate") ?
+                                    reserveField1JSON.getString("effectiveDate") : "";
+                            String expireDate = dateFormat(expireTime);
+                            String effectiveDate = dateFormat(effectiveTime);
+                            transfer.put("expireDate",expireDate);
+                            transfer.put("effectiveDate",effectiveDate);
+                        } catch (Exception e) {
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
+                                    apiCode + "-奇富360转化数据JSON处理异常-id=" + id), e);
+                        }
+                        return transfer;
+                    }).collect(Collectors.toList());
+            Map<String, Object> minIdData = finalExtData.stream()
+                    .max(Comparator.comparing((Map<String, Object> map) ->
+                            Long.parseLong(String.valueOf(map.get("id"))))).get();
+            long minId = Long.parseLong(String.valueOf(minIdData.get("id"))) + 1;
+            transferSyncUser.setId(minId);
             threadPool.submit(() -> {
-                writeDataForOneQuery(fw, totalSize, extData);
+                writeDataForOneQuery(fw, totalSize, finalExtData);
             });
         }
         threadPool.shutdown();
@@ -95,7 +126,7 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                    log.warn("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
@@ -103,7 +134,8 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
             log.warn("奇富360转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
-            log.error("奇富360转化数据提取-本地文件生成失败！" , e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
+                    apiCode + "-奇富360转化数据提取-本地文件生成失败！"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
@@ -145,9 +177,25 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                 fw.append(sb.toString());
                 totalSize.incrementAndGet();
             } catch (IOException e) {
-                log.error(e.getMessage(), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
+                        custNum + "-奇富360转化数据提取-文件写入失败！"), e);
             }
         }
+    }
+
+    /**
+     * 日期格式化
+     * @return
+     */
+    public String dateFormat(String DateStr) throws ParseException {
+        if (StringUtils.isEmpty(DateStr)) {
+            return "";
+        }
+        SimpleDateFormat formate = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        Date parse = formate.parse(DateStr);
+        SimpleDateFormat sdf = new SimpleDateFormat("", Locale.SIMPLIFIED_CHINESE);
+        sdf.applyPattern("yyyy-MM-dd");
+        return sdf.format(parse);
     }
 
 }

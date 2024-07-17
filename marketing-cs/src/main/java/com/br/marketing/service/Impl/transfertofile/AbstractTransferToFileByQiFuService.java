@@ -9,9 +9,12 @@ import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.ITransferToFileService;
 import com.br.marketing.service.Impl.RuleRedisServiceImpl;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -37,6 +40,9 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
 
     @Autowired
     private RuleRedisServiceImpl ruleRedisService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     private final static String TABLE_HEAD_TRANSFER =
             "custNum,applyDt,applyResult,loginTime,requestTime,userType,taskId,expireDate,effectiveDate";
@@ -113,7 +119,8 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             fw.append(TABLE_HEAD_TRANSFER);
             fw.append("\r\n");
-            writeQifuTransferToFile(fw, apiCode, transferFileTask, requestDate);
+            writeQifuTransferToFile(fw, apiCode,
+                    transferFileTask, requestDate, marketingCommonConfig.getQiFuFullExtDataSoleNum());
         } catch (Exception ex) {
             log.error("写入文件错误！",ex);
             result.setCode(ResultCode.FAIL.getValue());
@@ -146,8 +153,10 @@ public abstract class AbstractTransferToFileByQiFuService implements ITransferTo
      * @param apiCode
      * @param transferFileTask
      * @param requestDate
+     * @param qiFuFullExtDataSoleNum
      */
-    abstract void writeQifuTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate);
+    abstract void writeQifuTransferToFile(Writer fw, String apiCode,
+                                          TransferFileTask transferFileTask, String requestDate, Integer qiFuFullExtDataSoleNum);
 
     private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
         return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());

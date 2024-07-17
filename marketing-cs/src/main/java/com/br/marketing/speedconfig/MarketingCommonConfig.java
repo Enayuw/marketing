@@ -1783,5 +1783,10 @@ public class MarketingCommonConfig {
      * 奇富360全量数据提取参数配置
      */
     private HashMap<String, JSONObject> qiFuFullExtDataConfig;
+
+    /**
+     * 奇富360全量数据提取线程数
+     */
+    private Integer qiFuFullExtDataSoleNum;
 }
 

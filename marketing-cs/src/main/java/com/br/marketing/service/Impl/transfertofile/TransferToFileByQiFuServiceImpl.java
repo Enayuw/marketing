@@ -1,7 +1,9 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -88,14 +90,15 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
     }
 
     @Override
-    public void writeQifuTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
+    public void writeQifuTransferToFile(Writer fw, String apiCode,
+                                        TransferFileTask transferFileTask, String requestDate, Integer qiFuFullExtDataSoleNum) {
         Long start = System.currentTimeMillis();
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         List<MarketingCustomizeDataValidConfig> configList = getValidConfigs(apiCode, requestDate);
         if (CollectionUtils.isEmpty(configList)) {
-            log.warn("奇富360转化数据提取-有效期配置表数据为空,apiCode = {},time = {}ms"
-                    , apiCode, System.currentTimeMillis() - start);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
+                    apiCode + "-奇富360转化数据提取-有效期配置表数据为空,apiCode！"));
             saveUpdateTask(transferFileTask, totalSize.intValue());
         }
         String validStartDate = configList.stream()
@@ -106,7 +109,7 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(qiFuFullExtDataSoleNum, qiFuFullExtDataSoleNum, 1);
         LocalDate startDate = LocalDate.parse(validStartDate, YYYYMMDDSHORTLINE).minusDays(1);
         LocalDate endDate = LocalDate.parse(validEndDate, YYYYMMDDSHORTLINE).plusDays(1);
         for (; ; ) {
@@ -140,7 +143,7 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                    log.warn("奇富360转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
@@ -148,7 +151,8 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
             log.warn("奇富360转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
-            log.error("奇富360转化数据提取-本地文件生成失败！" , e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
+                    apiCode + "-奇富360转化数据提取-本地文件生成失败！"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
@@ -214,7 +218,8 @@ public class TransferToFileByQiFuServiceImpl extends AbstractTransferToFileByQiF
                 fw.append(sb.toString());
                 totalSize.incrementAndGet();
             } catch (IOException e) {
-                log.error(e.getMessage(), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
+                        custNum + "-奇富360转化数据提取-文件写入失败！"), e);
             }
         }
     }
