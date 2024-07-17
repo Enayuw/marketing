@@ -7,6 +7,7 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -15,6 +16,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.enums.MockInterfaceCodeEnum;
+import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mock.MockService;
 import com.br.marketing.mock.custom.wuba.WuBaMockService;
@@ -24,9 +26,12 @@ import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -36,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -72,6 +78,20 @@ public class WuBaServiceClient {
     private MockService mockService;
     @Resource
     private WuBaMockService wuBaMockService;
+
+    @Autowired
+    RestTemplate restTemplate;
+
+    @Qualifier("restTemplateByProxy")
+    @Autowired
+    RestTemplate restTemplateByProxy;
+
+    @Qualifier("interfaceLogDbpool")
+    @Autowired
+    ThreadPoolExecutor interfaceLogDbpool;
+
+    @Autowired
+    InterfaceLogMapper interfaceLogMapper;
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result submitCredentialStuffingList(List<String> cells) {
@@ -115,8 +135,7 @@ public class WuBaServiceClient {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_02.getCode());
             resMap = getMock(batchNo, resMap);
         } else {
-            resMap = httpProxyClient.sendByCodeWithLog(batchNo, queryCredentialStuffingResultUrl, isProxy,
-                    MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(batchNo), true, false);
+            resMap = getWuBaServerQueryResult(batchNo);
         }
 
         // 处理响应
@@ -178,8 +197,7 @@ public class WuBaServiceClient {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_04.getCode());
             resMap = wuBaMockService.getMock04(batchNo, resMap);
         } else {
-            resMap = httpProxyClient.sendByCodeWithLog(batchNo, queryConversionResultUrl, isProxy,
-                    MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(batchNo), true, false);
+            resMap = getWuBaServerQueryResult(batchNo);
         }
 
         // 处理响应  {"httpcode":"200","content":{"code":"0","data":[]}}
@@ -197,6 +215,25 @@ public class WuBaServiceClient {
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
+    }
+
+    private HashMap<String, String> getWuBaServerQueryResult(String batchNo){
+        RestTemplate restTemplateCall;
+        if (isProxy) {
+            restTemplateCall = restTemplateByProxy;
+        } else {
+            restTemplateCall = restTemplate;
+        }
+
+        String param = "batchNo=" + batchNo;
+        String url = queryCredentialStuffingResultUrl + "?" + param;
+        ResponseEntity<String> reponse = new ApiCallerUtil(restTemplateCall, interfaceLogMapper, interfaceLogDbpool)
+                .setUrl(url).getReponse();
+
+        HashMap<String, String> resMap = new HashMap<>();
+        resMap.put("httpcode",String.valueOf(reponse.getStatusCodeValue()));
+        resMap.put("content",reponse.getBody());
+        return resMap;
     }
 
     public void sendDingDingAlert(String title, String text) {

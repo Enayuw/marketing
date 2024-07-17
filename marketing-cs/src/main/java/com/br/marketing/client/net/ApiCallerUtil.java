@@ -103,6 +103,11 @@ public class ApiCallerUtil {
         return exchange.getBody();
     }
 
+    public ResponseEntity<String> getReponse() {
+        ResponseEntity<String> exchange = restTemplate.exchange(url, HttpMethod.GET, createHttpEntity(), String.class);
+        return exchange;
+    }
+
     public ThirdApiResultTransfer postTransferStr() {
         HttpEntity postHttpEntity = createPostHttpEntity();
         InterfaceLog interfaceLog = new InterfaceLog();
