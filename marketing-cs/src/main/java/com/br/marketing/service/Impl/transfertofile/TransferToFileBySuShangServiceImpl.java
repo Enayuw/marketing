@@ -175,6 +175,9 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
         Long endId = sushangPushResultDataMapper.maxId(apiCode, localDate.toString());
         Long middleId;
         Boolean continueFlag = Boolean.TRUE;
+        if (endId == null || endId == 0 || beginId == null || beginId == 0){
+            continueFlag = Boolean.FALSE;
+        }
         while (continueFlag) {
             pageSize = dynamicParameterService.getPageSize(null);
             middleId = beginId + pageSize;
