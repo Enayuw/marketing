@@ -195,7 +195,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
      * 奇富360VT
      */
     @Resource
-    private TransferToFileByQiFuVTServiceImpl transferToFileByQiFuVTService;
+    private TransferToFileByQiFuVtServiceImpl transferToFileByQiFuVTService;
 
     /**
      * 奇富360Full

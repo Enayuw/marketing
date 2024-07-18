@@ -1130,16 +1130,16 @@
             inner join b_marketing_sync_${transferSyncUser.apiCode} sync
                 on transfer.cust_num = sync.cust_num
             inner join b_marketing_customize_data_valid_config config
-        on sync.user_type = config.user_type
-        and sync.cus_batch = config.task_id
-        and sync.applet_date = config.applet_date
+                on sync.user_type = config.user_type
+                and sync.cus_batch = config.task_id
+                and sync.applet_date = config.applet_date
         where
-        <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
-            transfer.id >= #{transferSyncUser.id} and
-        </if>
-        transfer.api_code = #{transferSyncUser.apiCode}
-        and <![CDATA[config.valid_start_date <= #{transferSyncUser.requestData}
-          and config.valid_end_date >= #{transferSyncUser.requestData}]]>
+            <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
+                transfer.id >= #{transferSyncUser.id} and
+            </if>
+            transfer.api_code = #{transferSyncUser.apiCode}
+            and <![CDATA[config.valid_start_date <= #{transferSyncUser.requestData}
+            and config.valid_end_date >= #{transferSyncUser.requestData}]]>
         order by id asc limit #{pageSize}
     </select>
 

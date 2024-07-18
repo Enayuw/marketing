@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class TransferToFileByQiFuVTServiceImpl extends AbstractTransferToFileByQiFuService {
+public class TransferToFileByQiFuVtServiceImpl extends AbstractTransferToFileByQiFuService {
 
     @Autowired
     SyncConfigService syncConfigService;
@@ -105,11 +105,11 @@ public class TransferToFileByQiFuVTServiceImpl extends AbstractTransferToFileByQ
                     .stream()
                     .map((List<Map<String, Object>> transfers) ->
                             transfers.stream().max(Comparator.comparing(transfer ->
-                                    transfer.getOrDefault("expireDate", "").toString())).get()
+                                    transfer.getOrDefault("expireDate", "").toString())).orElse(null)
                     ).collect(Collectors.toList());
             Map<String, Object> minIdData = transferData.stream()
                     .max(Comparator.comparing((Map<String, Object> map) ->
-                            Long.parseLong(String.valueOf(map.get("id"))))).get();
+                            Long.parseLong(String.valueOf(map.get("id"))))).orElse(null);
             long minId = Long.parseLong(String.valueOf(minIdData.get("id"))) + 1;
             transferSyncUser.setId(minId);
             threadPool.submit(() -> {

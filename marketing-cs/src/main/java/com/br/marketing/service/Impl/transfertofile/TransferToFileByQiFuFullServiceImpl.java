@@ -86,7 +86,7 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                     .values()
                     .stream()
                     .map((List<Map<String, Object>> transfers) ->
-                            transfers.stream().max(Comparator.comparing(transfer -> getEndDate(transfer))).get()
+                            transfers.stream().max(Comparator.comparing(transfer -> getEndDate(transfer))).orElse(null)
                     ).collect(Collectors.toList());
             List<Map<String, Object>> finalExtData = extData.stream()
                     .map((Map<String, Object> transfer) -> {
@@ -104,14 +104,13 @@ public class TransferToFileByQiFuFullServiceImpl extends AbstractTransferToFileB
                             transfer.put("expireDate",expireDate);
                             transfer.put("effectiveDate",effectiveDate);
                         } catch (Exception e) {
-                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),
-                                    apiCode + "-奇富360转化数据JSON处理异常-id=" + id), e);
+                            log.warn(apiCode + "-奇富360转化数据JSON处理异常-id=" + id, e);
                         }
                         return transfer;
                     }).collect(Collectors.toList());
             Map<String, Object> minIdData = finalExtData.stream()
                     .max(Comparator.comparing((Map<String, Object> map) ->
-                            Long.parseLong(String.valueOf(map.get("id"))))).get();
+                            Long.parseLong(String.valueOf(map.get("id"))))).orElse(null);
             long minId = Long.parseLong(String.valueOf(minIdData.get("id"))) + 1;
             transferSyncUser.setId(minId);
             threadPool.submit(() -> {
