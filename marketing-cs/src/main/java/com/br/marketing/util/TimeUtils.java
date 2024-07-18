@@ -2,7 +2,6 @@ package com.br.marketing.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -11,9 +10,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,6 +36,17 @@ public class TimeUtils {
     public static final String DATE_STRING = "yyyyMMdd";
     public static final String YMDHMS = "yyyyMMddHHmmss";
 
+
+
+    public static List<String> pattern = Arrays.asList(
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy-M-dd HH:mm:ss",
+            "yyyy/M/dd HH:mm:ss",
+            "MM-dd-yyyy HH:mm:ss",
+            "dd-MM-yyyy HH:mm:ss"
+            // 可以添加更多可能的格式
+    );
     /**
      * 转化日期
      *
@@ -381,6 +389,31 @@ public class TimeUtils {
         LocalTime localEndTime = LocalTime.parse(endTime,dtf);
         return LocalTime.now().isAfter(localStartTime) && LocalTime.now().isBefore(localEndTime);
     }
+    /**
+     * 处理时间格式的方法
+     *
+     * @param value 待处理的时间类型的值
+     * @return String 格式化后的时间值（yyyy-MM-dd HH:mm:ss）
+     */
+    public static String getFormatterValue(String value,String pattern) {
+        Date date = null;
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(pattern);
+                date = sdf.parse(value);
+            } catch (ParseException e) {
+                if (log.isInfoEnabled()) {
+                    log.warn("无法解析日期;格式:{};原值:{}", pattern, value);
+                }
+            }
+        if (date != null) {
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            value = formatter.format(date);
+        } else {
+            log.error("无法解析日期:{}", value);
+        }
+        return value;
+    }
+
     //7883
     public static void main(String[] args) {
         System.out.println(getRemainSecondsOneDay(new Date()));

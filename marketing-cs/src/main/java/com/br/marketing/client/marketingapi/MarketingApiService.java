@@ -12,6 +12,8 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
+import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.entity.TwosevenFile;
 import com.br.marketing.entity.TwosevenFileExample;
@@ -27,6 +29,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -62,7 +66,7 @@ public class MarketingApiService {
      * @return Result<Boolean>
      */
     @RetryMethod(retryNowNum = 2)
-    public Result pushMarketingApiTransfer(PushTransferDataDetailDTO dto, Integer retry) {
+    public Result<Boolean> pushMarketingApiTransfer(PushTransferDataDetailDTO dto, Integer retry) {
         try{
             ThirdApiResultTransfer transfer = new ApiCallerUtil(restTemplate,interfaceLogMapper,interfaceLogDbpool)
                     .setUrl(transferUrl)
@@ -190,4 +194,5 @@ public class MarketingApiService {
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
+
 }
