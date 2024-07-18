@@ -260,7 +260,12 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
 
     @Override
     public List<ScoreRuleConfig> getScoreRules(String apiCode) {
-        List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCode);
+        List<String> apiCodeList = new ArrayList<>();
+        if(!StringUtils.isEmpty(apiCode)){
+            String[] apiCodeArray = apiCode.split(",");
+            apiCodeList = Arrays.asList(apiCodeArray);
+        }
+        List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCodeList);
         return list;
     }
 

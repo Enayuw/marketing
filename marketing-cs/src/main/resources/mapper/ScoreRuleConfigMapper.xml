@@ -81,8 +81,11 @@
         left join b_marketing_customer bmc on bcr.customer_id = bmc.id
         <where>
             src.is_del=1 and src.status=1
-            <if test="apiCode != null and apiCode.trim() neq ''">
-                and  bmc.api_code=#{apiCode}
+            <if test="apiCodeList != null and apiCodeList.size() > 0">
+                and bmc.api_code in
+                <foreach collection="apiCodeList" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
             </if>
         </where>
     </select>

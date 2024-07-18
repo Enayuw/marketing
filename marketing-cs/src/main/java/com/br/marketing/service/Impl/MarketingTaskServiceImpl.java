@@ -76,14 +76,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -252,7 +245,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public List<ScoreRuleConfig> getScoreRules(String apiCode) {
-        List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCode);
+        List<String> apiCodeList = new ArrayList<>();
+        if(!StringUtils.isEmpty(apiCode)){
+            String[] apiCodeArray = apiCode.split(",");
+            apiCodeList = Arrays.asList(apiCodeArray);
+        }
+        List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCodeList);
         return list;
     }
 

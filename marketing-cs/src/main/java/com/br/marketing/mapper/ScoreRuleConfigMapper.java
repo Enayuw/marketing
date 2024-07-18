@@ -33,8 +33,8 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
 
     /**
      * 跑分规则下拉列表
-     * @param apiCode
+     * @param apiCodeList
      * @return
      */
-    List<ScoreRuleConfig> getScoreRules(@Param("apiCode")String apiCode);
+    List<ScoreRuleConfig> getScoreRules(@Param("apiCodeList")List<String> apiCodeList);
 }
