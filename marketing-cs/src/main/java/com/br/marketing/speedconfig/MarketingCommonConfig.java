@@ -1775,6 +1775,26 @@ public class MarketingCommonConfig {
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
     /**
+     * 奇富360数据提取参数配置
+     */
+    private HashMap<String, JSONObject> qiFuExtDataConfig;
+
+    /**
+     * 奇富360全量数据提取VT切换参数配置
+     */
+    private Boolean qiFuExtDataVTConfig;
+
+    /**
+     * 奇富360全量数据提取参数配置
+     */
+    private HashMap<String, JSONObject> qiFuFullExtDataConfig;
+
+    /**
+     * 奇富360全量数据提取线程数
+     */
+    private Integer qiFuFullExtDataSoleNum;
+
+    /**
      * 苏商推送通话明细apiCode
      */
     private List<String> suShangApiCodes;
