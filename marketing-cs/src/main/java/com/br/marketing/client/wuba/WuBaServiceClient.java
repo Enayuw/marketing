@@ -73,7 +73,7 @@ public class WuBaServiceClient {
     MarketingCommonConfig marketingCommonConfig;
     @Autowired
     WubaCollidingDataLogMapper wubaCollidingDataLogMapper;
-
+    private static final Random RANDOM = new Random();
     @Resource
     private MockService mockService;
     @Resource
@@ -278,7 +278,7 @@ public class WuBaServiceClient {
             for (WubaCollidingDataLog collidingDataLog : logs) {
                 JSONObject jsonObject = new JSONObject();
                 if (collidingDataLog.getId().intValue() % 2 == 1) {
-                    String randomNumber = new Random().ints(1, 10)
+                    String randomNumber = RANDOM.ints(1, 10)
                             .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
                     jsonObject.put("id", randomNumber);
                     jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
