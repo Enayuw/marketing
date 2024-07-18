@@ -166,6 +166,7 @@ public class WuBaQueryConversionResultTransService {
                 }
             }, dbActionPool));
         }
+        CompletableFuture.allOf(dataLogFutures.toArray(new CompletableFuture[0])).join();
         log.warn(TITLE + "更新上报日志状态成功, batchNo: {}", batchNo);
 
         // 营销名单上报表, push_status置为2-推送成功
