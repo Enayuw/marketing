@@ -9,14 +9,7 @@
             and create_date = #{createDate}
             and status = #{status}
             and push_status = #{pushStatus}
-            <if test="extendSql != null and extendSql != ''">
-                ${extendSql}
-            </if>
-            <if test="indexId != null and indexId != ''">
-                and id > #{indexId}
-            </if>
             and is_deleted =0
-        order by create_time desc, update_time desc, id desc
         limit #{pageSize}
     </select>
 

@@ -83,7 +83,7 @@ public class WuBaSubmitConversionService {
         try{
             // 循环获取条件数据，每次pageSize条
             List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
-                    apiCode, status, pushStatus, createDate, "", null, pageSize);
+                    apiCode, status, pushStatus, createDate,  pageSize);
             if (CollectionUtils.isEmpty(pageList)) {
                 log.warn(TITLE+"scanData, 未获取到数据");
             }
