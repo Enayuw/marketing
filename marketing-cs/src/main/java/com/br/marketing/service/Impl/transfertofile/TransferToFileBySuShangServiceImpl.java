@@ -164,15 +164,14 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
 
     public void writeSuShangTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         long start = System.currentTimeMillis();
-        String tcId = tableCreateService.getTcId(apiCode);
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
-        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
+        String localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE).toString();
         // 创建线程池
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(12, 12, 100);
         Integer pageSize = null;
-        Long beginId = sushangPushResultDataMapper.minId(apiCode, localDate.toString());
-        Long endId = sushangPushResultDataMapper.maxId(apiCode, localDate.toString());
+        Long beginId = sushangPushResultDataMapper.minId(apiCode, localDate);
+        Long endId = sushangPushResultDataMapper.maxId(apiCode, localDate);
         Long middleId;
         Boolean continueFlag = Boolean.TRUE;
         if (endId == null || endId == 0 || beginId == null || beginId == 0){
@@ -186,7 +185,7 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
                 continueFlag = Boolean.FALSE;
             }
             List<SushangPushResultData> transferDataOriginal = sushangPushResultDataMapper
-                    .getTransferByRequestDateSuShang(apiCode, localDate.toString(), beginId, middleId);
+                    .getTransferByRequestDateSuShang(apiCode, localDate, beginId, middleId);
             beginId = middleId;
             threadPool.submit(() -> {
                 for (SushangPushResultData transferFilterData : transferDataOriginal) {
