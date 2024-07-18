@@ -17,6 +17,7 @@ public enum SftpFileTypeEnum {
     ,XIECHENGSMSQUIT("xiechengsms")
     ,SUSHANG_TRANSFER("sushang_transfer")
     ,SUSHANG_CALLRECORD("sushang_callrecord")
+    ,WUBA_COLLIDING("wuba_colliding")
     ,DD("didi");
    private String value;
 }

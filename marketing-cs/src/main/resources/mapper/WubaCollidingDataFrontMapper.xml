@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaCollidingDataFrontMapper">
+    <select id="selectNoDupDataByCurDatetikv_" resultType="com.br.marketing.entity.WubaCollidingDataFront">
+        select c.*
+        from (SELECT a.id, a.cell, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
+        from b_wuba_colliding_data_front a
+        left join b_wuba_colliding_data_rob b
+        on a.cell = b.cell
+        <![CDATA[ and b.create_time >= #{today} and b.create_time < #{tomorrow} ]]>
+        and b.api_code = #{apiCode} and b.is_deleted = 0
+        where b.id is null
+        and a.is_deleted = 0
+        and a.api_code = #{apiCode}
+        and a.local_id = #{localId}
+        and a.push_status = 1
+        and a.status = 1) as c
+        where c.row_num = 1
+        <if test="minId != null and minId!=''">
+            and c.id > #{minId}
+        </if>
+        order by c.id
+        limit #{pageSize};
+    </select>
+
+    <update id="batchUpdatePushStatusByCell">
+        update b_wuba_colliding_data_front set push_status = 2,update_time = now()
+        where is_deleted = 0 and api_code = #{apiCode} and cell in
+        <foreach collection="list" item="front" open="(" separator="," close=")">
+            #{front.cell}
+        </foreach>
+    </update>
+</mapper>
