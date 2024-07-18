@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class WuBaSubmitConversionService {
 
     private final static String TITLE = "【58新客提交营销名单】";
-    private static Integer PARTITION_SIZE = 50;
+    private Integer PARTITION_SIZE = 50;
 
     ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(10, 10);
 

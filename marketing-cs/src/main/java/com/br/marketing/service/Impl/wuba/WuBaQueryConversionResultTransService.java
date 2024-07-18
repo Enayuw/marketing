@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class WuBaQueryConversionResultTransService {
 
     private static final String TITLE = "【58新客提交营销名单结果查询】";
-    private static Integer PARTITION_SIZE = 50;
+    private Integer PARTITION_SIZE = 50;
 
     ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(10, 10);
 
@@ -86,10 +86,11 @@ public class WuBaQueryConversionResultTransService {
                 failureDtoList.add(dto);
                 continue;
             }
-            if (!StringUtils.isEmpty(dto.getLastLoginTime()) || !StringUtils.isEmpty(dto.getFinanceApplyTime())
-                    || !StringUtils.isEmpty(dto.getFinanceCreditStatus()) || !StringUtils.isEmpty(dto.getFinanceCreditFinishTime())
-                    || !StringUtils.isEmpty(dto.getDebtTime()) || !StringUtils.isEmpty(dto.getDebtPassTime())
-                    || !StringUtils.isEmpty(dto.getLoanAmt())) {
+            boolean a = (!StringUtils.isEmpty(dto.getLastLoginTime()) || !StringUtils.isEmpty(dto.getFinanceApplyTime()));
+            boolean b = (!StringUtils.isEmpty(dto.getFinanceCreditStatus()) || !StringUtils.isEmpty(dto.getFinanceCreditFinishTime()));
+            boolean c = (!StringUtils.isEmpty(dto.getDebtTime()) || !StringUtils.isEmpty(dto.getDebtPassTime()));
+            boolean d = (!StringUtils.isEmpty(dto.getLoanAmt()));
+            if (a || b || c || d) {
                 successDtoList.add(dto);
                 continue;
             }
