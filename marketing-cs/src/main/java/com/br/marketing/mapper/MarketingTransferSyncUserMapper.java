@@ -595,4 +595,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
             @Param("startDate") String startDate,
             @Param("endDate") String endDate);
+
+    List<Map<String, Object>> selectTransferWithValidtiflash_(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("pageSize") Integer pageSize);
 }

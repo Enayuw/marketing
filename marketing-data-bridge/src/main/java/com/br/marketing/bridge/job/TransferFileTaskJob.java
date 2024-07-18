@@ -192,7 +192,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private TransferToFileByQiFuServiceImpl transferToFileByQiFuService;
 
     /**
-     * 奇富360
+     * 奇富360VT
+     */
+    @Resource
+    private TransferToFileByQiFuVTServiceImpl transferToFileByQiFuVTService;
+
+    /**
+     * 奇富360Full
      */
     @Resource
     private TransferToFileByQiFuFullServiceImpl transferToFileByQiFuFullService;
@@ -208,8 +214,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
      */
     @Resource
     private TransferToFileByCuDongZhiServiceImpl transferToFileByCuDongZhiService;
-
-
 
     @Resource
     ICompatibleService iCompatibleService;
@@ -354,7 +358,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 // 众邦转换数据提取
                 .addBind(transferToFileByZhongBangTransferService, marketingCommonConfig.getZhongBangApiCodes())
                 // 奇富360转换数据提取
-                .addBind(transferToFileByQiFuService, ObjectUtil.isEmpty(marketingCommonConfig.getQiFuExtDataConfig()) ? null
+                .addBind(getQifuService(), ObjectUtil.isEmpty(marketingCommonConfig.getQiFuExtDataConfig()) ? null
                         : marketingCommonConfig.getQiFuExtDataConfig().keySet())
                 // 滴滴转化数据提取
                 .addBind(transferToFileByDiDiService, marketingCommonConfig.getDidiApiCodes())
@@ -364,6 +368,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByQiFuFullService, ObjectUtil.isEmpty(marketingCommonConfig.getQiFuFullExtDataConfig()) ? null
                         : marketingCommonConfig.getQiFuFullExtDataConfig().keySet()).build();
 
+    }
+
+    private ITransferToFileService getQifuService() {
+        if (marketingCommonConfig.getQiFuExtDataVTConfig()) {
+            return transferToFileByQiFuVTService;
+        }
+        return transferToFileByQiFuService;
     }
 
 
