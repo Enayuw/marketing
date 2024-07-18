@@ -1793,5 +1793,31 @@ public class MarketingCommonConfig {
      * 奇富360全量数据提取线程数
      */
     private Integer qiFuFullExtDataSoleNum;
+
+    /**
+     * 苏商推送通话明细apiCode
+     */
+    private List<String> suShangApiCodes;
+
+    /**
+     * 苏商查询数据 limit 量级
+     */
+    private Integer suShangSearchPageSize;
+
+    /**
+     * 苏商推送数据线程数
+     */
+    private Integer suShangPushThreadNum;
+
+    /**
+     * 苏商自动化回传apiCode集合
+     */
+    private List<String> SuShangTransferExtractApiCodes;
+
+    /**
+     * 苏商自动化回传执行时间
+     */
+    private String SuShangTransferFileExecuteTime;
+
 }
 

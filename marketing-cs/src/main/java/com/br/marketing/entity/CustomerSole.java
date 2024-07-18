@@ -4,7 +4,7 @@ import java.util.Date;
 
 public class CustomerSole {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -37,6 +37,16 @@ public class CustomerSole {
      * 去重数据范围规则
      */
     private String conditionInfo;
+
+    /**
+     * 去重规则使用场景数量
+     */
+    private Integer userTypeCount;
+
+    /**
+     * 是否默认全场景,0:否,仅用配置的场景; 1:是,兼容后续全场景
+     */
+    private Integer allUserType;
 
     public Long getId() {
         return id;
@@ -92,5 +102,21 @@ public class CustomerSole {
 
     public void setConditionInfo(String conditionInfo) {
         this.conditionInfo = conditionInfo == null ? null : conditionInfo.trim();
+    }
+
+    public Integer getUserTypeCount() {
+        return userTypeCount;
+    }
+
+    public void setUserTypeCount(Integer userTypeCount) {
+        this.userTypeCount = userTypeCount;
+    }
+
+    public Integer getAllUserType() {
+        return allUserType;
+    }
+
+    public void setAllUserType(Integer allUserType) {
+        this.allUserType = allUserType;
     }
 }
