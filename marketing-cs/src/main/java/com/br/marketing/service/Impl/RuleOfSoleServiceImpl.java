@@ -1,13 +1,14 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.context.ThreadApicodeInfo;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
@@ -257,10 +258,10 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
 
     /**
      * 校验是否有重复的去重规则
-     * @param vo
+     * @param vo 前端传过来的去重规则数据
      * @return
      */
-    public boolean getRuleOfSoleOnly(SoleRuleDetailVO vo){
+    public boolean isRuleOfSoleOnly(SoleRuleDetailVO vo){
         Long soleId = null;
         if (StringUtils.isNotEmpty(vo.getSoleId())){
             soleId = Long.parseLong(vo.getSoleId());
@@ -270,8 +271,14 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         Integer soleCycleTimes = vo.getSoleCycleTimes();
         for (CustUserTypeSelectVO selectVO : vo.getSoleCustom()) {
             Long cid = Long.parseLong(selectVO.getCid());
+            Integer allUserType = selectVO.getAllUserType();
             String conditionInfo = selectVO.getConditionInfo().toJSONString();
-            int count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,conditionInfo);
+            int count = 0;
+            if(null != allUserType && 1 == allUserType){
+                count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,null,allUserType);
+            }else{
+                count = soleRuleConfigMapper.getRuleOfSoleOnly(soleId,soleFields,soleCycleTimes,cid,conditionInfo,null);
+            }
             if(count>0){
                 return false;
             }
@@ -285,7 +292,7 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
     public ApiResult<Boolean> saveOrUpdate(SoleRuleDetailVO vo, MarketingUserDetail userDetail) {
 
         //校验规则是否存在
-        boolean flag = getRuleOfSoleOnly(vo);
+        boolean flag = isRuleOfSoleOnly(vo);
         if (!flag){
             //已存在
             return new ApiResult<Boolean>().success(false, ServiceResultEnum.SUCCESS_3);
@@ -331,7 +338,21 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
                 customerSole.setIsDel(1);
                 customerSole.setCreateTime(new Date());
                 customerSole.setUpdateTime(new Date());
-                customerSole.setConditionInfo(s.getConditionInfo().toJSONString());
+                Integer allUserType = s.getAllUserType();
+                if(null != allUserType){
+                    customerSole.setAllUserType(allUserType);
+                }
+                JSONObject conditionInfo = s.getConditionInfo();
+                if(null != conditionInfo){
+                    String conditionInfoString = conditionInfo.toJSONString();
+                    customerSole.setConditionInfo(conditionInfoString);
+                    RuleConditionVo conditionVo = JSON.parseObject(conditionInfoString, new TypeReference<RuleConditionVo>() {
+                    }.getType());
+                    List<RuleConditionFactorVo> operationFactorList = conditionVo.getOperationFactor();
+                    if(null != operationFactorList){
+                        customerSole.setUserTypeCount(operationFactorList.size());
+                    }
+                }
                 customerSoleMapper.insertSelective(customerSole);
                 ruleRedisService.delSoleConfigRedis(s.getApiCode());
             }
@@ -371,11 +392,37 @@ public class RuleOfSoleServiceImpl implements RuleOfSoleService {
         example.createCriteria().andSoleIdEqualTo(Long.parseLong(id)).andIsDelEqualTo(1);
         List<CustomerSole> customerSoles = customerSoleMapper.selectByExample(example);
         for (CustomerSole sole : customerSoles){
+            MarketingCustomer customer = marketingCustomerMapper.selectByPrimaryKey(sole.getCustomerId());
+            String cid = customer.getCid();
+            String apiCode = customer.getApiCode();
             CustUserTypeSelectVO selectVO = new CustUserTypeSelectVO();
             selectVO.setCid(sole.getCustomerId().toString());
-            selectVO.setConditionInfo(JSON.parseObject(sole.getConditionInfo()));
-            MarketingCustomer customer = marketingCustomerMapper.selectByPrimaryKey(sole.getCustomerId());
-            selectVO.setApiCode(customer.getApiCode()!=null?customer.getApiCode():"");
+            selectVO.setAllUserType(sole.getAllUserType());
+            if(1 == sole.getAllUserType()){
+                RuleConditionVo conditionVo = new RuleConditionVo();
+                conditionVo.setLogicalOperation("or");
+                List<RuleConditionFactorVo> operationFactorList = new ArrayList<>();
+                VariableDicExample variableDicexample = new VariableDicExample();
+                variableDicexample.createCriteria().andCidEqualTo(cid)
+                        .andApiCodeEqualTo(apiCode)
+                        .andIsDelEqualTo(1);
+                List<VariableDic> variableDics = variableDicMapper.selectByExample(variableDicexample);
+                if (variableDics !=null && variableDics.size()>0) {
+                    for (int i = 0; i < variableDics.size(); i++) {
+                        VariableDic variableDic = variableDics.get(i);
+                        RuleConditionFactorVo ruleConditionFactorVo = new RuleConditionFactorVo();
+                        ruleConditionFactorVo.setFieldName("userType");
+                        ruleConditionFactorVo.setFieldValue(variableDic.getFieldValue());
+                        ruleConditionFactorVo.setOperation("=");
+                        operationFactorList.add(ruleConditionFactorVo);
+                    }
+                }
+                conditionVo.setOperationFactor(operationFactorList);
+                selectVO.setConditionInfo(JSON.parseObject(JSON.toJSONString(conditionVo)));
+            }else{
+                selectVO.setConditionInfo(JSON.parseObject(sole.getConditionInfo()));
+            }
+            selectVO.setApiCode(apiCode !=null? apiCode :"");
             selectVO.setName(customer.getName()!=null?customer.getName():"");
             selectVO.setShortName(customer.getShortName()!=null?customer.getShortName():"");
             soleCustomVO.add(selectVO);
