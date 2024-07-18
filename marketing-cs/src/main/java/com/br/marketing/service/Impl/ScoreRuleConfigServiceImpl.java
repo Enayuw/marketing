@@ -29,6 +29,7 @@ import com.br.marketing.vo.ScoreRuleVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -91,7 +92,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     @Override
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
         try {
-            saveTransaction(scoreRuleVO, userDetail);
+            ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
+            service.saveTransaction(scoreRuleVO, userDetail);
         } catch (Exception e) {
             String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
             String key = "marketing:inner:".concat(yyyyMMdd6);

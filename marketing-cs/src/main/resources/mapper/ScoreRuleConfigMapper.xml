@@ -16,7 +16,7 @@
         , src.is_online as isOnline
         , src.priority as priority
         , bmc.cid
-        , bmc.api_code
+        , group_concat(bmc.api_code) as apiCode
         , case src.status
         when 1 then '开启'
         when 2 then '禁用'
@@ -63,6 +63,7 @@
                 and src.exec_type=#{execType}
             </if>
         </where>
+        group by bcr.rule_id
         order by src.update_time desc, src.create_time desc
     </select>
 
