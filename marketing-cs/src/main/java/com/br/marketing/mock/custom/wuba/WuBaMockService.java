@@ -65,7 +65,7 @@ public class WuBaMockService {
             for (WubaSubmitConversionDataLog log : logs) {
                 JSONObject jsonObject = new JSONObject();
                 //
-                String randomNumber = new Random().ints(1, 10)
+                String randomNumber = RANDOM.ints(1, 10)
                         .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
                 jsonObject.put("id", randomNumber);
                 jsonObject.put("mobileEncrypt", log.getCell());
