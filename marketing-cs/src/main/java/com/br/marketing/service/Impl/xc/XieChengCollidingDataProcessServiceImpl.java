@@ -211,7 +211,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
         taskExample.createCriteria().andApiCodeEqualTo(apicode).andIsDeleteEqualTo(0)
                 .andTaskStatusEqualTo(0).andTaskStartTimeEqualTo(nowDate);
-        taskExample.setOrderByClause("create_time asc");
+        taskExample.setOrderByClause("task_type desc, create_time asc");
         List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(taskExample);
         return taskList;
     }
