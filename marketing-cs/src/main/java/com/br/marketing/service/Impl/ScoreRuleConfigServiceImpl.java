@@ -41,10 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,19 +89,39 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
+        try {
+            saveTransaction(scoreRuleVO, userDetail);
+        } catch (Exception e) {
+            String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String key = "marketing:inner:".concat(yyyyMMdd6);
+            redisChgService.incrBy(key, -1L);
+            redisChgService.expire(key, getKeyExpiration());
+            String msg = "很遗憾小主，配置保存失败";
+            if (e instanceof BusinessException) {
+                msg = ((BusinessException) e).getMsg();
+            }
+            throw new BusinessException(msg);
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveTransaction(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) throws Exception{
         // 检查配置名称是否已经被使用过
         nameCheck(scoreRuleVO);
+        // 2024-07-18 修改为多apiCode
+        String apiCode = scoreRuleVO.getApiCode();
+        String[] apiCodeArray = apiCode.split(",");
+        List<String> apiCodeList = Arrays.asList(apiCodeArray);
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andCidEqualTo(scoreRuleVO.getCid())
-                .andApiCodeEqualTo(scoreRuleVO.getApiCode())
+                .andApiCodeIn(apiCodeList)
                 .andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(example);
         if (customerList.size() == 0) {
             throw new BusinessException("抱歉小主，客户不存在或已删除");
         }
-        MarketingCustomer customer = customerList.get(0);
+
         ScoreRuleConfig rule = new ScoreRuleConfig();
         rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
         rule.setRuleName(scoreRuleVO.getRuleName());
@@ -132,26 +149,27 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         rule.setRuleNameShort(createNo());
-        int insert1 = scoreRuleConfigMapper.insert(rule);
-        if (insert1 == 1) {
+        int insertRule = scoreRuleConfigMapper.insert(rule);
+        if (insertRule != 1) {
+            throw new BusinessException("很遗憾小主，配置保存失败");
+        }
+
+        for(MarketingCustomer customer: customerList) {
             CustomerRule cr = new CustomerRule();
             cr.setRuleId(rule.getId());
             cr.setCustomerId(customer.getId());
             cr.setCreateTime(new Date());
             cr.setIsDel(1);
-            int insert2 = customerRuleMapper.insert(cr);
-            if (insert2 > 0) {
-                scoreRuleVO.setId(rule.getId());
-                // 记录变更日志
-                scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
-                return;
+            int insertCustomerRule = customerRuleMapper.insert(cr);
+            if (insertCustomerRule < 1) {
+                throw new BusinessException("很遗憾小主，配置保存失败");
             }
+            ScoreRuleVO ScoreRuleNew = new ScoreRuleVO();
+            BeanUtils.copyProperties(scoreRuleVO, ScoreRuleNew);
+            ScoreRuleNew.setId(rule.getId());
+            // 记录变更日志
+            scoreOptLogService.save(ScoreRuleNew, rule.getStatus(), userDetail);
         }
-        String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String key = "marketing:inner:".concat(yyyyMMdd6);
-        redisChgService.incrBy(key, -1L);
-        redisChgService.expire(key, getKeyExpiration());
-        throw new BusinessException("很遗憾小主，配置保存失败");
     }
 
     @Override
