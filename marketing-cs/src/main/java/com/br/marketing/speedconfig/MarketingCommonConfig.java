@@ -1774,7 +1774,13 @@ public class MarketingCommonConfig {
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
-
+    /**
+     * 是否使用 RocketMq 发送消息
+     * true：使用 RocketMq 发送消息
+     * false：使用 RabbitMq 发送消息
+     * {"api":true,"inner-api":false,"mq-consumer":true}
+     */
+    private HashMap<String,Boolean> rocketMqSwitch;
 
 }
 

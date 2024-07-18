@@ -3,12 +3,14 @@ package com.br.marketing.api.controller;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.RequestLog;
-import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.apis.producer.SendReceipt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -26,6 +28,8 @@ public class TestSre {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
+    @Autowired
+    private RocketMqTemplate template;
 
     @GetMapping("/testSre")
     public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){
@@ -72,6 +76,23 @@ public class TestSre {
             BrokerGrpcClient.sendRequestLog(requestLog);
         }
         return "success";
+    }
+
+    @RequestMapping("/testSend")
+    public SendReceipt testSend(@RequestParam("type") String type)   {
+        if("syncSend".equalsIgnoreCase(type)){
+            return template.syncSend("gate_test", "test", "syncSend发送同步消息!!");
+//        }else if("sendAsync".equalsIgnoreCase(type)){
+//            return template.sendAsync("gate_test", "test",);
+        }else if("syncSendDelay".equalsIgnoreCase(type)){
+            return template.syncSendDelay("deadgate_test", "test", "syncSendDelay发送延时消息!!",10);
+        }else if("sendSyncOrderly".equalsIgnoreCase(type)){
+            return template.sendSyncOrderly("gate_test", "test", "sendSyncOrderly发送同步顺序消息!!","orderly");
+        }
+//        else{
+//            return template.sendMessageInTransaction("gate_test", "test", "sendMessageInTransaction发送事务消息!!");
+//        }
+        return null;
     }
 
 }

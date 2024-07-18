@@ -43,6 +43,7 @@ import com.br.marketing.service.ITransferSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ApiFieldCheckUtils;
 import com.br.marketing.util.ShuHeAESencUtil;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,7 +95,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private AlarmApiClient alarmClient;
-
+    @Autowired
+    private RocketMqTemplate template;
 
     private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 2);
     private final String title = "数禾转化数据定制化清洗入库";
@@ -554,7 +556,13 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             }
         }
         if (infoId != null) {
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
+            HashMap<String, Boolean> rocketMqSwitch = marketingCommonConfig.getRocketMqSwitch();
+            if(null != rocketMqSwitch && Boolean.TRUE.equals(rocketMqSwitch.getOrDefault("api",Boolean.FALSE))){
+                template.syncSend(MQConstants.MARKETINGEXCHANGER_NAME, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE
+                        , infoId.toString());
+            }else{
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
+            }
         }
         BR_EXECUTORS.execute(() -> checkField(uploadDataDTO, listInfo, apiCode, requestId));
         return response2ShuheDTO.success();

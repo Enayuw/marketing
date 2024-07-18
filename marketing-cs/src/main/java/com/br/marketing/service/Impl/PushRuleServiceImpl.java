@@ -64,6 +64,7 @@ import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -102,7 +103,6 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -184,6 +184,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
+    @Autowired
+    private RocketMqTemplate template;
 
     @Resource
     private XiechengCollidingDataPackageRuleMapper xiechengCollidingDataPackageRuleMapper;
@@ -1341,7 +1343,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            HashMap<String, Boolean> rocketMqSwitch = marketingCommonConfig.getRocketMqSwitch();
+            if(null != rocketMqSwitch && Boolean.TRUE.equals(rocketMqSwitch.getOrDefault("api",Boolean.FALSE))){
+                sendToRocketMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }else{
+                sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+            }
         }
         //endregion
 
@@ -1379,6 +1386,30 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } catch (Exception ex) {
             log.error("推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
+        }
+    }
+
+    private void sendToRocketMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
+        try {
+            long l3 = System.currentTimeMillis();
+            // 根据apicode和bizType获取路由键
+            String apiCodeJointBizType = apiCode + "," + queueEnum.getValue();
+            CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCodeJointBizType);
+            if (null == routingKeyConfig) {
+                template.syncSend(MQConstants.MARKETINGEXCHANGER_NAME, defaultRoutingKey, infoId);
+            } else {
+                // 大队列不支持优先级
+                if (routingKeyConfig.getQueueType() == 1) {
+                    template.syncSend(MQConstants.MARKETINGEXCHANGER_NAME, routingKeyConfig.getRoutingKey(), infoId);
+                } else {
+                    template.syncSend(MQConstants.MARKETINGEXCHANGER_NAME, routingKeyConfig.getRoutingKey(), infoId);
+                }
+            }
+            if (log.isInfoEnabled()) {
+                log.info("RocketMQ推送" + queueEnum.getDesc() + "队列耗时:{}", (System.currentTimeMillis() - l3));
+            }
+        } catch (Exception ex) {
+            log.error("RocketMQ推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
         }
     }
 
