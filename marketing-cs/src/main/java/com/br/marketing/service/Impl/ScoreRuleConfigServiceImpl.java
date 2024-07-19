@@ -7,6 +7,7 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.CustomerRule;
 import com.br.marketing.entity.CustomerRuleExample;
@@ -113,8 +114,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         nameCheck(scoreRuleVO);
         // 2024-07-18 修改为多apiCode
         String apiCode = scoreRuleVO.getApiCode();
-        String[] apiCodeArray = apiCode.split(",");
-        List<String> apiCodeList = Arrays.asList(apiCodeArray);
+        List<String> apiCodeList = new ArrayList<>();
+        if(!StringUtils.isEmpty(apiCode)){
+            String[] apiCodeArray = apiCode.split(",");
+            apiCodeList = Arrays.asList(apiCodeArray);
+        }
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andCidEqualTo(scoreRuleVO.getCid())
                 .andApiCodeIn(apiCodeList)
