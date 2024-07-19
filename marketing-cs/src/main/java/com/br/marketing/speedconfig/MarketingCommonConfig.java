@@ -1924,5 +1924,10 @@ public class MarketingCommonConfig {
      * 通用Mock配置
      */
     private JSONObject commonMockConfig;
+
+    /**
+     * 58新课数据提取参数配置
+     */
+    private HashMap<String, JSONObject> wbxkExtDataConfig;
 }
 
