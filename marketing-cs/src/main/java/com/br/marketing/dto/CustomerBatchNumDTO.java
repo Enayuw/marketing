@@ -25,11 +25,9 @@ public class CustomerBatchNumDTO {
     @ApiModelProperty(value = "上传结束时间")
     private String uploadEndTime;
 
-    @ApiModelProperty(value = "跑分执行开始时间")
-    private String scoreBeginTime;
+    @ApiModelProperty(value = "跑分时间区间，多段")
+    private List<ScoreTimeDTO> scoreTimeList;
 
-    @ApiModelProperty(value = "跑分执行结束时间")
-    private String scoreEndTime;
     @ApiModelProperty(value = "场景")
     private String userType;
 

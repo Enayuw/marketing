@@ -222,6 +222,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + UUID.randomUUID());
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
             pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
+            pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
             //传输参数信息
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());

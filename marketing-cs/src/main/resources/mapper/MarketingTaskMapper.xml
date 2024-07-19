@@ -502,9 +502,10 @@
             <![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
             <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
         </if>
-        <if test="scoreBeginTime !=null and scoreBeginTime !=''">
-            <![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
-            <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
+        <if test="scoreTimeList !=null">
+            <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
+                <![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>
+            </foreach>
         </if>
         <if test="userType !=null and userType !=''">
              and mtut.user_type in(
