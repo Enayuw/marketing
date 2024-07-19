@@ -1,5 +1,13 @@
 package com.br.marketing.service.Impl;
 
+import java.util.Map;
+import java.util.function.Function;
+
+import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.Messages;
+import org.apache.pulsar.client.api.PulsarClientException;
+import org.apache.pulsar.client.api.SubscriptionType;
+
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarConsumer;
 import com.br.marketing.common.commondto.Result;
@@ -7,15 +15,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.spring.ContainerContext;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.pulsar.client.api.Message;
-import org.apache.pulsar.client.api.Messages;
-import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.pulsar.client.api.SubscriptionType;
-import org.springframework.context.ApplicationContext;
 
-import java.util.Map;
-import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PulsarConsumerThread extends Thread {
@@ -45,15 +46,14 @@ public class PulsarConsumerThread extends Thread {
      */
     String subscription;
 
-
     public PulsarConsumerThread(Function<String, Result<Boolean>> method, String subscription, String... topic) {
         this.method = method;
         this.subscription = subscription;
         this.topic = topic[0];
-        if(topic.length>1){
+        if (topic.length > 1) {
             this.dealLine = topic[1];
         }
-        if(topic.length>2){
+        if (topic.length > 2) {
             this.retry = topic[2];
         }
     }
@@ -70,39 +70,38 @@ public class PulsarConsumerThread extends Thread {
             log.warn("ProductPulsarConsumer 初始化成功,method:{},topic:{},dealLine:{},retry:{},subscription:{}", method.toString(), topic, dealLine, retry,
                 subscription);
             while (true) {
-//                Map<String, MarketingCommonConfig> beansOfType = ContainerContext.applicationContext.getBeansOfType(MarketingCommonConfig.class);
-//                if(beansOfType !=null){
-//                    MarketingCommonConfig marketingCommonConfig = beansOfType.get("marketingCommonConfig");
-//                    if(marketingCommonConfig.getPulsarSwitch() != null && marketingCommonConfig.getPulsarSwitch()){
-//                        try {
-//                            Thread.sleep(5000L);
-//                        } catch (InterruptedException e) {
-//                            throw new RuntimeException(e);
-//                        }
-//                        continue;
-//                    }
-//                }
+                Map<String, MarketingCommonConfig> beansOfType = ContainerContext.applicationContext.getBeansOfType(MarketingCommonConfig.class);
+                if (beansOfType != null) {
+                    MarketingCommonConfig marketingCommonConfig = beansOfType.get("marketingCommonConfig");
+                    if (marketingCommonConfig.getPulsarSwitch() != null && marketingCommonConfig.getPulsarSwitch()) {
+                        try {
+                            Thread.sleep(5000L);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        continue;
+                    }
+                }
                 Messages<byte[]> messages = consumer.batchReceive();
-                log.warn(String.format("pulsar接收消息,topic【%s】，messages.size【%s】", topic, messages.size()));
                 for (Message<byte[]> message : messages) {
                     Boolean isAck = Boolean.FALSE;
                     String messageData = new String(message.getData());
                     if (message.isReplicated()) {
                         isAck = Boolean.TRUE;
                         log.warn(String.format("pulsar接收异地机房消息,topic【%s】，message【%s】", topic, messageData));
-                    }else{
+                    } else {
                         try {
                             Result<Boolean> apply = method.apply(messageData);
                             if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
                                 isAck = Boolean.TRUE;
                             }
                         } catch (Exception ex) {
-                            log.error(String.format("pulsar消费异常,topic【%s】，message【%s】", topic, messageData),ex);
+                            log.error(String.format("pulsar消费异常,topic【%s】，message【%s】", topic, messageData), ex);
                         }
                     }
-                    if(isAck){
+                    if (isAck) {
                         consumer.ack(message.getMessageId());
-                    }else{
+                    } else {
                         consumer.nack(message.getMessageId());
                     }
                 }
