@@ -691,7 +691,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public Result<List<Long>> saveTaskSelectV2(TaskSelectSaveDTO dto) {
-        Integer taskCreateMethod = dto.getTaskCreateMethod();
+        String taskCreateMethod = dto.getTaskCreateMethod();
         if("2".equals(taskCreateMethod)) {
             List<Long> dataIdDesc = dto.getDataIdDesc();
             List<Long> resIds = dto.getDataIdDesc();

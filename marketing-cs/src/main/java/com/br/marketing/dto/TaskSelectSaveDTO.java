@@ -41,5 +41,5 @@ public class TaskSelectSaveDTO {
 
     @ApiModelProperty(value = "taskCreateMethod")
     @NotNull(message = "taskCreateMethod不能为空")
-    private Integer taskCreateMethod;
+    private String taskCreateMethod;
 }
