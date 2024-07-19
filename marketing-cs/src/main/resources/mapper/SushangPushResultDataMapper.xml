@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.SushangPushResultDataMapper">
+
+    <insert id="insertBatch">
+        INSERT INTO b_sushang_push_result_data (
+        api_code,
+        local_id,
+        task_id,
+        `status`,
+        cust_num,
+        touch_type,
+        call_time,
+        push_time,
+        rule,
+        create_time,
+        update_time,
+        upload_date
+        )values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.apiCode},
+            #{data.localId},
+            #{data.taskId},
+            #{data.status},
+            #{data.custNum},
+            #{data.touchType},
+            #{data.callTime},
+            #{data.pushTime},
+            #{data.rule},
+            #{data.createTime},
+            #{data.updateTime},
+            #{data.uploadDate})
+        </foreach>
+
+
+    </insert>
+    <select id="getDealDataByCustNum" resultType="com.br.marketing.entity.SushangPushResultData">
+
+        select * from b_sushang_push_result_data
+        where upload_date = #{date} and rule =1
+        and cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+
+    </select>
+
+    <select id="getTransferByRequestDateSuShang" resultType="com.br.marketing.entity.SushangPushResultData">
+        select * from b_sushang_push_result_data
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode}
+        </if>
+        <![CDATA[ and upload_date = #{requestDate} ]]>
+        <![CDATA[ and id >= #{beginId} and id < #{endId} ]]>
+        order by id
+    </select>
+
+    <select id="maxId" resultType="java.lang.Long">
+        SELECT
+        max(id) as id
+        FROM
+        b_sushang_push_result_data
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        upload_date = #{requestDate}
+    </select>
+
+    <select id="minId" resultType="java.lang.Long">
+        SELECT
+        min(id) as id
+        FROM
+        b_sushang_push_result_data
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        upload_date = #{requestDate}
+    </select>
+</mapper>

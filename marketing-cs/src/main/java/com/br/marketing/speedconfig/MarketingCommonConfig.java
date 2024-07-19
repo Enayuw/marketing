@@ -1096,13 +1096,13 @@ public class MarketingCommonConfig {
      * 2023-09-27 19:12
      * 奇富钉钉告警机器人token
      */
-    private String qiFuDingDingAccessToken = "b1d0849bd627e067d1c3be1ad8a82fa265dcb9afec94197859b0e08bda0dbaf2";
+    private String qiFuDingDingAccessToken = "7f32618dafd2d2126f5564aaf57a35867c8775baf78777140990c16d56edc457";
 
     /**
      * 2023-09-27 19:12
      * 奇富钉钉告警机器人密钥
      */
-    private String qiFuDingDingSecret = "SEC0d7cfb05455c035eea424a4824e63c75dd287a86d796cc96826ba7fb3f51e07e";
+    private String qiFuDingDingSecret = "SEC4d2d8a91842ad25136e92213a852ebe5cf1c22ddaf49dcfd352d5a9323eb1ca8";
 
     /**
      * 2023-09-27 19:12
@@ -1774,7 +1774,160 @@ public class MarketingCommonConfig {
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
+    /**
+     * 奇富360数据提取参数配置
+     */
+    private HashMap<String, JSONObject> qiFuExtDataConfig;
+
+    /**
+     * 奇富360全量数据提取VT切换参数配置
+     */
+    private Boolean qiFuExtDataVTConfig;
+
+    /**
+     * 奇富360全量数据提取参数配置
+     */
+    private HashMap<String, JSONObject> qiFuFullExtDataConfig;
+
+    /**
+     * 奇富360全量数据提取线程数
+     */
+    private Integer qiFuFullExtDataSoleNum;
+
+    /**
+     * 苏商推送通话明细apiCode
+     */
+    private List<String> suShangApiCodes;
+
+    /**
+     * 苏商查询数据 limit 量级
+     */
+    private Integer suShangSearchPageSize;
+
+    /**
+     * 苏商推送数据线程数
+     */
+    private Integer suShangPushThreadNum;
+
+    /**
+     * 苏商自动化回传apiCode集合
+     */
+    private List<String> SuShangTransferExtractApiCodes;
+
+    /**
+     * 苏商自动化回传执行时间
+     */
+    private String SuShangTransferFileExecuteTime;
 
 
+    /**
+     * 58同程撞库提交撞库apiCode集合
+     */
+    private List<String> wubaCollidingApiCodes;
+
+    /**
+     * 58撞库数据落库线程数（同步、提交撞库、查询撞库结果）
+     */
+    private Integer wubaCollidingDataSyncThreadNum;
+
+    /**
+     * 58同步撞库数据分页条数
+     */
+    private Integer wuBaCollidingDataSyncPageSize;
+
+    /**
+     * 58提交撞库开关(true:开启，false关闭)
+     */
+    private Boolean wuBaCollidingDataSwitch;
+
+    /**
+     * 58提交撞库数据分页条数
+     */
+    private Integer wuBaCollidingDataSubmitPageSize;
+
+    /**
+     * 58查询撞库结果分页条数
+     */
+    private Integer wuBaCollidingQueryResultPageSize;
+
+    /**
+     * 58查询撞库结果等待时长（分钟）
+     */
+    private Integer wuBaCollidingQueryResultWaitMinutes;
+
+    /**
+     * 58新客-营销名单上报-开关，1-开，0-关
+     */
+    private String wuBaSubmitConversionSwitch;
+
+    /**
+     * 58新客-营销名单上报-条件参数
+     */
+    private List<Map<String, String>> wuBaSubmitConversionParams;
+
+    /**
+     * 58新客-营销名单上报-分页条数
+     */
+    private Integer wuBaSubmitConversionPageSize;
+
+    /**
+     * 58新客-修改营销名单上报批次-开关，1-开，0-关
+     */
+    private String wuBaChangeQueryBatchSwitch;
+
+    /**
+     * 58新客-修改营销名单上报批次-pushTime查询区间
+     */
+    private JSONObject wuBaChangeQueryBatchPushTimeInterval;
+
+    /**
+     * 58新客-营销转化结果查询-开关，1-开，0-关
+     */
+    private String wuBaQueryConversionSwitch;
+
+    /**
+     * 58新客-营销转化结果查询-apiCode集合
+     */
+    private List<String> wuBaQueryConversionApiCodes;
+
+    /**
+     * 58新客-营销转化结果查询-pushTime查询区间
+     */
+    private JSONObject wuBaQueryConversionPushTimeInterval;
+
+    /**
+     * 58新客-营销转化结果查询-调用线程
+     */
+    private List<Integer> wuBaQueryConversionThreadPool;
+
+    /**
+     * 58新客-营销转化结果查询-批量DB线程
+     */
+    private Integer wuBaQueryConversionBatDBThreadPool;
+
+    /**
+     * 58新客-营销转化结果查询-批量DB分页条数
+     */
+    private Integer wuBaQueryConversionBatDBPartitionSize;
+
+    /**
+     * 58新客-营销转化结果查询-通用字段配置
+     */
+    private Set<String> wuBaQueryConversionKnowFields;
+
+    /**
+     * 通用清洗线程池
+     */
+    private Integer autoCleanDataThreadNum;
+
+    /**
+     * 通用Mock配置
+     */
+    private JSONObject commonMockConfig;
+
+    /**
+     * 58撞库接口参数配置
+     */
+    private JSONObject wuBaCollidingUrlConfig;
 }
 
