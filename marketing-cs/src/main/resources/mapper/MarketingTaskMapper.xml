@@ -503,6 +503,7 @@
             <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
         </if>
         <if test="scoreTimeList !=null">
+            and
             <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
                 (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
             </foreach>
