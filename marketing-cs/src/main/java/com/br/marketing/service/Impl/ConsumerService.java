@@ -101,6 +101,7 @@ public class ConsumerService {
             consumerNum = 1;
         }
         for (int i=0;i<consumerNum;i++){
+            log.warn("开始初始化 pulsar 消费端 method:{},subscription:{},topic:{}", method.toString(), subscription, topic);
             new PulsarConsumerThread(method,subscription,topic).start();
         }
     }

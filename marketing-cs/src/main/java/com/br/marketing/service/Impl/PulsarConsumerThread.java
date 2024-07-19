@@ -67,6 +67,8 @@ public class PulsarConsumerThread extends Thread {
             } else {
                 consumer = ProductPulsarClientManager.newConsumer(topic, subscription, SubscriptionType.Shared);
             }
+            log.warn("ProductPulsarConsumer 初始化成功,method:{},topic:{},dealLine:{},retry:{},subscription:{}", method.toString(), topic, dealLine, retry,
+                subscription);
             while (true) {
                 Map<String, MarketingCommonConfig> beansOfType = ContainerContext.applicationContext.getBeansOfType(MarketingCommonConfig.class);
                 if(beansOfType !=null){
@@ -81,6 +83,7 @@ public class PulsarConsumerThread extends Thread {
                     }
                 }
                 Messages<byte[]> messages = consumer.batchReceive();
+                log.warn(String.format("pulsar接收消息,topic【%s】，messages.size【%s】", topic, messages.size()));
                 for (Message<byte[]> message : messages) {
                     Boolean isAck = Boolean.FALSE;
                     String messageData = new String(message.getData());
