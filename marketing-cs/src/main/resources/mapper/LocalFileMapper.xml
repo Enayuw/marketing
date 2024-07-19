@@ -23,7 +23,7 @@
         where bf.file_type in
         ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform','didi',
          'xiechengsmscollidingvt','zhongbang_caifu','zhongbanglabel','haierColliding','tongcheng_operation_pushToCustomer',
-         'tongcheng_undo_pushToCustomer','dewucollidingdata','zhongbang_voice')
+         'tongcheng_undo_pushToCustomer','dewucollidingdata','zhongbang_voice','wuba_colliding')
         <if test="search !=null and search!=''">
             and (
             bc.cid like concat("%", #{search},"%")
@@ -51,7 +51,7 @@
         where bf.file_type in
         ('qiqi','xiecheng','yiqianbao','dianxiao','halo','haier','zhongan','xiechengsms','marketingData','dx_transform','didi',
          'xiechengsmscollidingvt','zhongbang_caifu','zhongbanglabel','haierColliding','tongcheng_operation_pushToCustomer',
-         'tongcheng_undo_pushToCustomer','dewucollidingdata','zhongbang_voice')
+         'tongcheng_undo_pushToCustomer','dewucollidingdata','zhongbang_voice','wuba_colliding')
         <if test="search !=null and search!=''">
             and (
             bc.cid like concat("%", #{search},"%")

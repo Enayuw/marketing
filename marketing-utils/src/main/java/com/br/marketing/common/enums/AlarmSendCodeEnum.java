@@ -52,6 +52,8 @@ public enum AlarmSendCodeEnum {
     DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),
     //宜信非实时推客服告警,立即推送
     EXCEPTION_YIXIN_PUSH_CUSTOMER("62010", "宜信非实时推客服"),
+    EXCEPTION_QIFU_ALARM("62360", "360业务告警码"),
+    EXCEPTION_WUBA("62058", "58业务报错code"),
     ;
 
     /**

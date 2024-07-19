@@ -12,7 +12,7 @@ public class MarketingDataFileConfigExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingDataFileConfigExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingDataFileConfigExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -944,11 +944,220 @@ public class MarketingDataFileConfigExample {
             addCriterion("validation_rules not between", value1, value2, "validationRules");
             return (Criteria) this;
         }
+
+        public Criteria andAutoTableNameIsNull() {
+            addCriterion("auto_table_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameIsNotNull() {
+            addCriterion("auto_table_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameEqualTo(String value) {
+            addCriterion("auto_table_name =", value, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameNotEqualTo(String value) {
+            addCriterion("auto_table_name <>", value, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameGreaterThan(String value) {
+            addCriterion("auto_table_name >", value, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameGreaterThanOrEqualTo(String value) {
+            addCriterion("auto_table_name >=", value, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameLessThan(String value) {
+            addCriterion("auto_table_name <", value, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameLessThanOrEqualTo(String value) {
+            addCriterion("auto_table_name <=", value, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameLike(String value) {
+            addCriterion("auto_table_name like", value, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameNotLike(String value) {
+            addCriterion("auto_table_name not like", value, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameIn(List<String> values) {
+            addCriterion("auto_table_name in", values, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameNotIn(List<String> values) {
+            addCriterion("auto_table_name not in", values, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameBetween(String value1, String value2) {
+            addCriterion("auto_table_name between", value1, value2, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoTableNameNotBetween(String value1, String value2) {
+            addCriterion("auto_table_name not between", value1, value2, "autoTableName");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnIsNull() {
+            addCriterion("auto_duplicate_column is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnIsNotNull() {
+            addCriterion("auto_duplicate_column is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnEqualTo(String value) {
+            addCriterion("auto_duplicate_column =", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnNotEqualTo(String value) {
+            addCriterion("auto_duplicate_column <>", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnGreaterThan(String value) {
+            addCriterion("auto_duplicate_column >", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnGreaterThanOrEqualTo(String value) {
+            addCriterion("auto_duplicate_column >=", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnLessThan(String value) {
+            addCriterion("auto_duplicate_column <", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnLessThanOrEqualTo(String value) {
+            addCriterion("auto_duplicate_column <=", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnLike(String value) {
+            addCriterion("auto_duplicate_column like", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnNotLike(String value) {
+            addCriterion("auto_duplicate_column not like", value, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnIn(List<String> values) {
+            addCriterion("auto_duplicate_column in", values, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnNotIn(List<String> values) {
+            addCriterion("auto_duplicate_column not in", values, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnBetween(String value1, String value2) {
+            addCriterion("auto_duplicate_column between", value1, value2, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoDuplicateColumnNotBetween(String value1, String value2) {
+            addCriterion("auto_duplicate_column not between", value1, value2, "autoDuplicateColumn");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlIsNull() {
+            addCriterion("auto_search_data_sql is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlIsNotNull() {
+            addCriterion("auto_search_data_sql is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlEqualTo(String value) {
+            addCriterion("auto_search_data_sql =", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlNotEqualTo(String value) {
+            addCriterion("auto_search_data_sql <>", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlGreaterThan(String value) {
+            addCriterion("auto_search_data_sql >", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlGreaterThanOrEqualTo(String value) {
+            addCriterion("auto_search_data_sql >=", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlLessThan(String value) {
+            addCriterion("auto_search_data_sql <", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlLessThanOrEqualTo(String value) {
+            addCriterion("auto_search_data_sql <=", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlLike(String value) {
+            addCriterion("auto_search_data_sql like", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlNotLike(String value) {
+            addCriterion("auto_search_data_sql not like", value, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlIn(List<String> values) {
+            addCriterion("auto_search_data_sql in", values, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlNotIn(List<String> values) {
+            addCriterion("auto_search_data_sql not in", values, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlBetween(String value1, String value2) {
+            addCriterion("auto_search_data_sql between", value1, value2, "autoSearchDataSql");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoSearchDataSqlNotBetween(String value1, String value2) {
+            addCriterion("auto_search_data_sql not between", value1, value2, "autoSearchDataSql");
+            return (Criteria) this;
+        }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

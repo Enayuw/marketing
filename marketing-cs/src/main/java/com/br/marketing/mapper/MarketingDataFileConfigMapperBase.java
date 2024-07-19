@@ -2,11 +2,12 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.MarketingDataFileConfig;
 import com.br.marketing.entity.MarketingDataFileConfigExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 public interface MarketingDataFileConfigMapperBase {
-    long countByExample(MarketingDataFileConfigExample example);
+    int countByExample(MarketingDataFileConfigExample example);
 
     int deleteByExample(MarketingDataFileConfigExample example);
 
