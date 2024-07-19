@@ -70,18 +70,18 @@ public class PulsarConsumerThread extends Thread {
             log.warn("ProductPulsarConsumer 初始化成功,method:{},topic:{},dealLine:{},retry:{},subscription:{}", method.toString(), topic, dealLine, retry,
                 subscription);
             while (true) {
-                Map<String, MarketingCommonConfig> beansOfType = ContainerContext.applicationContext.getBeansOfType(MarketingCommonConfig.class);
-                if(beansOfType !=null){
-                    MarketingCommonConfig marketingCommonConfig = beansOfType.get("marketingCommonConfig");
-                    if(marketingCommonConfig.getPulsarSwitch() != null && marketingCommonConfig.getPulsarSwitch()){
-                        try {
-                            Thread.sleep(5000L);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                        continue;
-                    }
-                }
+//                Map<String, MarketingCommonConfig> beansOfType = ContainerContext.applicationContext.getBeansOfType(MarketingCommonConfig.class);
+//                if(beansOfType !=null){
+//                    MarketingCommonConfig marketingCommonConfig = beansOfType.get("marketingCommonConfig");
+//                    if(marketingCommonConfig.getPulsarSwitch() != null && marketingCommonConfig.getPulsarSwitch()){
+//                        try {
+//                            Thread.sleep(5000L);
+//                        } catch (InterruptedException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                        continue;
+//                    }
+//                }
                 Messages<byte[]> messages = consumer.batchReceive();
                 log.warn(String.format("pulsar接收消息,topic【%s】，messages.size【%s】", topic, messages.size()));
                 for (Message<byte[]> message : messages) {
