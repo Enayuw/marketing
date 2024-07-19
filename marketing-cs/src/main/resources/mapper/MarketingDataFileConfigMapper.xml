@@ -17,4 +17,13 @@
         </if>
         order by create_time desc,update_time desc
     </select>
+    <select id="selectCleanData" resultType="java.util.Map" parameterType="java.lang.String">
+        ${sql}
+    </select>
+    <update id="updateCleanDataStatus">
+        update ${tableName} set clean_status = #{cleanStatus} where ${autoDuplicateColumn} in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
 </mapper>
