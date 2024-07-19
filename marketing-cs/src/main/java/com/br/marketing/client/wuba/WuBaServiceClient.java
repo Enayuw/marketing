@@ -27,7 +27,6 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -52,19 +51,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class WuBaServiceClient {
-    @Value("${api.wuba.orgCode:00}")
-    String orgCode;
-    @Value("${api.wuba.submitCredentialStuffingListUrl:00}")
-    String submitCredentialStuffingListUrl;
-    @Value("${api.wuba.queryCredentialStuffingResultUrl:00}")
-    String queryCredentialStuffingResultUrl;
-    @Value("${api.wuba.submitConversionListUrl:00}")
-    String submitConversionListUrl;
-    @Value("${api.wuba.queryConversionResultUrl:00}")
-    String queryConversionResultUrl;
-    @Value("${api.wuba.isProxy:true}")
-    Boolean isProxy;
-
     @Autowired
     HttpProxyClient httpProxyClient;
     @Resource
@@ -78,9 +64,6 @@ public class WuBaServiceClient {
     private MockService mockService;
     @Resource
     private WuBaMockService wuBaMockService;
-
-    @Autowired
-    RestTemplate restTemplate;
 
     @Qualifier("restTemplateByProxy")
     @Autowired
@@ -97,7 +80,7 @@ public class WuBaServiceClient {
     public Result submitCredentialStuffingList(List<String> cells) {
         // 封装请求
         Map<String, Object> retMap = Maps.newHashMap();
-        retMap.put("orgCode", orgCode);
+        retMap.put("orgCode", marketingCommonConfig.getWuBaCollidingUrlConfig().getString("orgCode"));
         retMap.put("list", cells);
         HashMap<String, String> resMap;
 
@@ -106,7 +89,8 @@ public class WuBaServiceClient {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_01.getCode());
             resMap = getMock(null, resMap);
         } else {
-            resMap = httpProxyClient.sendByCodeWithLog(retMap, submitCredentialStuffingListUrl, isProxy,
+            String submitCredentialStuffingListUrl = marketingCommonConfig.getWuBaCollidingUrlConfig().getString("submitCredentialStuffingListUrl");
+            resMap = httpProxyClient.sendByCodeWithLog(retMap, submitCredentialStuffingListUrl, true,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(cells), true, false);
         }
 
@@ -135,6 +119,7 @@ public class WuBaServiceClient {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_02.getCode());
             resMap = getMock(batchNo, resMap);
         } else {
+            String queryCredentialStuffingResultUrl = marketingCommonConfig.getWuBaCollidingUrlConfig().getString("queryCredentialStuffingResultUrl");
             resMap = getWuBaServerQueryResult(queryCredentialStuffingResultUrl, batchNo);
         }
 
@@ -159,7 +144,7 @@ public class WuBaServiceClient {
     public Result submitConversionList(List<WuBaSubmitDTO> wuBaSubmitDTOS) {
         // 封装请求
         Map<String, Object> retMap = Maps.newHashMap();
-        retMap.put("orgCode", orgCode);
+        retMap.put("orgCode", marketingCommonConfig.getWuBaCollidingUrlConfig().getString("orgCode"));
         retMap.put("list", wuBaSubmitDTOS);
         HashMap<String, String> resMap;
 
@@ -168,7 +153,8 @@ public class WuBaServiceClient {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_03.getCode());
             resMap = wuBaMockService.getMock03(resMap);
         } else {
-            resMap = httpProxyClient.sendByCodeWithLog(retMap, submitConversionListUrl, isProxy,
+            String submitConversionListUrl = marketingCommonConfig.getWuBaCollidingUrlConfig().getString("submitConversionListUrl");
+            resMap = httpProxyClient.sendByCodeWithLog(retMap, submitConversionListUrl, true,
                     MediaType.APPLICATION_JSON_UTF8_VALUE, JSON.toJSONString(wuBaSubmitDTOS), true, false);
         }
 
@@ -197,6 +183,7 @@ public class WuBaServiceClient {
             resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_04.getCode());
             resMap = wuBaMockService.getMock04(batchNo, resMap);
         } else {
+            String queryConversionResultUrl = marketingCommonConfig.getWuBaCollidingUrlConfig().getString("queryConversionResultUrl");
             resMap = getWuBaServerQueryResult(queryConversionResultUrl, batchNo);
         }
 
@@ -218,16 +205,9 @@ public class WuBaServiceClient {
     }
 
     private HashMap<String, String> getWuBaServerQueryResult(String url, String batchNo) {
-        RestTemplate restTemplateCall;
-        if (isProxy) {
-            restTemplateCall = restTemplateByProxy;
-        } else {
-            restTemplateCall = restTemplate;
-        }
-
         String param = "batchNo=" + batchNo;
         String urlConcatParam = url + "?" + param;
-        ResponseEntity<String> reponse = new ApiCallerUtil(restTemplateCall, interfaceLogMapper, interfaceLogDbpool)
+        ResponseEntity<String> reponse = new ApiCallerUtil(restTemplateByProxy, interfaceLogMapper, interfaceLogDbpool)
                 .setUrl(urlConcatParam).getReponse(JSON.toJSONString(param));
 
         HashMap<String, String> resMap = new HashMap<>();
@@ -246,7 +226,7 @@ public class WuBaServiceClient {
         String token = marketingCommonConfig.getQiFuDingDingAccessToken();
         String secret = marketingCommonConfig.getQiFuDingDingSecret();
         try {
-            dingDingRobotHookService.sendMessageGroup(token, secret, dingDingMarkdownMessage, isProxy);
+            dingDingRobotHookService.sendMessageGroup(token, secret, dingDingMarkdownMessage, true);
         } catch (Exception e) {
             String subject = text + ",发送钉钉消息失败";
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
