@@ -211,14 +211,6 @@ api:
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
     secretKey: 3VMUkXxpauLzA7kzHdq7uCNMFjDUMCgyUzgSe83hdb64QcU2KJT5Rcb7enVtYzR9
     isProxy: true
-  wuba:
-    baseUrl: http://common-gateway.58.com
-    submitCredentialStuffingListUrl: ${api.wuba.baseUrl}/thirdpartnar/v2/submitCredentialStuffingList
-    queryCredentialStuffingResultUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/queryCredentialStuffingResult
-    submitConversionListUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/submitConversionList
-    queryConversionResultUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/queryConversionResult
-    orgCode: bairongkj
-    isProxy: true
   zbank: #众邦财富
     isPorxy: true
     api:

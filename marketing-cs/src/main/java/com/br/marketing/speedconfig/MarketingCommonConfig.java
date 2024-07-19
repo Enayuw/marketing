@@ -1924,5 +1924,10 @@ public class MarketingCommonConfig {
      * 通用Mock配置
      */
     private JSONObject commonMockConfig;
+
+    /**
+     * 58撞库接口参数配置
+     */
+    private JSONObject wuBaCollidingUrlConfig;
 }
 
