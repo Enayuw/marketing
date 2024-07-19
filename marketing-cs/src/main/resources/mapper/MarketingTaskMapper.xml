@@ -504,7 +504,7 @@
         </if>
         <if test="scoreTimeList !=null">
             <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
-                <![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>
+                (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
             </foreach>
         </if>
         <if test="userType !=null and userType !=''">
