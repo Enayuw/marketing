@@ -1,25 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Resource;
-
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -41,14 +21,30 @@ import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.CustomerQueueEnum;
-import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.CaseShuheUploadDataMapper;
+import com.br.marketing.mapper.CaseShuheUserMapper;
+import com.br.marketing.mapper.MarketingTransferInfoMapper;
+import com.br.marketing.mapper.MarketingUserMapper;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ShuHeAESencUtil;
 import com.google.api.client.util.Lists;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -215,7 +211,6 @@ public class ShuHeUserServiceImpl {
         return syncInfo.getId();
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public void saveShTransferData(String apiCode, String jsonData, String requestId, Date createTime) {
         String msg = "";
         ShuheTransferJsonDTO jsonDTO = JSONObject.parseObject(jsonData, new TypeReference<ShuheTransferJsonDTO>() {}.getType());
