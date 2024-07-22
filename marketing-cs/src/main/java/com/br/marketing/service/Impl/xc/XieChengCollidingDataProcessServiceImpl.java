@@ -201,8 +201,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     }
 
     /**
-     * 获取待执行的清洗任务
-     * is_delete=0 && task_status=0(任务待执行) && task_start_time=当天 && order by create_time
+     * 获取待执行的清洗任务，要保证先处理TRUE剔除，再处理FALSE清洗
+     * is_delete=0 && task_status=0(任务待执行) && task_start_time=当天 && order by task_type desc, create_time
      * @param apicode
      * @param nowDate
      * @return
