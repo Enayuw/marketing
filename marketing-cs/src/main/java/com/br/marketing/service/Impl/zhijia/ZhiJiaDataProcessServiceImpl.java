@@ -72,7 +72,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getCityAndCounty() {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "获取token异常!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -85,7 +85,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
         JSONArray cityList = resultJson.getJSONArray("city");
-        cityList.forEach((Object cityJson)-> {
+        cityList.forEach((Object cityJson) -> {
             JSONObject city = (JSONObject) cityJson;
             Integer cid = city.getInteger("cid");
             String cname = city.getString("cname");
@@ -150,7 +150,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getBrandAndseries() {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "获取token异常!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -211,7 +211,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getSeries(Integer brandId) {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "获取token异常!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -262,7 +262,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 });
             });
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "车辆车系信息入库线程错误！"), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家车辆车系信息入库线程错误！"), e);
         } finally {
             threadPool.shutdown();
         }
@@ -303,20 +303,26 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 return matchCounty(cityCountyDataDTO, countyList, county);
             } else {
                 cityCountyDataDTO.setIsMatch(Boolean.FALSE);
-                cityCountyDataDTO.setErrorMsg("城市匹配出多条:city=".concat(city));
+                cityCountyDataDTO.setErrorMsg("之家城市匹配出多条:city=".concat(city));
                 return cityCountyDataDTO;
             }
         }
         //扩展配置匹配
-        List<ZhijiaCityConfig> configCnameList = cityList.stream().filter(zhijiaCityConfig ->
-                Arrays.asList(zhijiaCityConfig.getCNameConfig().split(",")).contains(city)).collect(Collectors.toList());
+        List<ZhijiaCityConfig> configCnameList = cityList.stream().filter(zhijiaCityConfig -> {
+            String cNameExtend = zhijiaCityConfig.getCNameConfig();
+            if (StringUtils.isNotEmpty(cNameExtend)) {
+                List<String> cNameExtends = Arrays.asList(cNameExtend.split(","));
+                return cNameExtends.contains(city);
+            }
+            return Boolean.FALSE;
+        }).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(configCnameList)) {
             //匹配区县
             cityCountyDataDTO.setCId(configCnameList.get(0).getCId());
             return matchCounty(cityCountyDataDTO, countyList, county);
         }
         cityCountyDataDTO.setIsMatch(Boolean.FALSE);
-        cityCountyDataDTO.setErrorMsg("城市未匹配成功:city=".concat(city));
+        cityCountyDataDTO.setErrorMsg("之家城市未匹配成功:city=".concat(city));
         return cityCountyDataDTO;
     }
 
@@ -344,20 +350,26 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 return cityCountyDataDTO;
             } else {
                 cityCountyDataDTO.setIsMatch(Boolean.FALSE);
-                cityCountyDataDTO.setErrorMsg("区县匹配出多条:county=".concat(county));
+                cityCountyDataDTO.setErrorMsg("之家区县匹配出多条:county=".concat(county));
                 return cityCountyDataDTO;
             }
         }
         //扩展配置匹配
-        List<ZhijiaCountyConfig> countyNameList = countyConfigList.stream().filter(zhijiaCityConfig ->
-                Arrays.asList(zhijiaCityConfig.getCountyNameConfig().split(",")).contains(county)).collect(Collectors.toList());
+        List<ZhijiaCountyConfig> countyNameList = countyConfigList.stream().filter(zhijiaCityConfig -> {
+            String countyName = zhijiaCityConfig.getCountyNameConfig();
+            if (StringUtils.isNotEmpty(countyName)) {
+                List<String> countyNameExtends = Arrays.asList(countyName.split(","));
+                return countyNameExtends.contains(county);
+            }
+            return Boolean.FALSE;
+        }).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(countyNameList)) {
             cityCountyDataDTO.setIsMatch(Boolean.TRUE);
             cityCountyDataDTO.setCountyId(countyNameList.get(0).getCountyId());
             return cityCountyDataDTO;
         }
         cityCountyDataDTO.setIsMatch(Boolean.FALSE);
-        cityCountyDataDTO.setErrorMsg("区县未匹配成功:county=".concat(county));
+        cityCountyDataDTO.setErrorMsg("之家区县未匹配成功:county=".concat(county));
         return cityCountyDataDTO;
     }
 
@@ -408,7 +420,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
         if (zhiJiaCarBrandInfos.isEmpty()) {
             // 今日配置表为空,报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "今日车品牌配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家今日车品牌配置表为空!"));
             ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample1 = new ZhiJiaCarBrandInfoExample();
             zhiJiaCarBrandInfoExample.createCriteria().andAppletDateLessThanOrEqualTo(LocalDate.now().toString());
             List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos1 = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample1);
@@ -641,7 +653,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 .andUploadDateEqualTo(LocalDate.now().toString());
         zhijiaCountyConfigList = zhijiaCountyConfigBMapper.selectByExample(zhijiaCountyConfigExample);
         if (zhijiaCountyConfigList.isEmpty()) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "今日区县配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家今日区县配置表为空!"));
             ZhijiaCountyConfigExample zhijiaCountConfigExampleYes = new ZhijiaCountyConfigExample();
             zhijiaCountyConfigExample.createCriteria()
                     .andUploadDateEqualTo(LocalDate.now().minusDays(1).toString());
