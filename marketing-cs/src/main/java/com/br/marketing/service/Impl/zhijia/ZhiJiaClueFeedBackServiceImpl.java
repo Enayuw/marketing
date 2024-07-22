@@ -19,8 +19,8 @@ import com.br.marketing.mapper.ZhiJiaClueBackDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
-import com.google.api.client.util.Base64;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -264,7 +264,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             IvParameterSpec ivSpec = new IvParameterSpec(ivStr.getBytes());
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
             byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
-            return URLEncoder.encode(new String(Base64.encodeBase64(encryptedBytes)), StandardCharsets.UTF_8.toString());
+            return Base64.encodeBase64String(encryptedBytes);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
