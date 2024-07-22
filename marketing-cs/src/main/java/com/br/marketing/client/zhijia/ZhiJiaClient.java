@@ -88,6 +88,7 @@ public class ZhiJiaClient {
             JSONObject mockJson = new JSONObject();
             mockJson.put("returncode", mock.get("code"));
             mockJson.put("message", "处理成功");
+            mockJson.put("result", "{\"cclid\":\"0\"}");
             resMap.put("content", JSON.toJSONString(mockJson));
             resMap.put("httpcode", mock.get("httpcode").toString());
         }
