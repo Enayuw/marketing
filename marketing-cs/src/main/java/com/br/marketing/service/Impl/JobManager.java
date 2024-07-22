@@ -173,6 +173,8 @@ public class JobManager {
         YIXIN_BLACK_PUSH_BAIYING(16, "3710012", "7412003"),
         QIFU_TRIGGER_BRANCH_USER(2, "3710139", "7491635"),
         QIFU_DELETE_REACH_RECORD(1, "3710139"),
+
+        WUBA_CHANGE_QUERY_BATCH(1, "3710155", "7491580"),
         ;
 
         /**

@@ -9,7 +9,7 @@
         row_number() over(partition by cust_num order by extend03 asc) as rn
         From b_sushang_transfer_data a
         where local_id =#{local_id}
-        and extend03 is not null
+        and (extend03 is not null and extend03 !='')
         ) b
         Where b.rn = 1
         <if test="indexId != null and indexId!=''">
