@@ -94,11 +94,11 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         List<ZhiJiaCarBrandInfo> carBrandInfos = zhiJiaDataProcessService.getCarBrandInfos();
 
         if(cityConfigList.isEmpty() || countyConfigList.isEmpty()){
-            log.warn("之家初始化市区信息为空");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家初始化市区信息为空!"));
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("之家初始化市区信息为空");
         }
         if(carBrandInfos.isEmpty()){
-            log.warn("之家初始化车辆信息为空");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家初始化车辆信息为空!"));
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("之家初始化车辆信息为空");
         }
 
@@ -295,8 +295,6 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
     private void errorStatistics(Long id,
                                  String errorMsg,StringBuilder sb) {
 
-
-
         // 之家告警参数
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
         Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
@@ -308,7 +306,6 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                 .append("错误原因：").append(errorMsg)
                 .append("|\n");
         String text = sb.toString();
-        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), text, title));
         markdown.setText(text);
         DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
         dingDingMarkdownMessage.setMarkdown(markdown);
