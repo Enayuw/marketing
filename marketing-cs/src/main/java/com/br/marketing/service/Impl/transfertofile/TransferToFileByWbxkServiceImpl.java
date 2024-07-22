@@ -165,7 +165,6 @@ public class TransferToFileByWbxkServiceImpl implements ITransferToFileService {
         String tcId = tableCreateService.getTcId(apiCode);
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
-        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
         Integer soleNum = marketingCommonConfig.getWbxkExtDataConfig().get(apiCode).getInteger("soleNum") == null ?
                 SOLE_NUM : marketingCommonConfig.getWbxkExtDataConfig().get(apiCode).getInteger("soleNum");
         Integer pageSize = marketingCommonConfig.getWbxkExtDataConfig().get(apiCode).getInteger("pageSize") == null ?
@@ -174,7 +173,6 @@ public class TransferToFileByWbxkServiceImpl implements ITransferToFileService {
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        syncUser.setRequestData(localDate.toString());
         Long minId;
         for (; ; ) {
             List<Map<String, Object>> transferData = marketingTransferSyncUserMapper
@@ -250,7 +248,6 @@ public class TransferToFileByWbxkServiceImpl implements ITransferToFileService {
             StringBuilder sb = new StringBuilder();
             sb.append(custNum.concat(","))
                     .append(userType.concat(","))
-                    .append(loginTime.concat(","))
                     .append(loginTime.concat(","))
                     .append(applyDt.concat(","))
                     .append(applyResult.concat(","))
