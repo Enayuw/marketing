@@ -16,6 +16,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.ZhiJiaClueBackDataMapper;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
@@ -161,10 +162,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                 ReqAddZhiJiaClueDTO reqAddZhiJiaClueDTO = new ReqAddZhiJiaClueDTO();
                 // 匹配省市区信息
                 CityCountyDataDTO cityCountyDataDTO = zhiJiaDataProcessService.matchCityAndCounty(cityConfigList,countyConfigList,zhiJiaClueBackData);
-                if(cityCountyDataDTO.getIsMatch()){
-                    reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
-                    reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
-                }else {
+                if(!cityCountyDataDTO.getIsMatch()){
                     log.warn("匹配省市区信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(cityCountyDataDTO));
                     updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
                     // 钉钉报警
@@ -172,27 +170,36 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     errorStatistics(id,cityCountyDataDTO.getErrorMsg(),sb);
                     continue;
                 }
-
-                // 匹配车辆信息
+                // 匹配车牌信息
                 ZhiJiaCarInfoDTO zhiJiaCarBrandInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackData, carBrandInfos);
-                if(zhiJiaCarBrandInfo.getIsMatch()){
-                    List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
-                    ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
-                    if(zhiJiaCarSeriesInfo.getIsMatch()){
-                        reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ?
-                                String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
-                        reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ?
-                                String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
-                    }else {
-                        log.warn("匹配车辆信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(zhiJiaCarSeriesInfo));
-                        updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
-                        // 钉钉报警
-                        StringBuilder sb = new StringBuilder("# 之家车辆信息匹配异常\n");
-                        errorStatistics(id,zhiJiaCarSeriesInfo.getErrorMsg(),sb);
-                        continue;
-                    }
+                if(!zhiJiaCarBrandInfo.getIsMatch()){
+                    log.warn("匹配车牌信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(zhiJiaCarBrandInfo));
+                    updatePushStatus(id, 4, null, zhiJiaCarBrandInfo.getErrorMsg());
+                    // 钉钉报警
+                    StringBuilder sb = new StringBuilder("# 之家车牌信息匹配异常\n");
+                    errorStatistics(id,zhiJiaCarBrandInfo.getErrorMsg(),sb);
+                    continue;
                 }
+                // 匹配车系信息
+                List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
+                ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
+                if(!zhiJiaCarSeriesInfo.getIsMatch()){
+                    log.warn("匹配车系信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(zhiJiaCarSeriesInfo));
+                    updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
+                    // 钉钉报警
+                    StringBuilder sb = new StringBuilder("# 之家车系信息匹配异常\n");
+                    errorStatistics(id,zhiJiaCarSeriesInfo.getErrorMsg(),sb);
+                    continue;
+                }
+
                 // 组装参数
+                reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
+                reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
+                reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ?
+                        String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
+                reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ?
+                        String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
+
                 buildAddZhiJiaClue(zhiJiaClueBackData, reqAddZhiJiaClueDTO);
                 // 调用高质线索创建接口
                 Result<String> result = zhiJiaClient.addZhiJiaClue(reqAddZhiJiaClueDTO);
@@ -230,8 +237,9 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
     private void buildAddZhiJiaClue(ZhiJiaClueBackData zhiJiaClueBackData,ReqAddZhiJiaClueDTO dto) {
         dto.setAccess_token(zhiJiaDataProcessService.getToken());
-        dto.setMobile(zhiJiaClueBackData.getCell());
-        dto.setMobilecode(encryptCell(zhiJiaClueBackData.getCell()));
+        String cell = RpcClientProxy.decode(zhiJiaClueBackData.getCell(), "cell", "md5", "");
+        dto.setMobile(cell);
+        dto.setMobilecode(encryptCell(cell));
         dto.setFirstregtime(zhiJiaClueBackData.getFirstregtime());
         if(!zhiJiaClueBackData.getPlatenum().isEmpty()){
             dto.setPlatenum(zhiJiaClueBackData.getPlatenum());
@@ -286,6 +294,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
      */
     private void errorStatistics(Long id,
                                  String errorMsg,StringBuilder sb) {
+
+
 
         // 之家告警参数
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();

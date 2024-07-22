@@ -12,12 +12,12 @@ public class ZhiJiaCarInfoDTO {
     private Boolean isMatch;
 
     /**
-     * 城市ID
+     * 车牌
      */
     private Integer brandId;
 
     /**
-     * 区县ID
+     * 车系
      */
     private Integer seriesId;
     /**
