@@ -144,7 +144,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         localFileMapper.updateByPrimaryKeySelective(localFile);
         //统计告警
         if (!localFile.getPushNumber().equals(localFile.getActualNumber())) {
-            sendAlarm(localFile.getActualNumber() - localFile.getPushNumber(), "之家创建回传线索失败数量统计");
+            sendAlarm(localFile.getActualNumber() - localFile.getPushNumber(), "之家创建回传线索失败数量统计,localId："+localFile.getId());
         }
         log.warn("之家创建回传线索结束，耗时：{} ms", System.currentTimeMillis() - st1);
 
