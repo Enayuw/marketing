@@ -502,7 +502,7 @@
             <![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
             <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
         </if>
-        <if test="scoreTimeList !=null">
+        <if test="scoreTimeList !=null and scoreTimeList.size()>0">
             and
             <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
                 (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
@@ -559,7 +559,7 @@
             <![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
             <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
         </if>
-        <if test="scoreTimeList !=null">
+        <if test="scoreTimeList !=null and scoreTimeList.size()>0">
             and
             <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
                 (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
