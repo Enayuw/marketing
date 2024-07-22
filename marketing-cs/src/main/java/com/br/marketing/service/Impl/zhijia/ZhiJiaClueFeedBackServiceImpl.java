@@ -232,9 +232,13 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         dto.setAccess_token(zhiJiaDataProcessService.getToken());
         dto.setMobile(zhiJiaClueBackData.getCell());
         dto.setMobilecode(encryptCell(zhiJiaClueBackData.getCell()));
-        dto.setMobilecode(encryptCell(zhiJiaClueBackData.getCell()));
         dto.setFirstregtime(zhiJiaClueBackData.getFirstregtime());
-        dto.setMileage(zhiJiaClueBackData.getMileage());
+        if(!zhiJiaClueBackData.getPlatenum().isEmpty()){
+            dto.setPlatenum(zhiJiaClueBackData.getPlatenum());
+        }
+        if(!zhiJiaClueBackData.getMileage().isEmpty()){
+            dto.setMileage(zhiJiaClueBackData.getMileage());
+        }
         dto.setAppid(StringUtils.isNotBlank(zhiJiaClientAppid) ? Integer.parseInt(zhiJiaClientAppid) : 1742);
     }
 

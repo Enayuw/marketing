@@ -69,14 +69,12 @@ public class ZhiJiaClient {
 
     @RetryMethod(retryNowNum = 3)
     public Result<String> addZhiJiaClue(ReqAddZhiJiaClueDTO dto) {
-
+        long start = System.currentTimeMillis();
+        log.warn(TITLE + "调度开始, 入参:{}", JSONObject.toJSONString(dto));
         HashMap<String, String> resMap = new HashMap<>();
         // 获取挡板开关
         HashMap<String, Object> mock = marketingCommonConfig.getZhiJiaUndoMock();
         if (mock.get("switch") == Boolean.FALSE) {
-            long start = System.currentTimeMillis();
-            log.warn(TITLE + "调度开始, 入参:{}", JSONObject.toJSONString(dto));
-
             resMap = httpProxyClient.sendByCode(dto
                     , addC1HiqClueUrl
                     , isProxy
