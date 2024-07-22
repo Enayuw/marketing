@@ -79,7 +79,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("文件不存在");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("文件不存在");
         }
 
         ThreadPoolExecutor zhiJiaCollidingThread =
@@ -91,6 +91,15 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         List<ZhijiaCityConfig> cityConfigList = zhiJiaDataProcessService.getCityConfigList();
         List<ZhijiaCountyConfig> countyConfigList = zhiJiaDataProcessService.getCountyConfigList();
         List<ZhiJiaCarBrandInfo> carBrandInfos = zhiJiaDataProcessService.getCarBrandInfos();
+
+        if(cityConfigList.isEmpty() || countyConfigList.isEmpty()){
+            log.warn("之家初始化市区信息为空");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("之家初始化市区信息为空");
+        }
+        if(carBrandInfos.isEmpty()){
+            log.warn("之家初始化车辆信息为空");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("之家初始化车辆信息为空");
+        }
 
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
@@ -116,7 +125,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         zhiJiaCollidingThread.shutdown();
         try {
             while (!zhiJiaCollidingThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info("之家创建线索接口线程池关闭");
+                log.warn("之家创建线索接口线程池关闭");
             }
         } catch (InterruptedException ex) {
             zhiJiaCollidingThread.shutdownNow();
@@ -156,6 +165,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
                     reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
                 }else {
+                    log.warn("匹配省市区信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(cityCountyDataDTO));
                     updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
                     // 钉钉报警
                     StringBuilder sb = new StringBuilder("# 之家省市区匹配异常\n");
@@ -174,6 +184,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                         reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ?
                                 String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
                     }else {
+                        log.warn("匹配车辆信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(zhiJiaCarSeriesInfo));
                         updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
                         // 钉钉报警
                         StringBuilder sb = new StringBuilder("# 之家车辆信息匹配异常\n");
