@@ -1143,4 +1143,24 @@
         order by id asc limit #{pageSize}
     </select>
 
+    <select id="selectTransferByWbxc" resultType="java.util.Map">
+        select id as id,
+               cust_num as custNum,
+               user_type as userType,
+               login_time as loginTime,
+               apply_dt as applyDt ,
+               apply_result as applyResult,
+               audit_time as auditTime,
+               lent_time as lentTime,
+               lent_amount as lentAmount,
+               reserve_field1 as reserveField1
+        from b_marketing_transfer_sync_${transferSyncUser.tCid} transfer
+        where
+        <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
+            id >= #{transferSyncUser.id} and
+        </if>
+            transfer.api_code = #{transferSyncUser.apiCode}
+        order by id asc limit #{pageSize}
+    </select>
+
 </mapper>
