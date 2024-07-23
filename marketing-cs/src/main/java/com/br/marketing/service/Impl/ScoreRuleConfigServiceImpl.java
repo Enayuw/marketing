@@ -245,18 +245,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
         ScoreRuleConfig rule = list.get(0);
 
-        String apiCodes = "";
-        String cid = "";
-        for(MarketingCustomer customer: customerList){
-            cid = customer.getCid();
-            String apiCode = customer.getApiCode();
-            if(!StringUtils.isEmpty(apiCode)){
-                apiCodes += apiCode+",";
-            }
-        }
-        if(apiCodes.length()>0 && ",".equals(apiCodes.indexOf(apiCodes.length()-1))){
-            apiCodes = apiCodes.substring(0, apiCodes.length()-1);
-        }
+        String cid = customerList.get(0).getCid();
+        String apiCodes = customerList.stream().map(MarketingCustomer::getApiCode).collect(Collectors.joining(","));
 
         ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
         scoreRuleVO.setId(rule.getId());
