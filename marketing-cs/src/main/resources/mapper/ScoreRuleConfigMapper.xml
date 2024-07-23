@@ -89,4 +89,29 @@
             </if>
         </where>
     </select>
+
+    <select id="getScoreRuleDtoList" resultType="com.br.marketing.dto.CustomerScoreRuleDto">
+        select
+            src.*,
+            bmc.cid,
+            bmc.api_code as apiCode
+        from b_score_rule_config src
+        left join b_customer_rule bcr on src.id = bcr.rule_id
+        left join b_marketing_customer bmc on bcr.customer_id = bmc.id
+        <where>
+            src.is_del=1
+            <if test="ruleIdList != null and ruleIdList.size() > 0">
+                and src.id in
+                <foreach collection="ruleIdList" item="ruleId" separator="," open="(" close=")">
+                    #{ruleId}
+                </foreach>
+            </if>
+            <if test="apiCodeList != null and apiCodeList.size() > 0">
+                and bmc.api_code in
+                <foreach collection="apiCodeList" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
 </mapper>

@@ -734,7 +734,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         // 查询符合跑分数据的场景
         List<String> userTypeList = new ArrayList<>();
 
-        Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds());
+        Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds(), dto.getApiCode());
         AssertResult.assertResult(scoreConfigNow);
         String conditionInfo = getConditionInfo(dto.getDataIdDesc(), userTypeList);
         for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {

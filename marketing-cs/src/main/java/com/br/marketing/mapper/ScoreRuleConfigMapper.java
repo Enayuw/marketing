@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.CustomerScoreRuleDto;
 import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
@@ -37,4 +38,8 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
      * @return
      */
     List<ScoreRuleConfig> getScoreRules(@Param("apiCodeList")List<String> apiCodeList);
+
+    List<CustomerScoreRuleDto> getScoreRuleDtoList(
+            @Param("ruleIdList")List<Long> ruleIdList,
+            @Param("apiCodeList")List<String> apiCodeList);
 }

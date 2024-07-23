@@ -3,21 +3,26 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.CustomerScoreRuleDto;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.CustomerSoleRuleVO;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -186,12 +191,12 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
 
     @Override
     public Result<List<CustomerScoreRuleVO>> getScoreConfigNow() {
-        return getScoreConfigNow(null);
+        return getScoreConfigNow(null, null);
     }
 
 
     @Override
-    public Result<List<CustomerScoreRuleVO>> getScoreConfigNow(List<Long> ids) {
+    public Result<List<CustomerScoreRuleVO>> getScoreConfigNow(List<Long> ids, String apiCode) {
         ScoreRuleConfigExample ruleConfigExample = new ScoreRuleConfigExample();
         if(ids!=null&&ids.size()>0){
             ruleConfigExample.createCriteria()
@@ -212,43 +217,21 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         if (scoreRuleConfigs.size() <= 0) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不存在");
         }
-        ArrayList<CustomerScoreRuleVO> customerScoreRuleVOS = new ArrayList<>();
+
         List<Long> ruleIds = scoreRuleConfigs.stream().map(t -> t.getId()).collect(Collectors.toList());
-        CustomerRuleExample customerRuleExample = new CustomerRuleExample();
-        customerRuleExample.createCriteria()
-                .andRuleIdIn(ruleIds)
-                .andIsDelEqualTo(Constants.DATA_VALID);
-        List<CustomerRule> customerRules = customerRuleMapper.selectByExample(customerRuleExample);
-        if (customerRules.size() <= 0) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
+        List<String> apiCodeList = new ArrayList<>();
+        if(!StringUtils.isEmpty(apiCode)){
+            apiCodeList.add(apiCode);
+        }
+        List<CustomerScoreRuleDto> scoreRuleDtoList = scoreRuleConfigMapper.getScoreRuleDtoList(ruleIds, apiCodeList);
+        if (CollectionUtils.isEmpty(scoreRuleDtoList)) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不存在");
         }
 
-        List<Long> customerIds = new ArrayList<>();
-        HashMap<Long, Long> customerRuleMap = new HashMap();
-        for (CustomerRule customerRule : customerRules) {
-            customerIds.add(customerRule.getCustomerId());
-            customerRuleMap.put(customerRule.getRuleId(), customerRule.getCustomerId());
-        }
-
-        MarketingCustomerExample customerExample = new MarketingCustomerExample();
-        customerExample.createCriteria().andIdIn(customerIds).andStatusEqualTo(Byte.valueOf("1"));
-        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        if (marketingCustomers.size() <= 0) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
-        }
-        Map<Long, String> customerMap = marketingCustomers.stream().collect(Collectors.toMap(MarketingCustomer::getId, MarketingCustomer::getApiCode));
-        for (ScoreRuleConfig scoreRuleConfig : scoreRuleConfigs) {
-            Long customerId = customerRuleMap.get(scoreRuleConfig.getId());
-            if (customerId == null || customerId <= 0) {
-                continue;
-            }
-            String apicode = customerMap.get(customerId);
-            if (StringUtils.isBlank(apicode)) {
-                continue;
-            }
+        ArrayList<CustomerScoreRuleVO> customerScoreRuleVOS = new ArrayList<>();
+        for (CustomerScoreRuleDto dto : scoreRuleDtoList) {
             CustomerScoreRuleVO customerScoreRuleVO = new CustomerScoreRuleVO();
-            BeanUtils.copyProperties(scoreRuleConfig, customerScoreRuleVO);
-            customerScoreRuleVO.setApiCode(apicode);
+            BeanUtils.copyProperties(dto, customerScoreRuleVO);
             customerScoreRuleVOS.add(customerScoreRuleVO);
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerScoreRuleVOS);
