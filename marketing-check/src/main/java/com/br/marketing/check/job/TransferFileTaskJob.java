@@ -187,12 +187,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByQiFuServiceImpl transferToFileByQiFuServiceService;
 
-    /**
-     * 医时
-     */
-    @Resource
-    private TransferToFileByYiShiServiceImpl transferToFileByYiShiService;
-
 
 
     @Autowired
@@ -336,8 +330,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByZhongBangTransferService, marketingCommonConfig.getZhongBangApiCodes())
                 //奇富360转换数据提取
                 .addBind(transferToFileByQiFuServiceService, marketingCommonConfig.getQiFuTransferApiCodes())
-                //医时转换数据提取
-                .addBind(transferToFileByYiShiService, marketingCommonConfig.getYiShiTransferApiCodes())
                 // 滴滴转化数据提取
                 .addBind(transferToFileByDiDiService,marketingCommonConfig.getDidiApiCodes())
                 .build();

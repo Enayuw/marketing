@@ -183,10 +183,8 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
             page++;
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
-                    String custNum = transferFilterData.getCustNum();
-                    custNum = StringUtils.isNotEmpty(custNum) ? custNum : "";
-                    String userType = StringUtils.isNotEmpty(transferFilterData.getUserType())
-                            ? transferFilterData.getUserType() : "";
+                    String custNum = emptyDefault(transferFilterData.getCustNum());
+                    String userType = emptyDefault(transferFilterData.getUserType());
                     String callId = null;
                     String isBlack = null;
                     String extend01 = null;
@@ -201,10 +199,10 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
                     StringBuilder sb = new StringBuilder();
                     sb.append(custNum.concat(","))
                             .append(userType.concat(","))
-                            .append(callId.concat(","))
-                            .append(isBlack.concat(","))
-                            .append(extend01.concat(","))
-                            .append(extend02)
+                            .append(emptyDefault(callId).concat(","))
+                            .append(emptyDefault(isBlack).concat(","))
+                            .append(emptyDefault(extend01).concat(","))
+                            .append(emptyDefault(extend02))
                             .append("\r\n");
                     try {
                         fw.append(sb.toString());
@@ -250,6 +248,17 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
         transferFileTaskMapper.updateByPrimaryKeySelective(task);
     }
 
+    /**
+     * 2023-12-22 11:20
+     * 值为null时，赋值''
+     */
+    private String emptyDefault(String value) {
+        return StringUtils.isNotEmpty(value) ? value : "";
+    }
+
+    private String removeMillisecond(String timeStr) {
+        return timeStr.replace(":000", "");
+    }
 
     private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
         return apiCode.concat("_").concat(dateStr).concat("_").concat(contextId.toString());
