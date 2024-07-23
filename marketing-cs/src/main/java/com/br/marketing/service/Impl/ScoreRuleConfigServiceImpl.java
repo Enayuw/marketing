@@ -35,6 +35,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -225,10 +226,14 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Override
     public ScoreRuleVO detail(Long rid, Long crId) {
-        CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
-        if (ObjectUtils.isEmpty(customerRule) || !customerRule.getRuleId().equals(rid) || customerRule.getIsDel() != 1) {
+        CustomerRuleExample customerRuleExample = new CustomerRuleExample();
+        customerRuleExample.createCriteria().andRuleIdEqualTo(rid).andIsDelEqualTo(1);
+        List<CustomerRule> customerRules = customerRuleMapper.selectByExample(customerRuleExample);
+
+        if(CollectionUtils.isEmpty(customerRules)){
             throw new BusinessException("抱歉小主，数据异常或已删除");
         }
+
         ScoreRuleConfigExample example = new ScoreRuleConfigExample();
         example.createCriteria().andIdEqualTo(rid)
                 .andIsDelEqualTo(1);
@@ -237,8 +242,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (ObjectUtils.isEmpty(list) || list.size() < 1) {
             throw new BusinessException("抱歉小主，此规则不存在或已删除");
         }
+
+        List<Long> customerIdList = customerRules.stream().map(CustomerRule::getCustomerId).collect(Collectors.toList());
         MarketingCustomerExample mcExample = new MarketingCustomerExample();
-        mcExample.createCriteria().andIdEqualTo(customerRule.getCustomerId()).andStatusEqualTo(Byte.valueOf("1"));
+        mcExample.createCriteria().andIdIn(customerIdList).andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(mcExample);
         if (customerList.size() == 0) {
             throw new BusinessException("抱歉小主，客户不存在或已禁用");
