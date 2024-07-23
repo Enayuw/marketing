@@ -208,14 +208,6 @@ api:
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
     secretKey: JhcwsW4ArsdJ8kjcXQnW734ydF7brpMZywg3T9MXRNAwqTcSW3UasDTFAUheAV24
     isProxy: true
-  wuba:
-    baseUrl: http://convenientloan.test.58v5.cn
-    submitCredentialStuffingListUrl: ${api.wuba.baseUrl}/thirdpartnar/v2/submitCredentialStuffingList
-    queryCredentialStuffingResultUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/queryCredentialStuffingResult
-    submitConversionListUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/submitConversionList
-    queryConversionResultUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/queryConversionResult
-    orgCode: bairongkj
-    isProxy: true
   zbank: #众邦财富
     isPorxy: true
     api:
