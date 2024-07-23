@@ -192,7 +192,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 } else {
                     ZhiJiaCarBrandInfo zhiJiaCarBrandInfo = new ZhiJiaCarBrandInfo();
                     zhiJiaCarBrandInfo.setApiCode(zhiJiaApiCode);
-                    zhiJiaCarBrandInfo.setBrandName(zhiJiaCarBrandInfos.get(0).getBrandName());
+                    zhiJiaCarBrandInfo.setBrandName(brandName);
                     zhiJiaCarBrandInfo.setUpdateTime(new Date());
                     zhiJiaCarBrandInfo.setAppletDate(LocalDate.now().toString());
                     zhiJiaCarBrandInfo.setId(zhiJiaCarBrandInfos.get(0).getId());
@@ -226,7 +226,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         JSONObject resultJson = jsonObject.getJSONObject("result");
         JSONArray serieslist = resultJson.getJSONArray("serieslist");
 
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50, 1);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10, 1);
         try {
             serieslist.forEach((Object seriesJson) -> {
                 threadPool.submit(() -> {
@@ -252,7 +252,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                     } else {
                         ZhiJiaCarSeriesInfo zhiJiaCarSeriesInfo = new ZhiJiaCarSeriesInfo();
                         zhiJiaCarSeriesInfo.setApiCode(zhiJiaApiCode);
-                        zhiJiaCarSeriesInfo.setSeriesName(zhiJiaCarSeriesInfos.get(0).getSeriesName());
+                        zhiJiaCarSeriesInfo.setSeriesName(seriesName);
                         zhiJiaCarSeriesInfo.setNewSeriesName(newSeriesName);
                         zhiJiaCarSeriesInfo.setUpdateTime(new Date());
                         zhiJiaCarSeriesInfo.setAppletDate(LocalDate.now().toString());
