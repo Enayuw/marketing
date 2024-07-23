@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
 /**
+ * 替换原来的ConsumerService
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-07-18
  */
