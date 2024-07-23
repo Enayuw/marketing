@@ -251,7 +251,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             apiCodeList = Arrays.asList(apiCodeArray);
         }
         List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCodeList);
-        return list;
+        List<ScoreRuleConfig> soleList =list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(
+                ()->new TreeSet<>(Comparator.comparing(ScoreRuleConfig::getId))), ArrayList::new));
+        return soleList;
     }
 
 

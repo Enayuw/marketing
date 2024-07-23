@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 手动跑数任务规则 业务实现
@@ -266,7 +267,9 @@ public class FastTaskRuleServiceImpl implements FastTaskRuleService {
             apiCodeList = Arrays.asList(apiCodeArray);
         }
         List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCodeList);
-        return list;
+        List<ScoreRuleConfig> soleList = list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(
+                () -> new TreeSet<>(Comparator.comparing(ScoreRuleConfig::getId))), ArrayList::new));
+        return soleList;
     }
 
     @Override
