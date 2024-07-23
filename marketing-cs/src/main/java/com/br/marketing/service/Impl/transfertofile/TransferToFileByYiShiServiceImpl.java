@@ -141,7 +141,7 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
             if (!mkdirs) {
-                log.error(descPath + "目录创建失败！");
+                log.error(descPath + "医时化数据提取目录创建失败！");
             }
         }
         String fileAllPath = descPath.concat(transferFileTask.getFileName());
@@ -152,7 +152,7 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
             fw.append("\r\n");
             writeYiShiTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
-            log.error("写入文件错误！",ex);
+            log.error("医时化数据提取写入文件错误！",ex);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(ex.getMessage());
         }
@@ -195,13 +195,17 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
                         isBlack = jsonObject.getString("isBlack");
                         extend01 = jsonObject.getString("extend01");
                         extend02 = jsonObject.getString("extend02");
+                        if (StringUtils.isNotEmpty(extend02)){
+                            extend02 = LocalDate.parse(extend02, YYYYMMDDSHORTLINE).toString();
+                        }
+
                     }
                     StringBuilder sb = new StringBuilder();
                     sb.append(custNum.concat(","))
                             .append(userType.concat(","))
                             .append(emptyDefault(callId).concat(","))
-                            .append(emptyDefault(isBlack).concat(","))
-                            .append(emptyDefault(extend01).concat(","))
+                            .append(characterMapping(isBlack).concat(","))
+                            .append(characterMapping(extend01).concat(","))
                             .append(emptyDefault(extend02))
                             .append("\r\n");
                     try {
@@ -256,8 +260,19 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
         return StringUtils.isNotEmpty(value) ? value : "";
     }
 
-    private String removeMillisecond(String timeStr) {
-        return timeStr.replace(":000", "");
+    /**
+     * 1是0否
+     * 值为null时，赋值''
+     */
+    private String characterMapping(String value) {
+        String s = "";
+        if (StringUtils.isNotBlank(value)) {
+            if ("1".equals(s) || "0".equals(s)) {
+                s = "1".equals(s) ? "是" : "否";
+                return s;
+            }
+        }
+        return s;
     }
 
     private String createBatchNumber(String apiCode, Long contextId, String dateStr) {
