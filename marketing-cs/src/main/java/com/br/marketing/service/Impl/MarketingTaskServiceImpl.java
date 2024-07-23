@@ -63,10 +63,12 @@ import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -693,22 +695,35 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public Result<List<Long>> saveTaskSelectV2(TaskSelectSaveDTO dto) {
+        MarketingTaskServiceImpl service = (MarketingTaskServiceImpl) AopContext.currentProxy();
+        Result<List<Long>> res;
+        try {
+            res = service.saveTaskSelectByCreateMethod(dto);
+        } catch (Exception e) {
+            return new Result<>().failure().setMessage(e.getMessage());
+        }
+        return res;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Result<List<Long>> saveTaskSelectByCreateMethod(TaskSelectSaveDTO dto) throws Exception {
         String taskCreateMethod = dto.getTaskCreateMethod();
         if("2".equals(taskCreateMethod)) {
             List<Long> dataIdDesc = dto.getDataIdDesc();
-            List<Long> resIds = dto.getDataIdDesc();
+            List<Long> resIds = new ArrayList<>();
             for(Long dataId : dataIdDesc){
                 TaskSelectSaveDTO singeDTO = new TaskSelectSaveDTO();
-                BeanUtils.copyProperties(singeDTO, dto);
+                BeanUtils.copyProperties(dto, singeDTO);
                 List<Long> dataIdList = new ArrayList<>();
                 dataIdList.add(dataId);
                 singeDTO.setDataIdDesc(dataIdList);
                 Result<List<Long>> singleResult = saveTaskSelect(singeDTO);
-                if(ResultCode.SUCCESS.getValue().equals(singleResult.getCode())){
-                    resIds.addAll(singleResult.getData());
+                if(singleResult== null || !singleResult.isSuccess() || singleResult.getData()==null){
+                    throw new Exception("生成任务失败");
                 }
+                resIds.addAll(singleResult.getData());
             }
-            new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resIds);
+            return new Result<>().success().setDate(resIds);
         }
         return saveTaskSelect(dto);
     }
