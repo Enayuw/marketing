@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -498,9 +499,12 @@ public class HttpProxyClient {
      * @author: zhen.Li1
      * @time: 2024-07-11
      */
-    public HashMap<String, String> get(String uri, Boolean isPorxy) {
+    public HashMap<String, String> get(String uri, Boolean isPorxy, String charset) {
         HashMap<String, String> res = new HashMap<>();
         HttpClient httpClient = getHttpClientInner(isPorxy);
+        if (StringUtils.isEmpty(charset)) {
+            charset = CHARSET_UTF8;
+        }
         try {
             HttpGet httpGet = new HttpGet(uri);
             RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
@@ -509,7 +513,10 @@ public class HttpProxyClient {
             HttpResponse response = httpClient.execute(httpGet);
             int statusCode = response.getStatusLine().getStatusCode();
             res.put("httpcode", String.valueOf(statusCode));
-            String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            //toString方法有坑，不能处理编码转换
+            //String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            byte[] responseBodyBytes = EntityUtils.toByteArray(response.getEntity());
+            String result = new String(responseBodyBytes, Charset.forName(charset));
             res.put("content", result);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(), "url=" + uri), e);

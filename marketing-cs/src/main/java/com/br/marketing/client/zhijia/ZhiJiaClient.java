@@ -2,6 +2,8 @@ package com.br.marketing.client.zhijia;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.cloud.web.MethodType;
+import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.zhijia.input.ReqAddZhiJiaClueDTO;
@@ -68,6 +70,7 @@ public class ZhiJiaClient {
     private final static String TITLE = "【推送之家创建接口】";
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<String> addZhiJiaClue(ReqAddZhiJiaClueDTO dto) {
         long start = System.currentTimeMillis();
         log.warn(TITLE + "调度开始, 入参:{}", JSONObject.toJSONString(dto));
@@ -113,8 +116,8 @@ public class ZhiJiaClient {
     }
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result getToken() {
-
         HashMap<String, String> resMap = new HashMap<>();
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("response_type", "token");
@@ -138,11 +141,11 @@ public class ZhiJiaClient {
 
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result getCityAndCounty(String token) {
-
         HashMap<String, String> resMap = new HashMap<>();
         String url = cityInfoUrl.concat("?access_token=").concat(token);
-        resMap = httpProxyClient.get(url, isProxy);
+        resMap = httpProxyClient.get(url, isProxy,"GBK");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(),
                     "之家获取省市县接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
@@ -159,11 +162,11 @@ public class ZhiJiaClient {
     }
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result getBrand(String token) {
-
         HashMap<String, String> resMap = new HashMap<>();
         String url = brandUrl.concat("?access_token=").concat(token).concat("&appid=").concat(appId).concat("&querykey=").concat(querykey);
-        resMap = httpProxyClient.get(url, isProxy);
+        resMap = httpProxyClient.get(url, isProxy,"GBK");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode()
                     , "之家获取车辆品牌接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
@@ -180,13 +183,14 @@ public class ZhiJiaClient {
     }
 
     @RetryMethod(retryNowNum = 3)
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result getSeries(String token, String brandId) {
         HashMap<String, String> resMap = new HashMap<>();
         String url = seriesUrl.concat("?access_token=").concat(token)
                 .concat("&appid=").concat(appId)
                 .concat("&querykey=").concat(querykey)
                 .concat("&brandId=").concat(brandId);
-        resMap = httpProxyClient.get(url, isProxy);
+        resMap = httpProxyClient.get(url, isProxy,"GBK");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode()
                     , "之家获取车辆车系接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
