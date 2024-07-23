@@ -53,7 +53,9 @@ public enum AlarmSendCodeEnum {
     //宜信非实时推客服告警,立即推送
     EXCEPTION_YIXIN_PUSH_CUSTOMER("62010", "宜信非实时推客服"),
     EXCEPTION_WUBA("62058", "58业务报错code"),
-    ;
+
+    EXCEPTION_QIFU_ALARM("62360", "360业务告警码"),
+    EXCEPTION_WBXK_ALARM("6001001", "58业务告警码");
 
     /**
      * 2022/10/28 17:30 发送码

@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUserMapperBase {
@@ -587,4 +588,19 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("indexId") Long indexId,
             @Param("pageSize") Integer pageSize);
 
+    List<Map<String, Object>> selectFullTransferWithValid(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser);
+
+    List<MarketingTransferSyncUser> selectTransferWithValid(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate);
+
+    List<Map<String, Object>> selectTransferWithValidtiflash_(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("pageSize") Integer pageSize);
+
+    List<Map<String, Object>> selectTransferByWbxc(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("pageSize") Integer pageSize);
 }
