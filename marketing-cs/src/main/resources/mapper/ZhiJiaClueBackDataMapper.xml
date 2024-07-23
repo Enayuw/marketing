@@ -15,6 +15,6 @@
             id >=#{minId} and
         </if>
         local_id = #{localId}  and status =1 and push_status =1
-        order by id asc limit 2000;
+        order by id asc limit #{pageSize};
     </select>
 </mapper>

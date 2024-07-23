@@ -104,9 +104,10 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
+        String pageSize = marketingCommonConfig.getZhiJiaQryUserMessageSize();
         while (isContiue) {
             // 查询未推送数据
-            List<ZhiJiaClueBackData> zhiJiaClueBackDataList = zhiJiaClueBackDataMapper.getBatchById(id, minId);
+            List<ZhiJiaClueBackData> zhiJiaClueBackDataList = zhiJiaClueBackDataMapper.getBatchById(id, pageSize, minId);
             if (zhiJiaClueBackDataList.isEmpty()) {
                 isContiue = Boolean.FALSE;
                 continue;
@@ -114,7 +115,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             minId = zhiJiaClueBackDataList.get(zhiJiaClueBackDataList.size() - 1).getId() + 1;
 
             // 开始推送
-            List<List<ZhiJiaClueBackData>> partition = ListUtils.partition(zhiJiaClueBackDataList, 1000);
+            List<List<ZhiJiaClueBackData>> partition = ListUtils.partition(zhiJiaClueBackDataList, 50);
 
             partition.forEach((List<ZhiJiaClueBackData> p) -> {
                 zhiJiaCollidingThread.submit(() -> pushZhiJiaCollidingSync(p,

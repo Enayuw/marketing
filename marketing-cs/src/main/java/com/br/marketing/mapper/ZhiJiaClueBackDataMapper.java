@@ -10,7 +10,7 @@ import java.util.List;
 public interface ZhiJiaClueBackDataMapper extends ZhiJiaClueBackDataMapperBase{
 
 
-    List<ZhiJiaClueBackData> getBatchById(@Param("localId") Long localId, @Param("minId") Long minId);
+    List<ZhiJiaClueBackData> getBatchById(@Param("localId") Long localId,  @Param("pageSize") String pageSize, @Param("minId") Long minId);
 
     int updateBatchById(@Param("ids") List<Long> ids, @Param("pushStatus")Integer pushStatus);
 }

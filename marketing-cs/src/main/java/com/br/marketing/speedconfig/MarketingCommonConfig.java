@@ -1797,7 +1797,10 @@ public class MarketingCommonConfig {
      */
     private String zhiJiaApiCode;
 
-
+    /**
+     * 之家用户信息分页参数
+     */
+    private String zhiJiaQryUserMessageSize;
 
 }
 
