@@ -20,9 +20,9 @@
     </delete>
 
     <insert id="batchSave" parameterType="java.util.List">
-        insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id,package_rule_id,data_source_type,
-                                                   cell_sha256_code_list, release_time, org_channel,
-                                                   mkt_level, info, `result`,
+        insert into b_xiecheng_colliding_data_log (sms_colliding_data_id, package_id, package_rule_id, data_source_type,
+                                                   cell_sha256_code_list, release_time, release_date, org_channel,
+                                                   mkt_level, info, `result`, market_coupon_list, coupon_code, coupon_desc,
                                                    http_code, business_code, return_content, create_time, update_time)
         VALUES
         <foreach collection="collidingLogs" item="item" separator=",">
@@ -32,10 +32,14 @@
              #{item.dataSourceType},
              #{item.cellSha256CodeList},
              #{item.releaseTime},
+             #{item.releaseDate},
              #{item.orgChannel},
              #{item.mktLevel},
              #{item.info},
              #{item.result},
+             #{item.marketCouponList},
+             #{item.couponCode},
+             #{item.couponDesc},
              #{item.httpCode},
              #{item.businessCode},
              #{item.returnContent},
@@ -70,5 +74,21 @@
           and http_code = 200
             <![CDATA[ and create_time >= #{dateTimeStart}
           and create_time < #{dateTimeEnd}]]>;
+    </select>
+
+    <select id="selectFalseDynamicData" resultType="com.br.marketing.entity.XieChengCollidingDataLog">
+        select log.cell_sha256_code_list
+        FROM b_xiecheng_colliding_data_log log
+                 left join b_xiecheng_colliding_data_rob rob on log.cell_sha256_code_list = rob.cell_sha256_code_list and rob.is_delete = 0
+                 left Join b_xiecheng_colliding_data_loop_cycle dlc on log.cell_sha256_code_list = dlc.cell_sha256_code_list and dlc.is_delete = 0
+        WHERE log.create_time  <![CDATA[ >= ]]> DATE_SUB(CURDATE(), interval 1 day)
+          and log.create_time <![CDATA[ < ]]> CURDATE()
+          AND log.data_source_type = 'T'
+          AND log.business_code = 0
+          AND log.is_delete = 0
+          and log.result = false
+          and log.info is null
+          and rob.id is null
+          and dlc.id is null
     </select>
 </mapper>

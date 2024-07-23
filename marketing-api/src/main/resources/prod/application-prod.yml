@@ -76,12 +76,18 @@ otherConfig:
     appSecretKey: efac86dac5fc53bd920c57d5fc1e7397
     destinationName: marketing_api_upload_log
     logIceTimeout: 2000
+  proxy:
+    proxy_host: squid-proxy2.brapp.com
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
 api:
   intelligentCustomerService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    baseUrl: http://pdai.brapp.com/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    baseUrl: http://pdai.brapp.com/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   zhongAn:
     baseUrl: https://finance-gateway-pop.diandian.com.cn

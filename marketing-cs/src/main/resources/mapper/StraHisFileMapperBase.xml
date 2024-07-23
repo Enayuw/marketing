@@ -29,6 +29,7 @@
     <result column="inner_ftp_path" property="innerFtpPath" jdbcType="VARCHAR" />
     <result column="file_name" property="fileName" jdbcType="VARCHAR" />
     <result column="offline_file_path" property="offlineFilePath" jdbcType="VARCHAR" />
+    <result column="running_end_time" property="runningEndTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -89,10 +90,11 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, batch_number, file_path, create_time, update_time, status, type, zipFile_name, 
-    error_file, expected_num, upload_time, file_size, actual_num, file_num, sign_file_status, 
-    zip_status, md5, score_status, statistic_file_path, show_title, push_type, push_status, 
-    index_num, inner_ftp_path, file_name, offline_file_path
+    id, api_code, batch_number, file_path, create_time, update_time, `status`, `type`, 
+    zipFile_name, error_file, expected_num, upload_time, file_size, actual_num, file_num, 
+    sign_file_status, zip_status, md5, score_status, statistic_file_path, show_title, 
+    push_type, push_status, index_num, inner_ftp_path, file_name, offline_file_path, 
+    running_end_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.StraHisFileExample" >
     select
@@ -129,14 +131,15 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into stra_his_file (api_code, batch_number, file_path, 
-      create_time, update_time, status, 
-      type, zipFile_name, error_file, 
+      create_time, update_time, `status`, 
+      `type`, zipFile_name, error_file, 
       expected_num, upload_time, file_size, 
       actual_num, file_num, sign_file_status, 
       zip_status, md5, score_status, 
       statistic_file_path, show_title, push_type, 
       push_status, index_num, inner_ftp_path, 
-      file_name, offline_file_path)
+      file_name, offline_file_path, running_end_time
+      )
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
       #{type,jdbcType=INTEGER}, #{zipfileName,jdbcType=VARCHAR}, #{errorFile,jdbcType=VARCHAR}, 
@@ -145,7 +148,8 @@
       #{zipStatus,jdbcType=INTEGER}, #{md5,jdbcType=VARCHAR}, #{scoreStatus,jdbcType=INTEGER}, 
       #{statisticFilePath,jdbcType=VARCHAR}, #{showTitle,jdbcType=VARCHAR}, #{pushType,jdbcType=INTEGER}, 
       #{pushStatus,jdbcType=INTEGER}, #{indexNum,jdbcType=INTEGER}, #{innerFtpPath,jdbcType=VARCHAR}, 
-      #{fileName,jdbcType=VARCHAR}, #{offlineFilePath,jdbcType=VARCHAR})
+      #{fileName,jdbcType=VARCHAR}, #{offlineFilePath,jdbcType=VARCHAR}, #{runningEndTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.StraHisFile" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -169,10 +173,10 @@
         update_time,
       </if>
       <if test="status != null" >
-        status,
+        `status`,
       </if>
       <if test="type != null" >
-        type,
+        `type`,
       </if>
       <if test="zipfileName != null" >
         zipFile_name,
@@ -230,6 +234,9 @@
       </if>
       <if test="offlineFilePath != null" >
         offline_file_path,
+      </if>
+      <if test="runningEndTime != null" >
+        running_end_time,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -311,6 +318,9 @@
       <if test="offlineFilePath != null" >
         #{offlineFilePath,jdbcType=VARCHAR},
       </if>
+      <if test="runningEndTime != null" >
+        #{runningEndTime,jdbcType=TIMESTAMP},
+      </if>
     </trim>
   </insert>
   <select id="countByExample" parameterType="com.br.marketing.entity.StraHisFileExample" resultType="java.lang.Integer" >
@@ -341,10 +351,10 @@
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="record.status != null" >
-        status = #{record.status,jdbcType=INTEGER},
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.type != null" >
-        type = #{record.type,jdbcType=INTEGER},
+        `type` = #{record.type,jdbcType=INTEGER},
       </if>
       <if test="record.zipfileName != null" >
         zipFile_name = #{record.zipfileName,jdbcType=VARCHAR},
@@ -403,6 +413,9 @@
       <if test="record.offlineFilePath != null" >
         offline_file_path = #{record.offlineFilePath,jdbcType=VARCHAR},
       </if>
+      <if test="record.runningEndTime != null" >
+        running_end_time = #{record.runningEndTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -416,8 +429,8 @@
       file_path = #{record.filePath,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      status = #{record.status,jdbcType=INTEGER},
-      type = #{record.type,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
+      `type` = #{record.type,jdbcType=INTEGER},
       zipFile_name = #{record.zipfileName,jdbcType=VARCHAR},
       error_file = #{record.errorFile,jdbcType=VARCHAR},
       expected_num = #{record.expectedNum,jdbcType=INTEGER},
@@ -436,7 +449,8 @@
       index_num = #{record.indexNum,jdbcType=INTEGER},
       inner_ftp_path = #{record.innerFtpPath,jdbcType=VARCHAR},
       file_name = #{record.fileName,jdbcType=VARCHAR},
-      offline_file_path = #{record.offlineFilePath,jdbcType=VARCHAR}
+      offline_file_path = #{record.offlineFilePath,jdbcType=VARCHAR},
+      running_end_time = #{record.runningEndTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -460,10 +474,10 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="status != null" >
-        status = #{status,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="type != null" >
-        type = #{type,jdbcType=INTEGER},
+        `type` = #{type,jdbcType=INTEGER},
       </if>
       <if test="zipfileName != null" >
         zipFile_name = #{zipfileName,jdbcType=VARCHAR},
@@ -522,6 +536,9 @@
       <if test="offlineFilePath != null" >
         offline_file_path = #{offlineFilePath,jdbcType=VARCHAR},
       </if>
+      <if test="runningEndTime != null" >
+        running_end_time = #{runningEndTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -532,8 +549,8 @@
       file_path = #{filePath,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      status = #{status,jdbcType=INTEGER},
-      type = #{type,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      `type` = #{type,jdbcType=INTEGER},
       zipFile_name = #{zipfileName,jdbcType=VARCHAR},
       error_file = #{errorFile,jdbcType=VARCHAR},
       expected_num = #{expectedNum,jdbcType=INTEGER},
@@ -552,7 +569,8 @@
       index_num = #{indexNum,jdbcType=INTEGER},
       inner_ftp_path = #{innerFtpPath,jdbcType=VARCHAR},
       file_name = #{fileName,jdbcType=VARCHAR},
-      offline_file_path = #{offlineFilePath,jdbcType=VARCHAR}
+      offline_file_path = #{offlineFilePath,jdbcType=VARCHAR},
+      running_end_time = #{runningEndTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

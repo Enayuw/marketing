@@ -1,26 +1,5 @@
 package com.br.marketing.service.Impl.xc;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.xiecheng.XieChengServiceNew;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.*;
-import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
-import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -30,6 +9,35 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import com.br.marketing.common.utils.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.xiecheng.XieChengServiceNew;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.XieChengCollidingDataLog;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.entity.XieChengCollidingDataPackage;
+import com.br.marketing.entity.XieChengCollidingDataPackageExample;
+import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
+import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
+import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
+
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Description 携程TRUE数据撞库作业实现类
@@ -53,10 +61,14 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private XieChengCollidingDataLogService logService;
     @Resource
     private RedisChgService redisChgService;
+    @Resource
+    private XiechengCollidingDataEliminationMapper eliminationMapper;
+
     private final static int PARTATION_SIZE = 50;
 
     /**
      * 50条数据一个批次，推送撞库手机号并处理返回结果
+     * 
      * @param list
      */
     @Override
@@ -64,9 +76,23 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         try {
             // 组装撞库用cell
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
-
+            try {
+                List<String> excludeData = eliminationMapper.getExcludeData(cells);
+                if (!CollectionUtils.isEmpty(excludeData)) {
+                    List<String> distinctExcludeData = excludeData.stream().distinct().collect(Collectors.toList());
+                    String extend = DateUtil.today() + " 转化数据convType=107或105";
+                    dataLoopCycleMapper.batchDeleteExcludeCollidingData(excludeData, extend);
+                    cells.removeAll(distinctExcludeData);
+                    if (CollectionUtils.isEmpty(cells)) {
+                        log.warn("该批次手机号全部被过滤掉:{}", distinctExcludeData);
+                        return;
+                    }
+                }
+            } catch (Exception e) {
+                log.error("携程周期撞库剔除撞库数据异常", e);
+            }
             Result resultInfo = xieChengServiceNew.pushXieChengSmsCollidingDataNew(cells);
-            JSONObject resMap = JSONObject.parseObject((String) resultInfo.getData());
+            JSONObject resMap = JSONObject.parseObject((String)resultInfo.getData());
             String httpcode = resMap.getString("httpcode");
 
             if (ResultCode.FAIL.getValue().equals(resultInfo.getCode())) {
@@ -95,8 +121,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
             // 根据手机号对实体分组
             Map<String, XieChengCollidingDataLoopCycle> cellMaps =
-                    list.stream().collect(Collectors.toMap(XieChengCollidingDataLoopCycle::getCellSha256CodeList, Function.identity(),
-                            (t1, t2) -> t1));
+                list.stream().collect(Collectors.toMap(XieChengCollidingDataLoopCycle::getCellSha256CodeList, Function.identity(), (t1, t2) -> t1));
 
             // true数据处理
             trueHandle(returnDataList, cellMaps);
@@ -118,46 +143,51 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
     /**
      * 返回为TRUE的结果处理
+     * 
      * @param returnDataList
      * @param cellMaps
      */
     private void trueHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
-        List<XieChengCollidingDataLoopCycle> trueList =
-                returnDataList.stream().map(t -> (JSONObject) t)
-                        .filter(t -> t.getBoolean("result").equals(Boolean.TRUE))
-                        .map(t -> buildTrueDataDto(t, cellMaps)).collect(Collectors.toList());
+        List<XieChengCollidingDataLoopCycle> trueList = returnDataList.stream().map(t -> (JSONObject)t)
+            .filter(t -> t.getBoolean("result").equals(Boolean.TRUE)).map(t -> buildTrueDataDto(t, cellMaps)).collect(Collectors.toList());
         trueList.forEach((XieChengCollidingDataLoopCycle t) -> dataLoopCycleMapper.updateByPrimaryKeySelective(t));
     }
 
     /**
      * 返回为FALSE的结果处理
+     * 
      * @param returnDataList
      * @param cellMaps
      */
     private void falseHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
-        List<XieChengCollidingDataLoopCycle> falseList =
-                returnDataList.stream().map(t -> (JSONObject) t)
-                        .filter(t -> t.getBoolean("result").equals(Boolean.FALSE))
-                        .map(t -> buildFalseDataDto(t, cellMaps)).collect(Collectors.toList());
-
         // 设置packageId为package表优先级为0的id
         Long packageId = getPackageId();
-
-        falseList.forEach((XieChengCollidingDataLoopCycle t) -> {
-            try {
-                handleService.cycleDataHandle(t, packageId);
-            } catch (Exception e) {
-                log.error("携程TRUE数据撞库，同时写true和false表失败，cell：" + t.getCellSha256CodeList(), e.getMessage());
-            }
-        });
+        returnDataList.stream().map(obj -> (JSONObject)obj).filter(returnData -> !returnData.getBoolean("result"))
+            .forEach((JSONObject returnData) -> {
+                String sha256Code = returnData.getString("sha256Code");
+                XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
+                if (loopCycle == null) {
+                    log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=false", sha256Code);
+                    return;
+                }
+                XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
+                dto.setId(loopCycle.getId());
+                dto.setCellSha256CodeList(sha256Code);
+                Date releaseDate =
+                    StringUtils.isNotEmpty(returnData.getString("releaseDate")) ? DateUtil.parse(returnData.getString("releaseDate")) : null;
+                try {
+                    handleService.cycleDataHandle(dto, packageId, releaseDate);
+                } catch (Exception e) {
+                    log.error("携程TRUE数据撞库，同时写true和false表失败，cell：{}", dto.getCellSha256CodeList(), e);
+                }
+            });
     }
 
     private Long getPackageId() {
         XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
         packageExample.createCriteria().andPriorityEqualTo(0);
         List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
-        Long packageId = CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
-        return packageId;
+        return CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
     }
 
     private XieChengCollidingDataLoopCycle buildTrueDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
@@ -177,22 +207,20 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         dto.setRetryCount(0);
         // 更新releaseTime
         dto.setReleaseTime(DateUtil.parse(t.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
-
-        return dto;
-    }
-
-    private XieChengCollidingDataLoopCycle buildFalseDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
-        XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
-        String sha256Code = t.getString("sha256Code");
-        XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
-        if (loopCycle == null) {
-            log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=false", sha256Code);
-            return new XieChengCollidingDataLoopCycle();
+        try {
+            JSONArray jsonArray = t.getJSONArray("marketCouponList");
+            if (jsonArray != null && !jsonArray.isEmpty()) {
+                dto.setMarketCouponList(jsonArray.toJSONString());
+                JSONObject firstCoupon = jsonArray.getJSONObject(0);
+                String couponCode = firstCoupon.getString("couponCode");
+                String couponDesc = firstCoupon.getString("couponDesc");
+                dto.setCouponCode(couponCode);
+                dto.setCouponDesc(couponDesc);
+            }
+        } catch (Exception e) {
+            dto.setMarketCouponList(String.valueOf(t.get("marketCouponList")));
+            log.error("携程周期撞库析出marketCouponList异常", e);
         }
-
-        dto.setId(loopCycle.getId());
-        dto.setCellSha256CodeList(sha256Code);
-
         return dto;
     }
 
@@ -200,8 +228,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     public void process() {
         // 创建线程池
         ThreadPoolExecutor threadPool =
-                BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(),
-                        marketingCommonConfig.getXieChengSmsCollidingThread());
+            BrExecutors.getThreadPool(marketingCommonConfig.getXieChengSmsCollidingThread(), marketingCommonConfig.getXieChengSmsCollidingThread());
         // 分页大小
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
 
@@ -243,6 +270,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
     /**
      * 修改线程池大小
+     * 
      * @param pool
      */
     private void modifyThreadPool(ThreadPoolExecutor pool) {
@@ -253,6 +281,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
     /**
      * 是否开启撞库
+     * 
      * @return true:是。false:否
      */
     @Override

@@ -575,6 +575,7 @@
         where applet_date = #{appletDate}
         and status = 1
         and is_repeat in (1,2)
+        and user_type = #{userType}
         <if test="minId !=null and minId >0">
             and id > #{minId}
         </if>
@@ -903,5 +904,35 @@
         <if test="orderField == null or orderField == '' ">
             order by applet_date desc
         </if>
+    </select>
+
+    <select id="getSyncUserByRequestBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where api_code =#{apiCode} and request_batch = #{requestBatch}
+    </select>
+
+    <select id="getSyncUserByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+          b.*
+        from b_marketing_sync_${apiCode} as b
+        LEFT JOIN b_qifu_batch_query_user_real_message bq ON
+            b.cell_md5 = bq.mobile_md5 AND b.cust_num = bq.unique_req_no AND bq.create_date = #{createDate}
+        where b.api_code =#{apiCode}
+          AND b.cus_batch =#{cusBatch}
+          AND b.status=1
+          AND b.is_repeat in (1,2)
+          AND bq.mobile_md5 IS NULL
+        <if test="minId !=null and minId >0">
+            and b.id > #{minId}
+        </if>
+        order by b.id asc
+        limit #{pageSize}
+    </select>
+    <select id="getMarketingSyncByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * From  b_marketing_sync_${apiCode}
+        where cus_batch=#{cusBatch} and api_code = #{apiCode} and applet_date = #{appletDate}
+          and user_type =#{userType}
+        and status =1 and is_repeat in (1,2) limit 1
     </select>
 </mapper>

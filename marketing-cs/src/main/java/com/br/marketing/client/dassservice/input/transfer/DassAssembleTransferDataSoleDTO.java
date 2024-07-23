@@ -13,7 +13,7 @@ import lombok.EqualsAndHashCode;
  */
 
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class DassAssembleTransferDataSoleDTO extends SourceData {
 
     /**

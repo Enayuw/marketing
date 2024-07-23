@@ -12,7 +12,7 @@ public class XieChengCollidingDataRob {
     private Long id;
 
     /**
-     * 包逐渐id
+     * 包主键id
      */
     private Long packageId;
 
@@ -37,12 +37,17 @@ public class XieChengCollidingDataRob {
     private Date releaseTime;
 
     /**
+     * 释放日期
+     */
+    private Date releaseDate;
+
+    /**
      * 最近一次撞库时间
      */
     private Date pushTime;
 
     /**
-     * 撞得次数
+     * 撞库次数
      */
     private Integer collidingCount;
 

@@ -63,10 +63,10 @@ public class TaskStatusExample {
         distinct = false;
     }
 
-    protected abstract static class AbstractGeneratedCriteria {
+    protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
-        protected AbstractGeneratedCriteria() {
+        protected GeneratedCriteria() {
             super();
             criteria = new ArrayList<Criterion>();
         }
@@ -694,6 +694,66 @@ public class TaskStatusExample {
             return (Criteria) this;
         }
 
+        public Criteria andPauseTypeIsNull() {
+            addCriterion("pause_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeIsNotNull() {
+            addCriterion("pause_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeEqualTo(Integer value) {
+            addCriterion("pause_type =", value, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeNotEqualTo(Integer value) {
+            addCriterion("pause_type <>", value, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeGreaterThan(Integer value) {
+            addCriterion("pause_type >", value, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("pause_type >=", value, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeLessThan(Integer value) {
+            addCriterion("pause_type <", value, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("pause_type <=", value, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeIn(List<Integer> values) {
+            addCriterion("pause_type in", values, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeNotIn(List<Integer> values) {
+            addCriterion("pause_type not in", values, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeBetween(Integer value1, Integer value2) {
+            addCriterion("pause_type between", value1, value2, "pauseType");
+            return (Criteria) this;
+        }
+
+        public Criteria andPauseTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("pause_type not between", value1, value2, "pauseType");
+            return (Criteria) this;
+        }
+
         public Criteria andFileIdIsNull() {
             addCriterion("file_id is null");
             return (Criteria) this;
@@ -755,7 +815,7 @@ public class TaskStatusExample {
         }
     }
 
-    public static class Criteria extends AbstractGeneratedCriteria {
+    public static class Criteria extends GeneratedCriteria {
 
         protected Criteria() {
             super();

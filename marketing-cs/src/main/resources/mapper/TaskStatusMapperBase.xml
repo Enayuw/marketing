@@ -11,6 +11,7 @@
     <result column="incr_date" property="incrDate" jdbcType="VARCHAR" />
     <result column="incr_status" property="incrStatus" jdbcType="INTEGER" />
     <result column="once_status" property="onceStatus" jdbcType="INTEGER" />
+    <result column="pause_type" property="pauseType" jdbcType="INTEGER" />
     <result column="file_id" property="fileId" jdbcType="INTEGER" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -73,7 +74,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, batch_number, all_status, create_time, update_time, incr_date, incr_status, 
-    once_status, file_id
+    once_status, pause_type, file_id
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.TaskStatusExample" >
     select
@@ -111,12 +112,12 @@
     </selectKey>
     insert into b_task_status (api_code, batch_number, all_status, 
       create_time, update_time, incr_date, 
-      incr_status, once_status, file_id
-      )
+      incr_status, once_status, pause_type, 
+      file_id)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{allStatus,jdbcType=INTEGER}, 
       #{createTime,jdbcType=VARCHAR}, #{updateTime,jdbcType=VARCHAR}, #{incrDate,jdbcType=VARCHAR}, 
-      #{incrStatus,jdbcType=INTEGER}, #{onceStatus,jdbcType=INTEGER}, #{fileId,jdbcType=INTEGER}
-      )
+      #{incrStatus,jdbcType=INTEGER}, #{onceStatus,jdbcType=INTEGER}, #{pauseType,jdbcType=INTEGER}, 
+      #{fileId,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.TaskStatus" >
     <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
@@ -148,6 +149,9 @@
       <if test="onceStatus != null" >
         once_status,
       </if>
+      <if test="pauseType != null" >
+        pause_type,
+      </if>
       <if test="fileId != null" >
         file_id,
       </if>
@@ -176,6 +180,9 @@
       </if>
       <if test="onceStatus != null" >
         #{onceStatus,jdbcType=INTEGER},
+      </if>
+      <if test="pauseType != null" >
+        #{pauseType,jdbcType=INTEGER},
       </if>
       <if test="fileId != null" >
         #{fileId,jdbcType=INTEGER},
@@ -218,6 +225,9 @@
       <if test="record.onceStatus != null" >
         once_status = #{record.onceStatus,jdbcType=INTEGER},
       </if>
+      <if test="record.pauseType != null" >
+        pause_type = #{record.pauseType,jdbcType=INTEGER},
+      </if>
       <if test="record.fileId != null" >
         file_id = #{record.fileId,jdbcType=INTEGER},
       </if>
@@ -237,6 +247,7 @@
       incr_date = #{record.incrDate,jdbcType=VARCHAR},
       incr_status = #{record.incrStatus,jdbcType=INTEGER},
       once_status = #{record.onceStatus,jdbcType=INTEGER},
+      pause_type = #{record.pauseType,jdbcType=INTEGER},
       file_id = #{record.fileId,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -269,6 +280,9 @@
       <if test="onceStatus != null" >
         once_status = #{onceStatus,jdbcType=INTEGER},
       </if>
+      <if test="pauseType != null" >
+        pause_type = #{pauseType,jdbcType=INTEGER},
+      </if>
       <if test="fileId != null" >
         file_id = #{fileId,jdbcType=INTEGER},
       </if>
@@ -285,6 +299,7 @@
       incr_date = #{incrDate,jdbcType=VARCHAR},
       incr_status = #{incrStatus,jdbcType=INTEGER},
       once_status = #{onceStatus,jdbcType=INTEGER},
+      pause_type = #{pauseType,jdbcType=INTEGER},
       file_id = #{fileId,jdbcType=INTEGER}
     where id = #{id,jdbcType=INTEGER}
   </update>

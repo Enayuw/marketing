@@ -100,6 +100,23 @@
             and (${whereStr})
     </select>
 
+    <select id="getMinIdByRuleScoreWithValidConfig" resultType="java.lang.Long">
+        select min(id)
+        from b_marketing_sync_${apiCode}
+        where status=1
+        <if test="configList != null and configList.size() > 0">
+            and (applet_date, user_type) in
+            <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                (#{item.appletDate}, #{item.userType})
+            </foreach>
+        </if>
+        <if test="validTimeStr != null and validTimeStr !=''">
+            <![CDATA[ and applet_time < #{validTimeStr} ]]>
+        </if>
+        and is_repeat in (1,2)
+        and (${whereStr})
+    </select>
+
     <select id="queryUserTypeListWithDatetikv_" resultType="java.lang.String">
         select distinct(user_type)
         from b_marketing_sync_${apiCode}
@@ -112,6 +129,23 @@
                 <![CDATA[ and applet_time < #{eTimeStr} ]]>
             </if>
             and (${whereStr})
+    </select>
+
+    <select id="queryUserTypeListWithValidConfigtikv_" resultType="java.lang.String">
+        select distinct(user_type)
+        from b_marketing_sync_${apiCode}
+        where is_repeat in (1,2)
+        and status = 1
+        <if test="configList != null and configList.size() > 0">
+            and (applet_date, user_type) in
+            <foreach collection="configList" item="item" open="(" close=")" separator=",">
+                (#{item.appletDate}, #{item.userType})
+            </foreach>
+        </if>
+        <if test="validTimeStr != null and validTimeStr !=''">
+            <![CDATA[ and applet_time < #{validTimeStr} ]]>
+        </if>
+        and (${whereStr})
     </select>
 
     <select id="countByRuleScoreWithDate" resultType="java.lang.Integer">
@@ -195,7 +229,7 @@
     </select>
 
     <select id="getPreUserByInCust" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select cus_batch, cust_num, id_card, name, cell, user_type, reserve_field1, reserve_field2, create_time,
+        select cus_batch, cust_num, id_card, name, cell,cell_md5,cell_sha256, user_type, reserve_field1, reserve_field2, create_time,
         update_time,applet_date,applet_time
         from b_marketing_sync_${apiCode}
         <where>
@@ -451,6 +485,15 @@
         select cus_batch from b_marketing_sync_${apiCode}
         where applet_date = #{appletDate}
         group by cus_batch;
+    </select>
+
+    <select id="getDataByIdList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * from b_marketing_sync_${apiCode}
+        where id in
+        <foreach collection="idList" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+        and status = 1 and is_repeat in (1,2);
     </select>
 
 </mapper>

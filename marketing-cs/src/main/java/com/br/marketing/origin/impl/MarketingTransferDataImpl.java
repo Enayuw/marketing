@@ -3,6 +3,7 @@ package com.br.marketing.origin.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
@@ -117,6 +118,16 @@ public class MarketingTransferDataImpl implements OriginDataService {
     @Override
     public TransferSource source() {
         return TransferSource.UNIVERSAL_TRANSFER_PROCESS;
+    }
+
+    @Override
+    public List<Long> getIdList(List<Object> collect) {
+        List<Long> idList = new ArrayList<>();
+        for (int i = 0; i < collect.size(); i++) {
+            MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser)collect.get(i);
+            idList.add(transferSyncUser.getId());
+        }
+        return idList;
     }
 
 }

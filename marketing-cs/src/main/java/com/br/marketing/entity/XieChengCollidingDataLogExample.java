@@ -555,6 +555,76 @@ public class XieChengCollidingDataLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andReleaseDateIsNull() {
+            addCriterion("release_date is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateIsNotNull() {
+            addCriterion("release_date is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateEqualTo(String value) {
+            addCriterion("release_date =", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateNotEqualTo(String value) {
+            addCriterion("release_date <>", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateGreaterThan(String value) {
+            addCriterion("release_date >", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateGreaterThanOrEqualTo(String value) {
+            addCriterion("release_date >=", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateLessThan(String value) {
+            addCriterion("release_date <", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateLessThanOrEqualTo(String value) {
+            addCriterion("release_date <=", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateLike(String value) {
+            addCriterion("release_date like", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateNotLike(String value) {
+            addCriterion("release_date not like", value, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateIn(List<String> values) {
+            addCriterion("release_date in", values, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateNotIn(List<String> values) {
+            addCriterion("release_date not in", values, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateBetween(String value1, String value2) {
+            addCriterion("release_date between", value1, value2, "releaseDate");
+            return (Criteria) this;
+        }
+
+        public Criteria andReleaseDateNotBetween(String value1, String value2) {
+            addCriterion("release_date not between", value1, value2, "releaseDate");
+            return (Criteria) this;
+        }
+
         public Criteria andOrgChannelIsNull() {
             addCriterion("org_channel is null");
             return (Criteria) this;
@@ -822,6 +892,216 @@ public class XieChengCollidingDataLogExample {
 
         public Criteria andResultNotBetween(Boolean value1, Boolean value2) {
             addCriterion("`result` not between", value1, value2, "result");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListIsNull() {
+            addCriterion("market_coupon_list is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListIsNotNull() {
+            addCriterion("market_coupon_list is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListEqualTo(String value) {
+            addCriterion("market_coupon_list =", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListNotEqualTo(String value) {
+            addCriterion("market_coupon_list <>", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListGreaterThan(String value) {
+            addCriterion("market_coupon_list >", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListGreaterThanOrEqualTo(String value) {
+            addCriterion("market_coupon_list >=", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListLessThan(String value) {
+            addCriterion("market_coupon_list <", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListLessThanOrEqualTo(String value) {
+            addCriterion("market_coupon_list <=", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListLike(String value) {
+            addCriterion("market_coupon_list like", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListNotLike(String value) {
+            addCriterion("market_coupon_list not like", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListIn(List<String> values) {
+            addCriterion("market_coupon_list in", values, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListNotIn(List<String> values) {
+            addCriterion("market_coupon_list not in", values, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListBetween(String value1, String value2) {
+            addCriterion("market_coupon_list between", value1, value2, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListNotBetween(String value1, String value2) {
+            addCriterion("market_coupon_list not between", value1, value2, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeIsNull() {
+            addCriterion("coupon_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeIsNotNull() {
+            addCriterion("coupon_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeEqualTo(String value) {
+            addCriterion("coupon_code =", value, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeNotEqualTo(String value) {
+            addCriterion("coupon_code <>", value, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeGreaterThan(String value) {
+            addCriterion("coupon_code >", value, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("coupon_code >=", value, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeLessThan(String value) {
+            addCriterion("coupon_code <", value, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeLessThanOrEqualTo(String value) {
+            addCriterion("coupon_code <=", value, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeLike(String value) {
+            addCriterion("coupon_code like", value, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeNotLike(String value) {
+            addCriterion("coupon_code not like", value, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeIn(List<String> values) {
+            addCriterion("coupon_code in", values, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeNotIn(List<String> values) {
+            addCriterion("coupon_code not in", values, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeBetween(String value1, String value2) {
+            addCriterion("coupon_code between", value1, value2, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponCodeNotBetween(String value1, String value2) {
+            addCriterion("coupon_code not between", value1, value2, "couponCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescIsNull() {
+            addCriterion("coupon_desc is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescIsNotNull() {
+            addCriterion("coupon_desc is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescEqualTo(String value) {
+            addCriterion("coupon_desc =", value, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescNotEqualTo(String value) {
+            addCriterion("coupon_desc <>", value, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescGreaterThan(String value) {
+            addCriterion("coupon_desc >", value, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescGreaterThanOrEqualTo(String value) {
+            addCriterion("coupon_desc >=", value, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescLessThan(String value) {
+            addCriterion("coupon_desc <", value, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescLessThanOrEqualTo(String value) {
+            addCriterion("coupon_desc <=", value, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescLike(String value) {
+            addCriterion("coupon_desc like", value, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescNotLike(String value) {
+            addCriterion("coupon_desc not like", value, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescIn(List<String> values) {
+            addCriterion("coupon_desc in", values, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescNotIn(List<String> values) {
+            addCriterion("coupon_desc not in", values, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescBetween(String value1, String value2) {
+            addCriterion("coupon_desc between", value1, value2, "couponDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andCouponDescNotBetween(String value1, String value2) {
+            addCriterion("coupon_desc not between", value1, value2, "couponDesc");
             return (Criteria) this;
         }
 

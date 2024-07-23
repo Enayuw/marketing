@@ -39,13 +39,22 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_NEW_FIELD_CHECK("62006", "接口字段新增检查"),
     // 一般通知,阶梯推送，一般
     EXCEPTION_USUAL_NOTICE("62007", "通知"),
-
-    //众安通话明细回调
+    //众安通话明细回调,
     EXCEPTION_ZHONGAN_CALL_RECORD("62008", "众安通话明细回调"),
+    //携程业务报错，立即推送
+    XIECHENG_RECORD("62009", "携程业务报错"),
+    //业务未知错误,立即推送，63000
+    SERVICEERROR_UNKNOWN("63000", "业务实现未知错误"),
+    //三方接口错误,告警周期和告警次数，64000
+    INTERFACE_ERROR("64000", "三方接口错误"),
 
     //数据治理平台调用marketing-inner-api邮件发送接口使用
-    DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送")
-    ;
+    DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),
+    //宜信非实时推客服告警,立即推送
+    EXCEPTION_YIXIN_PUSH_CUSTOMER("62010", "宜信非实时推客服"),
+    EXCEPTION_QIFU_ALARM("62360", "360业务告警码"),
+    EXCEPTION_WUBA("62058", "58业务报错code"),
+    EXCEPTION_WBXK_ALARM("6001001", "58业务告警码");
 
     /**
      * 2022/10/28 17:30 发送码

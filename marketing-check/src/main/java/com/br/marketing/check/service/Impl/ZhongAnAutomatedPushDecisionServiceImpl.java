@@ -56,7 +56,6 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
 
-
     @Resource
     private PolicySoleHandler policySoleHandler;
 
@@ -102,6 +101,9 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
             , JobPushDecisionParameterBO parameter
             , String jobParameter
             , MethodRetryHandlerService methodRetryHandlerService) {
+        if (parameter.getParamList() != null && parameter.getParamList().size() > 0) {
+            return buShuData(actionFront, parameter, jobParameter, methodRetryHandlerService);
+        }
         String apiCode = parameter.getApiCode();
         String tcId = tableCreateService.getTcId(apiCode);
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
@@ -132,10 +134,48 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
         return actionFrontUpdate;
     }
 
+    private TransferActionFront buShuData(TransferActionFront actionFront
+            , JobPushDecisionParameterBO parameter
+            , String jobParameter
+            , MethodRetryHandlerService methodRetryHandlerService) {
+        String newJobParameter = jobParameter;
+        Object o = parameter.getParamList().get(0);
+        String requestDate = (String) o;
+        String apiCode = parameter.getApiCode();
+        String tcId = tableCreateService.getTcId(apiCode);
+        MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
+        syncUser.settCid(tcId);
+        syncUser.setApiCode(apiCode);
+        syncUser.setRequestData(requestDate);
+        int page = 0;
+        int offset = 500;
+        int sum = 0;
+        for (; ; ) {
+            int rowCount = page * offset;
+            List<MarketingTransferSyncUser> list = marketingTransferSyncUserMapper
+                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, ""
+                            , rowCount, offset);
+            if (CollectionUtils.isEmpty(list)) {
+                break;
+            }
+            page++;
+            sum += checkData(list, apiCode, parameter, methodRetryHandlerService);
+            if (list.size() < offset) {
+                break;
+            }
+        }
+        TransferActionFront actionFrontUpdate = new TransferActionFront();
+        actionFrontUpdate.setId(actionFront.getId());
+        actionFrontUpdate.setRemark(String.valueOf(sum));
+        actionFrontUpdate.setStatus(2);
+        return actionFrontUpdate;
+    }
+
     private int checkData(List<MarketingTransferSyncUser> list
             , String apiCode
             , JobPushDecisionParameterBO parameter
             , MethodRetryHandlerService methodRetryHandlerService) {
+        MethodRetryHandlerService methodRetryHandlerServiceNew = methodRetryHandlerService;
         Map<String, Object> paramMap = parameter.getParamMap();
         int sum = 0;
         if (CollectionUtils.isEmpty(paramMap)) {
@@ -194,12 +234,13 @@ public class ZhongAnAutomatedPushDecisionServiceImpl implements AutomatedPushDec
                                     pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
                                     pushMarketingUserDetailByRuleDTO.setBatchNumber(
                                             LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
+
                                     pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
                                 }
                             }
 
                         }
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         log.warn(e.getMessage(), e);
                     }
                 }

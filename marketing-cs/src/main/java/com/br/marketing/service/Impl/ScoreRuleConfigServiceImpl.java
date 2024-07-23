@@ -5,13 +5,17 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.ScoreRuleConfigDTO;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.CustomerRule;
+import com.br.marketing.entity.CustomerRuleExample;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.entity.MarketingTask;
+import com.br.marketing.entity.MarketingTaskExtend;
+import com.br.marketing.entity.ScoreRuleConfig;
+import com.br.marketing.entity.ScoreRuleConfigExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -37,7 +41,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -72,10 +79,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     SoleStrategyService soleStrategyService;
 
     @Override
-    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts, String cte, String uts, String ute) {
+    public PageResultReturn findListPage(int page, int pageSize, String search, Integer status, String cts,
+                                         String cte, String uts, String ute, Integer execType) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute);
+            List<ScoreRuleConfigPageVO> list = scoreRuleConfigMapper.findList(search, status, cts, cte, uts, ute, execType);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -117,6 +125,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
+        if(scoreRuleVO.getExecType() == 4){
+            rule.setAutoBuild(1);
+            rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
+        }
+        rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
         rule.setRuleNameShort(createNo());
         int insert1 = scoreRuleConfigMapper.insert(rule);
@@ -222,6 +235,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStrategyProductJson(rule.getStrategyProductJson());
         scoreRuleVO.setThreekEncryptType(rule.getThreekEncryptType());
         scoreRuleVO.setIsOnline(rule.getIsOnline());
+        scoreRuleVO.setPriority(rule.getPriority());
+        scoreRuleVO.setIsStackValidity(rule.getIsStackValidity());
         return scoreRuleVO;
     }
 
@@ -265,6 +280,12 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
+        if (scoreRuleVO.getExecType() == 4) {
+            rule.setAutoBuild(1);
+        }
+
+        rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
+        rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         // 默认开启
         rule.setStatus(1);
         isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());

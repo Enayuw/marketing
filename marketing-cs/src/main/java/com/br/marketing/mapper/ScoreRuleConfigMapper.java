@@ -17,6 +17,7 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
      * @param cte    创建时间结束
      * @param uts    更新时间开始
      * @param ute    更新时间结束
+     * @param execType    周期类型
      * @return {@link List<ScoreRuleConfigPageVO>}
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/8/31 14:38
@@ -27,7 +28,8 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
             , @Param("cts") String cts
             , @Param("cte") String cte
             , @Param("uts") String uts
-            , @Param("ute") String ute);
+            , @Param("ute") String ute
+            , @Param("execType") Integer execType);
 
     /**
      * 跑分规则下拉列表

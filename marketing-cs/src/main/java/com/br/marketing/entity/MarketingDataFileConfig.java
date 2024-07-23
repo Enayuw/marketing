@@ -14,9 +14,29 @@ public class MarketingDataFileConfig {
     private String apiCode;
 
     /**
+     * 匹配文件Id
+     */
+    private Integer fileId;
+
+    /**
+     * 清洗类型：0上传，1转化
+     */
+    private Integer cleanType;
+
+    /**
+     * 规则名称
+     */
+    private String ruleName;
+
+    /**
      * 字段配置
      */
     private String fieldConfig;
+
+    /**
+     * 字段配置展示
+     */
+    private String fieldConfigShow;
 
     /**
      * 实现的服务名
@@ -39,14 +59,29 @@ public class MarketingDataFileConfig {
     private Integer isDel;
 
     /**
-     * 是否校验表名 0校验 1不校验
+     * 是否校验表名称 0校验 1不校验
      */
-    private Integer isChecklistName;
+    private Byte isChecklistName;
 
     /**
      * 表名校验规则
      */
     private String validationRules;
+
+    /**
+     * 待清洗的数据表
+     */
+    private String autoTableName;
+
+    /**
+     * 清洗去重字段
+     */
+    private String autoDuplicateColumn;
+
+    /**
+     * 清洗数据查询sql，需要包含id
+     */
+    private String autoSearchDataSql;
 
     public Long getId() {
         return id;
@@ -64,12 +99,44 @@ public class MarketingDataFileConfig {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
+    public Integer getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(Integer fileId) {
+        this.fileId = fileId;
+    }
+
+    public Integer getCleanType() {
+        return cleanType;
+    }
+
+    public void setCleanType(Integer cleanType) {
+        this.cleanType = cleanType;
+    }
+
+    public String getRuleName() {
+        return ruleName;
+    }
+
+    public void setRuleName(String ruleName) {
+        this.ruleName = ruleName == null ? null : ruleName.trim();
+    }
+
     public String getFieldConfig() {
         return fieldConfig;
     }
 
     public void setFieldConfig(String fieldConfig) {
         this.fieldConfig = fieldConfig == null ? null : fieldConfig.trim();
+    }
+
+    public String getFieldConfigShow() {
+        return fieldConfigShow;
+    }
+
+    public void setFieldConfigShow(String fieldConfigShow) {
+        this.fieldConfigShow = fieldConfigShow == null ? null : fieldConfigShow.trim();
     }
 
     public String getServiceName() {
@@ -104,11 +171,11 @@ public class MarketingDataFileConfig {
         this.isDel = isDel;
     }
 
-    public Integer getIsChecklistName() {
+    public Byte getIsChecklistName() {
         return isChecklistName;
     }
 
-    public void setIsChecklistName(Integer isChecklistName) {
+    public void setIsChecklistName(Byte isChecklistName) {
         this.isChecklistName = isChecklistName;
     }
 
@@ -118,5 +185,29 @@ public class MarketingDataFileConfig {
 
     public void setValidationRules(String validationRules) {
         this.validationRules = validationRules == null ? null : validationRules.trim();
+    }
+
+    public String getAutoTableName() {
+        return autoTableName;
+    }
+
+    public void setAutoTableName(String autoTableName) {
+        this.autoTableName = autoTableName == null ? null : autoTableName.trim();
+    }
+
+    public String getAutoDuplicateColumn() {
+        return autoDuplicateColumn;
+    }
+
+    public void setAutoDuplicateColumn(String autoDuplicateColumn) {
+        this.autoDuplicateColumn = autoDuplicateColumn == null ? null : autoDuplicateColumn.trim();
+    }
+
+    public String getAutoSearchDataSql() {
+        return autoSearchDataSql;
+    }
+
+    public void setAutoSearchDataSql(String autoSearchDataSql) {
+        this.autoSearchDataSql = autoSearchDataSql == null ? null : autoSearchDataSql.trim();
     }
 }

@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaSubmitConversionDataTransferCleanMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.WubaSubmitConversionDataTransferClean" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
+    <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
+    <result column="clean_status" property="cleanStatus" jdbcType="INTEGER" />
+    <result column="last_login_time" property="lastLoginTime" jdbcType="VARCHAR" />
+    <result column="finance_apply_time" property="financeApplyTime" jdbcType="VARCHAR" />
+    <result column="finance_credit_status" property="financeCreditStatus" jdbcType="VARCHAR" />
+    <result column="finance_credit_finish_time" property="financeCreditFinishTime" jdbcType="VARCHAR" />
+    <result column="debt_time" property="debtTime" jdbcType="VARCHAR" />
+    <result column="debt_pass_time" property="debtPassTime" jdbcType="VARCHAR" />
+    <result column="loan_amt" property="loanAmt" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="is_deleted" property="isDeleted" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="task_id" property="taskId" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, cell, batch_no, push_time, clean_status, last_login_time, finance_apply_time, 
+    finance_credit_status, finance_credit_finish_time, debt_time, debt_pass_time, loan_amt, 
+    extend, is_deleted, create_time, update_time, task_id
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferCleanExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_wuba_submit_conversion_data_transfer_clean
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_wuba_submit_conversion_data_transfer_clean
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_wuba_submit_conversion_data_transfer_clean
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferCleanExample" >
+    delete from b_wuba_submit_conversion_data_transfer_clean
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferClean" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_wuba_submit_conversion_data_transfer_clean (api_code, cell, batch_no, 
+      push_time, clean_status, last_login_time, 
+      finance_apply_time, finance_credit_status, 
+      finance_credit_finish_time, debt_time, debt_pass_time, 
+      loan_amt, extend, is_deleted, 
+      create_time, update_time, task_id
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
+      #{pushTime,jdbcType=TIMESTAMP}, #{cleanStatus,jdbcType=INTEGER}, #{lastLoginTime,jdbcType=VARCHAR}, 
+      #{financeApplyTime,jdbcType=VARCHAR}, #{financeCreditStatus,jdbcType=VARCHAR}, 
+      #{financeCreditFinishTime,jdbcType=VARCHAR}, #{debtTime,jdbcType=VARCHAR}, #{debtPassTime,jdbcType=VARCHAR}, 
+      #{loanAmt,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{taskId,jdbcType=BIGINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferClean" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_wuba_submit_conversion_data_transfer_clean
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="cell != null" >
+        cell,
+      </if>
+      <if test="batchNo != null" >
+        batch_no,
+      </if>
+      <if test="pushTime != null" >
+        push_time,
+      </if>
+      <if test="cleanStatus != null" >
+        clean_status,
+      </if>
+      <if test="lastLoginTime != null" >
+        last_login_time,
+      </if>
+      <if test="financeApplyTime != null" >
+        finance_apply_time,
+      </if>
+      <if test="financeCreditStatus != null" >
+        finance_credit_status,
+      </if>
+      <if test="financeCreditFinishTime != null" >
+        finance_credit_finish_time,
+      </if>
+      <if test="debtTime != null" >
+        debt_time,
+      </if>
+      <if test="debtPassTime != null" >
+        debt_pass_time,
+      </if>
+      <if test="loanAmt != null" >
+        loan_amt,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="isDeleted != null" >
+        is_deleted,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="taskId != null" >
+        task_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNo != null" >
+        #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="pushTime != null" >
+        #{pushTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="cleanStatus != null" >
+        #{cleanStatus,jdbcType=INTEGER},
+      </if>
+      <if test="lastLoginTime != null" >
+        #{lastLoginTime,jdbcType=VARCHAR},
+      </if>
+      <if test="financeApplyTime != null" >
+        #{financeApplyTime,jdbcType=VARCHAR},
+      </if>
+      <if test="financeCreditStatus != null" >
+        #{financeCreditStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="financeCreditFinishTime != null" >
+        #{financeCreditFinishTime,jdbcType=VARCHAR},
+      </if>
+      <if test="debtTime != null" >
+        #{debtTime,jdbcType=VARCHAR},
+      </if>
+      <if test="debtPassTime != null" >
+        #{debtPassTime,jdbcType=VARCHAR},
+      </if>
+      <if test="loanAmt != null" >
+        #{loanAmt,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDeleted != null" >
+        #{isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferCleanExample" resultType="java.lang.Integer" >
+    select count(*) from b_wuba_submit_conversion_data_transfer_clean
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_wuba_submit_conversion_data_transfer_clean
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null" >
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchNo != null" >
+        batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushTime != null" >
+        push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.cleanStatus != null" >
+        clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.lastLoginTime != null" >
+        last_login_time = #{record.lastLoginTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.financeApplyTime != null" >
+        finance_apply_time = #{record.financeApplyTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.financeCreditStatus != null" >
+        finance_credit_status = #{record.financeCreditStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="record.financeCreditFinishTime != null" >
+        finance_credit_finish_time = #{record.financeCreditFinishTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.debtTime != null" >
+        debt_time = #{record.debtTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.debtPassTime != null" >
+        debt_pass_time = #{record.debtPassTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.loanAmt != null" >
+        loan_amt = #{record.loanAmt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDeleted != null" >
+        is_deleted = #{record.isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=BIGINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_wuba_submit_conversion_data_transfer_clean
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+      clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+      last_login_time = #{record.lastLoginTime,jdbcType=VARCHAR},
+      finance_apply_time = #{record.financeApplyTime,jdbcType=VARCHAR},
+      finance_credit_status = #{record.financeCreditStatus,jdbcType=VARCHAR},
+      finance_credit_finish_time = #{record.financeCreditFinishTime,jdbcType=VARCHAR},
+      debt_time = #{record.debtTime,jdbcType=VARCHAR},
+      debt_pass_time = #{record.debtPassTime,jdbcType=VARCHAR},
+      loan_amt = #{record.loanAmt,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      is_deleted = #{record.isDeleted,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      task_id = #{record.taskId,jdbcType=BIGINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferClean" >
+    update b_wuba_submit_conversion_data_transfer_clean
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNo != null" >
+        batch_no = #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="pushTime != null" >
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="cleanStatus != null" >
+        clean_status = #{cleanStatus,jdbcType=INTEGER},
+      </if>
+      <if test="lastLoginTime != null" >
+        last_login_time = #{lastLoginTime,jdbcType=VARCHAR},
+      </if>
+      <if test="financeApplyTime != null" >
+        finance_apply_time = #{financeApplyTime,jdbcType=VARCHAR},
+      </if>
+      <if test="financeCreditStatus != null" >
+        finance_credit_status = #{financeCreditStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="financeCreditFinishTime != null" >
+        finance_credit_finish_time = #{financeCreditFinishTime,jdbcType=VARCHAR},
+      </if>
+      <if test="debtTime != null" >
+        debt_time = #{debtTime,jdbcType=VARCHAR},
+      </if>
+      <if test="debtPassTime != null" >
+        debt_pass_time = #{debtPassTime,jdbcType=VARCHAR},
+      </if>
+      <if test="loanAmt != null" >
+        loan_amt = #{loanAmt,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="isDeleted != null" >
+        is_deleted = #{isDeleted,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.WubaSubmitConversionDataTransferClean" >
+    update b_wuba_submit_conversion_data_transfer_clean
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      batch_no = #{batchNo,jdbcType=VARCHAR},
+      push_time = #{pushTime,jdbcType=TIMESTAMP},
+      clean_status = #{cleanStatus,jdbcType=INTEGER},
+      last_login_time = #{lastLoginTime,jdbcType=VARCHAR},
+      finance_apply_time = #{financeApplyTime,jdbcType=VARCHAR},
+      finance_credit_status = #{financeCreditStatus,jdbcType=VARCHAR},
+      finance_credit_finish_time = #{financeCreditFinishTime,jdbcType=VARCHAR},
+      debt_time = #{debtTime,jdbcType=VARCHAR},
+      debt_pass_time = #{debtPassTime,jdbcType=VARCHAR},
+      loan_amt = #{loanAmt,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      is_deleted = #{isDeleted,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      task_id = #{taskId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

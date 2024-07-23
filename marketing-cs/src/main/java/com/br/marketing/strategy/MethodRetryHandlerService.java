@@ -701,6 +701,38 @@ public class MethodRetryHandlerService {
         log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
+    /**
+     * 推送决策接口（不进行db重试）
+     *
+     * @param dto
+     * @param retry
+     * @return
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = false)
+    public Result callPolicyDataNoDb(PolicyRetryByRuleDTO dto, Integer retry, String apiCode) {
+        List<Long> ids = dto.getIds();
+        PushMarketingUserDTO pushMarketingUserDTO = dto.getPushMarketingUserDTO();
+        //重试
+        try {
+            if (ObjectUtils.equals(retry,1)) {
+                JSONObject jsonObject = (JSONObject) dto.getPushMarketingUserDTO().getJsonData();
+                PushMarketingUserTaskInfoDTO taskInfoDTO = JSONObject.toJavaObject(jsonObject, PushMarketingUserTaskInfoDTO.class);
+                pushMarketingUserDTO.setJsonData(taskInfoDTO);
+            }
+        } catch (Exception e) {
+            log.error("apiCode{}决策重试接口类型转化失败", apiCode, e);
+        }
+        Long infoId = dto.getInfoId();
+        Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            if (infoId != null) {
+                saveBizLog(Joiner.on(",").join(ids), InterfaceHandlerEnum.INIT_TO_POLICY.getCode(), infoId);
+            }
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.error("apiCode:{}调用推送决策接口失败--{}", apiCode,JSON.toJSONString(result));
+        return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+    }
 
     /**
      * 宜信情况L调用推送决策接口
@@ -1110,6 +1142,40 @@ public class MethodRetryHandlerService {
         qifuSaveReachDeleteRecordApiPushLogMapper.insertSelective(pushLog);
         reqBO.setLogId(pushLog.getId());
         return resp;
+    }
+
+    /**
+     * 保存触达删除记录接口
+     *
+     * @param reqBO 封装的数据
+     * @param retry 重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
+    public Result<SaveReachDeleteRecordResp> callDeleteReachRecordCuDongZhi(SaveReachDeleteRecordReqBO reqBO, Integer retry) {
+        Result<SaveReachDeleteRecordResp> result = new Result<>();
+        SaveReachDeleteRecordReq req = reqBO.getReq();
+        Result<ResponseData<SaveReachDeleteRecordResp>> dataResult = qiFuClients.sendDeleteReachRecordDataCuDongZhi(req);
+        result.setCode(dataResult.getCode());
+        if (retry == null && reqBO.getLogId() == null) {
+            result.setDate(insertSaveReachDeleteRecordLog(reqBO, dataResult));
+        } else if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
+            ResponseData<SaveReachDeleteRecordResp> data = dataResult.getData();
+            QifuSaveReachDeleteRecordApiPushLog updateLog = new QifuSaveReachDeleteRecordApiPushLog();
+            updateLog.setId(reqBO.getLogId());
+            // 重试后正常 3
+            updateLog.setStatus(3);
+            updateLog.setRespFlag(data.getFlag().toString());
+            updateLog.setRespCode(data.getCode());
+            updateLog.setRespMsg(data.getMsg());
+            SaveReachDeleteRecordResp t = data.getData().getT();
+            if (Objects.nonNull(t)) {
+                updateLog.setQifuIsSucceed(t.getIsSucceed().toString());
+                updateLog.setQifuMessage(t.getMessage());
+            }
+            qifuSaveReachDeleteRecordApiPushLogMapper.updateByPrimaryKeySelective(updateLog);
+        }
+        return result;
     }
 
     /**

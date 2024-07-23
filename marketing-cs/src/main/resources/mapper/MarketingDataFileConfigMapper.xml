@@ -1,4 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingDataFileConfigMapper" >
+<mapper namespace="com.br.marketing.mapper.MarketingDataFileConfigMapper">
+
+    <select id="getList" resultType="com.br.marketing.vo.dataclean.DataCleanConfigVO">
+
+        SELECT
+        id,api_code,clean_type as fileType,rule_name,field_config_show,create_time,update_time
+        FROM
+        b_marketing_data_file_config
+        where is_del = 1
+        <if test="fileType!= null">
+            AND clean_type=#{fileType}
+        </if>
+        <if test="apiCode!= null">
+            AND api_code=#{apiCode}
+        </if>
+        order by create_time desc,update_time desc
+    </select>
+    <select id="selectCleanData" resultType="java.util.Map" parameterType="java.lang.String">
+        ${sql}
+    </select>
+    <update id="updateCleanDataStatus">
+        update ${tableName} set clean_status = #{cleanStatus} where ${autoDuplicateColumn} in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
 </mapper>

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class InitDataImpl implements OriginDataService {
@@ -36,5 +37,15 @@ public class InitDataImpl implements OriginDataService {
     @Override
     public TransferSource source() {
         return TransferSource.INIT_DATA_SET_PROCESS;
+    }
+
+    @Override
+    public List<Long> getIdList(List<Object> collect) {
+        List<Long> idList = new ArrayList<>();
+        for (int i = 0; i < collect.size(); i++) {
+            MarketingSyncUser syncUser = (MarketingSyncUser)collect.get(i);
+            idList.add(syncUser.getId());
+        }
+        return idList;
     }
 }

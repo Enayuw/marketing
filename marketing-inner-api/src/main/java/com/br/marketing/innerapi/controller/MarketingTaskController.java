@@ -4,12 +4,11 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.validators.ParamValidErrorException;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.ResultPreviewDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
 import com.br.marketing.entity.ScoreRuleConfig;
-import com.br.marketing.innerapi.service.impl.TaskOptServiceImpl;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ResultPreviewVO;
 import com.br.marketing.vo.StatisticsDataDayVO;
@@ -20,7 +19,12 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -45,7 +49,7 @@ public class MarketingTaskController {
     MarketingTaskService marketingTaskService;
 
     @Autowired
-    TaskOptServiceImpl taskOptService;
+    MarketingTaskOptService marketingTaskOptService;
 
     @ApiOperation(value = "跑分记录列表", notes = "跑分记录列表")
     @ApiImplicitParams({@ApiImplicitParam(name = "current", value = "页号", paramType = "query", dataType = "integer", defaultValue = "1")
@@ -57,6 +61,7 @@ public class MarketingTaskController {
             , @ApiImplicitParam(name = "updateTimeStart", value = "更新时间开始", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "updateTimeEnd", value = "更新时间结束", paramType = "query", dataType = "string")
             , @ApiImplicitParam(name = "taskStatus", value = "跑分状态", paramType = "query", dataType = "integer")
+            , @ApiImplicitParam(name = "execType", value = "任务执行策略 1-一次性全量；2-一次性验证；3-每个任务的周期;4-每日定时", paramType = "query", dataType = "Integer")
     })
     @GetMapping("/list")
     @AddDataAuthBusiness
@@ -69,9 +74,10 @@ public class MarketingTaskController {
             , @RequestParam(required = false) String updateTimeStart
             , @RequestParam(required = false) String updateTimeEnd
             , @RequestParam(required = false) Integer taskStatus
+            , @RequestParam(required = false) Integer execType
     ) {
         PageResultReturn list = marketingTaskService.list(current, size, search, status,
-                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus);
+                createTimeStart, createTimeEnd, updateTimeStart, updateTimeEnd, taskStatus, execType);
         return new ApiResult<PageResultReturn>().success(list);
     }
 
@@ -185,6 +191,6 @@ public class MarketingTaskController {
     @ApiOperation(value = "中止恢复任务", notes = "isOrPause 1-暂停；0-恢复")
     @GetMapping("/pauseTask")
     public ApiResult pauseTask(@RequestParam(name = "fileId") Long fileId, @RequestParam(name = "isOrPause") Integer isOrPause) {
-        return new ApiResult().fromResult(taskOptService.pauseTask(fileId, isOrPause), 1);
+        return new ApiResult().fromResult(marketingTaskOptService.pauseTask(fileId, isOrPause), 1);
     }
 }

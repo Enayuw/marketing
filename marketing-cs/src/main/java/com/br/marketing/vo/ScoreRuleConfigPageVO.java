@@ -95,4 +95,31 @@ public class ScoreRuleConfigPageVO {
 
     @ApiModelProperty(value = "是否是在线跑分 1-在线；2-离线", dataType = "string", position = 16)
     private Integer isOnline;
+
+    @ApiModelProperty(value = "跑分优先级 0最高，9最低", dataType = "integer", position = 17)
+    private Integer priority;
+
+    @Override
+    public String toString() {
+        return "ScoreRuleConfigPageVO{" +
+                "id=" + id +
+                ", crId=" + crId +
+                ", ruleName='" + ruleName + '\'' +
+                ", cid='" + cid + '\'' +
+                ", apiCode='" + apiCode + '\'' +
+                ", status='" + status + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", updateTime='" + updateTime + '\'' +
+                ", ruleNameShort='" + ruleNameShort + '\'' +
+                ", strategyProductJson='" + strategyProductJson + '\'' +
+                ", baseInfo='" + baseInfo + '\'' +
+                ", execType=" + execType +
+                ", cycleDay=" + cycleDay +
+                ", cycleEndDay='" + cycleEndDay + '\'' +
+                ", taskType='" + taskType + '\'' +
+                ", productInfo='" + productInfo + '\'' +
+                ", isOnline=" + isOnline +
+                ", priority=" + priority +
+                '}';
+    }
 }

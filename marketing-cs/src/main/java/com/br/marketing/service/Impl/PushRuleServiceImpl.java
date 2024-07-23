@@ -463,7 +463,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
             pushNum = dto.getmPrePlanNum();
             customerInfoPushMain.setFilterType(1);
-            customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getReleaseTime()));
+            customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO));
         } else {
             Result<PushViewVO> totalRes = getTotal(dto);
             if (!ResultCode.SUCCESS.getValue().equals(totalRes.getCode())) {
@@ -554,7 +554,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
-            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getReleaseTime());
+            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
@@ -612,15 +612,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         return falseAndscoreSql.append(whereSql).toString();
     }
 
-    private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, Map<String, String> releaseTime) {
+    private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
         //True关联查询
-        //传输releaseTime处理
-        if (!CollectionUtils.isEmpty(releaseTime)) {
-            String releaseTimeSql = EsConditionTransferSqlUtil.assemblefiled("release_time", releaseTime.get("operation"), releaseTime.get("value"));
-            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + releaseTimeSql
+        //true筛选字段处理
+        String condition =XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
+        if(StringUtils.isNotEmpty(condition)){
+            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + condition
                     + " and is_delete=0";
         }
         StringBuilder cycleAndscoreSql = new StringBuilder();
@@ -1143,7 +1143,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         accessNumber, size);
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error("推送决策重试失败 accessNumber:{}", accessNumber);
+                log.error("推送决策重试失败 accessNumber:{}-{}", accessNumber, JSON.toJSONString(result));
             }
             result.setDate(size);
             return result;

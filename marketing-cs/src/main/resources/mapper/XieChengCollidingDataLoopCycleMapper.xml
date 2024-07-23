@@ -114,7 +114,8 @@
     <select id="selectIdsOfTrueDataProcessTasktikv_" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id
         from b_xiecheng_colliding_data_loop_cycle a
-        left join ( ${queryRuleScoreDataSql} ) b on a.cell_sha256_code_list = b.cell
+        join ${tableName} c on a.cell_sha256_code_list = c.cell and c.is_delete = 0
+        left join ( ${queryRuleScoreDataSql} ) b on c.cell = b.cell and b.is_delete = 0
         where a.is_delete = 0 and b.id is null
         <![CDATA[ and a.release_time >= DATE_ADD(CURDATE(), INTERVAL 1 DAY)
         and a.release_time < DATE_ADD(CURDATE(), INTERVAL 7 DAY) ]]>
@@ -145,4 +146,15 @@
         order by id limit #{pageSize};
     </select>
 
+    <update id="batchDeleteExcludeCollidingData">
+        update b_xiecheng_colliding_data_loop_cycle
+        set is_delete   = 1,
+            update_time = now(),
+            extend      = #{extend}
+        where is_delete = 0
+          and cell_sha256_code_list in
+        <foreach collection="excludeData" item="cell_sha256_code_list" open="(" separator="," close=")">
+            #{cell_sha256_code_list}
+        </foreach>
+    </update>
 </mapper>

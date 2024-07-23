@@ -27,7 +27,8 @@ public interface SoleRuleConfigMapper extends SoleRuleConfigMapperBase {
      */
     int getRuleOfSoleOnly(@Param("soleId") Long soleId, @Param("soleFields") String soleFields,
                           @Param("soleCycleTimes") Integer soleCycleTimes, @Param("cid") Long cid,
-                          @Param("conditionInfo") String conditionInfo);
+                          @Param("conditionInfo") String conditionInfo,
+                          @Param("allUserType") Integer allUserType);
 
     /**
      * 修改去重规则

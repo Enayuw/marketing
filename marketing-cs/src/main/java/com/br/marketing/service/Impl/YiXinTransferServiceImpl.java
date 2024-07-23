@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.haier.HaierServiceClient;
@@ -12,23 +13,18 @@ import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.PhoneSaleRecordInfoDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
-import com.br.marketing.service.IDxService;
-import com.br.marketing.service.IYiXinTransferService;
-import com.br.marketing.service.PushDataService;
-import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
-import com.br.marketing.vo.PhoneSaleInfoVO;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +43,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -108,6 +103,12 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     HaierServiceClient haierServiceClient;
 
     @Resource
+    DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
+    @Resource
     private AlarmApiClient alarmClient;
     @Value("${otherConfig.alarm.outsideSecretKey:00}")
     private String secretKey;
@@ -152,6 +153,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         }
         //endregion
         Long frontId = saveFrontData(apiCode, date, 2);
+
         Boolean mark = Boolean.TRUE;
         Integer page = 0;
         //全局去重custNum集合
@@ -161,7 +163,15 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         String _60startDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -60));
         String _endDay = new SimpleDateFormat("yyyy-MM-dd").format(DateUtils.addDays(dayOfDate, -1));
 
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);
+        /*ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5);*/
+        String startDate = LocalDate.now().minusDays(7).toString();
+        //查询实时推决策7天内数据
+        DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
+        DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria().andApiCodeEqualTo(marketingCommonConfig.
+                getYiXinToPolicyApiCode()).andDistributeTypeEqualTo(DistributeTypeEnum.YIXIN_REALTIME_POLICYDATA.getValue()).
+                andDistributeDateGreaterThanOrEqualTo(startDate).andDistributeDateLessThan(LocalDate.now().toString());
+        List<DataDistributeDetailLog> detailLogList = dataDistributeDetailLogMapper.selectByExample(logExample);
+        List<String> logCustNumList = detailLogList.stream().map(DataDistributeDetailLog::getCustNum).collect(Collectors.toList());
         String tcId = tableCreateService.getTcId(apiCode);
         Integer pageSize = dynamicParameterService.getPageSize("yxToDx");
         Integer threadvalue = 0;
@@ -180,7 +190,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             HashSet<String> custNums = new HashSet();
             //如果返回的数据样本较大，考虑用list在分批查询，暂时先未使用
 //            List<String> custNumsList = new ArrayList<>();
-            List<MarketingTransferSyncUser> dataFilter1 = new ArrayList<>();
+            List<Long> dataFilter1 = new ArrayList<>();
             for (MarketingTransferSyncUser datum : data) {
                 if (!(StringUtils.isNotBlank(datum.getReserveField1())
                         && datum.getReserveField1().contains("\"transformType\":\"1\""))) {
@@ -188,13 +198,16 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         custNumALL.add(datum.getCustNum());
                         continue;
                     }
-                    if (custNumALL.add(datum.getCustNum()) && custNums.add(datum.getCustNum())) {
-                        dataFilter1.add(datum);
+                    boolean tagOne = custNumALL.add(datum.getCustNum());
+                    boolean tagTwo = logCustNumList.contains(datum.getCustNum());
+                    if (tagOne && (!tagTwo)) {
+                        //剔除实时推决策7天内数据
+                        dataFilter1.add(datum.getId());
 //                        custNumsList.add(datum.getCustNum());
                     }
                 }
             }
-            if (custNums.size() <= 0) {
+            if (dataFilter1.size() <= 0) {
                 continue;
             }
             //endregion
@@ -202,9 +215,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             final String _tApicode = apiCode;
             String pushUid = UUID.randomUUID().toString();
 
-            threadPool.submit(() -> {
+            /*threadPool.submit(() -> {*/
                 try {
-                    //region 获取7天实时和60天非实时 推送记录
+                    /*//region 获取7天实时和60天非实时 推送记录
 
                     // 获取不包含当天的前7天实时推人工的custNum _7filerCustNumSet
                     Set<String> _7filerCustNumSet = iDxService
@@ -320,7 +333,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         }
                     }
                     //endregion
-
+                    //region 剔除实时推决策7天内数据
+                    //endregion
                     //region 黑名单查询
                     HashMap<String, String> blackData = new HashMap<>();
                     //todo 上线删除
@@ -349,33 +363,35 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                     List<Long> ids = dataFilter2.stream()
                             .filter(t -> StringUtils.isBlank(blackData.get(t.getId().toString()))
                                     || !blackData.get(t.getId().toString()).equals("Y"))
-                            .map(t -> t.getId()).collect(Collectors.toList());
-                    List<List<Long>> mqIdgroup = Lists.partition(ids, 1000);
+                            .map(t -> t.getId()).collect(Collectors.toList());*/
+                    List<List<Long>> mqIdgroup = Lists.partition(dataFilter1, 1000);
                     for (List<Long> longs : mqIdgroup) {
                         JSONObject jo = new JSONObject();
                         jo.put("tcId", tcId);
                         jo.put("ids", longs);
                         HashSet<String> rule = new HashSet<>();
-                        rule.add("YiXin_NonRealTime_Dx");
+                        rule.add("YiXin_NonRealTime_Policy");
                         MqFact mq = new MqFact();
                         mq.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
                         mq.setIncludeRules(rule);
                         mq.setMessage(JSON.toJSONString(jo));
-//                    mq.setIncludeRules();
                         String mqStr = JSON.toJSONString(mq);
                         producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
                         if (log.isWarnEnabled()) {
-                            log.warn(String.format("推送非实时电销 pushUid:%s,mq消息：%s", pushUid, mqStr));
+                            log.warn(String.format("推送非实时决策 pushUid:%s,mq消息：%s", pushUid, mqStr));
                         }
                     }
                     //endregion
                 } catch (Exception ex) {
                     log.error(ex.getMessage(), ex);
                 }
-            });
+            //手动清除大集合
+            data.clear();
+            dataFilter1.clear();
+           /* });*/
         }
 
-        threadPool.shutdown();
+        /*threadPool.shutdown();
         Boolean threadMark = Boolean.TRUE;
         while (threadMark) {
             if (threadPool.isTerminated()) {
@@ -386,7 +402,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
         updateFrontDataStatus(frontId, 2);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
@@ -421,8 +437,6 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         Integer page = 0;
         //过滤type的Set
         HashSet custNumFilterType = new HashSet();
-        //去重后的Set
-        HashSet custNumResult = new HashSet();
         List<Long> ids = new ArrayList<>();
         Integer pageSize = dynamicParameterService.getPageSize("yxToCustomer");
         while (mark) {
@@ -434,6 +448,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
             page++;
             //获取非实时数据
             List<MarketingTransferSyncUser> data = delayData.getData();
+            Set<String> set = data.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> syncUserMap =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(set, apiCode, new Date());
             for (MarketingTransferSyncUser datum : data) {
                 if (!(StringUtils.isNotBlank(datum.getReserveField1())
                         && datum.getReserveField1().contains("\"transformType\":\"1\""))) {
@@ -443,7 +460,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         continue;
                     }
                     //过滤掉 同一custNum的其他insertTime列，custNumResult
-                    if (custNumFilterType.add(datum.getCustNum()) && custNumResult.add(datum.getCustNum())) {
+                    if (custNumFilterType.add(datum.getCustNum())) {
                         //过滤type=13，且registerChannel！=1,2的
                         if ("13".equals(datum.getType())) {
                             String registerChannel = JSON.parseObject(datum.getReserveField1()).getString("registerChannel");
@@ -451,13 +468,19 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                                 continue;
                             }
                         }
+                        //判断数据有效期
+                        SyncUserValidityPeriodsBO userValidityPeriodsBO = syncUserMap.get(datum.getCustNum());
+                        if (userValidityPeriodsBO == null) {
+                            continue;
+                        }
                         ids.add(datum.getId());
                     }
                 }
             }
+            data.clear();
+            syncUserMap.clear();
         }
         custNumFilterType.clear();
-        custNumResult.clear();
         log.warn("宜信非实时数据推送客服数据量 totalNum={}", ids.size());
         long time = System.currentTimeMillis();
         pushRobotAIMessage(apiCode, ids);
@@ -491,7 +514,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
      * @param date
      * @return
      */
-    private Result<Date> checkPush(String apiCode, String date) {
+    @Override
+    public Result<Date> checkPush(String apiCode, String date) {
 
         Date startDate = null;
         try {
@@ -630,11 +654,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         log.warn("宜信非实时数据推送客服时间超过1小时，请检查是否存在异常,apiCode:{},send-receive:{},", apiCode, (i - 1) + "-" + dateCount);
                         StringBuilder content = new StringBuilder();
                         content.append("apiCode：".concat(apiCode).concat("\r\n"))
-                                .append("非实时总量：".concat(String.valueOf(dateCount)).concat("\r\n"))
                                 .append("已发送批次量：".concat(String.valueOf(i - 1)).concat("\r\n"))
                                 .append("接收批次量：".concat(String.valueOf(dateCount)).concat("\r\n"))
                                 .append("非实时数据推客服超过1小时，请检查".concat("\r\n"));
-                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
+                        alarmClient.sendAlarm(content.toString(), "宜信非实时推客服任务", AlarmSendCodeEnum.EXCEPTION_YIXIN_PUSH_CUSTOMER.getCode());
                     }
                 }
             } else {

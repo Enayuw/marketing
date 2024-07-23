@@ -70,4 +70,14 @@ public class TransferDataSetImpl implements OriginDataService {
         return TransferSource.TRANSFER_DATA_SET_PROCESS;
     }
 
+    @Override
+    public List<Long> getIdList(List<Object> collect) {
+        List<Long> idList = new ArrayList<>();
+        for (int i = 0; i < collect.size(); i++) {
+            MarketingTransferSyncUser transferSyncUser = (MarketingTransferSyncUser)collect.get(i);
+            idList.add(transferSyncUser.getId());
+        }
+        return idList;
+    }
+
 }

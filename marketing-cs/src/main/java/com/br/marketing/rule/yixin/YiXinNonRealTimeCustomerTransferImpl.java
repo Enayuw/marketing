@@ -1,19 +1,25 @@
 package com.br.marketing.rule.yixin;
 
-import com.alibaba.fastjson.JSON;
-import com.br.common.util.DateUtils;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.rule.AssembleData;
-import com.br.marketing.strategy.InterfaceHandlerEnum;
-import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
+import java.util.Set;
+
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.Set;
+import com.alibaba.fastjson.JSON;
+import com.br.common.util.DateUtils;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
+import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.rule.AssembleData;
+import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 
 /**
  * 非实时转化数据推送客服
@@ -26,7 +32,13 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
+        YiXinRuleCollectDataImpl.YiXinRuleNecessaryData ruleNecessaryData =
+            (YiXinRuleCollectDataImpl.YiXinRuleNecessaryData)context.getRuleNecessaryData();
+        SyncUserValidityPeriodsBO userValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
+        /*if (userValidityPeriodsBO == null) {
+            return null;
+        }*/
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
@@ -39,6 +51,12 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+        // 去重设置
+        conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
+        conversionData.setSoleType(1);
+        // 有效期设置 transformType非1的非实时数据传输生效截止时间点
+        PeriodOfValidityBO periodOfValidityBO = userValidityPeriodsBO.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
+        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         return conversionData;
     }
 
@@ -65,6 +83,6 @@ public class YiXinNonRealTimeCustomerTransferImpl implements AssembleData<Conver
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION.getCode();
     }
 }

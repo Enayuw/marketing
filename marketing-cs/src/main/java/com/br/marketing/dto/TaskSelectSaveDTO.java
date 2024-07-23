@@ -39,4 +39,5 @@ public class TaskSelectSaveDTO {
 
     @ApiModelProperty(value = "是否规则验证 1-验证；不传或者其他值不做处理")
     private Integer isOrNoScoreVer;
+
 }

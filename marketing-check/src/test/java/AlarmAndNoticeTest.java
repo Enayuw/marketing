@@ -575,7 +575,8 @@ public class AlarmAndNoticeTest {
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
             fw.append(QIFU_TABLE_HEAD_TRANSFER);
             fw.append("\r\n");
-            transferToFileByQiFu.writeQifuTransferToFile(fw,apiCode,transferFileTask, recordDate);
+            transferToFileByQiFu.writeQifuTransferToFile(fw,apiCode,
+                    transferFileTask, recordDate, marketingCommonConfig.getQiFuFullExtDataSoleNum());
         } catch (Exception ex) {
             log.error(ex.getMessage());
         }

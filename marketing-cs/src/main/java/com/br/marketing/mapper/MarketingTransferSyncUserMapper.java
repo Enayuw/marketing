@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUserMapperBase {
@@ -72,6 +73,42 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                                  @Param("rowCount") int rowCount,
                                                                  @Param("offset") int offset);
 
+    /**
+     * 宜信数据有last标识，所以数据相对来说是固定的，所以可以使用这个sql查询
+     * @param tCid tCid
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @param beginId beginId
+     * @param endId endId
+     * @return java.util.List<com.br.marketing.entity.MarketingTransferSyncUser> 查询到的MarketingTransferSyncUser集合
+     */
+    List<MarketingTransferSyncUser> getTransferByStartAndEndDateYiXinV4(@Param("tCid") String tCid
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate
+            , @Param("beginId") Long beginId
+            , @Param("endId") Long endId);
+
+    /**
+     * 获取满足条件的最大id
+     * @param tCid tCid
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @return Long
+     */
+    Long maxIdByCid(@Param("tCid") String tCid
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate);
+
+    /**
+     * 获取满足条件的最小id
+     * @param tCid tCid
+     * @param apiCode apiCode
+     * @param requestDate requestDate
+     * @return Long
+     */
+    Long minIdByCid(@Param("tCid") String tCid
+            , @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate);
 
     List<MarketingTransferSyncUser> getTransferData(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
 
@@ -375,6 +412,9 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<MarketingTransferSyncUser> getTransferByRequestDate(@Param("tCid") String tcId, @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate, @Param("minId") Long minId);
 
+    List<MarketingTransferSyncUser> getRongShuTransferDatatikv_(@Param("tCid") String tcId, @Param("apiCode") String apiCode
+            , @Param("requestDate") String requestDate, @Param("minId") Long minId);
+
     List<MarketingTransferSyncUser> getTransferByCustNumOrderDatatikv_(@Param("tCid") String tcId, @Param("custNums") List<String> custNums);
 
     List<MarketingTransferSyncUser> getYxTransferByApiCodeBtoCtoItikv_(@Param("tCid") String tcId,
@@ -532,5 +572,35 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("userTypeSet") Set<String> userTypeSet
             , @Param("requestDate") String requestDate);
 
+    List<MarketingTransferSyncUser> getYxTransferByRequestDate(
+            @Param("tCid") String tCid,
+            @Param("apiCode") String apiCode,
+            @Param("requestDate") String requestDate,
+            @Param("extendSql") String extendSql,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize);
 
+    List<MarketingTransferSyncUser> getYxCustNumsByRequestDate(
+            @Param("tCid") String tCid,
+            @Param("apiCode") String apiCode,
+            @Param("requestDate") String requestDate,
+            @Param("extendSql") String extendSql,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize);
+
+    List<Map<String, Object>> selectFullTransferWithValid(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser);
+
+    List<MarketingTransferSyncUser> selectTransferWithValid(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("startDate") String startDate,
+            @Param("endDate") String endDate);
+
+    List<Map<String, Object>> selectTransferWithValidtiflash_(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("pageSize") Integer pageSize);
+
+    List<Map<String, Object>> selectTransferByWbxc(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("pageSize") Integer pageSize);
 }

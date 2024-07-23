@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaSubmitConversionDataMapper" >
+
+    <select id="findByConditionAndPage" resultType="com.br.marketing.entity.WubaSubmitConversionData">
+        select id, api_code, cell, marketing_time, push_status, status, create_date
+        from b_wuba_submit_conversion_data
+        where api_code = #{apiCode}
+            and create_date = #{createDate}
+            and status = #{status}
+            and push_status = #{pushStatus}
+            and is_deleted =0
+        limit #{pageSize}
+    </select>
+
+</mapper>

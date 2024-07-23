@@ -6,6 +6,7 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDetailBO;
 import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.OriginDataService;
@@ -67,5 +68,15 @@ public class MarketingCustomerCallRecordDataImpl implements OriginDataService {
     @Override
     public TransferSource source() {
         return TransferSource.CUSTOMER_CALL_RECORD;
+    }
+
+    @Override
+    public List<Long> getIdList(List<Object> collect) {
+        List<Long> idList = new ArrayList<>();
+        for (int i = 0; i < collect.size(); i++) {
+            CallRecordBO callRecord = (CallRecordBO)collect.get(i);
+            idList.add(callRecord.getId());
+        }
+        return idList;
     }
 }

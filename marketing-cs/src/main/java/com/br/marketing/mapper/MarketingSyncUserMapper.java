@@ -180,15 +180,16 @@ public interface MarketingSyncUserMapper {
      * 根据id和日期获取上传数据
      *
      * @param apiCode
-     * @param appletDate
      * @param minId
      * @param pageSize
      * @return
      */
-    List<MarketingSyncUser> getNewSyncUserByDate(@Param("apiCode") String apiCode
-            , @Param("appletDate") String appletDate
-            , @Param("pageSize") Integer pageSize
-            , @Param("minId") Long minId);
+    List<MarketingSyncUser> getNewSyncUserByDate(
+            @Param("apiCode") String apiCode,
+            @Param("appletDate") String appletDate,
+            @Param("userType") String userType,
+            @Param("pageSize") Integer pageSize,
+            @Param("minId") Long minId);
 
     Integer countByAppletDate(@Param("apiCode") String apiCode, @Param("appletDate") String appletDate);
 
@@ -345,4 +346,18 @@ public interface MarketingSyncUserMapper {
     Long noDesUploadByMinIdtiflash_(@Param("apiCode") String apiCode);
 
     Integer updateSqlByNoDestikv_(@Param("updateSql") String updateSql);
+
+
+    List<MarketingSyncUser> getSyncUserByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
+
+    List<MarketingSyncUser> getSyncUserByCusBatch(@Param("apiCode") String apiCode,
+                                                  @Param("cusBatch") String cusBatch,
+                                                  @Param("minId") Long minId,
+                                                  @Param("createDate") String createDate,
+                                                  @Param("pageSize") Integer pageSize);
+
+    MarketingSyncUser getMarketingSyncByCusBatch(@Param("apiCode") String apiCode,
+                               @Param("cusBatch") String cusBatch,
+                               @Param("userType") String userType,
+                               @Param("appletDate") String appletDate);
 }

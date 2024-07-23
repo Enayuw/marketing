@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 
+import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransfer;
@@ -47,9 +48,17 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
 
+    Long getMinIdByRuleScoreWithValidConfig(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList, @Param("whereStr") String whereStr,
+                                            @Param("validTimeStr") String validTimeStr);
+
     List<String> queryUserTypeListWithDatetikv_(@Param("apiCode") String apiCode
             , @Param("sDate") String sDate, @Param("eTimeStr") String eTimeStr
             , @Param("whereStr") String whereStr);
+
+    List<String> queryUserTypeListWithValidConfigtikv_(@Param("apiCode") String apiCode
+            , @Param("configList") List<MarketingDataValidConfig> configList, @Param("whereStr") String whereStr,
+                                                       @Param("validTimeStr") String validTimeStr);
 
     Integer countByRuleScoreWithDate(@Param("apiCode") String apiCode
             , @Param("whereStr") String whereStr);
@@ -267,4 +276,5 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
      */
     List<String> getCusBatchByAppletDate(@Param("appletDate") String appletDate,@Param("apiCode") String apiCode);
 
+    List<MarketingSyncUser> getDataByIdList(@Param("apiCode") String apiCode, @Param("idList") List<Long> idList);
 }
