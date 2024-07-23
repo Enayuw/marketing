@@ -599,4 +599,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
     List<Map<String, Object>> selectTransferWithValidtiflash_(
             @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
             @Param("pageSize") Integer pageSize);
+
+    List<Map<String, Object>> selectTransferByWbxc(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("pageSize") Integer pageSize);
 }

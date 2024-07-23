@@ -1926,8 +1926,15 @@ public class MarketingCommonConfig {
     private JSONObject commonMockConfig;
 
     /**
+     * 
+     * 58新课数据提取参数配置
+     */
+    private HashMap<String, JSONObject> wbxkExtDataConfig;
+
+    /**
      * 58撞库接口参数配置
      */
     private JSONObject wuBaCollidingUrlConfig;
+    
 }
 

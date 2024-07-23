@@ -221,7 +221,11 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileBySuShangServiceImpl transferToFileBySuShangService;
 
-
+    /**
+     * 苏商自动化回传-3710114
+     */
+    @Resource
+    private TransferToFileByWbxkServiceImpl transferToFileByWbxkService;
 
     @Resource
     ICompatibleService iCompatibleService;
@@ -375,6 +379,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByCuDongZhiService, marketingCommonConfig.getCuDongZhiTransferExtractApiCodes())
                 .addBind(transferToFileByQiFuFullService, ObjectUtil.isEmpty(marketingCommonConfig.getQiFuFullExtDataConfig()) ? null
                         : marketingCommonConfig.getQiFuFullExtDataConfig().keySet())
+                .addBind(transferToFileByWbxkService, ObjectUtil.isEmpty(marketingCommonConfig.getWbxkExtDataConfig()) ? null
+                        : marketingCommonConfig.getWbxkExtDataConfig().keySet())
                 .addBind(transferToFileBySuShangService, marketingCommonConfig.getSuShangTransferExtractApiCodes()).build();
 
     }
