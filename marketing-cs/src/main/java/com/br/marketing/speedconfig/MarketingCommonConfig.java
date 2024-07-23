@@ -1800,7 +1800,7 @@ public class MarketingCommonConfig {
     /**
      * 之家用户信息分页参数
      */
-    private String zhiJiaQryUserMessageSize;
+    private Integer zhiJiaQryUserMessageSize;
 
 }
 

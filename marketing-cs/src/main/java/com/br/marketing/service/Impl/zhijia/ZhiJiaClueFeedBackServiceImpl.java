@@ -104,9 +104,9 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
         Long minId = null;
         Boolean isContiue = Boolean.TRUE;
-        String pageSize = marketingCommonConfig.getZhiJiaQryUserMessageSize();
         while (isContiue) {
             // 查询未推送数据
+            Integer pageSize = marketingCommonConfig.getZhiJiaQryUserMessageSize();
             List<ZhiJiaClueBackData> zhiJiaClueBackDataList = zhiJiaClueBackDataMapper.getBatchById(id, pageSize, minId);
             if (zhiJiaClueBackDataList.isEmpty()) {
                 isContiue = Boolean.FALSE;
