@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -105,16 +107,16 @@ public class SyncReportController {
     }
 
     @ApiOperation(value = "修改有效期记录", notes = "修改有效期记录")
-    @ApiImplicitParams({@ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")
+    @ApiImplicitParams({@ApiImplicitParam(name = "ids", value = "ids", required = true, dataType = "List<Long>")
             , @ApiImplicitParam(name = "validStartDate", value = "生效开始日期", required = true, paramType = "query", dataType = "String")
             , @ApiImplicitParam(name = "validEndDate", value = "生效结束日期", required = true, paramType = "query", dataType = "String")
     })
     @GetMapping("/updateValidity")
-    public ApiResult<Boolean> updateValidity(@RequestParam Long id
+    public ApiResult<Boolean> updateValidity(@RequestParam List<Long> ids
             , @RequestParam String validStartDate
             , @RequestParam String validEndDate) {
         try {
-            boolean flag = syncReportService.updateById(id, validStartDate, validEndDate);
+            boolean flag = syncReportService.updateById(ids, validStartDate, validEndDate);
             if (flag) {
                 return new ApiResult<Boolean>().success(true, "操作成功！");
             } else {
