@@ -105,7 +105,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             } else {
                 ZhijiaCityConfig cityConfig = new ZhijiaCityConfig();
                 cityConfig.setApiCode(zhiJiaApiCode);
-                cityConfig.setCName(zhijiaCityConfig.get(0).getCName());
+                cityConfig.setCName(cname);
                 cityConfig.setUpdateTime(new Date());
                 cityConfig.setUploadDate(LocalDate.now().toString());
                 cityConfig.setId(zhijiaCityConfig.get(0).getId());
@@ -135,7 +135,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             } else {
                 ZhijiaCountyConfig countyConfig = new ZhijiaCountyConfig();
                 countyConfig.setApiCode(zhiJiaApiCode);
-                countyConfig.setCountyName(countyConfigList.get(0).getCountyName());
+                countyConfig.setCountyName(countyname);
                 countyConfig.setCId(cid);
                 countyConfig.setUpdateTime(new Date());
                 countyConfig.setUploadDate(LocalDate.now().toString());
