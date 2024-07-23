@@ -153,7 +153,12 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
         }
         rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
-        isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
+
+        // 2024-07-19 修改为多apiCode校验
+        for(String apiCodeItem :apiCodeList){
+            isExist(rule, scoreRuleVO.getCid(), apiCodeItem);
+        }
+
         rule.setRuleNameShort(createNo());
         int insertRule = scoreRuleConfigMapper.insert(rule);
         if (insertRule != 1) {
@@ -312,7 +317,19 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         // 默认开启
         rule.setStatus(1);
-        isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
+
+        String apiCode = scoreRuleVO.getApiCode();
+        List<String> apiCodeList = new ArrayList<>();
+        if(!StringUtils.isEmpty(apiCode)){
+            String[] apiCodeArray = apiCode.split(",");
+            apiCodeList = Arrays.asList(apiCodeArray);
+        }
+
+        // 2024-07-19 修改为多apiCode校验
+        for(String apiCodeItem: apiCodeList){
+            isExist(rule, scoreRuleVO.getCid(), apiCodeItem);
+        }
+
         int i = scoreRuleConfigMapper.updateByPrimaryKeySelective(rule);
         if (i != 1) {
             throw new BusinessException("很遗憾小主，变更失败");
