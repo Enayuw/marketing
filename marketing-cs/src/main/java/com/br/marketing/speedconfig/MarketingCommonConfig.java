@@ -1921,7 +1921,6 @@ public class MarketingCommonConfig {
      * 58新客-营销转化结果查询-pushTime查询区间
      */
     private JSONObject wuBaQueryConversionPushTimeInterval;
->>>>>>> main
 
     /**
      * 58新客-营销转化结果查询-调用线程

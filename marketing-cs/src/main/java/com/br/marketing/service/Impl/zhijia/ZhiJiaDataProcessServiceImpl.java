@@ -391,23 +391,28 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             if (StringUtils.isNotEmpty(token)) {
                 return token;
             } else {
-                boolean lock = redisChgService.lock(redisKeyLock, value, 3000L);
-                if (lock == true) {
-                    //获取锁成功，调接口
-                    Result<String> result = zhiJiaClient.getToken();
-                    if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                        token = result.getData();
-                        //写入redis
-                        redisChgService.setex(redisKey, token, 5400);
-                    } else {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token调用异常,result= " + result.getMessage()));
-                    }
-                    redisChgService.unlock(redisKeyLock, value);
+                redisChgService.lock(redisKeyLock, value);
+                //获取锁成功，
+                //（多线程处理时）再查一遍
+                token = redisChgService.get(redisKey);
+                if (StringUtils.isNotEmpty(token)) {
+                    return token;
                 }
+                //调用获取token接口
+                Result<String> result = zhiJiaClient.getToken();
+                if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                    token = result.getData();
+                    //写入redis
+                    redisChgService.setex(redisKey, token, 5400);
+                } else {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token调用异常,result= " + result.getMessage()));
+                }
+                redisChgService.unlock(redisKeyLock, value);
             }
+
         } catch (Exception e) {
             redisChgService.unlock(redisKeyLock, value);
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token程序异常异常!"), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token程序处理异常!"), e);
         }
         return token;
     }
