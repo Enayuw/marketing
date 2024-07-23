@@ -1072,7 +1072,7 @@
             <include refid="Example_Where_Clause_1"/>
         </if>
         <if test="maxId != null and maxId>0">
-            id>$maxId
+            id>${maxId}
         </if>
         <choose>
             <when test="example.orderByClause != null">
