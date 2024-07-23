@@ -244,7 +244,20 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             throw new BusinessException("抱歉小主，客户不存在或已禁用");
         }
         ScoreRuleConfig rule = list.get(0);
-        MarketingCustomer customer = customerList.get(0);
+
+        String apiCodes = "";
+        String cid = "";
+        for(MarketingCustomer customer: customerList){
+            cid = customer.getCid();
+            String apiCode = customer.getApiCode();
+            if(!StringUtils.isEmpty(apiCode)){
+                apiCodes += apiCode+",";
+            }
+        }
+        if(apiCodes.length()>0 && ",".equals(apiCodes.indexOf(apiCodes.length()-1))){
+            apiCodes = apiCodes.substring(0, apiCodes.length()-1);
+        }
+
         ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
         scoreRuleVO.setId(rule.getId());
         scoreRuleVO.setRuleName(rule.getRuleName());
@@ -253,8 +266,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStrategyId(rule.getStrategyId());
         scoreRuleVO.setRuleNameShort(rule.getRuleNameShort());
         scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
-        scoreRuleVO.setApiCode(customer.getApiCode());
-        scoreRuleVO.setCid(customer.getCid());
+        scoreRuleVO.setApiCode(apiCodes);
+        scoreRuleVO.setCid(cid);
         scoreRuleVO.setExecType(rule.getExecType());
         scoreRuleVO.setBaseInfo(rule.getBaseInfo());
         scoreRuleVO.setCycleDay(rule.getCycleDay());
