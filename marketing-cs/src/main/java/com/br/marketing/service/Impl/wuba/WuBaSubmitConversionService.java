@@ -2,13 +2,15 @@ package com.br.marketing.service.Impl.wuba;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.WubaCollidingBatchNo;
+import com.br.marketing.entity.WubaSubmitConversionData;
+import com.br.marketing.entity.WubaSubmitConversionDataExample;
+import com.br.marketing.entity.WubaSubmitConversionDataLog;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataLogMapper;
 import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
@@ -23,9 +25,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -86,6 +85,7 @@ public class WuBaSubmitConversionService {
                     apiCode, status, pushStatus, createDate,  pageSize);
             if (CollectionUtils.isEmpty(pageList)) {
                 log.warn(TITLE+"scanData, 未获取到数据");
+                return;
             }
             log.warn(TITLE + "scanData 获取到数据, 条数{}", pageList.size());
 
@@ -215,17 +215,17 @@ public class WuBaSubmitConversionService {
         int magnitudes = outputDataList.size();
         long startTime = System.currentTimeMillis();
         List<WuBaSubmitDTO> wuBaSubmitDTOS = outputDataList.stream().map((WubaSubmitConversionData data) -> {
-            String marketingTime ="";
-            try {
-                String createDateStr = String.valueOf(data.getCreateDate());
-                Date createDate = DateUtils.parse(createDateStr, "yyyyMMdd");
-                marketingTime = DateUtils.format(createDate, "yyyy-MM-dd 00:00:00");
-            } catch (ParseException e) {
-                marketingTime = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
-            }
+//            String marketingTime ="";
+//            try {
+//                String createDateStr = String.valueOf(data.getCreateDate());
+//                Date createDate = DateUtils.parse(createDateStr, "yyyyMMdd");
+//                marketingTime = DateUtils.format(createDate, "yyyy-MM-dd 00:00:00");
+//            } catch (ParseException e) {
+//                marketingTime = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00"));
+//            }
             WuBaSubmitDTO wuBaSubmitDTO = new WuBaSubmitDTO();
             wuBaSubmitDTO.setMobile(data.getCell());
-            wuBaSubmitDTO.setMarketingTime(marketingTime);
+            wuBaSubmitDTO.setMarketingTime(data.getMarketingTime());
             return wuBaSubmitDTO;
         }).collect(Collectors.toList());
 
