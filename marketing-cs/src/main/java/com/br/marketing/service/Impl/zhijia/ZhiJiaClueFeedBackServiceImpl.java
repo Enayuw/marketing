@@ -192,6 +192,12 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     continue;
                 }
 
+                if(zhiJiaDataProcessService.getToken().isEmpty()){
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家线索获取token为空！"));
+                    continue;
+                }
+                reqAddZhiJiaClueDTO.setAccess_token(zhiJiaDataProcessService.getToken());
+
                 // 组装参数
                 reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
                 reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
@@ -236,7 +242,6 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
     }
 
     private void buildAddZhiJiaClue(ZhiJiaClueBackData zhiJiaClueBackData,ReqAddZhiJiaClueDTO dto) {
-        dto.setAccess_token(zhiJiaDataProcessService.getToken());
         String cell = RpcClientProxy.decode(zhiJiaClueBackData.getCell(), "cell", "md5", "");
         dto.setMobile(cell);
         dto.setMobilecode(encryptCell(cell));
