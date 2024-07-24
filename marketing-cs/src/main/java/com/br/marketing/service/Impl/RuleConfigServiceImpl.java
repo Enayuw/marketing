@@ -230,6 +230,13 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
 
         ArrayList<CustomerScoreRuleVO> customerScoreRuleVOS = new ArrayList<>();
         for (CustomerScoreRuleDto dto : scoreRuleDtoList) {
+            String tableName = "b_marketing_sync_" + dto.getApiCode();
+            try {
+                marketingCustomerMapper.checkTableExist(tableName);
+            }catch (Exception e){
+                continue;
+            }
+
             CustomerScoreRuleVO customerScoreRuleVO = new CustomerScoreRuleVO();
             BeanUtils.copyProperties(dto, customerScoreRuleVO);
             customerScoreRuleVOS.add(customerScoreRuleVO);
