@@ -194,21 +194,39 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
 
                 // 获取token
                 String token = zhiJiaDataProcessService.getToken();
-                if(token.isEmpty()){
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家线索获取token为空！"));
+                if(StringUtils.isEmpty(token)){
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家线索获取token为空！,id:" +id));
+                    updatePushStatus(id, 4, null, "之家线索获取token为空！,id:" +id);
                     continue;
                 }
-                reqAddZhiJiaClueDTO.setAccess_token(token);
+
+                // 解密手机号
+                String cell = RpcClientProxy.decode(zhiJiaClueBackData.getCell(), "cell", "md5", "");
+                if(StringUtils.isEmpty(cell)){
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家线索解密手机号失败！,id:" +id));
+                    updatePushStatus(id, 4, null, "之家线索解密手机号失败！,id:" +id);
+                    continue;
+                }
 
                 // 组装参数
+                reqAddZhiJiaClueDTO.setAccess_token(token);
                 reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
                 reqAddZhiJiaClueDTO.setCountyid(cityCountyDataDTO.getCountyId());
                 reqAddZhiJiaClueDTO.setBrandid(zhiJiaCarSeriesInfo.getBrandId() != null ?
                         String.valueOf(zhiJiaCarSeriesInfo.getBrandId()) : "");
                 reqAddZhiJiaClueDTO.setSeriesid(zhiJiaCarSeriesInfo.getSeriesId() != null ?
                         String.valueOf(zhiJiaCarSeriesInfo.getSeriesId()) : "");
+                reqAddZhiJiaClueDTO.setMobile(cell);
+                reqAddZhiJiaClueDTO.setMobilecode(encryptCell(cell));
+                reqAddZhiJiaClueDTO.setFirstregtime(zhiJiaClueBackData.getFirstregtime());
+                if(!zhiJiaClueBackData.getPlatenum().isEmpty()){
+                    reqAddZhiJiaClueDTO.setPlatenum(zhiJiaClueBackData.getPlatenum());
+                }
+                if(!zhiJiaClueBackData.getMileage().isEmpty()){
+                    reqAddZhiJiaClueDTO.setMileage(zhiJiaClueBackData.getMileage());
+                }
+                reqAddZhiJiaClueDTO.setAppid(StringUtils.isNotBlank(zhiJiaClientAppid) ? Integer.parseInt(zhiJiaClientAppid) : 1742);
 
-                buildAddZhiJiaClue(zhiJiaClueBackData, reqAddZhiJiaClueDTO);
                 // 调用高质线索创建接口
                 Result<String> result = zhiJiaClient.addZhiJiaClue(reqAddZhiJiaClueDTO);
                 // 更新结果
@@ -241,20 +259,6 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             record.setCclId(cclId);
         }
         zhiJiaClueBackDataMapper.updateByExampleSelective(record,example);
-    }
-
-    private void buildAddZhiJiaClue(ZhiJiaClueBackData zhiJiaClueBackData,ReqAddZhiJiaClueDTO dto) {
-        String cell = RpcClientProxy.decode(zhiJiaClueBackData.getCell(), "cell", "md5", "");
-        dto.setMobile(cell);
-        dto.setMobilecode(encryptCell(cell));
-        dto.setFirstregtime(zhiJiaClueBackData.getFirstregtime());
-        if(!zhiJiaClueBackData.getPlatenum().isEmpty()){
-            dto.setPlatenum(zhiJiaClueBackData.getPlatenum());
-        }
-        if(!zhiJiaClueBackData.getMileage().isEmpty()){
-            dto.setMileage(zhiJiaClueBackData.getMileage());
-        }
-        dto.setAppid(StringUtils.isNotBlank(zhiJiaClientAppid) ? Integer.parseInt(zhiJiaClientAppid) : 1742);
     }
 
     /**
