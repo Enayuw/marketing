@@ -33,7 +33,7 @@ public enum InterfaceHandlerEnum {
     YIXIN_REALTIME_TO_POLICY(29, "宜信实时数据推送决策接口(定制)"),
     XIE_CHENG_CPA_FILTER_INSERT_DB(30, "携程CPA撞库过滤数据落库(定制)"),
 
-    WUBA_CALL_RECORD_ADD_DB(31, "携程通话明细保存到携程推营销数据表(3710058/3710078)"),
+    WUBA_CALL_RECORD_ADD_DB(31, "58新客通话明细入库-3710155"),
     ;
 
 
