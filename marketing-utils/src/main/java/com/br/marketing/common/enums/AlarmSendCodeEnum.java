@@ -47,6 +47,10 @@ public enum AlarmSendCodeEnum {
     SERVICEERROR_UNKNOWN("63000", "业务未知错误"),
     //三方接口错误,立即推送，64000
     INTERFACE_ERROR("64000", "三方接口错误"),
+    //之家业务错误,立即推送
+    ZHIJIA_SERVICEERROR("6002001", "之家车线索业务异常"),
+    //之家接口错误,阶梯推送
+    ZHIJIA_INTERFACEERROR("6002002", "之家接口调用失败"),
 
     //数据治理平台调用marketing-inner-api邮件发送接口使用
     DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),

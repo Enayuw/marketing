@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.zhijia;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
@@ -72,7 +71,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getCityAndCounty() {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token异常!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -81,7 +80,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             jsonObject = result.getData();
         } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家省市区调用异常,result= " + result.getMessage()));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家省市区调用异常,result= " + result.getMessage()));
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
         JSONArray cityList = resultJson.getJSONArray("city");
@@ -150,7 +149,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getBrandAndseries() {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token异常!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -159,7 +158,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         if (ResultCode.SUCCESS.getValue().equals(resultBrand.getCode())) {
             jsonObject = resultBrand.getData();
         } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode()
                     , "之家车辆品牌接口调用异常,result= " + resultBrand.getMessage()));
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
@@ -211,7 +210,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     public void getSeries(Integer brandId) {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token异常!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家获取token异常!"));
             return;
         }
         String zhiJiaApiCode = marketingCommonConfig.getZhiJiaApiCode();
@@ -220,7 +219,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         if (ResultCode.SUCCESS.getValue().equals(resultBrand.getCode())) {
             jsonObject = resultBrand.getData();
         } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode()
                     , "之家车辆车系接口调用异常,result= " + resultBrand.getMessage()));
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
@@ -262,7 +261,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 });
             });
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家车辆车系信息入库线程错误！"), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家车辆车系信息入库线程错误！"), e);
         } finally {
             threadPool.shutdown();
         }
@@ -405,14 +404,14 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                     //写入redis
                     redisChgService.setex(redisKey, token, 5400);
                 } else {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token调用异常,result= " + result.getMessage()));
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家获取token调用异常,result= " + result.getMessage()));
                 }
                 redisChgService.unlock(redisKeyLock, value);
             }
 
         } catch (Exception e) {
             redisChgService.unlock(redisKeyLock, value);
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家获取token程序处理异常!"), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家获取token程序异常异常!"), e);
         }
         return token;
     }
@@ -425,7 +424,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample);
         if (zhiJiaCarBrandInfos.isEmpty()) {
             // 今日配置表为空,报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家今日车品牌配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家今日车品牌配置表为空!"));
             ZhiJiaCarBrandInfoExample zhiJiaCarBrandInfoExample1 = new ZhiJiaCarBrandInfoExample();
             zhiJiaCarBrandInfoExample.createCriteria().andAppletDateLessThanOrEqualTo(LocalDate.now().toString());
             List<ZhiJiaCarBrandInfo> zhiJiaCarBrandInfos1 = zhiJiaCarBrandInfoMapper.selectByExample(zhiJiaCarBrandInfoExample1);
@@ -494,7 +493,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
         if (zhiJiaCarSeriesInfos.isEmpty()) {
             // 今日车系配置表为空，报警，并启用原有配置表！
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "今日车系配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "今日车系配置表为空!"));
             ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample1 = new ZhiJiaCarSeriesInfoExample();
             zhiJiaCarSeriesInfoExample1.createCriteria()
                     .andBrandIdEqualTo(brandId);
@@ -634,7 +633,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 .andUploadDateEqualTo(LocalDate.now().toString());
         zhijiaCityConfig = zhijiaCityConfigMapper.selectByExample(zhijiaCityConfigExample);
         if (zhijiaCityConfig.isEmpty()) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "今日城市配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "今日城市配置表为空!"));
             ZhijiaCityConfigExample zhijiaCityConfigExampleYes = new ZhijiaCityConfigExample();
             zhijiaCityConfigExampleYes.createCriteria()
                     .andUploadDateEqualTo(LocalDate.now().minusDays(1).toString());
@@ -658,7 +657,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                 .andUploadDateEqualTo(LocalDate.now().toString());
         zhijiaCountyConfigList = zhijiaCountyConfigBMapper.selectByExample(zhijiaCountyConfigExample);
         if (zhijiaCountyConfigList.isEmpty()) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家今日区县配置表为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家今日区县配置表为空!"));
             ZhijiaCountyConfigExample zhijiaCountConfigExampleYes = new ZhijiaCountyConfigExample();
             zhijiaCountyConfigExample.createCriteria()
                     .andUploadDateEqualTo(LocalDate.now().minusDays(1).toString());

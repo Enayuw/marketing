@@ -30,7 +30,6 @@ import javax.annotation.Resource;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
@@ -94,11 +93,11 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
         List<ZhiJiaCarBrandInfo> carBrandInfos = zhiJiaDataProcessService.getCarBrandInfos();
 
         if(cityConfigList.isEmpty() || countyConfigList.isEmpty()){
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家初始化市区信息为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家初始化市区信息为空!"));
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("之家初始化市区信息为空");
         }
         if(carBrandInfos.isEmpty()){
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家初始化车辆信息为空!"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家初始化车辆信息为空!"));
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("之家初始化车辆信息为空");
         }
 
@@ -131,7 +130,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             }
         } catch (InterruptedException ex) {
             zhiJiaCollidingThread.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家创建线索接口线程池关闭！异常"), ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家创建线索接口线程池关闭！异常"), ex);
             Thread.currentThread().interrupt();
         }
 
@@ -219,7 +218,7 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     errorStatistics(id,result.getMessage(),sb);
                 }
             }catch (Exception e){
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "之家线索创建异常！"), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家线索创建异常！"), e);
             }
         }
     }
@@ -282,9 +281,9 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
     private void sendAlarm(Integer failNum, String title) {
         if (failNum > 0) {
             try {
-                alarmClient.sendAlarm("推送失败条数=" + failNum, title, AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode());
+                alarmClient.sendAlarm("推送失败条数=" + failNum, title, AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode());
             } catch (Exception ex) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), ex.getMessage()), ex);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), ex.getMessage()), ex);
             }
         }
     }

@@ -96,7 +96,7 @@ public class ZhiJiaClient {
 
         // 请求异常
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_INTERFACEERROR.getCode(),
                     TITLE + "接口异常-请求参数:" + JSON.toJSONString(dto) + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
@@ -110,7 +110,7 @@ public class ZhiJiaClient {
             log.warn(TITLE + "接口，返回returncode为0，请求正常");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(data.getString("cclid"));
         } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(), TITLE + "接口异常，返回returncode非0，最多重试三次"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_INTERFACEERROR.getCode(), TITLE + "接口异常，返回returncode非0，最多重试三次"));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
     }
@@ -128,7 +128,7 @@ public class ZhiJiaClient {
                 JSON.toJSONString(jsonObject), true, true);
 
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_INTERFACEERROR.getCode(),
                     "之之家获取token接口异常-请求参数:" + JSON.toJSONString(jsonObject) + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
@@ -147,7 +147,7 @@ public class ZhiJiaClient {
         String url = cityInfoUrl.concat("?access_token=").concat(token);
         resMap = httpProxyClient.get(url, isProxy,"GBK");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(),
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_INTERFACEERROR.getCode(),
                     "之家获取省市县接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
@@ -168,7 +168,7 @@ public class ZhiJiaClient {
         String url = brandUrl.concat("?access_token=").concat(token).concat("&appid=").concat(appId).concat("&querykey=").concat(querykey);
         resMap = httpProxyClient.get(url, isProxy,"GBK");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_INTERFACEERROR.getCode()
                     , "之家获取车辆品牌接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
@@ -192,7 +192,7 @@ public class ZhiJiaClient {
                 .concat("&brandId=").concat(brandId);
         resMap = httpProxyClient.get(url, isProxy,"GBK");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_INTERFACEERROR.getCode()
                     , "之家获取车辆车系接口异常-请求url:" + url + ";返回:" + JSON.toJSONString(resMap)));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
