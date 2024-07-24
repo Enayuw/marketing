@@ -9,6 +9,7 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
+import com.br.marketing.dto.shuhe.strategy.ChongShen;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -69,16 +70,19 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+        BaseUserType baseUserType = shuHeRuleNecessaryData.getBaseUserType();
         //促复借新增推送字段
-        if ("促复借".equals(transfer.getUserType())) {
-            conversionData.setInversionDate(transfer.getTransformTime());
-            conversionData.setEffectiveDate(transfer.getRequestTime());
+        if (baseUserType instanceof CuFuJie || baseUserType instanceof ChongShen) {
+            if (baseUserType instanceof CuFuJie) {
+                conversionData.setInversionDate(transfer.getTransformTime());
+                conversionData.setEffectiveDate(transfer.getRequestTime());
+            }
+            //生效截止时间
+            String plusDays;
+            Map<String, SyncUserValidityPeriodsBO> boMap = shuHeRuleNecessaryData.getUserValidityPeriodsBOMap();
+            plusDays = boMap.get(transfer.getCustNum()).getBuilders().get(0).addDateString().builder().getEnDateStr();
+            conversionData.setExpireDate(plusDays + " 23:59:59");
         }
-        //生效截止时间
-        String plusDays;
-        Map<String, SyncUserValidityPeriodsBO> boMap = shuHeRuleNecessaryData.getUserValidityPeriodsBOMap();
-        plusDays = boMap.get(transfer.getCustNum()).getBuilders().get(0).addDateString().builder().getEnDateStr();
-        conversionData.setExpireDate(plusDays + " 23:59:59");
         return conversionData;
     }
 
