@@ -99,7 +99,7 @@
         left join b_customer_rule bcr on src.id = bcr.rule_id
         left join b_marketing_customer bmc on bcr.customer_id = bmc.id
         <where>
-            src.is_del=1
+            src.is_del=1 and bcr.is_del = 1 and bmc.status = 1
             <if test="ruleIdList != null and ruleIdList.size() > 0">
                 and src.id in
                 <foreach collection="ruleIdList" item="ruleId" separator="," open="(" close=")">
@@ -113,5 +113,6 @@
                 </foreach>
             </if>
         </where>
+        order by src.start_time asc
     </select>
 </mapper>
