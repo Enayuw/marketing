@@ -257,25 +257,23 @@ public class ShuHeArtificialCallFromDelayImpl implements AssembleData<RealTimeUs
         dataDTO.setName("1");
         baseUserType.getPrivateInfo(dataDTO);
         dataDTO.setUid(caseShuheUser.getCustNum());
-        if (baseUserType instanceof CuShouJie) {
-            if (!Objects.isNull(marketingUserByCell)) {
-                JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
-                String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
-                    extend.put("if_coupon", IfCoupon);
-                }
-                String IfTie = parseObject.getOrDefault("if_tie", "").toString();
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfTie)) {
-                    extend.put("if_tie", IfTie);
-                }
-                String aftLmt = parseObject.getOrDefault("aft_lmt", "").toString();
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(aftLmt)) {
-                    extend.put("aft_lmt", aftLmt);
-                }
-                String IfCs = parseObject.getOrDefault("if_cs", "").toString();
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCs)) {
-                    extend.put("if_cs", IfCs);
-                }
+        if (baseUserType instanceof CuShouJie && !Objects.isNull(marketingUserByCell)) {
+            JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
+            String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
+                extend.put("if_coupon", IfCoupon);
+            }
+            String IfTie = parseObject.getOrDefault("if_tie", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(IfTie)) {
+                extend.put("if_tie", IfTie);
+            }
+            String aftLmt = parseObject.getOrDefault("aft_lmt", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(aftLmt)) {
+                extend.put("aft_lmt", aftLmt);
+            }
+            String IfCs = parseObject.getOrDefault("if_cs", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCs)) {
+                extend.put("if_cs", IfCs);
             }
         }
         if (baseUserType instanceof CuFuJie) {
