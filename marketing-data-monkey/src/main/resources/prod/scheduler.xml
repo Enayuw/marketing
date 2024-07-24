@@ -24,8 +24,8 @@
                    nested-port="${NESTED_PORT}"
                    nested-data-dir="${NESTED_DATA_DIR}"/>
 
-    <job:simple id="ZhongAnPushRosterLockingDataJob"
-                class="com.br.marketing.monkey.job.ZhongAnPushRosterLockingDataJob"
+    <job:simple id="【monkey】-ZhongAnPushRosterLockingDataJob"
+                class="com.br.marketing.monkey.job.zhongan.ZhongAnPushRosterLockingDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="名单锁定推送众安"
                 registry-center-ref="regCenter"
@@ -39,8 +39,8 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="ZhongAnPushBlackDataJob"
-                class="com.br.marketing.monkey.job.ZhongAnPushBlackDataJob"
+    <job:simple id="【monkey】-ZhongAnPushBlackDataJob"
+                class="com.br.marketing.monkey.job.zhongan.ZhongAnPushBlackDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="众安信贷自动化推送黑名单"
                 registry-center-ref="regCenter"
@@ -55,8 +55,8 @@
     />
 
 
-    <job:simple id="ZhongAnPushRosterLockingDataOtherTagJob"
-                class="com.br.marketing.monkey.job.ZhongAnPushRosterLockingDataOtherTagJob"
+    <job:simple id="【monkey】-ZhongAnPushRosterLockingDataOtherTagJob"
+                class="com.br.marketing.monkey.job.zhongan.ZhongAnPushRosterLockingDataOtherTagJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="名单锁定其他标签推送众安"
                 registry-center-ref="regCenter"
