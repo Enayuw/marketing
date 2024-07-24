@@ -77,6 +77,7 @@ public class PulsarConsumerThread extends Thread {
                         try {
                             Thread.sleep(5000L);
                         } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                             throw new RuntimeException(e);
                         }
                         continue;
