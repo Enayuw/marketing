@@ -125,14 +125,16 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             if (!"200".equals(resMap.getString("httpcode")) || StringUtils.isBlank(resMap.getString("content"))) {
                 title = "58查询撞库结果，调用客户接口异常";
                 msg = title + "，响应内容：" + JSON.toJSONString(resMap);
-                wuBaServiceClient.sendDingDingAlert("58查询撞库结果，调用客户接口异常", msg);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                        , title));
                 return;
             }
 
             // 9991
             title = "58查询撞库结果，code返回9991";
             msg = title + "，响应内容：" + JSON.toJSONString(resMap);
-            wuBaServiceClient.sendDingDingAlert("58查询撞库结果，code返回9991", msg);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
             return;
         }
 
@@ -141,7 +143,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
             title = "58查询撞库结果，code码异常";
             msg = title + "，响应内容：" + JSON.toJSONString(resMap);
-            wuBaServiceClient.sendDingDingAlert("58查询撞库结果，code码异常", msg);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
             updateQueryStatus(wubaCollidingBatchNo, 2);
             return;
         }
