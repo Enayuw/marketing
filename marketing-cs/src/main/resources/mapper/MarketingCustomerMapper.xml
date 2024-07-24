@@ -168,4 +168,9 @@
             api_code like concat(#{prefix},'%')
         </foreach>
     </select>
+
+    <select id="checkTableExist" parameterType="string" resultType="Map">
+        desc ${tableName}
+    </select>
+
 </mapper>
