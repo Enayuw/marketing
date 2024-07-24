@@ -355,4 +355,9 @@ public interface MarketingSyncUserMapper {
                                                   @Param("minId") Long minId,
                                                   @Param("createDate") String createDate,
                                                   @Param("pageSize") Integer pageSize);
+
+    MarketingSyncUser getMarketingSyncByCusBatch(@Param("apiCode") String apiCode,
+                               @Param("cusBatch") String cusBatch,
+                               @Param("userType") String userType,
+                               @Param("appletDate") String appletDate);
 }

@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.SushangCallRecordDataMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.SushangCallRecordData">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="local_id" jdbcType="BIGINT" property="localId" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="task_id" jdbcType="VARCHAR" property="taskId" />
+    <result column="cust_num" jdbcType="VARCHAR" property="custNum" />
+    <result column="touch_type" jdbcType="VARCHAR" property="touchType" />
+    <result column="call_time" jdbcType="VARCHAR" property="callTime" />
+    <result column="push_time" jdbcType="VARCHAR" property="pushTime" />
+    <result column="push_status" jdbcType="INTEGER" property="pushStatus" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="data_message" jdbcType="VARCHAR" property="dataMessage" />
+    <result column="extend" jdbcType="VARCHAR" property="extend" />
+    <result column="create_date" jdbcType="INTEGER" property="createDate" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, api_code, local_id, `type`, task_id, cust_num, touch_type, call_time, push_time, 
+    push_status, `status`, data_message, extend, create_date, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.SushangCallRecordDataExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_sushang_call_record_data
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_sushang_call_record_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_sushang_call_record_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.SushangCallRecordDataExample">
+    delete from b_sushang_call_record_data
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.SushangCallRecordData" useGeneratedKeys="true">
+    insert into b_sushang_call_record_data (api_code, local_id, `type`, 
+      task_id, cust_num, touch_type, 
+      call_time, push_time, push_status, 
+      `status`, data_message, extend, 
+      create_date, create_time, update_time
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
+      #{taskId,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, #{touchType,jdbcType=VARCHAR}, 
+      #{callTime,jdbcType=VARCHAR}, #{pushTime,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, 
+      #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
+      #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.SushangCallRecordData" useGeneratedKeys="true">
+    insert into b_sushang_call_record_data
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        api_code,
+      </if>
+      <if test="localId != null">
+        local_id,
+      </if>
+      <if test="type != null">
+        `type`,
+      </if>
+      <if test="taskId != null">
+        task_id,
+      </if>
+      <if test="custNum != null">
+        cust_num,
+      </if>
+      <if test="touchType != null">
+        touch_type,
+      </if>
+      <if test="callTime != null">
+        call_time,
+      </if>
+      <if test="pushTime != null">
+        push_time,
+      </if>
+      <if test="pushStatus != null">
+        push_status,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="dataMessage != null">
+        data_message,
+      </if>
+      <if test="extend != null">
+        extend,
+      </if>
+      <if test="createDate != null">
+        create_date,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null">
+        #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="taskId != null">
+        #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null">
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="touchType != null">
+        #{touchType,jdbcType=VARCHAR},
+      </if>
+      <if test="callTime != null">
+        #{callTime,jdbcType=VARCHAR},
+      </if>
+      <if test="pushTime != null">
+        #{pushTime,jdbcType=VARCHAR},
+      </if>
+      <if test="pushStatus != null">
+        #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null">
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null">
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.SushangCallRecordDataExample" resultType="java.lang.Long">
+    select count(*) from b_sushang_call_record_data
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_sushang_call_record_data
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null">
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localId != null">
+        local_id = #{record.localId,jdbcType=BIGINT},
+      </if>
+      <if test="record.type != null">
+        `type` = #{record.type,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taskId != null">
+        task_id = #{record.taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custNum != null">
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.touchType != null">
+        touch_type = #{record.touchType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callTime != null">
+        call_time = #{record.callTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushTime != null">
+        push_time = #{record.pushTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushStatus != null">
+        push_status = #{record.pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataMessage != null">
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null">
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createDate != null">
+        create_date = #{record.createDate,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_sushang_call_record_data
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      local_id = #{record.localId,jdbcType=BIGINT},
+      `type` = #{record.type,jdbcType=VARCHAR},
+      task_id = #{record.taskId,jdbcType=VARCHAR},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
+      touch_type = #{record.touchType,jdbcType=VARCHAR},
+      call_time = #{record.callTime,jdbcType=VARCHAR},
+      push_time = #{record.pushTime,jdbcType=VARCHAR},
+      push_status = #{record.pushStatus,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_date = #{record.createDate,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.SushangCallRecordData">
+    update b_sushang_call_record_data
+    <set>
+      <if test="apiCode != null">
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null">
+        local_id = #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="type != null">
+        `type` = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="taskId != null">
+        task_id = #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null">
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="touchType != null">
+        touch_type = #{touchType,jdbcType=VARCHAR},
+      </if>
+      <if test="callTime != null">
+        call_time = #{callTime,jdbcType=VARCHAR},
+      </if>
+      <if test="pushTime != null">
+        push_time = #{pushTime,jdbcType=VARCHAR},
+      </if>
+      <if test="pushStatus != null">
+        push_status = #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null">
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null">
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null">
+        create_date = #{createDate,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.SushangCallRecordData">
+    update b_sushang_call_record_data
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      local_id = #{localId,jdbcType=BIGINT},
+      `type` = #{type,jdbcType=VARCHAR},
+      task_id = #{taskId,jdbcType=VARCHAR},
+      cust_num = #{custNum,jdbcType=VARCHAR},
+      touch_type = #{touchType,jdbcType=VARCHAR},
+      call_time = #{callTime,jdbcType=VARCHAR},
+      push_time = #{pushTime,jdbcType=VARCHAR},
+      push_status = #{pushStatus,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_date = #{createDate,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

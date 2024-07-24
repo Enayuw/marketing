@@ -1,15 +1,16 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.util.Date;
 
-/**
- * b_marketing_data_file_config
- * @author 
- */
-public class MarketingDataFileConfig implements Serializable {
+public class MarketingDataFileConfig {
+    /**
+     * 
+     */
     private Long id;
 
+    /**
+     * 
+     */
     private String apiCode;
 
     /**
@@ -58,7 +59,7 @@ public class MarketingDataFileConfig implements Serializable {
     private Integer isDel;
 
     /**
-     * 是否校验表名 0校验 1不校验
+     * 是否校验表名称 0校验 1不校验
      */
     private Byte isChecklistName;
 
@@ -67,7 +68,20 @@ public class MarketingDataFileConfig implements Serializable {
      */
     private String validationRules;
 
-    private static final long serialVersionUID = 1L;
+    /**
+     * 待清洗的数据表
+     */
+    private String autoTableName;
+
+    /**
+     * 清洗去重字段
+     */
+    private String autoDuplicateColumn;
+
+    /**
+     * 清洗数据查询sql，需要包含id
+     */
+    private String autoSearchDataSql;
 
     public Long getId() {
         return id;
@@ -82,7 +96,7 @@ public class MarketingDataFileConfig implements Serializable {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode;
+        this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
     public Integer getFileId() {
@@ -106,7 +120,7 @@ public class MarketingDataFileConfig implements Serializable {
     }
 
     public void setRuleName(String ruleName) {
-        this.ruleName = ruleName;
+        this.ruleName = ruleName == null ? null : ruleName.trim();
     }
 
     public String getFieldConfig() {
@@ -114,7 +128,7 @@ public class MarketingDataFileConfig implements Serializable {
     }
 
     public void setFieldConfig(String fieldConfig) {
-        this.fieldConfig = fieldConfig;
+        this.fieldConfig = fieldConfig == null ? null : fieldConfig.trim();
     }
 
     public String getFieldConfigShow() {
@@ -122,7 +136,7 @@ public class MarketingDataFileConfig implements Serializable {
     }
 
     public void setFieldConfigShow(String fieldConfigShow) {
-        this.fieldConfigShow = fieldConfigShow;
+        this.fieldConfigShow = fieldConfigShow == null ? null : fieldConfigShow.trim();
     }
 
     public String getServiceName() {
@@ -130,7 +144,7 @@ public class MarketingDataFileConfig implements Serializable {
     }
 
     public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
+        this.serviceName = serviceName == null ? null : serviceName.trim();
     }
 
     public Date getCreateTime() {
@@ -170,6 +184,30 @@ public class MarketingDataFileConfig implements Serializable {
     }
 
     public void setValidationRules(String validationRules) {
-        this.validationRules = validationRules;
+        this.validationRules = validationRules == null ? null : validationRules.trim();
+    }
+
+    public String getAutoTableName() {
+        return autoTableName;
+    }
+
+    public void setAutoTableName(String autoTableName) {
+        this.autoTableName = autoTableName == null ? null : autoTableName.trim();
+    }
+
+    public String getAutoDuplicateColumn() {
+        return autoDuplicateColumn;
+    }
+
+    public void setAutoDuplicateColumn(String autoDuplicateColumn) {
+        this.autoDuplicateColumn = autoDuplicateColumn == null ? null : autoDuplicateColumn.trim();
+    }
+
+    public String getAutoSearchDataSql() {
+        return autoSearchDataSql;
+    }
+
+    public void setAutoSearchDataSql(String autoSearchDataSql) {
+        this.autoSearchDataSql = autoSearchDataSql == null ? null : autoSearchDataSql.trim();
     }
 }

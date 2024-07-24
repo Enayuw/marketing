@@ -94,13 +94,21 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
                 BeanUtils.copyProperties(first.get(), vo);
                 vo.setApiCode(apiCode);
                 vo.setConditionInfo(t.getConditionInfo());
+                vo.setAllUserType(t.getAllUserType());
+                vo.setUserTypeCount(t.getUserTypeCount());
                 resList.add(vo);
             }
         });
         if (resList.size() > 0) {
+            resList.sort(
+                    Comparator.comparing(CustomerSoleRuleVO::getAllUserType,Comparator.nullsLast(Comparator.naturalOrder()))
+                            .thenComparing(CustomerSoleRuleVO::getUserTypeCount,Comparator.nullsLast(Comparator.naturalOrder()))
+            );
             ruleRedisService.setSoleConfigRedis(apiCode, resList);
+            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resList);
+        }else{
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setDate("未匹配到用户的去重规则");
         }
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(resList);
     }
 
     @Override

@@ -147,7 +147,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         }
         //保存任务
         MarketingCleanDataTask task = new MarketingCleanDataTask();
-        task.setConfigId(configId.intValue());
+        task.setConfigId(configId);
         task.setFileId(dto.getFileIds());
         task.setCleanType(dto.getFileType());
         task.setUpdateTime(new Date());

@@ -15,6 +15,9 @@ public enum SftpFileTypeEnum {
     ,ZHONGBANGLABEL("zhongbanglabel")
     ,TONGCHENG_UNDO_PUSHTOCUSTOMER("tongcheng_undo_pushToCustomer")
     ,XIECHENGSMSQUIT("xiechengsms")
+    ,SUSHANG_TRANSFER("sushang_transfer")
+    ,SUSHANG_CALLRECORD("sushang_callrecord")
+    ,WUBA_COLLIDING("wuba_colliding")
     ,DD("didi");
    private String value;
 }
