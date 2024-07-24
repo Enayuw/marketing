@@ -192,11 +192,13 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                     continue;
                 }
 
-                if(zhiJiaDataProcessService.getToken().isEmpty()){
+                // 获取token
+                String token = zhiJiaDataProcessService.getToken();
+                if(token.isEmpty()){
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家线索获取token为空！"));
                     continue;
                 }
-                reqAddZhiJiaClueDTO.setAccess_token(zhiJiaDataProcessService.getToken());
+                reqAddZhiJiaClueDTO.setAccess_token(token);
 
                 // 组装参数
                 reqAddZhiJiaClueDTO.setCid(cityCountyDataDTO.getCId());
