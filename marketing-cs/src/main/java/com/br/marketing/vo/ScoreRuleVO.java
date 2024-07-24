@@ -9,6 +9,8 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -53,6 +55,10 @@ public class ScoreRuleVO implements Serializable {
     @ApiModelProperty(value = "客户配置变量值字典集合", dataType = "array", position = 5)
     @NotNull(message = "场景不可为空")
     private Set<VariableDicSelectVO> vdSet;
+
+    @ApiModelProperty(value = "", dataType = "array", position = 16)
+    @NotNull(message = "场景不可为空")
+    private List<Map<String, Object>> variableList;
 
     /**
      * 跑分时间 格式HH:mm
