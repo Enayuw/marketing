@@ -186,7 +186,7 @@ public class WuBaQueryConversionResultService {
             String msg = String.format(TITLE + "调用接口失败, batchNo: %s, resMap: %s",
                     wubaCollidingBatchNo.getBatchNo(), JSONObject.toJSONString(callResult.getData()));
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg));
-            wuBaDingDingService.sendAlert(TITLE, msg);
+            // wuBaDingDingService.sendAlert(TITLE, msg);
 
             if(callResult.getData()== null){
                 return result;

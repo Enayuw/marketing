@@ -241,7 +241,7 @@ public class WuBaSubmitConversionService {
             }
             String msg = String.format(TITLE + "调用接口失败, resMap: %s", resMapStr);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg));
-            wuBaDingDingService.sendAlert(TITLE, msg);
+            // wuBaDingDingService.sendAlert(TITLE, msg);
             return result;
         }
         String batchNo = (String) callResult.getData();
