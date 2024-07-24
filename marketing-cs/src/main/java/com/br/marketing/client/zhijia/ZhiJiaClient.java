@@ -107,8 +107,10 @@ public class ZhiJiaClient {
         String returncode = resultJson.getString("returncode");
 
         if ("0".equals(returncode)) {
+            log.warn(TITLE + "接口，返回returncode为0，请求正常");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(data.getString("cclid"));
         } else {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_INTERFACEERROR.getCode(), TITLE + "接口异常，返回returncode非0，最多重试三次"));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
     }
