@@ -372,6 +372,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
                 if (apiCode.equals(variableApiCode)) {
                     isFind = true;
                     vdSet = (Set<VariableDicSelectVO>) variableMap.get("vdSet");
+                    break;
                 }
             }
 
