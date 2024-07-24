@@ -7,7 +7,7 @@ import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.WubaCollidingBatchNo;
+import com.br.marketing.entity.WubaCollidingDataBatchNo;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.entity.WubaSubmitConversionDataExample;
 import com.br.marketing.entity.WubaSubmitConversionDataLog;
@@ -133,7 +133,7 @@ public class WuBaSubmitConversionService {
         log.warn(TITLE + "batchNo{}", batchNo);
 
         // 上报批次表增加记录，query_status置为0-未查询
-        WubaCollidingBatchNo batchRecord = new WubaCollidingBatchNo();
+        WubaCollidingDataBatchNo batchRecord = new WubaCollidingDataBatchNo();
         batchRecord.setApiCode(apiCode);
         batchRecord.setBatchNo(batchNo);
         batchRecord.setBatchType(2);

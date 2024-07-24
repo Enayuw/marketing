@@ -1,31 +1,31 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.entity.WubaCollidingBatchNo;
-import com.br.marketing.entity.WubaCollidingBatchNoExample;
+import com.br.marketing.entity.WubaCollidingDataBatchNo;
+import com.br.marketing.entity.WubaCollidingDataBatchNoExample;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
 public interface WubaCollidingBatchNoMapperBase {
-    int countByExample(WubaCollidingBatchNoExample example);
+    int countByExample(WubaCollidingDataBatchNoExample example);
 
-    int deleteByExample(WubaCollidingBatchNoExample example);
+    int deleteByExample(WubaCollidingDataBatchNoExample example);
 
     int deleteByPrimaryKey(Long id);
 
-    int insert(WubaCollidingBatchNo record);
+    int insert(WubaCollidingDataBatchNo record);
 
-    int insertSelective(WubaCollidingBatchNo record);
+    int insertSelective(WubaCollidingDataBatchNo record);
 
-    List<WubaCollidingBatchNo> selectByExample(WubaCollidingBatchNoExample example);
+    List<WubaCollidingDataBatchNo> selectByExample(WubaCollidingDataBatchNoExample example);
 
-    WubaCollidingBatchNo selectByPrimaryKey(Long id);
+    WubaCollidingDataBatchNo selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") WubaCollidingBatchNo record, @Param("example") WubaCollidingBatchNoExample example);
+    int updateByExampleSelective(@Param("record") WubaCollidingDataBatchNo record, @Param("example") WubaCollidingDataBatchNoExample example);
 
-    int updateByExample(@Param("record") WubaCollidingBatchNo record, @Param("example") WubaCollidingBatchNoExample example);
+    int updateByExample(@Param("record") WubaCollidingDataBatchNo record, @Param("example") WubaCollidingDataBatchNoExample example);
 
-    int updateByPrimaryKeySelective(WubaCollidingBatchNo record);
+    int updateByPrimaryKeySelective(WubaCollidingDataBatchNo record);
 
-    int updateByPrimaryKey(WubaCollidingBatchNo record);
+    int updateByPrimaryKey(WubaCollidingDataBatchNo record);
 }

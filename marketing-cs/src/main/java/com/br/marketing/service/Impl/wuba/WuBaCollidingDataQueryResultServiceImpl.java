@@ -11,7 +11,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCleanDataTask;
-import com.br.marketing.entity.WubaCollidingBatchNo;
+import com.br.marketing.entity.WubaCollidingDataBatchNo;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.entity.WubaCollidingDataSyncClean;
@@ -77,7 +77,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             Date pushTime = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
             Integer pageSize = marketingCommonConfig.getWuBaCollidingQueryResultPageSize();
 
-            List<WubaCollidingBatchNo> wubaCollidingBatchNos = wubaCollidingBatchNoMapper.selectCollidingDataResult(pushTime, pageSize, apiCode);
+            List<WubaCollidingDataBatchNo> wubaCollidingBatchNos = wubaCollidingBatchNoMapper.selectCollidingDataResult(pushTime, pageSize, apiCode);
             if (CollectionUtils.isEmpty(wubaCollidingBatchNos)) {
                 return;
             }
@@ -87,11 +87,11 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
             Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "58新客_上传清洗规则勿动");
 
-            for (WubaCollidingBatchNo wubaCollidingBatchNo : wubaCollidingBatchNos) {
+            for (WubaCollidingDataBatchNo wubaCollidingBatchNo : wubaCollidingBatchNos) {
                 queryAndSaveResult(wubaCollidingBatchNo, taskId);
             }
 
-            List<String> batchNos = wubaCollidingBatchNos.stream().map(WubaCollidingBatchNo::getBatchNo).collect(Collectors.toList());
+            List<String> batchNos = wubaCollidingBatchNos.stream().map(WubaCollidingDataBatchNo::getBatchNo).collect(Collectors.toList());
             int cleanCount = getCleanCountByBatchNos(batchNos, apiCode);
             if (cleanCount <= 0) {
                 MarketingCleanDataTask cleanDataTask = new MarketingCleanDataTask();
@@ -107,7 +107,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         });
     }
 
-    private void queryAndSaveResult(WubaCollidingBatchNo wubaCollidingBatchNo, Long taskId) {
+    private void queryAndSaveResult(WubaCollidingDataBatchNo wubaCollidingBatchNo, Long taskId) {
         String batchNo = wubaCollidingBatchNo.getBatchNo();
         String apiCode = wubaCollidingBatchNo.getApiCode();
         if (StringUtils.isEmpty(batchNo)) {
@@ -234,8 +234,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
     }
 
-    private void updateQueryStatus(WubaCollidingBatchNo wubaCollidingBatchNo, Integer queryStatus) {
-        WubaCollidingBatchNo collidingBatchNo = new WubaCollidingBatchNo();
+    private void updateQueryStatus(WubaCollidingDataBatchNo wubaCollidingBatchNo, Integer queryStatus) {
+        WubaCollidingDataBatchNo collidingBatchNo = new WubaCollidingDataBatchNo();
         collidingBatchNo.setId(wubaCollidingBatchNo.getId());
         collidingBatchNo.setQueryStatus(queryStatus);
         wubaCollidingBatchNoMapper.updateByPrimaryKeySelective(collidingBatchNo);

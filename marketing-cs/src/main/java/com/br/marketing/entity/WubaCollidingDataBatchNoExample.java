@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class WubaCollidingBatchNoExample {
+public class WubaCollidingDataBatchNoExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public WubaCollidingBatchNoExample() {
+    public WubaCollidingDataBatchNoExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
