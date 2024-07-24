@@ -9,14 +9,8 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.CustomerRule;
-import com.br.marketing.entity.CustomerRuleExample;
-import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.entity.MarketingCustomerExample;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.ScoreRuleConfig;
-import com.br.marketing.entity.ScoreRuleConfigExample;
+import com.br.marketing.dto.CustomerScoreRuleDTO;
+import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -117,6 +111,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         // 2024-07-18 修改为多apiCode
         List<Map<String, Object>> variableList = scoreRuleVO.getVariableList();
         List<String> apiCodeList = variableList.stream().map((Map<String, Object> item) -> {
+            if(StringUtils.isEmpty(item.get("apiCode"))){
+                throw new BusinessException("抱歉小主，apiCode不正确");
+            }
             String apiCode = String.valueOf(item.get("apiCode"));
             return apiCode;
         }).collect(Collectors.toList());
@@ -258,7 +255,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStrategyProductShow(rule.getStrategyProductShow());
         scoreRuleVO.setStrategyId(rule.getStrategyId());
         scoreRuleVO.setRuleNameShort(rule.getRuleNameShort());
-        // 2024-07-24
+        // TODO 2024-07-24
         // scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
         scoreRuleVO.setVariableList(getVariableList(scoreRuleVoList));
         scoreRuleVO.setApiCode(apiCodes);
@@ -338,12 +335,15 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         // 默认开启
         rule.setStatus(1);
 
-        String apiCode = scoreRuleVO.getApiCode();
-        List<String> apiCodeList = new ArrayList<>();
-        if(!StringUtils.isEmpty(apiCode)){
-            String[] apiCodeArray = apiCode.split(",");
-            apiCodeList = Arrays.asList(apiCodeArray);
-        }
+        // 2024-07-24 修改为多apiCode
+        List<Map<String, Object>> variableList = scoreRuleVO.getVariableList();
+        List<String> apiCodeList = variableList.stream().map((Map<String, Object> item) -> {
+            if(StringUtils.isEmpty(item.get("apiCode"))){
+                throw new BusinessException("抱歉小主，apiCode不正确");
+            }
+            String apiCode = String.valueOf(item.get("apiCode"));
+            return apiCode;
+        }).collect(Collectors.toList());
 
         // 2024-07-19 修改为多apiCode校验
         for(String apiCodeItem: apiCodeList){
@@ -354,6 +354,41 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (i != 1) {
             throw new BusinessException("很遗憾小主，变更失败");
         }
+
+        List<Long> ruleIdList = new ArrayList<>();
+        ruleIdList.add(scoreRuleVO.getId());
+        List<CustomerScoreRuleDTO> scoreRuleDtoList = scoreRuleConfigMapper.getScoreRuleDtoList(ruleIdList, null);
+        if (CollectionUtils.isEmpty(scoreRuleDtoList)) {
+            throw new BusinessException("很遗憾小主，变更失败");
+        }
+
+        // apiCode变更
+        for(CustomerScoreRuleDTO dto: scoreRuleDtoList){
+            String apiCode = dto.getApiCode();
+            boolean isFind = false;
+            Set<VariableDicSelectVO> vdSet = null;
+            for (Map<String, Object> variableMap : variableList){
+                String variableApiCode = String.valueOf(variableMap.get("apiCode"));
+                if (apiCode.equals(variableApiCode)) {
+                    isFind = true;
+                    vdSet = (Set<VariableDicSelectVO>) variableMap.get("vdSet");
+                }
+            }
+
+            CustomerRuleExample customerRuleExample = new CustomerRuleExample();
+            customerRuleExample.createCriteria().andCustomerIdEqualTo(dto.getMid()).andRuleIdEqualTo(dto.getId());
+            if(!isFind){
+                customerRuleMapper.deleteByExample(customerRuleExample);
+                continue;
+            }
+            CustomerRule customerRule = new CustomerRule();
+            customerRule.setConditionInfo(spliceConditionInfoJson(vdSet));
+            int update = customerRuleMapper.updateByExampleSelective(customerRule, customerRuleExample);
+            if (update != 1) {
+                throw new BusinessException("很遗憾小主，变更失败");
+            }
+        }
+
         // 记录变更日志
         scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
     }
