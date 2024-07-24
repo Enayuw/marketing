@@ -4,7 +4,6 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.dto.CustomerScoreRuleDto;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.IRuleConfigService;
@@ -223,22 +222,21 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         if(!StringUtils.isEmpty(apiCode)){
             apiCodeList.add(apiCode);
         }
-        List<CustomerScoreRuleDto> scoreRuleDtoList = scoreRuleConfigMapper.getScoreRuleDtoList(ruleIds, apiCodeList);
-        if (CollectionUtils.isEmpty(scoreRuleDtoList)) {
+        List<CustomerScoreRuleVO> scoreRuleVoList = scoreRuleConfigMapper.getScoreRuleDtoList(ruleIds, apiCodeList);
+        if (CollectionUtils.isEmpty(scoreRuleVoList)) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不存在");
         }
 
         ArrayList<CustomerScoreRuleVO> customerScoreRuleVOS = new ArrayList<>();
-        for (CustomerScoreRuleDto dto : scoreRuleDtoList) {
-            String tableName = "b_marketing_sync_" + dto.getApiCode();
+        for (CustomerScoreRuleVO vo : scoreRuleVoList) {
+            String tableName = "b_marketing_sync_" + vo.getApiCode();
             try {
                 marketingCustomerMapper.checkTableExist(tableName);
             }catch (Exception e){
                 continue;
             }
-
             CustomerScoreRuleVO customerScoreRuleVO = new CustomerScoreRuleVO();
-            BeanUtils.copyProperties(dto, customerScoreRuleVO);
+            BeanUtils.copyProperties(vo, customerScoreRuleVO);
             customerScoreRuleVOS.add(customerScoreRuleVO);
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerScoreRuleVOS);

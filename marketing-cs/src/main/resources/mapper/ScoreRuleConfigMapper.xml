@@ -90,11 +90,11 @@
         </where>
     </select>
 
-    <select id="getScoreRuleDtoList" resultType="com.br.marketing.dto.CustomerScoreRuleDto">
+    <select id="getScoreRuleDtoList" resultType="com.br.marketing.vo.CustomerScoreRuleVO">
         select
             src.*,
-            bmc.cid,
-            bmc.api_code as apiCode
+            bmc.api_code as apiCode,
+            bcr.condition_info as conditionInfo
         from b_score_rule_config src
         left join b_customer_rule bcr on src.id = bcr.rule_id
         left join b_marketing_customer bmc on bcr.customer_id = bmc.id

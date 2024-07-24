@@ -1,7 +1,10 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
 import java.util.Date;
 
+@Data
 public class ScoreRuleConfig {
     /**
      * 主键id
@@ -30,8 +33,9 @@ public class ScoreRuleConfig {
 
     /**
      * 规则信息
+     * 2024-07-24删除
      */
-    private String conditionInfo;
+//    private String conditionInfo;
 
     /**
      * 策略
@@ -128,203 +132,4 @@ public class ScoreRuleConfig {
      */
     private Integer priority;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getRuleName() {
-        return ruleName;
-    }
-
-    public void setRuleName(String ruleName) {
-        this.ruleName = ruleName == null ? null : ruleName.trim();
-    }
-
-    public String getRuleNameShort() {
-        return ruleNameShort;
-    }
-
-    public void setRuleNameShort(String ruleNameShort) {
-        this.ruleNameShort = ruleNameShort == null ? null : ruleNameShort.trim();
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime == null ? null : startTime.trim();
-    }
-
-    public String getStrategyProductJson() {
-        return strategyProductJson;
-    }
-
-    public void setStrategyProductJson(String strategyProductJson) {
-        this.strategyProductJson = strategyProductJson == null ? null : strategyProductJson.trim();
-    }
-
-    public String getConditionInfo() {
-        return conditionInfo;
-    }
-
-    public void setConditionInfo(String conditionInfo) {
-        this.conditionInfo = conditionInfo == null ? null : conditionInfo.trim();
-    }
-
-    public String getStrategyId() {
-        return strategyId;
-    }
-
-    public void setStrategyId(String strategyId) {
-        this.strategyId = strategyId == null ? null : strategyId.trim();
-    }
-
-    public String getProductInfo() {
-        return productInfo;
-    }
-
-    public void setProductInfo(String productInfo) {
-        this.productInfo = productInfo == null ? null : productInfo.trim();
-    }
-
-    public String getBaseInfo() {
-        return baseInfo;
-    }
-
-    public void setBaseInfo(String baseInfo) {
-        this.baseInfo = baseInfo == null ? null : baseInfo.trim();
-    }
-
-    public Integer getRuleType() {
-        return ruleType;
-    }
-
-    public void setRuleType(Integer ruleType) {
-        this.ruleType = ruleType;
-    }
-
-    public Integer getIsDel() {
-        return isDel;
-    }
-
-    public void setIsDel(Integer isDel) {
-        this.isDel = isDel;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Integer getExecType() {
-        return execType;
-    }
-
-    public void setExecType(Integer execType) {
-        this.execType = execType;
-    }
-
-    public Integer getAutoBuild() {
-        return autoBuild;
-    }
-
-    public void setAutoBuild(Integer autoBuild) {
-        this.autoBuild = autoBuild;
-    }
-
-    public Integer getCycleDay() {
-        return cycleDay;
-    }
-
-    public void setCycleDay(Integer cycleDay) {
-        this.cycleDay = cycleDay;
-    }
-
-    public String getCycleEndDay() {
-        return cycleEndDay;
-    }
-
-    public void setCycleEndDay(String cycleEndDay) {
-        this.cycleEndDay = cycleEndDay == null ? null : cycleEndDay.trim();
-    }
-
-    public Integer getPushType() {
-        return pushType;
-    }
-
-    public void setPushType(Integer pushType) {
-        this.pushType = pushType;
-    }
-
-    public Integer getTaskType() {
-        return taskType;
-    }
-
-    public void setTaskType(Integer taskType) {
-        this.taskType = taskType;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public String getStrategyProductShow() {
-        return strategyProductShow;
-    }
-
-    public void setStrategyProductShow(String strategyProductShow) {
-        this.strategyProductShow = strategyProductShow == null ? null : strategyProductShow.trim();
-    }
-
-    public Integer getThreekEncryptType() {
-        return threekEncryptType;
-    }
-
-    public void setThreekEncryptType(Integer threekEncryptType) {
-        this.threekEncryptType = threekEncryptType;
-    }
-
-    public Integer getIsOnline() {
-        return isOnline;
-    }
-
-    public void setIsOnline(Integer isOnline) {
-        this.isOnline = isOnline;
-    }
-
-    public Integer getIsStackValidity() {
-        return isStackValidity;
-    }
-
-    public void setIsStackValidity(Integer isStackValidity) {
-        this.isStackValidity = isStackValidity;
-    }
-
-    public Integer getPriority() {
-        return priority;
-    }
-
-    public void setPriority(Integer priority) {
-        this.priority = priority;
-    }
 }
