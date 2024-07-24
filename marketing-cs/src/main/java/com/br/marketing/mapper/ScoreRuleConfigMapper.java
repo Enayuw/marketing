@@ -39,7 +39,7 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
      */
     List<ScoreRuleConfig> getScoreRules(@Param("apiCodeList")List<String> apiCodeList);
 
-    List<CustomerScoreRuleVO> getScoreRuleDtoList(
+    List<CustomerScoreRuleVO> getScoreRuleVoList(
             @Param("ruleIdList")List<Long> ruleIdList,
             @Param("apiCodeList")List<String> apiCodeList);
 }

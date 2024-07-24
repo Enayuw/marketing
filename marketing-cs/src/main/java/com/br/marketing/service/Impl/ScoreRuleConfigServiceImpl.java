@@ -25,6 +25,7 @@ import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.service.ScoreOptLogService;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 import com.br.marketing.vo.VariableDicSelectVO;
@@ -238,34 +239,17 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     @Override
     public ScoreRuleVO detail(Long rid, Long crId) {
-        CustomerRuleExample customerRuleExample = new CustomerRuleExample();
-        customerRuleExample.createCriteria().andRuleIdEqualTo(rid).andIsDelEqualTo(1);
-        List<CustomerRule> customerRules = customerRuleMapper.selectByExample(customerRuleExample);
-
-        if(CollectionUtils.isEmpty(customerRules)){
-            throw new BusinessException("抱歉小主，数据异常或已删除");
-        }
-
-        ScoreRuleConfigExample example = new ScoreRuleConfigExample();
-        example.createCriteria().andIdEqualTo(rid)
-                .andIsDelEqualTo(1);
-//                .andIsDelEqualTo(1).andStatusEqualTo(1);
-        List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(example);
-        if (ObjectUtils.isEmpty(list) || list.size() < 1) {
+        List<Long> ruleIdList = new ArrayList<>();
+        ruleIdList.add(rid);
+        List<CustomerScoreRuleVO> scoreRuleVoList = scoreRuleConfigMapper.getScoreRuleVoList(ruleIdList, null);
+        if(CollectionUtils.isEmpty(scoreRuleVoList)){
             throw new BusinessException("抱歉小主，此规则不存在或已删除");
         }
 
-        List<Long> customerIdList = customerRules.stream().map(CustomerRule::getCustomerId).collect(Collectors.toList());
-        MarketingCustomerExample mcExample = new MarketingCustomerExample();
-        mcExample.createCriteria().andIdIn(customerIdList).andStatusEqualTo(Byte.valueOf("1"));
-        List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(mcExample);
-        if (customerList.size() == 0) {
-            throw new BusinessException("抱歉小主，客户不存在或已禁用");
-        }
-        ScoreRuleConfig rule = list.get(0);
+        ScoreRuleConfig rule = scoreRuleVoList.get(0);
 
-        String cid = customerList.get(0).getCid();
-        String apiCodes = customerList.stream().map(MarketingCustomer::getApiCode).collect(Collectors.joining(","));
+        String cid = scoreRuleVoList.get(0).getCid();
+        String apiCodes = scoreRuleVoList.stream().map(CustomerScoreRuleVO::getApiCode).collect(Collectors.joining(","));
 
         ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
         scoreRuleVO.setId(rule.getId());
@@ -274,8 +258,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStrategyProductShow(rule.getStrategyProductShow());
         scoreRuleVO.setStrategyId(rule.getStrategyId());
         scoreRuleVO.setRuleNameShort(rule.getRuleNameShort());
-        // TODO
-        scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
+        // 2024-07-24
+        // scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
+        scoreRuleVO.setVariableList(getVariableList(scoreRuleVoList));
         scoreRuleVO.setApiCode(apiCodes);
         scoreRuleVO.setCid(cid);
         scoreRuleVO.setExecType(rule.getExecType());
@@ -303,6 +288,17 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         return new HashSet<>(vdList);
     }
 
+    private List<Map<String, Object>> getVariableList(List<CustomerScoreRuleVO> scoreRuleVoList) {
+        List<Map<String, Object>> variableList = new ArrayList<>();
+        for(CustomerScoreRuleVO vo : scoreRuleVoList) {
+            Map<String, Object> variableMap = new HashMap<>();
+            variableMap.put("apiCode", vo.getApiCode());
+            variableMap.put("vdSet", getVdSet(vo.getConditionInfo()));
+            variableList.add(variableMap);
+        }
+        return variableList;
+    }
+
     @Override
     public ScoreRuleConfig getScoreRule(Long ruleId) {
         return scoreRuleConfigMapper.selectByPrimaryKey(ruleId);
@@ -318,7 +314,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         nameCheck(scoreRuleVO);
         ScoreRuleConfig rule = new ScoreRuleConfig();
         rule.setId(scoreRuleVO.getId());
-        rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
+        // TODO 2024-07-24
+        // rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
         rule.setRuleName(scoreRuleVO.getRuleName());
         rule.setStrategyProductShow(scoreRuleVO.getStrategyProductShow());
         rule.setStartTime(scoreRuleVO.getStartTime());
@@ -407,6 +404,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         // 产品信息获取签名
         String md501 = DigestUtils.md5DigestAsHex(rule.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
         // 场景信息获取签名
+        // TODO
         String md510 = DigestUtils.md5DigestAsHex(rule.getConditionInfo().getBytes(StandardCharsets.UTF_8));
         for (ScoreRuleConfig src : list) {
             if (src.getId().equals(rule.getId())) {

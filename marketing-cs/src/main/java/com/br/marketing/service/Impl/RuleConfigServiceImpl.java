@@ -222,7 +222,7 @@ public class RuleConfigServiceImpl implements IRuleConfigService {
         if(!StringUtils.isEmpty(apiCode)){
             apiCodeList.add(apiCode);
         }
-        List<CustomerScoreRuleVO> scoreRuleVoList = scoreRuleConfigMapper.getScoreRuleDtoList(ruleIds, apiCodeList);
+        List<CustomerScoreRuleVO> scoreRuleVoList = scoreRuleConfigMapper.getScoreRuleVoList(ruleIds, apiCodeList);
         if (CollectionUtils.isEmpty(scoreRuleVoList)) {
             return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("规则不存在");
         }
