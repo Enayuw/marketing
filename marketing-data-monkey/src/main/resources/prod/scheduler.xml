@@ -300,7 +300,7 @@
     />
     <job:simple id="【monkey】-WuBaCollidingDataSynchronismJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaCollidingDataSynchronismJob"
-                cron="0 0/10 10-18 * * ?"
+                cron="0 0/10 1-23 * * ?"
                 description="58同步撞库数据作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -329,7 +329,7 @@
     />
     <job:simple id="【monkey】-WuBaCollidingDataSubmitJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaCollidingDataSubmitJob"
-                cron="0/2 * 10-18 * * ?"
+                cron="0/2 * 1-23 * * ?"
                 description="58提交撞库数据作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -343,7 +343,7 @@
     />
     <job:simple id="【monkey】-WuBaCollidingDataQueryResultJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaCollidingDataQueryResultJob"
-                cron="0 0/5 10-18 * * ?"
+                cron="0 0/5 1-23 * * ?"
                 description="58查询撞库结果作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -357,7 +357,7 @@
     />
     <job:simple id="【monkey】-WuBaSubmitConversionJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaSubmitConversionJob"
-                cron="0/5 * 5-23 * * ?"
+                cron="0/5 * 9-23 * * ?"
                 description="58新客提交营销名单"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -385,7 +385,7 @@
     />
     <job:simple id="【monkey】-WuBaQueryConversionResultJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaQueryConversionResultJob"
-                cron="0 0/5 5-18 * * ?"
+                cron="0 0/5 9-18 * * ?"
                 description="58新客提交营销名单结果查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
