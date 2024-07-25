@@ -63,6 +63,8 @@ public interface MarketingTaskService {
 
     Result<List<Long>> saveTaskSelectV2(@Valid TaskSelectSaveDTO dto);
 
+    Result<List<Long>> saveTaskSelectByCreateMethod(TaskSelectSaveDTO dto)  throws Exception;
+
     Result<List<Long>> saveTaskSelect(@Valid TaskSelectSaveDTO dto);
 
     Result<List<StatisticsDataDayVO>> getStatisticsDataDay(@Valid @NotNull(message = "apiCode不能为空") String apiCode);
