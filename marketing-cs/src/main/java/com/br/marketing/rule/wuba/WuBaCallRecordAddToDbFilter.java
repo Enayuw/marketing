@@ -22,6 +22,8 @@ import java.util.Date;
 @Slf4j
 public class WuBaCallRecordAddToDbFilter implements AssembleData<WuBaSubmitConversionDataDto> {
 
+    private static final String TITLE = "【58新客通话明细入库-3710155】";
+
     @Override
     public WuBaSubmitConversionDataDto assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO bo = (CallRecordBO) transmitFact;
@@ -30,10 +32,16 @@ public class WuBaCallRecordAddToDbFilter implements AssembleData<WuBaSubmitConve
         data.setLocalId(0L);
         data.setCell(bo.getCaseNum());
         Date callStartTime = bo.getDetail().getCallStartTime();
-        if(callStartTime == null){
+        if (callStartTime == null) {
             callStartTime = new Date();
         }
-        String marketingTime = DateUtils.format(callStartTime, "yyyy-MM-dd HH:mm:ss");
+        String marketingTime;
+        try {
+            marketingTime = DateUtils.format(callStartTime, "yyyy-MM-dd HH:mm:ss");
+        } catch(Exception e){
+            log.warn(TITLE+"callStartTime格式不正确");
+            marketingTime = DateUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss");
+        }
         data.setMarketingTime(marketingTime);
         data.setPushStatus(0);
         data.setStatus(1);
