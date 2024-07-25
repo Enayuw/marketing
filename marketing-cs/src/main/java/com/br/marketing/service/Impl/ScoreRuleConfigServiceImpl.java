@@ -391,7 +391,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     private HashMap<String, Set<VariableDicSelectVO>> getVdOfApiCodeMap(List<Map<String, Object>> variableList, List<String> apiCodeList) {
         HashMap<String, Set<VariableDicSelectVO>> vdOfApiCodeMap = new HashMap<>();
-        apiCodeList = variableList.stream().map((Map<String, Object> item) -> {
+        List<String> collectApiCodeList = variableList.stream().map((Map<String, Object> item) -> {
             if (StringUtils.isEmpty(item.get("apiCode"))) {
                 throw new BusinessException("抱歉小主，apiCode不正确");
             }
@@ -410,6 +410,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             return apiCode;
         }).collect(Collectors.toList());
+        apiCodeList.addAll(collectApiCodeList);
         return vdOfApiCodeMap;
     }
 
