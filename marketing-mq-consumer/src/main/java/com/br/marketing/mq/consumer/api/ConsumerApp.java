@@ -40,9 +40,6 @@ public class ConsumerApp {
     @Autowired
     IPushShuheDataService pushShuheDataService;
 
-    @Resource
-    private CustomerTransferDataService customerTransferDataService;
-
     @Autowired
     PushDataService pushDataService;
 
@@ -268,24 +265,4 @@ public class ConsumerApp {
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
     }
 
-    @PostConstruct
-    void init() {
-        // 标准上传数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription, pushRuleService::consumerSyncInfo, 2, PulsarTopic.upLoadTopic);
-
-        // 数禾上传数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription, pushShuheDataService::consumerShUpload, 2, PulsarTopic.upLoadShTopic);
-
-        //标准转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferSubscription, pushRuleService::consumerTransferInfo, 2, PulsarTopic.transferTopic);
-
-        //数禾转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferShSubscription, pushShuheDataService::consumerShTransfer, 2, PulsarTopic.transferShTopic);
-
-        // 定制客户转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferCustomSubscription
-                , customerTransferDataService::consumerTransferPayData, 2, PulsarTopic.transferCustomTopic);
-
-
-    }
 }
