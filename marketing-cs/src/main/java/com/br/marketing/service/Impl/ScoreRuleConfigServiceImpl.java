@@ -184,9 +184,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             ScoreRuleVO ScoreRuleNew = new ScoreRuleVO();
             BeanUtils.copyProperties(scoreRuleVO, ScoreRuleNew);
-            ScoreRuleNew.setId(rule.getId());
             // 记录变更日志
-            scoreOptLogService.save(ScoreRuleNew, rule.getStatus(), userDetail);
+            scoreOptLogService.save(ScoreRuleNew, rule.getStatus(), userDetail,spliceConditionInfoJson(vdSet));
         }
     }
 
@@ -199,10 +198,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (rule.getStatus().equals(status)) {
             return true;
         }
-        CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
-        if (!rule.getId().equals(customerRule.getRuleId())) {
-            throw new BusinessException("抱歉小主，数据异常");
-        }
+//        CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
+//        if (!rule.getId().equals(customerRule.getRuleId())) {
+//            throw new BusinessException("抱歉小主，数据异常");
+//        }
         ScoreRuleConfig ruleConfig = new ScoreRuleConfig();
         ruleConfig.setId(rid);
         switch (status) {
@@ -219,15 +218,16 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (i < 1) {
             throw new BusinessException("很遗憾小主，操作失败");
         }
-        ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
-        BeanUtils.copyProperties(rule, scoreRuleVO, ScoreRuleVO.class);
-        // TODO
-        scoreRuleVO.setVdSet(null);
-        MarketingCustomer customer = marketingCustomerMapper.selectByPrimaryKey(customerRule.getCustomerId());
-        scoreRuleVO.setCid(customer.getCid());
-        scoreRuleVO.setApiCode(customer.getApiCode());
-        // 记录变更日志
-        scoreOptLogService.save(scoreRuleVO, status, userDetail);
+
+        List<HashMap<String, Object>> customerAndUserType = customerRuleMapper.getCustomerAndUserType(rid);
+        for (HashMap<String, Object> res : customerAndUserType) {
+            ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
+            BeanUtils.copyProperties(rule, scoreRuleVO, ScoreRuleVO.class);
+            scoreRuleVO.setCid((String) res.get("cid"));
+            scoreRuleVO.setApiCode((String) res.get("apiCode"));
+            // 记录变更日志
+            scoreOptLogService.save(scoreRuleVO, status, userDetail,(String) res.get("conditionInfo"));
+        }
         return true;
     }
 
@@ -381,10 +381,12 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             if (update != 1) {
                 throw new BusinessException("很遗憾小主，变更失败");
             }
+            // 记录变更日志
+            ScoreRuleVO ruleVo = new ScoreRuleVO();
+            BeanUtils.copyProperties(scoreRuleVO,ruleVo);
+            ruleVo.setApiCode(apiCode);
+            scoreOptLogService.save(ruleVo, rule.getStatus(), userDetail,spliceConditionInfoJson(vdSet));
         }
-
-        // 记录变更日志
-        scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
     }
 
     private HashMap<String, Set<VariableDicSelectVO>> getVdOfApiCodeMap(List<Map<String, Object>> variableList, List<String> apiCodeList) {
