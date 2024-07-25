@@ -108,4 +108,6 @@ public interface MarketingDataValidConfigMapper extends MarketingDataValidConfig
      * @date 2024/01/12
      */
     Map<String, String> getValidPeriodRangeByApiCodeAndUserTypeAndOffsetDay(@Param("id") Long id, @Param("offsetDay") Integer offsetDay);
+
+    void updateBatchById(@Param("ids") List<Long> ids, @Param("validStartDate") String validStartDate, @Param("validEndDate") String validEndDate);
 }

@@ -232,18 +232,15 @@
 	</update>
 
 	<update id="updateStatus" parameterType="map">
-		UPDATE stra_his_file
-		SET status=2,
-			update_time=now()
-		where api_code = #{apiCode}
-		  AND create_time >= date_add(curdate(), interval -1 day)
-		<if test="fileName != null">
-			AND zipFile_name = #{fileName}
-		</if>
-		<if test="batchNumber != null">
-			AND batch_number = #{batchNumber}
-		</if>
-	</update>
+        UPDATE stra_his_file
+        SET status=2,
+        update_time=now()
+        where api_code = #{apiCode}
+        AND zipFile_name = #{fileName}
+        <if test="batchNumber != null">
+            AND batch_number = #{batchNumber}
+        </if>
+    </update>
 
 	<update id="update" parameterType="com.br.marketing.entity.LoanFile">
 		UPDATE stra_his_file

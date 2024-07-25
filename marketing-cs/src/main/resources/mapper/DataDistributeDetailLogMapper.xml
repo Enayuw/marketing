@@ -43,4 +43,17 @@
         </foreach>
         and DATE_FORMAT(now(),"%Y-%m-%d") = date_format(create_time,"%Y-%m-%d")
     </select>
+
+    <select id="findDistributeLogCellSet" resultType="java.lang.String">
+        select
+        cell
+        from b_data_distribute_detail_log
+        where api_code = #{apiCode}
+            and distribute_type = #{distributeType}
+            and distribute_date = #{distributeDate}
+            and cell in
+            <foreach collection="cells" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+    </select>
 </mapper>

@@ -46,5 +46,9 @@ public class FileToMarketingFieldVO {
      */
     private Boolean isDateTransform;
 
+    /**
+     * 是否针对时间格式进行转换
+     */
+    private String dateTransformPattern;
 
 }

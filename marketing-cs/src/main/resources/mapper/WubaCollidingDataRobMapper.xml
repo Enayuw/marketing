@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaCollidingDataRobMapper" >
+    <insert id="batchSaveData" >
+        INSERT INTO b_wuba_colliding_data_rob (cell, api_code)
+        VALUES
+        <foreach collection="robs" item="item" separator=",">
+            (#{item.cell}, #{apiCode})
+        </foreach>
+    </insert>
+
+    <select id="selectCollidingData" resultType="com.br.marketing.entity.WubaCollidingDataRob">
+        select id, cell, api_code from b_wuba_colliding_data_rob
+        where is_deleted = 0 and push_time is null and api_code = #{apiCode} limit #{pageSize}
+    </select>
+
+    <update id="batchUpdatePushTimeById">
+        update b_wuba_colliding_data_rob set push_time = now()
+        where id in
+        <foreach collection="robs" item="rob" open="(" close=")" separator=",">
+            #{rob.id}
+        </foreach>
+    </update>
+
+    <update id="batchDeleteByCell">
+        update b_wuba_colliding_data_rob set is_deleted = 1
+        where api_code = #{apiCode} and cell in
+        <foreach collection="cells" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </update>
+</mapper>

@@ -1255,6 +1255,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
      * @param custNumSet     custNum集合
      * @param apiCode        apiCode
      * @param requestDateObj 日期
+     * @Param taskIds        批次号集合
      * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
      * @author senyang.zheng
      * @date 2024/01/15
