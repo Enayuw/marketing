@@ -361,22 +361,6 @@
         order by create_time desc limit 0,1
     </select>
 
-    <select id="getCreatTimeByCustNumAndUserTypeList" resultType="java.util.Map">
-        select cust_num as custNum, create_time as createTime, cus_batch as taskId from b_marketing_sync_${apiCode}
-        <where>
-            <if test="custNums!=null">
-                cust_num in (
-                <foreach collection="custNums" item="custNum" separator=",">
-                    '${custNum}'
-                </foreach>
-                )
-            </if>
-            <if test="userType!=null and userType.trim() neq ''">
-                and user_type = #{userType}
-            </if>
-        </where>
-    </select>
-
     <select id="getTaskIdByCustNumNotLikeUpload" resultType="java.lang.String">
         select cus_batch
         from b_marketing_sync_${apiCode}
