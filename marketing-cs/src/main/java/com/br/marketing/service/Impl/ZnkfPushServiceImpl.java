@@ -13,8 +13,8 @@ import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
@@ -159,9 +159,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             return false;
         }
         String groupType = map.get("groupType").toString();
-        IUserType iUserType = UserTypeStrategyFactory.getUserTypeStrategy(groupType);
-        if (iUserType instanceof CuFuJie) {
-            return cuFuJie(dto, groupType, iUserType);
+        BaseUserType baseUserType = UserTypeStrategyFactory.getUserTypeStrategy(groupType);
+        if (baseUserType instanceof CuFuJie) {
+            return cuFuJie(dto, groupType);
         }
         boolean intentionGrade = false;
         if (!"促申完".equals(groupType) && !"促首借".equals(groupType)) {
@@ -334,7 +334,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         return "true";
     }
 
-    private boolean cuFuJie(CallRecordBO dto, String groupType, IUserType iUserType) throws IllegalAccessException {
+    private boolean cuFuJie(CallRecordBO dto, String groupType) throws IllegalAccessException {
         HashMap<String, List<String>> statusMap = marketingCommonConfig.getShuHePushDXStatusMap();
         List<String> status;
         if (statusMap == null

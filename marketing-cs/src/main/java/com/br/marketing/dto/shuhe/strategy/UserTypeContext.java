@@ -11,38 +11,38 @@ import com.br.marketing.entity.CaseShuheUser;
  */
 public class UserTypeContext {
 
-    private final ThreadLocal<IUserType> iUserType = new ThreadLocal<>();
+    private final ThreadLocal<BaseUserType> baseUserTypeThreadLocal = new ThreadLocal<>();
     private volatile static UserTypeContext USER_TYPE_STRATEGY_CONTEXT;
 
     private UserTypeContext() {
     }
 
-    private UserTypeContext(IUserType iUserType) {
-        this.iUserType.set(iUserType);
+    private UserTypeContext(BaseUserType baseUserType) {
+        this.baseUserTypeThreadLocal.set(baseUserType);
     }
 
     public CaseShuheUser execute(ShuheTransferJsonDTO jsonDTO, String apiCode, String jsonData) {
-        final CaseShuheUser caseUser = iUserType.get().initCaseUser(jsonDTO, apiCode, jsonData);
-        iUserType.get().setTotalField(jsonDTO.getDataItem(), caseUser);
-        removeIUserType();
+        final CaseShuheUser caseUser = baseUserTypeThreadLocal.get().initCaseUser(jsonDTO, apiCode, jsonData);
+        baseUserTypeThreadLocal.get().setTotalField(jsonDTO.getDataItem(), caseUser);
+        removeBaseUserType();
         return caseUser;
     }
 
-    public void removeIUserType() {
-        iUserType.remove();
+    public void removeBaseUserType() {
+        baseUserTypeThreadLocal.remove();
     }
 
-    public static UserTypeContext newInstance(IUserType iUserType) {
+    public static UserTypeContext newInstance(BaseUserType baseUserType) {
         if (USER_TYPE_STRATEGY_CONTEXT == null) {
             synchronized (UserTypeContext.class) {
                 if (USER_TYPE_STRATEGY_CONTEXT == null) {
-                    USER_TYPE_STRATEGY_CONTEXT = new UserTypeContext(iUserType);
+                    USER_TYPE_STRATEGY_CONTEXT = new UserTypeContext(baseUserType);
                 } else {
-                    USER_TYPE_STRATEGY_CONTEXT.iUserType.set(iUserType);
+                    USER_TYPE_STRATEGY_CONTEXT.baseUserTypeThreadLocal.set(baseUserType);
                 }
             }
         } else {
-            USER_TYPE_STRATEGY_CONTEXT.iUserType.set(iUserType);
+            USER_TYPE_STRATEGY_CONTEXT.baseUserTypeThreadLocal.set(baseUserType);
         }
         return USER_TYPE_STRATEGY_CONTEXT;
     }

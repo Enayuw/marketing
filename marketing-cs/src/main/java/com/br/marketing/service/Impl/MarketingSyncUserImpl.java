@@ -157,15 +157,6 @@ public class MarketingSyncUserImpl implements IMarketingSyncUserService {
     }
 
     @Override
-    public List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums
-            , String userType) {
-        if (CollectionUtils.isEmpty(custNums)) {
-            custNums = null;
-        }
-        return marketingSyncInfoMapper.getCreatTimeByCustNumAndUserTypeList(apiCode, custNums, userType);
-    }
-
-    @Override
     public Map<String, Date> getSyncUserTimeMaxByCustNumsMap(String apiCode, Set<String> custNums, String userType
             , String dateTimeEnd) {
         List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserTimeMaxByCustNums(
