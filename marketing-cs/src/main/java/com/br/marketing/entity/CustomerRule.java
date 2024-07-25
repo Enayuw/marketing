@@ -1,10 +1,7 @@
 package com.br.marketing.entity;
 
-import lombok.Data;
-
 import java.util.Date;
 
-@Data
 public class CustomerRule {
     /**
      * 
@@ -22,7 +19,7 @@ public class CustomerRule {
     private Long ruleId;
 
     /**
-     * 规则id
+     * 规则信息
      */
     private String conditionInfo;
 
@@ -41,4 +38,59 @@ public class CustomerRule {
      */
     private Date updateTime;
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
+    public Long getRuleId() {
+        return ruleId;
+    }
+
+    public void setRuleId(Long ruleId) {
+        this.ruleId = ruleId;
+    }
+
+    public String getConditionInfo() {
+        return conditionInfo;
+    }
+
+    public void setConditionInfo(String conditionInfo) {
+        this.conditionInfo = conditionInfo == null ? null : conditionInfo.trim();
+    }
+
+    public Integer getIsDel() {
+        return isDel;
+    }
+
+    public void setIsDel(Integer isDel) {
+        this.isDel = isDel;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
 }

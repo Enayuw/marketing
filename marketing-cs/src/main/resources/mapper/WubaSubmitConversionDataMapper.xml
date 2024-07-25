@@ -13,4 +13,14 @@
         limit #{pageSize}
     </select>
 
+    <insert id="batchAdd">
+        INSERT INTO b_wuba_submit_conversion_data
+        (api_code, local_id, cell, marketing_time, push_status, status, create_date)
+        VALUES
+        <foreach collection ="list" item="item" separator =",">
+            (#{item.apiCode}, #{item.localId}, #{item.cell}, #{item.marketingTime}, #{item.pushStatus},
+             #{item.status}, #{item.createDate})
+        </foreach>
+    </insert>
+
 </mapper>

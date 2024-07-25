@@ -117,6 +117,7 @@ public class WuBaQueryConversionResultJob extends AbstractSimpleElasticJob {
 
         Page2Condition<WubaQueryConversionDto> condition = new Page2Condition<>();
         condition.setParam(param);
+        log.warn(TITLE + "condition: {}", JSONObject.toJSON(condition));
         service.action(condition);
     }
 }

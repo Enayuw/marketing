@@ -2,8 +2,8 @@ package com.br.marketing.service.Impl.wuba;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.dto.wuba.WubaQueryConversionDto;
-import com.br.marketing.entity.WubaCollidingBatchNo;
-import com.br.marketing.entity.WubaCollidingBatchNoExample;
+import com.br.marketing.entity.WubaCollidingDataBatchNo;
+import com.br.marketing.entity.WubaCollidingDataBatchNoExample;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import lombok.extern.slf4j.Slf4j;
@@ -41,9 +41,9 @@ public class WuBaChangeQueryBatchService {
         Date pushTimeStart = param.getPushTimeStart();
         Date pushTimeEnd = param.getPushTimeEnd();
 
-        WubaCollidingBatchNo batchUpdate = new WubaCollidingBatchNo();
+        WubaCollidingDataBatchNo batchUpdate = new WubaCollidingDataBatchNo();
         batchUpdate.setQueryStatus(0);
-        WubaCollidingBatchNoExample batchExample = new WubaCollidingBatchNoExample();
+        WubaCollidingDataBatchNoExample batchExample = new WubaCollidingDataBatchNoExample();
         batchExample.createCriteria().andBatchTypeEqualTo(batchType)
                 .andApiCodeEqualTo(apiCode)
                 .andPushTimeGreaterThanOrEqualTo(pushTimeStart)

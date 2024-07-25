@@ -13,20 +13,6 @@ import com.br.marketing.dto.ResponseCustomDTO;
  */
 public interface IPushShuheDataService {
 
-
-    /**
-     * 保存数禾（客户订制）转化数据
-     *
-     * @param apiCode  apiCode
-     * @param jsonData 业务数据
-     * @return ResponseShuheDTO
-     * @author Guo Zeqiang
-     * @deprecated 不在使用，
-     * 新版参考{@link IPushShuheDataService#saveShuheTransferDataTwoVersion(java.lang.String, java.lang.String)}
-     */
-    @Deprecated
-    ResponseCustomDTO saveShuheTransferData(String apiCode, String jsonData);
-
     ResponseCustomDTO saveShuheTransferDataTwoVersion(String apiCode, String jsonData);
 
     Result<Boolean> consumerShTransfer(String msg);
@@ -46,21 +32,21 @@ public interface IPushShuheDataService {
 
         }
     }
-//
-//    /**
-//     * 构建数禾上下文
-//     */
-//    void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer);
-//
-//    /**
-//     * 删除数禾上下文
-//     */
-//    void removeHandlerContext();
+    //
+    // /**
+    // * 构建数禾上下文
+    // */
+    // void handlerContext(ShuHeProcessHandlerContext context, MarketingTransferSyncUser transfer);
+    //
+    // /**
+    // * 删除数禾上下文
+    // */
+    // void removeHandlerContext();
 
     /**
      * 保存上传数据
      *
-     * @param apiCode  apiCode
+     * @param apiCode apiCode
      * @param jsonData 业务数据
      * @return ResponseShuheDTO
      * @author Guo Zeqiang
