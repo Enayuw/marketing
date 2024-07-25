@@ -185,7 +185,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             ScoreRuleVO ScoreRuleNew = new ScoreRuleVO();
             BeanUtils.copyProperties(scoreRuleVO, ScoreRuleNew);
             // 记录变更日志
-            scoreOptLogService.save(ScoreRuleNew, rule.getStatus(), userDetail,spliceConditionInfoJson(vdSet));
+            scoreOptLogService.save(ScoreRuleNew, rule.getStatus(), userDetail, spliceConditionInfoJson(vdSet));
         }
     }
 
@@ -226,7 +226,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             scoreRuleVO.setCid((String) res.get("cid"));
             scoreRuleVO.setApiCode((String) res.get("apiCode"));
             // 记录变更日志
-            scoreOptLogService.save(scoreRuleVO, status, userDetail,(String) res.get("conditionInfo"));
+            scoreOptLogService.save(scoreRuleVO, status, userDetail, (String) res.get("conditionInfo"));
         }
         return true;
     }
@@ -383,9 +383,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             // 记录变更日志
             ScoreRuleVO ruleVo = new ScoreRuleVO();
-            BeanUtils.copyProperties(scoreRuleVO,ruleVo);
+            BeanUtils.copyProperties(scoreRuleVO, ruleVo);
             ruleVo.setApiCode(apiCode);
-            scoreOptLogService.save(ruleVo, rule.getStatus(), userDetail,spliceConditionInfoJson(vdSet));
+            scoreOptLogService.save(ruleVo, rule.getStatus(), userDetail, spliceConditionInfoJson(vdSet));
         }
     }
 
@@ -398,8 +398,15 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             String apiCode = String.valueOf(item.get("apiCode"));
             Object vdSet = item.get("vdSet");
             if (vdSet != null) {
-                Set<VariableDicSelectVO> collect = ((ArrayList<VariableDicSelectVO>) vdSet).stream().collect(Collectors.toSet());
-                vdOfApiCodeMap.put(apiCode, collect);
+                Set<VariableDicSelectVO> vSet = new HashSet<>();
+                for (LinkedHashMap variableDicSelectVO : (ArrayList<LinkedHashMap>) vdSet) {
+                    VariableDicSelectVO variableDicSelectVO1 = new VariableDicSelectVO();
+                    variableDicSelectVO1.setFieldName((String) variableDicSelectVO.get("fieldName"));
+                    variableDicSelectVO1.setFieldValue((String) variableDicSelectVO.get("fieldValue"));
+                    variableDicSelectVO1.setFieldDesc((String) variableDicSelectVO.get("fieldDesc"));
+                    vSet.add(variableDicSelectVO1);
+                }
+                vdOfApiCodeMap.put(apiCode, vSet);
             }
             return apiCode;
         }).collect(Collectors.toList());
