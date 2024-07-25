@@ -72,9 +72,9 @@ public class WuBaQueryConversionResultTransService {
     private MarketingCleanDataTaskMapper cleanDataTaskMapper;
 
     @Transactional(rollbackFor = Exception.class)
-    public Result<WubaCollidingBatchNo> processCallSuccess(WubaCollidingBatchNo wubaCollidingBatchNo,
-                                                           List<ConversionResponseDTO> dtoList) throws Exception {
-        Result<WubaCollidingBatchNo> result = new Result().failure();
+    public Result<WubaCollidingDataBatchNo> processCallSuccess(WubaCollidingDataBatchNo wubaCollidingBatchNo,
+                                                               List<ConversionResponseDTO> dtoList) throws Exception {
+        Result<WubaCollidingDataBatchNo> result = new Result().failure();
 
         // call success, 上报分流处理
         List<ConversionResponseDTO> successDtoList = new ArrayList<>();
@@ -108,8 +108,8 @@ public class WuBaQueryConversionResultTransService {
         return result.success();
     }
 
-    public Result processSuccessSubmit(WubaCollidingBatchNo wubaCollidingBatchNo,
-            List<ConversionResponseDTO> responseDtoList) throws Exception {
+    public Result processSuccessSubmit(WubaCollidingDataBatchNo wubaCollidingBatchNo,
+                                       List<ConversionResponseDTO> responseDtoList) throws Exception {
         if(CollectionUtils.isEmpty(responseDtoList)){
             return new Result().success();
         }
@@ -185,7 +185,7 @@ public class WuBaQueryConversionResultTransService {
         return new Result().success();
     }
 
-    public Result<?> processFailureSubmit(WubaCollidingBatchNo wubaCollidingBatchNo,
+    public Result<?> processFailureSubmit(WubaCollidingDataBatchNo wubaCollidingBatchNo,
                                           List<ConversionResponseDTO> responseDtoList) throws Exception {
         if(CollectionUtils.isEmpty(responseDtoList)){
             return new Result().success();
@@ -201,12 +201,12 @@ public class WuBaQueryConversionResultTransService {
         return new Result().success();
     }
 
-    public Result updateBatchNoStatus(WubaCollidingBatchNo wubaCollidingBatchNo, Integer queryStatus) throws Exception {
-        WubaCollidingBatchNo batchNoUpdate = new WubaCollidingBatchNo();
+    public Result updateBatchNoStatus(WubaCollidingDataBatchNo wubaCollidingBatchNo, Integer queryStatus) throws Exception {
+        WubaCollidingDataBatchNo batchNoUpdate = new WubaCollidingDataBatchNo();
         batchNoUpdate.setBatchType(2);
         batchNoUpdate.setQueryStatus(queryStatus);
         //
-        WubaCollidingBatchNoExample batchNoUpdateExample = new WubaCollidingBatchNoExample();
+        WubaCollidingDataBatchNoExample batchNoUpdateExample = new WubaCollidingDataBatchNoExample();
         String batchNo = wubaCollidingBatchNo.getBatchNo();
         batchNoUpdateExample.createCriteria().andBatchNoEqualTo(batchNo);
         int batchNoUpdateResult = batchNoMapper.updateByExampleSelective(batchNoUpdate, batchNoUpdateExample);
@@ -235,7 +235,7 @@ public class WuBaQueryConversionResultTransService {
         return new Result().success();
     }
 
-    public Result updateDataLogStatus(WubaCollidingBatchNo wubaCollidingBatchNo, List<String> cellList,
+    public Result updateDataLogStatus(WubaCollidingDataBatchNo wubaCollidingBatchNo, List<String> cellList,
                                       Integer submitResult) throws Exception {
         WubaSubmitConversionDataLog dataLogUpdate = new WubaSubmitConversionDataLog();
         dataLogUpdate.setSubmitResult(submitResult);
