@@ -30,6 +30,9 @@ public class WuBaCallRecordAddToDbFilter implements AssembleData<WuBaSubmitConve
         data.setLocalId(0L);
         data.setCell(bo.getCaseNum());
         Date callStartTime = bo.getDetail().getCallStartTime();
+        if(callStartTime == null){
+            callStartTime = new Date();
+        }
         String marketingTime = DateUtils.format(callStartTime, "yyyy-MM-dd HH:mm:ss");
         data.setMarketingTime(marketingTime);
         data.setPushStatus(0);
