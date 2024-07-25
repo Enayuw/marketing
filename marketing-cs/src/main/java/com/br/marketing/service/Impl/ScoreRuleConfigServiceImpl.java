@@ -165,13 +165,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             CustomerRule cr = new CustomerRule();
             cr.setRuleId(rule.getId());
             cr.setCustomerId(customer.getId());
-            Set<VariableDicSelectVO> vdSet = null;
-            for (Map<String, Object> variableMap : variableList) {
-                String apiCode = String.valueOf(variableMap.get("apiCode"));
-                if (customer.getApiCode().equals(apiCode)) {
-                    vdSet = (Set<VariableDicSelectVO>) variableMap.get("vdSet");
-                }
-            }
+            Set<VariableDicSelectVO> vdSet = vdOfApiCodeMap.get(customer.getApiCode());
             if (CollectionUtils.isEmpty(vdSet)) {
                 throw new BusinessException("很遗憾小主，配置保存失败");
             }
@@ -184,6 +178,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             ScoreRuleVO ScoreRuleNew = new ScoreRuleVO();
             BeanUtils.copyProperties(scoreRuleVO, ScoreRuleNew);
+            ScoreRuleNew.setId(rule.getId());
             // 记录变更日志
             scoreOptLogService.save(ScoreRuleNew, rule.getStatus(), userDetail, spliceConditionInfoJson(vdSet));
         }
@@ -225,6 +220,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             BeanUtils.copyProperties(rule, scoreRuleVO, ScoreRuleVO.class);
             scoreRuleVO.setCid((String) res.get("cid"));
             scoreRuleVO.setApiCode((String) res.get("apiCode"));
+            scoreRuleVO.setId(rid);
             // 记录变更日志
             scoreOptLogService.save(scoreRuleVO, status, userDetail, (String) res.get("conditionInfo"));
         }
@@ -359,15 +355,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         for (CustomerScoreRuleDTO dto : scoreRuleDtoList) {
             String apiCode = dto.getApiCode();
             boolean isFind = false;
-            Set<VariableDicSelectVO> vdSet = null;
-            for (Map<String, Object> variableMap : variableList) {
-                String variableApiCode = String.valueOf(variableMap.get("apiCode"));
-                if (apiCode.equals(variableApiCode)) {
-                    isFind = true;
-                    vdSet = (Set<VariableDicSelectVO>) variableMap.get("vdSet");
-                    break;
-                }
-            }
+            Set<VariableDicSelectVO> vdSet = vdOfApiCodeMap.get(apiCode);
 
             CustomerRuleExample customerRuleExample = new CustomerRuleExample();
             customerRuleExample.createCriteria().andCustomerIdEqualTo(dto.getMid()).andRuleIdEqualTo(dto.getId());
@@ -385,6 +373,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             ScoreRuleVO ruleVo = new ScoreRuleVO();
             BeanUtils.copyProperties(scoreRuleVO, ruleVo);
             ruleVo.setApiCode(apiCode);
+            ruleVo.setId(scoreRuleVO.getId());
             scoreOptLogService.save(ruleVo, rule.getStatus(), userDetail, spliceConditionInfoJson(vdSet));
         }
     }
@@ -481,7 +470,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             String md502 = DigestUtils.md5DigestAsHex(src.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
             // 已有配置场景信息获取签名
 
-            String md511 = DigestUtils.md5DigestAsHex(customerRule.getConditionInfo().getBytes(StandardCharsets.UTF_8));
+            String md511 = StringUtils.isNotBlank(customerRule.getConditionInfo()) ?
+                    DigestUtils.md5DigestAsHex(customerRule.getConditionInfo().getBytes(StandardCharsets.UTF_8))
+                    : "";
             if (md501.equals(md502) && md510.equals(md511)) {
                 throw new BusinessException("报告小主，找到相似的规则["
                         .concat(src.getRuleName())
