@@ -284,7 +284,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         String county = zhiJiaClueBackInfo.getContry().replaceAll("\\s*", "");
         CityCountyDataDTO cityCountyDataDTO = new CityCountyDataDTO();
         //精确匹配城市
-        List<ZhijiaCityConfig> defineCityList = cityList.stream().filter(zhijiaCityConfig -> zhijiaCityConfig.getCName().equals(city))
+        List<ZhijiaCityConfig> defineCityList = cityList.stream().filter((ZhijiaCityConfig zhijiaCityConfig) -> zhijiaCityConfig.getCName().equals(city))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(defineCityList)) {
             //匹配区县
@@ -292,7 +292,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             return matchCounty(cityCountyDataDTO, countyList, county);
         }
         //模糊匹配城市
-        List<ZhijiaCityConfig> likeCityList = cityList.stream().filter(zhijiaCityConfig -> city.contains(zhijiaCityConfig.getCName()))
+        List<ZhijiaCityConfig> likeCityList = cityList.stream().filter((ZhijiaCityConfig zhijiaCityConfig) -> city.contains(zhijiaCityConfig.getCName()))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(likeCityList)) {
             //匹配区县
@@ -306,7 +306,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             }
         }
         //扩展配置匹配
-        List<ZhijiaCityConfig> configCnameList = cityList.stream().filter(zhijiaCityConfig -> {
+        List<ZhijiaCityConfig> configCnameList = cityList.stream().filter((ZhijiaCityConfig zhijiaCityConfig) -> {
             String cNameExtend = zhijiaCityConfig.getCNameConfig();
             if (StringUtils.isNotEmpty(cNameExtend)) {
                 List<String> cNameExtends = Arrays.asList(cNameExtend.split(","));
@@ -327,11 +327,13 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
     private CityCountyDataDTO matchCounty(CityCountyDataDTO cityCountyDataDTO, List<ZhijiaCountyConfig> countyList, String county) {
         //获取城市下面的区县
         Integer cId = cityCountyDataDTO.getCId();
-        List<ZhijiaCountyConfig> countyConfigList = countyList.stream().filter(countyConfig -> countyConfig.getCId().equals(cId))
+        List<ZhijiaCountyConfig> countyConfigList =
+                countyList.stream().filter((ZhijiaCountyConfig countyConfig) -> countyConfig.getCId().equals(cId))
                 .collect(Collectors.toList());
 
         //精确匹配区县
-        List<ZhijiaCountyConfig> defineCountyList = countyConfigList.stream().filter(countyConfig -> countyConfig.getCountyName().equals(county))
+        List<ZhijiaCountyConfig> defineCountyList =
+                countyConfigList.stream().filter((ZhijiaCountyConfig countyConfig) -> countyConfig.getCountyName().equals(county))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(defineCountyList)) {
             cityCountyDataDTO.setIsMatch(Boolean.TRUE);
@@ -339,7 +341,8 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             return cityCountyDataDTO;
         }
         //模糊匹配区县
-        List<ZhijiaCountyConfig> likeCountyList = countyConfigList.stream().filter(countyConfig -> county.contains(countyConfig.getCountyName()))
+        List<ZhijiaCountyConfig> likeCountyList =
+                countyConfigList.stream().filter((ZhijiaCountyConfig countyConfig) -> county.contains(countyConfig.getCountyName()))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(likeCountyList)) {
             if (likeCountyList.size() == 1) {
@@ -353,7 +356,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             }
         }
         //扩展配置匹配
-        List<ZhijiaCountyConfig> countyNameList = countyConfigList.stream().filter(zhijiaCityConfig -> {
+        List<ZhijiaCountyConfig> countyNameList = countyConfigList.stream().filter((ZhijiaCountyConfig zhijiaCityConfig) -> {
             String countyName = zhijiaCityConfig.getCountyNameConfig();
             if (StringUtils.isNotEmpty(countyName)) {
                 List<String> countyNameExtends = Arrays.asList(countyName.split(","));
@@ -403,7 +406,8 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
                     //写入redis
                     redisChgService.setex(redisKey, token, 5400);
                 } else {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家获取token调用异常,result= " + result.getMessage()));
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode()
+                            , "之家获取token调用异常,result= " + result.getMessage()));
                 }
                 redisChgService.unlock(redisKeyLock, value);
             }
@@ -439,7 +443,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         String brandName = removeSpacesAndConvertToUpper(zhiJiaClueBackInfo.getBrandName());
         // 精确匹配
         List<ZhiJiaCarBrandInfo> carBrandInfos = zhiJiaCarBrandInfos.stream()
-                .filter(brandInfo -> preciseMatch(brandInfo.getNewBrandName(), brandName))
+                .filter((ZhiJiaCarBrandInfo brandInfo) -> preciseMatch(brandInfo.getNewBrandName(), brandName))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carBrandInfos)) {
             zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
@@ -448,7 +452,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         }
         // 模糊匹配
         List<ZhiJiaCarBrandInfo> carBrandInfos1 = zhiJiaCarBrandInfos.stream()
-                .filter(brandInfo -> complexFuzzyMatch(brandInfo.getNewBrandName(), brandName))
+                .filter((ZhiJiaCarBrandInfo brandInfo) -> complexFuzzyMatch(brandInfo.getNewBrandName(), brandName))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carBrandInfos1)) {
             if (carBrandInfos1.size() == 1) {
@@ -509,7 +513,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         ZhiJiaCarInfoDTO zhiJiaCarInfoDTO = new ZhiJiaCarInfoDTO();
         // 精确匹配
         List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaCarSeriesInfos.stream()
-                .filter(seriesInfo -> preciseMatch(seriesInfo.getNewSeriesName(), seriesName))
+                .filter((ZhiJiaCarSeriesInfo seriesInfo) -> preciseMatch(seriesInfo.getNewSeriesName(), seriesName))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carSeriesInfos)) {
             zhiJiaCarInfoDTO.setIsMatch(Boolean.TRUE);
@@ -519,7 +523,7 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         }
         // 模糊匹配
         List<ZhiJiaCarSeriesInfo> carSeriesInfos1 = zhiJiaCarSeriesInfos.stream()
-                .filter(seriesInfo -> seriesInfo.getNewSeriesName().contains(seriesName))
+                .filter((ZhiJiaCarSeriesInfo seriesInfo) -> seriesInfo.getNewSeriesName().contains(seriesName))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(carSeriesInfos1)) {
             if (carSeriesInfos1.size() == 1) {
