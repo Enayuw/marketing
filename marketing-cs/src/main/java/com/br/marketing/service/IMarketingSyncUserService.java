@@ -136,18 +136,6 @@ public interface IMarketingSyncUserService {
     /**
      * 根据案件编号批量获取落库的创建时间
      *
-     * @param apiCode  apiCode集合
-     * @param custNums 案件编号集合
-     * @param userType 场景
-     * @return key custNum,creatTime,taskId
-     * @author Guo Zeqiang
-     * @dateTime 2022/3/7 10:52
-     */
-    List<Map<String, Object>> getCreatTimeByCustNumAndUserTypeList(String apiCode, Set<String> custNums, String userType);
-
-    /**
-     * 根据案件编号批量获取落库的创建时间
-     *
      * @param apiCode     apiCode集合
      * @param custNums    案件编号集合
      * @param userType    场景

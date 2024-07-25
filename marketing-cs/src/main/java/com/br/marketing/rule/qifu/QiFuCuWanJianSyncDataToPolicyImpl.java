@@ -118,6 +118,7 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
                 TimeUnit.SECONDS.sleep(marketingCommonConfig.getQiFuSyncToPolicyValidityCheckDelayTime());
             } catch (InterruptedException e) {
                 log.error("奇富360促完件上传数据推决策，未查询到有效期配置等待异常", e);
+                Thread.currentThread().interrupt();
                 return Collections.emptyList();
             }
             configList = customizeDataValidConfigMapper.selectByExample(example);

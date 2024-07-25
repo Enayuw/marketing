@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhiJiaClueBackDataMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ZhiJiaClueBackData" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="local_id" property="localId" jdbcType="BIGINT" />
+    <result column="task_id" property="taskId" jdbcType="VARCHAR" />
+    <result column="clue_dt" property="clueDt" jdbcType="VARCHAR" />
+    <result column="clue_id" property="clueId" jdbcType="VARCHAR" />
+    <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
+    <result column="call_id" property="callId" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="gender" property="gender" jdbcType="VARCHAR" />
+    <result column="cell" property="cell" jdbcType="VARCHAR" />
+    <result column="level" property="level" jdbcType="VARCHAR" />
+    <result column="call_status" property="callStatus" jdbcType="VARCHAR" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="contry" property="contry" jdbcType="VARCHAR" />
+    <result column="brand_name" property="brandName" jdbcType="VARCHAR" />
+    <result column="series_name" property="seriesName" jdbcType="VARCHAR" />
+    <result column="series_type" property="seriesType" jdbcType="VARCHAR" />
+    <result column="mileage" property="mileage" jdbcType="VARCHAR" />
+    <result column="firstregtime" property="firstregtime" jdbcType="VARCHAR" />
+    <result column="platenum" property="platenum" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="ccl_id" property="cclId" jdbcType="INTEGER" />
+    <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+    <result column="create_date" property="createDate" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, local_id, task_id, clue_dt, clue_id, cust_num, call_id, `name`, gender, 
+    cell, `level`, call_status, province, city, contry, brand_name, series_name, series_type, 
+    mileage, firstregtime, platenum, extend, ccl_id, push_status, `status`, data_message, 
+    is_delete, create_date, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhiJiaClueBackDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_zhijia_clue_back_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_zhijia_clue_back_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_zhijia_clue_back_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ZhiJiaClueBackDataExample" >
+    delete from b_zhijia_clue_back_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ZhiJiaClueBackData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_zhijia_clue_back_data (api_code, local_id, task_id, 
+      clue_dt, clue_id, cust_num, 
+      call_id, `name`, gender, 
+      cell, `level`, call_status, 
+      province, city, contry, 
+      brand_name, series_name, series_type, 
+      mileage, firstregtime, platenum, 
+      extend, ccl_id, push_status, 
+      `status`, data_message, is_delete, 
+      create_date, create_time, update_time
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{taskId,jdbcType=VARCHAR}, 
+      #{clueDt,jdbcType=VARCHAR}, #{clueId,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
+      #{callId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{gender,jdbcType=VARCHAR}, 
+      #{cell,jdbcType=VARCHAR}, #{level,jdbcType=VARCHAR}, #{callStatus,jdbcType=VARCHAR}, 
+      #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{contry,jdbcType=VARCHAR}, 
+      #{brandName,jdbcType=VARCHAR}, #{seriesName,jdbcType=VARCHAR}, #{seriesType,jdbcType=VARCHAR}, 
+      #{mileage,jdbcType=VARCHAR}, #{firstregtime,jdbcType=VARCHAR}, #{platenum,jdbcType=VARCHAR}, 
+      #{extend,jdbcType=VARCHAR}, #{cclId,jdbcType=INTEGER}, #{pushStatus,jdbcType=INTEGER}, 
+      #{status,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{isDelete,jdbcType=INTEGER}, 
+      #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhiJiaClueBackData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_zhijia_clue_back_data
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="localId != null" >
+        local_id,
+      </if>
+      <if test="taskId != null" >
+        task_id,
+      </if>
+      <if test="clueDt != null" >
+        clue_dt,
+      </if>
+      <if test="clueId != null" >
+        clue_id,
+      </if>
+      <if test="custNum != null" >
+        cust_num,
+      </if>
+      <if test="callId != null" >
+        call_id,
+      </if>
+      <if test="name != null" >
+        `name`,
+      </if>
+      <if test="gender != null" >
+        gender,
+      </if>
+      <if test="cell != null" >
+        cell,
+      </if>
+      <if test="level != null" >
+        `level`,
+      </if>
+      <if test="callStatus != null" >
+        call_status,
+      </if>
+      <if test="province != null" >
+        province,
+      </if>
+      <if test="city != null" >
+        city,
+      </if>
+      <if test="contry != null" >
+        contry,
+      </if>
+      <if test="brandName != null" >
+        brand_name,
+      </if>
+      <if test="seriesName != null" >
+        series_name,
+      </if>
+      <if test="seriesType != null" >
+        series_type,
+      </if>
+      <if test="mileage != null" >
+        mileage,
+      </if>
+      <if test="firstregtime != null" >
+        firstregtime,
+      </if>
+      <if test="platenum != null" >
+        platenum,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="cclId != null" >
+        ccl_id,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="dataMessage != null" >
+        data_message,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="createDate != null" >
+        create_date,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null" >
+        #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="clueDt != null" >
+        #{clueDt,jdbcType=VARCHAR},
+      </if>
+      <if test="clueId != null" >
+        #{clueId,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null" >
+        #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="callId != null" >
+        #{callId,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="level != null" >
+        #{level,jdbcType=VARCHAR},
+      </if>
+      <if test="callStatus != null" >
+        #{callStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="province != null" >
+        #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="contry != null" >
+        #{contry,jdbcType=VARCHAR},
+      </if>
+      <if test="brandName != null" >
+        #{brandName,jdbcType=VARCHAR},
+      </if>
+      <if test="seriesName != null" >
+        #{seriesName,jdbcType=VARCHAR},
+      </if>
+      <if test="seriesType != null" >
+        #{seriesType,jdbcType=VARCHAR},
+      </if>
+      <if test="mileage != null" >
+        #{mileage,jdbcType=VARCHAR},
+      </if>
+      <if test="firstregtime != null" >
+        #{firstregtime,jdbcType=VARCHAR},
+      </if>
+      <if test="platenum != null" >
+        #{platenum,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="cclId != null" >
+        #{cclId,jdbcType=INTEGER},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ZhiJiaClueBackDataExample" resultType="java.lang.Integer" >
+    select count(*) from b_zhijia_clue_back_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_zhijia_clue_back_data
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localId != null" >
+        local_id = #{record.localId,jdbcType=BIGINT},
+      </if>
+      <if test="record.taskId != null" >
+        task_id = #{record.taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clueDt != null" >
+        clue_dt = #{record.clueDt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clueId != null" >
+        clue_id = #{record.clueId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.custNum != null" >
+        cust_num = #{record.custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callId != null" >
+        call_id = #{record.callId,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null" >
+        `name` = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gender != null" >
+        gender = #{record.gender,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cell != null" >
+        cell = #{record.cell,jdbcType=VARCHAR},
+      </if>
+      <if test="record.level != null" >
+        `level` = #{record.level,jdbcType=VARCHAR},
+      </if>
+      <if test="record.callStatus != null" >
+        call_status = #{record.callStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="record.province != null" >
+        province = #{record.province,jdbcType=VARCHAR},
+      </if>
+      <if test="record.city != null" >
+        city = #{record.city,jdbcType=VARCHAR},
+      </if>
+      <if test="record.contry != null" >
+        contry = #{record.contry,jdbcType=VARCHAR},
+      </if>
+      <if test="record.brandName != null" >
+        brand_name = #{record.brandName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.seriesName != null" >
+        series_name = #{record.seriesName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.seriesType != null" >
+        series_type = #{record.seriesType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mileage != null" >
+        mileage = #{record.mileage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.firstregtime != null" >
+        firstregtime = #{record.firstregtime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.platenum != null" >
+        platenum = #{record.platenum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cclId != null" >
+        ccl_id = #{record.cclId,jdbcType=INTEGER},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataMessage != null" >
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="record.createDate != null" >
+        create_date = #{record.createDate,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_zhijia_clue_back_data
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      local_id = #{record.localId,jdbcType=BIGINT},
+      task_id = #{record.taskId,jdbcType=VARCHAR},
+      clue_dt = #{record.clueDt,jdbcType=VARCHAR},
+      clue_id = #{record.clueId,jdbcType=VARCHAR},
+      cust_num = #{record.custNum,jdbcType=VARCHAR},
+      call_id = #{record.callId,jdbcType=VARCHAR},
+      `name` = #{record.name,jdbcType=VARCHAR},
+      gender = #{record.gender,jdbcType=VARCHAR},
+      cell = #{record.cell,jdbcType=VARCHAR},
+      `level` = #{record.level,jdbcType=VARCHAR},
+      call_status = #{record.callStatus,jdbcType=VARCHAR},
+      province = #{record.province,jdbcType=VARCHAR},
+      city = #{record.city,jdbcType=VARCHAR},
+      contry = #{record.contry,jdbcType=VARCHAR},
+      brand_name = #{record.brandName,jdbcType=VARCHAR},
+      series_name = #{record.seriesName,jdbcType=VARCHAR},
+      series_type = #{record.seriesType,jdbcType=VARCHAR},
+      mileage = #{record.mileage,jdbcType=VARCHAR},
+      firstregtime = #{record.firstregtime,jdbcType=VARCHAR},
+      platenum = #{record.platenum,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      ccl_id = #{record.cclId,jdbcType=INTEGER},
+      push_status = #{record.pushStatus,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      is_delete = #{record.isDelete,jdbcType=INTEGER},
+      create_date = #{record.createDate,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ZhiJiaClueBackData" >
+    update b_zhijia_clue_back_data
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null" >
+        local_id = #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=VARCHAR},
+      </if>
+      <if test="clueDt != null" >
+        clue_dt = #{clueDt,jdbcType=VARCHAR},
+      </if>
+      <if test="clueId != null" >
+        clue_id = #{clueId,jdbcType=VARCHAR},
+      </if>
+      <if test="custNum != null" >
+        cust_num = #{custNum,jdbcType=VARCHAR},
+      </if>
+      <if test="callId != null" >
+        call_id = #{callId,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        `name` = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="gender != null" >
+        gender = #{gender,jdbcType=VARCHAR},
+      </if>
+      <if test="cell != null" >
+        cell = #{cell,jdbcType=VARCHAR},
+      </if>
+      <if test="level != null" >
+        `level` = #{level,jdbcType=VARCHAR},
+      </if>
+      <if test="callStatus != null" >
+        call_status = #{callStatus,jdbcType=VARCHAR},
+      </if>
+      <if test="province != null" >
+        province = #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        city = #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="contry != null" >
+        contry = #{contry,jdbcType=VARCHAR},
+      </if>
+      <if test="brandName != null" >
+        brand_name = #{brandName,jdbcType=VARCHAR},
+      </if>
+      <if test="seriesName != null" >
+        series_name = #{seriesName,jdbcType=VARCHAR},
+      </if>
+      <if test="seriesType != null" >
+        series_type = #{seriesType,jdbcType=VARCHAR},
+      </if>
+      <if test="mileage != null" >
+        mileage = #{mileage,jdbcType=VARCHAR},
+      </if>
+      <if test="firstregtime != null" >
+        firstregtime = #{firstregtime,jdbcType=VARCHAR},
+      </if>
+      <if test="platenum != null" >
+        platenum = #{platenum,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="cclId != null" >
+        ccl_id = #{cclId,jdbcType=INTEGER},
+      </if>
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ZhiJiaClueBackData" >
+    update b_zhijia_clue_back_data
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      local_id = #{localId,jdbcType=BIGINT},
+      task_id = #{taskId,jdbcType=VARCHAR},
+      clue_dt = #{clueDt,jdbcType=VARCHAR},
+      clue_id = #{clueId,jdbcType=VARCHAR},
+      cust_num = #{custNum,jdbcType=VARCHAR},
+      call_id = #{callId,jdbcType=VARCHAR},
+      `name` = #{name,jdbcType=VARCHAR},
+      gender = #{gender,jdbcType=VARCHAR},
+      cell = #{cell,jdbcType=VARCHAR},
+      `level` = #{level,jdbcType=VARCHAR},
+      call_status = #{callStatus,jdbcType=VARCHAR},
+      province = #{province,jdbcType=VARCHAR},
+      city = #{city,jdbcType=VARCHAR},
+      contry = #{contry,jdbcType=VARCHAR},
+      brand_name = #{brandName,jdbcType=VARCHAR},
+      series_name = #{seriesName,jdbcType=VARCHAR},
+      series_type = #{seriesType,jdbcType=VARCHAR},
+      mileage = #{mileage,jdbcType=VARCHAR},
+      firstregtime = #{firstregtime,jdbcType=VARCHAR},
+      platenum = #{platenum,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      ccl_id = #{cclId,jdbcType=INTEGER},
+      push_status = #{pushStatus,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=INTEGER},
+      create_date = #{createDate,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
