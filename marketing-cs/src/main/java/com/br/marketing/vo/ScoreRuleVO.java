@@ -52,9 +52,6 @@ public class ScoreRuleVO implements Serializable {
     @NotEmpty(message = "接口编码不可为空")
     private String apiCode;
 
-    @ApiModelProperty(value = "客户配置变量值字典集合", dataType = "array", position = 5)
-    @NotNull(message = "场景不可为空")
-    private Set<VariableDicSelectVO> vdSet;
 
     @ApiModelProperty(value = "", dataType = "array", position = 16)
     @NotNull(message = "场景不可为空")
@@ -122,13 +119,13 @@ public class ScoreRuleVO implements Serializable {
     public ScoreRuleVO() {
     }
 
-    public ScoreRuleVO(Long id, String ruleName, String cid, String apiCode, Set<VariableDicSelectVO> vdSet
+    public ScoreRuleVO(Long id, String ruleName, String cid, String apiCode, List<Map<String, Object>> variableList
             , String startTime, String strategyProductShow, String strategyId) {
         this.id = id;
         this.ruleName = ruleName;
         this.cid = cid;
         this.apiCode = apiCode;
-        this.vdSet = vdSet;
+        this.variableList = variableList;
         this.startTime = startTime;
         this.strategyProductShow = strategyProductShow;
         this.strategyId = strategyId;
