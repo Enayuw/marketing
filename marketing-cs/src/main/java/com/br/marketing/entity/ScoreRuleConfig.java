@@ -35,7 +35,7 @@ public class ScoreRuleConfig {
      * 规则信息
      * 2024-07-24删除
      */
-//    private String conditionInfo;
+    private String conditionInfo;
 
     /**
      * 策略
