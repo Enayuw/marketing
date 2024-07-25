@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.ZhonganRosterLockingDataMapper" >
+<mapper namespace="com.br.marketing.mapper.ZhonganRosterLockingDataMapperBase" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.ZhonganRosterLockingData" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
@@ -12,6 +12,7 @@
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="user_type" property="userType" jdbcType="VARCHAR" />
+    <result column="is_connect" property="isConnect" jdbcType="INTEGER" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_date" property="createDate" jdbcType="INTEGER" />
@@ -79,7 +80,8 @@
   </sql>
   <sql id="Base_Column_List" >
     id, api_code, local_id, `type`, mobile_md5, biz_date, tag, push_status, `status`, 
-    user_type, data_message, extend, create_date, create_time, update_time, data_source
+    user_type, is_connect, data_message, extend, create_date, create_time, update_time, 
+    data_source
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ZhonganRosterLockingDataExample" >
     select
@@ -118,15 +120,15 @@
     insert into b_zhongan_roster_locking_data (api_code, local_id, `type`, 
       mobile_md5, biz_date, tag, 
       push_status, `status`, user_type, 
-      data_message, extend, create_date, 
-      create_time, update_time, data_source
-      )
+      is_connect, data_message, extend, 
+      create_date, create_time, update_time, 
+      data_source)
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{type,jdbcType=VARCHAR}, 
       #{mobileMd5,jdbcType=VARCHAR}, #{bizDate,jdbcType=VARCHAR}, #{tag,jdbcType=VARCHAR}, 
       #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{userType,jdbcType=VARCHAR}, 
-      #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{dataSource,jdbcType=INTEGER}
-      )
+      #{isConnect,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
+      #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{dataSource,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ZhonganRosterLockingData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -160,6 +162,9 @@
       </if>
       <if test="userType != null" >
         user_type,
+      </if>
+      <if test="isConnect != null" >
+        is_connect,
       </if>
       <if test="dataMessage != null" >
         data_message,
@@ -207,6 +212,9 @@
       </if>
       <if test="userType != null" >
         #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="isConnect != null" >
+        #{isConnect,jdbcType=INTEGER},
       </if>
       <if test="dataMessage != null" >
         #{dataMessage,jdbcType=VARCHAR},
@@ -267,6 +275,9 @@
       <if test="record.userType != null" >
         user_type = #{record.userType,jdbcType=VARCHAR},
       </if>
+      <if test="record.isConnect != null" >
+        is_connect = #{record.isConnect,jdbcType=INTEGER},
+      </if>
       <if test="record.dataMessage != null" >
         data_message = #{record.dataMessage,jdbcType=VARCHAR},
       </if>
@@ -302,6 +313,7 @@
       push_status = #{record.pushStatus,jdbcType=INTEGER},
       `status` = #{record.status,jdbcType=INTEGER},
       user_type = #{record.userType,jdbcType=VARCHAR},
+      is_connect = #{record.isConnect,jdbcType=INTEGER},
       data_message = #{record.dataMessage,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR},
       create_date = #{record.createDate,jdbcType=INTEGER},
@@ -342,6 +354,9 @@
       <if test="userType != null" >
         user_type = #{userType,jdbcType=VARCHAR},
       </if>
+      <if test="isConnect != null" >
+        is_connect = #{isConnect,jdbcType=INTEGER},
+      </if>
       <if test="dataMessage != null" >
         data_message = #{dataMessage,jdbcType=VARCHAR},
       </if>
@@ -374,6 +389,7 @@
       push_status = #{pushStatus,jdbcType=INTEGER},
       `status` = #{status,jdbcType=INTEGER},
       user_type = #{userType,jdbcType=VARCHAR},
+      is_connect = #{isConnect,jdbcType=INTEGER},
       data_message = #{dataMessage,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR},
       create_date = #{createDate,jdbcType=INTEGER},
