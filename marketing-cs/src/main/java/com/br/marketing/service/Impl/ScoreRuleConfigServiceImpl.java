@@ -398,7 +398,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             String apiCode = String.valueOf(item.get("apiCode"));
             Object vdSet = item.get("vdSet");
             if (vdSet != null) {
-                vdOfApiCodeMap.put(apiCode, (Set<VariableDicSelectVO>) vdSet);
+                Set<VariableDicSelectVO> collect = ((ArrayList<VariableDicSelectVO>) vdSet).stream().collect(Collectors.toSet());
+                vdOfApiCodeMap.put(apiCode, collect);
             }
             return apiCode;
         }).collect(Collectors.toList());
