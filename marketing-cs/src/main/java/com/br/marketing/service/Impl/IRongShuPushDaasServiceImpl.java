@@ -67,5 +67,23 @@ public class IRongShuPushDaasServiceImpl implements IRongShuPushDaasService {
         }
         return false;
     }
+
+    @Override
+    public boolean isFilterUserUserType(String apiCode, String custNum, String tcId) {
+        MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
+        //剔除有效期内 转化数据userType=4||userType=5
+        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+        example.settCid(tcId);
+        example.createCriteria().andApiCodeEqualTo(marketingSyncUser.getApiCode()).andCustNumEqualTo(marketingSyncUser.getCustNum()).andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
+        List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
+        for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+            if (StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
+                if (("4").equals(marketingTransferSyncUser.getUserType()) || ("5").equals(marketingTransferSyncUser.getUserType())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }
 
