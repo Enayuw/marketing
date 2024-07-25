@@ -165,7 +165,8 @@ public class ZhiJiaClient {
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result getBrand(String token) {
         HashMap<String, String> resMap = new HashMap<>();
-        String url = brandUrl.concat("?access_token=").concat(token).concat("&appid=").concat(appId).concat("&querykey=").concat(querykey);
+        String url =
+                brandUrl.concat("?access_token=").concat(token).concat("&appid=").concat(appId).concat("&querykey=").concat(querykey);
         resMap = httpProxyClient.get(url, isProxy,"GBK");
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_INTERFACEERROR.getCode()

@@ -80,7 +80,8 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             jsonObject = result.getData();
         } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家省市区调用异常,result= " + result.getMessage()));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode()
+                    , "之家省市区调用异常,result= " + result.getMessage()));
         }
         JSONObject resultJson = jsonObject.getJSONObject("result");
         JSONArray cityList = resultJson.getJSONArray("city");
@@ -284,7 +285,8 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         String county = zhiJiaClueBackInfo.getContry().replaceAll("\\s*", "");
         CityCountyDataDTO cityCountyDataDTO = new CityCountyDataDTO();
         //精确匹配城市
-        List<ZhijiaCityConfig> defineCityList = cityList.stream().filter((ZhijiaCityConfig zhijiaCityConfig) -> zhijiaCityConfig.getCName().equals(city))
+        List<ZhijiaCityConfig> defineCityList =
+                cityList.stream().filter((ZhijiaCityConfig zhijiaCityConfig) -> zhijiaCityConfig.getCName().equals(city))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(defineCityList)) {
             //匹配区县
@@ -292,7 +294,8 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             return matchCounty(cityCountyDataDTO, countyList, county);
         }
         //模糊匹配城市
-        List<ZhijiaCityConfig> likeCityList = cityList.stream().filter((ZhijiaCityConfig zhijiaCityConfig) -> city.contains(zhijiaCityConfig.getCName()))
+        List<ZhijiaCityConfig> likeCityList =
+                cityList.stream().filter((ZhijiaCityConfig zhijiaCityConfig) -> city.contains(zhijiaCityConfig.getCName()))
                 .collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(likeCityList)) {
             //匹配区县

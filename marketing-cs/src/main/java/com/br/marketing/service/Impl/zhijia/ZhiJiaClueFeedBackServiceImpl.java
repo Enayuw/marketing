@@ -161,9 +161,11 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
             try {
                 ReqAddZhiJiaClueDTO reqAddZhiJiaClueDTO = new ReqAddZhiJiaClueDTO();
                 // 匹配省市区信息
-                CityCountyDataDTO cityCountyDataDTO = zhiJiaDataProcessService.matchCityAndCounty(cityConfigList,countyConfigList,zhiJiaClueBackData);
+                CityCountyDataDTO cityCountyDataDTO =
+                        zhiJiaDataProcessService.matchCityAndCounty(cityConfigList,countyConfigList,zhiJiaClueBackData);
                 if(!cityCountyDataDTO.getIsMatch()){
-                    log.warn("匹配省市区信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(cityCountyDataDTO));
+                    log.warn("匹配省市区信息异常, 请求：{}， 返回：{} "
+                            , JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(cityCountyDataDTO));
                     updatePushStatus(id, 4, null, cityCountyDataDTO.getErrorMsg());
                     // 钉钉报警
                     StringBuilder sb = new StringBuilder("# 之家省市区匹配异常\n");
@@ -173,7 +175,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                 // 匹配车牌信息
                 ZhiJiaCarInfoDTO zhiJiaCarBrandInfo = zhiJiaDataProcessService.getZhiJiaCarBrandInfo(zhiJiaClueBackData, carBrandInfos);
                 if(!zhiJiaCarBrandInfo.getIsMatch()){
-                    log.warn("匹配车牌信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(zhiJiaCarBrandInfo));
+                    log.warn("匹配车牌信息异常, 请求：{}， 返回：{} "
+                            , JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(zhiJiaCarBrandInfo));
                     updatePushStatus(id, 4, null, zhiJiaCarBrandInfo.getErrorMsg());
                     // 钉钉报警
                     StringBuilder sb = new StringBuilder("# 之家车牌信息匹配异常\n");
@@ -184,7 +187,8 @@ public class ZhiJiaClueFeedBackServiceImpl implements ZhiJiaClueFeedBackService{
                 List<ZhiJiaCarSeriesInfo> carSeriesInfos = zhiJiaDataProcessService.getCarSeriesInfos(zhiJiaCarBrandInfo.getBrandId());
                 ZhiJiaCarInfoDTO zhiJiaCarSeriesInfo = zhiJiaDataProcessService.getZhiJiaCarSeriesInfo(zhiJiaClueBackData, carSeriesInfos);
                 if(!zhiJiaCarSeriesInfo.getIsMatch()){
-                    log.warn("匹配车系信息异常, 请求：{}， 返回：{} ", JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(zhiJiaCarSeriesInfo));
+                    log.warn("匹配车系信息异常, 请求：{}， 返回：{} "
+                            , JSONObject.toJSONString(zhiJiaClueBackData), JSONObject.toJSONString(zhiJiaCarSeriesInfo));
                     updatePushStatus(id, 4, null, zhiJiaCarSeriesInfo.getErrorMsg());
                     // 钉钉报警
                     StringBuilder sb = new StringBuilder("# 之家车系信息匹配异常\n");
