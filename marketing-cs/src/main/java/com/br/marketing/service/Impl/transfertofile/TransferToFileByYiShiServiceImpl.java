@@ -264,11 +264,12 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
      * 1是0否
      * 值为null时，赋值''
      */
-    private String characterMapping(String value) {
-        String s = "";
-        if (StringUtils.isNotBlank(value)) {
+    private String characterMapping(String s) {
+        if (StringUtils.isNotBlank(s)) {
             if ("1".equals(s) || "0".equals(s)) {
-                s = "1".equals(s) ? "是" : "否";
+                return s;
+            } else if ("是".equals(s) || "否".equals(s)) {
+                s = "是".equals(s) ? "1" : "0";
                 return s;
             }
         }
