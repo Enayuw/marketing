@@ -1258,6 +1258,19 @@ public class MarketingCommonConfig {
     private HashMap<String, Object> baiYingUndoMock;
 
     /**
+     * 推送之家创建线索接口挡板开关 true:开启挡板。false:关闭挡板
+     * zhiJiaUndoMock={"switch":true,"httpcode":"200","code":"0"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * httpcode：
+     *      200:请求成功
+     * code：
+     *      0:调用之家创建线索接口成功
+     */
+    private HashMap<String, Object> zhiJiaUndoMock;
+
+    /**
      *
      */
     private HashMap<String, Object> qiFuDeleteReachRecordMock;
@@ -1783,6 +1796,20 @@ public class MarketingCommonConfig {
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
+    /**
+     * 之家创建线索程池数
+     */
+    private Integer zhiJiaCollidingThread;
+
+    /**
+     * 之家落库apiCode
+     */
+    private String zhiJiaApiCode;
+
+    /**
+     * 之家用户信息分页参数
+     */
+    private Integer zhiJiaQryUserMessageSize;
     /**
      * 奇富360数据提取参数配置
      */
