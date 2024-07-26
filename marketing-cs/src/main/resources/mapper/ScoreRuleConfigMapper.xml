@@ -120,7 +120,7 @@
     <select id="getScoreRuleDtoList" resultType="com.br.marketing.dto.CustomerScoreRuleDTO">
         select
         src.*,
-        brc.customer_id as mid,
+        bcr.customer_id as mid,
         bcr.condition_info as conditionInfo,
         bmc.api_code as apiCode,
         bmc.cid as cid

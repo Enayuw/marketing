@@ -112,7 +112,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         // 2024-07-18 修改为多apiCode
         List<Map<String, Object>> variableList = scoreRuleVO.getVariableList();
         List<String> apiCodeList = new ArrayList<>();
-        HashMap<String, Set<VariableDicSelectVO>> vdOfApiCodeMap = getVdOfApiCodeMap(variableList, apiCodeList);
+        HashMap<String, Set<VariableDicSelectVO>> vdOfApiCodeMap = AssembleApiCodeToVdSetMap(variableList, apiCodeList);
 
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andCidEqualTo(scoreRuleVO.getCid())
@@ -331,11 +331,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         // 2024-07-24 修改为多apiCode
         List<String> apiCodeList = new ArrayList<>();
         List<Map<String, Object>> variableList = scoreRuleVO.getVariableList();
-        HashMap<String, Set<VariableDicSelectVO>> vdOfApiCodeMap = getVdOfApiCodeMap(variableList, apiCodeList);
+        HashMap<String, Set<VariableDicSelectVO>> apiCodeToVdSetMap = AssembleApiCodeToVdSetMap(variableList, apiCodeList);
 
         // 2024-07-19 修改为多apiCode校验
         for (String apiCodeItem : apiCodeList) {
-            Set<VariableDicSelectVO> variableDicSelectVOS = vdOfApiCodeMap.get(apiCodeItem);
+            Set<VariableDicSelectVO> variableDicSelectVOS = apiCodeToVdSetMap.get(apiCodeItem);
             isExist(rule, scoreRuleVO.getCid(), apiCodeItem, spliceConditionInfoJson(variableDicSelectVOS));
         }
 
@@ -355,14 +355,19 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         for (CustomerScoreRuleDTO dto : scoreRuleDtoList) {
             String apiCode = dto.getApiCode();
             boolean isFind = false;
-            Set<VariableDicSelectVO> vdSet = vdOfApiCodeMap.get(apiCode);
-
+            Set<VariableDicSelectVO> vdSet = apiCodeToVdSetMap.get(apiCode);
+            if(!CollectionUtils.isEmpty(vdSet)){
+                isFind= true;
+            }
+            // customerRuleExample
             CustomerRuleExample customerRuleExample = new CustomerRuleExample();
             customerRuleExample.createCriteria().andCustomerIdEqualTo(dto.getMid()).andRuleIdEqualTo(dto.getId());
+            // 参数里没有该apiCode, 已有配置有该apiCode, 删除该apiCode对应配置
             if (!isFind) {
                 customerRuleMapper.deleteByExample(customerRuleExample);
                 continue;
             }
+            // 参数有该apiCode, 已有配置有该apiCode, 更新该apiCode对应配置
             CustomerRule customerRule = new CustomerRule();
             customerRule.setConditionInfo(spliceConditionInfoJson(vdSet));
             int update = customerRuleMapper.updateByExampleSelective(customerRule, customerRuleExample);
@@ -378,29 +383,32 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
     }
 
-    private HashMap<String, Set<VariableDicSelectVO>> getVdOfApiCodeMap(List<Map<String, Object>> variableList, List<String> apiCodeList) {
-        HashMap<String, Set<VariableDicSelectVO>> vdOfApiCodeMap = new HashMap<>();
-        List<String> collectApiCodeList = variableList.stream().map((Map<String, Object> item) -> {
+    private HashMap<String, Set<VariableDicSelectVO>> AssembleApiCodeToVdSetMap(List<Map<String, Object>> variableList, List<String> apiCodeList) {
+        HashMap<String, Set<VariableDicSelectVO>> apiCodeToVdSetMap = new HashMap<>();
+        variableList.stream().map((Map<String, Object> item) -> {
             if (StringUtils.isEmpty(item.get("apiCode"))) {
-                throw new BusinessException("抱歉小主，apiCode不正确");
+                log.warn("入参apiCode不正确");
+                throw new BusinessException("抱歉小主，变更失败");
             }
             String apiCode = String.valueOf(item.get("apiCode"));
-            Object vdSet = item.get("vdSet");
-            if (vdSet != null) {
-                Set<VariableDicSelectVO> vSet = new HashSet<>();
-                for (LinkedHashMap variableDicSelectVO : (ArrayList<LinkedHashMap>) vdSet) {
-                    VariableDicSelectVO variableDicSelectVO1 = new VariableDicSelectVO();
-                    variableDicSelectVO1.setFieldName((String) variableDicSelectVO.get("fieldName"));
-                    variableDicSelectVO1.setFieldValue((String) variableDicSelectVO.get("fieldValue"));
-                    variableDicSelectVO1.setFieldDesc((String) variableDicSelectVO.get("fieldDesc"));
-                    vSet.add(variableDicSelectVO1);
-                }
-                vdOfApiCodeMap.put(apiCode, vSet);
+            Object vdSetObject = item.get("vdSet");
+            if(vdSetObject == null){
+                log.warn("入参vdSet不正确");
+                throw new BusinessException("抱歉小主，变更失败");
             }
+            Set<VariableDicSelectVO> vdSet = new HashSet<>();
+            for (LinkedHashMap variableDicSelectVO : (ArrayList<LinkedHashMap>) vdSetObject) {
+                VariableDicSelectVO variableDicSelectVO1 = new VariableDicSelectVO();
+                variableDicSelectVO1.setFieldName((String) variableDicSelectVO.get("fieldName"));
+                variableDicSelectVO1.setFieldValue((String) variableDicSelectVO.get("fieldValue"));
+                variableDicSelectVO1.setFieldDesc((String) variableDicSelectVO.get("fieldDesc"));
+                vdSet.add(variableDicSelectVO1);
+            }
+            apiCodeToVdSetMap.put(apiCode, vdSet);
+            apiCodeList.add(apiCode);
             return apiCode;
         }).collect(Collectors.toList());
-        apiCodeList.addAll(collectApiCodeList);
-        return vdOfApiCodeMap;
+        return apiCodeToVdSetMap;
     }
 
     /**
