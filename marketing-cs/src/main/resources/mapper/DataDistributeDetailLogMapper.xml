@@ -56,4 +56,15 @@
                 #{item}
             </foreach>
     </select>
+
+    <select id="findZhongAnLockingDataDistributeLog" resultType="java.lang.Long">
+        select id
+        from b_data_distribute_detail_log
+        where api_code = #{apiCode}
+          and distribute_type = #{distributeType}
+          and distribute_date = #{distributeDate}
+          and cell = #{cell}
+          and JSON_EXTRACT(extend, '$.userType') = #{userType}
+          and JSON_EXTRACT(extend, '$.tag') = #{tag};
+    </select>
 </mapper>
