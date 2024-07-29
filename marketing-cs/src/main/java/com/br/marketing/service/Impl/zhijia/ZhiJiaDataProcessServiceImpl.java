@@ -202,14 +202,13 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             });
         });
         List<ZhiJiaCarBrandInfo> carBrandInfos = getCarBrandInfos();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10, 1);
         Set<Integer> set = carBrandInfos.stream().map(ZhiJiaCarBrandInfo::getBrandId).collect(Collectors.toSet());
             for (Integer brandId : set) {
-                getSeries(brandId, threadPool);
+                getSeries(brandId);
             }
     }
 
-    public void getSeries(Integer brandId, ThreadPoolExecutor threadPool) {
+    public void getSeries(Integer brandId) {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家获取token异常!"));
