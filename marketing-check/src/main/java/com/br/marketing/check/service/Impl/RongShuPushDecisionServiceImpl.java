@@ -72,11 +72,15 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
         if (StringUtils.isEmpty(extractTime)) {
             extractTime = "10:00:00";
         }
-        if (StringUtils.isBlank(extractTime)) {
+        String apiCode = parameter.getApiCode();
+        if (StringUtils.isEmpty(apiCode)) {
+            apiCode = "4004643";
+        }
+        if (StringUtils.isBlank(extractTime) || StringUtils.isBlank(apiCode)) {
+            log.warn("榕树老客代运营自动化转决策缺少apiCode或extractTime参数，job不执行");
             return resultList;
         }
         LocalTime localTime = LocalTime.parse(extractTime);
-        String apiCode = parameter.getApiCode();
         if (LocalTime.now().isAfter(localTime)) {
             String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
             List<TransferActionFront> actionFrontList = getActionFrontList(apiCode
@@ -202,52 +206,4 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
         return actionFrontUpdate;
     }
 
-    /**
-     * 2023-03-13 17:43
-     * 发送数据
-     */
-    private int pushDecision(List<PushMarketingUserDetailDTO> dtoList
-            , List<Long> ids, String strategyCode, String apiCode
-            , MethodRetryHandlerService methodRetryHandlerService, String status) {
-        SecureRandom secureRandom = new SecureRandom();
-        int sum = 0;
-        int pageSize = 500;
-        int totalCount = dtoList.size();
-        int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
-        for (int i = 1; i <= pageCount; i++) {
-            List<PushMarketingUserDetailDTO> subList;
-            List<Long> subIds;
-            if (i == pageCount) {
-                subList = dtoList.subList((i - 1) * pageSize, totalCount);
-                subIds = ids.subList((i - 1) * pageSize, totalCount);
-            } else {
-                subList = dtoList.subList((i - 1) * pageSize, pageSize * (i));
-                subIds = ids.subList((i - 1) * pageSize, pageSize * (i));
-            }
-            PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
-            taskInfoDTO.setStrategyCode(strategyCode);
-            taskInfoDTO.setData(subList);
-            taskInfoDTO.setAccessNumber(System.nanoTime() + String.format("%05d", secureRandom.nextInt(10000)));
-            taskInfoDTO.setMethod("caseAdd");
-            taskInfoDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "_" + apiCode + "_" + status);
-            PushMarketingUserDTO<PushMarketingUserTaskInfoDTO> pushMarketingUserDTO = new PushMarketingUserDTO<>();
-            pushMarketingUserDTO.setJsonData(taskInfoDTO);
-            pushMarketingUserDTO.setApiCode(apiCode);
-            PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
-            retryByRuleDTO.setIds(subIds);
-            retryByRuleDTO.setInfoId(null);
-            retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-            try {
-                Result<?> result = pushDecision(retryByRuleDTO, methodRetryHandlerService);
-                if (result != null && ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                    sum += subList.size();
-                } else {
-                    log.error("客户[{}]自动化转决策失败!apiCode={}", customerAction(), apiCode);
-                }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        }
-        return sum;
-    }
 }
