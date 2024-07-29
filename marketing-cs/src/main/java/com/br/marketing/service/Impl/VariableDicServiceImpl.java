@@ -126,17 +126,15 @@ public class VariableDicServiceImpl implements VariableDicService {
                 List<MarketingDataValidConfigDefault> validConfigDefaultList = validConfigDefaultMapper.selectByExample(exampleConfig);
                 if (!CollectionUtils.isEmpty(validConfigDefaultList)) {
                     MarketingDataValidConfigDefault configDefault = validConfigDefaultList.get(0);
-                    if (configDefault.getValidType().equals(1)) {
-                        if (configDefault.getValidDaysDefault().equals(0)) {
-                            variableDicListVO.setValidDaysDefault("当月自然月");
-                        } else {
-                            variableDicListVO.setValidDaysDefault("次月自然月");
-                        }
-                    } else {
+                    if (configDefault.getValidType().equals(0)) {
                         variableDicListVO.setValidDaysDefault("T+" + configDefault.getValidDaysDefault());
+                    } else {
+                        variableDicListVO.setValidDaysDefault(configDefault.getValidDaysDefault().toString());
                     }
+                    variableDicListVO.setValidType(configDefault.getValidType());
                 } else {
-                    log.warn("不存在有效期天数配置,apiCode={},userType={}", apiCode, userType);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                            , "不存在有效期天数配置,apiCode=" + apiCode + "userType=" + userType));
                 }
             }
             return PageResultReturn.setPageResult(list, page, pageSize);
