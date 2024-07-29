@@ -65,6 +65,6 @@
           and distribute_date = #{distributeDate}
           and cell = #{cell}
           and JSON_EXTRACT(extend, '$.userType') = #{userType}
-          and JSON_EXTRACT(extend, '$.tag') = #{tag};
+          and JSON_EXTRACT(extend, '$.tag') = #{tag}
     </select>
 </mapper>

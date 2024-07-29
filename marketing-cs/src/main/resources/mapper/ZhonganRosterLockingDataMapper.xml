@@ -15,6 +15,9 @@
             <if test="data.tag!=null and data.tag!=''">
                 and tag='${data.tag}'
             </if>
+            <if test="data.isConnect != null and data.isConnect != ''">
+                and is_connect = '${data.isConnect}'
+            </if>
             <if test="data.pushStatus!=null and data.pushStatus!=''">
                 and push_status=${data.pushStatus}
             </if>
