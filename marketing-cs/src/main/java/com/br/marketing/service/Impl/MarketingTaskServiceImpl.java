@@ -292,6 +292,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         // 判断是否达到开始时间
         if (nowTime.isBefore(validTime)) {
+            log.warn("该规则没达到开始时间, 暂不生成任务, ruleId: {}", vo.getId());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则没达到开始时间，暂不生成任务");
         }
 
@@ -312,6 +313,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     .andCloseDateGreaterThanOrEqualTo(nowDateString);
             List<MarketingTaskAutoBuildConfig> autoBuildConfigList = buildConfigMapper.selectByExample(buildConfigExample);
             if (CollectionUtils.isEmpty(autoBuildConfigList)) {
+                log.warn("该周期生成任务规则, 已过期或已删除, ruleId: {}", vo.getId());
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该周期生成任务规则，已过期或已删除");
             }
 
