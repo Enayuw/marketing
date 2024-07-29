@@ -14,4 +14,6 @@ public interface WubaSubmitConversionDataMapper extends WubaSubmitConversionData
             @Param("createDate") Integer createDate,
             @Param("pageSize") Integer pageSize);
 
+    int batchAdd(List<WubaSubmitConversionData> list);
+
 }

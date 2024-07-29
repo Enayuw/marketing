@@ -1374,7 +1374,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param infoId            原始数据表id
      * @param queueEnum         队列类型
      */
-    private void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
+    @Override
+    public void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
         try {
             long l3 = System.currentTimeMillis();
             // 根据apicode和bizType获取路由键
