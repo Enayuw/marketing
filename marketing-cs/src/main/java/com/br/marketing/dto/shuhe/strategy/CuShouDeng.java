@@ -18,7 +18,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2022/2/10 17:33
  */
-public class CuShouDeng extends IUserType {
+public class CuShouDeng extends BaseUserType {
 
     public CuShouDeng(String... api2Codes) {
         super(api2Codes);

@@ -1,5 +1,6 @@
 package com.br.marketing.monkey.job.wuba;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -71,6 +72,7 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
         Page2Condition<WubaSubmitConversionData> condition = new Page2Condition<>();
         condition.setParam(param);
         condition.setPageSize(pageSize);
+        log.warn(TITLE + "condition: {}", JSONObject.toJSON(condition));
         service.action(condition);
     }
 
@@ -91,6 +93,7 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
     private List<Map<String, String>> parseParameter() throws Exception {
         List<Map<String, String>> paramList = marketingCommonConfig.getWuBaSubmitConversionParams();
         String curDate = DateUtils.format(new Date(), "yyyy-MM-dd");
+        log.warn(TITLE + "curDate: {}", curDate);
 
         for(Map<String, String> map : paramList){
             if(StringUtils.isEmpty(map.get("apiCode"))){
@@ -100,6 +103,7 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
                 map.put("bizDate", curDate);
             }
         }
+        log.warn(TITLE + "paramList: {}", JSONObject.toJSONString(paramList));
         return paramList;
     }
 }

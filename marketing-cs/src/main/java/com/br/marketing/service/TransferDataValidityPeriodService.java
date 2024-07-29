@@ -282,4 +282,49 @@ public interface TransferDataValidityPeriodService {
      */
     List<MarketingDataValidConfig> getDataValidityPeriodPageList(
             String apiCode, Object requestDateObj, Integer page, Integer pageSize);
+
+    /**
+     * 指定场景获取有效期的有效期配置
+     *
+     * @param apiCode        客户编号
+     * @param userType       场景
+     * @param requestDateObj 请求时间
+     * @param pageNo         页号
+     * @param pageSize       页大小
+     * @return 有效期的有效期配置
+     * @author Guo Zeqiang
+     * @version 1.0
+     * @dateTime 2024-01-09 15:30
+     */
+    List<MarketingDataValidConfig> getDataValidityPeriodPageList(
+            String apiCode, String userType, Object requestDateObj, int pageNo, int pageSize);
+
+    /**
+     * 指定场景集合获取有效期的有效期配置
+     *
+     * @param apiCode        客户编号
+     * @param userTypeSet    场景集合
+     * @param requestDateObj 请求时间
+     * @param pageNo         页号
+     * @param pageSize       页大小
+     * @return 有效期的有效期配置
+     * @author Guo Zeqiang
+     * @version 1.0
+     * @dateTime 2024-01-09 15:30
+     */
+    List<MarketingDataValidConfig> getDataValidityPeriodPageList(
+            String apiCode, Set<String> userTypeSet, Object requestDateObj, int pageNo, int pageSize);
+
+    /**
+     * 指定场景获取合并重叠时间后的有效期
+     *
+     * @param apiCode        客户编号
+     * @param userType       场景
+     * @param requestDateObj 请求时间
+     * @return 合并重叠时间后的有效期的有效期集合
+     * @author Guo Zeqiang
+     * @version 1.0
+     * @dateTime 2024-01-09 15:30
+     */
+    List<MarketingDataValidConfig> getDataMergeValidityPeriodList(String apiCode, String userType, Object requestDateObj);
 }

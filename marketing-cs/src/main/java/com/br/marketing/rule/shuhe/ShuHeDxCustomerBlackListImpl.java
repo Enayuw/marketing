@@ -57,10 +57,10 @@ public class ShuHeDxCustomerBlackListImpl implements AssembleData<BlackDetailDTO
             LocalDateTime expireData = LocalDateTime.now().withHour(23).withMinute(59).withSecond(59).plusDays(blackDays);
             endTime = expireData.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         } else {
-            if (StringUtils.isEmpty(clcUsrMaxDxRrtEnd)) {
-                endTime = usrForbidCallEndTim.substring(0, 10).concat(" 23:59:59");
+            if (!StringUtils.isEmpty(usrForbidCallEndTim)) {
+                endTime = usrForbidCallEndTim;
             } else {
-                endTime = clcUsrMaxDxRrtEnd.substring(0, 10).concat(" 23:59:59");
+                endTime = clcUsrMaxDxRrtEnd;
             }
         }
         BlackDetailDTO blackDetailDTO = new BlackDetailDTO();
