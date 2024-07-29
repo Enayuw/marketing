@@ -52,7 +52,10 @@ public class IRongShuPushDaasServiceImpl implements IRongShuPushDaasService {
         //剔除有效期内 转化数据userType=4||userType=5||applyLoan=1
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.settCid(tcId);
-        example.createCriteria().andApiCodeEqualTo(marketingSyncUser.getApiCode()).andCustNumEqualTo(marketingSyncUser.getCustNum()).andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
+        example.createCriteria()
+                .andApiCodeEqualTo(marketingSyncUser.getApiCode())
+                .andCustNumEqualTo(marketingSyncUser.getCustNum())
+                .andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
         List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
         for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
             if (StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
@@ -69,12 +72,14 @@ public class IRongShuPushDaasServiceImpl implements IRongShuPushDaasService {
     }
 
     @Override
-    public boolean isFilterUserUserType(String apiCode, String custNum, String tcId) {
-        MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
+    public boolean isFilterUserUserType(String apiCode, String custNum, String tcId, MarketingSyncUser marketingSyncUser) {
         //剔除有效期内 转化数据userType=4||userType=5
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
         example.settCid(tcId);
-        example.createCriteria().andApiCodeEqualTo(marketingSyncUser.getApiCode()).andCustNumEqualTo(marketingSyncUser.getCustNum()).andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
+        example.createCriteria()
+                .andApiCodeEqualTo(marketingSyncUser.getApiCode())
+                .andCustNumEqualTo(marketingSyncUser.getCustNum())
+                .andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
         List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
         for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
             if (StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {

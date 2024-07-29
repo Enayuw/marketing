@@ -1,5 +1,7 @@
 package com.br.marketing.service;
 
+import com.br.marketing.entity.MarketingSyncUser;
+
 public interface IRongShuPushDaasService {
 
 
@@ -20,8 +22,9 @@ public interface IRongShuPushDaasService {
      * @param apiCode apiCode
      * @param custNum custNum
      * @param tcId  tcId
+     * @param marketingSyncUser  marketingSyncUser
      * @return boolean
      */
-    boolean isFilterUserUserType(String apiCode, String custNum, String tcId);
+    boolean isFilterUserUserType(String apiCode, String custNum, String tcId, MarketingSyncUser marketingSyncUser);
 
 }

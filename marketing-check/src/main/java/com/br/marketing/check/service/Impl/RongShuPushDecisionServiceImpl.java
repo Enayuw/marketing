@@ -138,7 +138,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                 date : now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         HashMap<String, JSONObject> rsStrategyCodes = marketingCommonConfig.getRsStrategyCodes();
         JSONObject strategyCodeObject = rsStrategyCodes.get(apiCode);
-        String strategyCode = strategyCodeObject.getString("n");
+        String strategyCode = strategyCodeObject.getString("1");
         Long minId = null;
         Boolean actionMark = Boolean.TRUE;
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -165,10 +165,10 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                     log.warn("apiCode[{}]custNum[{}]不满足RongShu案件编号[有效期内]条件", apiCode, custNum);
                     continue;
                 }
-                if (iRongShuPushDaasService.isFilterUserUserType(apiCode,transferUser.getCustNum(),tcId)) {
+                MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
+                if (iRongShuPushDaasService.isFilterUserUserType(apiCode,transferUser.getCustNum(),tcId,marketingSyncUser)) {
                     continue;
                 }
-                MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
                 String cell = marketingSyncUser.getCell();
                 if (!cellSet.add(cell)) {
                     continue;
@@ -181,7 +181,6 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                 jb.put("status",status);
                 pushMarketingUserDetailDTO.setVariables(jb);
                 list.add(pushMarketingUserDetailDTO);
-
             }
             PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
             taskInfoDTO.setData(list);
