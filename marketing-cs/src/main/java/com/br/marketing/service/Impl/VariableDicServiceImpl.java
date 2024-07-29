@@ -69,8 +69,6 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Resource
     private VariableDicMapper variableDicMapper;
 
-    @Resource
-    private MarketingValidityChangeMapper validityChangeMapper;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -184,13 +182,13 @@ public class VariableDicServiceImpl implements VariableDicService {
                 validConfigDefault.setId(validConfigDefaultList.get(0).getId());
                 validConfigDefault.setApiCode(apiCode);
                 validConfigDefault.setUpdateTime(new Date());
-                validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
+                validConfigDefaultMapper.updateByPrimaryKeySelective(validConfigDefault);
                 entityOptService.writeOptLog(validConfigDefaultList.get(0).getId(), validConfigDefault, validConfigDefaultList.get(0));
                 return new ApiResult<Boolean>().success(true);
             }
             validConfigDefault.setApiCode(apiCode);
             validConfigDefault.setCreateTime(new Date());
-            validityChangeMapper.insertSelective(validConfigDefault);
+            validConfigDefaultMapper.insertSelective(validConfigDefault);
             entityOptService.writeOptLog(validConfigDefault.getId(), validConfigDefault, null);
         } else {
             VariableDic data = variableDicMapper.selectByPrimaryKey(vo.getId());
@@ -210,7 +208,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 validConfigDefault.setId(validConfigDefaultList.get(0).getId());
                 validConfigDefault.setApiCode(apiCode);
                 validConfigDefault.setUpdateTime(new Date());
-                validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
+                validConfigDefaultMapper.updateByPrimaryKeySelective(validConfigDefault);
                 entityOptService.writeOptLog(validConfigDefaultList.get(0).getId(), validConfigDefault, validConfigDefaultList.get(0));
             } else {
                 MarketingDataValidConfigDefault configDefault = new MarketingDataValidConfigDefault();
@@ -223,7 +221,6 @@ public class VariableDicServiceImpl implements VariableDicService {
                 validConfigDefaultMapper.insertSelective(configDefault);
                 entityOptService.writeOptLog(configDefault.getId(), configDefault, null);
             }
-
         }
 
         return new ApiResult<Boolean>().success(true);
