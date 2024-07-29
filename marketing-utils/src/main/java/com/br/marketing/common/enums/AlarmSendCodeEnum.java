@@ -51,6 +51,8 @@ public enum AlarmSendCodeEnum {
     ZHIJIA_SERVICEERROR("6002001", "之家车线索业务异常"),
     //之家接口错误,阶梯推送
     ZHIJIA_INTERFACEERROR("6002002", "之家接口调用失败"),
+    //医时业务错误,阶梯推送
+    YISHI_SERVICEERROR("6003001", "医时业务异常"),
 
     //数据治理平台调用marketing-inner-api邮件发送接口使用
     DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),

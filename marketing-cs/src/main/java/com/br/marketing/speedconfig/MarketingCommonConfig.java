@@ -1978,7 +1978,7 @@ public class MarketingCommonConfig {
     private List<String> YiShiTransferApiCodes;
 
     /**
-     * 医时转化数据提取执行时间
+         * 医时转化数据提取执行时间
      */
     private String YiShiTransferFileExecuteTime;
 

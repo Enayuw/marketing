@@ -1,9 +1,12 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -141,7 +144,8 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
             if (!mkdirs) {
-                log.error(descPath + "医时化数据提取目录创建失败！");
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YISHI_SERVICEERROR.getCode(),
+                        descPath + "医时化数据提取目录创建失败！"));
             }
         }
         String fileAllPath = descPath.concat(transferFileTask.getFileName());
@@ -152,7 +156,7 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
             fw.append("\r\n");
             writeYiShiTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
-            log.error("医时化数据提取写入文件错误！",ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YISHI_SERVICEERROR.getCode(), "医时化数据提取写入文件错误！"), ex);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(ex.getMessage());
         }
@@ -167,7 +171,7 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(12, 12, 100);
 
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
@@ -183,26 +187,22 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
             page++;
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
-                    String custNum = emptyDefault(transferFilterData.getCustNum());
-                    String userType = emptyDefault(transferFilterData.getUserType());
-                    String callId = null;
-                    String isBlack = null;
-                    String extend01 = null;
-                    String extend02 = null;
-                    if (org.apache.commons.lang3.StringUtils.isNotBlank(transferFilterData.getReserveField1())) {
+                    String custNum = transferFilterData.getCustNum();
+                    String userType = transferFilterData.getUserType();
+                    String callId ="";
+                    String isBlack = "";
+                    String extend01 = "";
+                    String extend02 = "";
+                    if (ObjectUtil.isNotEmpty(transferFilterData.getReserveField1())) {
                         JSONObject jsonObject = JSON.parseObject(transferFilterData.getReserveField1());
                         callId = jsonObject.getString("callId");
                         isBlack = jsonObject.getString("isBlack");
                         extend01 = jsonObject.getString("extend01");
                         extend02 = jsonObject.getString("extend02");
-                        if (StringUtils.isNotEmpty(extend02)){
-                            extend02 = LocalDate.parse(extend02, YYYYMMDDSHORTLINE).toString();
-                        }
-
                     }
                     StringBuilder sb = new StringBuilder();
-                    sb.append(custNum.concat(","))
-                            .append(userType.concat(","))
+                    sb.append(emptyDefault(custNum).concat(","))
+                            .append(emptyDefault(userType).concat(","))
                             .append(emptyDefault(callId).concat(","))
                             .append(characterMapping(isBlack).concat(","))
                             .append(characterMapping(extend01).concat(","))
@@ -212,11 +212,10 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
                         fw.append(sb.toString());
                         totalSize.incrementAndGet();
                     } catch (IOException e) {
-                        log.error(e.getMessage(), e);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YISHI_SERVICEERROR.getCode(), "医时转化数据写入文件异常"), e);
                     }
                 }
             });
-
         }
         threadPool.shutdown();
 
@@ -225,15 +224,19 @@ public class TransferToFileByYiShiServiceImpl implements ITransferToFileService 
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("医时转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
-                            , taskCount, completedTaskCount, taskCount - completedTaskCount);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YISHI_SERVICEERROR.getCode()
+                            , "医时转化数据提取写入文件大约总任务数：" + taskCount
+                                    + "；大约已完成任务数：" + completedTaskCount
+                                    + "；大约剩余任务数：" + (taskCount - completedTaskCount)));
+
                 }
             }
             saveUpdateTask(transferFileTask, totalSize.intValue());
             log.warn("医时转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
-            log.error("医时转化数据提取-本地文件生成失败！" , e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YISHI_SERVICEERROR.getCode()
+                    , "医时转化数据提取-本地文件生成失败！"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());

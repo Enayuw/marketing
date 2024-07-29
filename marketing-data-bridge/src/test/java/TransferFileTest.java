@@ -66,7 +66,7 @@ public class TransferFileTest implements ApplicationContextAware {
         TransferFileTask transferFileTask = new TransferFileTask();
         transferFileTask.setApiCode("7410716");
         String apiCode = "7410716";
-        String myParam = "7410716#2024-01-20";
+        String myParam = "7410716#2024-07-29";
         String dd = isMyParam("7410716", myParam);
         String date = LocalDate.now().toString();
         date = date.replace("-", "");
