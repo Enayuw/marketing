@@ -1506,6 +1506,76 @@ public class CustomerInfoPushMainExample {
             return (Criteria) this;
         }
 
+        public Criteria andBatchNameIsNull() {
+            addCriterion("batch_name is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameIsNotNull() {
+            addCriterion("batch_name is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameEqualTo(String value) {
+            addCriterion("batch_name =", value, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameNotEqualTo(String value) {
+            addCriterion("batch_name <>", value, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameGreaterThan(String value) {
+            addCriterion("batch_name >", value, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameGreaterThanOrEqualTo(String value) {
+            addCriterion("batch_name >=", value, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameLessThan(String value) {
+            addCriterion("batch_name <", value, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameLessThanOrEqualTo(String value) {
+            addCriterion("batch_name <=", value, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameLike(String value) {
+            addCriterion("batch_name like", value, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameNotLike(String value) {
+            addCriterion("batch_name not like", value, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameIn(List<String> values) {
+            addCriterion("batch_name in", values, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameNotIn(List<String> values) {
+            addCriterion("batch_name not in", values, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameBetween(String value1, String value2) {
+            addCriterion("batch_name between", value1, value2, "batchName");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNameNotBetween(String value1, String value2) {
+            addCriterion("batch_name not between", value1, value2, "batchName");
+            return (Criteria) this;
+        }
+
         public Criteria andExtendIsNull() {
             addCriterion("extend is null");
             return (Criteria) this;
