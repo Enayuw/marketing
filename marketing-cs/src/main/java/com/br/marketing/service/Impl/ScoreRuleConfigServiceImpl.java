@@ -385,7 +385,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
 
     private HashMap<String, Set<VariableDicSelectVO>> AssembleApiCodeToVdSetMap(List<Map<String, Object>> variableList, List<String> apiCodeList) {
         HashMap<String, Set<VariableDicSelectVO>> apiCodeToVdSetMap = new HashMap<>();
-        variableList.stream().map((Map<String, Object> item) -> {
+        if(CollectionUtils.isEmpty(variableList)) {
+            return apiCodeToVdSetMap;
+        }
+
+        variableList.forEach((Map<String, Object> item) -> {
             if (StringUtils.isEmpty(item.get("apiCode"))) {
                 log.warn("入参apiCode不正确");
                 throw new BusinessException("抱歉小主，变更失败");
@@ -406,8 +410,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
             }
             apiCodeToVdSetMap.put(apiCode, vdSet);
             apiCodeList.add(apiCode);
-            return apiCode;
-        }).collect(Collectors.toList());
+        });
         return apiCodeToVdSetMap;
     }
 
