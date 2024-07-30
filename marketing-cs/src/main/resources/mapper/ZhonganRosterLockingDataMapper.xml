@@ -26,7 +26,7 @@
     </select>
 
     <select id="findPartColumnListPage" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
-        select t1.id,mobile_md5,biz_date,tag,data_source,local_id,api_code,IF(user_type='', '1', user_type) as userType from b_zhongan_roster_locking_data t1,
+        select t1.id,mobile_md5,biz_date,tag,data_source,local_id,api_code,IF(user_type='', '1', user_type),is_connect as userType from b_zhongan_roster_locking_data t1,
         (select id from b_zhongan_roster_locking_data
         <where>
             <if test="data.apiCode!=null and data.apiCode!=''">
