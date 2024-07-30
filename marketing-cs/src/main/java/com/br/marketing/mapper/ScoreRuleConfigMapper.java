@@ -1,7 +1,9 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.CustomerScoreRuleDTO;
 import com.br.marketing.entity.ScoreRuleConfig;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
+import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -33,8 +35,16 @@ public interface ScoreRuleConfigMapper extends ScoreRuleConfigMapperBase {
 
     /**
      * 跑分规则下拉列表
-     * @param apiCode
+     * @param apiCodeList
      * @return
      */
-    List<ScoreRuleConfig> getScoreRules(@Param("apiCode")String apiCode);
+    List<ScoreRuleConfig> getScoreRules(@Param("apiCodeList")List<String> apiCodeList);
+
+    List<CustomerScoreRuleVO> getScoreRuleVoList(
+            @Param("ruleIdList")List<Long> ruleIdList,
+            @Param("apiCodeList")List<String> apiCodeList);
+
+    List<CustomerScoreRuleDTO> getScoreRuleDtoList(
+            @Param("ruleIdList")List<Long> ruleIdList,
+            @Param("apiCodeList")List<String> apiCodeList);
 }
