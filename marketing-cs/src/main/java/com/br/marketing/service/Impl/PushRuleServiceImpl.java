@@ -499,7 +499,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             batchName = dto.getBatchName();
         } else {  //默认名称
             if (StringUtils.isNotEmpty(dto.getRuleModelName())) {
-                batchName = LocalDate.now().toString().concat("-").concat(dto.getRuleModelName()).concat("-").concat(LocalTime.now().withNano(0).toString());
+                batchName = LocalDate.now().toString().concat("-").concat(dto.getRuleModelName()).concat("-").concat(LocalTime.now().withNano(0)
+                        .toString());
             } else {
                 batchName = LocalDate.now().toString().concat("-").concat(customerInfoPushMain.getId().toString()).concat("-").
                         concat(LocalTime.now().withNano(0).toString());
