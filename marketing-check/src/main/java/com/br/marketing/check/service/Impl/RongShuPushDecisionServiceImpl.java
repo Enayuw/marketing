@@ -114,8 +114,9 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
         HashSet cellSet = new HashSet();
         // 场景配置
         List<String> userTypeList = null;
+        List<String> defaultUserTypeList = Arrays.asList("1", "3", "201", "202");
         if(null == paramMap || paramMap.isEmpty()){
-            userTypeList = Arrays.asList("1", "3", "201", "202");
+            userTypeList = defaultUserTypeList;
         }else{
             for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
                 String key = entry.getKey();
@@ -128,8 +129,8 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                     date = value;
                 }
             }
-            if(null == userTypeList){
-                userTypeList = Arrays.asList("1", "3", "201", "202");
+            if(null == userTypeList || userTypeList.size()<1){
+                userTypeList = defaultUserTypeList;
             }
         }
         LocalDate now = LocalDate.now();
@@ -182,6 +183,9 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                 pushMarketingUserDetailDTO.setVariables(jb);
                 list.add(pushMarketingUserDetailDTO);
             }
+            if(list.size()<1){
+                continue;
+            }
             PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
             taskInfoDTO.setData(list);
             taskInfoDTO.setAccessNumber(apiCode+"_"+time+"_"+status+"_"+sort);
@@ -202,6 +206,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
         actionFrontUpdate.setId(actionFront.getId());
         actionFrontUpdate.setRemark(String.valueOf(sort));
         actionFrontUpdate.setStatus(2);
+        cellSet = null;
         return actionFrontUpdate;
     }
 
