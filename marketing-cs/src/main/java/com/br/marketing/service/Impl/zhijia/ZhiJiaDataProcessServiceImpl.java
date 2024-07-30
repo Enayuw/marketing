@@ -202,14 +202,13 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
             });
         });
         List<ZhiJiaCarBrandInfo> carBrandInfos = getCarBrandInfos();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10, 1);
         Set<Integer> set = carBrandInfos.stream().map(ZhiJiaCarBrandInfo::getBrandId).collect(Collectors.toSet());
-        for (Integer brandId : set) {
-            getSeries(brandId, threadPool);
-        }
+            for (Integer brandId : set) {
+                getSeries(brandId);
+            }
     }
 
-    public void getSeries(Integer brandId, ThreadPoolExecutor threadPool) {
+    public void getSeries(Integer brandId) {
         String token = getToken();
         if (StringUtils.isEmpty(token)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家获取token异常!"));
@@ -228,42 +227,38 @@ public class ZhiJiaDataProcessServiceImpl implements ZhiJiaDataProcessService {
         JSONArray serieslist = resultJson.getJSONArray("serieslist");
         try {
             serieslist.forEach((Object seriesJson) -> {
-                threadPool.submit(() -> {
-                    JSONObject seriesInfo = (JSONObject) seriesJson;
-                    Integer seriesId = seriesInfo.getInteger("id");
-                    String seriesName = seriesInfo.getString("name");
-                    String newSeriesName = removeSpacesAndConvertToUpper(seriesName);
-                    ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample = new ZhiJiaCarSeriesInfoExample();
-                    zhiJiaCarSeriesInfoExample.createCriteria()
-                            .andBrandIdEqualTo(brandId).andSeriesIdEqualTo(seriesId);
-                    List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
-                    if (CollectionUtils.isEmpty(zhiJiaCarSeriesInfos)) {
-                        ZhiJiaCarSeriesInfo zhiJiaCarSeriesInfo = new ZhiJiaCarSeriesInfo();
-                        zhiJiaCarSeriesInfo.setApiCode(zhiJiaApiCode);
-                        zhiJiaCarSeriesInfo.setBrandId(brandId);
-                        zhiJiaCarSeriesInfo.setSeriesId(seriesId);
-                        zhiJiaCarSeriesInfo.setSeriesName(seriesName);
-                        zhiJiaCarSeriesInfo.setNewSeriesName(newSeriesName);
-                        zhiJiaCarSeriesInfo.setCreateTime(new Date());
-                        zhiJiaCarSeriesInfo.setUpdateTime(new Date());
-                        zhiJiaCarSeriesInfo.setAppletDate(LocalDate.now().toString());
-                        zhiJiaCarSeriesInfoMapper.insertSelective(zhiJiaCarSeriesInfo);
-                    } else {
-                        ZhiJiaCarSeriesInfo zhiJiaCarSeriesInfo = new ZhiJiaCarSeriesInfo();
-                        zhiJiaCarSeriesInfo.setApiCode(zhiJiaApiCode);
-                        zhiJiaCarSeriesInfo.setSeriesName(seriesName);
-                        zhiJiaCarSeriesInfo.setNewSeriesName(newSeriesName);
-                        zhiJiaCarSeriesInfo.setUpdateTime(new Date());
-                        zhiJiaCarSeriesInfo.setAppletDate(LocalDate.now().toString());
-                        zhiJiaCarSeriesInfo.setId(zhiJiaCarSeriesInfos.get(0).getId());
-                        zhiJiaCarSeriesInfoMapper.updateByPrimaryKeySelective(zhiJiaCarSeriesInfo);
-                    }
-                });
+                JSONObject seriesInfo = (JSONObject) seriesJson;
+                Integer seriesId = seriesInfo.getInteger("id");
+                String seriesName = seriesInfo.getString("name");
+                String newSeriesName = removeSpacesAndConvertToUpper(seriesName);
+                ZhiJiaCarSeriesInfoExample zhiJiaCarSeriesInfoExample = new ZhiJiaCarSeriesInfoExample();
+                zhiJiaCarSeriesInfoExample.createCriteria()
+                        .andBrandIdEqualTo(brandId).andSeriesIdEqualTo(seriesId);
+                List<ZhiJiaCarSeriesInfo> zhiJiaCarSeriesInfos = zhiJiaCarSeriesInfoMapper.selectByExample(zhiJiaCarSeriesInfoExample);
+                if (CollectionUtils.isEmpty(zhiJiaCarSeriesInfos)) {
+                    ZhiJiaCarSeriesInfo zhiJiaCarSeriesInfo = new ZhiJiaCarSeriesInfo();
+                    zhiJiaCarSeriesInfo.setApiCode(zhiJiaApiCode);
+                    zhiJiaCarSeriesInfo.setBrandId(brandId);
+                    zhiJiaCarSeriesInfo.setSeriesId(seriesId);
+                    zhiJiaCarSeriesInfo.setSeriesName(seriesName);
+                    zhiJiaCarSeriesInfo.setNewSeriesName(newSeriesName);
+                    zhiJiaCarSeriesInfo.setCreateTime(new Date());
+                    zhiJiaCarSeriesInfo.setUpdateTime(new Date());
+                    zhiJiaCarSeriesInfo.setAppletDate(LocalDate.now().toString());
+                    zhiJiaCarSeriesInfoMapper.insertSelective(zhiJiaCarSeriesInfo);
+                } else {
+                    ZhiJiaCarSeriesInfo zhiJiaCarSeriesInfo = new ZhiJiaCarSeriesInfo();
+                    zhiJiaCarSeriesInfo.setApiCode(zhiJiaApiCode);
+                    zhiJiaCarSeriesInfo.setSeriesName(seriesName);
+                    zhiJiaCarSeriesInfo.setNewSeriesName(newSeriesName);
+                    zhiJiaCarSeriesInfo.setUpdateTime(new Date());
+                    zhiJiaCarSeriesInfo.setAppletDate(LocalDate.now().toString());
+                    zhiJiaCarSeriesInfo.setId(zhiJiaCarSeriesInfos.get(0).getId());
+                    zhiJiaCarSeriesInfoMapper.updateByPrimaryKeySelective(zhiJiaCarSeriesInfo);
+                }
             });
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHIJIA_SERVICEERROR.getCode(), "之家车辆车系信息入库线程错误！"), e);
-        } finally {
-            threadPool.shutdown();
         }
     }
 
