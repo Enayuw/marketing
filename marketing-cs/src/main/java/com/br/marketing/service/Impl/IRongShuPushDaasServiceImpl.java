@@ -82,10 +82,11 @@ public class IRongShuPushDaasServiceImpl implements IRongShuPushDaasService {
                 .andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
         List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
         for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
-            if (StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1())) {
-                if (("4").equals(marketingTransferSyncUser.getUserType()) || ("5").equals(marketingTransferSyncUser.getUserType())) {
-                    return true;
-                }
+            String userType = marketingTransferSyncUser.getUserType();
+            boolean flag = StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())
+                    && (("4").equals(userType) || ("5").equals(userType));
+            if (flag) {
+                return true;
             }
         }
         return false;
