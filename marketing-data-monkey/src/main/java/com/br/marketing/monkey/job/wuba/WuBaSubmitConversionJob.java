@@ -1,5 +1,6 @@
 package com.br.marketing.monkey.job.wuba;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -14,9 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Description 58新客提交营销名单
@@ -71,6 +70,7 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
         Page2Condition<WubaSubmitConversionData> condition = new Page2Condition<>();
         condition.setParam(param);
         condition.setPageSize(pageSize);
+        log.warn(TITLE + "condition: {}", JSONObject.toJSON(condition));
         service.action(condition);
     }
 
@@ -89,17 +89,27 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
      * e.g [{"apiCode":"3710155","bizDate":"2024-07-11"},{"apiCode":"3710155","bizDate":"2024-07-12"}]
      */
     private List<Map<String, String>> parseParameter() throws Exception {
-        List<Map<String, String>> paramList = marketingCommonConfig.getWuBaSubmitConversionParams();
+        List<Map<String, String>> paramList = new ArrayList<>();
+        List<Map<String, String>> configList = marketingCommonConfig.getWuBaSubmitConversionParams();
         String curDate = DateUtils.format(new Date(), "yyyy-MM-dd");
+        log.warn(TITLE + "curDate: {}", curDate);
 
-        for(Map<String, String> map : paramList){
-            if(StringUtils.isEmpty(map.get("apiCode"))){
+        for(Map<String, String> configMap : configList){
+            Map<String, String> paramMap = new HashMap<>();
+            // apiCode
+            if(StringUtils.isEmpty(configMap.get("apiCode"))){
                 throw new Exception("Job参数格式不正确");
             }
-            if(StringUtils.isEmpty(map.get("bizDate"))){
-                map.put("bizDate", curDate);
+            paramMap.put("apiCode", configMap.get("apiCode"));
+            // bizDate
+            if(StringUtils.isEmpty(configMap.get("bizDate"))){
+                paramMap.put("bizDate", curDate);
+            } else {
+                paramMap.put("bizDate", configMap.get("bizDate"));
             }
+            paramList.add(paramMap);
         }
+        log.warn(TITLE + "paramList: {}", JSONObject.toJSONString(paramList));
         return paramList;
     }
 }

@@ -1,9 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.ScoreRuleConfigDTO;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingTaskExtend;
 import com.br.marketing.entity.ScoreRuleConfig;
@@ -49,6 +47,8 @@ public interface ScoreRuleConfigService {
      * @dateTime 2021/9/2 14:15
      */
     void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail);
+
+    void saveTransaction(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) throws Exception;
 
     /**
      * 设置开启状态 1-开启；2-禁用；3-开启中

@@ -6,7 +6,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -26,9 +25,6 @@ public class WuBaDingDingService {
     @Resource
     private DingDingRobotHookService dingDingRobotHookService;
 
-    @Value("${api.wuba.isProxy:true}")
-    private boolean isProxy;
-
     public void sendAlert(String title, String text){
         try {
             String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
@@ -46,6 +42,6 @@ public class WuBaDingDingService {
         markdown.setText(text);
         DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
         dingDingMarkdownMessage.setMarkdown(markdown);
-        dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingMarkdownMessage, isProxy);
+        dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingMarkdownMessage, true);
     }
 }

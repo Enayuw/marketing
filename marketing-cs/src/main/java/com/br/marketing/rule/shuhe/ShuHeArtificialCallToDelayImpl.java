@@ -6,10 +6,10 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.shuhe.strategy.CuShouDeng;
 import com.br.marketing.dto.shuhe.strategy.CuShouJie;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserExample;
@@ -76,7 +76,7 @@ public class ShuHeArtificialCallToDelayImpl implements AssembleData<MqFact> {
         mqFactNew.setSourceId(mqFact.getSourceId());
         mqFactNew.setIncludeRules(mqFact.getIncludeRules());
         mqFact.setIsDelay(0);
-        if (shuHeContext.getIUserType() instanceof CuFuJie) {
+        if (shuHeContext.getBaseUserType() instanceof CuFuJie) {
             mqFactNew.setDelayTime(0.5F);
             JSONObject jsonObject = new JSONObject();
             CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
@@ -94,8 +94,8 @@ public class ShuHeArtificialCallToDelayImpl implements AssembleData<MqFact> {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                     (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
-            final IUserType iUserType = shuHeContext.getIUserType();
-            if (iUserType instanceof CuShouDeng) {
+            final BaseUserType baseUserType = shuHeContext.getBaseUserType();
+            if (baseUserType instanceof CuShouDeng) {
                 return false;
             }
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -106,9 +106,9 @@ public class ShuHeArtificialCallToDelayImpl implements AssembleData<MqFact> {
                 shuHeContext.setTransfer(transfer);
                 Date creatTime = shuHeContext.getCreatTime();
                 Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
-                boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
+                boolean b = baseUserType.dataPeriodOfValidity(iMarketingSyncUserService
                         , transfer.getCreateTime(), day, creatTime);
-                if (b && iUserType instanceof CuShouJie && !(iUserType.getApiCodes().contains(transfer.getApiCode()))
+                if (b && baseUserType instanceof CuShouJie && !(baseUserType.getApiCodes().contains(transfer.getApiCode()))
                 ) {
                     systemExceptionService.sendAlarm(String.format(
                             "检测到数禾客户推送转化数据存在异常：该apiCode下不应该出现该场景的数据！" +
@@ -117,9 +117,9 @@ public class ShuHeArtificialCallToDelayImpl implements AssembleData<MqFact> {
                             , "MARKETING-INNER-API");
                     b = Boolean.FALSE;
                 }
-                if (iUserType instanceof CuFuJie) {
+                if (baseUserType instanceof CuFuJie) {
                     if (b) {
-                        boolean phoneSale = ((CuFuJie) iUserType).isSatisfyPhoneSale(caseShuheUser, creatTime
+                        boolean phoneSale = ((CuFuJie) baseUserType).isSatisfyPhoneSale(caseShuheUser, creatTime
                                 , marketingCommonConfig);
                         if (phoneSale) {
                             bool = periodOfValidityTransform(caseShuheUser, day, creatTime)
@@ -128,7 +128,7 @@ public class ShuHeArtificialCallToDelayImpl implements AssembleData<MqFact> {
                     }
                     shuHeContext.setCaseShuheUser(caseShuheUser);
                 } else {
-                    bool = (b && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
+                    bool = (b && baseUserType.isSatisfyPhoneSale(caseShuheUser, creatTime)
                             && cacheExists(transfer, shuHeContext, day));
                 }
                 shuHeContext.setTransfer(null);
@@ -238,14 +238,14 @@ public class ShuHeArtificialCallToDelayImpl implements AssembleData<MqFact> {
             }
         }
         CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-        IUserType iUserType = shuHeContext.getIUserType();
+        BaseUserType baseUserType = shuHeContext.getBaseUserType();
         Date creatTime = shuHeContext.getCreatTime();
         for (int i = mark; i < size; i++) {
             MarketingTransferSyncUser transferSyncUser = list.get(i);
             shuHeContext.setTransfer(transferSyncUser);
-            boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
+            boolean b = baseUserType.dataPeriodOfValidity(iMarketingSyncUserService
                     , transferSyncUser.getCreateTime(), day, creatTime)
-                    && iUserType.isSatisfyPhoneSale(caseShuheUser, creatTime);
+                    && baseUserType.isSatisfyPhoneSale(caseShuheUser, creatTime);
             if (b) {
                 return false;
             }

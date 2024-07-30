@@ -96,6 +96,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -492,7 +493,22 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setOptUserId(String.valueOf(dto.getUserDetail().getId()));
         customerInfoPushMain.setOptUserName(dto.getUserDetail().getRealName());
         customerInfoPushMainMapper.insertSelective(customerInfoPushMain);
-
+        //数据集名称更新
+        String batchName;
+        if (StringUtils.isNotEmpty(dto.getBatchName())) {
+            batchName = dto.getBatchName();
+        } else {  //默认名称
+            if (StringUtils.isNotEmpty(dto.getRuleModelName())) {
+                batchName = LocalDate.now().toString().concat("-").concat(dto.getRuleModelName()).concat("-").concat(LocalTime.now().withNano(0).toString());
+            } else {
+                batchName = LocalDate.now().toString().concat("-").concat(customerInfoPushMain.getId().toString()).concat("-").
+                        concat(LocalTime.now().withNano(0).toString());
+            }
+        }
+        CustomerInfoPushMain updatePushMain = new CustomerInfoPushMain();
+        updatePushMain.setId(customerInfoPushMain.getId());
+        updatePushMain.setBatchName(batchName);
+        customerInfoPushMainMapper.updateByPrimaryKeySelective(updatePushMain);
         files.forEach(t -> {
             CustomerInfoPushBatch customerInfoPushBatch = new CustomerInfoPushBatch();
             customerInfoPushBatch.setmId(customerInfoPushMain.getId());
@@ -509,7 +525,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         //region push mq
 //        producter.send("Marketing.Push.CustomerService", customerInfoPushMain.getId().toString());
         //endregion
-
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
 
@@ -1093,6 +1108,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + (StringUtils.isBlank(part) ? "0" : part) + "_" + sn);
                     pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
                     pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
+                    pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
                     //传输参数信息
                     PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
                     pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
@@ -1358,7 +1374,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param infoId            原始数据表id
      * @param queueEnum         队列类型
      */
-    private void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
+    @Override
+    public void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum) {
         try {
             long l3 = System.currentTimeMillis();
             // 根据apicode和bizType获取路由键

@@ -5,6 +5,7 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="customer_id" property="customerId" jdbcType="BIGINT" />
     <result column="rule_id" property="ruleId" jdbcType="BIGINT" />
+    <result column="condition_info" property="conditionInfo" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -68,7 +69,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, customer_id, rule_id, is_del, create_time, update_time
+    id, customer_id, rule_id, condition_info, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerRuleExample" >
     select
@@ -104,10 +105,12 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_customer_rule (customer_id, rule_id, is_del, 
-      create_time, update_time)
-    values (#{customerId,jdbcType=BIGINT}, #{ruleId,jdbcType=BIGINT}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_customer_rule (customer_id, rule_id, condition_info, 
+      is_del, create_time, update_time
+      )
+    values (#{customerId,jdbcType=BIGINT}, #{ruleId,jdbcType=BIGINT}, #{conditionInfo,jdbcType=VARCHAR}, 
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerRule" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -120,6 +123,9 @@
       </if>
       <if test="ruleId != null" >
         rule_id,
+      </if>
+      <if test="conditionInfo != null" >
+        condition_info,
       </if>
       <if test="isDel != null" >
         is_del,
@@ -137,6 +143,9 @@
       </if>
       <if test="ruleId != null" >
         #{ruleId,jdbcType=BIGINT},
+      </if>
+      <if test="conditionInfo != null" >
+        #{conditionInfo,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -167,6 +176,9 @@
       <if test="record.ruleId != null" >
         rule_id = #{record.ruleId,jdbcType=BIGINT},
       </if>
+      <if test="record.conditionInfo != null" >
+        condition_info = #{record.conditionInfo,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
@@ -186,6 +198,7 @@
     set id = #{record.id,jdbcType=BIGINT},
       customer_id = #{record.customerId,jdbcType=BIGINT},
       rule_id = #{record.ruleId,jdbcType=BIGINT},
+      condition_info = #{record.conditionInfo,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -201,6 +214,9 @@
       </if>
       <if test="ruleId != null" >
         rule_id = #{ruleId,jdbcType=BIGINT},
+      </if>
+      <if test="conditionInfo != null" >
+        condition_info = #{conditionInfo,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
@@ -218,6 +234,7 @@
     update b_customer_rule
     set customer_id = #{customerId,jdbcType=BIGINT},
       rule_id = #{ruleId,jdbcType=BIGINT},
+      condition_info = #{conditionInfo,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

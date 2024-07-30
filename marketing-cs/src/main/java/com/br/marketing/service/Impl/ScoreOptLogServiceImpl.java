@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,8 +42,7 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
     public PageResultReturn findListPage(int page, int pageSize, Long rid, String cid, String apiCode) {
         PageHelper.startPage(page, pageSize);
         ScoreOptLogExample example = new ScoreOptLogExample();
-        example.createCriteria().andScoreRuleIdEqualTo(String.valueOf(rid)).andIsDelEqualTo(1)
-                .andCidEqualTo(cid).andApicodeEqualTo(apiCode);
+        example.createCriteria().andScoreRuleIdEqualTo(String.valueOf(rid)).andIsDelEqualTo(1);
         example.setOrderByClause("create_time desc");
         List<ScoreOptLog> scoreOptLogs = scoreOptLogMapper.selectByExample(example);
         return PageResultReturn.setPageResult(scoreOptLogs, page, pageSize);
@@ -50,7 +50,7 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int save(ScoreRuleVO scoreRuleVO, int status, MarketingUserDetail userDetail) {
+    public int save(ScoreRuleVO scoreRuleVO, int status, MarketingUserDetail userDetail,String conditionInfo) {
         ScoreOptLog scoreOptLog = new ScoreOptLog();
         scoreOptLog.setApicode(scoreRuleVO.getApiCode());
         scoreOptLog.setCid(scoreRuleVO.getCid());
@@ -59,7 +59,8 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
         scoreOptLog.setCreateTime(new Date());
         scoreOptLog.setOptUserId(String.valueOf(userDetail.getId()));
         scoreOptLog.setOptUserName(userDetail.getUserName());
-        spliceConditionInfoJsonLog(scoreOptLog, scoreRuleVO.getVdSet());
+        scoreOptLog.setConditionShowInfo(conditionInfo);
+//        spliceConditionInfoJsonLog(scoreOptLog, scoreRuleVO.getVdSet());
         String jsonStr = "{\"".concat("strategyId\":\"").concat(scoreRuleVO.getStrategyId())
                 .concat("\",\"").concat("products\":").concat(scoreRuleVO.getStrategyProductShow()).concat("}");
         scoreOptLog.setStrategyProductShow(jsonStr);

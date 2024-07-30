@@ -16,9 +16,9 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.dto.shuhe.strategy.CuShouJie;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -116,14 +116,14 @@ public class ShuHeArtificialCallFromDelayImpl implements AssembleData<RealTimeUs
                         (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
                 shuHeContext.setTransfer(dbTransferSyncUser);
                 CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                IUserType iUserType = shuHeContext.getIUserType();
-                if (iUserType instanceof CuFuJie) {
+                BaseUserType baseUserType = shuHeContext.getBaseUserType();
+                if (baseUserType instanceof CuFuJie) {
                     String message = context.getMqFact().getMessage();
                     JSONObject jsonObject = JSONObject.parseObject(message);
                     String status = jsonObject.get("status").toString();
                     caseShuheUser.getJsonObject().putAll(jsonObject);
                     caseShuheUser.setReserveField2(status);
-                    boolean boolIfGiveUp = iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime(),caseUserService);
+                    boolean boolIfGiveUp = baseUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime(), caseUserService);
                     String cell = shuHeContext.getCustomerMap().getOrDefault(transfer.getCustNum()
                             , new MarketingSyncUser()).getCell();
                     if (boolIfGiveUp || queryBlackFlag(transfer, cell)) {
@@ -156,7 +156,7 @@ public class ShuHeArtificialCallFromDelayImpl implements AssembleData<RealTimeUs
                     }
                     shuHeContext.setCaseShuheUser(caseShuheUser);
                 } else {
-                    bool = !iUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime(),caseUserService)
+                    bool = !baseUserType.ifGiveUp(caseShuheUser, shuHeContext.getCreatTime(), caseUserService)
                             && pushDataService.pushShDXSingleMutex(transfer.getApiCode(), transfer.getCustNum()
                             , "a", transfer.getUserType());
                 }
@@ -230,7 +230,7 @@ public class ShuHeArtificialCallFromDelayImpl implements AssembleData<RealTimeUs
         phoneSaleExtendInfo.setCustNum(transfer.getCustNum());
         phoneSaleExtendInfo.setAppletTime(localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         phoneSaleExtendInfo.setStatus("a");
-        if (shuHeContext.getIUserType() instanceof CuFuJie) {
+        if (shuHeContext.getBaseUserType() instanceof CuFuJie) {
             phoneSaleExtendInfo.setStatus(shuHeContext.getCaseShuheUser().getReserveField2());
         }
         phoneSaleExtendInfo.setApiCode(transfer.getApiCode());
@@ -241,8 +241,8 @@ public class ShuHeArtificialCallFromDelayImpl implements AssembleData<RealTimeUs
 
     private DassSingleImportDataDTO getDassSingleImportData(ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext) {
         CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-        IUserType iUserType = shuHeContext.getIUserType();
-        MarketingSyncUser marketingUserByCell =  shuHeContext.getMarketingSyncUserByCell();
+        BaseUserType baseUserType = shuHeContext.getBaseUserType();
+        MarketingSyncUser marketingUserByCell = shuHeContext.getMarketingSyncUserByCell();
         DassSingleImportDataDTO dataDTO = new DassSingleImportDataDTO();
         dataDTO.setPrioritySymbol("1");
         JSONObject extend = new JSONObject();
@@ -255,30 +255,28 @@ public class ShuHeArtificialCallFromDelayImpl implements AssembleData<RealTimeUs
         dataDTO.setPhone(caseShuheUser.getCell());
         dataDTO.setLoginTime(caseShuheUser.getClcUsrLstAppStaTim());
         dataDTO.setName("1");
-        iUserType.getPrivateInfo(dataDTO);
+        baseUserType.getPrivateInfo(dataDTO);
         dataDTO.setUid(caseShuheUser.getCustNum());
-        if (iUserType instanceof CuShouJie) {
-            if (!Objects.isNull(marketingUserByCell)) {
-                JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
-                String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
-                    extend.put("if_coupon", IfCoupon);
-                }
-                String IfTie = parseObject.getOrDefault("if_tie", "").toString();
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfTie)) {
-                    extend.put("if_tie", IfTie);
-                }
-                String aftLmt = parseObject.getOrDefault("aft_lmt", "").toString();
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(aftLmt)) {
-                    extend.put("aft_lmt", aftLmt);
-                }
-                String IfCs = parseObject.getOrDefault("if_cs", "").toString();
-                if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCs)) {
-                    extend.put("if_cs", IfCs);
-                }
+        if (baseUserType instanceof CuShouJie && !Objects.isNull(marketingUserByCell)) {
+            JSONObject parseObject = JSON.parseObject(marketingUserByCell.getReserveField1());
+            String IfCoupon = parseObject.getOrDefault("if_coupon", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCoupon)) {
+                extend.put("if_coupon", IfCoupon);
+            }
+            String IfTie = parseObject.getOrDefault("if_tie", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(IfTie)) {
+                extend.put("if_tie", IfTie);
+            }
+            String aftLmt = parseObject.getOrDefault("aft_lmt", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(aftLmt)) {
+                extend.put("aft_lmt", aftLmt);
+            }
+            String IfCs = parseObject.getOrDefault("if_cs", "").toString();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(IfCs)) {
+                extend.put("if_cs", IfCs);
             }
         }
-        if (iUserType instanceof CuFuJie) {
+        if (baseUserType instanceof CuFuJie) {
             JSONObject jsonObject = caseShuheUser.getJsonObject();
             String lv0 = jsonObject.getOrDefault("clc_usr_avl_lmt_lv0", "").toString();
             if (org.apache.commons.lang3.StringUtils.isNotBlank(lv0)) {

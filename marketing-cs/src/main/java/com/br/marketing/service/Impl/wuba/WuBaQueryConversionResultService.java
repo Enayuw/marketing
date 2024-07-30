@@ -11,8 +11,8 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.wuba.ConversionResponseDTO;
 import com.br.marketing.dto.wuba.WubaQueryConversionDto;
-import com.br.marketing.entity.WubaCollidingBatchNo;
-import com.br.marketing.entity.WubaCollidingBatchNoExample;
+import com.br.marketing.entity.WubaCollidingDataBatchNo;
+import com.br.marketing.entity.WubaCollidingDataBatchNoExample;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -73,13 +73,13 @@ public class WuBaQueryConversionResultService {
         Date pushTimeStart = param.getPushTimeStart();
         Date pushTimeEnd = param.getPushTimeEnd();
 
-        WubaCollidingBatchNoExample batchNoExample = new WubaCollidingBatchNoExample();
+        WubaCollidingDataBatchNoExample batchNoExample = new WubaCollidingDataBatchNoExample();
         batchNoExample.createCriteria().andBatchTypeEqualTo(batchType).andQueryStatusEqualTo(queryStatus)
                 .andApiCodeEqualTo(apiCode)
                 .andPushTimeGreaterThanOrEqualTo(pushTimeStart)
                 .andPushTimeLessThan(pushTimeEnd)
                 .andIsDeletedEqualTo(0);
-        final List<WubaCollidingBatchNo> batchNoList = batchNoMapper.selectByExample(batchNoExample);
+        final List<WubaCollidingDataBatchNo> batchNoList = batchNoMapper.selectByExample(batchNoExample);
 
         if (CollectionUtils.isEmpty(batchNoList)) {
             log.warn(TITLE+"未获取到批次数据");
@@ -90,13 +90,13 @@ public class WuBaQueryConversionResultService {
         ThreadPoolExecutor queryPool = BrExecutors.getThreadPool(12, 12, 20);
 
         // futureList
-        List<Future<Result<WubaCollidingBatchNo>>> futureList = new ArrayList<>();
-        for(WubaCollidingBatchNo wubaCollidingBatchNo: batchNoList) {
+        List<Future<Result<WubaCollidingDataBatchNo>>> futureList = new ArrayList<>();
+        for(WubaCollidingDataBatchNo wubaCollidingBatchNo: batchNoList) {
             setThreadPoolParam(queryPool);
             futureList.add(queryPool.submit(() -> processData(wubaCollidingBatchNo)));
         }
 
-        for (Future<Result<WubaCollidingBatchNo>> future : futureList) {
+        for (Future<Result<WubaCollidingDataBatchNo>> future : futureList) {
             try {
                 future.get(1, TimeUnit.MINUTES);
             } catch (Exception e) {
@@ -130,8 +130,8 @@ public class WuBaQueryConversionResultService {
         return result.success();
     }
 
-    public Result<WubaCollidingBatchNo> processData(WubaCollidingBatchNo wubaCollidingBatchNo) throws Exception {
-        Result<WubaCollidingBatchNo> result = new Result().failure();
+    public Result<WubaCollidingDataBatchNo> processData(WubaCollidingDataBatchNo wubaCollidingBatchNo) throws Exception {
+        Result<WubaCollidingDataBatchNo> result = new Result().failure();
         String batchNo = wubaCollidingBatchNo.getBatchNo();
         log.warn(TITLE + "processData start, batchNo: {}", batchNo);
         try {
@@ -170,7 +170,7 @@ public class WuBaQueryConversionResultService {
         return result.success();
     }
 
-    public Result<List<ConversionResponseDTO>> callClient(WubaCollidingBatchNo wubaCollidingBatchNo) {
+    public Result<List<ConversionResponseDTO>> callClient(WubaCollidingDataBatchNo wubaCollidingBatchNo) {
         Result<List<ConversionResponseDTO>> result = new Result<>().failure();
 
         // call queryConversionResult
@@ -186,7 +186,7 @@ public class WuBaQueryConversionResultService {
             String msg = String.format(TITLE + "调用接口失败, batchNo: %s, resMap: %s",
                     wubaCollidingBatchNo.getBatchNo(), JSONObject.toJSONString(callResult.getData()));
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg));
-            wuBaDingDingService.sendAlert(TITLE, msg);
+            // wuBaDingDingService.sendAlert(TITLE, msg);
 
             if(callResult.getData()== null){
                 return result;

@@ -1,7 +1,6 @@
 package com.br.marketing.rule.shuhe;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
@@ -9,32 +8,22 @@ import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
+import com.br.marketing.dto.shuhe.strategy.ChongShen;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.ITransferSyncUserService;
-import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAdjusters;
-import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -48,18 +37,12 @@ import java.util.Map;
 public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
     private final static String HAS_TRANS_FER = "1";
     private final static String NO_HAS_TRANSFER = "0";
-    static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    @Resource
-    private IMarketingSyncUserService iMarketingSyncUserService;
     @Resource
     private ITransferSyncUserService iTransferSyncUserService;
-    @Resource
-    private DataLoadingHandlerService handlerService;
+
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
-    @Resource
-    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -87,40 +70,17 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
+        BaseUserType baseUserType = shuHeRuleNecessaryData.getBaseUserType();
         //促复借新增推送字段
-        if ("促复借".equals(transfer.getUserType())) {
-            conversionData.setInversionDate(transfer.getTransformTime());
-            conversionData.setEffectiveDate(transfer.getRequestTime());
-            Map<String, JSONArray> validityMap = marketingCommonConfig.getShuHeNewPeriodOfValidityMap();
-            JSONArray set = validityMap.get(context.getApiCode());
+        if (baseUserType instanceof CuFuJie || baseUserType instanceof ChongShen) {
+            if (baseUserType instanceof CuFuJie) {
+                conversionData.setInversionDate(transfer.getTransformTime());
+                conversionData.setEffectiveDate(transfer.getRequestTime());
+            }
             //生效截止时间
             String plusDays;
-            if (set != null && set.contains(transfer.getUserType())) {
-                Map<String, SyncUserValidityPeriodsBO> boMap = shuHeRuleNecessaryData.getUserValidityPeriodsBOMap();
-                plusDays = boMap.get(transfer.getCustNum()).getBuilders().get(0).addDateString().builder().getEnDateStr();
-            } else {
-                LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
-                plusDays = requestDate.with(TemporalAdjusters.lastDayOfMonth()).toString();
-            }
-            conversionData.setExpireDate(plusDays + " 23:59:59");
-        }
-        //重申：填充有效期截止时间字段
-        if ("重申".equals(transfer.getUserType())) {
-            Integer day = null;
-            try {
-                day = handlerService.getShuHePeriodOfValidityDay(transfer.getUserType());
-            } catch (IllegalAccessException e) {
-                log.error("数禾重申场景有效期配置有误，请检查",e.getMessage());
-                throw e;
-            }
-            LocalDate requestDate = LocalDateTime.parse(transfer.getRequestTime(), dateTimeFormatter).toLocalDate();
-            LocalDate plusDays;
-            if (day == null) {
-                plusDays = requestDate.with(TemporalAdjusters.lastDayOfMonth());
-            } else {
-                plusDays = requestDate.plusDays(day);
-            }
-            //生效截止时间
+            Map<String, SyncUserValidityPeriodsBO> boMap = shuHeRuleNecessaryData.getUserValidityPeriodsBOMap();
+            plusDays = boMap.get(transfer.getCustNum()).getBuilders().get(0).addDateString().builder().getEnDateStr();
             conversionData.setExpireDate(plusDays + " 23:59:59");
         }
         return conversionData;
@@ -136,50 +96,36 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                 ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                         (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
                 if (shuHeContext.isContinueJudgeRule()) {
-                    IUserType iUserType = shuHeContext.getIUserType();
-                    Date creatTime = shuHeContext.getCreatTime();
+                    BaseUserType baseUserType = shuHeContext.getBaseUserType();
                     CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                    Map<String, JSONArray> validityMap = marketingCommonConfig.getShuHeNewPeriodOfValidityMap();
-                    JSONArray set = validityMap.get(context.getApiCode());
-                    boolean boolPeriod;
-                    if (set != null && set.contains(transfer.getUserType())) {
-                        /* 2024-04-12 13:50 需求：
-                         * title：D20240408数禾促复借数据有效期变更-3710043
-                         * url：https://c.100credit.cn/pages/viewpage.action?pageId=155694311
-                         */
-                        LocalDate localDate = StringUtils.hasText(transfer.getRequestData()) ? LocalDate.parse(
-                                transfer.getRequestData()).minusDays(1) : transfer.getCreateTime().toInstant()
-                                .atZone(ZoneId.systemDefault()).toLocalDate();
-                        Map<String, SyncUserValidityPeriodsBO> periods = transferDataValidityPeriodService
-                                .getValidityPeriodsByCustNumAndUserType(Collections.singleton(transfer.getCustNum())
-                                        , transfer.getUserType(), context.getApiCode(), localDate);
-                        shuHeContext.setUserValidityPeriodsBOMap(periods);
-                        boolPeriod = periods.containsKey(transfer.getCustNum());
-                    } else {
-                        Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
-                        boolPeriod = iUserType.dataPeriodOfValidity(iMarketingSyncUserService, transfer.getCreateTime()
-                                , day, creatTime);
+                    /* 2024-04-12 13:50 需求：
+                     * title：D20240408数禾促复借数据有效期变更-3710043
+                     * url：https://c.100credit.cn/pages/viewpage.action?pageId=155694311
+                     *
+                     * 2024年7月15日 需求
+                     * D20240703数禾全场景取值逻辑&有效期变更-337
+                     * https://c.100credit.cn/pages/viewpage.action?pageId=166647068
+                     */
+                    Map<String, SyncUserValidityPeriodsBO> periodsMap = shuHeContext.getUserValidityPeriodsBOMap();
+                    SyncUserValidityPeriodsBO userValidityPeriodsBO = periodsMap.get(transfer.getCustNum());
+                    if (userValidityPeriodsBO == null) {
+                        return false;
                     }
-                    if (boolPeriod) {
-                        MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
-                        transferSyncUser.setId(transfer.getId());
-                        transferSyncUser.settCid(transfer.gettCid());
-                        shuHeContext.setTransfer(transfer);
-                        if (iUserType.isTurn(caseShuheUser) || iUserType.isEmpty(caseShuheUser)) {
-                            transferSyncUser.setIfTransform("2");
-                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("2");
-                            iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
-                            shuHeContext.setContinueJudgeRule(false);
-                            bool = Boolean.TRUE;
-                        } else if (iUserType instanceof CuFuJie && ((CuFuJie) iUserType).ifTransfer(caseShuheUser
-                                , creatTime, marketingCommonConfig)) {
-                            // 转化
-                            transferSyncUser.setIfTransform("1");
-                            ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
-                            iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
-                            shuHeContext.setContinueJudgeRule(false);
-                            bool = Boolean.TRUE;
-                        } else if (iUserType.ifTransfer(caseShuheUser, creatTime)) {
+                    MarketingSyncUser marketingSyncUser = userValidityPeriodsBO.getSyncUsers().get(0);
+                    MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
+                    transferSyncUser.setId(transfer.getId());
+                    transferSyncUser.settCid(transfer.gettCid());
+                    shuHeContext.setTransfer(transfer);
+                    if (baseUserType.isTurn(caseShuheUser) || baseUserType.isEmpty(caseShuheUser)) {
+                        transferSyncUser.setIfTransform("2");
+                        ((MarketingTransferSyncUser) transmitFact).setIfTransform("2");
+                        iTransferSyncUserService.updateByPrimaryKeySelective(transferSyncUser);
+                        shuHeContext.setContinueJudgeRule(false);
+                        bool = Boolean.TRUE;
+                    } else {
+                        boolean cuFuJieBool = (baseUserType instanceof CuFuJie && ((CuFuJie) baseUserType).ifTransfer(
+                                caseShuheUser, marketingSyncUser.getAppletTime(), marketingCommonConfig));
+                        if (cuFuJieBool || baseUserType.ifTransfer(caseShuheUser, marketingSyncUser.getAppletTime())) {
                             // 转化
                             transferSyncUser.setIfTransform("1");
                             ((MarketingTransferSyncUser) transmitFact).setIfTransform("1");
@@ -187,8 +133,8 @@ public class ShuHeCustomerTransferImpl implements AssembleData<ConversionData> {
                             shuHeContext.setContinueJudgeRule(false);
                             bool = Boolean.TRUE;
                         }
-                        shuHeContext.setTransfer(null);
                     }
+                    shuHeContext.setTransfer(null);
                 }
             }
         }

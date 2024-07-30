@@ -197,18 +197,21 @@ api:
     brPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3QDuQlynuboCyAinT3gFxO/+FePOAT2HWVTKHsQqFje78BVdXVvAMo7DmL7zDmEnfzDgqhNLCuAjf03/Oe52pTKgOaFPjCBFJG2/islxV6TRYvyy4vBRhh0IE0BQEvk4pM9bB7WIN1vBu8ECbEwylxkO3RB/aSb90Wxmc0J05c4/9W6yfLgxl2JilT69jG7jprcws83fTtHDztXxFcKZyWwFH0MWZXjFC9tTqZJk46iAUHwDX/9uA42yXpWY0VAO2CEeNl6cRl1njpV0dQ948yDdJYLmnMMvnp9yb4WwuthOn9OK86rN004ZSsR+HIxWYzj76BppdmeN0tZOOpT47QIDAQAB"
     appId: "bairong"
     isProxy: false
+  zhijia:
+    baseUri: https://openapi.autohome.com.cn/che168/apiclueopen
+    addC1HiqClueUrl: ${api.zhijia.baseUri}/CarEstimate/AddC1HiqClue.ashx
+    brandUrl: ${api.zhijia.baseUri}/public/getbrands.ashx
+    seriesUrl: ${api.zhijia.baseUri}/public/getseriesbybrandId.ashx
+    cityInfoUrl: ${api.zhijia.baseUri}/public/queryarea.ashx
+    getTokenUrl: https://openapi.autohome.com.cn/api/oauth2/authorize
+    zhiJiaClientId: JwpfGWx6hkxgIqUI7ncBjy0m7cQg1r39
+    zhiJiaClientSecret: pQDg3DG3qWfkIfDqH8NVLZnhBOvxJjlW
+    zhiJiaClientAppid: 1742
+    zhiJiaClientEncryption: wE2FKj/Vb10=
   tongchengAgentMkt:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
     secretKey: JhcwsW4ArsdJ8kjcXQnW734ydF7brpMZywg3T9MXRNAwqTcSW3UasDTFAUheAV24
-    isProxy: false
-  wuba:
-    baseUrl: http://convenientloan.test.58v5.cn
-    submitCredentialStuffingListUrl: ${api.wuba.baseUrl}/thirdpartnar/v2/submitCredentialStuffingList
-    queryCredentialStuffingResultUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/queryCredentialStuffingResult
-    submitConversionListUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/submitConversionList
-    queryConversionResultUrl: ${api.wuba.baseUrl}/thirdpartnar/v1/queryConversionResult
-    orgCode: bairongkj
     isProxy: false
   zbank: #众邦财富
     isPorxy: false

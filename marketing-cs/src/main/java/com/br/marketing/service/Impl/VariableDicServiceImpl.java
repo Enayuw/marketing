@@ -94,6 +94,9 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Resource
     private MarketingDataValidConfigDefaultMapper validConfigDefaultMapper;
 
+    @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
+
     @Override
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
         VariableDicExample example = new VariableDicExample();
@@ -111,15 +114,15 @@ public class VariableDicServiceImpl implements VariableDicService {
     public PageResultReturn getVariableDicList(int page, int pageSize, String cid, String apiCode) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<VariableDicListVO> list = variableDicMapper.getVariableDicList(cid,apiCode);
+            List<VariableDicListVO> list = variableDicMapper.getVariableDicList(cid, apiCode);
             for (VariableDicListVO variableDicListVO : list) {
                 apiCode = variableDicListVO.getApiCode();
                 String userType = null;
-                if ("userType".equals(variableDicListVO.getFieldName())){
+                if ("userType".equals(variableDicListVO.getFieldName())) {
                     userType = variableDicListVO.getFieldValue();
                 }
                 Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType);
-                if (ObjectUtil.isNotEmpty(validDaysDefault)){
+                if (ObjectUtil.isNotEmpty(validDaysDefault)) {
                     variableDicListVO.setValidDaysDefault("T+" + validDaysDefault);
                 } else {
                     log.warn("不存在有效期天数配置,apiCode={},userType={}", apiCode, userType);
@@ -137,7 +140,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     public ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, MarketingUserDetail user) {
         String apiCode, userType = null;
         apiCode = vo.getApiCode();
-        if (vo.getValidDaysDefault() == null){
+        if (vo.getValidDaysDefault() == null) {
             vo.setValidDaysDefault("0");
         }
         VariableDic variableDic = new VariableDic();
@@ -147,13 +150,13 @@ public class VariableDicServiceImpl implements VariableDicService {
         variableDic.setIsDel(vo.getIsDel());
         variableDic.setUpdateTime(new Date());
         MarketingDataValidConfigDefault validConfigDefault = new MarketingDataValidConfigDefault();
-        if ("userType".equals(vo.getFieldName())){
+        if ("userType".equals(vo.getFieldName())) {
             userType = vo.getFieldValue();
             validConfigDefault.setUserType(userType);
         }
         validConfigDefault.setValidDaysDefault(Integer.valueOf(vo.getValidDaysDefault()));
         validConfigDefault.setIsDel(vo.getIsDel());
-        if(StringUtils.isEmpty(vo.getId())){
+        if (StringUtils.isEmpty(vo.getId())) {
             //新增
             variableDic.setCid(vo.getCid());
             variableDic.setApiCode(apiCode);
@@ -161,8 +164,8 @@ public class VariableDicServiceImpl implements VariableDicService {
             variableDicMapper.insertSelective(variableDic);
             entityOptService.writeOptLog(variableDic.getId(), variableDic, null);
             Integer i = validityChangeMapper.selectNum(apiCode, userType);
-            MarketingDataValidConfigDefault date = validityChangeMapper.selectId(apiCode,userType);
-            if (i >= 1){
+            MarketingDataValidConfigDefault date = validityChangeMapper.selectId(apiCode, userType);
+            if (i >= 1) {
                 log.warn("该apiCode={} , userType={}维度下已存在有效期配置", apiCode, userType);
                 validConfigDefault.setId(date.getId());
                 validConfigDefault.setApiCode(apiCode);
@@ -175,14 +178,14 @@ public class VariableDicServiceImpl implements VariableDicService {
             validConfigDefault.setCreateTime(new Date());
             validityChangeMapper.insertSelective(validConfigDefault);
             entityOptService.writeOptLog(validConfigDefault.getId(), validConfigDefault, null);
-        }else {
+        } else {
             VariableDic data = variableDicMapper.selectByPrimaryKey(vo.getId());
             //编辑
             variableDic.setId(vo.getId());
             variableDicMapper.updateByPrimaryKeySelective(variableDic);
             entityOptService.writeOptLog(vo.getId(), variableDic, data);
-            MarketingDataValidConfigDefault dataValidConfigDefault = validityChangeMapper.selectId(apiCode,userType);
-            if (ObjectUtil.isNotEmpty(dataValidConfigDefault)){
+            MarketingDataValidConfigDefault dataValidConfigDefault = validityChangeMapper.selectId(apiCode, userType);
+            if (ObjectUtil.isNotEmpty(dataValidConfigDefault)) {
                 validConfigDefault.setId(dataValidConfigDefault.getId());
                 validConfigDefault.setApiCode(apiCode);
                 validConfigDefault.setUpdateTime(new Date());
@@ -208,15 +211,26 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Override
     public List<Map> findListByCidsAndApiCodes(List<CustomerSelectVO> vos) {
         List<Map> list = new ArrayList<>();
-        if(vos!=null && vos.size()>0){
-            for (CustomerSelectVO vo :vos) {
+        List<String> apiCodes = vos.stream().map(CustomerSelectVO::getApiCode).collect(Collectors.toList());
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(Byte.valueOf("1"));
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        if (vos != null && vos.size() > 0) {
+            for (CustomerSelectVO vo : vos) {
                 String cid = vo.getCid();
                 String apiCode = vo.getApiCode();
                 List<VariableDicSelectVO> userTypeList = findListByCidAndApiCode(cid, apiCode);
+
                 Map map = new HashMap();
                 map.put("cid", cid);
                 map.put("apiCode", apiCode);
                 map.put("userTypeList", userTypeList);
+                Optional<MarketingCustomer> first = marketingCustomers.stream().filter(t -> apiCode.equals(t.getApiCode()) && cid.equals(t.getCid())).findFirst();
+                if (first.isPresent()) {
+                    MarketingCustomer marketingCustomer = first.get();
+                    map.put("name", marketingCustomer.getName());
+                    map.put("shortName", marketingCustomer.getShortName());
+                }
                 list.add(map);
             }
         }
