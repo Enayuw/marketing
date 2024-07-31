@@ -47,6 +47,9 @@
             <if test="data.userType!=null and data.userType!=''">
                 and user_type=${data.userType}
             </if>
+            <if test="data.isConnect != null and data.isConnect != ''">
+                and is_connect = '${data.isConnect}'
+            </if>
             and status=1
             <if test="data.id!=null and data.id!=''">
                 and id>${data.id}
