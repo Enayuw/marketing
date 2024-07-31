@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,12 +53,19 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
 
     @Override
     public Boolean isThread() {
-        JSONObject jsonObject;
-        return marketingCommonConfig.getCustomerJobConfig() == null
-                ? super.isThread() : (jsonObject = marketingCommonConfig.getCustomerJobConfig()
-                .get(this.getClass().getSimpleName())) == null
-                ? super.isThread() : jsonObject.containsKey("isThread")
-                ? jsonObject.getBoolean("isThread") : super.isThread();
+        HashMap<String, JSONObject> customerJobConfig = marketingCommonConfig.getCustomerJobConfig();
+        if(customerJobConfig == null){
+            return super.isThread();
+        }
+        JSONObject jsonObject = customerJobConfig.get(this.getClass().getSimpleName());
+        if(jsonObject == null){
+            return super.isThread();
+        }
+        if(!jsonObject.containsKey("isThread")){
+            return super.isThread();
+        }
+        Boolean isThread = jsonObject.getBoolean("isThread");
+        return isThread;
     }
 
     @Override
