@@ -61,12 +61,12 @@ public class YiShiTransferAutomaticFiltrationImpl implements AssembleData<Conver
 
             JSONObject jsonObject = JSONObject.parseObject(reserveField1);
             String isBlack = jsonObject.getString("isBlack");
-            if(StringUtils.isNotEmpty(isBlack) && isBlack.equals("1")){
+            if(StringUtils.isNotEmpty(isBlack) && "1".equals(isBlack)){
                 data.setInversionStatus("2");
                 return true;
             }
             String extend01 = jsonObject.getString("extend01");
-            if(StringUtils.isNotEmpty(extend01) && extend01.equals("1")){
+            if(StringUtils.isNotEmpty(extend01) && "1".equals(extend01)){
                 data.setInversionStatus("0");
                 return true;
             }
