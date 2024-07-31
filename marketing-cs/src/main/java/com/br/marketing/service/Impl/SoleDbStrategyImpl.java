@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -389,6 +390,10 @@ public class SoleDbStrategyImpl implements SoleStrategyService {
         JSONArray resObj = new JSONArray();
         RuleConditionVo finalConditionVo = conditionVo;
         configList.forEach((MarketingDataValidConfig config) -> finalConditionVo.getOperationFactor().forEach((RuleConditionFactorVo t) -> {
+            if (!Objects.equals(t.getFieldValue(), config.getUserType())) {
+                return;
+            }
+
             JSONObject simpleCondition = new JSONObject();
             JSONArray simpleConditionDetail = new JSONArray();
             JSONObject jsonDate = new JSONObject();

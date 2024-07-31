@@ -7,15 +7,11 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.BusinessException;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.CustomerRule;
-import com.br.marketing.entity.CustomerRuleExample;
-import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.entity.MarketingCustomerExample;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.ScoreRuleConfig;
-import com.br.marketing.entity.ScoreRuleConfigExample;
+import com.br.marketing.dto.CustomerScoreRuleDTO;
+import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.CustomerRuleMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
@@ -24,15 +20,18 @@ import com.br.marketing.mapper.ScoreRuleConfigMapper;
 import com.br.marketing.service.ScoreOptLogService;
 import com.br.marketing.service.ScoreRuleConfigService;
 import com.br.marketing.service.SoleStrategyService;
+import com.br.marketing.vo.CustomerScoreRuleVO;
 import com.br.marketing.vo.ScoreRuleConfigPageVO;
 import com.br.marketing.vo.ScoreRuleVO;
 import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -41,10 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,21 +88,43 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public void save(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) {
+        try {
+            ScoreRuleConfigServiceImpl service = (ScoreRuleConfigServiceImpl) AopContext.currentProxy();
+            service.saveTransaction(scoreRuleVO, userDetail);
+        } catch (Exception e) {
+            String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String key = "marketing:inner:".concat(yyyyMMdd6);
+            redisChgService.incrBy(key, -1L);
+            redisChgService.expire(key, getKeyExpiration());
+            String msg = "很遗憾小主，配置保存失败";
+            if (e instanceof BusinessException) {
+                msg = ((BusinessException) e).getMsg();
+            }
+            throw new BusinessException(msg);
+        }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveTransaction(ScoreRuleVO scoreRuleVO, MarketingUserDetail userDetail) throws Exception {
         // 检查配置名称是否已经被使用过
         nameCheck(scoreRuleVO);
+        // 2024-07-18 修改为多apiCode
+        List<Map<String, Object>> variableList = scoreRuleVO.getVariableList();
+        List<String> apiCodeList = new ArrayList<>();
+        HashMap<String, Set<VariableDicSelectVO>> vdOfApiCodeMap = AssembleApiCodeToVdSetMap(variableList, apiCodeList);
+
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andCidEqualTo(scoreRuleVO.getCid())
-                .andApiCodeEqualTo(scoreRuleVO.getApiCode())
+                .andApiCodeIn(apiCodeList)
                 .andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(example);
         if (customerList.size() == 0) {
             throw new BusinessException("抱歉小主，客户不存在或已删除");
         }
-        MarketingCustomer customer = customerList.get(0);
+
         ScoreRuleConfig rule = new ScoreRuleConfig();
-        rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
+        // rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
         rule.setRuleName(scoreRuleVO.getRuleName());
         rule.setStrategyProductShow(scoreRuleVO.getStrategyProductShow());
         rule.setCreateTime(Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()));
@@ -125,33 +143,45 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setProductInfo(scoreRuleVO.getProductInfo());
         rule.setThreekEncryptType(scoreRuleVO.getThreekEncryptType());
         rule.setIsOnline(scoreRuleVO.getIsOnline());
-        if(scoreRuleVO.getExecType() == 4){
+        if (scoreRuleVO.getExecType() == 4) {
             rule.setAutoBuild(1);
             rule.setIsStackValidity(scoreRuleVO.getIsStackValidity());
         }
         rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
-        isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
+
+        // 2024-07-19 修改为多apiCode校验
+        for (String apiCodeItem : apiCodeList) {
+            String s = spliceConditionInfoJson(vdOfApiCodeMap.get(apiCodeItem));
+            isExist(rule, scoreRuleVO.getCid(), apiCodeItem, s);
+        }
+
         rule.setRuleNameShort(createNo());
-        int insert1 = scoreRuleConfigMapper.insert(rule);
-        if (insert1 == 1) {
+        int insertRule = scoreRuleConfigMapper.insert(rule);
+        if (insertRule != 1) {
+            throw new BusinessException("很遗憾小主，配置保存失败");
+        }
+
+        for (MarketingCustomer customer : customerList) {
             CustomerRule cr = new CustomerRule();
             cr.setRuleId(rule.getId());
             cr.setCustomerId(customer.getId());
+            Set<VariableDicSelectVO> vdSet = vdOfApiCodeMap.get(customer.getApiCode());
+            if (CollectionUtils.isEmpty(vdSet)) {
+                throw new BusinessException("很遗憾小主，配置保存失败");
+            }
+            cr.setConditionInfo(spliceConditionInfoJson(vdSet));
             cr.setCreateTime(new Date());
             cr.setIsDel(1);
-            int insert2 = customerRuleMapper.insert(cr);
-            if (insert2 > 0) {
-                scoreRuleVO.setId(rule.getId());
-                // 记录变更日志
-                scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
-                return;
+            int insertCustomerRule = customerRuleMapper.insert(cr);
+            if (insertCustomerRule < 1) {
+                throw new BusinessException("很遗憾小主，配置保存失败");
             }
+            ScoreRuleVO ScoreRuleNew = new ScoreRuleVO();
+            BeanUtils.copyProperties(scoreRuleVO, ScoreRuleNew);
+            ScoreRuleNew.setId(rule.getId());
+            // 记录变更日志
+            scoreOptLogService.save(ScoreRuleNew, rule.getStatus(), userDetail, spliceConditionInfoJson(vdSet));
         }
-        String yyyyMMdd6 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String key = "marketing:inner:".concat(yyyyMMdd6);
-        redisChgService.incrBy(key, -1L);
-        redisChgService.expire(key, getKeyExpiration());
-        throw new BusinessException("很遗憾小主，配置保存失败");
     }
 
     @Override
@@ -163,10 +193,10 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (rule.getStatus().equals(status)) {
             return true;
         }
-        CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
-        if (!rule.getId().equals(customerRule.getRuleId())) {
-            throw new BusinessException("抱歉小主，数据异常");
-        }
+//        CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
+//        if (!rule.getId().equals(customerRule.getRuleId())) {
+//            throw new BusinessException("抱歉小主，数据异常");
+//        }
         ScoreRuleConfig ruleConfig = new ScoreRuleConfig();
         ruleConfig.setId(rid);
         switch (status) {
@@ -183,39 +213,34 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (i < 1) {
             throw new BusinessException("很遗憾小主，操作失败");
         }
-        ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
-        BeanUtils.copyProperties(rule, scoreRuleVO, ScoreRuleVO.class);
-        scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
-        MarketingCustomer customer = marketingCustomerMapper.selectByPrimaryKey(customerRule.getCustomerId());
-        scoreRuleVO.setCid(customer.getCid());
-        scoreRuleVO.setApiCode(customer.getApiCode());
-        // 记录变更日志
-        scoreOptLogService.save(scoreRuleVO, status, userDetail);
+
+        List<HashMap<String, Object>> customerAndUserType = customerRuleMapper.getCustomerAndUserType(rid);
+        for (HashMap<String, Object> res : customerAndUserType) {
+            ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
+            BeanUtils.copyProperties(rule, scoreRuleVO, ScoreRuleVO.class);
+            scoreRuleVO.setCid((String) res.get("cid"));
+            scoreRuleVO.setApiCode((String) res.get("apiCode"));
+            scoreRuleVO.setId(rid);
+            // 记录变更日志
+            scoreOptLogService.save(scoreRuleVO, status, userDetail, (String) res.get("conditionInfo"));
+        }
         return true;
     }
 
     @Override
     public ScoreRuleVO detail(Long rid, Long crId) {
-        CustomerRule customerRule = customerRuleMapper.selectByPrimaryKey(crId);
-        if (ObjectUtils.isEmpty(customerRule) || !customerRule.getRuleId().equals(rid) || customerRule.getIsDel() != 1) {
-            throw new BusinessException("抱歉小主，数据异常或已删除");
-        }
-        ScoreRuleConfigExample example = new ScoreRuleConfigExample();
-        example.createCriteria().andIdEqualTo(rid)
-                .andIsDelEqualTo(1);
-//                .andIsDelEqualTo(1).andStatusEqualTo(1);
-        List<ScoreRuleConfig> list = scoreRuleConfigMapper.selectByExample(example);
-        if (ObjectUtils.isEmpty(list) || list.size() < 1) {
+        List<Long> ruleIdList = new ArrayList<>();
+        ruleIdList.add(rid);
+        List<CustomerScoreRuleVO> scoreRuleVoList = scoreRuleConfigMapper.getScoreRuleVoList(ruleIdList, null);
+        if (CollectionUtils.isEmpty(scoreRuleVoList)) {
             throw new BusinessException("抱歉小主，此规则不存在或已删除");
         }
-        MarketingCustomerExample mcExample = new MarketingCustomerExample();
-        mcExample.createCriteria().andIdEqualTo(customerRule.getCustomerId()).andStatusEqualTo(Byte.valueOf("1"));
-        List<MarketingCustomer> customerList = marketingCustomerMapper.selectByExample(mcExample);
-        if (customerList.size() == 0) {
-            throw new BusinessException("抱歉小主，客户不存在或已禁用");
-        }
-        ScoreRuleConfig rule = list.get(0);
-        MarketingCustomer customer = customerList.get(0);
+
+        ScoreRuleConfig rule = scoreRuleVoList.get(0);
+
+        String cid = scoreRuleVoList.get(0).getCid();
+        String apiCodes = scoreRuleVoList.stream().map(CustomerScoreRuleVO::getApiCode).collect(Collectors.joining(","));
+
         ScoreRuleVO scoreRuleVO = new ScoreRuleVO();
         scoreRuleVO.setId(rule.getId());
         scoreRuleVO.setRuleName(rule.getRuleName());
@@ -223,9 +248,11 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         scoreRuleVO.setStrategyProductShow(rule.getStrategyProductShow());
         scoreRuleVO.setStrategyId(rule.getStrategyId());
         scoreRuleVO.setRuleNameShort(rule.getRuleNameShort());
-        scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
-        scoreRuleVO.setApiCode(customer.getApiCode());
-        scoreRuleVO.setCid(customer.getCid());
+        // TODO 2024-07-24
+        // scoreRuleVO.setVdSet(getVdSet(rule.getConditionInfo()));
+        scoreRuleVO.setVariableList(getVariableList(scoreRuleVoList));
+        scoreRuleVO.setApiCode(apiCodes);
+        scoreRuleVO.setCid(cid);
         scoreRuleVO.setExecType(rule.getExecType());
         scoreRuleVO.setBaseInfo(rule.getBaseInfo());
         scoreRuleVO.setCycleDay(rule.getCycleDay());
@@ -251,6 +278,17 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         return new HashSet<>(vdList);
     }
 
+    private List<Map<String, Object>> getVariableList(List<CustomerScoreRuleVO> scoreRuleVoList) {
+        List<Map<String, Object>> variableList = new ArrayList<>();
+        for (CustomerScoreRuleVO vo : scoreRuleVoList) {
+            Map<String, Object> variableMap = new HashMap<>();
+            variableMap.put("apiCode", vo.getApiCode());
+            variableMap.put("vdSet", getVdSet(vo.getConditionInfo()));
+            variableList.add(variableMap);
+        }
+        return variableList;
+    }
+
     @Override
     public ScoreRuleConfig getScoreRule(Long ruleId) {
         return scoreRuleConfigMapper.selectByPrimaryKey(ruleId);
@@ -266,7 +304,8 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         nameCheck(scoreRuleVO);
         ScoreRuleConfig rule = new ScoreRuleConfig();
         rule.setId(scoreRuleVO.getId());
-        rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
+        // TODO 2024-07-24
+        // rule.setConditionInfo(spliceConditionInfoJson(scoreRuleVO.getVdSet()));
         rule.setRuleName(scoreRuleVO.getRuleName());
         rule.setStrategyProductShow(scoreRuleVO.getStrategyProductShow());
         rule.setStartTime(scoreRuleVO.getStartTime());
@@ -288,13 +327,91 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         rule.setPriority(scoreRuleVO.getPriority() == null ? 9 : scoreRuleVO.getPriority());
         // 默认开启
         rule.setStatus(1);
-        isExist(rule, scoreRuleVO.getCid(), scoreRuleVO.getApiCode());
+
+        // 2024-07-24 修改为多apiCode
+        List<String> apiCodeList = new ArrayList<>();
+        List<Map<String, Object>> variableList = scoreRuleVO.getVariableList();
+        HashMap<String, Set<VariableDicSelectVO>> apiCodeToVdSetMap = AssembleApiCodeToVdSetMap(variableList, apiCodeList);
+
+        // 2024-07-19 修改为多apiCode校验
+        for (String apiCodeItem : apiCodeList) {
+            Set<VariableDicSelectVO> variableDicSelectVOS = apiCodeToVdSetMap.get(apiCodeItem);
+            isExist(rule, scoreRuleVO.getCid(), apiCodeItem, spliceConditionInfoJson(variableDicSelectVOS));
+        }
+
         int i = scoreRuleConfigMapper.updateByPrimaryKeySelective(rule);
         if (i != 1) {
             throw new BusinessException("很遗憾小主，变更失败");
         }
-        // 记录变更日志
-        scoreOptLogService.save(scoreRuleVO, rule.getStatus(), userDetail);
+
+        List<Long> ruleIdList = new ArrayList<>();
+        ruleIdList.add(scoreRuleVO.getId());
+        List<CustomerScoreRuleDTO> scoreRuleDtoList = scoreRuleConfigMapper.getScoreRuleDtoList(ruleIdList, null);
+        if (CollectionUtils.isEmpty(scoreRuleDtoList)) {
+            throw new BusinessException("很遗憾小主，变更失败");
+        }
+
+        // apiCode变更
+        for (CustomerScoreRuleDTO dto : scoreRuleDtoList) {
+            String apiCode = dto.getApiCode();
+            boolean isFind = false;
+            Set<VariableDicSelectVO> vdSet = apiCodeToVdSetMap.get(apiCode);
+            if(!CollectionUtils.isEmpty(vdSet)){
+                isFind= true;
+            }
+            // customerRuleExample
+            CustomerRuleExample customerRuleExample = new CustomerRuleExample();
+            customerRuleExample.createCriteria().andCustomerIdEqualTo(dto.getMid()).andRuleIdEqualTo(dto.getId());
+            // 参数里没有该apiCode, 已有配置有该apiCode, 删除该apiCode对应配置
+            if (!isFind) {
+                customerRuleMapper.deleteByExample(customerRuleExample);
+                continue;
+            }
+            // 参数有该apiCode, 已有配置有该apiCode, 更新该apiCode对应配置
+            CustomerRule customerRule = new CustomerRule();
+            customerRule.setConditionInfo(spliceConditionInfoJson(vdSet));
+            int update = customerRuleMapper.updateByExampleSelective(customerRule, customerRuleExample);
+            if (update != 1) {
+                throw new BusinessException("很遗憾小主，变更失败");
+            }
+            // 记录变更日志
+            ScoreRuleVO ruleVo = new ScoreRuleVO();
+            BeanUtils.copyProperties(scoreRuleVO, ruleVo);
+            ruleVo.setApiCode(apiCode);
+            ruleVo.setId(scoreRuleVO.getId());
+            scoreOptLogService.save(ruleVo, rule.getStatus(), userDetail, spliceConditionInfoJson(vdSet));
+        }
+    }
+
+    private HashMap<String, Set<VariableDicSelectVO>> AssembleApiCodeToVdSetMap(List<Map<String, Object>> variableList, List<String> apiCodeList) {
+        HashMap<String, Set<VariableDicSelectVO>> apiCodeToVdSetMap = new HashMap<>();
+        if(CollectionUtils.isEmpty(variableList)) {
+            return apiCodeToVdSetMap;
+        }
+
+        variableList.forEach((Map<String, Object> item) -> {
+            if (StringUtils.isEmpty(item.get("apiCode"))) {
+                log.warn("入参apiCode不正确");
+                throw new BusinessException("抱歉小主，变更失败");
+            }
+            String apiCode = String.valueOf(item.get("apiCode"));
+            Object vdSetObject = item.get("vdSet");
+            if(vdSetObject == null){
+                log.warn("入参vdSet不正确");
+                throw new BusinessException("抱歉小主，变更失败");
+            }
+            Set<VariableDicSelectVO> vdSet = new HashSet<>();
+            for (LinkedHashMap variableDicSelectVO : (ArrayList<LinkedHashMap>) vdSetObject) {
+                VariableDicSelectVO variableDicSelectVO1 = new VariableDicSelectVO();
+                variableDicSelectVO1.setFieldName((String) variableDicSelectVO.get("fieldName"));
+                variableDicSelectVO1.setFieldValue((String) variableDicSelectVO.get("fieldValue"));
+                variableDicSelectVO1.setFieldDesc((String) variableDicSelectVO.get("fieldDesc"));
+                vdSet.add(variableDicSelectVO1);
+            }
+            apiCodeToVdSetMap.put(apiCode, vdSet);
+            apiCodeList.add(apiCode);
+        });
+        return apiCodeToVdSetMap;
     }
 
     /**
@@ -306,7 +423,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
      * @param cid     客户id
      * @param apiCode 接口编码
      */
-    private void isExist(ScoreRuleConfig rule, String cid, String apiCode) {
+    private void isExist(ScoreRuleConfig rule, String cid, String apiCode, String conditionInfo) {
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andCidEqualTo(cid).andApiCodeEqualTo(apiCode);
         // 校验客户信息是否正确
@@ -320,7 +437,9 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         }
         MarketingCustomer customer = customerList.get(0);
         CustomerRuleExample crExample = new CustomerRuleExample();
-        crExample.createCriteria().andCustomerIdEqualTo(customer.getId());
+        crExample.createCriteria()
+                .andCustomerIdEqualTo(customer.getId())
+                .andIsDelEqualTo(Constants.DATA_VALID);
         // 根据客户主键获取客户下的跑分规则集合
         List<CustomerRule> customerRules = customerRuleMapper.selectByExample(crExample);
         if (customerRules == null) {
@@ -329,7 +448,12 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (customerRules.size() < 1) {
             return;
         }
-        List<Long> ruleIdList = customerRules.stream().map(CustomerRule::getRuleId).collect(Collectors.toList());
+        List<Long> ruleIdList = new ArrayList<>();
+        HashMap<Long, CustomerRule> customerRuleMap = new HashMap();
+        for (CustomerRule customerRule : customerRules) {
+            ruleIdList.add(customerRule.getRuleId());
+            customerRuleMap.put(customerRule.getRuleId(), customerRule);
+        }
         ScoreRuleConfigExample ruleExample = new ScoreRuleConfigExample();
         ruleExample.createCriteria().andStrategyIdEqualTo(rule.getStrategyId()).andIdIn(ruleIdList);
         // 获取客户下的跑分配置
@@ -343,15 +467,23 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         // 产品信息获取签名
         String md501 = DigestUtils.md5DigestAsHex(rule.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
         // 场景信息获取签名
-        String md510 = DigestUtils.md5DigestAsHex(rule.getConditionInfo().getBytes(StandardCharsets.UTF_8));
+        // TODO
+        String md510 = DigestUtils.md5DigestAsHex(conditionInfo.getBytes(StandardCharsets.UTF_8));
         for (ScoreRuleConfig src : list) {
             if (src.getId().equals(rule.getId())) {
+                continue;
+            }
+            CustomerRule customerRule = customerRuleMap.get(src.getId());
+            if (customerRule == null) {
                 continue;
             }
             // 已有配置产品信息获取签名
             String md502 = DigestUtils.md5DigestAsHex(src.getStrategyProductShow().getBytes(StandardCharsets.UTF_8));
             // 已有配置场景信息获取签名
-            String md511 = DigestUtils.md5DigestAsHex(src.getConditionInfo().getBytes(StandardCharsets.UTF_8));
+
+            String md511 = StringUtils.isNotBlank(customerRule.getConditionInfo()) ?
+                    DigestUtils.md5DigestAsHex(customerRule.getConditionInfo().getBytes(StandardCharsets.UTF_8))
+                    : "";
             if (md501.equals(md502) && md510.equals(md511)) {
                 throw new BusinessException("报告小主，找到相似的规则["
                         .concat(src.getRuleName())
@@ -450,7 +582,7 @@ public class ScoreRuleConfigServiceImpl implements ScoreRuleConfigService {
         if (list != null && list.size() > 0) {
             if (!ObjectUtils.isEmpty(scoreRuleVO.getId())) {
                 List<ScoreRuleConfig> collect = list.stream().filter(
-                        scoreRuleConfig -> !scoreRuleConfig.getId().equals(scoreRuleVO.getId()))
+                                scoreRuleConfig -> !scoreRuleConfig.getId().equals(scoreRuleVO.getId()))
                         .collect(Collectors.toList());
                 if (collect.size() < 1) {
                     return;

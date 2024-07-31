@@ -1,10 +1,7 @@
 package com.br.marketing.dto;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.hibernate.validator.constraints.NotEmpty;
 
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 
@@ -15,6 +12,11 @@ public class BackEndScoreRuleConfigDTO {
      * 规则id
      */
     private List<Long> ruleIds;
+
+    /**
+     * apiCode
+     */
+    private String apiCode;
 
     /**
      * 跑分日期

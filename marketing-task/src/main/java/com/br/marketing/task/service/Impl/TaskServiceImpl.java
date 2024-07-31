@@ -128,7 +128,7 @@ public class TaskServiceImpl implements ITaskService {
 
     @Override
     public void buildScoreTask(List<Long> scoreRuleIds,String jobNm) {
-        Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(scoreRuleIds);
+        Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(scoreRuleIds, null);
 //        AssertResult.assertResult(scoreConfigNow);
         if(!ResultCode.SUCCESS.getValue().equals(scoreConfigNow.getCode())){
             return;

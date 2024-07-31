@@ -65,6 +65,12 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "生成数据包名称")
     private String dataPackageName;
 
+    @ApiModelProperty(value = "数据集名称")
+    private String batchName;
+
+    @ApiModelProperty(value = "规则模版名称")
+    private String ruleModelName;
+
     public Integer getmPrePlanNum() {
         return mPrePlanNum;
     }
@@ -174,5 +180,21 @@ public class PushCustomerDTO {
 
     public void setUserDetail(MarketingUserDetail userDetail) {
         this.userDetail = userDetail;
+    }
+
+    public String getBatchName() {
+        return batchName;
+    }
+
+    public void setBatchName(String batchName) {
+        this.batchName = batchName;
+    }
+
+    public String getRuleModelName() {
+        return ruleModelName;
+    }
+
+    public void setRuleModelName(String ruleModelName) {
+        this.ruleModelName = ruleModelName;
     }
 }

@@ -19,6 +19,11 @@ public class CustomerRule {
     private Long ruleId;
 
     /**
+     * 规则信息
+     */
+    private String conditionInfo;
+
+    /**
      * 删除标志；1-正常；9-删除；
      */
     private Integer isDel;
@@ -55,6 +60,14 @@ public class CustomerRule {
 
     public void setRuleId(Long ruleId) {
         this.ruleId = ruleId;
+    }
+
+    public String getConditionInfo() {
+        return conditionInfo;
+    }
+
+    public void setConditionInfo(String conditionInfo) {
+        this.conditionInfo = conditionInfo == null ? null : conditionInfo.trim();
     }
 
     public Integer getIsDel() {
