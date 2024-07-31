@@ -92,7 +92,7 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
         data.setTag("MG");
         data.setDataSource(2);
         data.setUserType(userType);
-        data.setIsConnect(bo.getDetail().getIsConnect());
+        data.setIsConnect(ObjectUtil.isEmpty(bo.getDetail()) ? null : bo.getDetail().getIsConnect());
         return data;
     }
 
