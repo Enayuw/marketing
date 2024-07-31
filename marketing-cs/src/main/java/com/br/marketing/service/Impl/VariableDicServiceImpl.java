@@ -134,8 +134,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                     }
                     variableDicListVO.setValidType(configDefault.getValidType());
                 } else {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
-                            , "不存在有效期天数配置,apiCode=" + apiCode + "userType=" + userType));
+                    log.warn("不存在有效期天数配置,apiCode={},userType={}", apiCode, userType);
                 }
             }
             return PageResultReturn.setPageResult(list, page, pageSize);
