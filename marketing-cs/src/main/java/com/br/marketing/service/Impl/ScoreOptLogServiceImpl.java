@@ -4,24 +4,17 @@ import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.ScoreOptLog;
 import com.br.marketing.entity.ScoreOptLogExample;
-import com.br.marketing.entity.VariableDic;
-import com.br.marketing.entity.VariableDicExample;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.ScoreOptLogMapper;
-import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.service.ScoreOptLogService;
 import com.br.marketing.vo.ScoreRuleVO;
-import com.br.marketing.vo.VariableDicSelectVO;
 import com.github.pagehelper.PageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 跑分配置记录
@@ -35,8 +28,8 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
     @Resource
     private ScoreOptLogMapper scoreOptLogMapper;
 
-    @Resource
-    private VariableDicMapper variableDicMapper;
+//    @Resource
+//    private VariableDicMapper variableDicMapper;
 
     @Override
     public PageResultReturn findListPage(int page, int pageSize, Long rid, String cid, String apiCode) {
@@ -79,34 +72,34 @@ public class ScoreOptLogServiceImpl implements ScoreOptLogService {
     /**
      * 场景json结构拼接
      */
-    private void spliceConditionInfoJsonLog(ScoreOptLog scoreOptLog, Set<VariableDicSelectVO> vdSet) {
-        List<String> fieldNames = vdSet.stream().map(VariableDicSelectVO::getFieldName).collect(Collectors.toList());
-        List<String> fieldValues = vdSet.stream().map(VariableDicSelectVO::getFieldValue).collect(Collectors.toList());
-        VariableDicExample example = new VariableDicExample();
-        example.createCriteria()
-                .andCidEqualTo(scoreOptLog.getCid())
-                .andApiCodeEqualTo(scoreOptLog.getApicode())
-                .andFieldNameIn(fieldNames).andFieldValueIn(fieldValues);
-        List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
-        StringBuilder ci = new StringBuilder("{\"logicalOperation\":\"or\",\"operationFactor\":[");
-        final char ch = ',';
-        variableDics.forEach(vd -> ci.append("{\"fieldName\":\"")
-                .append(vd.getFieldName())
-                .append("\",\"fieldValue\":\"")
-                .append(vd.getFieldValue())
-                .append("\",\"fieldDesc\":\"")
-                .append(vd.getFieldDesc())
-                .append("\",\"operation\":\"=\"}").append(ch));
-        // 得到最后一个字符的索引地址
-        int index = ci.length() - 1;
-        // 取到最后一个字符
-        char c = ci.charAt(index);
-        if (c == ch) {
-            // 删除最后一个字符
-            ci.deleteCharAt(index);
-        }
-        scoreOptLog.setConditionShowInfo(ci.append("]}").toString());
-    }
+//    private void spliceConditionInfoJsonLog(ScoreOptLog scoreOptLog, Set<VariableDicSelectVO> vdSet) {
+//        List<String> fieldNames = vdSet.stream().map(VariableDicSelectVO::getFieldName).collect(Collectors.toList());
+//        List<String> fieldValues = vdSet.stream().map(VariableDicSelectVO::getFieldValue).collect(Collectors.toList());
+//        VariableDicExample example = new VariableDicExample();
+//        example.createCriteria()
+//                .andCidEqualTo(scoreOptLog.getCid())
+//                .andApiCodeEqualTo(scoreOptLog.getApicode())
+//                .andFieldNameIn(fieldNames).andFieldValueIn(fieldValues);
+//        List<VariableDic> variableDics = variableDicMapper.selectByExample(example);
+//        StringBuilder ci = new StringBuilder("{\"logicalOperation\":\"or\",\"operationFactor\":[");
+//        final char ch = ',';
+//        variableDics.forEach(vd -> ci.append("{\"fieldName\":\"")
+//                .append(vd.getFieldName())
+//                .append("\",\"fieldValue\":\"")
+//                .append(vd.getFieldValue())
+//                .append("\",\"fieldDesc\":\"")
+//                .append(vd.getFieldDesc())
+//                .append("\",\"operation\":\"=\"}").append(ch));
+//        // 得到最后一个字符的索引地址
+//        int index = ci.length() - 1;
+//        // 取到最后一个字符
+//        char c = ci.charAt(index);
+//        if (c == ch) {
+//            // 删除最后一个字符
+//            ci.deleteCharAt(index);
+//        }
+//        scoreOptLog.setConditionShowInfo(ci.append("]}").toString());
+//    }
 
 
 }

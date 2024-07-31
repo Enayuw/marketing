@@ -211,28 +211,30 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Override
     public List<Map> findListByCidsAndApiCodes(List<CustomerSelectVO> vos) {
         List<Map> list = new ArrayList<>();
+        if(CollectionUtils.isEmpty(vos)){
+            return list;
+        }
         List<String> apiCodes = vos.stream().map(CustomerSelectVO::getApiCode).collect(Collectors.toList());
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        if (vos != null && vos.size() > 0) {
-            for (CustomerSelectVO vo : vos) {
-                String cid = vo.getCid();
-                String apiCode = vo.getApiCode();
-                List<VariableDicSelectVO> userTypeList = findListByCidAndApiCode(cid, apiCode);
+        for (CustomerSelectVO vo : vos) {
+            String cid = vo.getCid();
+            String apiCode = vo.getApiCode();
+            List<VariableDicSelectVO> userTypeList = findListByCidAndApiCode(cid, apiCode);
 
-                Map map = new HashMap();
-                map.put("cid", cid);
-                map.put("apiCode", apiCode);
-                map.put("userTypeList", userTypeList);
-                Optional<MarketingCustomer> first = marketingCustomers.stream().filter(t -> apiCode.equals(t.getApiCode()) && cid.equals(t.getCid())).findFirst();
-                if (first.isPresent()) {
-                    MarketingCustomer marketingCustomer = first.get();
-                    map.put("name", marketingCustomer.getName());
-                    map.put("shortName", marketingCustomer.getShortName());
-                }
-                list.add(map);
+            Map map = new HashMap();
+            map.put("cid", cid);
+            map.put("apiCode", apiCode);
+            map.put("userTypeList", userTypeList);
+            Optional<MarketingCustomer> first = marketingCustomers.stream()
+                    .filter(t -> apiCode.equals(t.getApiCode()) && cid.equals(t.getCid())).findFirst();
+            if (first.isPresent()) {
+                MarketingCustomer marketingCustomer = first.get();
+                map.put("name", marketingCustomer.getName());
+                map.put("shortName", marketingCustomer.getShortName());
             }
+            list.add(map);
         }
 
         return list;
