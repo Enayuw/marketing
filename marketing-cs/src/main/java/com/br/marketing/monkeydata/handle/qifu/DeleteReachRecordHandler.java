@@ -124,7 +124,7 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
         param.setBatchNo(cusBatch);
         IterationResult<SaveReachDeleteRecordReqBO, Page2Condition<QifuSaveReachDeleteRecordApiPushLog>> content
                 = new IterationResult<>();
-        List<SaveReachDeleteRecordReqBO> reqBOList = cusBatchList.stream().filter(b -> {
+        List<SaveReachDeleteRecordReqBO> reqBOList = cusBatchList.stream().filter((String b) -> {
             QifuSaveReachDeleteRecordApiPushLogExample example = new QifuSaveReachDeleteRecordApiPushLogExample();
             example.createCriteria()
                     .andBatchNoEqualTo(b)
@@ -132,7 +132,7 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
                     .andPushDateEqualTo(param.getPushDate())
                     .andSyncAppletDateEqualTo(param.getSyncAppletDate());
             return qifuSaveReachDeleteRecordApiPushLogMapper.countByExample(example) < 1;
-        }).map(b -> {
+        }).map((String b) -> {
             SaveReachDeleteRecordReqBO bo = new SaveReachDeleteRecordReqBO();
             bo.setApiCode(param.getApiCode());
             bo.setAppletDate(param.getSyncAppletDate());
@@ -165,7 +165,7 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
                 String batchNo = batchNoList.get(size - 1).getBatchNo();
                 param.setBatchNo(batchNo);
                 List<Long> list = new ArrayList<>();
-                List<SaveReachDeleteRecordReqBO> reqBOList = batchNoList.stream().map(b -> {
+                List<SaveReachDeleteRecordReqBO> reqBOList = batchNoList.stream().map((QifuSaveReachDeleteRecordApiPushLog b) -> {
                     list.add(b.getId());
                     SaveReachDeleteRecordReqBO bo = new SaveReachDeleteRecordReqBO();
                     bo.setApiCode(b.getApiCode());
