@@ -2,6 +2,8 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -72,21 +74,29 @@ public class IRongShuPushDaasServiceImpl implements IRongShuPushDaasService {
     }
 
     @Override
-    public boolean isFilterUserUserType(String apiCode, String custNum, String tcId, MarketingSyncUser marketingSyncUser) {
-        //剔除有效期内 转化数据userType=4||userType=5
-        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.settCid(tcId);
-        example.createCriteria()
-                .andApiCodeEqualTo(marketingSyncUser.getApiCode())
-                .andCustNumEqualTo(marketingSyncUser.getCustNum())
-                .andRequestDataGreaterThanOrEqualTo(marketingSyncUser.getAppletDate());
-        List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
-        for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
-            String userType = marketingTransferSyncUser.getUserType();
-            boolean flag = StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())
-                    && (("4").equals(userType) || ("5").equals(userType));
-            if (flag) {
-                return true;
+    public boolean isFilterUserUserType(String apiCode, String custNum, String tcId, SyncUserValidityPeriodsBO boMap) {
+        MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
+        List<PeriodOfValidityBO.Builder> builders = boMap.getBuilders();
+        for (PeriodOfValidityBO.Builder builder : builders) {
+            PeriodOfValidityBO periodOfValidityBO = builder.addDateString().builder();
+            String beginDateStr = periodOfValidityBO.getBeginDateStr();
+            String enDateStr = periodOfValidityBO.getEnDateStr();
+            //剔除有效期内 转化数据userType=4||userType=5
+            MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
+            example.settCid(tcId);
+            example.createCriteria()
+                    .andApiCodeEqualTo(marketingSyncUser.getApiCode())
+                    .andCustNumEqualTo(marketingSyncUser.getCustNum())
+                    .andRequestDataGreaterThanOrEqualTo(beginDateStr)
+                    .andRequestDataLessThanOrEqualTo(enDateStr);
+            List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
+            for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
+                String userType = marketingTransferSyncUser.getUserType();
+                boolean flag = StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())
+                        && (("4").equals(userType) || ("5").equals(userType));
+                if (flag) {
+                    return true;
+                }
             }
         }
         return false;

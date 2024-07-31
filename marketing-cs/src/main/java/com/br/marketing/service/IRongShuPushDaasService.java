@@ -1,6 +1,6 @@
 package com.br.marketing.service;
 
-import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 
 public interface IRongShuPushDaasService {
 
@@ -22,9 +22,9 @@ public interface IRongShuPushDaasService {
      * @param apiCode apiCode
      * @param custNum custNum
      * @param tcId  tcId
-     * @param marketingSyncUser  marketingSyncUser
+     * @param boMap  查询有效期得到的结果（包含多个有效期对应时间段和）
      * @return boolean
      */
-    boolean isFilterUserUserType(String apiCode, String custNum, String tcId, MarketingSyncUser marketingSyncUser);
+    boolean isFilterUserUserType(String apiCode, String custNum, String tcId, SyncUserValidityPeriodsBO boMap);
 
 }
