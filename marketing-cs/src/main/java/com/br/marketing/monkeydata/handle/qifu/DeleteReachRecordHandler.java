@@ -70,22 +70,36 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
 
     @Override
     public Boolean isPause() {
-        JSONObject jsonObject;
-        return marketingCommonConfig.getCustomerJobConfig() == null
-                ? super.isPause() : (jsonObject = marketingCommonConfig.getCustomerJobConfig()
-                .get(this.getClass().getSimpleName())) == null
-                ? super.isPause() : jsonObject.containsKey("isPause")
-                ? jsonObject.getBoolean("isPause") : super.isPause();
+        HashMap<String, JSONObject> customerJobConfig = marketingCommonConfig.getCustomerJobConfig();
+        if(customerJobConfig == null){
+            return super.isPause();
+        }
+        JSONObject jsonObject = customerJobConfig.get(this.getClass().getSimpleName());
+        if(jsonObject == null){
+            return super.isPause();
+        }
+        if(!jsonObject.containsKey("isPause")){
+            return super.isPause();
+        }
+        Boolean isPause = jsonObject.getBoolean("isPause");
+        return isPause;
     }
 
     @Override
     public Integer getThread() {
-        JSONObject jsonObject;
-        return marketingCommonConfig.getCustomerJobConfig() == null
-                ? super.getThread() : (jsonObject = marketingCommonConfig.getCustomerJobConfig()
-                .get(this.getClass().getSimpleName())) == null
-                ? super.getThread() : jsonObject.containsKey("threadNum")
-                ? jsonObject.getInteger("threadNum") : super.getThread();
+        HashMap<String, JSONObject> customerJobConfig = marketingCommonConfig.getCustomerJobConfig();
+        if(customerJobConfig == null){
+            return super.getThread();
+        }
+        JSONObject jsonObject = customerJobConfig.get(this.getClass().getSimpleName());
+        if(jsonObject == null){
+            return super.getThread();
+        }
+        if(!jsonObject.containsKey("threadNum")){
+            return super.getThread();
+        }
+        Integer threadNum = jsonObject.getInteger("threadNum");
+        return threadNum;
     }
 
     @Override
