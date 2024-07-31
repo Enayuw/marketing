@@ -298,7 +298,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                 } else {
                                     //第一次执行，查询为空，不会进行删除，直接返回
                                     //第二次执行，删除b_sync_log的记录
-                                    String childDir = StringUtils.isNotEmpty(datum.getFileChildDir()) ? datum.getFileChildDir()+"/" : "";
+                                    String fileChildDir = datum.getFileChildDir().concat("/");
+                                    String childDir = StringUtils.isNotEmpty(datum.getFileChildDir()) ? fileChildDir : "";
                                     String srcPath = sftpHost.concat(":")
                                             .concat(upLoadPath)
                                             .concat(marketingCustomer.getApiCode())
