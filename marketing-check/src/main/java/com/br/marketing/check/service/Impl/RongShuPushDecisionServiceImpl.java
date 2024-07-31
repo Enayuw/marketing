@@ -209,7 +209,9 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                 DataDistributeDetailLog detailLog = getDataDistributeDetailLog(date, custNum, marketingSyncUser);
                 dataDistributeDetailLogList.add(detailLog);
             }
-            dataDistributeDetailLogMapper.insertBatch(dataDistributeDetailLogList);
+            if(dataDistributeDetailLogList.size()>0){
+                dataDistributeDetailLogMapper.insertBatch(dataDistributeDetailLogList);
+            }
             if(list.size()<1){
                 continue;
             }
