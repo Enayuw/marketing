@@ -29,11 +29,6 @@ public class ScoreRuleConfig {
     private String strategyProductJson;
 
     /**
-     * 规则信息
-     */
-    private String conditionInfo;
-
-    /**
      * 策略
      */
     private String strategyId;
@@ -166,14 +161,6 @@ public class ScoreRuleConfig {
 
     public void setStrategyProductJson(String strategyProductJson) {
         this.strategyProductJson = strategyProductJson == null ? null : strategyProductJson.trim();
-    }
-
-    public String getConditionInfo() {
-        return conditionInfo;
-    }
-
-    public void setConditionInfo(String conditionInfo) {
-        this.conditionInfo = conditionInfo == null ? null : conditionInfo.trim();
     }
 
     public String getStrategyId() {

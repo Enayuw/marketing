@@ -38,5 +38,5 @@ public interface IRuleConfigService {
     Result<List<CustomerScoreRuleVO>> getScoreConfigNow();
 
 
-    Result<List<CustomerScoreRuleVO>> getScoreConfigNow(List<Long> ruleIds);
+    Result<List<CustomerScoreRuleVO>> getScoreConfigNow(List<Long> ruleIds, String apiCode);
 }

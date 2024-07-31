@@ -2,7 +2,6 @@ package com.br.marketing.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import org.hibernate.validator.constraints.Length;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
@@ -40,4 +39,6 @@ public class TaskSelectSaveDTO {
     @ApiModelProperty(value = "是否规则验证 1-验证；不传或者其他值不做处理")
     private Integer isOrNoScoreVer;
 
+    @ApiModelProperty(value = "taskCreateMethod")
+    private String taskCreateMethod;
 }
