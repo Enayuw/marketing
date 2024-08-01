@@ -106,6 +106,10 @@ public class RedisKeyConstant {
      * 推送众安分发数据日志锁
      */
     public static final String PUSH_ZHONGAN_DISTRIBUTE_DATA_SLOE_LOCK = prefix.concat("zhongan:dributeData:cell");
+    /**
+     * 榕树推决策手机号去重加锁
+     */
+    public static final String RONG_SHU_PUSH_DECISION_LOCK = prefix.concat("rongshu:PushDecision:cell");
 
     /**
      * 宜信推送百应数据日志锁

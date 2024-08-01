@@ -595,7 +595,7 @@
 
     <job:simple id="RsToPolicyJob"
                 class="com.br.marketing.check.job.RsToPolicyJob"
-                cron="0 0 10 * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="榕树推送决策作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
