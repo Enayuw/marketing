@@ -45,4 +45,9 @@ public class ZaRosterLockingDataDTO  extends InterfaceParams {
      * 机构运营场景
      */
     private String userType;
+
+    /**
+     * 是否接通(0-否;1-是)
+     */
+    private Integer isConnect;
 }

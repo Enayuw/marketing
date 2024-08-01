@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.job;
+package com.br.marketing.monkey.job.zhongan;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.commondto.Result;

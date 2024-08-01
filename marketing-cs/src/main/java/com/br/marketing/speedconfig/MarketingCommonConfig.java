@@ -1962,7 +1962,7 @@ public class MarketingCommonConfig {
     private JSONObject commonMockConfig;
 
     /**
-     * 
+     *
      * 58新课数据提取参数配置
      */
     private HashMap<String, JSONObject> wbxkExtDataConfig;
@@ -1971,6 +1971,16 @@ public class MarketingCommonConfig {
      * 58撞库接口参数配置
      */
     private JSONObject wuBaCollidingUrlConfig;
-    
+
+    /**
+     * 医时转化数据提取apiCode集合
+     */
+    private List<String> YiShiTransferApiCodes;
+
+    /**
+         * 医时转化数据提取执行时间
+     */
+    private String YiShiTransferFileExecuteTime;
+
 }
 
