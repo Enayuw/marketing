@@ -250,10 +250,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                 } else {
                                     //第一次执行，查询为空，不会进行删除，直接返回
                                     //第二次执行，删除b_sync_log的记录
-                                    List<SyncLog> syncLogList = loanSyncLogMapper.querySyncLog(ImmutableMap.of("apiCode", marketingCustomer.getApiCode(), "fileName", datum.getFileName()));
+                                    List<SyncLog> syncLogList = loanSyncLogMapper
+                                            .querySyncLog(ImmutableMap.of("apiCode", marketingCustomer.getApiCode()
+                                                    , "fileName", datum.getFileName()));
                                     if (!CollectionUtils.isEmpty(syncLogList)) {
                                         if (syncLogList.size() != 1) {
-                                            log.warn("重新执行数据提取异常，apiCode={},fileName={},syncLogSize={}", marketingCustomer.getApiCode(), datum.getFileName(), syncLogList.size());
+                                            log.warn("重新执行数据提取异常，apiCode={},fileName={},syncLogSize={}"
+                                                    , marketingCustomer.getApiCode(), datum.getFileName(), syncLogList.size());
                                             return;
                                         }
                                         SyncLogExample syncLogExample = new SyncLogExample();
