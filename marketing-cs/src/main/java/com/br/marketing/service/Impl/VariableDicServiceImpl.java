@@ -220,6 +220,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 configDefault.setCreateTime(data.getCreateTime());
                 configDefault.setUpdateTime(new Date());
                 configDefault.setIsDel(1);
+                configDefault.setValidType(vo.getValidType());
                 validConfigDefaultMapper.insertSelective(configDefault);
                 entityOptService.writeOptLog(configDefault.getId(), configDefault, null);
             }
