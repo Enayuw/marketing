@@ -1,22 +1,20 @@
 package com.br.marketing.rule.shuhe;
 
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -30,13 +28,10 @@ import java.util.HashMap;
 @Service
 @Slf4j
 public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> {
-    @Resource
-    private IMarketingSyncUserService iMarketingSyncUserService;
-    @Resource
-    private DataLoadingHandlerService handlerService;
+
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
-    public static final DateTimeFormatter ymhdms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    public static final DateTimeFormatter YMHDMS = DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
 
     @Override
     public BlackDetailDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -47,7 +42,7 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
         }
         String endTime = LocalDateTime.now()
                 .withHour(23).withMinute(59).withSecond(59)
-                .plusDays(blackDays).format(ymhdms);
+                .plusDays(blackDays).format(YMHDMS);
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                 (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
@@ -69,12 +64,9 @@ public class ShuHeCustomerBlackListImpl implements AssembleData<BlackDetailDTO> 
                 ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                         (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
                 if (shuHeContext.isContinueJudgeRule()) {
-                    final IUserType iUserType = shuHeContext.getIUserType();
-                    final CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
-                    Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
-                    boolean b = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
-                            , transfer.getCreateTime(), day, shuHeContext.getCreatTime());
-                    if (b && shuHeContext.getNonBlackListCount() == 0 && iUserType.isBlack(caseShuheUser)) {
+                    BaseUserType baseUserType = shuHeContext.getBaseUserType();
+                    CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
+                    if (shuHeContext.getNonBlackListCount() == 0 && baseUserType.isBlack(caseShuheUser)) {
                         shuHeContext.setContinueJudgeRule(false);
                         bool = Boolean.TRUE;
                     }

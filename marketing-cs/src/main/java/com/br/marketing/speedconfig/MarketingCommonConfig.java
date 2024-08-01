@@ -101,7 +101,10 @@ public class MarketingCommonConfig {
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
+     *
+     * @deprecated 弃用，已使用新有效期配置
      */
+    @Deprecated
     private Map<String, String> shuHeTransferExtractDayMap;
 
     /**
@@ -117,13 +120,17 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾转化数据提取任务是否使用准全量转化数据
+     * @deprecated 弃用，已使用新版有效期范围
      */
+    @Deprecated
     private Boolean shuHeTransferExtractIfUseQuasiTotalQuantity;
 
     /**
      * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
+     * @deprecated 弃用，已使用最新版本有效期配置
      */
+    @Deprecated
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
     /**
@@ -1251,6 +1258,19 @@ public class MarketingCommonConfig {
     private HashMap<String, Object> baiYingUndoMock;
 
     /**
+     * 推送之家创建线索接口挡板开关 true:开启挡板。false:关闭挡板
+     * zhiJiaUndoMock={"switch":true,"httpcode":"200","code":"0"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * httpcode：
+     *      200:请求成功
+     * code：
+     *      0:调用之家创建线索接口成功
+     */
+    private HashMap<String, Object> zhiJiaUndoMock;
+
+    /**
      *
      */
     private HashMap<String, Object> qiFuDeleteReachRecordMock;
@@ -1603,7 +1623,9 @@ public class MarketingCommonConfig {
     /**
      * 2024-04-18 10:53
      * 数禾适配新有效期apiCode与场景信息eg:{apiCode:[场景]}
+     * @deprecated 已废弃
      */
+    @Deprecated
     private Map<String, JSONArray> shuHeNewPeriodOfValidityMap = new HashMap<>();
     /**
      * 修复cell的apiCode前缀集合
@@ -1774,6 +1796,20 @@ public class MarketingCommonConfig {
      */
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
+    /**
+     * 之家创建线索程池数
+     */
+    private Integer zhiJiaCollidingThread;
+
+    /**
+     * 之家落库apiCode
+     */
+    private String zhiJiaApiCode;
+
+    /**
+     * 之家用户信息分页参数
+     */
+    private Integer zhiJiaQryUserMessageSize;
     /**
      * 奇富360数据提取参数配置
      */

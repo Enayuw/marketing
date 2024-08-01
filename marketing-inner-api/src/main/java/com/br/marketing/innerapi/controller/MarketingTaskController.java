@@ -166,7 +166,7 @@ public class MarketingTaskController {
     @ApiOperation(value = "生成跑分任务")
     @PostMapping("/saveTask")
     public ApiResult<List<Long>> saveTask(@RequestBody TaskSelectSaveDTO dto) {
-        return new ApiResult<List<Long>>().fromResult(marketingTaskService.saveTaskSelect(dto), 1);
+        return new ApiResult<List<Long>>().fromResult(marketingTaskService.saveTaskSelectV2(dto), 1);
     }
 
     @ApiOperation(value = "获取验证数据日期")

@@ -71,7 +71,8 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                 JSONObject resMap = JSONObject.parseObject(result.getData().toString());
                 String title = "58提交撞库名单，调用客户接口异常";
                 String msg = title + "，响应内容：" + JSON.toJSONString(resMap);
-                wuBaServiceClient.sendDingDingAlert("58提交撞库名单，调用客户接口异常", msg);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                        , title));
                 return;
             }
 

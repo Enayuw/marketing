@@ -162,7 +162,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             Thread.currentThread().interrupt();
         }
         main.setId(customerInfoPushMain.getId());
-        main.setmRealyNum(realTotalNum);
+        //main.setmRealyNum(realTotalNum);
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         log.warn("携程撞库推送决策完成，推送数据量num={}", realTotalNum);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
@@ -211,7 +211,8 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             XieChengCollidingDataLogExample dataLogExample = new XieChengCollidingDataLogExample();
             XieChengCollidingDataLogExample.Criteria criteria = dataLogExample.createCriteria();
             criteria.andCellSha256CodeListIn(sha256Cell).andCreateTimeGreaterThanOrEqualTo
-                    (Date.from(LocalDate.now().minusDays(7).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
+                    (Date.from(LocalDate.now().minusDays(7).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())).
+                    andHttpCodeEqualTo(200).andBusinessCodeEqualTo(0);
             List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataLogExample);
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
             assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt, xieChengCollidingDataLogs);
@@ -222,6 +223,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + UUID.randomUUID());
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
             pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
+            pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
             //传输参数信息
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());

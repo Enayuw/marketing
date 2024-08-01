@@ -9,7 +9,6 @@ import lombok.Data;
  * b_customer_info_push_main
  * @author 
  */
-
 public class CustomerInfoPushMain implements Serializable {
     private Long id;
 
@@ -107,7 +106,6 @@ public class CustomerInfoPushMain implements Serializable {
      * 操作人id
      */
     private String optUserId;
-
     /**
      * 操作人姓名
      */
@@ -119,11 +117,14 @@ public class CustomerInfoPushMain implements Serializable {
     private Integer filterType;
 
     /**
+     * 数据集名称
+     */
+    private String batchName;
+
+    /**
      * 扩展字段
      */
     private String extend;
-
-
 
     private static final long serialVersionUID = 1L;
 
@@ -301,6 +302,14 @@ public class CustomerInfoPushMain implements Serializable {
 
     public void setFilterType(Integer filterType) {
         this.filterType = filterType;
+    }
+
+    public String getBatchName() {
+        return batchName;
+    }
+
+    public void setBatchName(String batchName) {
+        this.batchName = batchName;
     }
 
     public String getExtend() {
