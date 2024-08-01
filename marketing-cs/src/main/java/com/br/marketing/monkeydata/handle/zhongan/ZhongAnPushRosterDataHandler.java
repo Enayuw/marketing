@@ -1,5 +1,6 @@
 package com.br.marketing.monkeydata.handle.zhongan;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
@@ -589,6 +590,11 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             detail.setChannelCode(channelCode);
             detail.setTag(data.getTag());
             detail.setMobileMd5(data.getMobileMd5());
+            detail.setPostbackDate(DateUtil.formatDateTime(new Date()));
+            detail.setIsOutbound(1);
+            detail.setIsConnect(data.getIsConnect());
+            detail.setIsSmsSend(data.getIsConnect());
+            detail.setIsSmsSendSuccess(data.getIsConnect());
             pushList.add(detail);
             count++;
 

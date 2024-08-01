@@ -15,6 +15,9 @@
             <if test="data.tag!=null and data.tag!=''">
                 and tag='${data.tag}'
             </if>
+            <if test="data.isConnect != null and data.isConnect != ''">
+                and is_connect = '${data.isConnect}'
+            </if>
             <if test="data.pushStatus!=null and data.pushStatus!=''">
                 and push_status=${data.pushStatus}
             </if>
@@ -23,7 +26,7 @@
     </select>
 
     <select id="findPartColumnListPage" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
-        select t1.id,mobile_md5,biz_date,tag,data_source,local_id,api_code,IF(user_type='', '1', user_type) as userType from b_zhongan_roster_locking_data t1,
+        select t1.id,mobile_md5,biz_date,tag,data_source,local_id,api_code,IF(user_type='', '1', user_type) as userType ,is_connect from b_zhongan_roster_locking_data t1,
         (select id from b_zhongan_roster_locking_data
         <where>
             <if test="data.apiCode!=null and data.apiCode!=''">
@@ -44,6 +47,9 @@
             <if test="data.userType!=null and data.userType!=''">
                 and user_type=${data.userType}
             </if>
+            <if test="data.isConnect != null and data.isConnect != ''">
+                and is_connect = '${data.isConnect}'
+            </if>
             and status=1
             <if test="data.id!=null and data.id!=''">
                 and id>${data.id}
@@ -53,22 +59,31 @@
     </select>
 
     <select id="findGroupMobileMd5ListPage" resultType="com.br.marketing.entity.ZhonganRosterLockingData">
-        select mobile_md5,biz_date,tag,data_source,local_id,api_code from b_zhongan_roster_locking_data
+        select mobile_md5, biz_date, tag, data_source, local_id, api_code
+        from b_zhongan_roster_locking_data
         <where>
-            <if test="data.apiCode!=null and data.apiCode!=''">
-                api_code='${data.apiCode}'
+            <if test="data.apiCode != null and data.apiCode != ''">
+                api_code = '${data.apiCode}'
             </if>
-            <if test="data.bizDate!=null and data.bizDate!=''">
-                and <![CDATA[ biz_date <= '${data.bizDate}' ]]>
+            <if test="data.bizDate != null and data.bizDate != ''">
+                and <![CDATA[ biz_date <= '${data.bizDate}']]>
             </if>
-            <if test="data.tag!=null and data.tag!=''">
-                and tag='${data.tag}'
+            <if test="data.tag != null and data.tag != ''">
+                and tag = '${data.tag}'
             </if>
-            <if test="data.pushStatus!=null and data.pushStatus!=''">
-                and push_status=${data.pushStatus}
+            <if test="data.userType != null and data.userType != ''">
+                and user_type = '${data.userType}'
             </if>
-            and status=1
-            group by mobile_md5,biz_date order by mobile_md5,biz_date limit ${pageNo * pageSize},${pageSize}
+            <if test="data.isConnect != null and data.isConnect != ''">
+                and is_connect = '${data.isConnect}'
+            </if>
+            <if test="data.pushStatus != null and data.pushStatus != ''">
+                and push_status = ${data.pushStatus}
+            </if>
+            and status = 1
+            group by mobile_md5, biz_date
+            order by mobile_md5, biz_date
+            limit ${pageNo * pageSize},${pageSize}
         </where>
     </select>
 

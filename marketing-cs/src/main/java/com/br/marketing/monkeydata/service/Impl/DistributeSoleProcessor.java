@@ -1,22 +1,29 @@
 package com.br.marketing.monkeydata.service.Impl;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.ZhonganRosterLockingDataBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
-import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.entity.DataDistributeDetailLog;
-import com.br.marketing.entity.DataDistributeDetailLogExample;
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import cn.hutool.core.collection.CollectionUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -28,7 +35,7 @@ public class DistributeSoleProcessor {
     @Resource
     DataDistributeDetailLogMapper dataDistributeDetailLogMapper;
 
-    public List<Long> process(List<ZhonganRosterLockingDataBO> pushList, ZhonganRosterLockingData pageParam){
+    public List<Long> process(List<ZhonganRosterLockingDataBO> pushList, ZhonganRosterLockingData pageParam) {
         List<Long> notPushIds = new ArrayList<>();
         String key = RedisKeyConstant.PUSH_ZHONGAN_DISTRIBUTE_DATA_SLOE_LOCK;
         Integer distributeType = DistributeTypeEnum.ZHONGAN_PUSH_DETAIL.getValue();
@@ -37,26 +44,19 @@ public class DistributeSoleProcessor {
 
         Iterator<ZhonganRosterLockingDataBO> iterator = pushList.iterator();
         long startTime = System.currentTimeMillis();
-        while(iterator.hasNext()){
+        while (iterator.hasNext()) {
             ZhonganRosterLockingDataBO next = iterator.next();
             String apiCode = next.getApiCode();
             String cell = next.getSyncUser().getCell();
+            String tag = next.getTag();
             key = key.concat(String.format(":%d:%d:%s:%s", distributeType, soleDay, apiCode, cell));
             String lockValue = UUID.randomUUID().toString();
             try {
                 redisChgService.lock(key, lockValue);
                 String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-                DataDistributeDetailLogExample logExample = new DataDistributeDetailLogExample();
-                logExample.setOrderByClause(" id limit 1 ");
-                DataDistributeDetailLogExample.Criteria criteria = logExample.createCriteria();
-                criteria.andApiCodeEqualTo(apiCode)
-                        .andDistributeTypeEqualTo(distributeType)
-                        .andDistributeDateEqualTo(distributeDate)
-                        .andCellEqualTo(cell)
-                        .andExtendLike("%\"userType\":\""+userType+"\"%")
-                        ;
-                List<DataDistributeDetailLog> dataDistributeDetailLogs = dataDistributeDetailLogMapper.selectByExample(logExample);
-                if (dataDistributeDetailLogs.size() > 0) {
+                List<Long> ids =
+                    dataDistributeDetailLogMapper.findZhongAnLockingDataDistributeLog(apiCode, distributeType, distributeDate, cell, userType, tag);
+                if (CollectionUtil.isNotEmpty(ids)) {
                     iterator.remove();
                     notPushIds.add(next.getData().getId());
                     redisChgService.unlock(key, lockValue);
@@ -74,17 +74,19 @@ public class DistributeSoleProcessor {
                     distributeLog.setCreateTime(new Date());
                     distributeLog.setSourceId(next.getSyncUser().getId());
                     distributeLog.setSourceType(DistributeSourceTypeEnum.ZHONGAN_LOCKING_DATA.getValue());
-                    distributeLog.setExtend("{\"userType\":\""+userType+"\"}");
+                    JSONObject extend = new JSONObject();
+                    extend.put("userType", userType);
+                    extend.put("tag", tag);
+                    distributeLog.setExtend(JSONObject.toJSONString(extend));
                     dataDistributeDetailLogMapper.insertSelective(distributeLog);
                 }
                 redisChgService.unlock(key, lockValue);
-            }catch (Exception e){
+            } catch (Exception e) {
                 redisChgService.unlock(key, lockValue);
-                continue;
             }
         }
         long endTime = System.currentTimeMillis();
-        log.warn("推送众安去重一次的耗时："+(endTime-startTime));
+        log.warn("推送众安去重一次的耗时：" + (endTime - startTime));
         return notPushIds;
     }
 

@@ -765,6 +765,66 @@ public class ZhonganRosterLockingDataExample {
             return (Criteria) this;
         }
 
+        public Criteria andIsConnectIsNull() {
+            addCriterion("is_connect is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectIsNotNull() {
+            addCriterion("is_connect is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectEqualTo(Integer value) {
+            addCriterion("is_connect =", value, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectNotEqualTo(Integer value) {
+            addCriterion("is_connect <>", value, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectGreaterThan(Integer value) {
+            addCriterion("is_connect >", value, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_connect >=", value, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectLessThan(Integer value) {
+            addCriterion("is_connect <", value, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectLessThanOrEqualTo(Integer value) {
+            addCriterion("is_connect <=", value, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectIn(List<Integer> values) {
+            addCriterion("is_connect in", values, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectNotIn(List<Integer> values) {
+            addCriterion("is_connect not in", values, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectBetween(Integer value1, Integer value2) {
+            addCriterion("is_connect between", value1, value2, "isConnect");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsConnectNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_connect not between", value1, value2, "isConnect");
+            return (Criteria) this;
+        }
+
         public Criteria andDataMessageIsNull() {
             addCriterion("data_message is null");
             return (Criteria) this;

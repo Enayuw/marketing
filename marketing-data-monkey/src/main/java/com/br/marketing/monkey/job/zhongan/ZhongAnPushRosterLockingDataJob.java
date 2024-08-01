@@ -1,6 +1,25 @@
-package com.br.marketing.monkey.job;
+package com.br.marketing.monkey.job.zhongan;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bo.ZhonganRosterLockingDataActionBO;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -18,20 +37,12 @@ import com.br.marketing.service.Impl.YiXinTransferServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 名单锁定推送众安
+ * <a href="https://c.100credit.cn/pages/viewpage.action?pageId=171453221">V8-D20240722众安信贷营销名单推送逻辑变更-3710048</a>
  *
  * @author Guo Zeqiang
  * @dateTime 2022/11/17 17:49
@@ -132,24 +143,21 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
             if (!CollectionUtils.isEmpty(sftpFileIdList)) {
                 localFileMapper.updateUploadStartTimeById(sftpFileIdList, new Date());
             }
+            List<ZhonganRosterLockingDataActionBO> actions = new ArrayList<>();
+            // 先处理 isConnect = 1 的，再处理 isConnect = 0 的
+            for (int isConnect = 1; isConnect >= 0; --isConnect) {
+                actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "CG", 1, "1", isConnect));
+                actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 2, "1", isConnect));
+                actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 1, "1", isConnect));
+                actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 2, "7", isConnect));
+                actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 2, "8", isConnect));
+            }
 
-            // 优先级分批推送
-            Result<?> result1 = action(apiCode, bizDate, "CG", 1, "1", data);
+            boolean allSuccess = actions.stream()
+                .map(actionBO -> action(actionBO, data))
+                .allMatch(result -> ResultCode.SUCCESS.getValue().equals(result.getCode()));
 
-            Result<?> result2 = action(apiCode, bizDate, "MG", 2, "1", data);
-
-            Result<?> result3 = action(apiCode, bizDate, "MG", 1, "1", data);
-
-            Result<?> result4 = action(apiCode, bizDate, "MG", 2, "7", data);
-
-            Result<?> result5 = action(apiCode, bizDate, "MG", 2, "8", data);
-
-            if (ResultCode.SUCCESS.getValue().equals(result1.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result2.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result3.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result4.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result5.getCode())
-            ) {
+            if (allSuccess) {
                 yiXinTransferService.updateFrontDataStatus(frontId, 2);
             }
 
@@ -189,23 +197,23 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         return rosterLockingDataToZhongAn.action(data);
     }
 
-    private Result<?> action(String apiCode, String bizDate, String tag, Integer dataSource, String userType,
-                             Page2Condition<ZhonganRosterLockingData> condition) {
+    private Result<?> action(ZhonganRosterLockingDataActionBO action, Page2Condition<ZhonganRosterLockingData> condition) {
         long start = System.currentTimeMillis();
-        log.warn(TITLE+"action开始"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}",
-                apiCode, bizDate, tag, dataSource, userType);
+        log.warn(TITLE + "action开始" + "apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{},isConnect:{}", action.getApiCode(),
+            action.getBizDate(), action.getTag(), action.getDataSource(), action.getUserType(), action.getIsConnect());
         ZhonganRosterLockingData param = new ZhonganRosterLockingData();
-        param.setApiCode(apiCode);
-        param.setBizDate(bizDate);
-        param.setTag(tag);
-        param.setDataSource(dataSource);
+        param.setApiCode(action.getApiCode());
+        param.setBizDate(action.getBizDate());
+        param.setTag(action.getTag());
+        param.setDataSource(action.getDataSource());
         param.setPushStatus(1);
-        param.setUserType(userType);
+        param.setUserType(action.getUserType());
+        param.setIsConnect(action.getIsConnect());
         condition.setParam(param);
         Result actionResult = zhongAnPushRosterDataHandler.action(condition);
         long end = System.currentTimeMillis();
-        log.warn(TITLE+"action结束"+"apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{}, 耗时:{}",
-                apiCode, bizDate, tag, dataSource, userType, end - start);
+        log.warn(TITLE + "action结束" + "apiCode:{}, bizDate:{}, tag:{}, dataSource:{}, userType:{},isConnect:{} 耗时:{}", action.getApiCode(),
+            action.getBizDate(), action.getTag(), action.getDataSource(), action.getUserType(), action.getIsConnect(), end - start);
         return actionResult;
     }
 

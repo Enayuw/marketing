@@ -236,6 +236,13 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByWbxkServiceImpl transferToFileByWbxkService;
 
+
+    /**
+     * 医时
+     */
+    @Resource
+    private TransferToFileByYiShiServiceImpl transferToFileByYiShiService;
+
     @Resource
     ICompatibleService iCompatibleService;
 
@@ -406,7 +413,10 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                         : marketingCommonConfig.getQiFuFullExtDataConfig().keySet())
                 .addBind(transferToFileByWbxkService, ObjectUtil.isEmpty(marketingCommonConfig.getWbxkExtDataConfig()) ? null
                         : marketingCommonConfig.getWbxkExtDataConfig().keySet())
-                .addBind(transferToFileBySuShangService, marketingCommonConfig.getSuShangTransferExtractApiCodes()).build();
+                .addBind(transferToFileBySuShangService, marketingCommonConfig.getSuShangTransferExtractApiCodes())
+                //医时转换数据提取
+                .addBind(transferToFileByYiShiService, marketingCommonConfig.getYiShiTransferApiCodes())
+                .build();
 
     }
 
