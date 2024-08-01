@@ -1,4 +1,4 @@
-package com.br.marketing.monkey.job;
+package com.br.marketing.monkey.job.zhongan;
 
 import com.br.marketing.entity.ZhonganRosterLockingData;
 import com.br.marketing.mapper.LocalFileMapper;
