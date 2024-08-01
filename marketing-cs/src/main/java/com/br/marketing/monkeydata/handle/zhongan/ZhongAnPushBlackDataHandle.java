@@ -232,11 +232,11 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
                 //需要重试的删除key
                 try {
-                    if (redisChgService.exists(key)) {
-                        redisChgService.del(key);
+                    if (redisChgService.exists(redisKey)) {
+                        redisChgService.del(redisKey);
                     }
                 }catch(Exception e){
-                    log.warn("众安撞库redis删除key失败,key={}", key);
+                    log.warn("众安撞库redis删除key失败,key={}", redisKey);
                 }
                 retryDataList.add(t);
             }
