@@ -141,6 +141,8 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
             }
         }
         LocalDate now = LocalDate.now();
+        String nowDataString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String nowDataStringForRedis = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         // T日站在T-1日的角度，判断该条转化数据是否在有效期内
         date = StringUtils.isNotBlank(date) ?
                 date : now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -201,7 +203,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                         }
                         MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
                         String cell = marketingSyncUser.getCell();
-                        key = key.concat(String.format(":%s:%s:%s", apiCode, finalDate, cell));
+                        key = key.concat(String.format(":%s:%s:%s", apiCode, nowDataStringForRedis, cell));
                         String lockValue = UUID.randomUUID().toString();
                         if (cellSet.add(cell)) {
                             try {
@@ -210,12 +212,14 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                                 example.createCriteria()
                                         .andCellEqualTo(cell)
                                         .andApiCodeEqualTo(apiCode)
-                                        .andDistributeDateEqualTo(finalDate);
+                                        .andDistributeTypeEqualTo(DistributeTypeEnum.POLICYDATA.getValue())
+                                        .andSourceTypeEqualTo(DistributeSourceTypeEnum.TRANSFER.getValue())
+                                        .andDistributeDateEqualTo(nowDataString);
                                 long count = dataDistributeDetailLogMapper.countByExample(example);
                                 if(count>0){
                                     continue;
                                 }
-                                DataDistributeDetailLog detailLog = getDataDistributeDetailLog(finalDate, custNum, marketingSyncUser);
+                                DataDistributeDetailLog detailLog = getDataDistributeDetailLog(nowDataString, custNum, marketingSyncUser);
                                 dataDistributeDetailLogMapper.insertSelective(detailLog);
                             }catch (Exception e){
                                 log.error("apiCode[{}]custNum[{}]榕树推决策程序在加锁中异常", apiCode, custNum, e);
