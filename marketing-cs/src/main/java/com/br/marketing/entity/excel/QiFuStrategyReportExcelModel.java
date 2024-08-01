@@ -16,7 +16,7 @@ import lombok.Data;
 @ColumnWidth(25)
 public class QiFuStrategyReportExcelModel extends BaseRowModel {
 
-    @ExcelProperty(value = "邮件接收日期", index = 0)
+    @ExcelProperty(value = "数据接收日期", index = 0)
     private String strategyDate;
 
     @ExcelProperty(value = "月份", index = 1)
