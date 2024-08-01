@@ -1,8 +1,15 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
+import lombok.Data;
 
-public class MarketingDataValidConfigDefault {
+/**
+ * b_marketing_data_valid_config_default
+ * @author 
+ */
+@Data
+public class MarketingDataValidConfigDefault implements Serializable {
     /**
      * id
      */
@@ -24,6 +31,11 @@ public class MarketingDataValidConfigDefault {
     private String userType;
 
     /**
+     * 有效期类型：0按日维度,1按月维度
+     */
+    private Integer validType;
+
+    /**
      * 默认有效期是N天，代表T+N范围
      */
     private Integer validDaysDefault;
@@ -43,67 +55,5 @@ public class MarketingDataValidConfigDefault {
      */
     private Integer isDel;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public Date getUploadDate() {
-        return uploadDate;
-    }
-
-    public void setUploadDate(Date uploadDate) {
-        this.uploadDate = uploadDate;
-    }
-
-    public String getUserType() {
-        return userType;
-    }
-
-    public void setUserType(String userType) {
-        this.userType = userType == null ? null : userType.trim();
-    }
-
-    public Integer getValidDaysDefault() {
-        return validDaysDefault;
-    }
-
-    public void setValidDaysDefault(Integer validDaysDefault) {
-        this.validDaysDefault = validDaysDefault;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getIsDel() {
-        return isDel;
-    }
-
-    public void setIsDel(Integer isDel) {
-        this.isDel = isDel;
-    }
+    private static final long serialVersionUID = 1L;
 }
