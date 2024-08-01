@@ -159,7 +159,6 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
         Integer pageSize = null;
         while (actionMark){
             ++sort;
-            List<PushMarketingUserDetailDTO> list = new ArrayList<>();
             pageSize = dynamicParameterService.getPageSize("RongShuGet");
             List<MarketingTransferSyncUser> rsToPolicyData = transferSyncUserMapper.getRsToPolicyData(date, tcId
                     , userTypeList, null, null, null, null, minId, pageSize);
@@ -171,6 +170,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
             String finalDate = date;
             Integer finalSort = sort;
             threadPool.submit(() ->{
+                List<PushMarketingUserDetailDTO> list = new ArrayList<>();
                 try {
                     String key = RedisKeyConstant.RONG_SHU_PUSH_DECISION_LOCK;
                     // 手机号去重使用
