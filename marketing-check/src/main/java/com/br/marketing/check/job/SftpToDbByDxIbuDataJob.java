@@ -88,13 +88,15 @@ public class SftpToDbByDxIbuDataJob extends AbstractSimpleElasticJob {
         MarketingCustomerExample customerExample = new MarketingCustomerExample();
         customerExample.createCriteria().andStatusEqualTo(Byte.valueOf("1"));
         List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-        List<String> apiCodes = marketingCustomers.stream().filter(t->iCompatibleService.isAction(t.getExtendConfigInfo(),jobExecutionMultipleShardingContext.getJobName()))
-                .map(t -> t.getApiCode()).collect(Collectors.toList());
+        List<String> apiCodes = marketingCustomers.stream()
+                .filter((MarketingCustomer t) -> iCompatibleService.isAction(t.getExtendConfigInfo(), jobExecutionMultipleShardingContext.getJobName()))
+                .map((MarketingCustomer t) -> t.getApiCode())
+                .collect(Collectors.toList());
         SyncConfigExample syncConfigExample = new SyncConfigExample();
         syncConfigExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(1)
                 .andDataTypeEqualTo(DataTypeEnum.DXIBU.getValue()).andTypeEqualTo(1);
         List<SyncConfig> syncConfigs = syncConfigMapper.selectByExample(syncConfigExample);
-        syncConfigs.forEach(t -> {
+        syncConfigs.forEach((SyncConfig t) -> {
             if (StringUtils.isNotBlank(t.getTargetPath())) {
                 Map<String, Set<String>> map = new HashMap<>();
                 SftpClient sftpClient = new SftpClient(sftpHost, sftpPort, sftpUsername, sftpPwd);

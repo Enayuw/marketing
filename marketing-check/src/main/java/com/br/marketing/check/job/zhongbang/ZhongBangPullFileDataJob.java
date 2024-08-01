@@ -83,7 +83,7 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
         if (size < 1) {
             return;
         }
-        configMap.forEach((apiCode, v) -> {
+        configMap.forEach((String apiCode, LinkedHashMap<String, String> v) -> {
             List<String> dateStrList = getDateStrList(apiCode, paramJson);
             String dateStr = dateStrList.get(0);
             String beginDateTime = dateStrList.get(1);
@@ -91,9 +91,13 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
             String cId = tableCreateService.getCId(apiCode);
             String filePath = syncConfigService.getPullCustomerFilePath(apiCode).concat(localDate).concat(File.separator);
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(25, 50, new SynchronousQueue<>());
-            v.forEach((fileName, tableHead) -> {
-                String fileNameNew = fileName.endsWith(txtFileExtension) ? fileName.replace(txtFileExtension
-                        , "") : fileName.endsWith("_") ? fileName.concat(dateStr) : fileName;
+            v.forEach((String fileName, String tableHead) -> {
+                String fallbackFileName = (fileName.endsWith("_"))
+                        ? fileName.concat(dateStr)
+                        : fileName;
+                String fileNameNew = (fileName.endsWith(txtFileExtension))
+                        ? fileName.replace(txtFileExtension, "")
+                        : fallbackFileName;
                 TransferActionFront frontData = jobManager.getFrontData(apiCode, local2Date, 1
                         , fileNameNew.concat(txtFileExtension));
                 Long id;
@@ -165,8 +169,8 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
                             + "|@|lentAmount|@|pushTime|@|userType");
             map.put("3710099", linkedHashMap);
         } else {
-            zhongBangPullFileDataConfigMap.forEach((k, l) -> {
-                l.forEach(m -> m.forEach(linkedHashMap::put));
+            zhongBangPullFileDataConfigMap.forEach((String k, List<Map<String, String>> l) -> {
+                l.forEach((Map<String, String> m) -> m.forEach(linkedHashMap::put));
                 map.put(k, linkedHashMap);
             });
         }
@@ -225,7 +229,8 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
         int lengthIs3 = 3;
         int lengthIs2 = 2;
         String[] dateTimeStr;
-        if (paramJson == null || (dateTimeStr = paramJson.getString(apiCode).split(regex)).length == 0) {
+        boolean b = (dateTimeStr = paramJson.getString(apiCode).split(regex)).length == 0;
+        if (paramJson == null || b) {
             dateStr = localDate;
             beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
             endDateTime = LocalDate.now().atTime(23, 59, 59)
