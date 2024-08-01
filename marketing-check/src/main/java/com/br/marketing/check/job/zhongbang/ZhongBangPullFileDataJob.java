@@ -228,9 +228,8 @@ public class ZhongBangPullFileDataJob extends AbstractSimpleElasticJob {
         String regex = ",";
         int lengthIs3 = 3;
         int lengthIs2 = 2;
-        String[] dateTimeStr;
-        boolean b = (dateTimeStr = paramJson.getString(apiCode).split(regex)).length == 0;
-        if (paramJson == null || b) {
+        String[] dateTimeStr = paramJson.getString(apiCode).split(regex);
+        if (paramJson == null || dateTimeStr.length == 0) {
             dateStr = localDate;
             beginDateTime = LocalDate.now().atStartOfDay().format(DATE_TIME_FORMATTER);
             endDateTime = LocalDate.now().atTime(23, 59, 59)
