@@ -6,6 +6,7 @@ import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -574,7 +575,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
-        log.warn("规则中心携程={} 的试算量级sql={}",collidingFilterDTO.getResult(),querySql);
+        log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
         // 查询Doris
         try {
             total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
@@ -634,8 +635,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
         //True关联查询
         //true筛选字段处理
-        String condition =XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
-        if(StringUtils.isNotEmpty(condition)){
+        String condition = XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
+        if (StringUtils.isNotEmpty(condition)) {
             cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + condition
                     + " and is_delete=0";
         }
@@ -681,11 +682,11 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
 
-    private  Boolean isXieChengData(PushCustomerDTO dto) {
+    private Boolean isXieChengData(PushCustomerDTO dto) {
         Boolean isXieCheng = Boolean.FALSE;
         JSONArray datas = JSON.parseObject(dto.getmRuleCondition()).getJSONArray("data");
         if (!CollectionUtils.isEmpty(datas)) {
-            Object result = datas.stream().filter(obj ->("result").equals(
+            Object result = datas.stream().filter(obj -> ("result").equals(
                     ((JSONObject) obj).getString("key"))).findAny().orElse(null);
             //api_code为携程且筛选条件传入result
             if (marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().contains(dto.getApiCode()) && (!ObjectUtils.isEmpty(result))) {
@@ -951,10 +952,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 List<Future<Result<Integer>>> futures = actionFuture.get();
                 for (Future<Result<Integer>> pushFuture : futures) {
                     Result<Integer> pushRes = pushFuture.get();
-                    if(ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())) {
+                    if (ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(PushRuleStatusEnum.CONFIRMED_TIME_OUT.getValue());
                         timeOutTotalNum += pushRes.getData();
-                    }else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                    } else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
                     } else {
                         realTotalNum += pushRes.getData();
@@ -1201,7 +1202,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             updateLog.setFailNum(error.keySet().size());
                         }
                     }
-                } else if("900006".equals(userStatus.getData())){
+                } else if ("900006".equals(userStatus.getData())) {
                     if (StringUtils.isNotBlank(userStatus.getMessage())) {
                         updateLog.setErrorContent(userStatus.getMessage());
                         JSONObject error = JSONObject.parseObject(userStatus.getMessage());
@@ -1209,7 +1210,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             updateLog.setFailNum(error.keySet().size());
                         }
                     }
-                    log.error("推送决策后，查询决策结果出错，原始参数:{}--查询参数:{}",JSON.toJSONString(t),pushMarketingUserDTO);
+                    log.error("推送决策后，查询决策结果出错，原始参数:{}--查询参数:{}", JSON.toJSONString(t), pushMarketingUserDTO);
                 }
                 if (StringUtils.isNotBlank(userStatus.getMessage())) {
                     updateLog.setErrorContent(userStatus.getMessage());
@@ -1648,6 +1649,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
+        if (errorSize > 0) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INITDATA_MUST_ERROR.getCode()
+                    , String.format("apiCode【%s】,代运营数据原始表id【%d】", apiCode, infoId)
+                    , AlarmSendCodeEnum.INITDATA_MUST_ERROR.getMessage()));
+        }
         List<String> initDataPushApiCode = marketingCommonConfig.getInitDataPushRule() == null ? new ArrayList<String>() : marketingCommonConfig.getInitDataPushRule();
         if (status && initDataPushApiCode.contains(apiCode)) {
             MqFact mqFact = new MqFact();
@@ -2074,6 +2080,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
+
+        if (errorSize > 0) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getCode()
+                    , String.format("apiCode【%s】,转化数据原始表id【%d】", transferInfo.getApiCode(), id)
+                    , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
+        }
+
         if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
@@ -2428,7 +2441,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (!userValidator.validatePhone(content)) {
                 user.setFailType(MonitorTypeEnum.FAIL_TYPE_3.getType());
                 user.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
-            }else{
+            } else {
                 user.setCellMd5(Md5Utils.cell32(content));
                 user.setCellSha256(Sha256Util.getSHA256Encrypt(content));
             }

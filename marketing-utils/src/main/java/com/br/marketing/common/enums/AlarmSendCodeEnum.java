@@ -47,6 +47,11 @@ public enum AlarmSendCodeEnum {
     SERVICEERROR_UNKNOWN("63000", "业务未知错误"),
     //三方接口错误,立即推送，64000
     INTERFACE_ERROR("64000", "三方接口错误"),
+
+    INITDATA_MUST_ERROR("70001","代运营明细数据缺少必填参数"),
+
+    TRANSFER_MUST_ERROR("70002","转化明细数据缺少必填参数"),
+
     //之家业务错误,立即推送
     ZHIJIA_SERVICEERROR("6002001", "之家车线索业务异常"),
     //之家接口错误,阶梯推送
