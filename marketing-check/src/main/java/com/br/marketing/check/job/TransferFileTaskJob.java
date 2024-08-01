@@ -338,49 +338,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .build();
     }
 
-    /**
-     * 2022-12-24 17:15
-     * 已弃用，最好不要用，用了也不会起作用
-     * ，如果非要用，需要修改主业务逻辑（👆{@link TransferFileTaskJob#process(JobExecutionMultipleShardingContext)}）的内容。
-     * <p>
-     * 新方法{@link TransferFileTaskJob#bindApiCode()}
-     */
-    @Deprecated
-    ITransferToFileService getServiceImpl(MarketingCustomer customer) {
-        if (marketingCommonConfig.getSaMoYeTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileBySamoyeServiveImpl;
-        } else if (marketingCommonConfig.getHaLuoTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByHaluoServiceImpl;
-        } else if (marketingCommonConfig.getShuHeTransferExtractApiCodes().containsKey(customer.getApiCode())) {
-            return transferToFileByShuHeService;
-        } else if (marketingCommonConfig.getYinXinTransferRealTimeApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByYiXinRealTimeService;
-        }
-        if (marketingCommonConfig.getJiuFuTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByJiuFuService;
-        }
-        if (marketingCommonConfig.getPPDTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByPPDService;
-        }
-        if (marketingCommonConfig.getTongChengTransferFileApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByTongChengService;
-        }
-        if (marketingCommonConfig.getXiaoYingTransferExtractApiCodes().contains(customer.getApiCode())) {
-            return xiaoYingRealTimeService;
-        }
-        if (marketingCommonConfig.getZhongAnTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByZhongAnService;
-        }
-        if (marketingCommonConfig.getYouMeDApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByYouMeDService;
-        }
-        if (marketingCommonConfig.getXieChengTransferApiCodes().contains(customer.getApiCode())) {
-            return transferToFileByXieChengService;
-        }
-        else {
-            return null;
-        }
-    }
 
 
     private static class BindApiCodeServiceImplBean {
