@@ -18,6 +18,7 @@ import com.br.marketing.mapper.DataDistributeDetailLogMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.IRongShuPushDaasService;
+import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -64,6 +65,8 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
     IRongShuPushDaasService iRongShuPushDaasService;
     @Resource
     RedisChgService redisChgService;
+    @Resource
+    DynamicParameterServiceImpl dynamicParameterService;
 
     @Override
     public CustomerPushDecisionActionEnum customerAction() {
@@ -151,11 +154,13 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
         // 情况1
         String status = "1";
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10, 10);
+        Integer pageSize = null;
         while (actionMark){
             ++sort;
             List<PushMarketingUserDetailDTO> list = new ArrayList<>();
+            pageSize = dynamicParameterService.getPageSize("RongShuGet");
             List<MarketingTransferSyncUser> rsToPolicyData = transferSyncUserMapper.getRsToPolicyData(date, tcId
-                    , userTypeList, null, null, null, null, minId, 500);
+                    , userTypeList, null, null, null, null, minId, pageSize);
             if(rsToPolicyData.size()<1){
                 actionMark = Boolean.FALSE;
                 continue;
@@ -164,85 +169,89 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
             String finalDate = date;
             Integer finalSort = sort;
             threadPool.submit(() ->{
-                String key = RedisKeyConstant.RONG_SHU_PUSH_DECISION_LOCK;
-                // 手机号去重使用
-                HashSet cellSet = new HashSet();
-                // 收集分页查询出来的数据中场景对应CustNum集合
-                Map<String,Set<String>> userTypeCustNumMap = rsToPolicyData.stream().collect(Collectors.groupingBy(
-                        MarketingTransferSyncUser::getUserType,
-                        Collectors.mapping(MarketingTransferSyncUser::getCustNum, Collectors.toSet())
-                ));
-                Map<String,Map<String, SyncUserValidityPeriodsBO>> allUserTypeMap= new HashMap<>();
-                for (Map.Entry<String, Set<String>> entry : userTypeCustNumMap.entrySet()) {
-                    String userType = entry.getKey();
-                    Set<String> custNumSet = entry.getValue();
-                    // 判断转化数据是否在有效期内
-                    Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = validityPeriodService
-                            .getValidityPeriodsByCustNumAndUserType(custNumSet, userType, apiCode, finalDate);
-                    allUserTypeMap.put(userType,validityPeriodsByCustNumAndUserType);
-                }
-                for (MarketingTransferSyncUser transferUser : rsToPolicyData) {
-                    String userType = transferUser.getUserType();
-                    String custNum = transferUser.getCustNum();
-                    Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = allUserTypeMap.get(userType);
-                    SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
-                    if (boMap == null || null == boMap.getSyncUsers()) {
-                        log.warn("apiCode[{}]custNum[{}]不满足RongShu案件编号[有效期内]条件", apiCode, custNum);
-                        continue;
+                try {
+                    String key = RedisKeyConstant.RONG_SHU_PUSH_DECISION_LOCK;
+                    // 手机号去重使用
+                    HashSet cellSet = new HashSet();
+                    // 收集分页查询出来的数据中场景对应CustNum集合
+                    Map<String,Set<String>> userTypeCustNumMap = rsToPolicyData.stream().collect(Collectors.groupingBy(
+                            MarketingTransferSyncUser::getUserType,
+                            Collectors.mapping(MarketingTransferSyncUser::getCustNum, Collectors.toSet())
+                    ));
+                    Map<String,Map<String, SyncUserValidityPeriodsBO>> allUserTypeMap= new HashMap<>();
+                    for (Map.Entry<String, Set<String>> entry : userTypeCustNumMap.entrySet()) {
+                        String userType = entry.getKey();
+                        Set<String> custNumSet = entry.getValue();
+                        // 判断转化数据是否在有效期内
+                        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndUserType = validityPeriodService
+                                .getValidityPeriodsByCustNumAndUserType(custNumSet, userType, apiCode, finalDate);
+                        allUserTypeMap.put(userType,validityPeriodsByCustNumAndUserType);
                     }
-                    if (iRongShuPushDaasService.isFilterUserUserType(apiCode,custNum,tcId,boMap)) {
-                        continue;
-                    }
-                    MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    String cell = marketingSyncUser.getCell();
-                    key = key.concat(String.format(":%s:%s:%s", apiCode, finalDate, cell));
-                    String lockValue = UUID.randomUUID().toString();
-                    if (!cellSet.add(cell)) {
-                        continue;
-                    }else{
-                        try {
-                            redisChgService.lock(key, lockValue);
-                            DataDistributeDetailLogExample example = new DataDistributeDetailLogExample();
-                            example.createCriteria()
-                                    .andCellEqualTo(cell)
-                                    .andApiCodeEqualTo(apiCode)
-                                    .andDistributeDateEqualTo(finalDate);
-                            long count = dataDistributeDetailLogMapper.countByExample(example);
-                            if(count>0){
-                                continue;
-                            }
-                            DataDistributeDetailLog detailLog = getDataDistributeDetailLog(finalDate, custNum, marketingSyncUser);
-                            dataDistributeDetailLogMapper.insertSelective(detailLog);
-                        }catch (Exception e){
-                            log.error("apiCode[{}]custNum[{}]榕树推决策程序在加锁中异常", apiCode, custNum, e);
-                        }finally {
-                            redisChgService.unlock(key, lockValue);
+                    for (MarketingTransferSyncUser transferUser : rsToPolicyData) {
+                        String userType = transferUser.getUserType();
+                        String custNum = transferUser.getCustNum();
+                        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = allUserTypeMap.get(userType);
+                        SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
+                        if (boMap == null || null == boMap.getSyncUsers()) {
+                            log.warn("apiCode[{}]custNum[{}]不满足RongShu案件编号[有效期内]条件", apiCode, custNum);
+                            continue;
                         }
+                        if (iRongShuPushDaasService.isFilterUserUserType(apiCode,custNum,tcId,boMap)) {
+                            continue;
+                        }
+                        MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
+                        String cell = marketingSyncUser.getCell();
+                        key = key.concat(String.format(":%s:%s:%s", apiCode, finalDate, cell));
+                        String lockValue = UUID.randomUUID().toString();
+                        if (cellSet.add(cell)) {
+                            try {
+                                redisChgService.lock(key, lockValue);
+                                DataDistributeDetailLogExample example = new DataDistributeDetailLogExample();
+                                example.createCriteria()
+                                        .andCellEqualTo(cell)
+                                        .andApiCodeEqualTo(apiCode)
+                                        .andDistributeDateEqualTo(finalDate);
+                                long count = dataDistributeDetailLogMapper.countByExample(example);
+                                if(count>0){
+                                    continue;
+                                }
+                                DataDistributeDetailLog detailLog = getDataDistributeDetailLog(finalDate, custNum, marketingSyncUser);
+                                dataDistributeDetailLogMapper.insertSelective(detailLog);
+                            }catch (Exception e){
+                                log.error("apiCode[{}]custNum[{}]榕树推决策程序在加锁中异常", apiCode, custNum, e);
+                            }finally {
+                                redisChgService.unlock(key, lockValue);
+                            }
+                        }else{
+                            continue;
+                        }
+                        PushMarketingUserDetailDTO pushMarketingUserDetailDTO = new PushMarketingUserDetailDTO();
+                        pushMarketingUserDetailDTO.setCaseNumber(transferUser.getCustNum());
+                        pushMarketingUserDetailDTO.setPhone(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(cell).getBytes()));
+                        JSONObject jb = new JSONObject();
+                        jb.put("userType", userType);
+                        jb.put("status",status);
+                        pushMarketingUserDetailDTO.setVariables(jb);
+                        list.add(pushMarketingUserDetailDTO);
                     }
-                    PushMarketingUserDetailDTO pushMarketingUserDetailDTO = new PushMarketingUserDetailDTO();
-                    pushMarketingUserDetailDTO.setCaseNumber(transferUser.getCustNum());
-                    pushMarketingUserDetailDTO.setPhone(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(cell).getBytes()));
-                    JSONObject jb = new JSONObject();
-                    jb.put("userType", userType);
-                    jb.put("status",status);
-                    pushMarketingUserDetailDTO.setVariables(jb);
-                    list.add(pushMarketingUserDetailDTO);
-                }
-                if(list.size()<1){
-                    // do nothing
-                }else{
-                    PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
-                    taskInfoDTO.setData(list);
-                    taskInfoDTO.setAccessNumber(apiCode+"_"+time+"_"+status+"_"+ finalSort);
-                    taskInfoDTO.setMethod("caseAdd");
-                    taskInfoDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))+status+"_"+apiCode);
-                    taskInfoDTO.setStrategyCode(strategyCode);
-                    PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-                    pushMarketingUserDTO.setApiCode(apiCode);
-                    pushMarketingUserDTO.setJsonData(taskInfoDTO);
-                    PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
-                    retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-                    methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
+                    if(list.size()<1){
+                        // do nothing
+                    }else{
+                        PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
+                        taskInfoDTO.setData(list);
+                        taskInfoDTO.setAccessNumber(apiCode+"_"+time+"_"+status+"_"+ finalSort);
+                        taskInfoDTO.setMethod("caseAdd");
+                        taskInfoDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))+status+"_"+apiCode);
+                        taskInfoDTO.setStrategyCode(strategyCode);
+                        PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+                        pushMarketingUserDTO.setApiCode(apiCode);
+                        pushMarketingUserDTO.setJsonData(taskInfoDTO);
+                        PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
+                        retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
+                        methodRetryHandlerService.callPolicyData(retryByRuleDTO, null);
+                    }
+                }catch (Exception e){
+                    log.error("榕树推决策并发执行报错:",e);
                 }
             });
         }
