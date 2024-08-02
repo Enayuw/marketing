@@ -92,8 +92,7 @@ public class IRongShuPushDaasServiceImpl implements IRongShuPushDaasService {
             List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
             for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
                 String userType = marketingTransferSyncUser.getUserType();
-                boolean flag = StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())
-                        && (("4").equals(userType) || ("5").equals(userType));
+                boolean flag = ("4").equals(userType) || ("5").equals(userType);
                 if (flag) {
                     return true;
                 }
