@@ -49,13 +49,26 @@ public enum AlarmSendCodeEnum {
     INTERFACE_ERROR("64000", "三方接口错误"),
 
 
-    //数据治理平台调用marketing-inner-api邮件发送接口使用
-    DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),
-    //宜信非实时推客服告警,立即推送
+    //宜信非实时推客服告警,立即推送,
     EXCEPTION_YIXIN_PUSH_CUSTOMER("62010", "宜信非实时推客服"),
     EXCEPTION_WUBA("62058", "58业务报错code"),
     //360业务错误,立即推送
     EXCEPTION_QIFU_ALARM("62360", "360业务告警码"),
+
+
+    //数据治理平台调用marketing-inner-api邮件发送接口使用
+    DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),
+    //推送Daas异常,阶梯推送,
+    PUSHING_DAASERROR("71000", "推送Daas异常"),
+    //推送客服异常,阶梯推送
+    PUSHING_CUSTOMERERROR("72000", "推送客服异常"),
+    //推送决策异常,阶梯推送
+    PUSHING_DECISIONERROR("72000", "推送决策异常"),
+    //推送Api异常,阶梯推送
+    PUSHING_APIERROR("74000", "推送Api异常"),
+    //调用有效期方法异常,立即推送
+    VALIDITY_INTERFACEERROR("75000", "调用有效期方法异常"),
+
 
     //中台业务未知错误,立即推送
     YINGXIAO_SERVICEERROR("6000000", "中台业务未知错误"),
