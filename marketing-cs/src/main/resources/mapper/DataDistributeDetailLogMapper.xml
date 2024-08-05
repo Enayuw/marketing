@@ -14,7 +14,8 @@
         create_time,
         update_time,
         source_id,
-        source_type
+        source_type,
+        extend
         )values
         <foreach collection="list" item="data" separator=",">
             (#{data.apiCode},
@@ -28,7 +29,9 @@
             #{data.createTime},
             #{data.updateTime},
             #{data.sourceId,jdbcType=BIGINT},
-            #{data.sourceType,jdbcType=VARCHAR})
+            #{data.sourceType,jdbcType=VARCHAR},
+            #{data.extend,jdbcType=VARCHAR}
+            )
         </foreach>
     </insert>
 
@@ -55,7 +58,9 @@
             <foreach collection="cells" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
+        <if test="marketingDate !=null and marketingDate!=''">
             and JSON_EXTRACT(extend, '$.marketingDate') = #{marketingDate}
+        </if>
     </select>
 
     <select id="findZhongAnLockingDataDistributeLog" resultType="java.lang.Long">

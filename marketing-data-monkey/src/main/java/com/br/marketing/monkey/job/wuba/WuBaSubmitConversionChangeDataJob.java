@@ -3,12 +3,9 @@ package com.br.marketing.monkey.job.wuba;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.wuba.WuBaChangeSubmitDataDto;
-import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
-import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.Impl.wuba.WuBaSubmitConversionChangeDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -32,17 +29,14 @@ import java.util.*;
 public class WuBaSubmitConversionChangeDataJob extends AbstractSimpleElasticJob {
 
     private final static String TITLE = "【58新客提交营销名单修改上报数据】";
-    private static final String PUSH_TIME_START = "pushTimeStart";
-    private static final String PUSH_TIME_END = "pushTimeEnd";
+    private static final String MARKETING_TIME_START = "marketingTimeStart";
+    private static final String MARKETING_TIME_END = "marketingTimeEnd";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private WuBaSubmitConversionChangeDataService service;
-
-    @Resource
-    private JobManager jobManager;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -57,9 +51,7 @@ public class WuBaSubmitConversionChangeDataJob extends AbstractSimpleElasticJob 
             List<Map<String, String>> paramList = parseParameter();
 
             // action
-            for (Map<String, String> param: paramList) {
-                action(param);
-            }
+            action(paramList);
 
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
@@ -77,28 +69,17 @@ public class WuBaSubmitConversionChangeDataJob extends AbstractSimpleElasticJob 
         return false;
     }
 
+    private void action(List<Map<String, String>> paramList) {
+        // action
+        for (Map<String, String> param: paramList) {
+            action(param);
+        }
+    }
+
     private void action(Map<String, String> param) {
         String apiCode = param.get("apiCode");
         String marketingTimeStart = param.get("marketingTimeStart");
         String marketingTimeEnd = param.get("marketingTimeEnd");
-
-        // actionFront
-        int actionType = JobManager.ActionTypeEnum.WUBA_CHANGE_SUBMIT_DATA_BATCH.getActionType();
-
-        String bizDate = DateUtils.format(new Date(), "yyyy-MM-dd");
-        TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionType, null);
-        if (actionFront != null) {
-            if (2 == actionFront.getStatus()) {
-                log.warn(TITLE+"今日已经更新完成, apiCode:{}, bizDate:{}", apiCode, bizDate);
-                return;
-            }
-        } else {
-            actionFront = jobManager.saveFront(apiCode, bizDate, actionType);
-            if (actionFront.getId() == null) {
-                log.warn(TITLE+ "更新失败, apiCode:{}, bizDate:{}", apiCode, bizDate);
-                return;
-            }
-        }
 
         WuBaChangeSubmitDataDto conditionParam = new WuBaChangeSubmitDataDto();
         conditionParam.setApiCode(apiCode);
@@ -107,12 +88,7 @@ public class WuBaSubmitConversionChangeDataJob extends AbstractSimpleElasticJob 
 
         Page2Condition<WuBaChangeSubmitDataDto> condition = new Page2Condition<>();
         condition.setParam(conditionParam);
-        Result actionResult = service.action(condition);
-
-        if (actionResult!=null && actionResult.isSuccess()){
-            jobManager.updateFrontDataStatus(actionFront.getId(), 2);
-            log.warn(TITLE+"今日更新成功, apiCode:{}, bizDate:{}", apiCode, bizDate);
-        }
+        service.action(condition);
     }
 
     /**
@@ -146,11 +122,11 @@ public class WuBaSubmitConversionChangeDataJob extends AbstractSimpleElasticJob 
             Date startDate = Date.from(startLocalDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant());
             Date endDate = Date.from(endLocalDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant());
 
-            String marketingTimeStart = DateUtils.format(startDate, "yyyy-MM-dd");
-            String marketingTimeEnd = DateUtils.format(endDate, "yyyy-MM-dd");
+            String marketingTimeStart = DateUtils.format(startDate, "yyyy-MM-dd 00:00:00");
+            String marketingTimeEnd = DateUtils.format(endDate, "yyyy-MM-dd 00:00:00");
 
-            paramMap.put("marketingTimeStart", marketingTimeStart);
-            paramMap.put("marketingTimeEnd", marketingTimeEnd);
+            paramMap.put(MARKETING_TIME_START, marketingTimeStart);
+            paramMap.put(MARKETING_TIME_END, marketingTimeEnd);
 
             paramList.add(paramMap);
         }

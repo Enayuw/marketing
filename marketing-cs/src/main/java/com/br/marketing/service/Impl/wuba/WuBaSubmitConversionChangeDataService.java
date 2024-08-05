@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl.wuba;
 
-import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.wuba.WuBaChangeSubmitDataDto;
@@ -12,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -44,9 +42,6 @@ public class WuBaSubmitConversionChangeDataService {
             String marketingTimeStart = param.getMarketingTimeStart();
             String marketingTimeEnd = param.getMarketingTimeEnd();
 
-            Date marketingTimeStartDate = DateUtils.parse(marketingTimeStart, "yyyy-MM-dd");
-            Date marketingTimeEndDate = DateUtils.parse(marketingTimeEnd, "yyyy-MM-dd");
-
             WubaSubmitConversionData data = new WubaSubmitConversionData();
             data.setStatus(1);
             data.setPushStatus(0);
@@ -54,8 +49,8 @@ public class WuBaSubmitConversionChangeDataService {
             WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
             dataExample.createCriteria()
                     .andApiCodeEqualTo(apiCode)
-                    .andPushTimeGreaterThanOrEqualTo(marketingTimeStartDate)
-                    .andPushTimeLessThan(marketingTimeEndDate)
+                    .andMarketingTimeGreaterThanOrEqualTo(marketingTimeStart)
+                    .andMarketingTimeLessThan(marketingTimeEnd)
                     .andCellIsNotNull()
                     .andIsDeletedEqualTo(0);
             dataExample.setOrderByClause("id asc limit 2000");

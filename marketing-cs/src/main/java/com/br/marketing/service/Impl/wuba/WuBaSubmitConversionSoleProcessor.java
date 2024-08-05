@@ -158,7 +158,7 @@ public class WuBaSubmitConversionSoleProcessor {
             distributeLog.setUpdateTime(new Date());
             distributeLog.setSourceId(data.getId());
             distributeLog.setSourceType(DistributeSourceTypeEnum.TRANSFER.getValue());
-            distributeLog.setExtend("{\"marketingDate\":\"}"+ marketingDate+"\"");
+            distributeLog.setExtend("{\"marketingDate\":\""+ marketingDate+"\"}");
             return distributeLog;
         }).collect(Collectors.toList());
 

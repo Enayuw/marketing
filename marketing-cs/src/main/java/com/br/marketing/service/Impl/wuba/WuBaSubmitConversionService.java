@@ -270,8 +270,8 @@ public class WuBaSubmitConversionService {
         Date bizDate = DateUtils.parse(String.valueOf(bizDateInteger), "yyyyMMdd");
         Date endDate = new Date(bizDate.getTime() + 86400000L);
 
-        String marketingTimeStart = DateUtils.format(bizDate, "yyyy-MM-dd");
-        String marketingTimeEnd = DateUtils.format(endDate, "yyyy-MM-dd");
+        String marketingTimeStart = DateUtils.format(bizDate, "yyyy-MM-dd 00:00:00");
+        String marketingTimeEnd = DateUtils.format(endDate, "yyyy-MM-dd 00:00:00");
 
         res.put("marketingTimeStart", marketingTimeStart);
         res.put("marketingTimeEnd", marketingTimeEnd);
