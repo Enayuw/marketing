@@ -55,6 +55,7 @@
             <foreach collection="cells" item="item" open="(" close=")" separator=",">
                 #{item}
             </foreach>
+            and JSON_EXTRACT(extend, '$.marketingDate') = #{marketingDate}
     </select>
 
     <select id="findZhongAnLockingDataDistributeLog" resultType="java.lang.Long">
