@@ -143,7 +143,7 @@ public class WuBaSubmitConversionSoleProcessor {
         if(CollectionUtils.isEmpty(pushList)) {
             return;
         }
-        pushList.get(0).getCreateDate()
+        Integer marketingDate = pushList.get(0).getCreateDate();
         List<DataDistributeDetailLog> distributeLogList = pushList.stream().map((WubaSubmitConversionData data) -> {
             DataDistributeDetailLog distributeLog = new DataDistributeDetailLog();
             distributeLog.setApiCode(data.getApiCode());
