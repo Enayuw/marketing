@@ -398,7 +398,7 @@
     />
     <job:simple id="【monkey】-WuBaSubmitConversionChangeDataJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaSubmitConversionChangeDataJob"
-                cron="0 0/5 1 * * ?"
+                cron="0 5 1 * * ?"
                 description="58新客提交营销名单修改上报数据"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
