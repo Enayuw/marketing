@@ -28,11 +28,11 @@
         select id, api_code, cell, marketing_time, push_status, status, create_date
         from b_wuba_submit_conversion_data
         where api_code = #{apiCode}
-          and <![CDATA[ marketing_time >= #{marketingTimeStart} and marketing_time < #{marketingTimeEnd} ]]>
-          and is_deleted =0
-        <if test="indexId != null and indexId != ''">
-            and id > #{indexId}
-        </if>
+            and <![CDATA[ marketing_time >= #{marketingTimeStart} and marketing_time < #{marketingTimeEnd} ]]>
+            and is_deleted =0
+            <if test="indexId != null and indexId != ''">
+                and <![CDATA[ id > #{indexId} ]]>
+            </if>
         order by id asc limit #{pageSize}
     </select>
 

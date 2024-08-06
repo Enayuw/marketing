@@ -82,9 +82,7 @@ public class WuBaSubmitConversionChangeDataService {
                 try {
                     future.get(1, TimeUnit.MINUTES);
                 } catch (Exception e) {
-                    log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                            , TITLE), e);
-//                future.cancel(true);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
                     result.setCode(ResultCode.FAIL.getValue());
                 }
             }
@@ -102,34 +100,40 @@ public class WuBaSubmitConversionChangeDataService {
                     taskCount = completedTask2Count;
                 }
             } catch (InterruptedException e) {
-                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                        , TITLE), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
                 result.setCode(ResultCode.FAIL.getValue());
                 Thread.currentThread().interrupt();
             }
+
             log.warn(TITLE + "修改成功");
         }catch (Exception e){
             log.warn(TITLE + "修改异常");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
             Thread.currentThread().interrupt();
         }
         return result.success();
     }
 
     public Result<Integer> processData(List<WubaSubmitConversionData> pageList) {
-        List<Long> idList = pageList.stream().map(WubaSubmitConversionData::getId).collect(Collectors.toList());
+        try {
+            List<Long> idList = pageList.stream().map(WubaSubmitConversionData::getId).collect(Collectors.toList());
 
-        WubaSubmitConversionData updateData = new WubaSubmitConversionData();
-        updateData.setStatus(1);
-        updateData.setPushStatus(0);
+            WubaSubmitConversionData updateData = new WubaSubmitConversionData();
+            updateData.setStatus(1);
+            updateData.setPushStatus(0);
 
-        WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
-        dataExample.createCriteria()
-                .andIdIn(idList);
-        int n = dataMapper.updateByExampleSelective(updateData, dataExample);
-        return new Result<>().success().setDate(n);
+            WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
+            dataExample.createCriteria().andIdIn(idList);
+            int n = dataMapper.updateByExampleSelective(updateData, dataExample);
+            return new Result<>().success().setDate(n);
+        } catch (Exception e) {
+            log.warn(TITLE + "processData修改异常");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
+        }
+        return new Result<>().success().setDate(0);
     }
 
-        private void setThreadPoolParam(ThreadPoolExecutor processPool) {
+    private void setThreadPoolParam(ThreadPoolExecutor processPool) {
         Map<String, String> threadConfig = marketingCommonConfig.getWuBaSubmitConversionChangeDataThreadConfig();
         int processPoolSize = Integer.parseInt(threadConfig.get("processPoolSize"));
 
