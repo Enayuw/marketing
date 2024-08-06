@@ -78,8 +78,8 @@ public class WuBaSubmitConversionChangeDataJob extends AbstractSimpleElasticJob 
 
     private void action(Map<String, String> param) {
         String apiCode = param.get("apiCode");
-        String marketingTimeStart = param.get("marketingTimeStart");
-        String marketingTimeEnd = param.get("marketingTimeEnd");
+        String marketingTimeStart = param.get(MARKETING_TIME_START);
+        String marketingTimeEnd = param.get(MARKETING_TIME_END);
 
         WuBaChangeSubmitDataDto conditionParam = new WuBaChangeSubmitDataDto();
         conditionParam.setApiCode(apiCode);

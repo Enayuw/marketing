@@ -21,6 +21,14 @@ public interface WubaSubmitConversionDataMapper extends WubaSubmitConversionData
             @Param("marketingTimeStart") String marketingTimeStart,
             @Param("marketingTimeEnd") String marketingTimeEnd,
             @Param("pageSize") Integer pageSize);
+
+    List<WubaSubmitConversionData> findWithMarketingTimeByIndex(
+            @Param("apiCode") String apiCode,
+            @Param("marketingTimeStart") String marketingTimeStart,
+            @Param("marketingTimeEnd") String marketingTimeEnd,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize);
+
     int batchAdd(List<WubaSubmitConversionData> list);
 
 }
