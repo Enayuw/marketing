@@ -57,10 +57,9 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
                 Integer createDate = Integer.parseInt(bizDate);
                 Result<Map<String, Object>> actionResult = action(apiCode, createDate, pageSize);
                 boolean hasScanData = judgeHasScanData(actionResult);
-                if(!hasScanData){
-                    continue;
+                if(hasScanData){
+                    break;
                 }
-                break;
             }
 
             log.warn(TITLE + "调度结束");
