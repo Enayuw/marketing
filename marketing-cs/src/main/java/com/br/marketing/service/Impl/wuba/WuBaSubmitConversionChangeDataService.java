@@ -56,10 +56,8 @@ public class WuBaSubmitConversionChangeDataService {
             dataExample.setOrderByClause("id asc limit 2000");
             int updateSize;
             int totalSize = 0;
-            do{
-                updateSize = dataMapper.updateByExampleSelective(data, dataExample);
-                totalSize+=updateSize;
-            }while(updateSize >= 2000);
+            updateSize = dataMapper.updateByExampleSelective(data, dataExample);
+            totalSize+=updateSize;
             log.warn(TITLE + "修改成功, 总条数{}", totalSize);
         }catch (Exception e){
             log.warn(TITLE + "修改异常");
