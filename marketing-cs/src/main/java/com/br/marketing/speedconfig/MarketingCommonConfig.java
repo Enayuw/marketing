@@ -1902,7 +1902,7 @@ public class MarketingCommonConfig {
     private List<Map<String, String>> wuBaSubmitConversionChangeDataParams;
 
     /**
-     * 58新客-营销名单上报-修改上报数据-条件参数
+     * 58新客-营销名单上报-修改上报数据-线程参数
      */
     private Map<String, String> wuBaSubmitConversionChangeDataThreadConfig;
 

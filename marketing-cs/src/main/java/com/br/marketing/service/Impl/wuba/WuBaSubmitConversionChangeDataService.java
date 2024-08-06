@@ -56,6 +56,7 @@ public class WuBaSubmitConversionChangeDataService {
             String apiCode = param.getApiCode();
             String marketingTimeStart = param.getMarketingTimeStart();
             String marketingTimeEnd = param.getMarketingTimeEnd();
+            Integer pageSize = condition.getPageSize();
             // futureList
             List<Future<Result<Integer>>> futureList = new ArrayList<>();
 
@@ -63,7 +64,7 @@ public class WuBaSubmitConversionChangeDataService {
             while(true) {
                 // 循环获取条件数据，每次pageSize条
                 final List<WubaSubmitConversionData> pageList = dataMapper.findWithMarketingTimeByIndex(apiCode,
-                        marketingTimeStart, marketingTimeEnd, indexId,1000);
+                        marketingTimeStart, marketingTimeEnd, indexId, pageSize);
 
                 if (CollectionUtils.isEmpty(pageList)) {
                     break;
@@ -109,6 +110,7 @@ public class WuBaSubmitConversionChangeDataService {
             log.warn(TITLE + "修改成功");
         }catch (Exception e){
             log.warn(TITLE + "修改异常");
+            Thread.currentThread().interrupt();
         }
         return result.success();
     }
