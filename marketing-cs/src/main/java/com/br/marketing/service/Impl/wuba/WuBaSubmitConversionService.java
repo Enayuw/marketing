@@ -158,12 +158,13 @@ public class WuBaSubmitConversionService {
         log.warn(TITLE + "上报批次表增加记录成功, batchNo{}", batchNo);
 
         WuBaSubmitConversionService service = (WuBaSubmitConversionService) AopContext.currentProxy();
-        service.processSuccess(pageList, batchNo);
+        service.processSuccess(pageList, batchNo, condition);
         return result.success();
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Result processSuccess(List<WubaSubmitConversionData> pushList, String batchNo)
+    public Result processSuccess(List<WubaSubmitConversionData> pushList, String batchNo,
+                                 Page2Condition<WubaSubmitConversionData> condition)
         throws Exception {
         Result result = new Result().failure();
         if (CollectionUtils.isEmpty(pushList)) {
@@ -213,7 +214,7 @@ public class WuBaSubmitConversionService {
         log.warn(TITLE + "营销名单上报表push_status置为1成功, batchNo{}", batchNo);
 
         // addDistributeLog
-        soleProcessor.addDistributeLog(pushList);
+        soleProcessor.addDistributeLog(pushList, condition);
         log.warn(TITLE + "去重表增加记录成功, batchNo{}", batchNo);
         return result.success();
     }

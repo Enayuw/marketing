@@ -11,6 +11,7 @@ import com.br.marketing.entity.DataDistributeDetailLog;
 import com.br.marketing.entity.DataDistributeDetailLogExample;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
+import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -136,14 +137,14 @@ public class WuBaSubmitConversionSoleProcessor {
         return notPushIds;
     }
 
-    public void addDistributeLog(List<WubaSubmitConversionData> pushList) {
+    public void addDistributeLog(List<WubaSubmitConversionData> pushList, Page2Condition<WubaSubmitConversionData> condition) {
         Integer distributeType = DistributeTypeEnum.WUBA_SUBMIT_CONVERSION.getValue();
         String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         if(CollectionUtils.isEmpty(pushList)) {
             return;
         }
-        Integer marketingDate = pushList.get(0).getCreateDate();
+        Integer marketingDate = condition.getParam().getCreateDate();
         List<DataDistributeDetailLog> distributeLogList = pushList.stream().map((WubaSubmitConversionData data) -> {
             DataDistributeDetailLog distributeLog = new DataDistributeDetailLog();
             distributeLog.setApiCode(data.getApiCode());
