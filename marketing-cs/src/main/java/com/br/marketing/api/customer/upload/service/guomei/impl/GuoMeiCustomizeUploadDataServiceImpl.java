@@ -81,18 +81,18 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
     /**
      * 获取requestId
      *
+     * @param apiCode apiCode
      * @param adaptee 适配器
      * @return {@link String }
      * @author senyang.zheng
      * @date 2024/08/07
      */
     @Override
-    public String getRequestId(BaseUploadDataAdaptee adaptee) {
+    public String getRequestId(String apiCode, BaseUploadDataAdaptee adaptee) {
         String requestId;
         GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
         if (StringUtils.isBlank(uploadJsonDTO.getRequestId())) {
-            requestId =
-                adaptee.getApiCode().concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
+            requestId = apiCode.concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
         } else {
             requestId = uploadJsonDTO.getRequestId();
         }

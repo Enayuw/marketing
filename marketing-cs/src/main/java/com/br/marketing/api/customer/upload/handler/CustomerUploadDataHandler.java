@@ -59,7 +59,7 @@ public interface CustomerUploadDataHandler {
      * @author senyang.zheng
      * @date 2024/08/07
      */
-    String getRequestId(BaseUploadDataAdaptee adaptee);
+    String getRequestId(String apiCode, BaseUploadDataAdaptee adaptee);
 
     /**
      * 2023-10-23 17:37

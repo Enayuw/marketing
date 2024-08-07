@@ -81,14 +81,14 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
     /**
      * 获取requestId
      *
+     * @param apiCode apiCode
      * @param adaptee 适配器
      * @return {@link String }
      * @author senyang.zheng
      * @date 2024/08/07
      */
     @Override
-    public String getRequestId(BaseUploadDataAdaptee adaptee) {
-        String apiCode = adaptee.getApiCode();
+    public String getRequestId(String apiCode, BaseUploadDataAdaptee adaptee) {
         return apiCode.concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
     }
 

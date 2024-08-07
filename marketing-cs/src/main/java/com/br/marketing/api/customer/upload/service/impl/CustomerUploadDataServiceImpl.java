@@ -94,7 +94,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
                     "该apiCode:" + apiCode + "定制上传接口传参jsonData非json格式！！！"));
             }
-            String requestId = customerUploadDataHandler.getRequestId(adapter);
+            String requestId = customerUploadDataHandler.getRequestId(apiCode,adapter);
             if (respCustomer == null) {
                 try {
                     customerUploadDataHandler.setSourceParam(apiCode, jsonData, adapter);
