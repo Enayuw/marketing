@@ -65,7 +65,7 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
                 localFile.setPushStatus("3");
                 localFile.setId(localFile.getId());
                 localFileMapper.updateByPrimaryKeySelective(localFile);
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商推送通话明细异常！"), e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商推送通话明细异常！"), e);
             }
         });
     }

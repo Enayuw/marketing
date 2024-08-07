@@ -278,7 +278,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }
                     } catch (Exception e) {
-                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode()
                                 , "该apiCode:" + marketingCustomer.getApiCode() + "执行数据提取任务获取锁:" + redisKey + "异常!"), e);
                     } finally {
                         redisChgService.unlock(redisKey, value);
@@ -323,7 +323,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                                     , "srcPath", srcPath));
                                     if (!CollectionUtils.isEmpty(syncLogList)) {
                                         if (syncLogList.size() != 1) {
-                                            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+                                            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode()
                                                     , "重新执行数据提取异常，apiCode=" + marketingCustomer.getApiCode()
                                                             + ",fileName=" + datum.getFileName()
                                                             + ",syncLogSize=" + syncLogList.size()));
@@ -340,7 +340,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                         }
                     }
                 } catch (Exception ex) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode()
                             , String.format("客户转化文件提取报错：%s,报错信息：%s", marketingCustomer.getApiCode(), ex.getMessage())), ex);
                 }
             }
