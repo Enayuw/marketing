@@ -17,6 +17,12 @@ import com.br.marketing.dto.CustomerResponseDTO;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 国美自定义上传策略实现
+ *
+ * @author senyang.zheng
+ * @date 2024/08/07
+ */
 @Service
 @Slf4j
 public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUploadDataService {

@@ -29,35 +29,80 @@ public class AlienUploadResponseDTO extends ResponseCustomDTO {
     public AlienUploadResponseDTO() {
     }
 
+    /**
+     * 外星人上传响应dto
+     *
+     * @param code    代码
+     * @param message 信息
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
     public AlienUploadResponseDTO(String code, String message) {
         this.code = code;
         this.message = message;
     }
 
+    /**
+     * 外星人上传响应dto
+     *
+     * @param errorInfo 错误信息
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
     public AlienUploadResponseDTO(MarketingErrorInfo errorInfo) {
         this.code = errorInfo.getErrorCode();
         this.message = errorInfo.getErrorMsg();
     }
 
 
+    /**
+     * 成功
+     *
+     * @return {@link AlienUploadResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
     public AlienUploadResponseDTO success() {
         this.code = MarketingErrorInfo.SUCCESS.getErrorCode();
         this.message = MarketingErrorInfo.SUCCESS.getErrorMsg();
         return this;
     }
 
+    /**
+     * 失败
+     *
+     * @param errorInfo 错误信息
+     * @return {@link AlienUploadResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
     public AlienUploadResponseDTO failed(MarketingErrorInfo errorInfo) {
         this.code = errorInfo.getErrorCode();
         this.message = errorInfo.getErrorMsg();
         return this;
     }
 
+    /**
+     * 失败
+     *
+     * @param message 信息
+     * @return {@link AlienUploadResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
     public AlienUploadResponseDTO failed(String message) {
         this.code = MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode();
         this.message = MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg().concat(message);
         return this;
     }
 
+    /**
+     * 失败
+     *
+     * @return {@link AlienUploadResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
     public AlienUploadResponseDTO failed() {
         this.code = MarketingErrorInfo.UNKNOWN_ERROR.getErrorCode();
         this.message = MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg();

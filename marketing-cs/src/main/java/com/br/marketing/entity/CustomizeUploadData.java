@@ -8,6 +8,8 @@ import java.util.Date;
 @Data
 public class CustomizeUploadData implements Serializable {
 
+    private static final long serialVersionUID = 5689959414776817749L;
+
     /**
      * 主键id
      */

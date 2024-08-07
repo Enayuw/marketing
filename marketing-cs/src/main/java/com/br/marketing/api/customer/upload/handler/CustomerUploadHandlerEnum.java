@@ -36,6 +36,15 @@ public enum CustomerUploadHandlerEnum {
         this.apiCodes = apiCodes;
     }
 
+    /**
+     * 根据apiCode匹配定制上传策略
+     *
+     * @param apiCode       apiCode
+     * @param defaultCustom 默认策略
+     * @return {@link CustomerUploadHandlerEnum }
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
     public static CustomerUploadHandlerEnum valueOf(String apiCode, CustomerUploadHandlerEnum defaultCustom) {
         for (CustomerUploadHandlerEnum e : values()) {
             for (String code : e.apiCodes) {

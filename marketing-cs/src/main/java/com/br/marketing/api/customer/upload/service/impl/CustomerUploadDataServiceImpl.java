@@ -121,7 +121,6 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             try {
                 pushRuleService.mockDbOrRedisError(1, apiCode);
                 uploadData.setTCid(tCid);
-                new RuntimeException("测试未知异常");
                 int i = customizeUploadDataMapper.insertSelective(uploadData);
                 if (i != 1) {
                     throw new RuntimeException(

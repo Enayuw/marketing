@@ -25,7 +25,7 @@ public class GuMeUploadResponseDTO extends ResponseCustomDTO {
     /**
      * 2023-10-16 17:14 状态码
      */
-    private int code;
+    private Integer code;
 
     /**
      * 2023-10-16 17:14 描述
