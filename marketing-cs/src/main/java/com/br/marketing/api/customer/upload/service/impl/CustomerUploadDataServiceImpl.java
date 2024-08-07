@@ -13,6 +13,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
+import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.adapter.CustomerUploadDataAdapter;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadDataHandleSingleton;
@@ -23,6 +24,7 @@ import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadRespons
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.PulsarTopic;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
@@ -73,7 +75,8 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             CustomerResponseDTO respCustomer = null;
             String tCid = tableCreateService.getTcId(apiCode);
             if (StringUtils.isEmpty(tCid)) {
-                log.error("创建客户定制上传前置表，未查询到该apiCode:{},对应客户信息，请关注！！！", apiCode);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "创建客户定制上传前置表，未查询到该apiCode:" + apiCode + "对应客户信息，请关注！！！"));
                 // 若没查询到cid 入pulsar 待恢复后消费
                 respCustomer = sendMq(customerUploadDataHandler, apiCode, jsonData);
                 return respCustomer.getResponseCustomDTO();
@@ -88,7 +91,8 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                 adapter = customerUploadDataHandler.parseObject(jsonData);
             } catch (Exception e) {
                 respCustomer = customerUploadDataHandler.jsonErrorResponse(e);
-                log.error(e.getMessage() + jsonData, e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "该apiCode:" + apiCode + "定制上传接口传参jsonData非json格式！！！"));
             }
             String requestId = customerUploadDataHandler.getRequestId(adapter);
             if (respCustomer == null) {
@@ -105,7 +109,9 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                     }
                 } catch (Exception e) {
                     respCustomer = customerUploadDataHandler.bizErrorResponse(e);
-                    log.error(e.getMessage() + jsonData, e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "定制上传数据适配标准上传异常"),
+                        e);
+
                 }
             }
             uploadData.setStatus(respCustomer.getStatusEnum().getValue());
@@ -121,14 +127,15 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                         "定制化客户".concat(customerUploadDataHandler.customer().getName()).concat("(").concat(apiCode).concat(")保存失败,入库数据量:") + i);
                 }
             } catch (Exception e) {
-                log.error(e.getMessage() + jsonData, e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "定制上传数据写入客户定制上传前置表异常"),
+                    e);
                 // 6.1 数据库容灾
                 respCustomer = sendMq(customerUploadDataHandler, apiCode, jsonData);
             }
             // 8. 返回响应
             return respCustomer.getResponseCustomDTO();
         } catch (Exception e) {
-            log.error(e.getMessage() + jsonData, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "定制上传数据接入异常"), e);
             return customerUploadDataHandler.fallbackResponse(e).getResponseCustomDTO();
         }
     }
@@ -145,7 +152,8 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             responseGuMeDTO.success();
             return new CustomerResponseDTO(responseGuMeDTO, CustomerResponseDTO.StatusEnum.INVALID, responseGuMeDTO.getCode());
         } catch (PulsarClientException clientException) {
-            log.error(clientException.getMessage(), clientException);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "入pulsar容灾队列异常"),
+                clientException);
             return customerUploadDataHandler.fallbackResponse(clientException);
         }
     }
@@ -168,7 +176,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             receiveCustomizeUploadData(apiCode, jsonData);
             result.setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "pulsar容灾队列消费异常，pulsar消息：" + msg), e);
             result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
