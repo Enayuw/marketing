@@ -25,10 +25,10 @@ import com.br.marketing.mapper.MarketingCustomerMapper;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 转化数据陌生客户处理
+ * 外星人上传数据处理
  *
  * @author Guo Zeqiang
- * @dateTime 2023-10-20 14:53
+ * @date 2024/08/07
  */
 @Service
 @Slf4j
@@ -73,7 +73,7 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
             shortName = customer.getShortName();
         }
         String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(),
-            "定制化转化接口接收到“" + shortName + "”编号“" + adaptee.getApiCode().concat("”的数据\n请及时与该“").concat(name).concat("”沟通确认^_^"), "通用定制化转化接口未知请求通知");
+            "定制化上传接口接收到“" + shortName + "”编号“" + adaptee.getApiCode().concat("”的数据\n请及时与该“").concat(name).concat("”沟通确认^_^"), "通用定制化上传接口未知请求通知");
         log.warn(msg);
         return new CustomerResponseDTO(alienUploadResponseDTO, CustomerResponseDTO.StatusEnum.VALID, alienUploadResponseDTO.getCode());
     }
