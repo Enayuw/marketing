@@ -10,7 +10,7 @@
                rob.colliding_count
         FROM b_xiecheng_colliding_data_rob rob
         WHERE rob.package_id = #{packageId,jdbcType=BIGINT}
-          AND rob.is_delete = 0
+          AND rob.is_delete = 0 AND retry_count = 0
           AND rob.colliding_count <![CDATA[ < ]]> #{collidingTimes,jdbcType=INTEGER}
         ORDER BY IF(rob.push_time IS NULL, 0, 1),
                  rob.push_time

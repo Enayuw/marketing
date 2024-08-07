@@ -24,6 +24,11 @@ public class XieChengCollidingDataPackage implements Serializable {
     private Integer priority;
 
     /**
+     * 是否开启轮次 0-否 1-是
+     */
+    private Integer round;
+
+    /**
      * 开始撞库时间
      */
     private Date collidingTime;

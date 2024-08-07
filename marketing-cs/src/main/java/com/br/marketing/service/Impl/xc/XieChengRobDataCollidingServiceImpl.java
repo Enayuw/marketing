@@ -118,6 +118,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             // 如果不需要判断撞得量级，则只需判断是否有满足撞库次数的记录
             return count == 0;
         }
+
         // 查询撞得量级
         XieChengCollidingDataRobExample example = new XieChengCollidingDataRobExample();
         example.createCriteria().andPackageRuleIdEqualTo(packageRule.getId()).andDataSourceTypeEqualTo("F").andIsDeleteEqualTo(1)

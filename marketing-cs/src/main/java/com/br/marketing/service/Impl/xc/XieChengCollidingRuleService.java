@@ -12,6 +12,7 @@ import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import com.br.marketing.vo.xiecheng.param.UpdatePriorityParam;
+import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 
 public interface XieChengCollidingRuleService {
     /**
@@ -132,5 +133,15 @@ public interface XieChengCollidingRuleService {
      * @date 2024/04/24
      */
     Boolean deleteStagingCollidingRule(Long prsId);
+
+    /**
+     * 修改包轮次
+     *
+     * @param param param
+     * @return {@link Boolean }
+     * @author hong.chen
+     * @date 2024/08/07
+     */
+    Boolean updateRound(UpdateRoundParam param);
 
 }
