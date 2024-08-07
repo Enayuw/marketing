@@ -273,7 +273,9 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
      * @param finalSort AccessNumber中 finalSort
      * @param list 发送的数据
      */
-    private void callPolicy(MethodRetryHandlerService methodRetryHandlerService, String apiCode, String strategyCode, String time, String status, Integer finalSort, List<PushMarketingUserDetailDTO> list) {
+    private void callPolicy(MethodRetryHandlerService methodRetryHandlerService,
+                            String apiCode, String strategyCode, String time,
+                            String status, Integer finalSort, List<PushMarketingUserDetailDTO> list) {
         PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
         taskInfoDTO.setData(list);
         taskInfoDTO.setAccessNumber(apiCode +"_"+ time +"_"+ status +"_"+ finalSort);

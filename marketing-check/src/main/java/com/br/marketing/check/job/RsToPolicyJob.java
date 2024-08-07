@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
  * 已经在8月1号上线，所以RsToPolicyJob在后续观察没有问题，就可以删除了
  * @Author yu.xia@brgroup.com
  * @Date 2024/8/7 11:30
+ * @deprecated 后续观察没有问题，就可以删除了
  */
 @Deprecated
 @Component
