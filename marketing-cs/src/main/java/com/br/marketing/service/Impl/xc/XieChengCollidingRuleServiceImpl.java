@@ -353,7 +353,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     public Boolean updateRound(UpdateRoundParam param) {
         XieChengCollidingDataPackage update = new XieChengCollidingDataPackage();
-        update.setPriority(param.getRound());
+        update.setRound(param.getRound());
         update.setId(param.getPkgId());
         return packageMapper.updateByPrimaryKeySelective(update) == 1;
     }
