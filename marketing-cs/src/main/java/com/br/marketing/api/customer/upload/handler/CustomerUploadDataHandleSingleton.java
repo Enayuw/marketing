@@ -19,11 +19,12 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
+
 /**
- * 客户业务接口
+ * 获取客户定制上传适配策略
  *
- * @author Guo Zeqiang
- * @dateTime 2023-10-16 9:49
+ * @author senyang.zheng
+ * @date 2024/08/07
  */
 @Component
 @Slf4j

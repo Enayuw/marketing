@@ -3,10 +3,19 @@ package com.br.marketing.api.customer.upload.handler;
 import lombok.Getter;
 
 /**
- * 客户编码枚举 枚举命说明: 1.开头T或U,T代表转化数据,U代表上传数据 2.中间自定义客户名称拼音全拼或简拼 3.末尾可以使用apiCode,也可以不用;用时可减少apiCodes的内容 eg: 转化:T_XXX或T_XXX_apiCode 上传:U_XXX或U_XXX_apiCode
+ * 客户编码枚举 枚举命说明:
+ * <p>
+ * <p>
+ * 1.开头T或U,T代表转化数据,U代表上传数据
+ * <p>
+ * <p>
+ * 2.中间自定义客户名称拼音全拼或简拼
+ * <p>
+ * <p>
+ * 3.末尾可以使用apiCode,也可以不用;用时可减少apiCodes的内容 eg: U_XXX或U_XXX_apiCode
  *
  * @author Guo Zeqiang
- * @dateTime 2023-10-18 16:43
+ * @date 2024/08/07
  */
 @Getter
 public enum CustomerUploadHandlerEnum {

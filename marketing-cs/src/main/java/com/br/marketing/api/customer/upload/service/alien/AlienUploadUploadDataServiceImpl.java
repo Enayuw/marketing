@@ -5,11 +5,13 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import com.br.common.encryption.Md5Utils;
 import com.br.common.log.AlertLog;
-import com.br.marketing.api.customer.upload.adapter.UploadDataAdaptee;
+import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadDataHandler;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.alien.dto.AlienUploadResponseDTO;
@@ -41,8 +43,8 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
     }
 
     @Override
-    public UploadDataAdaptee parseObject(String jsonData) {
-        return new UploadDataAdaptee() {
+    public BaseUploadDataAdaptee parseObject(String jsonData) {
+        return new BaseUploadDataAdaptee() {
             @Override
             protected MarketingPreUserDTO adapteeRequest(String apiCode, MarketingPreUserDTO marketingPreUserDTO) {
                 return null;
@@ -51,7 +53,7 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
     }
 
     @Override
-    public CustomerResponseDTO verifyFields(UploadDataAdaptee adaptee) {
+    public CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee) {
         AlienUploadResponseDTO alienUploadResponseDTO = new AlienUploadResponseDTO();
         alienUploadResponseDTO.success();
         List<MarketingCustomer> nameList = null;
@@ -76,8 +78,22 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
         return new CustomerResponseDTO(alienUploadResponseDTO, CustomerResponseDTO.StatusEnum.VALID, alienUploadResponseDTO.getCode());
     }
 
+    /**
+     * 获取requestId
+     *
+     * @param adaptee 适配器
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
     @Override
-    public int countBizDataNumber(UploadDataAdaptee adaptee) {
+    public String getRequestId(BaseUploadDataAdaptee adaptee) {
+        String apiCode = adaptee.getApiCode();
+        return apiCode.concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
+    }
+
+    @Override
+    public int countBizDataNumber(BaseUploadDataAdaptee adaptee) {
         return countBizDataNumber(adaptee.getJsonData());
     }
 

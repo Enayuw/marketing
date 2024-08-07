@@ -2,7 +2,7 @@ package com.br.marketing.api.customer.upload.service.guomei.dto;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.api.customer.upload.adapter.UploadDataAdaptee;
+import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.dto.MarketingPreUserDTO;
 
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-public class GuMeUploadJsonDTO extends UploadDataAdaptee {
+public class GuMeUploadJsonDTO extends BaseUploadDataAdaptee {
 
     /**
      * 流水号
@@ -44,8 +44,6 @@ public class GuMeUploadJsonDTO extends UploadDataAdaptee {
 
     @Override
     protected MarketingPreUserDTO adapteeRequest(String apiCode, MarketingPreUserDTO marketingPreUserDTO) {
-        // TODO 一期不做明细清洗只接入到前置
-        marketingPreUserDTO.setRequestId(requestId);
         return marketingPreUserDTO;
     }
 }

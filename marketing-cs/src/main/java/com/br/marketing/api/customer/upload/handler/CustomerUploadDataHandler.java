@@ -1,23 +1,19 @@
 package com.br.marketing.api.customer.upload.handler;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import com.br.arch.geo.pulsar.ProductPulsarClientManager;
-import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.common.log.AlertLog;
-import com.br.marketing.api.customer.upload.adapter.UploadDataAdaptee;
+import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
-import org.apache.pulsar.client.api.PulsarClientException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
 
 
 /**
@@ -43,7 +39,7 @@ public interface CustomerUploadDataHandler {
      * @param jsonData json 字符串
      * @return 转化适配者
      */
-    UploadDataAdaptee parseObject(String jsonData);
+    BaseUploadDataAdaptee parseObject(String jsonData);
 
     /**
      * 2023-10-23 17:37
@@ -52,7 +48,18 @@ public interface CustomerUploadDataHandler {
      * @param adaptee 客户定制数据
      * @return 封装了响应结果与标记客户数据的状况
      */
-    CustomerResponseDTO verifyFields(UploadDataAdaptee adaptee);
+    CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee);
+
+
+    /**
+     * 获取requestId
+     *
+     * @param adaptee 适配器
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
+    String getRequestId(BaseUploadDataAdaptee adaptee);
 
     /**
      * 2023-10-23 17:37
@@ -61,7 +68,7 @@ public interface CustomerUploadDataHandler {
      * @param adaptee 客户定制数据
      * @return 传输的业务数据量
      */
-    int countBizDataNumber(UploadDataAdaptee adaptee);
+    int countBizDataNumber(BaseUploadDataAdaptee adaptee);
 
     /**
      * 2023-10-24 19:24
@@ -107,7 +114,7 @@ public interface CustomerUploadDataHandler {
      * @param jsonData 客户json字符串
      * @param adaptee  适配
      */
-    default void setSourceParam(String apiCode, String jsonData, UploadDataAdaptee adaptee) {
+    default void setSourceParam(String apiCode, String jsonData, BaseUploadDataAdaptee adaptee) {
         if (adaptee == null) {
             return;
         }

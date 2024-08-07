@@ -1,12 +1,11 @@
 package com.br.marketing.api.customer.upload.adapter;
 
+import java.io.Serializable;
+
 import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.dto.TransferDataDTO;
-import com.br.marketing.dto.TransferDataItemDTO;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import java.io.Serializable;
 
 
 /**
@@ -17,7 +16,7 @@ import java.io.Serializable;
  */
 @Getter
 @Setter
-public abstract class UploadDataAdaptee implements Serializable {
+public abstract class BaseUploadDataAdaptee implements Serializable {
 
 
     private static final long serialVersionUID = 2295254868340373170L;

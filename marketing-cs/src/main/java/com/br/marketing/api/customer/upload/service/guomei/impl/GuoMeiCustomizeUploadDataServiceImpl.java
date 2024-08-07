@@ -3,16 +3,18 @@ package com.br.marketing.api.customer.upload.service.guomei.impl;
 import java.util.Collections;
 import java.util.Set;
 
-import com.br.marketing.common.constants.MarketingErrorInfo;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.api.customer.upload.adapter.UploadDataAdaptee;
+import com.br.common.encryption.Md5Utils;
+import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.guomei.GuoMeiCustomizeUploadDataService;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadJsonDTO;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadResponseDTO;
+import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.dto.CustomerResponseDTO;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +45,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      * @return 转化适配者
      */
     @Override
-    public UploadDataAdaptee parseObject(String jsonData) {
+    public BaseUploadDataAdaptee parseObject(String jsonData) {
         return JSONObject.parseObject(jsonData, GuMeUploadJsonDTO.class);
     }
 
@@ -54,7 +56,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      * @return 封装了响应结果与标记客户数据的状况
      */
     @Override
-    public CustomerResponseDTO verifyFields(UploadDataAdaptee adaptee) {
+    public CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee) {
         GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
         GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
         StringBuilder errorMessage = new StringBuilder();
@@ -77,13 +79,34 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
     }
 
     /**
+     * 获取requestId
+     *
+     * @param adaptee 适配器
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2024/08/07
+     */
+    @Override
+    public String getRequestId(BaseUploadDataAdaptee adaptee) {
+        String requestId;
+        GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
+        if (StringUtils.isBlank(uploadJsonDTO.getRequestId())) {
+            requestId =
+                adaptee.getApiCode().concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
+        } else {
+            requestId = uploadJsonDTO.getRequestId();
+        }
+        return requestId;
+    }
+
+    /**
      * 2023-10-23 17:37 获取业务数据量
      *
      * @param adaptee 客户定制数据
      * @return 传输的业务数据量
      */
     @Override
-    public int countBizDataNumber(UploadDataAdaptee adaptee) {
+    public int countBizDataNumber(BaseUploadDataAdaptee adaptee) {
         GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
         return uploadJsonDTO.getUserList() != null ? uploadJsonDTO.getUserList().size() : 0;
     }

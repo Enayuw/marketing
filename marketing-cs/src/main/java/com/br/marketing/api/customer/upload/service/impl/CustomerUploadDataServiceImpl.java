@@ -5,7 +5,6 @@ import java.util.Date;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.stereotype.Service;
@@ -14,9 +13,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
-import com.br.common.encryption.Md5Utils;
+import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.adapter.CustomerUploadDataAdapter;
-import com.br.marketing.api.customer.upload.adapter.UploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadDataHandleSingleton;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadDataHandler;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
@@ -71,13 +69,13 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             uploadData.setApiCode(apiCode);
             uploadData.setCreateTime(new Date());
             uploadData.setUpdateTime(new Date());
-            UploadDataAdaptee adapter = null;
+            BaseUploadDataAdaptee adapter = null;
             CustomerResponseDTO respCustomer = null;
             String tCid = tableCreateService.getTcId(apiCode);
             if (StringUtils.isEmpty(tCid)) {
                 log.error("创建客户定制上传前置表，未查询到该apiCode:{},对应客户信息，请关注！！！", apiCode);
                 // 若没查询到cid 入pulsar 待恢复后消费
-                respCustomer = sendMq(customerUploadDataHandler, uploadData);
+                respCustomer = sendMq(customerUploadDataHandler, apiCode, jsonData);
                 return respCustomer.getResponseCustomDTO();
             } else {
                 // 创建定制上传表
@@ -92,7 +90,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                 respCustomer = customerUploadDataHandler.jsonErrorResponse(e);
                 log.error(e.getMessage() + jsonData, e);
             }
-            String requestId = null;
+            String requestId = customerUploadDataHandler.getRequestId(adapter);
             if (respCustomer == null) {
                 try {
                     customerUploadDataHandler.setSourceParam(apiCode, jsonData, adapter);
@@ -102,11 +100,8 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                         // 3. 计算业务数据量
                         int number = customerUploadDataHandler.countBizDataNumber(adapter);
                         uploadData.setBizDataNumber(number);
-                        // 4. 适配
+                        // 4. 适配清洗逻辑
                         MarketingPreUserDTO marketingPreUserDTO = customerUploadDataAdapter.adapteeCustomerUploadData(adapter);
-                        if (marketingPreUserDTO != null) {
-                            requestId = getRequestId(apiCode, marketingPreUserDTO.getRequestId());
-                        }
                     }
                 } catch (Exception e) {
                     respCustomer = customerUploadDataHandler.bizErrorResponse(e);
@@ -116,11 +111,10 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             uploadData.setStatus(respCustomer.getStatusEnum().getValue());
             uploadData.setResponseCode(respCustomer.getResponseCode().toString());
             uploadData.setResponseData(JSON.toJSONString(respCustomer.getResponseCustomDTO()));
-            uploadData.setRequestId(requestId == null ? getRequestId(apiCode) : requestId);
+            uploadData.setRequestId(requestId);
             // 6. 保存前置数据
             try {
                 pushRuleService.mockDbOrRedisError(1, apiCode);
-                uploadData.setTCid(tCid);
                 int i = customizeUploadDataMapper.insertSelective(uploadData);
                 if (i != 1) {
                     throw new RuntimeException(
@@ -129,7 +123,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             } catch (Exception e) {
                 log.error(e.getMessage() + jsonData, e);
                 // 6.1 数据库容灾
-                respCustomer = sendMq(customerUploadDataHandler, uploadData);
+                respCustomer = sendMq(customerUploadDataHandler, apiCode, jsonData);
             }
             // 8. 返回响应
             return respCustomer.getResponseCustomDTO();
@@ -139,10 +133,13 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
         }
     }
 
-    private CustomerResponseDTO sendMq(CustomerUploadDataHandler customerUploadDataHandler, CustomizeUploadData uploadData) {
+    private CustomerResponseDTO sendMq(CustomerUploadDataHandler customerUploadDataHandler, String apiCode, String jsonData) {
         try {
             ProductPulsarProducer producer = ProductPulsarClientManager.newProducer(PulsarTopic.uploadCustomTopic);
-            byte[] messageByte = JSON.toJSONString(uploadData).getBytes();
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("apiCode", apiCode);
+            jsonObject.put("jsonData", jsonData);
+            byte[] messageByte = JSON.toJSONString(jsonObject).getBytes();
             producer.send(messageByte);
             GuMeUploadResponseDTO responseGuMeDTO = new GuMeUploadResponseDTO();
             responseGuMeDTO.success();
@@ -151,14 +148,6 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             log.error(clientException.getMessage(), clientException);
             return customerUploadDataHandler.fallbackResponse(clientException);
         }
-    }
-
-    private String getRequestId(String apiCode, String requestId) {
-        return (StringUtils.isBlank(requestId) ? getRequestId(apiCode) : requestId);
-    }
-
-    private String getRequestId(String apiCode) {
-        return apiCode.concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
     }
 
     /**
@@ -173,10 +162,11 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
     public Result<Boolean> consumerUploadPayData(String msg) {
         Result<Boolean> result = new Result<>();
         try {
-            CustomizeUploadData receive = JSONObject.parseObject(msg, CustomizeUploadData.class);
-            pushRuleService.mockDbOrRedisError(1, receive.getApiCode());
-            int i = customizeUploadDataMapper.insertSelective(receive);
-            result.setCode(i > 0 ? ResultCode.SUCCESS.getValue() : ResultCode.FAIL.getValue());
+            JSONObject jsonObject = JSON.parseObject(msg);
+            String apiCode = jsonObject.getString("apiCode");
+            String jsonData = jsonObject.getString("jsonData");
+            receiveCustomizeUploadData(apiCode, jsonData);
+            result.setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             result.setCode(ResultCode.FAIL.getValue());
