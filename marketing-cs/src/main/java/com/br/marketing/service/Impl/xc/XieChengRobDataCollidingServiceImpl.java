@@ -1,16 +1,24 @@
 package com.br.marketing.service.Impl.xc;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.entity.XieChengCollidingDataPackage;
+import com.br.marketing.entity.XieChengCollidingDataPackageExample;
+import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +32,6 @@ import com.br.marketing.entity.XieChengCollidingDataRobExample;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
 import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
 import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -63,11 +70,23 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     @Resource
     private XiechengCollidingDataPackageRuleMapper packageRuleMapper;
     @Resource
-    private XiechengCollidingDataEliminationMapper eliminationMapper;
+    private XieChengCollidingDataLoopCycleMapper loopCycleMapper;
+    @Resource
+    private XcLoopCycleDataService xcLoopCycleDataService;
+    @Resource
+    private XieChengCollidingDataPackageMapper packageMapper;
+    private static final Integer RESETPARTITION = 10000;
 
 
     @Override
     public void collidingData() {
+        // 周期积压量级
+        Date startDate = Date.from(LocalDate.now().minusDays(1).atTime(23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
+        Date endDate = new Date();
+        if (loopCycleMapper.selectCycleCountOfStack(startDate, endDate) >= 200000) {
+            return;
+        }
+
         Integer perMinuteCounts = getPerMinuteCounts();
         Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
         Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
@@ -140,26 +159,18 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         Map<String, XieChengCollidingDataRob> cellMap = robData.stream()
             .collect(Collectors.toMap(XieChengCollidingDataRob::getCellSha256CodeList, rob -> rob, (existing, replacement) -> replacement));
         List<String> sha256Codes = robData.stream().map(XieChengCollidingDataRob::getCellSha256CodeList).collect(Collectors.toList());
-        try {
-            List<String> excludeData = eliminationMapper.getExcludeData(sha256Codes);
-            if (CollectionUtils.isNotEmpty(excludeData)) {
-                List<String> distinctExcludeData = excludeData.stream().distinct().collect(Collectors.toList());
-                String extend = DateUtil.today() + " 转化数据convType=107或105";
-                xieChengCollidingDataRobMapper.batchDeleteExcludeCollidingData(excludeData, extend);
-                sha256Codes.removeAll(distinctExcludeData);
-                if (CollectionUtils.isEmpty(sha256Codes)) {
-                    log.warn("该批次手机号全部被过滤掉:{}", distinctExcludeData);
-                    return;
-                }
-            }
-        } catch (Exception e) {
-            log.error("携程非周期撞库剔除撞库数据异常", e);
+
+        List<String> cells = xcLoopCycleDataService.excludeData(sha256Codes,"F");
+        if (CollectionUtils.isEmpty(cells)) {
+            return;
         }
+
         try {
-            Result collidingResult = xieChengServiceNew.pushXieChengSmsCollidingDataNew(sha256Codes);
+            Result collidingResult = xieChengServiceNew.pushXieChengSmsCollidingDataNew(cells);
             handleService.robDataHandle(collidingResult, cellMap);
         } catch (Exception e) {
-            log.error("携程非周期撞库异常，sha256Codes:{}", sha256Codes, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程非周期撞库异常"), e);
         }
 
     }
@@ -189,9 +200,82 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
 
     @Override
     public void resetCollidingCount() {
-        int updateCount = Integer.MAX_VALUE;
-        while (updateCount > 0) {
-            updateCount = xieChengCollidingDataRobMapper.batchResetCollidingCount();
+        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
+        packageExample.createCriteria().andIsDeleteEqualTo(0);
+        List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
+
+        // 按轮次分组
+        Map<Integer, List<XieChengCollidingDataPackage>> roundPackageMap =
+                packages.stream().collect(Collectors.groupingBy(XieChengCollidingDataPackage::getRound));
+
+        // 不开启轮次的撞库包
+        List<XieChengCollidingDataPackage> nonRoundPackages = roundPackageMap.get(0);
+
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
+        resetCollidingCountByPackages(nonRoundPackages, threadPool);
+
+
+        // 开启轮次的撞库包
+        List<XieChengCollidingDataPackage> roundPackages = roundPackageMap.get(1);
+        if (CollectionUtils.isEmpty(roundPackages)) {
+            return;
+        }
+
+        // 有撞库次数=0的数据，不重置撞库次数
+        Long zeroCount = xieChengCollidingDataRobMapper.selectCountByRoundPackages(roundPackages);
+        if (zeroCount > 0) {
+            return;
+        }
+
+        resetCollidingCountByPackages(roundPackages, threadPool);
+
+        threadPoolShutDown(threadPool);
+    }
+
+    /**
+     * 根据撞库包查询非周期数据id，根据id将撞库次数置为0
+     * @param packages
+     * @param threadPool
+     */
+    private void resetCollidingCountByPackages(List<XieChengCollidingDataPackage> packages, ThreadPoolExecutor threadPool) {
+        if (CollectionUtils.isEmpty(packages)) {
+            return;
+        }
+
+        Long minId = null;
+        while (true) {
+            List<Long> list = xieChengCollidingDataRobMapper.selectRobsByNonRoundPackages(minId, packages);
+            if (CollectionUtils.isEmpty(list)) {
+                break;
+            }
+
+            minId = list.get(list.size() - 1);
+
+            List<List<Long>> partition = Lists.partition(list, RESETPARTITION);
+            for (List<Long> robList : partition) {
+                threadPool.submit(() -> {
+                    try {
+                        xieChengCollidingDataRobMapper.batchResetCollidingCountByIds(robList);
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                                , "携程重置撞库次数作业，子线程处理异常"), e);
+                    }
+                });
+            }
+        }
+    }
+
+    private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("携程重置撞库次数作业线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), ex.getMessage()
+                    , "携程重置撞库次数作业，日志保存线程池结束异常"), ex);
+            Thread.currentThread().interrupt();
         }
     }
 }

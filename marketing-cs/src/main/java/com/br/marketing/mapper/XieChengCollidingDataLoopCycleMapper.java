@@ -90,4 +90,6 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
             , @Param("querySql") String querySql,@Param("pageSize") Integer pageSize);
 
     void batchDeleteExcludeCollidingData(@Param("excludeData") List<String> excludeData, @Param("extend")String extend);
+
+    int selectCycleCountOfStack(Date startDate, Date endDate);
 }

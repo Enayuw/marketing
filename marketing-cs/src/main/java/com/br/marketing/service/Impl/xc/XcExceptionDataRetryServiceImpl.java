@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
@@ -75,7 +77,8 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.error("携程异常重试撞库，日志保存线程池结束异常！", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), ex.getMessage()
+                    , "携程异常重试撞库，日志保存线程池结束异常！"), ex);
             Thread.currentThread().interrupt();
         }
     }
@@ -122,7 +125,7 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
             // 发送钉钉告警
             String msg = "携程最后一次重试撞库失败通知。重试失败量级:" + total + "条,需要关注！";
             sendDingDingAlert("携程最后一次重试撞库失败通知", msg);
-            log.error(msg);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), msg));
         }
     }
 
@@ -192,7 +195,8 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
             dingDingRobotHookService.sendMessageGroup(token,
                     secret, dingDingMarkdownMessage, true);
         } catch (Exception e) {
-            log.error(text+" 发送钉钉消息失败:"+e.getMessage(),e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "发送钉钉消息失败"), e);
         }
     }
 }
