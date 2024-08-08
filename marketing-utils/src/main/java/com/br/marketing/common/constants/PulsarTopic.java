@@ -33,4 +33,8 @@ public class PulsarTopic {
      * 定制客户转化接口主题
      */
     public final static String transferCustomTopic = pulsarPreFix.concat(topicPreFix).concat("transfer-custom");
+    /**
+     * 定制客户上传接口主题
+     */
+    public final static String uploadCustomTopic = pulsarPreFix.concat(topicPreFix).concat("upload-custom");
 }

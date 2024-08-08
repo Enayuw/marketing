@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
@@ -152,15 +153,13 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
                 actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 2, "7", isConnect));
                 actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 2, "8", isConnect));
             }
-
-            boolean allSuccess = actions.stream()
-                .map(actionBO -> action(actionBO, data))
-                .allMatch(result -> ResultCode.SUCCESS.getValue().equals(result.getCode()));
-
+            List<Boolean> results = actions.stream()
+                .map(actionBO -> ResultCode.SUCCESS.getValue().equals(action(actionBO,data).getCode()))
+                .collect(Collectors.toList());
+            boolean allSuccess = results.stream().allMatch(result -> result);
             if (allSuccess) {
                 yiXinTransferService.updateFrontDataStatus(frontId, 2);
             }
-
             rosterLockingDataToZhongAn.localFilePushStatis(apiCode, bizDate);
         }
         // 清理缓存
@@ -185,16 +184,6 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-    }
-
-    private Result<?> action(String tag, String apiCode, String bizDate, Page2Condition<ZhonganRosterLockingData> data) {
-        ZhonganRosterLockingData zhonganRosterLockingData = new ZhonganRosterLockingData();
-        zhonganRosterLockingData.setApiCode(apiCode);
-        zhonganRosterLockingData.setTag(tag);
-        zhonganRosterLockingData.setBizDate(bizDate);
-        zhonganRosterLockingData.setPushStatus(1);
-        data.setParam(zhonganRosterLockingData);
-        return rosterLockingDataToZhongAn.action(data);
     }
 
     private Result<?> action(ZhonganRosterLockingDataActionBO action, Page2Condition<ZhonganRosterLockingData> condition) {
