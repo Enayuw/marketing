@@ -7,6 +7,8 @@
     <result column="name" property="name" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="condition_type" property="conditionType" jdbcType="INTEGER" />
+    <result column="source_type" property="sourceType" jdbcType="INTEGER" />
+    <result column="source_condition" property="sourceCondition" jdbcType="VARCHAR" />
     <result column="content" property="content" jdbcType="VARCHAR" />
     <result column="content_show" property="contentShow" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
@@ -72,8 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, condition_number, name, status, condition_type, content, content_show, is_del, 
-    create_time, update_time
+    id, `condition_number`, `name`, `status`, condition_type, source_type, source_condition, 
+    content, content_show, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreSearchConditionExample" >
     select
@@ -109,14 +111,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_score_search_condition (condition_number, name, status, 
-      condition_type, content, content_show, 
-      is_del, create_time, update_time
-      )
+    insert into b_score_search_condition (`condition_number`, `name`, `status`, 
+      condition_type, source_type, source_condition, 
+      content, content_show, is_del, 
+      create_time, update_time)
     values (#{conditionNumber,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
-      #{conditionType,jdbcType=INTEGER}, #{content,jdbcType=VARCHAR}, #{contentShow,jdbcType=VARCHAR}, 
-      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+      #{conditionType,jdbcType=INTEGER}, #{sourceType,jdbcType=INTEGER}, #{sourceCondition,jdbcType=VARCHAR}, 
+      #{content,jdbcType=VARCHAR}, #{contentShow,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreSearchCondition" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -125,16 +127,22 @@
     insert into b_score_search_condition
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="conditionNumber != null" >
-        condition_number,
+        `condition_number`,
       </if>
       <if test="name != null" >
-        name,
+        `name`,
       </if>
       <if test="status != null" >
-        status,
+        `status`,
       </if>
       <if test="conditionType != null" >
         condition_type,
+      </if>
+      <if test="sourceType != null" >
+        source_type,
+      </if>
+      <if test="sourceCondition != null" >
+        source_condition,
       </if>
       <if test="content != null" >
         content,
@@ -164,6 +172,12 @@
       </if>
       <if test="conditionType != null" >
         #{conditionType,jdbcType=INTEGER},
+      </if>
+      <if test="sourceType != null" >
+        #{sourceType,jdbcType=INTEGER},
+      </if>
+      <if test="sourceCondition != null" >
+        #{sourceCondition,jdbcType=VARCHAR},
       </if>
       <if test="content != null" >
         #{content,jdbcType=VARCHAR},
@@ -195,16 +209,22 @@
         id = #{record.id,jdbcType=BIGINT},
       </if>
       <if test="record.conditionNumber != null" >
-        condition_number = #{record.conditionNumber,jdbcType=VARCHAR},
+        `condition_number` = #{record.conditionNumber,jdbcType=VARCHAR},
       </if>
       <if test="record.name != null" >
-        name = #{record.name,jdbcType=VARCHAR},
+        `name` = #{record.name,jdbcType=VARCHAR},
       </if>
       <if test="record.status != null" >
-        status = #{record.status,jdbcType=INTEGER},
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
       <if test="record.conditionType != null" >
         condition_type = #{record.conditionType,jdbcType=INTEGER},
+      </if>
+      <if test="record.sourceType != null" >
+        source_type = #{record.sourceType,jdbcType=INTEGER},
+      </if>
+      <if test="record.sourceCondition != null" >
+        source_condition = #{record.sourceCondition,jdbcType=VARCHAR},
       </if>
       <if test="record.content != null" >
         content = #{record.content,jdbcType=VARCHAR},
@@ -229,10 +249,12 @@
   <update id="updateByExample" parameterType="map" >
     update b_score_search_condition
     set id = #{record.id,jdbcType=BIGINT},
-      condition_number = #{record.conditionNumber,jdbcType=VARCHAR},
-      name = #{record.name,jdbcType=VARCHAR},
-      status = #{record.status,jdbcType=INTEGER},
+      `condition_number` = #{record.conditionNumber,jdbcType=VARCHAR},
+      `name` = #{record.name,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER},
       condition_type = #{record.conditionType,jdbcType=INTEGER},
+      source_type = #{record.sourceType,jdbcType=INTEGER},
+      source_condition = #{record.sourceCondition,jdbcType=VARCHAR},
       content = #{record.content,jdbcType=VARCHAR},
       content_show = #{record.contentShow,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
@@ -246,16 +268,22 @@
     update b_score_search_condition
     <set >
       <if test="conditionNumber != null" >
-        condition_number = #{conditionNumber,jdbcType=VARCHAR},
+        `condition_number` = #{conditionNumber,jdbcType=VARCHAR},
       </if>
       <if test="name != null" >
-        name = #{name,jdbcType=VARCHAR},
+        `name` = #{name,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
-        status = #{status,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
       </if>
       <if test="conditionType != null" >
         condition_type = #{conditionType,jdbcType=INTEGER},
+      </if>
+      <if test="sourceType != null" >
+        source_type = #{sourceType,jdbcType=INTEGER},
+      </if>
+      <if test="sourceCondition != null" >
+        source_condition = #{sourceCondition,jdbcType=VARCHAR},
       </if>
       <if test="content != null" >
         content = #{content,jdbcType=VARCHAR},
@@ -277,10 +305,12 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ScoreSearchCondition" >
     update b_score_search_condition
-    set condition_number = #{conditionNumber,jdbcType=VARCHAR},
-      name = #{name,jdbcType=VARCHAR},
-      status = #{status,jdbcType=INTEGER},
+    set `condition_number` = #{conditionNumber,jdbcType=VARCHAR},
+      `name` = #{name,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
       condition_type = #{conditionType,jdbcType=INTEGER},
+      source_type = #{sourceType,jdbcType=INTEGER},
+      source_condition = #{sourceCondition,jdbcType=VARCHAR},
       content = #{content,jdbcType=VARCHAR},
       content_show = #{contentShow,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
