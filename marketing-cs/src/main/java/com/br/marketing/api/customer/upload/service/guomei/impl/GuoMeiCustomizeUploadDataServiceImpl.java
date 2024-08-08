@@ -70,7 +70,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
             errorMessage.append(",userList不可为空");
         }
         if (errorMessage.length() > 0) {
-            guMeUploadResponseDTO.failed(errorMessage.toString());
+            guMeUploadResponseDTO.failed(GuMeUploadResponseDTO.ResultEnum.FAILED_FIELD_CHECK_ERROR, errorMessage.toString());
             return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
         } else {
             guMeUploadResponseDTO.success();
@@ -89,14 +89,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public String getRequestId(String apiCode, BaseUploadDataAdaptee adaptee) {
-        String requestId;
         GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
-        if (StringUtils.isBlank(uploadJsonDTO.getRequestId())) {
-            requestId = apiCode.concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
-        } else {
-            requestId = uploadJsonDTO.getRequestId();
-        }
-        return requestId;
+        return uploadJsonDTO.getRequestId();
     }
 
     /**
@@ -132,7 +126,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
     @Override
     public CustomerResponseDTO jsonErrorResponse(Exception e) {
         GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
-        guMeUploadResponseDTO.failed(",json解析失败");
+        guMeUploadResponseDTO.failed(GuMeUploadResponseDTO.ResultEnum.FAILED_JSON_ERROR);
         return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
     }
 
@@ -156,8 +150,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
     @Override
     public CustomerResponseDTO fallbackResponse(Exception e) {
         GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
-        // TODO msg 返回“未知异常”还是就返回“失败”俩字
-        guMeUploadResponseDTO.failed("," + MarketingErrorInfo.UNKNOWN_ERROR.getErrorMsg());
+        guMeUploadResponseDTO.failed();
         return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
     }
 }

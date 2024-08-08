@@ -83,7 +83,10 @@ public class GuMeUploadResponseDTO extends ResponseCustomDTO {
         /**
          * 2023-10-16 17:22 失败
          */
-        FAILED(5000, "失败"),;
+        FAILED(5000, "失败,未知异常"),
+        FAILED_JSON_ERROR(5001, "失败,jsonData解析失败"),
+        FAILED_FIELD_CHECK_ERROR(5002, "失败，必填字段缺失"),
+        ;
 
         private int code;
         private String desc;

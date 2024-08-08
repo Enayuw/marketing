@@ -94,8 +94,9 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
                     "该apiCode:" + apiCode + "定制上传接口传参jsonData非json格式！！！"));
             }
-            String requestId = customerUploadDataHandler.getRequestId(apiCode,adapter);
             if (respCustomer == null) {
+                String requestId = customerUploadDataHandler.getRequestId(apiCode,adapter);
+                uploadData.setRequestId(requestId);
                 try {
                     customerUploadDataHandler.setSourceParam(apiCode, jsonData, adapter);
                     // 2. 有数据验证,包括字段空值及验签
@@ -117,7 +118,6 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             uploadData.setStatus(respCustomer.getStatusEnum().getValue());
             uploadData.setResponseCode(respCustomer.getResponseCode().toString());
             uploadData.setResponseData(JSON.toJSONString(respCustomer.getResponseCustomDTO()));
-            uploadData.setRequestId(requestId);
             // 6. 保存前置数据
             try {
                 pushRuleService.mockDbOrRedisError(1, apiCode);
