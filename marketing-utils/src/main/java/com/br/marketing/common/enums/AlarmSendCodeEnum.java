@@ -58,6 +58,11 @@ public enum AlarmSendCodeEnum {
 
     //数据治理平台调用marketing-inner-api邮件发送接口使用
     DATA_GOVERNANCE_PLATFORM_SEND_EMAIL("70000", "数据治理平台邮件发送"),
+
+    INITDATA_MUST_ERROR("70001","代运营明细数据缺少必填参数"),
+
+    TRANSFER_MUST_ERROR("70002","转化明细数据缺少必填参数"),
+
     //推送Daas异常,阶梯推送,
     PUSHING_DAASERROR("71000", "推送Daas异常"),
     //推送客服异常,阶梯推送
@@ -79,9 +84,6 @@ public enum AlarmSendCodeEnum {
     WBXK_INTERFACEERROR("6001002", "58接口调用失败"),
 
 
-    INITDATA_MUST_ERROR("70001","代运营明细数据缺少必填参数"),
-
-    TRANSFER_MUST_ERROR("70002","转化明细数据缺少必填参数"),
 
     //之家业务错误,立即推送
     ZHIJIA_SERVICEERROR("6002001", "之家车线索业务异常"),
