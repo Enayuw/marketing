@@ -8,7 +8,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -30,15 +29,15 @@ public class WuBaSubmitConversionValidityProcessor {
             return notValidIds;
         }
         String apiCode = param.getApiCode();
-        Integer createDate = param.getCreateDate();
-        LocalDate curLocalDate = LocalDate.parse(String.valueOf(createDate), DateTimeFormatter.ofPattern("yyyyMMdd"));
+        LocalDate curLocalDate = LocalDate.now();
         LocalDate startLocalDate = curLocalDate.plusDays(-6);
 
         String appletDateStart = startLocalDate.toString();
         String appletDateEnd = curLocalDate.toString();
 
         List<String> custNums = pushList.stream().map(WubaSubmitConversionData::getCell).collect(Collectors.toList());
-        Set<String> validCustNums = marketingSyncUserMapper.getCustNumSetByAppletDateInterval(apiCode, custNums, appletDateStart, appletDateEnd);
+        Set<String> validCustNums = marketingSyncUserMapper.getCustNumSetByAppletDateInterval(
+                apiCode, custNums, appletDateStart, appletDateEnd);
 
         Iterator<WubaSubmitConversionData> iterator = pushList.iterator();
         while (iterator.hasNext()){
