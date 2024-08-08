@@ -166,202 +166,202 @@ public class ScoreSearchConditionExample {
         }
 
         public Criteria andConditionNumberIsNull() {
-            addCriterion("condition_number is null");
+            addCriterion("`condition_number` is null");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberIsNotNull() {
-            addCriterion("condition_number is not null");
+            addCriterion("`condition_number` is not null");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberEqualTo(String value) {
-            addCriterion("condition_number =", value, "conditionNumber");
+            addCriterion("`condition_number` =", value, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberNotEqualTo(String value) {
-            addCriterion("condition_number <>", value, "conditionNumber");
+            addCriterion("`condition_number` <>", value, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberGreaterThan(String value) {
-            addCriterion("condition_number >", value, "conditionNumber");
+            addCriterion("`condition_number` >", value, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberGreaterThanOrEqualTo(String value) {
-            addCriterion("condition_number >=", value, "conditionNumber");
+            addCriterion("`condition_number` >=", value, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberLessThan(String value) {
-            addCriterion("condition_number <", value, "conditionNumber");
+            addCriterion("`condition_number` <", value, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberLessThanOrEqualTo(String value) {
-            addCriterion("condition_number <=", value, "conditionNumber");
+            addCriterion("`condition_number` <=", value, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberLike(String value) {
-            addCriterion("condition_number like", value, "conditionNumber");
+            addCriterion("`condition_number` like", value, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberNotLike(String value) {
-            addCriterion("condition_number not like", value, "conditionNumber");
+            addCriterion("`condition_number` not like", value, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberIn(List<String> values) {
-            addCriterion("condition_number in", values, "conditionNumber");
+            addCriterion("`condition_number` in", values, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberNotIn(List<String> values) {
-            addCriterion("condition_number not in", values, "conditionNumber");
+            addCriterion("`condition_number` not in", values, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberBetween(String value1, String value2) {
-            addCriterion("condition_number between", value1, value2, "conditionNumber");
+            addCriterion("`condition_number` between", value1, value2, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andConditionNumberNotBetween(String value1, String value2) {
-            addCriterion("condition_number not between", value1, value2, "conditionNumber");
+            addCriterion("`condition_number` not between", value1, value2, "conditionNumber");
             return (Criteria) this;
         }
 
         public Criteria andNameIsNull() {
-            addCriterion("name is null");
+            addCriterion("`name` is null");
             return (Criteria) this;
         }
 
         public Criteria andNameIsNotNull() {
-            addCriterion("name is not null");
+            addCriterion("`name` is not null");
             return (Criteria) this;
         }
 
         public Criteria andNameEqualTo(String value) {
-            addCriterion("name =", value, "name");
+            addCriterion("`name` =", value, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameNotEqualTo(String value) {
-            addCriterion("name <>", value, "name");
+            addCriterion("`name` <>", value, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameGreaterThan(String value) {
-            addCriterion("name >", value, "name");
+            addCriterion("`name` >", value, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameGreaterThanOrEqualTo(String value) {
-            addCriterion("name >=", value, "name");
+            addCriterion("`name` >=", value, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameLessThan(String value) {
-            addCriterion("name <", value, "name");
+            addCriterion("`name` <", value, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameLessThanOrEqualTo(String value) {
-            addCriterion("name <=", value, "name");
+            addCriterion("`name` <=", value, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameLike(String value) {
-            addCriterion("name like", value, "name");
+            addCriterion("`name` like", value, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameNotLike(String value) {
-            addCriterion("name not like", value, "name");
+            addCriterion("`name` not like", value, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameIn(List<String> values) {
-            addCriterion("name in", values, "name");
+            addCriterion("`name` in", values, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameNotIn(List<String> values) {
-            addCriterion("name not in", values, "name");
+            addCriterion("`name` not in", values, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameBetween(String value1, String value2) {
-            addCriterion("name between", value1, value2, "name");
+            addCriterion("`name` between", value1, value2, "name");
             return (Criteria) this;
         }
 
         public Criteria andNameNotBetween(String value1, String value2) {
-            addCriterion("name not between", value1, value2, "name");
+            addCriterion("`name` not between", value1, value2, "name");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+            addCriterion("`status` is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+            addCriterion("`status` is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(Integer value) {
-            addCriterion("status =", value, "status");
+            addCriterion("`status` =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(Integer value) {
-            addCriterion("status <>", value, "status");
+            addCriterion("`status` <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(Integer value) {
-            addCriterion("status >", value, "status");
+            addCriterion("`status` >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("status >=", value, "status");
+            addCriterion("`status` >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(Integer value) {
-            addCriterion("status <", value, "status");
+            addCriterion("`status` <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("status <=", value, "status");
+            addCriterion("`status` <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<Integer> values) {
-            addCriterion("status in", values, "status");
+            addCriterion("`status` in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<Integer> values) {
-            addCriterion("status not in", values, "status");
+            addCriterion("`status` not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(Integer value1, Integer value2) {
-            addCriterion("status between", value1, value2, "status");
+            addCriterion("`status` between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("status not between", value1, value2, "status");
+            addCriterion("`status` not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -422,6 +422,136 @@ public class ScoreSearchConditionExample {
 
         public Criteria andConditionTypeNotBetween(Integer value1, Integer value2) {
             addCriterion("condition_type not between", value1, value2, "conditionType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeIsNull() {
+            addCriterion("source_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeIsNotNull() {
+            addCriterion("source_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeEqualTo(Integer value) {
+            addCriterion("source_type =", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeNotEqualTo(Integer value) {
+            addCriterion("source_type <>", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeGreaterThan(Integer value) {
+            addCriterion("source_type >", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("source_type >=", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeLessThan(Integer value) {
+            addCriterion("source_type <", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("source_type <=", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeIn(List<Integer> values) {
+            addCriterion("source_type in", values, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeNotIn(List<Integer> values) {
+            addCriterion("source_type not in", values, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeBetween(Integer value1, Integer value2) {
+            addCriterion("source_type between", value1, value2, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("source_type not between", value1, value2, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionIsNull() {
+            addCriterion("source_condition is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionIsNotNull() {
+            addCriterion("source_condition is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionEqualTo(String value) {
+            addCriterion("source_condition =", value, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionNotEqualTo(String value) {
+            addCriterion("source_condition <>", value, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionGreaterThan(String value) {
+            addCriterion("source_condition >", value, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionGreaterThanOrEqualTo(String value) {
+            addCriterion("source_condition >=", value, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionLessThan(String value) {
+            addCriterion("source_condition <", value, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionLessThanOrEqualTo(String value) {
+            addCriterion("source_condition <=", value, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionLike(String value) {
+            addCriterion("source_condition like", value, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionNotLike(String value) {
+            addCriterion("source_condition not like", value, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionIn(List<String> values) {
+            addCriterion("source_condition in", values, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionNotIn(List<String> values) {
+            addCriterion("source_condition not in", values, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionBetween(String value1, String value2) {
+            addCriterion("source_condition between", value1, value2, "sourceCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceConditionNotBetween(String value1, String value2) {
+            addCriterion("source_condition not between", value1, value2, "sourceCondition");
             return (Criteria) this;
         }
 
