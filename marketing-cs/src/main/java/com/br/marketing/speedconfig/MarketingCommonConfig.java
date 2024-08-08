@@ -1892,6 +1892,21 @@ public class MarketingCommonConfig {
     private Integer wuBaCollidingQueryResultWaitMinutes;
 
     /**
+     * 58新客-营销名单上报-修改上报数据-开关，1-开，0-关
+     */
+    private String wuBaSubmitConversionChangeDataSwitch;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-条件参数
+     */
+    private List<Map<String, String>> wuBaSubmitConversionChangeDataParams;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-线程参数
+     */
+    private Map<String, String> wuBaSubmitConversionChangeDataThreadConfig;
+
+    /**
      * 58新客-营销名单上报-开关，1-开，0-关
      */
     private String wuBaSubmitConversionSwitch;
@@ -1981,6 +1996,14 @@ public class MarketingCommonConfig {
          * 医时转化数据提取执行时间
      */
     private String YiShiTransferFileExecuteTime;
+
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化上传接口自定义配置apiCode
+     * eg:{"U_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
 
 }
 
