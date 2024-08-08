@@ -22,9 +22,11 @@ public interface XiechengCollidingDataEliminationMapperBase {
 
     XiechengCollidingDataElimination selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") XiechengCollidingDataElimination record, @Param("example") XiechengCollidingDataEliminationExample example);
+    int updateByExampleSelective(@Param("record") XiechengCollidingDataElimination record,
+                                 @Param("example") XiechengCollidingDataEliminationExample example);
 
-    int updateByExample(@Param("record") XiechengCollidingDataElimination record, @Param("example") XiechengCollidingDataEliminationExample example);
+    int updateByExample(@Param("record") XiechengCollidingDataElimination record,
+                        @Param("example") XiechengCollidingDataEliminationExample example);
 
     int updateByPrimaryKeySelective(XiechengCollidingDataElimination record);
 

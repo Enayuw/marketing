@@ -33,4 +33,10 @@ public class PulsarSubscription {
      * 主题 {@link com.br.marketing.common.constants.PulsarTopic#transferCustomTopic}
      */
     public final static String transferCustomSubscription = subscriptionPreFix.concat("transfer_custom");
+
+    /**
+     * 定制客户上传接口订阅者
+     * 主题 {@link com.br.marketing.common.constants.PulsarTopic#uploadCustomTopic}
+     */
+    public final static String uploadCustomSubscription = subscriptionPreFix.concat("upload_custom");
 }

@@ -1997,5 +1997,13 @@ public class MarketingCommonConfig {
      */
     private String YiShiTransferFileExecuteTime;
 
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化上传接口自定义配置apiCode
+     * eg:{"U_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
+
 }
 

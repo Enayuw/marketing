@@ -143,7 +143,7 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
             if (!mkdirs) {
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), descPath + "目录创建失败！"));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), descPath + "目录创建失败！"));
             }
         }
         String fileAllPath = descPath.concat(transferFileTask.getFileName());
@@ -154,7 +154,7 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
             fw.append("\r\n");
             writeSuShangTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception e) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商自动化回传写入文件异常！"), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商自动化回传写入文件异常！"), e);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(e.getMessage());
         }
@@ -164,17 +164,19 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
 
     public void writeSuShangTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
         long start = System.currentTimeMillis();
-        String tcId = tableCreateService.getTcId(apiCode);
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
-        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
+        String localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE).toString();
         // 创建线程池
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(12, 12, 100);
         Integer pageSize = null;
-        Long beginId = sushangPushResultDataMapper.minId(apiCode, localDate.toString());
-        Long endId = sushangPushResultDataMapper.maxId(apiCode, localDate.toString());
+        Long beginId = sushangPushResultDataMapper.minId(apiCode, localDate);
+        Long endId = sushangPushResultDataMapper.maxId(apiCode, localDate);
         Long middleId;
         Boolean continueFlag = Boolean.TRUE;
+        if (endId == null || endId == 0 || beginId == null || beginId == 0){
+            continueFlag = Boolean.FALSE;
+        }
         while (continueFlag) {
             pageSize = dynamicParameterService.getPageSize(null);
             middleId = beginId + pageSize;
@@ -183,7 +185,7 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
                 continueFlag = Boolean.FALSE;
             }
             List<SushangPushResultData> transferDataOriginal = sushangPushResultDataMapper
-                    .getTransferByRequestDateSuShang(apiCode, localDate.toString(), beginId, middleId);
+                    .getTransferByRequestDateSuShang(apiCode, localDate, beginId, middleId);
             beginId = middleId;
             threadPool.submit(() -> {
                 for (SushangPushResultData transferFilterData : transferDataOriginal) {
@@ -209,14 +211,14 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
                         fw.append(sb.toString());
                         totalSize.incrementAndGet();
                     } catch (IOException e) {
-                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode()
                                 , "[" + apiCode + "]苏商自动化回传[" + custNum + "]提取程序异常"), e);
                     }
                 }
                 try {
                     fw.flush();
                 } catch (IOException e) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode()
                             , "[" + apiCode + "]苏商自动化回传flush异常!"), e);
                 }
             });
@@ -235,13 +237,13 @@ public class TransferToFileBySuShangServiceImpl implements ITransferToFileServic
             log.warn("苏商自动化回传-本地文件生成成功,apiCode = {},time = {}ms,total = {}", apiCode
                     , System.currentTimeMillis() - start, totalSize);
         } catch (InterruptedException e) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode()
                     , "apiCode[" + apiCode + "]苏商自动化回传-本地文件生成失败!"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         } catch (Exception e){
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode()
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode()
                     , "apiCode[" + apiCode + "]苏商自动化回传-异常!"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();

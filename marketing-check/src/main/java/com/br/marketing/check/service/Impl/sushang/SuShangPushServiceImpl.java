@@ -82,8 +82,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             while (!transferPool.awaitTermination(10L, TimeUnit.SECONDS)) {
                 log.info("等待线程池结束");
             }
-        } catch (Exception ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商推送规则一线程池停止异常！"), ex);
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商推送规则一线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
         }
         log.warn("苏商推送规则一(已成交)运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
         //插入180天通话明细数据
@@ -112,8 +113,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             while (!callRecordPool.awaitTermination(10L, TimeUnit.SECONDS)) {
                 log.info("等待线程池结束");
             }
-        } catch (Exception ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商推送规则二线程池停止异常！"), ex);
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商推送规则二线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
         }
         log.warn("苏商推送规则二(非成交)运行耗时：{}s", (System.currentTimeMillis() - startTwo) / 1000);
         //更新为推送成功状态
@@ -131,7 +133,7 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             Set<String> dealCustNums = pushDealList.stream().map(SushangPushResultData::getCustNum).collect(Collectors.toSet());
             //剔除规则一
             callRecordData.removeIf(recordData -> dealCustNums.contains(recordData.getCustNum()));
-            callRecordData.forEach(callRecord -> {
+            callRecordData.forEach((SushangCallRecordData callRecord) -> {
                 SushangPushResultData pushResultData = new SushangPushResultData();
                 BeanUtils.copyProperties(callRecord, pushResultData);
                 pushResultData.setCreateTime(new Date());
@@ -141,13 +143,13 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                 pushResultData.setStatus(1);
                 resultDataList.add(pushResultData);
             });
-            if(CollectionUtils.isEmpty(resultDataList)) {
+            if (CollectionUtils.isEmpty(resultDataList)) {
                 return;
             }
             //批量插入
             sushangPushResultDataMapper.insertBatch(resultDataList);
         } catch (Exception e) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商银行规则二插入通话明细异常！"), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商银行规则二插入通话明细异常！"), e);
         }
     }
 
@@ -160,7 +162,7 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                 //查询最接近该日期的外呼时间
                 SushangCallRecordData callRecordData = sushangCallRecordDataMapper.getLastedCallData(callRecordLocalId, minDealTime, custNum);
                 if (ObjectUtils.isEmpty(callRecordData)) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "custNum=" + custNum +
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "custNum=" + custNum +
                             "苏商银行规则一未查询到通话明细！"));
                     continue;
                 }
@@ -178,13 +180,13 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                     resultDataList.add(pushResultData);
                 }
             }
-            if(CollectionUtils.isEmpty(resultDataList)){
+            if (CollectionUtils.isEmpty(resultDataList)) {
                 return;
             }
             //批量插入
             sushangPushResultDataMapper.insertBatch(resultDataList);
         } catch (Exception e) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商银行规则一插入通话明细异常！"), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商银行规则一插入通话明细异常！"), e);
         }
     }
 
