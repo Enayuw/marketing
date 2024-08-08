@@ -3572,6 +3572,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setContentShow(dto.getmRuleConditionShow());
         searchCondition.setCreateTime(date);
         searchCondition.setUpdateTime(date);
+        searchCondition.setSourceType(dto.getSourceType());
+        searchCondition.setSourceCondition(dto.getSourceCondition());
         scoreSearchConditionMapper.insertSelective(searchCondition);
         entityOptService.writeOptLog(searchCondition.getId(), searchCondition, null);
 
