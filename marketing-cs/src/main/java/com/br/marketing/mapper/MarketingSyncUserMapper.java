@@ -357,7 +357,17 @@ public interface MarketingSyncUserMapper {
                                                   @Param("pageSize") Integer pageSize);
 
     MarketingSyncUser getMarketingSyncByCusBatch(@Param("apiCode") String apiCode,
-                               @Param("cusBatch") String cusBatch,
-                               @Param("userType") String userType,
-                               @Param("appletDate") String appletDate);
+                                                 @Param("cusBatch") String cusBatch,
+                                                 @Param("userType") String userType,
+                                                 @Param("appletDate") String appletDate);
+
+    /**
+     * 2024-08-09 16:53
+     * 根据案件编号和上传时间查询扩展字段
+     */
+    List<MarketingSyncUser> getReserveFieldByCustNumAndAppletDateList(@Param("apiCode") String apiCode,
+                                                                      @Param("custNumSet") Set<String> custNumSet,
+                                                                      @Param("appletDateSet") Set<String> appletDateSet);
+
+    int updateReserveFieldByPrimaryKey(MarketingSyncUser record);
 }

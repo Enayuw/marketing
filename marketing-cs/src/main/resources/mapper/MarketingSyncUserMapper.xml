@@ -930,9 +930,34 @@
         limit #{pageSize}
     </select>
     <select id="getMarketingSyncByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select * From  b_marketing_sync_${apiCode}
-        where cus_batch=#{cusBatch} and api_code = #{apiCode} and applet_date = #{appletDate}
-          and user_type =#{userType}
-        and status =1 and is_repeat in (1,2) limit 1
+        select *
+        From b_marketing_sync_${apiCode}
+        where cus_batch = #{cusBatch}
+          and api_code = #{apiCode}
+          and applet_date = #{appletDate}
+          and user_type = #{userType}
+          and status = 1
+          and is_repeat in (1, 2) limit 1
     </select>
+
+    <select id="getReserveFieldByCustNumAndAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select id,cust_num,reserve_field1
+        from b_marketing_sync_${apiCode}
+        where api_code = '${apiCode}'
+        and cust_num in
+        <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
+            '${custNum}'
+        </foreach>
+        and applet_date in
+        <foreach collection="appletDateSet" open="(" close=")" separator="," item="appletDate">
+            '${appletDate}'
+        </foreach>
+        and status =1 and is_repeat in (1,2)
+    </select>
+
+    <update id="updateReserveFieldByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSyncUser">
+        update b_marketing_sync_${apiCode}
+        set reserve_field1 = #{reserve_field1,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
 </mapper>

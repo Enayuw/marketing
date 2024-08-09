@@ -7,7 +7,6 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoanFileMapper;
@@ -31,7 +30,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @Aspect
 @Component
@@ -46,19 +44,24 @@ public class CopyFileJoinAspect {
     TransferFileTaskMapper transferFileTaskMapper;
 
     @Pointcut("execution(public * com.br.marketing.sync.service.impl.SyncServiceImpl.copyFile(..))")
-    public void copyFile(){}
+    public void copyFile() {
+    }
 
-    @Around("com.br.marketing.sync.aspect.CopyFileJoinAspect.copyFile()")
-    public void copyFile(ProceedingJoinPoint joinPoint){
+    @Pointcut("execution(public * com.br.marketing.sync.service.impl.SyncServiceImpl.downloadFileToLocalDisk(..))")
+    public void downloadFileToLocalDisk() {
+    }
+
+    @Around("com.br.marketing.sync.aspect.CopyFileJoinAspect.copyFile() || downloadFileToLocalDisk()")
+    public void copyFile(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
-        SyncConfig loanSyncConfig= new SyncConfig();
-        String fileName="";
-        BaseFtpClient srcClient=null;
-        BaseFtpClient targetClient= null;
+        SyncConfig loanSyncConfig = new SyncConfig();
+        String fileName = "";
+        BaseFtpClient srcClient = null;
+        BaseFtpClient targetClient = null;
         for (int i = 0; i < args.length; i++) {
             if (0 == i) {
                 loanSyncConfig = (SyncConfig) args[i];
-            }else if(1 == i){
+            } else if (1 == i) {
                 fileName = (String) args[i];
             }else if(2 == i){
                 srcClient= (BaseFtpClient) args[i];

@@ -8,8 +8,10 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncLog;
+import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
 import com.br.marketing.sync.SyncApplication;
@@ -20,7 +22,16 @@ import org.apache.commons.net.ftp.FTPFile;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.xml.bind.DatatypeConverter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
+import java.security.MessageDigest;
 import java.util.*;
 
 /**
@@ -39,6 +50,9 @@ public class SyncServiceImpl implements SyncService {
      */
     @Resource
     SyncLogMapper loanSyncLogMapper;
+
+    @Resource
+    private MarketingCleanDataFileMapper marketingCleanDataFileMapper;
 
     @Override
     public void getFromSftp() {
@@ -158,14 +172,17 @@ public class SyncServiceImpl implements SyncService {
             List<String> zipList = stringListMap.get("zip");
             if(zipList!=null){
                 for(String fileName:zipList){
-                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
-                        bean.copyFile(loanSyncConfig,fileName,srcClient,targetClient);
-                        if(suffixStr.contains(".success")){
-                            log.info("--------------开始同步success文件---------------");
-                            String successFile=fileName+".success";
-                            bean.copyFile(loanSyncConfig,successFile,srcClient,targetClient);
+                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)) {
+                        if (downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                            continue;
                         }
-                        flag=true;
+                        bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
+                        if (suffixStr.contains(".success")) {
+                            log.info("--------------开始同步success文件---------------");
+                            String successFile = fileName + ".success";
+                            bean.copyFile(loanSyncConfig, successFile, srcClient, targetClient);
+                        }
+                        flag = true;
                     }
                 }
             }
@@ -428,13 +445,132 @@ public class SyncServiceImpl implements SyncService {
         }
         try {
             long distanceDays = DateHelper.getDistanceDays(createFileTime, loanSyncConfig.getExclusionTime());
-            if(distanceDays>0){
+            if (distanceDays > 0) {
                 return true;
             }
         } catch (Exception e) {
-           log.warn("Exception",e);
+            log.warn("Exception", e);
         }
         return false;
+    }
+
+    /**
+     * 2024-08-08 22:28
+     * 下载远程文件到本地
+     *
+     * @param loanSyncConfig 远程sftp配置
+     * @param srcClient      远程客户端
+     * @param fileName       文件名称
+     * @return true 下载到本地
+     */
+    public boolean downloadFileToLocalDisk(SyncConfig loanSyncConfig, BaseFtpClient srcClient, String fileName) {
+        String targetType = loanSyncConfig.getTargetType();
+        String targetSftpHost = loanSyncConfig.getTargetSftpHost();
+        String targetSftpPwd = loanSyncConfig.getTargetSftpPwd();
+        String targetSftpUser = loanSyncConfig.getTargetSftpUser();
+        Integer targetSftpPort = loanSyncConfig.getTargetSftpPort();
+        // 未配置目标资源信息及目标类型为“local”默认本地下载
+        boolean bool = StringUtils.isBlank(targetSftpHost)
+                || StringUtils.isBlank(targetSftpPwd)
+                || StringUtils.isBlank(targetSftpUser)
+                || targetSftpPort == null
+                || targetSftpPort < 1
+                || "local".equals(targetType);
+        String targetPath = loanSyncConfig.getTargetPath();
+        // 判断本地路径是否正常
+        if (bool && StringUtils.isNotBlank(targetPath)) {
+            if (loanSyncConfig.getSuffix().contains(".success")) {
+                return true;
+            }
+            String srcPath = loanSyncConfig.getSrcPath();
+            InputStream inputStream = null;
+            ReadableByteChannel readableByteChannel = null;
+            WritableByteChannel writableByteChannel = null;
+            // jvm堆外内存
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024 << 1);
+            try {
+                File dir = new File(targetPath);
+                // 判断路径
+                if (!dir.exists()) {
+                    if (!dir.mkdirs()) {
+                        log.warn("下载远程客户文件路径创建失败：{}", dir.getAbsolutePath());
+                    }
+                }
+                inputStream = srcClient.getInputStream(srcPath, fileName);
+                readableByteChannel = Channels.newChannel(inputStream);
+                writableByteChannel = Channels.newChannel(
+                        new FileOutputStream(targetPath + File.separator + fileName));
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                // 文件内容读取
+                while (readableByteChannel.read(byteBuffer) != -1) {
+                    byteBuffer.flip();
+                    writableByteChannel.write(byteBuffer);
+                    md.update(byteBuffer);
+                    byteBuffer.clear();
+                }
+                // 获取MD5值生成
+                String md5Value = DatatypeConverter.printHexBinary(md.digest());
+                // 保存文件信息
+                saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
+            } catch (Exception e) {
+                log.warn("文件下载错误文件出错！srcPath:{},fileName:{},targetPath{},syncConfigId:{}"
+                        , srcPath, fileName, targetPath, loanSyncConfig.getId(), e);
+            } finally {
+                byteBuffer.clear();
+                if (inputStream != null) {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        log.warn(e.getMessage(), e);
+                    }
+                }
+                if (readableByteChannel != null) {
+                    try {
+                        readableByteChannel.close();
+                    } catch (IOException e) {
+                        log.warn(e.getMessage(), e);
+                    }
+                }
+                if (writableByteChannel != null) {
+                    try {
+                        writableByteChannel.close();
+                    } catch (IOException e) {
+                        log.warn(e.getMessage(), e);
+                    }
+                }
+            }
+        } else {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 2024-08-08 22:35
+     * 保存文件信息
+     *
+     * @param fileName       文件名
+     * @param loanSyncConfig sftp配置信息
+     * @param targetPath     目标目录
+     * @param srcPath        源目录
+     * @param md5Value       md5
+     */
+    private void saveDataFileInfo(String fileName, SyncConfig loanSyncConfig
+            , String targetPath, String srcPath, String md5Value) {
+        MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
+        dataFile.setFileName(fileName);
+        dataFile.setApiCode(loanSyncConfig.getApiCode());
+        dataFile.setCreateTime(new Date());
+        dataFile.setLocalPath(targetPath);
+        dataFile.setUpdateTime(new Date());
+        dataFile.setTargetSftpPath(srcPath);
+        dataFile.setMd5Value(md5Value);
+        dataFile.setSyncConfigId(loanSyncConfig.getId());
+        int i = marketingCleanDataFileMapper.insertSelective(dataFile);
+        if (i < 1) {
+            log.warn("清洗文件新增下载失败！fileName:{},targetPath:{},srcPath:{},md5Value:{},syncConfigId:{}"
+                    , fileName, targetPath, srcPath, md5Value, loanSyncConfig.getId());
+        }
     }
 
 }
