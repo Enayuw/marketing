@@ -3,6 +3,8 @@ package com.br.marketing.vo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * @ClassName PushDecisionsDetailVO
  * @Description TODO
@@ -24,11 +26,17 @@ public class PushDecisionsDetailVO {
     @ApiModelProperty(value = "规则名称")
     private String ruleName;
 
-    @ApiModelProperty(value = "依赖模板")
-    private String dependencyTemplate;
+    @ApiModelProperty(value = "依赖模板id")
+    private Long dependencyTemplateId;
+
+    @ApiModelProperty(value = "依赖模板名称")
+    private String dependencyTemplateName;
+
+    @ApiModelProperty(value = "数据源")
+    private Integer dependencyTemplateSource;
 
     @ApiModelProperty(value = "规则状态")
-    private String status;
+    private Integer status;
 
     @ApiModelProperty(value = "每日自动执行时间")
     private String autoTime;

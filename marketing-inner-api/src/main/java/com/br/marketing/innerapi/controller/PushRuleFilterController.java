@@ -159,7 +159,7 @@ public class PushRuleFilterController {
     }
 
     @ApiOperation(value = "删除规则模板")
-    @PostMapping("/deleteRule")
+    @GetMapping("/deleteRule")
     public ApiResult<Boolean> deleteRule(@RequestParam Long id) {
         return new ApiResult<Boolean>().fromResult(pushRuleService.deleteRule(id), CODE_1);
     }

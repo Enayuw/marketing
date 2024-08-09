@@ -11,7 +11,7 @@ public class ConditionSaveDTO{
     @NotNull(message = "商户编个号不能为空")
     private String apiCode;
 
-    @ApiModelProperty(value = "商户编号")
+    @ApiModelProperty(value = "规则名称")
     @NotNull(message = "规则名称不能为空")
     private String name;
 

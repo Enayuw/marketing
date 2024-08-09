@@ -7,6 +7,7 @@ import com.br.marketing.service.PushDecisionsService;
 import com.br.marketing.vo.PushDecisionsDetailVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jdk.nashorn.internal.objects.annotations.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,7 @@ public class PushDecisionsController {
     }
 
     @ApiOperation(value = "删除决策自动化配置")
-    @PostMapping("/deletePushDecisions")
+    @GetMapping("/deletePushDecisions")
     public ApiResult<Boolean> deletePushDecisions(@RequestParam Long id) {
         return new ApiResult<Boolean>().fromResult(pushDecisionsService.deletePushDecisions(id), CODE_1);
     }
@@ -46,7 +47,7 @@ public class PushDecisionsController {
     }
 
     @ApiOperation(value = "获取推送决策详情")
-    @PostMapping("/getPushDecisionsDetails")
+    @GetMapping("/getPushDecisionsDetails")
     public ApiResult<PushDecisionsDetailVO> getPushDecisionsDetails(@RequestParam Long id) {
         return new ApiResult<PushDecisionsDetailVO>().fromResult(pushDecisionsService.getPushDecisionsDetails(id), CODE_1);
     }
