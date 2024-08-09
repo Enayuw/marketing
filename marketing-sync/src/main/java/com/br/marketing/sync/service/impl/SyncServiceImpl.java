@@ -138,12 +138,15 @@ public class SyncServiceImpl implements SyncService {
             if(txtList!=null){
                 for(String fileName:txtList){
                     if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
-                        bean.copyFile(loanSyncConfig,fileName,srcClient,targetClient);
-                        if(suffixStr.contains(".success")){
+                        if (downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                            continue;
+                        }
+                        bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
+                        if (suffixStr.contains(".success")) {
                             log.info("--------------开始同步success文件---------------");
-                            String successFile=fileName+".success";
+                            String successFile = fileName + ".success";
 
-                            bean.copyFile(loanSyncConfig,successFile,srcClient,targetClient);
+                            bean.copyFile(loanSyncConfig, successFile, srcClient, targetClient);
                         }
                     }
                 }
@@ -155,12 +158,15 @@ public class SyncServiceImpl implements SyncService {
             List<String> txtList = stringListMap.get("csv");
             if(txtList!=null){
                 for(String fileName:txtList){
-                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
-                        bean.copyFile(loanSyncConfig,fileName,srcClient,targetClient);
-                        if(suffixStr.contains(".success")){
+                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)) {
+                        if (downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                            continue;
+                        }
+                        bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
+                        if (suffixStr.contains(".success")) {
                             log.info("--------------开始同步success文件---------------");
-                            String successFile=fileName+".success";
-                            bean.copyFile(loanSyncConfig,successFile,srcClient,targetClient);
+                            String successFile = fileName + ".success";
+                            bean.copyFile(loanSyncConfig, successFile, srcClient, targetClient);
                         }
                     }
                 }
@@ -192,13 +198,19 @@ public class SyncServiceImpl implements SyncService {
         if(suffixStr.contains(".finish")&&flag){
             log.info("--------------开始同步finish文件---------------");
             if(finishList!=null){
-                for(String fileName:finishList){
-                    bean.copyFile(loanSyncConfig,fileName,srcClient,targetClient);
+                for(String fileName:finishList) {
+                    if (downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                        continue;
+                    }
+                    bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
                 }
             }
         }
         try {
             srcClient.disconnect();
+            if (diskBoll || targetClient == null) {
+                return;
+            }
             targetClient.disconnect();
         } catch (Exception e) {
             log.error("关闭sftp链接出错",e);
