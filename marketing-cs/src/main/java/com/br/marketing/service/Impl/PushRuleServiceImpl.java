@@ -364,6 +364,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     ScoreSearchConditionMapper scoreSearchConditionMapper;
 
     @Resource
+    PushDecisionsMapper pushDecisionsMapper;
+
+    @Resource
     ScoreSearchConditionMappingMapper scoreSearchConditionMappingMapper;
 
     @Autowired
@@ -1398,6 +1401,27 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             log.error("推送" + queueEnum.getDesc() + "队列失败,数据id：{}", infoId);
         }
+    }
+
+    @Override
+    public Result<Boolean> deleteRule(Long id) {
+        try {
+            // 判断该规则模板是否被推送决策配置引用
+            PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
+            pushDecisionsExample.createCriteria().andDependencyTemplateIdEqualTo(id);
+            List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
+            if(!pushDecisions.isEmpty()){
+                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板已被引用，不能删除");
+            }
+            ScoreSearchCondition updateEntity = new ScoreSearchCondition();
+            updateEntity.setId(id);
+            updateEntity.setIsDel(9);
+            scoreSearchConditionMapper.updateByPrimaryKeySelective(updateEntity);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        } catch (Exception e) {
+            log.error("删除规则模板报错，id={},",id,e);
+        }
+        return null;
     }
 
     private Long requestIdWriteRedis(String key, String requestId) {
@@ -3572,6 +3596,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setContentShow(dto.getmRuleConditionShow());
         searchCondition.setCreateTime(date);
         searchCondition.setUpdateTime(date);
+        searchCondition.setSourceType(dto.getSourceType());
+        searchCondition.setSourceCondition(dto.getSourceCondition());
         scoreSearchConditionMapper.insertSelective(searchCondition);
         entityOptService.writeOptLog(searchCondition.getId(), searchCondition, null);
 
@@ -3636,6 +3662,15 @@ public class PushRuleServiceImpl implements PushRuleService {
         ScoreSearchCondition searchCondition = scoreSearchConditionMapper.selectByPrimaryKey(dto.getId());
         if (!new Integer(1).equals(searchCondition.getIsDel())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则不存在");
+        }
+        // 若置为失效 则需判断该规则模板是否被推送决策配置引用
+        if(new Integer(2).equals(dto.getStatus())){
+            PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
+            pushDecisionsExample.createCriteria().andDependencyTemplateIdEqualTo(dto.getId());
+            List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
+            if(!pushDecisions.isEmpty()){
+                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板已被引用，不能修改为失效");
+            }
         }
         ScoreSearchCondition updateEntity = new ScoreSearchCondition();
         updateEntity.setId(dto.getId());

@@ -22,6 +22,12 @@ public class ConditionSaveDTO{
     @ApiModelProperty(value = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
 
+    @ApiModelProperty(value = "数据源类型")
+    private Integer sourceType;
+
+    @ApiModelProperty(value = "数据源内容")
+    private String sourceCondition;
+
     public String getApiCode() {
         return apiCode;
     }
@@ -52,5 +58,21 @@ public class ConditionSaveDTO{
 
     public void setmRuleConditionShow(String mRuleConditionShow) {
         this.mRuleConditionShow = mRuleConditionShow;
+    }
+
+    public String getSourceCondition() {
+        return sourceCondition;
+    }
+
+    public void setSourceCondition(String sourceCondition) {
+        this.sourceCondition = sourceCondition;
+    }
+
+    public Integer getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(Integer sourceType) {
+        this.sourceType = sourceType;
     }
 }

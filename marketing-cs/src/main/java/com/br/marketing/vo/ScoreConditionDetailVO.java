@@ -18,6 +18,9 @@ public class ScoreConditionDetailVO {
     @ApiModelProperty(value = "状态 1-开始；2-关闭")
     private Integer status;
 
+    @ApiModelProperty(value = "数据源类型：0-无数据源(默认，存量的模板数据)；1-跑分数据源；2-众安转化数据源")
+    private Integer sourceType;
+
     @ApiModelProperty(value = "规则名称")
     private String name;
 
