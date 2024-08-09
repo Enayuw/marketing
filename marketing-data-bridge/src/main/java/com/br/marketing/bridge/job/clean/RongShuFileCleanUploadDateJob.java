@@ -111,7 +111,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                             String fileHeader = "";
                                             MarketingCleanDataFile dataFileNew = null;
                                             String[] fileHeaders = null;
-                                            Map<String, JSONObject> map = new HashMap<>();
+                                            Map<String, JSONObject> map = new HashMap<>(2048);
                                             while (accessFile.readBoolean()) {
                                                 String rowData = accessFile.readLine();
                                                 if (rowNum < 3) {
@@ -134,30 +134,13 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                                 }
                                                 map.put(uid, object);
                                                 if (map.size() == 2000 && dataFileNew != null) {
-                                                    List<MarketingSyncUser> list = marketingSyncUserMapper
-                                                            .getReserveFieldByCustNumAndAppletDateList(apiCode, map.keySet(), appletDateSet);
-                                                    for (MarketingSyncUser syncUser : list) {
-                                                        String reserveField1 = syncUser.getReserveField1();
-                                                        RongshuPaofenFileUpdateSyncCleanLog cleanLog = new RongshuPaofenFileUpdateSyncCleanLog();
-                                                        cleanLog.setApiCode(apiCode);
-                                                        cleanLog.setHistoryDataJson(reserveField1);
-                                                        cleanLog.setSyncApicodeId(syncUser.getId());
-                                                        cleanLog.setMarketingCleanDataFileId(dataFileNew.getId());
-                                                        cleanLog.setIsSuccess(1);
-                                                        if (JSONObject.isValidObject(reserveField1)) {
-                                                            JSONObject newData = map.get(syncUser.getCustNum());
-                                                            JSONObject oldData = JSONObject.parseObject(reserveField1);
-                                                            newData.forEach((String key, Object value) -> {
-                                                                oldData.put(key, value.toString());
-                                                            });
-                                                            syncUser.setReserveField1(oldData.toJSONString());
-                                                            marketingSyncUserMapper.updateReserveFieldByPrimaryKey(syncUser);
-                                                            cleanLog.setIsSuccess(0);
-                                                        }
-                                                        rongshuPaofenFileUpdateSyncCleanLogMapper.insertSelective(cleanLog);
-                                                    }
+                                                    update(apiCode, map, appletDateSet, dataFileNew);
+                                                    map.clear();
                                                 }
                                                 rowNum++;
+                                            }
+                                            if (map.size() != 0 && dataFileNew != null) {
+                                                update(apiCode, map, appletDateSet, dataFileNew);
                                             }
                                         } catch (IOException e) {
                                             log.warn(e.getMessage(), e);
@@ -166,14 +149,8 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                 }
                             }
                         }
-                    } else {
-                        for (MarketingCleanDataFile dataFile : cleanDataFiles) {
-// TODO: 2024-08-09  实现 
-                        }
                     }
-
                 }
-
             }
         }
 
@@ -210,6 +187,34 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             return null;
         }
         return dataFile;
+    }
+
+    /**
+     * 2024-08-09 18:13
+     * 更新
+     */
+    private void update(String apiCode, Map<String, JSONObject> map, Set<String> appletDateSet
+            , MarketingCleanDataFile dataFileNew) {
+        List<MarketingSyncUser> list = marketingSyncUserMapper
+                .getReserveFieldByCustNumAndAppletDateList(apiCode, map.keySet(), appletDateSet);
+        for (MarketingSyncUser syncUser : list) {
+            String reserveField1 = syncUser.getReserveField1();
+            RongshuPaofenFileUpdateSyncCleanLog cleanLog = new RongshuPaofenFileUpdateSyncCleanLog();
+            cleanLog.setApiCode(apiCode);
+            cleanLog.setHistoryDataJson(reserveField1);
+            cleanLog.setSyncApicodeId(syncUser.getId());
+            cleanLog.setMarketingCleanDataFileId(dataFileNew.getId());
+            cleanLog.setIsSuccess(1);
+            if (JSONObject.isValidObject(reserveField1)) {
+                JSONObject newData = map.get(syncUser.getCustNum());
+                JSONObject oldData = JSONObject.parseObject(reserveField1);
+                newData.forEach((String key, Object value) -> oldData.put(key, value.toString()));
+                syncUser.setReserveField1(oldData.toJSONString());
+                marketingSyncUserMapper.updateReserveFieldByPrimaryKey(syncUser);
+                cleanLog.setIsSuccess(0);
+            }
+            rongshuPaofenFileUpdateSyncCleanLogMapper.insertSelective(cleanLog);
+        }
     }
 
 }
