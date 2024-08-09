@@ -107,9 +107,10 @@ public class SyncServiceImpl implements SyncService {
      * @param stringListMap 文件名称和文件属性
      */
     private void syncFile(SyncConfig loanSyncConfig, Map<String, List<String>> stringListMap,String date) {
-        BaseFtpClient srcClient = getClient(loanSyncConfig,true);
-        BaseFtpClient targetClient = getClient(loanSyncConfig,false);
-        if(srcClient==null||targetClient==null){
+        BaseFtpClient srcClient = getClient(loanSyncConfig, true);
+        BaseFtpClient targetClient = getClient(loanSyncConfig, false);
+        boolean diskBoll = Constants.LOAN_DISK.equals(loanSyncConfig.getTargetType());
+        if (srcClient == null || (!diskBoll && targetClient == null)) {
             try {
                 if (srcClient != null) {
                     srcClient.disconnect();
@@ -117,14 +118,14 @@ public class SyncServiceImpl implements SyncService {
                 if (targetClient != null) {
                     targetClient.disconnect();
                 }
-            }catch (Exception ex){
-                log.error("targetClient or srcClient disconnect"+ex.getMessage(),ex);
+            } catch (Exception ex) {
+                log.error("targetClient or srcClient disconnect" + ex.getMessage(), ex);
             }
             log.error("targetClient or srcClient is null");
             return;
         }
-        if(!srcClient.isConnected()||!targetClient.isConnected()){
-            log.error("连接不可用 srcSftpClient.isConnected():{},targetSftpClient.isConnected():{}",srcClient.isConnected(),targetClient.isConnected());
+        if (!srcClient.isConnected() || (!diskBoll && !targetClient.isConnected())) {
+            log.error("连接不可用 srcSftpClient.isConnected():{},targetSftpClient.isConnected():{}", srcClient.isConnected(), targetClient.isConnected());
             return;
         }
         String suffixStr = loanSyncConfig.getSuffix();
@@ -475,7 +476,7 @@ public class SyncServiceImpl implements SyncService {
                 || StringUtils.isBlank(targetSftpUser)
                 || targetSftpPort == null
                 || targetSftpPort < 1
-                || "local".equals(targetType);
+                || Constants.LOAN_DISK.equals(targetType);
         String targetPath = loanSyncConfig.getTargetPath();
         // 判断本地路径是否正常
         if (bool && StringUtils.isNotBlank(targetPath)) {
