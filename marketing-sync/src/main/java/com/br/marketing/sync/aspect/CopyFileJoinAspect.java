@@ -47,7 +47,7 @@ public class CopyFileJoinAspect {
     public void copyFile() {
     }
 
-    @Pointcut("execution(public * com.br.marketing.sync.service.impl.SyncServiceImpl.downloadFileToLocalDisk(..))")
+    @Pointcut("execution(public Boolean com.br.marketing.sync.service.impl.SyncServiceImpl.downloadFileToLocalDisk(..))")
     public void downloadFileToLocalDisk() {
     }
 
@@ -98,7 +98,7 @@ public class CopyFileJoinAspect {
     }
 
     @Around("downloadFileToLocalDisk()")
-    public void localDisk(ProceedingJoinPoint joinPoint) {
+    public Object localDisk(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
         SyncConfig loanSyncConfig = null;
         String fileName = "";
@@ -116,15 +116,17 @@ public class CopyFileJoinAspect {
         }
         if (srcClient == null || loanSyncConfig == null) {
             log.warn("Download File To Local Disk srcClient is null");
-            return;
+            return Boolean.FALSE;
         }
         SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
+        Object proceed = Boolean.FALSE;
         try {
-            Object proceed = joinPoint.proceed(args);
-            insertSyncLog(loanSyncConfig, fileName, (boolean) proceed, loanSyncLog);
+            proceed = joinPoint.proceed(args);
+            insertSyncLog(loanSyncConfig, fileName, (Boolean) proceed, loanSyncLog);
         } catch (Throwable throwable) {
             log.error("download File LocalDisk error", throwable);
         }
+        return proceed;
     }
 
 

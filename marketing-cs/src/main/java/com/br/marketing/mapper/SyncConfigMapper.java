@@ -1,4 +1,5 @@
 package com.br.marketing.mapper;
+
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.SyncConfigEditVO;
@@ -17,17 +18,21 @@ public interface SyncConfigMapper extends SyncConfigMapperBase {
 
     /**
      * 查询可用的配置
+     *
      * @return 可用配置列表
      */
     List<SyncConfig> queryConfig(String type);
+
+    List<SyncConfig> queryConfigByTypeAndTargetType(@Param("type") String type, @Param("targetTypes") String... targetTypes);
 
     SyncConfig queryConfigByConditaion(SyncConfig loanSyncConfig);
 
     /**
      * 客户sftp账号列表
+     *
      * @param apiCode
      * @return
      */
     @AddDataAuth
-    List<SyncConfigEditVO> getSftpList(@Param("apiCode")String apiCode,@Param("dataType")Integer dataType);
+    List<SyncConfigEditVO> getSftpList(@Param("apiCode") String apiCode, @Param("dataType") Integer dataType);
 }

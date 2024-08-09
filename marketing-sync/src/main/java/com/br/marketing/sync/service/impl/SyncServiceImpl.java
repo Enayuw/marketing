@@ -60,8 +60,11 @@ public class SyncServiceImpl implements SyncService {
 
     @Override
     public void getFromSftp() {
-        List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfig("1");
+        List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1"
+                , Constants.LOAN_WARNING_FTP, Constants.LOAN_WARNING_SFTP);
         sync(loanSyncConfigs);
+        List<SyncConfig> syncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1", Constants.LOAN_DISK);
+        sync(syncConfigs);
     }
 
     @Override
@@ -142,7 +145,7 @@ public class SyncServiceImpl implements SyncService {
             if(txtList!=null){
                 for(String fileName:txtList){
                     if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
-                        if (downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                        if (bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
                         bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
@@ -163,7 +166,7 @@ public class SyncServiceImpl implements SyncService {
             if(txtList!=null){
                 for(String fileName:txtList){
                     if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)) {
-                        if (downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                        if (bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
                         bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
@@ -184,7 +187,7 @@ public class SyncServiceImpl implements SyncService {
             if(zipList!=null){
                 for(String fileName:zipList){
                     if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)) {
-                        if (downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                        if (bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
                         bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
@@ -203,7 +206,7 @@ public class SyncServiceImpl implements SyncService {
             log.info("--------------开始同步finish文件---------------");
             if(finishList!=null){
                 for(String fileName:finishList) {
-                    if (downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                    if (bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                         continue;
                     }
                     bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
@@ -480,7 +483,7 @@ public class SyncServiceImpl implements SyncService {
      * @param fileName       文件名称
      * @return true 下载到本地
      */
-    public boolean downloadFileToLocalDisk(SyncConfig loanSyncConfig, BaseFtpClient srcClient, String fileName) {
+    public Boolean downloadFileToLocalDisk(SyncConfig loanSyncConfig, BaseFtpClient srcClient, String fileName) {
         String targetType = loanSyncConfig.getTargetType();
         String targetSftpHost = loanSyncConfig.getTargetSftpHost();
         String targetSftpPwd = loanSyncConfig.getTargetSftpPwd();
@@ -496,11 +499,8 @@ public class SyncServiceImpl implements SyncService {
         String targetPath;
         // 判断本地路径是否正常
         if (bool) {
-            if (loanSyncConfig.getSuffix().contains(".success")) {
-                return true;
-            }
             targetPath = StringUtils.isNotBlank(loanSyncConfig.getTargetPath()) ? loanSyncConfig.getTargetPath()
-                    : syncConfigService.getPath().concat("clean_file");
+                    : syncConfigService.getPath().concat("clean_file").concat(File.separator);
             String srcPath = loanSyncConfig.getSrcPath();
             InputStream inputStream = null;
             ReadableByteChannel readableByteChannel = null;
@@ -515,10 +515,17 @@ public class SyncServiceImpl implements SyncService {
                         log.warn("下载远程客户文件路径创建失败：{}", dir.getAbsolutePath());
                     }
                 }
+                String fileNamePath = targetPath + File.separator + fileName;
+                File file = new File(fileNamePath);
+                if (file.exists()) {
+                    boolean b = file.renameTo(new File(fileName.concat(".bak" + System.currentTimeMillis())));
+                    if (!b) {
+                        log.warn("{}文件重命名失败！", fileNamePath);
+                    }
+                }
                 inputStream = srcClient.getInputStream(srcPath, fileName);
                 readableByteChannel = Channels.newChannel(inputStream);
-                writableByteChannel = Channels.newChannel(
-                        new FileOutputStream(targetPath + File.separator + fileName));
+                writableByteChannel = Channels.newChannel(new FileOutputStream(file));
                 MessageDigest md = MessageDigest.getInstance("MD5");
                 // 文件内容读取
                 while (readableByteChannel.read(byteBuffer) != -1) {
@@ -530,7 +537,7 @@ public class SyncServiceImpl implements SyncService {
                 // 获取MD5值生成
                 String md5Value = DatatypeConverter.printHexBinary(md.digest());
                 // 保存文件信息
-                saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
+                return saveDataFileInfo(fileName, loanSyncConfig, targetPath, srcPath, md5Value);
             } catch (Exception e) {
                 log.warn("文件下载错误文件出错！srcPath:{},fileName:{},targetPath{},syncConfigId:{}"
                         , srcPath, fileName, targetPath, loanSyncConfig.getId(), e);
@@ -559,9 +566,9 @@ public class SyncServiceImpl implements SyncService {
                 }
             }
         } else {
-            return false;
+            return Boolean.FALSE;
         }
-        return true;
+        return Boolean.TRUE;
     }
 
     /**
@@ -574,7 +581,7 @@ public class SyncServiceImpl implements SyncService {
      * @param srcPath        源目录
      * @param md5Value       md5
      */
-    private void saveDataFileInfo(String fileName, SyncConfig loanSyncConfig
+    private Boolean saveDataFileInfo(String fileName, SyncConfig loanSyncConfig
             , String targetPath, String srcPath, String md5Value) {
         MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
         dataFile.setFileName(fileName);
@@ -589,7 +596,9 @@ public class SyncServiceImpl implements SyncService {
         if (i < 1) {
             log.warn("清洗文件新增下载失败！fileName:{},targetPath:{},srcPath:{},md5Value:{},syncConfigId:{}"
                     , fileName, targetPath, srcPath, md5Value, loanSyncConfig.getId());
+            return Boolean.FALSE;
         }
+        return Boolean.TRUE;
     }
 
 }
