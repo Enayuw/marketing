@@ -218,7 +218,7 @@
         </trim>
   </insert>
     <select id="countByExample" parameterType="com.br.marketing.entity.MarketingCleanDataFileExample"
-            resultType="java.lang.Integer">
+            resultType="java.lang.Long">
         select count(*) from b_marketing_clean_data_file
         <if test="_parameter != null">
             <include refid="Example_Where_Clause"/>

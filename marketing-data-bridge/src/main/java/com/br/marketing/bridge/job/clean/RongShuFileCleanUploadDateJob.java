@@ -90,7 +90,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 DingDingAlarmFunctionEnum.RONGSHU_FILE_CLEAN_UPLOAD_READFILE.toString(), jsonObject);
         LocalDateTime localDateTime = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
         // 前一天
-        Instant instant = localDateTime.plusDays(1).atZone(ZoneId.systemDefault()).toInstant();
+        Instant instant = localDateTime.minusDays(1).atZone(ZoneId.systemDefault()).toInstant();
         LocalDate localDate = localDateTime.toLocalDate();
         LocalTime time = localDateTime.toLocalTime();
         String regex = ",";
