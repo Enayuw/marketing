@@ -1,6 +1,9 @@
 package com.br.marketing.bridge.job.clean;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.MarketingCleanDataFileExample;
@@ -8,11 +11,14 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.clean.MarketingCleanCreateTaskRule;
 import com.br.marketing.entity.clean.MarketingCleanCreateTaskRuleExample;
 import com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLog;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.clean.MarketingCleanCreateTaskRuleMapper;
 import com.br.marketing.mapper.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogMapper;
 import com.br.marketing.service.IMarketingDataValidService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +30,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 /**
@@ -54,6 +62,16 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     @Resource
     private RongshuPaofenFileUpdateSyncCleanLogMapper rongshuPaofenFileUpdateSyncCleanLogMapper;
 
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
+
+    private static final ThreadPoolExecutor THREAD_POOL = BrExecutors.getThreadPool(
+            Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors() + 2
+            , "rongShu-file-clean-upload-data-%d");
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
 
     /**
      * 2024-08-08 15:51
@@ -65,6 +83,11 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         if (StringUtils.isEmpty(apiCode)) {
             apiCode = "4004643";
         }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("token", "7f32618dafd2d2126f5564aaf57a35867c8775baf78777140990c16d56edc457");
+        jsonObject.put("secret", "SEC4d2d8a91842ad25136e92213a852ebe5cf1c22ddaf49dcfd352d5a9323eb1ca8");
+        JSONObject map = marketingCommonConfig.getDingDingWebHookInfo().getOrDefault(
+                DingDingAlarmFunctionEnum.RONGSHU_FILE_CLEAN_UPLOAD_READFILE.toString(), jsonObject);
         LocalDateTime localDateTime = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
         // 前一天
         Instant instant = localDateTime.plusDays(1).atZone(ZoneId.systemDefault()).toInstant();
@@ -96,6 +119,9 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                             }
                             String fileName = dataFile.getFileName();
                             String localPath = dataFile.getLocalPath();
+                            dingDingRobotHookService.sendDingDingTextMessage(
+                                    "榕树上传数据更新-4004643开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                            + "]，文件：" + fileName, map);
                             if (fileName.contains(".zip")) {
                                 String localUnzipPath = localPath.concat(File.separator).concat("unzip").concat(File.separator);
                                 ZipUtils.unZip(new File(dataFile.getLocalPath()), localUnzipPath, taskRule.getZipPassword());
@@ -103,57 +129,71 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                 File[] files = dir.listFiles();
                                 if (files != null) {
                                     for (File file : files) {
-                                        Set<String> appletDateSet = iMarketingDataValidService.getAppletDateSet(apiCode, localDate.toString());
-                                        String name = file.getName();
-                                        try {
-                                            RandomAccessFile accessFile = new RandomAccessFile(file.getAbsoluteFile(), "r");
-                                            int rowNum = 1;
-                                            String fileHeader = "";
-                                            MarketingCleanDataFile dataFileNew = null;
-                                            String[] fileHeaders = null;
-                                            Map<String, JSONObject> map = new HashMap<>(2048);
-                                            while (accessFile.readBoolean()) {
-                                                String rowData = accessFile.readLine();
-                                                if (rowNum < 3) {
-                                                    if (rowNum == 1) {
-                                                        fileHeader = rowData;
-                                                        fileHeaders = fileHeader.split(regex);
-                                                        rowNum++;
-                                                        continue;
-                                                    } else {
-                                                        dataFileNew = saveDataFileInfo(name, syncConfigId, localUnzipPath
-                                                                , localPath, "", apiCode, fileHeader, rowData);
-                                                    }
-                                                }
-                                                String[] split = rowData.split(regex);
-                                                int length = fileHeaders.length;
-                                                String uid = split[0];
-                                                JSONObject object = new JSONObject();
-                                                for (int i = 1; i < length; i++) {
-                                                    object.put(fileHeaders[i], split[i]);
-                                                }
-                                                map.put(uid, object);
-                                                if (map.size() == 2000 && dataFileNew != null) {
-                                                    update(apiCode, map, appletDateSet, dataFileNew);
-                                                    map.clear();
-                                                }
-                                                rowNum++;
-                                            }
-                                            if (map.size() != 0 && dataFileNew != null) {
-                                                update(apiCode, map, appletDateSet, dataFileNew);
-                                            }
-                                        } catch (IOException e) {
-                                            log.warn(e.getMessage(), e);
-                                        }
+                                        readFile(file, regex, syncConfigId, localUnzipPath, localPath, apiCode, localDate);
                                     }
                                 }
                             }
+                            dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-4004643结束["
+                                    + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                    + "]，文件：" + fileName, map);
                         }
                     }
                 }
             }
         }
+    }
 
+
+    private void readFile(File file, String regex, Long syncConfigId, String localUnzipPath
+            , String localPath, String apiCode, LocalDate localDate) {
+        String name = file.getName();
+        Set<String> appletDateSet = iMarketingDataValidService.getAppletDateSet(apiCode, localDate.toString());
+        try {
+            RandomAccessFile accessFile = new RandomAccessFile(file.getAbsoluteFile(), "r");
+            int rowNum = 1;
+            String fileHeader = "";
+            MarketingCleanDataFile dataFileNew = null;
+            String[] fileHeaders = null;
+            Map<String, JSONObject> map = new HashMap<>(2048);
+            while (accessFile.readBoolean()) {
+                String rowData = accessFile.readLine();
+                if (rowNum < 3) {
+                    if (rowNum == 1) {
+                        fileHeader = rowData;
+                        fileHeaders = fileHeader.split(regex);
+                        rowNum++;
+                        continue;
+                    } else {
+                        dataFileNew = saveDataFileInfo(name, syncConfigId, localUnzipPath
+                                , localPath, "", apiCode, fileHeader, rowData);
+                    }
+                }
+                String[] split = rowData.split(regex);
+                int length = fileHeaders.length;
+                String uid = split[0];
+                JSONObject object = new JSONObject();
+                for (int i = 1; i < length; i++) {
+                    object.put(fileHeaders[i], split[i]);
+                }
+                map.put(uid, object);
+                if (map.size() == 2000 && dataFileNew != null) {
+                    Map<String, JSONObject> finalMap = map;
+                    MarketingCleanDataFile finalDataFileNew = dataFileNew;
+                    THREAD_POOL.submit(() -> {
+                        update(apiCode, finalMap, appletDateSet, finalDataFileNew);
+                        finalMap.clear();
+                    });
+                    map = new HashMap<>(2048);
+                }
+                rowNum++;
+            }
+            if (map.size() != 0 && dataFileNew != null) {
+                update(apiCode, map, appletDateSet, dataFileNew);
+            }
+        } catch (IOException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                    , "榕树清洗上传数据异常-" + apiCode), e);
+        }
     }
 
     /**

@@ -14,6 +14,7 @@ import com.br.marketing.entity.SyncLog;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
+import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.sync.SyncApplication;
 import com.br.marketing.sync.service.SyncService;
 import com.jcraft.jsch.SftpATTRS;
@@ -50,6 +51,9 @@ public class SyncServiceImpl implements SyncService {
      */
     @Resource
     SyncLogMapper loanSyncLogMapper;
+
+    @Resource
+    private SyncConfigService syncConfigService;
 
     @Resource
     private MarketingCleanDataFileMapper marketingCleanDataFileMapper;
@@ -208,7 +212,7 @@ public class SyncServiceImpl implements SyncService {
         }
         try {
             srcClient.disconnect();
-            if (diskBoll || targetClient == null) {
+            if (diskBoll) {
                 return;
             }
             targetClient.disconnect();
@@ -482,19 +486,21 @@ public class SyncServiceImpl implements SyncService {
         String targetSftpPwd = loanSyncConfig.getTargetSftpPwd();
         String targetSftpUser = loanSyncConfig.getTargetSftpUser();
         Integer targetSftpPort = loanSyncConfig.getTargetSftpPort();
-        // 未配置目标资源信息及目标类型为“local”默认本地下载
+        // 未配置目标资源信息及目标类型为“localDisk”默认本地下载
         boolean bool = StringUtils.isBlank(targetSftpHost)
                 || StringUtils.isBlank(targetSftpPwd)
                 || StringUtils.isBlank(targetSftpUser)
                 || targetSftpPort == null
                 || targetSftpPort < 1
                 || Constants.LOAN_DISK.equals(targetType);
-        String targetPath = loanSyncConfig.getTargetPath();
+        String targetPath;
         // 判断本地路径是否正常
-        if (bool && StringUtils.isNotBlank(targetPath)) {
+        if (bool) {
             if (loanSyncConfig.getSuffix().contains(".success")) {
                 return true;
             }
+            targetPath = StringUtils.isNotBlank(loanSyncConfig.getTargetPath()) ? loanSyncConfig.getTargetPath()
+                    : syncConfigService.getPath().concat("clean_file");
             String srcPath = loanSyncConfig.getSrcPath();
             InputStream inputStream = null;
             ReadableByteChannel readableByteChannel = null;
