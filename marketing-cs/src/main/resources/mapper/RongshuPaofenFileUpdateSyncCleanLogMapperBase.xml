@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.clean.RongshuPaofenFileUpdateSyncCleanLogMapper">
+<mapper namespace="com.br.marketing.mapper.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogMapper">
     <resultMap id="BaseResultMap" type="com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLog">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
@@ -84,7 +84,7 @@
     is_success, create_time, update_time, is_del
     </sql>
     <select id="selectByExample" resultMap="BaseResultMap"
-            parameterType="com.br.marketing.entity.RongshuPaofenFileUpdateSyncCleanLogExample">
+            parameterType="com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLogExample">
         select
         <if test="distinct">
             distinct
@@ -109,13 +109,14 @@
         from b_rongshu_paofen_file_update_sync_clean_log
         where id = #{id,jdbcType=BIGINT}
     </delete>
-    <delete id="deleteByExample" parameterType="com.br.marketing.entity.RongshuPaofenFileUpdateSyncCleanLogExample">
+    <delete id="deleteByExample"
+            parameterType="com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLogExample">
         delete from b_rongshu_paofen_file_update_sync_clean_log
         <if test="_parameter != null">
             <include refid="Example_Where_Clause"/>
         </if>
     </delete>
-    <insert id="insert" parameterType="com.br.marketing.entity.RongshuPaofenFileUpdateSyncCleanLog">
+    <insert id="insert" parameterType="com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLog">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
@@ -132,7 +133,7 @@
         #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}
         )
     </insert>
-    <insert id="insertSelective" parameterType="com.br.marketing.entity.RongshuPaofenFileUpdateSyncCleanLog">
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLog">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
@@ -220,7 +221,7 @@
             </if>
         </trim>
     </insert>
-    <select id="countByExample" parameterType="com.br.marketing.entity.RongshuPaofenFileUpdateSyncCleanLogExample"
+    <select id="countByExample" parameterType="com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLogExample"
             resultType="java.lang.Integer">
         select count(*) from b_rongshu_paofen_file_update_sync_clean_log
         <if test="_parameter != null">
@@ -298,7 +299,7 @@
         </if>
     </update>
     <update id="updateByPrimaryKeySelective"
-            parameterType="com.br.marketing.entity.RongshuPaofenFileUpdateSyncCleanLog">
+            parameterType="com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLog">
         update b_rongshu_paofen_file_update_sync_clean_log
         <set>
             <if test="apiCode != null">
@@ -343,7 +344,7 @@
         </set>
         where id = #{id,jdbcType=BIGINT}
     </update>
-    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.RongshuPaofenFileUpdateSyncCleanLog">
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLog">
         update b_rongshu_paofen_file_update_sync_clean_log
         set api_code                     = #{apiCode,jdbcType=VARCHAR},
             marketing_clean_data_file_id = #{marketingCleanDataFileId,jdbcType=BIGINT},
