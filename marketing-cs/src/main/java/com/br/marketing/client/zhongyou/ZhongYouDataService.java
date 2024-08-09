@@ -183,40 +183,45 @@ public class ZhongYouDataService {
      * @return
      */
     public Result<Boolean> HandleZhongYouData(Long id) {
-        Long st1 = System.currentTimeMillis();
-        LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
-        String fileName = localFile.getFileName();
-        List<String> strategyIdList = zhongyouFileDataMapper.selectZhongYoustrategyIds(id);
-        //根据策略ID分组查询
-        strategyIdList.forEach(strategyId -> {
-            Long minId = null;
-            Boolean isContiue = Boolean.TRUE;
-            while (isContiue) {
-                if (marketingCommonConfig.getZhongYouCleanDataThreadNum() != null) {
-                    zhongYouCleanThreadPool.setCorePoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
-                    zhongYouCleanThreadPool.setMaximumPoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
-                    log.warn("中邮清洗数据线程调整，taskId={},corePoolSize={},maxPoolSize={}", strategyId,
-                            zhongYouCleanThreadPool.getCorePoolSize(), zhongYouCleanThreadPool.getMaximumPoolSize());
-                }
-                List<ZhongyouFileData> zhongyouFileDataList = zhongyouFileDataMapper.selectZhongYouDataPage(id, minId, strategyId);
-                if (zhongyouFileDataList.size() <= 0) {
-                    isContiue = Boolean.FALSE;
-                    continue;
-                }
-                minId = zhongyouFileDataList.get(zhongyouFileDataList.size() - 1).getId() + 1;
-                zhongYouCleanThreadPool.submit(() -> {
-                    try {
-                        Result result = cleanData(zhongyouFileDataList, fileName);
-                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                            log.warn(result.getMessage());
-                        }
-                    } catch (Exception ex) {
-                        log.error("中邮数据清洗异常", ex);
+        try {
+            Long st1 = System.currentTimeMillis();
+            LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
+            String fileName = localFile.getFileName();
+            List<String> strategyIdList = zhongyouFileDataMapper.selectZhongYoustrategyIds(id);
+            //根据策略ID分组查询
+            strategyIdList.forEach(strategyId -> {
+                Long minId = null;
+                Boolean isContiue = Boolean.TRUE;
+                while (isContiue) {
+                    if (marketingCommonConfig.getZhongYouCleanDataThreadNum() != null) {
+                        zhongYouCleanThreadPool.setCorePoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
+                        zhongYouCleanThreadPool.setMaximumPoolSize(marketingCommonConfig.getZhongYouCleanDataThreadNum());
+                        log.warn("中邮清洗数据线程调整，taskId={},corePoolSize={},maxPoolSize={}", strategyId,
+                                zhongYouCleanThreadPool.getCorePoolSize(), zhongYouCleanThreadPool.getMaximumPoolSize());
                     }
-                });
-            }
-        });
-        log.warn("中邮清洗数据耗时：{} ms", System.currentTimeMillis() - st1);
+                    List<ZhongyouFileData> zhongyouFileDataList = zhongyouFileDataMapper.selectZhongYouDataPage(id, minId, strategyId);
+                    if (zhongyouFileDataList.size() <= 0) {
+                        isContiue = Boolean.FALSE;
+                        continue;
+                    }
+                    minId = zhongyouFileDataList.get(zhongyouFileDataList.size() - 1).getId() + 1;
+                    zhongYouCleanThreadPool.submit(() -> {
+                        try {
+                            Result result = cleanData(zhongyouFileDataList, fileName);
+                            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                                log.warn(result.getMessage());
+                            }
+                        } catch (Exception ex) {
+                            log.error("中邮数据清洗异常", ex);
+                        }
+                    });
+                }
+            });
+            log.warn("中邮清洗数据耗时：{} ms", System.currentTimeMillis() - st1);
+        }catch (Exception e){
+            log.error("中邮清洗数据异常：{}",e.getMessage());
+        }
+
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(false).setMessage("成功");
     }
     private Result cleanData(List<ZhongyouFileData> zhongyouFileDataList, String fileName) {
