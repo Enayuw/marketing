@@ -58,6 +58,8 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
+import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
+import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
@@ -197,6 +199,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     private XieChengRuleScoreRecordMapper scoreRecordMapper;
+
+    @Resource
+    RuleCenterBySourceTypeFactory ruleCenterBySourceTypeFactory;
 
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
@@ -3563,6 +3568,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("规则模板名称重复");
         }
 
+        IRuleCenterFilterTemplateService fileterTemplate = ruleCenterBySourceTypeFactory.getFileterTemplate(dto.getSourceType());
+        String source = fileterTemplate.getSource(dto.getSources());
+        if(StringUtils.isBlank(source)){
+            return new Result<>()
+                    .setCode(ResultCode.FAIL.getValue())
+                    .setMessage("模板数据源处理失败");
+        }
+
         Date date = new Date();
         ScoreSearchCondition searchCondition = new ScoreSearchCondition();
         searchCondition.setName(dto.getName());
@@ -3572,8 +3585,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setContentShow(dto.getmRuleConditionShow());
         searchCondition.setCreateTime(date);
         searchCondition.setUpdateTime(date);
+        searchCondition.setSourceType(dto.getSourceType());
+        searchCondition.setSourceCondition(source);
         scoreSearchConditionMapper.insertSelective(searchCondition);
-        entityOptService.writeOptLog(searchCondition.getId(), searchCondition, null);
+        //todo 提测需要去掉注释
+//        entityOptService.writeOptLog(searchCondition.getId(), searchCondition, null);
 
         ScoreSearchConditionMapping scoreSearchConditionMapping = new ScoreSearchConditionMapping();
         scoreSearchConditionMapping.setApiCode(dto.getApiCode());
@@ -3581,7 +3597,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         scoreSearchConditionMapping.setCreateTime(date);
         scoreSearchConditionMapping.setUpdateTime(date);
         scoreSearchConditionMappingMapper.insertSelective(scoreSearchConditionMapping);
-        entityOptService.writeOptLog(scoreSearchConditionMapping.getId(), scoreSearchConditionMapping, null);
+        //todo 提测需要去掉注释
+//        entityOptService.writeOptLog(scoreSearchConditionMapping.getId(), scoreSearchConditionMapping, null);
 
         return new Result<Integer>().setCode(ResultCode.SUCCESS.getValue()).setDate(searchCondition.getId());
     }

@@ -232,4 +232,6 @@ public class RedisKeyConstant {
      */
     public static final String LOCK_KEY_CLEAN_DATA = prefix.concat("lock_key_clean_data_auto");
 
+    public static final String POLICY_BUILD_LOCK = prefix.concat("policy:build:lock:");
+
 }

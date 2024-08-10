@@ -54,4 +54,19 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【rule】-AutoBuildPushPolicyJob"
+                class="com.br.marketing.rule.job.AutoBuildPushPolicyJob"
+                cron="0 0/5 * * * ? "
+                description="创建推送决策任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A,1=B,2=C,3=D"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>
