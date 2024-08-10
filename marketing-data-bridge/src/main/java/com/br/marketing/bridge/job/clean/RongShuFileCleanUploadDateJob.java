@@ -130,7 +130,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                 File[] files = dir.listFiles();
                                 if (files != null) {
                                     for (File file : files) {
-                                        readFile(file, regex, syncConfigId, localUnzipPath, localPath, apiCode, localDate);
+                                        readFile(file, regex, syncConfigId, localPath, apiCode, localDate);
                                     }
                                 }
                             }
@@ -145,19 +145,19 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     }
 
 
-    private void readFile(File file, String regex, Long syncConfigId, String localUnzipPath
+    private void readFile(File file, String regex, Long syncConfigId
             , String localPath, String apiCode, LocalDate localDate) {
         String name = file.getName();
         Set<String> appletDateSet = iMarketingDataValidService.getAppletDateSet(apiCode, localDate.toString());
         try {
-            RandomAccessFile accessFile = new RandomAccessFile(file.getAbsoluteFile(), "r");
+            RandomAccessFile accessFile = new RandomAccessFile(file, "r");
             int rowNum = 1;
             String fileHeader = "";
             MarketingCleanDataFile dataFileNew = null;
             String[] fileHeaders = null;
             Map<String, JSONObject> map = new HashMap<>(2048);
-            while (accessFile.readBoolean()) {
-                String rowData = accessFile.readLine();
+            String rowData;
+            while ((rowData = accessFile.readLine()) != null) {
                 if (rowNum < 3) {
                     if (rowNum == 1) {
                         fileHeader = rowData;
@@ -165,7 +165,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         rowNum++;
                         continue;
                     } else {
-                        dataFileNew = saveDataFileInfo(name, syncConfigId, localUnzipPath
+                        dataFileNew = saveDataFileInfo(name, syncConfigId, file.getParent()
                                 , localPath, "", apiCode, fileHeader, rowData);
                     }
                 }
