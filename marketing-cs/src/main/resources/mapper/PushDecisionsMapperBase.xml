@@ -7,8 +7,6 @@
     <result column="rule_number" property="ruleNumber" jdbcType="VARCHAR" />
     <result column="rule_name" property="ruleName" jdbcType="VARCHAR" />
     <result column="dependency_template_id" property="dependencyTemplateId" jdbcType="BIGINT" />
-    <result column="dependency_template_name" property="dependencyTemplateName" jdbcType="VARCHAR" />
-    <result column="dependency_data_sources" property="dependencyDataSources" jdbcType="VARCHAR" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="auto_time" property="autoTime" jdbcType="VARCHAR" />
     <result column="push_datasets" property="pushDatasets" jdbcType="VARCHAR" />
@@ -76,9 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, rule_number, rule_name, dependency_template_id, dependency_template_name, 
-    dependency_data_sources, `status`, auto_time, push_datasets, reach_strategy, is_del, 
-    create_time, update_time
+    id, api_code, rule_number, rule_name, dependency_template_id, `status`, auto_time, 
+    push_datasets, reach_strategy, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PushDecisionsExample" >
     select
@@ -115,13 +112,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_marketing_push_decisions (api_code, rule_number, rule_name, 
-      dependency_template_id, dependency_template_name, 
-      dependency_data_sources, `status`, auto_time, 
+      dependency_template_id, `status`, auto_time, 
       push_datasets, reach_strategy, is_del, 
       create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{ruleNumber,jdbcType=VARCHAR}, #{ruleName,jdbcType=VARCHAR}, 
-      #{dependencyTemplateId,jdbcType=BIGINT}, #{dependencyTemplateName,jdbcType=VARCHAR}, 
-      #{dependencyDataSources,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{autoTime,jdbcType=VARCHAR}, 
+      #{dependencyTemplateId,jdbcType=BIGINT}, #{status,jdbcType=INTEGER}, #{autoTime,jdbcType=VARCHAR}, 
       #{pushDatasets,jdbcType=VARCHAR}, #{reachStrategy,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -142,12 +137,6 @@
       </if>
       <if test="dependencyTemplateId != null" >
         dependency_template_id,
-      </if>
-      <if test="dependencyTemplateName != null" >
-        dependency_template_name,
-      </if>
-      <if test="dependencyDataSources != null" >
-        dependency_data_sources,
       </if>
       <if test="status != null" >
         `status`,
@@ -183,12 +172,6 @@
       </if>
       <if test="dependencyTemplateId != null" >
         #{dependencyTemplateId,jdbcType=BIGINT},
-      </if>
-      <if test="dependencyTemplateName != null" >
-        #{dependencyTemplateName,jdbcType=VARCHAR},
-      </if>
-      <if test="dependencyDataSources != null" >
-        #{dependencyDataSources,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
@@ -237,12 +220,6 @@
       <if test="record.dependencyTemplateId != null" >
         dependency_template_id = #{record.dependencyTemplateId,jdbcType=BIGINT},
       </if>
-      <if test="record.dependencyTemplateName != null" >
-        dependency_template_name = #{record.dependencyTemplateName,jdbcType=VARCHAR},
-      </if>
-      <if test="record.dependencyDataSources != null" >
-        dependency_data_sources = #{record.dependencyDataSources,jdbcType=VARCHAR},
-      </if>
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
@@ -276,8 +253,6 @@
       rule_number = #{record.ruleNumber,jdbcType=VARCHAR},
       rule_name = #{record.ruleName,jdbcType=VARCHAR},
       dependency_template_id = #{record.dependencyTemplateId,jdbcType=BIGINT},
-      dependency_template_name = #{record.dependencyTemplateName,jdbcType=VARCHAR},
-      dependency_data_sources = #{record.dependencyDataSources,jdbcType=VARCHAR},
       `status` = #{record.status,jdbcType=INTEGER},
       auto_time = #{record.autoTime,jdbcType=VARCHAR},
       push_datasets = #{record.pushDatasets,jdbcType=VARCHAR},
@@ -303,12 +278,6 @@
       </if>
       <if test="dependencyTemplateId != null" >
         dependency_template_id = #{dependencyTemplateId,jdbcType=BIGINT},
-      </if>
-      <if test="dependencyTemplateName != null" >
-        dependency_template_name = #{dependencyTemplateName,jdbcType=VARCHAR},
-      </if>
-      <if test="dependencyDataSources != null" >
-        dependency_data_sources = #{dependencyDataSources,jdbcType=VARCHAR},
       </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
@@ -340,8 +309,6 @@
       rule_number = #{ruleNumber,jdbcType=VARCHAR},
       rule_name = #{ruleName,jdbcType=VARCHAR},
       dependency_template_id = #{dependencyTemplateId,jdbcType=BIGINT},
-      dependency_template_name = #{dependencyTemplateName,jdbcType=VARCHAR},
-      dependency_data_sources = #{dependencyDataSources,jdbcType=VARCHAR},
       `status` = #{status,jdbcType=INTEGER},
       auto_time = #{autoTime,jdbcType=VARCHAR},
       push_datasets = #{pushDatasets,jdbcType=VARCHAR},

@@ -6,6 +6,7 @@
         select a.id
         ,a.condition_number as conditionNumber
         ,b.api_code as apiCode
+        ,a.source_type as sourceType
         ,a.name
         ,a.status
         ,content_show as contentShow

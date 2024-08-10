@@ -57,6 +57,8 @@ public class RedisKeyConstant {
 
     public static final String conditionNumber = prefix.concat("conditionnumber");
 
+    public static final String decisionsNumber = prefix.concat("decisionsnumber");
+
     public static final String offLineLock = prefix.concat("offlinecallback");
 
     public static final String TASKSCORE_HXRESULTERROR = prefix.concat("taskscore:hxresult:error");

@@ -29,16 +29,6 @@ public class PushDecisions {
     private Long dependencyTemplateId;
 
     /**
-     * 依赖模板名称
-     */
-    private String dependencyTemplateName;
-
-    /**
-     * 依赖模板数据源
-     */
-    private String dependencyDataSources;
-
-    /**
      * 规则状态 1-启用;2-禁用
      */
     private Integer status;
@@ -111,22 +101,6 @@ public class PushDecisions {
 
     public void setDependencyTemplateId(Long dependencyTemplateId) {
         this.dependencyTemplateId = dependencyTemplateId;
-    }
-
-    public String getDependencyTemplateName() {
-        return dependencyTemplateName;
-    }
-
-    public void setDependencyTemplateName(String dependencyTemplateName) {
-        this.dependencyTemplateName = dependencyTemplateName == null ? null : dependencyTemplateName.trim();
-    }
-
-    public String getDependencyDataSources() {
-        return dependencyDataSources;
-    }
-
-    public void setDependencyDataSources(String dependencyDataSources) {
-        this.dependencyDataSources = dependencyDataSources == null ? null : dependencyDataSources.trim();
     }
 
     public Integer getStatus() {
