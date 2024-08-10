@@ -117,6 +117,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                             if (l > 0) {
                                 continue;
                             }
+                            boolean bool = false;
                             String fileName = dataFile.getFileName();
                             String localPath = dataFile.getLocalPath();
                             dingDingRobotHookService.sendDingDingTextMessage(
@@ -129,14 +130,21 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                 File dir = new File(localUnzipPath);
                                 File[] files = dir.listFiles();
                                 if (files != null) {
-                                    for (File file : files) {
-                                        readFile(file, regex, syncConfigId, localPath, apiCode, localDate);
+                                    MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
+                                    dataFileUpdate.setId(dataFile.getId());
+                                    dataFileUpdate.setIsDel(9);
+                                    int i = marketingCleanDataFileMapper.updateByPrimaryKey(dataFileUpdate);
+                                    if (i > 0) {
+                                        bool = true;
+                                        for (File file : files) {
+                                            bool = bool && readFile(file, regex, syncConfigId, localPath, apiCode, localDate);
+                                        }
                                     }
                                 }
                             }
                             dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
                                     + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                    + "]，文件：" + fileName, map);
+                                    + "]，文件：" + fileName + ",清洗" + (bool ? "成功" : "失败"), map);
                         }
                     }
                 }
@@ -145,7 +153,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     }
 
 
-    private void readFile(File file, String regex, Long syncConfigId
+    private boolean readFile(File file, String regex, Long syncConfigId
             , String localPath, String apiCode, LocalDate localDate) {
         String name = file.getName();
         Set<String> appletDateSet = iMarketingDataValidService.getAppletDateSet(apiCode, localDate.toString());
@@ -194,7 +202,9 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         } catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
                     , "榕树清洗上传数据异常-" + apiCode), e);
+            return false;
         }
+        return true;
     }
 
     /**
