@@ -129,9 +129,9 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
         //转化T+n
         for (int i = 0; i < requestDateList.size(); i++) {
             if (i < requestDateList.size() - 1) {
-                requestDateSql = requestDateSql.concat(DateHelper.dateTNtransfer(requestDateList.get(i))).concat(",");
+                requestDateSql = requestDateSql.concat("\"").concat(DateHelper.dateTNtransfer(requestDateList.get(i))).concat("\"").concat(",");
             } else {
-                requestDateSql = requestDateSql.concat(DateHelper.dateTNtransfer(requestDateList.get(i)));
+                requestDateSql = requestDateSql.concat("\"").concat(DateHelper.dateTNtransfer(requestDateList.get(i))).concat("\"");
             }
         }
         Long indexId = null;
@@ -150,7 +150,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             Map<String, SyncUserValidityPeriodsBO> periodBOMap =
                     transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, "7", apiCode,
                             LocalDate.now());
-            marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer)));
+            marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
             filterHandler(tcId, apiCode, marketingTransferSyncUserList, configUserType, "7");
             //推送决策
             pushPolicy(marketingTransferSyncUserList, periodBOMap, "a", "7", strategyCode);
@@ -171,7 +171,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             Map<String, SyncUserValidityPeriodsBO> periodBOMap =
                     transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, "8", apiCode,
                             LocalDate.now());
-            marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer)));
+            marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
             filterHandler(tcId, apiCode, marketingTransferSyncUserList, configUserTypeTwo, "8");
             //推送决策
             pushPolicy(marketingTransferSyncUserList, periodBOMap, "b", "8", strategyCode);
@@ -190,7 +190,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             Map<String, SyncUserValidityPeriodsBO> periodBOMap =
                     transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, "7", apiCode,
                             LocalDate.now());
-            marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer)));
+            marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
             //推送决策
             pushPolicy(marketingTransferSyncUserList, periodBOMap, "c", "7", strategyCode);
         }
@@ -202,6 +202,9 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
 
     private void pushPolicy(List<MarketingTransferSyncUser> marketingTransferSyncUserList, Map<String, SyncUserValidityPeriodsBO> periodBOMap,
                             String status, String userType, String strategyCode) {
+        if (CollectionUtils.isEmpty(marketingTransferSyncUserList)) {
+            return;
+        }
         List<PushMarketingUserDetailByRuleDTO> pushMarketingUserDetailByRuleDTOList = new ArrayList<>();
         String apiCode = marketingTransferSyncUserList.get(0).getApiCode();
         marketingTransferSyncUserList.forEach((MarketingTransferSyncUser transferSyncUser) -> {
@@ -224,9 +227,6 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             pushMarketingUserDetailByRuleDTOList.add(pushMarketingUserDetailByRuleDTO);
 
         });
-        if (CollectionUtils.isEmpty(pushMarketingUserDetailByRuleDTOList)) {
-            return;
-        }
         ProcessHandlerContext context = new ProcessHandlerContext();
         context.setApiCode(apiCode);
         context.setMqFact(new MqFact());
@@ -246,7 +246,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
         List<String> filterCustNum = marketingTransferSyncUserMapper.getTransferCustNumByConditiontikv_(tcid, apiCode,
                 userType, config.getValidStartDate(), config.getValidEndDate(), custNumSets, "(reserve_field1->'$.eventType' != 'APP_LAUNCH' and " +
                         "reserve_field1->'$.eventType' != 'APP_LOGIN')");
-        marketingTransferSyncUserList.removeIf(transfer -> filterCustNum.contains(transfer));
+        marketingTransferSyncUserList.removeIf(transfer -> filterCustNum.contains(transfer.getCustNum()));
 
     }
 }
