@@ -120,11 +120,12 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                             String fileName = dataFile.getFileName();
                             String localPath = dataFile.getLocalPath();
                             dingDingRobotHookService.sendDingDingTextMessage(
-                                    "榕树上传数据更新-4004643开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                    "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                                             + "]，文件：" + fileName, map);
                             if (fileName.contains(".zip")) {
                                 String localUnzipPath = localPath.concat(File.separator).concat("unzip").concat(File.separator);
-                                ZipUtils.unZip(new File(dataFile.getLocalPath()), localUnzipPath, taskRule.getZipPassword());
+                                ZipUtils.unZip(new File(localPath.concat(File.separator).concat(fileName))
+                                        , localUnzipPath, taskRule.getZipPassword());
                                 File dir = new File(localUnzipPath);
                                 File[] files = dir.listFiles();
                                 if (files != null) {
@@ -133,7 +134,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     }
                                 }
                             }
-                            dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-4004643结束["
+                            dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
                                     + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                                     + "]，文件：" + fileName, map);
                         }
