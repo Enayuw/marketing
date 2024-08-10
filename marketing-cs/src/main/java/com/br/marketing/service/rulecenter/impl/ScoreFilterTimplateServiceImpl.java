@@ -63,8 +63,10 @@ public class ScoreFilterTimplateServiceImpl implements IRuleCenterFilterTemplate
                 customerInfoPushBatch.setmId(main.getId());
                 customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
             }
-            main.setmCusBatchNumberList(batchNumberStr.toString());
+            String batchs = batchNumberStr.toString().substring(0, batchNumberStr.toString().length() - 1);
+            main.setmCusBatchNumberList(batchs);
             customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+            return;
         }
         throw new KnowException("没有获取数据源");
     }

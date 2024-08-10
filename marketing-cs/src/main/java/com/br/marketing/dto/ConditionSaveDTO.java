@@ -3,6 +3,7 @@ package com.br.marketing.dto;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 
 public class ConditionSaveDTO{
@@ -26,7 +27,7 @@ public class ConditionSaveDTO{
     private Integer sourceType;
 
     @ApiModelProperty(value = "数据源内容")
-    private String sourceCondition;
+    private List<String> sources;
 
     public String getApiCode() {
         return apiCode;
@@ -60,12 +61,12 @@ public class ConditionSaveDTO{
         this.mRuleConditionShow = mRuleConditionShow;
     }
 
-    public String getSourceCondition() {
-        return sourceCondition;
+    public List<String> getSources() {
+        return sources;
     }
 
-    public void setSourceCondition(String sourceCondition) {
-        this.sourceCondition = sourceCondition;
+    public void setSources(List<String> sources) {
+        this.sources = sources;
     }
 
     public Integer getSourceType() {

@@ -8,10 +8,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
-import com.br.marketing.entity.XiechengCollidingDataPackageRule;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
-import com.br.marketing.entity.XiechengCollidingDataProcessTask;
-import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.es.bean.QueryBaseBean;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
@@ -24,6 +21,7 @@ import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -33,6 +31,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,9 +55,26 @@ public class RuleTaskByScoreServiceImpl implements IRuleTaskService {
     @Resource
     XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
 
+
+
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
         return getTotal(dto);
+    }
+
+
+    @Override
+    public PushCustomerDTO buildPreviewDTO(CustomerInfoPushMain main, ScoreSearchCondition scoreSearchCondition) {
+        PushCustomerDTO pushCustomerDTO = new PushCustomerDTO();
+        pushCustomerDTO.setApiCode(main.getmApiCode());
+        pushCustomerDTO.setBatchNumberList(Arrays.stream(main.getmCusBatchNumberList().split(","))
+                .collect(Collectors.toList()));
+        List<Long> collect = Arrays.stream(scoreSearchCondition.getSourceCondition().split(","))
+                .map(t -> Long.valueOf(t)).collect(Collectors.toList());
+        pushCustomerDTO.setFileIdList(collect);
+        pushCustomerDTO.setmRuleCondition(scoreSearchCondition.getContent());
+        pushCustomerDTO.setmRuleConditionShow(scoreSearchCondition.getContentShow());
+        return pushCustomerDTO;
     }
 
     private Result<PushViewVO> getTotal(PushCustomerDTO dto) {

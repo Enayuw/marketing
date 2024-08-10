@@ -4176,4 +4176,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
+    @Override
+    public Result<Boolean> deleteRule(Long id) {
+        return null;
+    }
 }

@@ -22,6 +22,8 @@ public interface IRuleCenterFilterTemplateService {
 
     void autoBuildSource(CustomerInfoPushMain main, ScoreSearchCondition scoreSearchCondition);
 
+
+
     /**
      *
      * @return
