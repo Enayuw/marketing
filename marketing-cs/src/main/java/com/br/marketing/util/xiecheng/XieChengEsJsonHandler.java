@@ -3,6 +3,7 @@ package com.br.marketing.util.xiecheng;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
@@ -74,8 +75,13 @@ public class XieChengEsJsonHandler {
         Map<String, Object> couponDesc = collidingFilterDTO.getCoupon_desc();
 
         if (!CollectionUtils.isEmpty(releaseTime)) {
+            Object value = releaseTime.get("value");
+            if ((releaseTime.get("operation")).equals("=")) {
+                value = DateHelper.dateTNtransfer((String) releaseTime.get("value"));
+            }
+
             zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("release_time", (String) releaseTime.get("operation"),
-                    releaseTime.get("value")));
+                    value));
         }
         if (!CollectionUtils.isEmpty(couponCode)) {
             if (StringUtils.isNotEmpty(zkTrueCondition.toString())) {
