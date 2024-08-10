@@ -133,7 +133,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
                                     dataFileUpdate.setId(dataFile.getId());
                                     dataFileUpdate.setIsDel(9);
-                                    int i = marketingCleanDataFileMapper.updateByPrimaryKey(dataFileUpdate);
+                                    int i = marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
                                     if (i > 0) {
                                         bool = true;
                                         for (File file : files) {
