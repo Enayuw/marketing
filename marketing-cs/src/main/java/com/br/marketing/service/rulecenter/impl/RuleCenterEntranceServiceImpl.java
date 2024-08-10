@@ -6,6 +6,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PushCustomerDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.PushRuleStatusEnum;
@@ -147,7 +148,19 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         pushMain.setUpdateTime(date);
         pushMain.setmRuleCondition(scoreSearchCondition.getSourceCondition());
         pushMain.setmRuleConditionShow(scoreSearchCondition.getContentShow());
-        pushMain.setBatchName(pushDecisions.getPushDatasets());
+        String batchName = "";
+        if (StringUtils.isBlank(pushDecisions.getPushDatasets())) {
+            batchName = pushDecisions.getPushDatasets();
+        } else {
+            if (org.apache.commons.lang3.StringUtils.isNotEmpty(scoreSearchCondition.getName())) {
+                batchName = LocalDate.now().toString().concat("-").concat(scoreSearchCondition.getName()).concat("-").concat(LocalTime.now().withNano(0)
+                        .toString());
+            } else {
+                batchName = LocalDate.now().toString().concat("-").concat(pushMain.getId().toString()).concat("-").
+                        concat(LocalTime.now().withNano(0).toString());
+            }
+        }
+        pushMain.setBatchName(batchName);
         pushMain.setBuildType(BuildTypeEnum.AUTOBUILD.getCode());
         customerInfoPushMainMapper.insertSelective(pushMain);
 

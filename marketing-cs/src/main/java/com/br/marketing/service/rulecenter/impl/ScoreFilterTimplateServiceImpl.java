@@ -1,9 +1,12 @@
 package com.br.marketing.service.rulecenter.impl;
 
-import java.util.Date;
+import java.util.*;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.exception.KnowException;
+import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
 import com.br.marketing.mapper.CustomerInfoPushMainMapper;
@@ -11,14 +14,14 @@ import com.br.marketing.mapper.ScoreSearchConditionMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.enums.RuleCenterDataSourceEnum;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.google.common.base.Joiner;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +35,9 @@ public class ScoreFilterTimplateServiceImpl implements IRuleCenterFilterTemplate
 
     @Resource
     CustomerInfoPushMainMapper customerInfoPushMainMapper;
+
+    @Resource
+    ScoreXieChengServiceImpl scoreXieChengService;
 
     @Override
     public String getSource(List<String> sources) {
@@ -51,6 +57,7 @@ public class ScoreFilterTimplateServiceImpl implements IRuleCenterFilterTemplate
             fileExample.createCriteria().andIdIn(fileIds);
             List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(fileExample);
             StringBuilder batchNumberStr = new StringBuilder();
+            ArrayList<String> batchList = new ArrayList<>();
             for (StraHisFile straHisFile : straHisFiles) {
                 batchNumberStr.append(straHisFile.getBatchNumber() + ",");
                 CustomerInfoPushBatch customerInfoPushBatch = new CustomerInfoPushBatch();
@@ -62,14 +69,23 @@ public class ScoreFilterTimplateServiceImpl implements IRuleCenterFilterTemplate
                 customerInfoPushBatch.setUpdateTime(main.getCreateTime());
                 customerInfoPushBatch.setmId(main.getId());
                 customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
+                batchList.add(straHisFile.getBatchNumber());
             }
             String batchs = batchNumberStr.toString().substring(0, batchNumberStr.toString().length() - 1);
             main.setmCusBatchNumberList(batchs);
+            if (scoreXieChengService.isXieCheng(main.getmApiCode(), scoreSearchCondition.getContent())) {
+                JSONObject jsonObject = JSON.parseObject(scoreSearchCondition.getContent());
+                XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+                XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+                main.setFilterType(1);
+                main.setExtend(scoreXieChengService.cycleDataQuery(jsonObject, batchList, collidingFilterDTO));
+            }
             customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
             return;
         }
         throw new KnowException("没有获取数据源");
     }
+
 
     @Override
     public RuleCenterDataSourceEnum sourceLabel() {
