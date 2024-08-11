@@ -171,7 +171,7 @@
         </foreach>
     </insert>
 
-    <select id="selectRobsByNonRoundPackages">
+    <select id="selectRobsByNonRoundPackages" resultType="java.lang.Long">
         select id
         from b_xiecheng_colliding_data_rob
         where is_delete = 0 and colliding_count > 0 and package_id in
@@ -193,7 +193,7 @@
         </foreach>
     </update>
 
-    <select id="selectCountByRoundPackages">
+    <select id="selectCountByRoundPackages" resultType="java.lang.Long">
         select count(1)
         from b_xiecheng_colliding_data_rob
         where is_delete = 0 and colliding_count = 0 and package_id in

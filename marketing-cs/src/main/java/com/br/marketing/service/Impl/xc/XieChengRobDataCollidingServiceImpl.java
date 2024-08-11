@@ -212,24 +212,25 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         List<XieChengCollidingDataPackage> nonRoundPackages = roundPackageMap.get(0);
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
-        resetCollidingCountByPackages(nonRoundPackages, threadPool);
+        try {
+            resetCollidingCountByPackages(nonRoundPackages, threadPool);
 
+            // 开启轮次的撞库包
+            List<XieChengCollidingDataPackage> roundPackages = roundPackageMap.get(1);
+            if (CollectionUtils.isEmpty(roundPackages)) {
+                return;
+            }
 
-        // 开启轮次的撞库包
-        List<XieChengCollidingDataPackage> roundPackages = roundPackageMap.get(1);
-        if (CollectionUtils.isEmpty(roundPackages)) {
-            return;
+            // 有撞库次数=0的数据，不重置撞库次数
+            Long zeroCount = xieChengCollidingDataRobMapper.selectCountByRoundPackages(roundPackages);
+            if (zeroCount > 0) {
+                return;
+            }
+
+            resetCollidingCountByPackages(roundPackages, threadPool);
+        } finally {
+            threadPoolShutDown(threadPool);
         }
-
-        // 有撞库次数=0的数据，不重置撞库次数
-        Long zeroCount = xieChengCollidingDataRobMapper.selectCountByRoundPackages(roundPackages);
-        if (zeroCount > 0) {
-            return;
-        }
-
-        resetCollidingCountByPackages(roundPackages, threadPool);
-
-        threadPoolShutDown(threadPool);
     }
 
     /**

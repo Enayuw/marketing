@@ -158,7 +158,7 @@
         </foreach>
     </update>
 
-    <select id="selectCycleCountOfStack">
+    <select id="selectCycleCountOfStack" resultType="java.lang.Integer">
         SELECT count(*) as count
         FROM b_xiecheng_colliding_data_loop_cycle
         WHERE is_delete = 0
