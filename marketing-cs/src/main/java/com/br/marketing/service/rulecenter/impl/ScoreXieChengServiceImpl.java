@@ -38,7 +38,10 @@ public class ScoreXieChengServiceImpl {
 
     @Resource
     XiechengCollidingDataProcessTaskMapper xiechengCollidingDataProcessTaskMapper;
+
+    @Resource
     MarketingCommonConfig marketingCommonConfig;
+
     public Boolean isXieCheng(String apiCode,String condition){
         Boolean isXieCheng = Boolean.FALSE;
         JSONArray datas = JSON.parseObject(condition).getJSONArray("data");
