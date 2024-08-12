@@ -3,11 +3,11 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.*;
+import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.PushDecisionsService;
 import com.br.marketing.vo.PushDecisionsDetailVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jdk.nashorn.internal.objects.annotations.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +42,7 @@ public class PushDecisionsController {
 
     @ApiOperation(value = "获取推送决策列表")
     @PostMapping("/getPushDecisionsList")
+    @AddDataAuthBusiness
     public ApiResult<PageResultReturn<PushDecisionsDetailVO>> getPushDecisionsList(@RequestBody SearchConditionDTO dto) {
         return new ApiResult<PageResultReturn<PushDecisionsDetailVO>>().fromResult(pushDecisionsService.getPushDecisionsList(dto), CODE_1);
     }

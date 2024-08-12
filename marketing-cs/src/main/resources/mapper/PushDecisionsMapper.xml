@@ -4,7 +4,7 @@
 
     <select id="getDecisionsListBySearch" resultType="com.br.marketing.vo.PushDecisionsDetailVO" parameterType="com.br.marketing.dto.SearchConditionDTO">
         select a.id,
-        a.api_code as apiCode,
+        a.api_code,
         a.rule_number as ruleNumber,
         a.rule_name as ruleName,
         a.dependency_template_id as dependencyTemplateId,
