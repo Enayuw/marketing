@@ -30,22 +30,22 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-//        registry.addInterceptor(sessionInterceptor)
-//                .addPathPatterns("/rule/**")
-//                .addPathPatterns("/pushrulefilter/**")
-//                .addPathPatterns("/user/**")
-//                .addPathPatterns("/resource/**")
-//                .addPathPatterns("/transferFile/**")
-//                .addPathPatterns("/role/**")
-//                .addPathPatterns("/xiecheng/**");
-//        registry.addInterceptor(authInterceptor)
-//                .addPathPatterns("/rule/**")
-//                .addPathPatterns("/pushrulefilter/**")
-//                .addPathPatterns("/user/**")
-//                .addPathPatterns("/resource/**")
-//                .addPathPatterns("/transferFile/**")
-//                .addPathPatterns("/role/**")
-//                .addPathPatterns("/xiecheng/**");
+        registry.addInterceptor(sessionInterceptor)
+                .addPathPatterns("/rule/**")
+                .addPathPatterns("/pushrulefilter/**")
+                .addPathPatterns("/user/**")
+                .addPathPatterns("/resource/**")
+                .addPathPatterns("/transferFile/**")
+                .addPathPatterns("/role/**")
+                .addPathPatterns("/xiecheng/**");
+        registry.addInterceptor(authInterceptor)
+                .addPathPatterns("/rule/**")
+                .addPathPatterns("/pushrulefilter/**")
+                .addPathPatterns("/user/**")
+                .addPathPatterns("/resource/**")
+                .addPathPatterns("/transferFile/**")
+                .addPathPatterns("/role/**")
+                .addPathPatterns("/xiecheng/**");
         super.addInterceptors(registry);
     }
 }

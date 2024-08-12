@@ -3588,8 +3588,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setSourceType(dto.getSourceType());
         searchCondition.setSourceCondition(source);
         scoreSearchConditionMapper.insertSelective(searchCondition);
-        //todo 提测需要去掉注释
-//        entityOptService.writeOptLog(searchCondition.getId(), searchCondition, null);
+
+        entityOptService.writeOptLog(searchCondition.getId(), searchCondition, null);
 
         ScoreSearchConditionMapping scoreSearchConditionMapping = new ScoreSearchConditionMapping();
         scoreSearchConditionMapping.setApiCode(dto.getApiCode());
@@ -3597,8 +3597,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         scoreSearchConditionMapping.setCreateTime(date);
         scoreSearchConditionMapping.setUpdateTime(date);
         scoreSearchConditionMappingMapper.insertSelective(scoreSearchConditionMapping);
-        //todo 提测需要去掉注释
-//        entityOptService.writeOptLog(scoreSearchConditionMapping.getId(), scoreSearchConditionMapping, null);
+
+        entityOptService.writeOptLog(scoreSearchConditionMapping.getId(), scoreSearchConditionMapping, null);
 
         return new Result<Integer>().setCode(ResultCode.SUCCESS.getValue()).setDate(searchCondition.getId());
     }
