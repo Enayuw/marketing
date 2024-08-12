@@ -6,9 +6,9 @@ import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
-import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -43,6 +43,7 @@ import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.enums.PushRuleStatusEnum;
 import com.br.marketing.enums.CustomerQueueEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
@@ -109,7 +110,6 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -971,6 +971,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         timeOutTotalNum += pushRes.getData();
                     } else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                        sendAlert("推送决策失败", " 任务id："+customerInfoPushMain.getId());
                     } else {
                         realTotalNum += pushRes.getData();
                     }
@@ -1257,6 +1258,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> ids = new ArrayList<>();
         Long mId = customerInfoPushMain.getId();
         ids.add(String.valueOf(mId));
+        StringBuilder sb = new StringBuilder();
+        sb.append("推送数据量：").append(customerInfoPushMain.getmRealyNum()).append("\n");
         // 失败原因
         Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(customerInfoPushMain.getmApiCode(), ids);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -1265,24 +1268,25 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PolicyResultByTaskIdsDTO policyResultByTaskIdsDTO = resultByTaskIdsDTOS.get(0);
                 String verification = policyResultByTaskIdsDTO.getVerification();
                 String verificationReason = policyResultByTaskIdsDTO.getVerificationReason();
-                StringBuilder sb = new StringBuilder();
-                sb.append("请求批次号："+ verification).append(",失败原因：" + verificationReason);
-                sendAlert("【营销自动化推决策】", sb.toString());
+                sb.append("推送失败，请求批次号："+ verification).append(",失败原因：" + verificationReason);
             }
         } else {
             log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
         }
+        sendAlert("【营销自动化推决策】", sb.toString());
     }
 
     public void sendAlert(String title, String text) {
-        String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
-        String secret = marketingCommonConfig.getQiFuDingDingSecret();
+
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
+
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
         markdown.setTitle(title);
         markdown.setText(text);
         DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
         dingDingMarkdownMessage.setMarkdown(markdown);
-        dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingMarkdownMessage, true);
+        dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString(), dingDingMarkdownMessage, true);
     }
 
     /**
