@@ -1765,6 +1765,76 @@ public class CustomerInfoPushMainExample {
             addCriterion("build_type not between", value1, value2, "buildType");
             return (Criteria) this;
         }
+
+        public Criteria andStrategyCodeIsNull() {
+            addCriterion("strategy_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeIsNotNull() {
+            addCriterion("strategy_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeEqualTo(String value) {
+            addCriterion("strategy_code =", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeNotEqualTo(String value) {
+            addCriterion("strategy_code <>", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeGreaterThan(String value) {
+            addCriterion("strategy_code >", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("strategy_code >=", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeLessThan(String value) {
+            addCriterion("strategy_code <", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeLessThanOrEqualTo(String value) {
+            addCriterion("strategy_code <=", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeLike(String value) {
+            addCriterion("strategy_code like", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeNotLike(String value) {
+            addCriterion("strategy_code not like", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeIn(List<String> values) {
+            addCriterion("strategy_code in", values, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeNotIn(List<String> values) {
+            addCriterion("strategy_code not in", values, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeBetween(String value1, String value2) {
+            addCriterion("strategy_code between", value1, value2, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeNotBetween(String value1, String value2) {
+            addCriterion("strategy_code not between", value1, value2, "strategyCode");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

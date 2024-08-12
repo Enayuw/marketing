@@ -28,6 +28,7 @@
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="source_type" property="sourceType" jdbcType="INTEGER" />
     <result column="build_type" property="buildType" jdbcType="INTEGER" />
+    <result column="strategy_code" property="strategyCode" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -91,7 +92,8 @@
     id, m_api_code, m_model, m_model_version, m_num_min, m_num_max, m_score_min, m_score_max, 
     m_plan_num, m_realy_num, m_cus_batch_number_list, m_status, is_del, create_time, 
     update_time, finish_time, m_rule_condition, m_rule_condition_show, m_percentage, 
-    opt_user_id, opt_user_name, filter_type, batch_name, extend, source_type, build_type
+    opt_user_id, opt_user_name, filter_type, batch_name, extend, source_type, build_type, 
+    strategy_code
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" >
     select
@@ -135,7 +137,7 @@
       m_rule_condition, m_rule_condition_show, m_percentage, 
       opt_user_id, opt_user_name, filter_type, 
       batch_name, extend, source_type, 
-      build_type)
+      build_type, strategy_code)
     values (#{mApiCode,jdbcType=VARCHAR}, #{mModel,jdbcType=VARCHAR}, #{mModelVersion,jdbcType=VARCHAR}, 
       #{mNumMin,jdbcType=INTEGER}, #{mNumMax,jdbcType=INTEGER}, #{mScoreMin,jdbcType=INTEGER}, 
       #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER}, 
@@ -144,7 +146,7 @@
       #{mRuleCondition,jdbcType=VARCHAR}, #{mRuleConditionShow,jdbcType=VARCHAR}, #{mPercentage,jdbcType=DECIMAL}, 
       #{optUserId,jdbcType=VARCHAR}, #{optUserName,jdbcType=VARCHAR}, #{filterType,jdbcType=INTEGER}, 
       #{batchName,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{sourceType,jdbcType=INTEGER}, 
-      #{buildType,jdbcType=INTEGER})
+      #{buildType,jdbcType=INTEGER}, #{strategyCode,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -227,6 +229,9 @@
       <if test="buildType != null" >
         build_type,
       </if>
+      <if test="strategyCode != null" >
+        strategy_code,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="mApiCode != null" >
@@ -303,6 +308,9 @@
       </if>
       <if test="buildType != null" >
         #{buildType,jdbcType=INTEGER},
+      </if>
+      <if test="strategyCode != null" >
+        #{strategyCode,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -393,6 +401,9 @@
       <if test="record.buildType != null" >
         build_type = #{record.buildType,jdbcType=INTEGER},
       </if>
+      <if test="record.strategyCode != null" >
+        strategy_code = #{record.strategyCode,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -425,7 +436,8 @@
       batch_name = #{record.batchName,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR},
       source_type = #{record.sourceType,jdbcType=INTEGER},
-      build_type = #{record.buildType,jdbcType=INTEGER}
+      build_type = #{record.buildType,jdbcType=INTEGER},
+      strategy_code = #{record.strategyCode,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -508,6 +520,9 @@
       <if test="buildType != null" >
         build_type = #{buildType,jdbcType=INTEGER},
       </if>
+      <if test="strategyCode != null" >
+        strategy_code = #{strategyCode,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -537,7 +552,8 @@
       batch_name = #{batchName,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR},
       source_type = #{sourceType,jdbcType=INTEGER},
-      build_type = #{buildType,jdbcType=INTEGER}
+      build_type = #{buildType,jdbcType=INTEGER},
+      strategy_code = #{strategyCode,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

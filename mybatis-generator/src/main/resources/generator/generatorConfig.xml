@@ -59,19 +59,19 @@
         <!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名-->
         <!--        <table tableName="b_loan_task" domainObjectName="LoanTask" enableCountByExample="false" enableUpdateByExample="false"-->
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
-        <table tableName="b_decisions_task_log" domainObjectName="DecisionsTaskLog" >
+        <table tableName="b_customer_info_push_main" domainObjectName="CustomerInfoPushMain" >
 <!--            <property name="useActualColumnNames" value="false"/>-->
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
 
-<!--            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />
 <!--            <columnOverride column="m_rule_condition" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="m_rule_condition_show" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="auto_search_data_sql" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="validation_rules" javaType="java.lang.String" jdbcType="VARCHAR" />-->
-<!--            <columnOverride column="m_rule_condition" javaType="java.lang.String" jdbcType="VARCHAR" />-->
-<!--            <columnOverride column="m_rule_condition_show" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+            <columnOverride column="m_rule_condition" javaType="java.lang.String" jdbcType="VARCHAR" />
+            <columnOverride column="m_rule_condition_show" javaType="java.lang.String" jdbcType="VARCHAR" />
 <!--            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="json_data" javaType="java.lang.String" jdbcType="VARCHAR" />-->
 <!--            <columnOverride column="reserve_field1" javaType="java.lang.String" jdbcType="VARCHAR" />-->

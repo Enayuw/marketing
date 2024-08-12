@@ -19,13 +19,16 @@ public interface IRuleCenterFilterTemplateService {
     String getSource(List<String> sources);
 
 
-
+    /**
+     * 规则筛选模板绑定数据源
+     * @param main
+     * @param scoreSearchCondition
+     */
     void autoBuildSource(CustomerInfoPushMain main, ScoreSearchCondition scoreSearchCondition);
 
 
-
     /**
-     *
+     * 规则筛选模板的实现标签
      * @return
      */
     RuleCenterDataSourceEnum sourceLabel();

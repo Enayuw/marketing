@@ -134,6 +134,11 @@ public class CustomerInfoPushMain {
      */
     private Integer buildType;
 
+    /**
+     * 触达策略编号
+     */
+    private String strategyCode;
+
     public Long getId() {
         return id;
     }
@@ -340,5 +345,13 @@ public class CustomerInfoPushMain {
 
     public void setBuildType(Integer buildType) {
         this.buildType = buildType;
+    }
+
+    public String getStrategyCode() {
+        return strategyCode;
+    }
+
+    public void setStrategyCode(String strategyCode) {
+        this.strategyCode = strategyCode == null ? null : strategyCode.trim();
     }
 }
