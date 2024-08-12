@@ -1259,7 +1259,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         Long mId = customerInfoPushMain.getId();
         ids.add(String.valueOf(mId));
         StringBuilder sb = new StringBuilder();
-        sb.append("推送数据量：").append(customerInfoPushMain.getmRealyNum()).append("\n");
+        sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append(",");
+        sb.append("任务流水号：").append(customerInfoPushMain.getId()).append(",");
+        sb.append("推送数据量：").append(customerInfoPushMain.getmRealyNum()).append(" | ");
         // 失败原因
         Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(customerInfoPushMain.getmApiCode(), ids);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
