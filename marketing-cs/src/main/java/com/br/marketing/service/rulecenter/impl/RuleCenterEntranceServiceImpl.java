@@ -101,7 +101,7 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         } catch (Exception e) {
             String title = "自动化推送决策任务生成失败【未知异常】";
             String text = String.format("异常【%s】", e.getMessage());
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), text, title));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), text, title), e);
         }
     }
 
@@ -164,7 +164,7 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
 
 
         IRuleCenterFilterTemplateService fileterTemplate = ruleCenterBySourceTypeFactory.getFileterTemplate(scoreSearchCondition.getSourceType());
-        fileterTemplate.autoBuildSource(pushMain, scoreSearchCondition);
+        Result sourceResul = fileterTemplate.autoBuildSource(pushMain, scoreSearchCondition);
 
         DecisionsTaskLog decisionsTaskLog = new DecisionsTaskLog();
         decisionsTaskLog.setApiCode(pushDecisions.getApiCode());

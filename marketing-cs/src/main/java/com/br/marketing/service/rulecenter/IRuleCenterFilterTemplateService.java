@@ -1,9 +1,11 @@
 package com.br.marketing.service.rulecenter;
 
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.ScoreSearchCondition;
 import com.br.marketing.service.rulecenter.enums.RuleCenterDataSourceEnum;
 
+import java.awt.geom.RectangularShape;
 import java.util.List;
 
 /**
@@ -24,7 +26,7 @@ public interface IRuleCenterFilterTemplateService {
      * @param main
      * @param scoreSearchCondition
      */
-    void autoBuildSource(CustomerInfoPushMain main, ScoreSearchCondition scoreSearchCondition);
+    Result autoBuildSource(CustomerInfoPushMain main, ScoreSearchCondition scoreSearchCondition);
 
 
     /**
