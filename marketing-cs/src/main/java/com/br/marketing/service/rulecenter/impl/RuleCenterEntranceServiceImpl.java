@@ -92,7 +92,7 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
                     customerInfoPushMainMapper.updateByPrimaryKeySelective(data);
                 } else {
                     String title = "自动化推送决策任务生成失败";
-                    String text = String.format("自动化规则【%s】,apiCde【%s】,失败原因【%s】"
+                    String text = String.format("自动化规则【%s】,apiCode【%s】,失败原因【%s】"
                             , pushDecisions.getRuleNumber()
                             , pushDecisions.getApiCode()
                             , pushViewVOResult.getMessage());
@@ -140,7 +140,6 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
 
         Date date = new Date();
         CustomerInfoPushMain pushMain = new CustomerInfoPushMain();
-        pushMain.setId(0L);
         pushMain.setmApiCode(pushDecisions.getApiCode());
         pushMain.setmRealyNum(0);
         pushMain.setmStatus(PushRuleStatusEnum.TO_BE_BUILDING.getValue());
@@ -153,13 +152,12 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         if (StringUtils.isBlank(pushDecisions.getPushDatasets())) {
             batchName = pushDecisions.getPushDatasets();
         } else {
-            if (org.apache.commons.lang3.StringUtils.isNotEmpty(scoreSearchCondition.getName())) {
-                batchName = LocalDate.now().toString().concat("-").concat(scoreSearchCondition.getName()).concat("-").concat(LocalTime.now().withNano(0)
-                        .toString());
-            } else {
-                batchName = LocalDate.now().toString().concat("-").concat(pushMain.getId().toString()).concat("-").
-                        concat(LocalTime.now().withNano(0).toString());
-            }
+            batchName = LocalDate.now().toString()
+                    .concat("-")
+                    .concat(scoreSearchCondition.getName())
+                    .concat("-")
+                    .concat(LocalTime.now().withNano(0)
+                            .toString());
         }
         pushMain.setBatchName(batchName);
         pushMain.setBuildType(BuildTypeEnum.AUTOBUILD.getCode());
