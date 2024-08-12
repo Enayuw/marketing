@@ -112,13 +112,14 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         String md5Value = dataFile.getMd5Value();
                         String fileName = dataFile.getFileName();
                         try {
-                            try {
-                                dingDingRobotHookService.sendDingDingTextMessage(
-                                        "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                                + "]，文件：" + fileName, map);
-                            } catch (Exception e) {
-                                log.warn(e.getMessage(), e);
-                            }
+                            dingDingRobotHookService.sendDingDingTextMessage(
+                                    "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                            + "]，文件：" + fileName, map);
+                        } catch (Exception e) {
+                            log.warn(e.getMessage(), e);
+                        }
+                        boolean bool = false;
+                        try {
                             if (1 == taskRule.getIsMd5Check() && StringUtils.isNotBlank(md5Value)) {
                                 MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
                                 fileExampleCount.createCriteria().andApiCodeEqualTo(apiCode).andSyncConfigIdEqualTo(syncConfigId)
@@ -139,38 +140,38 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     continue;
                                 }
                             }
-                            boolean bool = false;
                             String localPath = dataFile.getLocalPath();
                             File srcFile = new File(localPath.concat(File.separator).concat(fileName));
-                            if (!srcFile.exists()) {
-                                log.warn("荣树({})待清洗文件{}不存在,目录：{}", apiCode, fileName, localPath);
-                            }
-                            if (fileName.contains(".zip")) {
-                                String localUnzipPath = localPath.concat(File.separator).concat("unzip".concat(File.separator)
-                                        + fileName + System.currentTimeMillis()).concat(File.separator);
-                                ZipUtils.unZip(srcFile, localUnzipPath, taskRule.getZipPassword());
-                                File dir = new File(localUnzipPath);
-                                File[] files = dir.listFiles();
-                                if (files != null) {
-                                    bool = true;
-                                    for (File file : files) {
-                                        bool = bool && readFile(dataFile, file, regex, localDate, true);
+                            if (srcFile.exists()) {
+                                if (fileName.contains(".zip")) {
+                                    String localUnzipPath = localPath.concat(File.separator).concat("unzip".concat(File.separator)
+                                            + fileName + System.currentTimeMillis()).concat(File.separator);
+                                    ZipUtils.unZip(srcFile, localUnzipPath, taskRule.getZipPassword());
+                                    File dir = new File(localUnzipPath);
+                                    File[] files = dir.listFiles();
+                                    if (files != null) {
+                                        bool = true;
+                                        for (File file : files) {
+                                            bool = bool && readFile(dataFile, file, regex, localDate, true);
+                                        }
+                                        MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
+                                        dataFileUpdate.setId(dataFile.getId());
+                                        dataFileUpdate.setIsDel(9);
+                                        marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
                                     }
-                                    MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
-                                    dataFileUpdate.setId(dataFile.getId());
-                                    dataFileUpdate.setIsDel(9);
-                                    marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
+                                } else {
+                                    bool = readFile(dataFile, srcFile, regex, localDate, false);
                                 }
                             } else {
-                                bool = readFile(dataFile, srcFile, regex, localDate, false);
+                                log.warn("荣树({})待清洗文件{}不存在,目录：{}", apiCode, fileName, localPath);
                             }
-                            try {
-                                dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
-                                        + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                        + "]，文件：" + fileName + ",清洗" + (bool ? "成功" : "失败"), map);
-                            } catch (Exception e) {
-                                log.warn(e.getMessage(), e);
-                            }
+                        } catch (Exception e) {
+                            log.warn(e.getMessage(), e);
+                        }
+                        try {
+                            dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
+                                    + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                    + "]，文件：" + fileName + ",清洗" + (bool ? "成功" : "失败"), map);
                         } catch (Exception e) {
                             log.warn(e.getMessage(), e);
                         }
