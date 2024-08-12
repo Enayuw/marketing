@@ -5,11 +5,14 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.*;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.PushDecisionsService;
+import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushDecisionsDetailVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 /**
@@ -38,6 +41,12 @@ public class PushDecisionsController {
     @GetMapping("/deletePushDecisions")
     public ApiResult<Boolean> deletePushDecisions(@RequestParam Long id) {
         return new ApiResult<Boolean>().fromResult(pushDecisionsService.deletePushDecisions(id), CODE_1);
+    }
+
+    @ApiOperation(value = "获取推决策模板")
+    @GetMapping("/getDecisionsByRule")
+    public ApiResult<List<PushDecisionsDetailVO>> getDecisionsByRule(String apiCode) {
+        return new ApiResult<List<PushDecisionsDetailVO>>().fromResult(pushDecisionsService.getDecisionsByRule(apiCode), CODE_1);
     }
 
     @ApiOperation(value = "获取推送决策列表")
