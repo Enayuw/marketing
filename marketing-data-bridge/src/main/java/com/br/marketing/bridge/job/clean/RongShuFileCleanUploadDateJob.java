@@ -33,6 +33,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 
 /**
@@ -120,9 +121,13 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                             boolean bool = false;
                             String fileName = dataFile.getFileName();
                             String localPath = dataFile.getLocalPath();
-                            dingDingRobotHookService.sendDingDingTextMessage(
-                                    "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                            + "]，文件：" + fileName, map);
+                            try {
+                                dingDingRobotHookService.sendDingDingTextMessage(
+                                        "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                                + "]，文件：" + fileName, map);
+                            } catch (Exception e) {
+                                log.warn(e.getMessage(), e);
+                            }
                             if (fileName.contains(".zip")) {
                                 String localUnzipPath = localPath.concat(File.separator).concat("unzip").concat(File.separator);
                                 ZipUtils.unZip(new File(localPath.concat(File.separator).concat(fileName))
@@ -142,9 +147,13 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     }
                                 }
                             }
-                            dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
-                                    + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                    + "]，文件：" + fileName + ",清洗" + (bool ? "成功" : "失败"), map);
+                            try {
+                                dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
+                                        + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                        + "]，文件：" + fileName + ",清洗" + (bool ? "成功" : "失败"), map);
+                            } catch (Exception e) {
+                                log.warn(e.getMessage(), e);
+                            }
                         }
                     }
                 }
@@ -196,8 +205,14 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 }
                 rowNum++;
             }
-            if (map.size() != 0 && dataFileNew != null) {
-                update(apiCode, map, appletDateSet, dataFileNew);
+            if (dataFileNew != null) {
+                if (map.size() != 0) {
+                    update(apiCode, map, appletDateSet, dataFileNew);
+                }
+                MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
+                dataFileUpdate.setId(dataFileNew.getId());
+                dataFileUpdate.setIsDel(9);
+                marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
             }
         } catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
@@ -248,12 +263,21 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             , MarketingCleanDataFile dataFileNew) {
         List<MarketingSyncUser> list = marketingSyncUserMapper
                 .getReserveFieldByCustNumAndAppletDateList(apiCode, map.keySet(), appletDateSet);
+        Set<Long> idSet = list.stream().map(MarketingSyncUser::getId).collect(Collectors.toSet());
+        Set<Long> syncIds = new HashSet<>();
+        if (idSet.size() > 0) {
+            syncIds.addAll(rongshuPaofenFileUpdateSyncCleanLogMapper.getSyncApicodeId(apiCode, dataFileNew.getId(), idSet));
+        }
         for (MarketingSyncUser syncUser : list) {
+            Long id = syncUser.getId();
+            if (syncIds.contains(id)) {
+                continue;
+            }
             String reserveField1 = syncUser.getReserveField1();
             RongshuPaofenFileUpdateSyncCleanLog cleanLog = new RongshuPaofenFileUpdateSyncCleanLog();
             cleanLog.setApiCode(apiCode);
             cleanLog.setHistoryDataJson(reserveField1);
-            cleanLog.setSyncApicodeId(syncUser.getId());
+            cleanLog.setSyncApicodeId(id);
             cleanLog.setMarketingCleanDataFileId(dataFileNew.getId());
             cleanLog.setIsSuccess(1);
             if (JSONObject.isValidObject(reserveField1)) {
