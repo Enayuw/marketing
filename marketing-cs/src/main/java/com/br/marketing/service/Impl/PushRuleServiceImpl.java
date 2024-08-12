@@ -1257,6 +1257,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> ids = new ArrayList<>();
         Long mId = customerInfoPushMain.getId();
         ids.add(String.valueOf(mId));
+        StringBuilder sb = new StringBuilder();
+        sb.append("推送数据量：").append(customerInfoPushMain.getmRealyNum()).append("\n");
         // 失败原因
         Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(customerInfoPushMain.getmApiCode(), ids);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -1265,13 +1267,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 PolicyResultByTaskIdsDTO policyResultByTaskIdsDTO = resultByTaskIdsDTOS.get(0);
                 String verification = policyResultByTaskIdsDTO.getVerification();
                 String verificationReason = policyResultByTaskIdsDTO.getVerificationReason();
-                StringBuilder sb = new StringBuilder();
-                sb.append("请求批次号："+ verification).append(",失败原因：" + verificationReason);
-                sendAlert("【营销自动化推决策】", sb.toString());
+                sb.append("推送失败，请求批次号："+ verification).append(",失败原因：" + verificationReason);
             }
         } else {
             log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
         }
+        sendAlert("【营销自动化推决策】", sb.toString());
     }
 
     public void sendAlert(String title, String text) {
