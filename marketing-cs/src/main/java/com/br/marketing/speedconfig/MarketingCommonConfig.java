@@ -2005,5 +2005,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
 
+    /**
+     * 携程跑分数据同步任务保持驼峰字段配置
+     */
+    private List<String> xieChengScoreToDbKeepCamelColumns;
+
 }
 
