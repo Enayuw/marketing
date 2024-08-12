@@ -244,8 +244,8 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             return;
         }
         List<String> filterCustNum = marketingTransferSyncUserMapper.getTransferCustNumByConditiontikv_(tcid, apiCode,
-                userType, config.getValidStartDate(), config.getValidEndDate(), custNumSets, "(reserve_field1->'$.eventType' != 'APP_LAUNCH' and " +
-                        "reserve_field1->'$.eventType' != 'APP_LOGIN')");
+                userType, config.getValidStartDate(), config.getValidEndDate(), custNumSets, "(reserve_field1->'$.eventType' is not null and " +
+                        "reserve_field1->'$.eventType' != 'APP_LAUNCH' and " + "reserve_field1->'$.eventType' != 'APP_LOGIN')");
         marketingTransferSyncUserList.removeIf(transfer -> filterCustNum.contains(transfer.getCustNum()));
 
     }
