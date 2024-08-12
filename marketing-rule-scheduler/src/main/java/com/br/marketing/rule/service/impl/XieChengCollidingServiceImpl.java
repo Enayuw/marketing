@@ -12,10 +12,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.PushRuleStatusEnum;
-import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
-import com.br.marketing.enums.ThreeKeyEncryptEnum;
-import com.br.marketing.enums.ThreeKeyTypeEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -30,6 +27,8 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EncAndDecUtil;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +80,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
     @Resource
     XieChengCollidingDataLogMapper xieChengCollidingDataLogMapper;
+
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
 
     /**
      * 携程撞库数据推决策
@@ -142,6 +144,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 Result<Integer> pushRes = pushFuture.get();
                 if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                     main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                    sendAlert("携程推送决策失败", " 任务id："+customerInfoPushMain.getId());
                 } else {
                     realTotalNum += pushRes.getData();
                 }
@@ -297,5 +300,17 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                                 , Optional::get)));
     }
 
+    public void sendAlert(String title, String text) {
+
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
+
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        markdown.setTitle(title);
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+        dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString(), dingDingMarkdownMessage, true);
+    }
 
 }
