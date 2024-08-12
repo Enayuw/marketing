@@ -530,8 +530,9 @@ public class SyncServiceImpl implements SyncService {
                 // 文件内容读取
                 while (readableByteChannel.read(byteBuffer) != -1) {
                     byteBuffer.flip();
+                    ByteBuffer duplicate = byteBuffer.duplicate();
                     writableByteChannel.write(byteBuffer);
-                    md.update(byteBuffer);
+                    md.update(duplicate);
                     byteBuffer.clear();
                 }
                 // 获取MD5值生成
