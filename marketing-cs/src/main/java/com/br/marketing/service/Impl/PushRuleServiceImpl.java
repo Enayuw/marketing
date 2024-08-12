@@ -6,6 +6,7 @@ import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -14,6 +15,7 @@ import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerSer
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
+import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
@@ -66,6 +68,8 @@ import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
@@ -202,6 +206,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Resource
     RuleCenterBySourceTypeFactory ruleCenterBySourceTypeFactory;
+
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
 
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
@@ -1183,6 +1190,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 900013-数据正在导入
         realStatus.add("900013");
         List<CustomerPushLogVO> customerInfoPushLogs = customerInfoPushLogMapper.getPushLog(mId, realStatus);
+        Integer errorCount = 0;
         for (CustomerPushLogVO t : customerInfoPushLogs) {
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
@@ -1204,6 +1212,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         JSONObject error = JSONObject.parseObject(userStatus.getMessage());
                         if (error != null && error.keySet() != null) {
                             updateLog.setFailNum(error.keySet().size());
+                            errorCount += error.keySet().size();
                         }
                     }
                 } else if("900006".equals(userStatus.getData())){
@@ -1212,6 +1221,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         JSONObject error = JSONObject.parseObject(userStatus.getMessage());
                         if (error != null && error.keySet() != null) {
                             updateLog.setFailNum(error.keySet().size());
+                            errorCount += error.keySet().size();
                         }
                     }
                     log.error("推送决策后，查询决策结果出错，原始参数:{}--查询参数:{}",JSON.toJSONString(t),pushMarketingUserDTO);
@@ -1224,6 +1234,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 isContinue = Boolean.TRUE;
             }
         }
+        List<String> pushAlarmApiCode = marketingCommonConfig.getPushAlarmApiCode();
+        if(pushAlarmApiCode.contains(customerInfoPushMain.getmApiCode())){
+            pushDecisionsAlarm(customerInfoPushMain,errorCount);
+        }
         if (!isContinue) {
             List<CustomerPushLogVO> pushLog = customerInfoPushLogMapper.getPushLog(mId, null);
             long count = pushLog.stream().filter(t -> !"00".equals(t.getRealStauts())).count();
@@ -1233,6 +1247,53 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushMainMapper.updateByPrimaryKeySelective(updateMain);
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
+    }
+
+    public void pushDecisionsAlarm(CustomerInfoPushMain customerInfoPushMain,Integer errorCount) {
+        List<String> ids = new ArrayList<>();
+        Long mId = customerInfoPushMain.getId();
+        // 推送数量级报警
+        // 实际推送数量
+        Integer totalCount = customerInfoPushMain.getmRealyNum();
+        // 错误量级 errorCount
+        // 正确量级
+        int rightCount = totalCount - errorCount;
+        ids.add(String.valueOf(mId));
+        // 失败原因
+        Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(customerInfoPushMain.getmApiCode(), ids);
+        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            List<PolicyResultByTaskIdsDTO> resultByTaskIdsDTOS = result.getData();
+            if(!resultByTaskIdsDTOS.isEmpty()){
+                PolicyResultByTaskIdsDTO policyResultByTaskIdsDTO = resultByTaskIdsDTOS.get(0);
+                String verification = policyResultByTaskIdsDTO.getVerification();
+                String verificationReason = policyResultByTaskIdsDTO.getVerificationReason();
+            }
+        } else {
+            log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
+        }
+        // 推送量级为XX，推送结束时间XX，成功XX条，失败XX条，失败原因XX
+        sendAlert("","");
+    }
+
+
+    public void sendAlert(String title, String text){
+        try {
+            String accessToken = marketingCommonConfig.getQiFuDingDingAccessToken();
+            String secret = marketingCommonConfig.getQiFuDingDingSecret();
+            sendAlert(title, text, accessToken, secret);
+        }catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()));
+        }
+    }
+
+    public void sendAlert(String title, String text, String accessToken, String secret){
+        // DingDingAlert
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        markdown.setTitle(title);
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+        dingDingRobotHookService.sendMessageGroup(accessToken, secret, dingDingMarkdownMessage, true);
     }
 
     /**

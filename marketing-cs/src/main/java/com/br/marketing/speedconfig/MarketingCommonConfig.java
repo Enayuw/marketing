@@ -2005,5 +2005,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
 
+    /**
+     * 推决策报警apiCode集合
+     */
+    private List<String> pushAlarmApiCode;
+
 }
 
