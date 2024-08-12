@@ -10,6 +10,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.PushRuleStatusEnum;
@@ -224,6 +225,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
             pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
             pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
+            if(StringUtils.isNotEmpty(customerInfoPushMain.getStrategyCode())){
+                pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
+            }
             //传输参数信息
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
