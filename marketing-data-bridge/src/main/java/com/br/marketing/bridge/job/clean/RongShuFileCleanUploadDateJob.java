@@ -324,14 +324,17 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             cleanLog.setCreateTime(new Date());
             cleanLog.setUid(syncUser.getCustNum());
             cleanLog.setUpdateTime(cleanLog.getUpdateTime());
+            JSONObject newData = map.get(syncUser.getCustNum());
+            cleanLog.setNewDataJson(newData.toJSONString());
             if (JSONObject.isValidObject(reserveField1)) {
-                JSONObject newData = map.get(syncUser.getCustNum());
-                cleanLog.setNewDataJson(newData.toJSONString());
                 JSONObject oldData = JSONObject.parseObject(reserveField1);
                 newData.forEach((String key, Object value) -> oldData.put(key, value.toString()));
                 syncUser.setReserveField1(oldData.toJSONString());
                 marketingSyncUserMapper.updateReserveFieldByPrimaryKey(syncUser);
                 cleanLog.setIsSuccess(0);
+            } else if (StringUtils.isBlank(reserveField1)) {
+                syncUser.setReserveField1(newData.toJSONString());
+                marketingSyncUserMapper.updateReserveFieldByPrimaryKey(syncUser);
             }
             rongshuPaofenFileUpdateSyncCleanLogMapper.insertSelective(cleanLog);
         }
