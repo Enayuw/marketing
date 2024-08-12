@@ -65,14 +65,13 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
 
     @Override
     public void buildPolicyTask() {
-        RuleCenterEntranceServiceImpl ruleCenterEntranceService = (RuleCenterEntranceServiceImpl) AopContext.currentProxy();
+//        RuleCenterEntranceServiceImpl ruleCenterEntranceService = (RuleCenterEntranceServiceImpl) AopContext.currentProxy();
         List<PushDecisions> pushDecisionsConfig = getPushDecisionsConfig();
         for (PushDecisions pushDecisions : pushDecisionsConfig) {
-            ruleCenterEntranceService.buildSiglePolicyTask(pushDecisions);
+            buildSiglePolicyTask(pushDecisions);
         }
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public void buildSiglePolicyTask(PushDecisions pushDecisions) {
         try {
             ScoreSearchCondition scoreSearchCondition = scoreSearchConditionMapper.selectByPrimaryKey(pushDecisions.getDependencyTemplateId());
