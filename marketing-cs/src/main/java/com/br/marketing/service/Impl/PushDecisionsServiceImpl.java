@@ -9,16 +9,16 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OptConditionDTO;
 import com.br.marketing.dto.PushDecisionsDTO;
 import com.br.marketing.dto.SearchConditionDTO;
-import com.br.marketing.entity.PushDecisions;
-import com.br.marketing.entity.PushDecisionsExample;
-import com.br.marketing.entity.ScoreSearchCondition;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.PushDecisionsMapper;
 import com.br.marketing.mapper.ScoreSearchConditionMapper;
 import com.br.marketing.service.PushDecisionsService;
+import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushDecisionsDetailVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName PushDecisionsServiceImpl
@@ -54,7 +55,7 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
     public Result<Long> savePushDecisions(PushDecisionsDTO dto) {
 
         PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
-        pushDecisionsExample.createCriteria().andRuleNameEqualTo(dto.getRuleName()).andApiCodeEqualTo(dto.getApiCode());
+        pushDecisionsExample.createCriteria().andRuleNameEqualTo(dto.getRuleName()).andApiCodeEqualTo(dto.getApiCode()).andIsDelEqualTo(1);
         int i = pushDecisionsMapper.countByExample(pushDecisionsExample);
         if (i > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("推决策规则模板名称重复");
@@ -136,6 +137,14 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         pushDecisionsMapper.updateByPrimaryKeySelective(pushDecisions);
         entityOptService.writeOptLog(dto.getId(), pushDecisions, p);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<List<PushDecisionsDetailVO>> getDecisionsByRule(String apiCode) {
+        PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
+        pushDecisionsExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
+        List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushDecisions);
     }
 
     String buildConditionNumber(String apiCode) {

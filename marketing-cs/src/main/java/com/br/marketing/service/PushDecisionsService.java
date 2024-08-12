@@ -5,7 +5,10 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OptConditionDTO;
 import com.br.marketing.dto.PushDecisionsDTO;
 import com.br.marketing.dto.SearchConditionDTO;
+import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushDecisionsDetailVO;
+
+import java.util.List;
 
 /**
  * @ClassName PushDecisionsService
@@ -23,4 +26,6 @@ public interface PushDecisionsService {
     Result<PushDecisionsDetailVO> getPushDecisionsDetails(Long id);
 
     Result updateStatus(OptConditionDTO dto);
+
+    Result<List<PushDecisionsDetailVO>> getDecisionsByRule(String apiCode);
 }
