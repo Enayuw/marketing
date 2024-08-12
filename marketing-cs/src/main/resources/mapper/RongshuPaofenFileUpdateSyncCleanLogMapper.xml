@@ -5,7 +5,7 @@
     <select id="getSyncApicodeId" resultType="java.lang.Long">
         select id from b_rongshu_paofen_file_update_sync_clean_log where
         api_code='${apiCode}'
-        and marketing_clean_data_file_id = ${cleanDataFileId} and marketing_clean_data_file_id in
+        and marketing_clean_data_file_id = ${cleanDataFileId} and sync_apicode_id in
         <foreach collection="syncApicodeIdSet" open="(" close=")" separator="," item="syncId">
             ${syncId}
         </foreach>

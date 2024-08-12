@@ -957,7 +957,7 @@
 
     <update id="updateReserveFieldByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSyncUser">
         update b_marketing_sync_${apiCode}
-        set reserve_field1 = #{reserve_field1,jdbcType=VARCHAR}
+        set reserve_field1 = #{reserveField1,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
 </mapper>

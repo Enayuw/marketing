@@ -1,7 +1,7 @@
 package com.br.marketing.mapper.clean.rongshu;
 
-import com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLog;
-import com.br.marketing.entity.clean.RongshuPaofenFileUpdateSyncCleanLogExample;
+import com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog;
+import com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogExample;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;

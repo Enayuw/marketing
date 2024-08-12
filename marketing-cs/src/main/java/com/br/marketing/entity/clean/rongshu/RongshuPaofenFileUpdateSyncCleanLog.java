@@ -1,4 +1,4 @@
-package com.br.marketing.entity.clean;
+package com.br.marketing.entity.clean.rongshu;
 
 import java.util.Date;
 
@@ -34,26 +34,6 @@ public class RongshuPaofenFileUpdateSyncCleanLog {
     private String uid;
 
     /**
-     * 清洗内容
-     */
-    private String registerNoFirstLogin;
-
-    /**
-     * 清洗内容
-     */
-    private String firstLoginNoBorrow;
-
-    /**
-     * 清洗内容
-     */
-    private String borrowNoCredit;
-
-    /**
-     * 清洗内容
-     */
-    private String creditNoLoan;
-
-    /**
      * 清洗状态：0-已成功；1-失败
      */
     private Integer isSuccess;
@@ -72,6 +52,11 @@ public class RongshuPaofenFileUpdateSyncCleanLog {
      * 删除状态：0-未删除；1-已删除
      */
     private Integer isDel;
+
+    /**
+     * 历史数据内容，json结构
+     */
+    private String newDataJson;
 
     public Long getId() {
         return id;
@@ -121,38 +106,6 @@ public class RongshuPaofenFileUpdateSyncCleanLog {
         this.uid = uid == null ? null : uid.trim();
     }
 
-    public String getRegisterNoFirstLogin() {
-        return registerNoFirstLogin;
-    }
-
-    public void setRegisterNoFirstLogin(String registerNoFirstLogin) {
-        this.registerNoFirstLogin = registerNoFirstLogin == null ? null : registerNoFirstLogin.trim();
-    }
-
-    public String getFirstLoginNoBorrow() {
-        return firstLoginNoBorrow;
-    }
-
-    public void setFirstLoginNoBorrow(String firstLoginNoBorrow) {
-        this.firstLoginNoBorrow = firstLoginNoBorrow == null ? null : firstLoginNoBorrow.trim();
-    }
-
-    public String getBorrowNoCredit() {
-        return borrowNoCredit;
-    }
-
-    public void setBorrowNoCredit(String borrowNoCredit) {
-        this.borrowNoCredit = borrowNoCredit == null ? null : borrowNoCredit.trim();
-    }
-
-    public String getCreditNoLoan() {
-        return creditNoLoan;
-    }
-
-    public void setCreditNoLoan(String creditNoLoan) {
-        this.creditNoLoan = creditNoLoan == null ? null : creditNoLoan.trim();
-    }
-
     public Integer getIsSuccess() {
         return isSuccess;
     }
@@ -183,5 +136,13 @@ public class RongshuPaofenFileUpdateSyncCleanLog {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public String getNewDataJson() {
+        return newDataJson;
+    }
+
+    public void setNewDataJson(String newDataJson) {
+        this.newDataJson = newDataJson == null ? null : newDataJson.trim();
     }
 }

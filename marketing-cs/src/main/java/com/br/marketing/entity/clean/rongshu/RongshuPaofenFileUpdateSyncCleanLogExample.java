@@ -1,4 +1,4 @@
-package com.br.marketing.entity.clean;
+package com.br.marketing.entity.clean.rongshu;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -495,286 +495,6 @@ public class RongshuPaofenFileUpdateSyncCleanLogExample {
             return (Criteria) this;
         }
 
-        public Criteria andRegisterNoFirstLoginIsNull() {
-            addCriterion("register_no_first_login is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginIsNotNull() {
-            addCriterion("register_no_first_login is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginEqualTo(String value) {
-            addCriterion("register_no_first_login =", value, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginNotEqualTo(String value) {
-            addCriterion("register_no_first_login <>", value, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginGreaterThan(String value) {
-            addCriterion("register_no_first_login >", value, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginGreaterThanOrEqualTo(String value) {
-            addCriterion("register_no_first_login >=", value, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginLessThan(String value) {
-            addCriterion("register_no_first_login <", value, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginLessThanOrEqualTo(String value) {
-            addCriterion("register_no_first_login <=", value, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginLike(String value) {
-            addCriterion("register_no_first_login like", value, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginNotLike(String value) {
-            addCriterion("register_no_first_login not like", value, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginIn(List<String> values) {
-            addCriterion("register_no_first_login in", values, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginNotIn(List<String> values) {
-            addCriterion("register_no_first_login not in", values, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginBetween(String value1, String value2) {
-            addCriterion("register_no_first_login between", value1, value2, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andRegisterNoFirstLoginNotBetween(String value1, String value2) {
-            addCriterion("register_no_first_login not between", value1, value2, "registerNoFirstLogin");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowIsNull() {
-            addCriterion("first_login_no_borrow is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowIsNotNull() {
-            addCriterion("first_login_no_borrow is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowEqualTo(String value) {
-            addCriterion("first_login_no_borrow =", value, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowNotEqualTo(String value) {
-            addCriterion("first_login_no_borrow <>", value, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowGreaterThan(String value) {
-            addCriterion("first_login_no_borrow >", value, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowGreaterThanOrEqualTo(String value) {
-            addCriterion("first_login_no_borrow >=", value, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowLessThan(String value) {
-            addCriterion("first_login_no_borrow <", value, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowLessThanOrEqualTo(String value) {
-            addCriterion("first_login_no_borrow <=", value, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowLike(String value) {
-            addCriterion("first_login_no_borrow like", value, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowNotLike(String value) {
-            addCriterion("first_login_no_borrow not like", value, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowIn(List<String> values) {
-            addCriterion("first_login_no_borrow in", values, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowNotIn(List<String> values) {
-            addCriterion("first_login_no_borrow not in", values, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowBetween(String value1, String value2) {
-            addCriterion("first_login_no_borrow between", value1, value2, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andFirstLoginNoBorrowNotBetween(String value1, String value2) {
-            addCriterion("first_login_no_borrow not between", value1, value2, "firstLoginNoBorrow");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditIsNull() {
-            addCriterion("borrow_no_credit is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditIsNotNull() {
-            addCriterion("borrow_no_credit is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditEqualTo(String value) {
-            addCriterion("borrow_no_credit =", value, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditNotEqualTo(String value) {
-            addCriterion("borrow_no_credit <>", value, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditGreaterThan(String value) {
-            addCriterion("borrow_no_credit >", value, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditGreaterThanOrEqualTo(String value) {
-            addCriterion("borrow_no_credit >=", value, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditLessThan(String value) {
-            addCriterion("borrow_no_credit <", value, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditLessThanOrEqualTo(String value) {
-            addCriterion("borrow_no_credit <=", value, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditLike(String value) {
-            addCriterion("borrow_no_credit like", value, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditNotLike(String value) {
-            addCriterion("borrow_no_credit not like", value, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditIn(List<String> values) {
-            addCriterion("borrow_no_credit in", values, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditNotIn(List<String> values) {
-            addCriterion("borrow_no_credit not in", values, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditBetween(String value1, String value2) {
-            addCriterion("borrow_no_credit between", value1, value2, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andBorrowNoCreditNotBetween(String value1, String value2) {
-            addCriterion("borrow_no_credit not between", value1, value2, "borrowNoCredit");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanIsNull() {
-            addCriterion("credit_no_loan is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanIsNotNull() {
-            addCriterion("credit_no_loan is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanEqualTo(String value) {
-            addCriterion("credit_no_loan =", value, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanNotEqualTo(String value) {
-            addCriterion("credit_no_loan <>", value, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanGreaterThan(String value) {
-            addCriterion("credit_no_loan >", value, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanGreaterThanOrEqualTo(String value) {
-            addCriterion("credit_no_loan >=", value, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanLessThan(String value) {
-            addCriterion("credit_no_loan <", value, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanLessThanOrEqualTo(String value) {
-            addCriterion("credit_no_loan <=", value, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanLike(String value) {
-            addCriterion("credit_no_loan like", value, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanNotLike(String value) {
-            addCriterion("credit_no_loan not like", value, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanIn(List<String> values) {
-            addCriterion("credit_no_loan in", values, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanNotIn(List<String> values) {
-            addCriterion("credit_no_loan not in", values, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanBetween(String value1, String value2) {
-            addCriterion("credit_no_loan between", value1, value2, "creditNoLoan");
-            return (Criteria) this;
-        }
-
-        public Criteria andCreditNoLoanNotBetween(String value1, String value2) {
-            addCriterion("credit_no_loan not between", value1, value2, "creditNoLoan");
-            return (Criteria) this;
-        }
-
         public Criteria andIsSuccessIsNull() {
             addCriterion("is_success is null");
             return (Criteria) this;
@@ -1012,6 +732,76 @@ public class RongshuPaofenFileUpdateSyncCleanLogExample {
 
         public Criteria andIsDelNotBetween(Integer value1, Integer value2) {
             addCriterion("is_del not between", value1, value2, "isDel");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonIsNull() {
+            addCriterion("new_data_json is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonIsNotNull() {
+            addCriterion("new_data_json is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonEqualTo(String value) {
+            addCriterion("new_data_json =", value, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonNotEqualTo(String value) {
+            addCriterion("new_data_json <>", value, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonGreaterThan(String value) {
+            addCriterion("new_data_json >", value, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonGreaterThanOrEqualTo(String value) {
+            addCriterion("new_data_json >=", value, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonLessThan(String value) {
+            addCriterion("new_data_json <", value, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonLessThanOrEqualTo(String value) {
+            addCriterion("new_data_json <=", value, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonLike(String value) {
+            addCriterion("new_data_json like", value, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonNotLike(String value) {
+            addCriterion("new_data_json not like", value, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonIn(List<String> values) {
+            addCriterion("new_data_json in", values, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonNotIn(List<String> values) {
+            addCriterion("new_data_json not in", values, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonBetween(String value1, String value2) {
+            addCriterion("new_data_json between", value1, value2, "newDataJson");
+            return (Criteria) this;
+        }
+
+        public Criteria andNewDataJsonNotBetween(String value1, String value2) {
+            addCriterion("new_data_json not between", value1, value2, "newDataJson");
             return (Criteria) this;
         }
     }
