@@ -9,5 +9,6 @@
         <foreach collection="syncApicodeIdSet" open="(" close=")" separator="," item="syncId">
             ${syncId}
         </foreach>
+        and is_del=0
     </select>
 </mapper>
