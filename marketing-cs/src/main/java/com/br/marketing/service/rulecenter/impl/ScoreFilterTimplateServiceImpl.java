@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.exception.KnowException;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
@@ -75,7 +76,7 @@ public class ScoreFilterTimplateServiceImpl implements IRuleCenterFilterTemplate
                     customerInfoPushBatch.setmApiCode(straHisFile.getApiCode());
                     customerInfoPushBatch.setmBatchNumber(straHisFile.getBatchNumber());
                     customerInfoPushBatch.setmFileId(straHisFile.getId());
-                    customerInfoPushBatch.setIsDel(0);
+                    customerInfoPushBatch.setIsDel(Constants.DATA_VALID);
                     customerInfoPushBatch.setCreateTime(main.getCreateTime());
                     customerInfoPushBatch.setUpdateTime(main.getCreateTime());
                     customerInfoPushBatch.setmId(main.getId());
