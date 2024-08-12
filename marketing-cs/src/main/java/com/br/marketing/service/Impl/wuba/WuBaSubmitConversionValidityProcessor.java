@@ -33,11 +33,11 @@ public class WuBaSubmitConversionValidityProcessor {
         Map<String, SyncUserValidityPeriodsBO> validityPeriodsMap = transferDataValidityPeriodService
                 .getValidityPeriodsByCustNum(custNumSet, apiCode, curLocalDate);
 
-        // 未获取到上传数据
         if (CollectionUtils.isEmpty(validityPeriodsMap)) {
             log.warn(TITLE + "未获取到上传数据或未配置有效期, apiCode: {}, requestData: {}", apiCode, curLocalDate);
             validityPeriodsMap = new HashMap<>();
         }
+
         log.warn(TITLE + "判断有效期, apiCode: {}, requestData: {}", apiCode, curLocalDate);
         Iterator<WubaSubmitConversionData> iterator = pushList.iterator();
         while (iterator.hasNext()) {
