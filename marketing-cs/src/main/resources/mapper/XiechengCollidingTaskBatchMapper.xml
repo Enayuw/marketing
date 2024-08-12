@@ -258,6 +258,7 @@
   </update>
   <select id="selectEarliestBatch" resultType="com.br.marketing.vo.XiechengCollidingTaskBatchVo" >
     select batch.id as id,
+           batch.api_code as apiCode,
            batch.batch_number as batchNumber,
            batch.colliding_data_task_id as collidingDataTaskId,
            task.task_execution_conditions as taskExecutionConditions,
