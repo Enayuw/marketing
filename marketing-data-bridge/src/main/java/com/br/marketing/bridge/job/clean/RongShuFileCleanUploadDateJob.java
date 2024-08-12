@@ -108,8 +108,8 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                             .andIsDelEqualTo(1).andCreateTimeGreaterThanOrEqualTo(Date.from(instant));
                     fileExample.setOrderByClause("create_time");
                     List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
-                    if (1 == taskRule.getIsMd5Check()) {
-                        for (MarketingCleanDataFile dataFile : cleanDataFiles) {
+                    for (MarketingCleanDataFile dataFile : cleanDataFiles) {
+                        if (1 == taskRule.getIsMd5Check()) {
                             String md5Value = dataFile.getMd5Value();
                             MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
                             fileExampleCount.createCriteria().andApiCodeEqualTo(apiCode).andSyncConfigIdEqualTo(syncConfigId)
@@ -118,43 +118,47 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                             if (l > 0) {
                                 continue;
                             }
-                            boolean bool = false;
-                            String fileName = dataFile.getFileName();
-                            String localPath = dataFile.getLocalPath();
-                            try {
-                                dingDingRobotHookService.sendDingDingTextMessage(
-                                        "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                                + "]，文件：" + fileName, map);
-                            } catch (Exception e) {
-                                log.warn(e.getMessage(), e);
-                            }
-                            if (fileName.contains(".zip")) {
-                                String localUnzipPath = localPath.concat(File.separator).concat("unzip").concat(File.separator);
-                                ZipUtils.unZip(new File(localPath.concat(File.separator).concat(fileName))
-                                        , localUnzipPath, taskRule.getZipPassword());
-                                File dir = new File(localUnzipPath);
-                                File[] files = dir.listFiles();
-                                if (files != null) {
-                                    MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
-                                    dataFileUpdate.setId(dataFile.getId());
-                                    dataFileUpdate.setIsDel(9);
-                                    int i = marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
-                                    if (i > 0) {
-                                        bool = true;
-                                        for (File file : files) {
-                                            bool = bool && readFile(file, regex, syncConfigId, localPath, apiCode, localDate);
-                                        }
+                        }
+                        boolean bool = false;
+                        String fileName = dataFile.getFileName();
+                        String localPath = dataFile.getLocalPath();
+                        try {
+                            dingDingRobotHookService.sendDingDingTextMessage(
+                                    "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                            + "]，文件：" + fileName, map);
+                        } catch (Exception e) {
+                            log.warn(e.getMessage(), e);
+                        }
+                        File srcFile = new File(localPath.concat(File.separator).concat(fileName));
+                        if (fileName.contains(".zip")) {
+                            String localUnzipPath = localPath.concat(File.separator).concat("unzip").concat(File.separator);
+                            ZipUtils.unZip(srcFile
+                                    , localUnzipPath, taskRule.getZipPassword());
+                            File dir = new File(localUnzipPath);
+                            File[] files = dir.listFiles();
+                            if (files != null) {
+                                MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
+                                dataFileUpdate.setId(dataFile.getId());
+                                dataFileUpdate.setIsDel(9);
+                                int i = marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
+                                if (i > 0) {
+                                    bool = true;
+                                    for (File file : files) {
+                                        bool = bool && readFile(dataFile, file, regex, localDate, true);
                                     }
                                 }
                             }
-                            try {
-                                dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
-                                        + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                        + "]，文件：" + fileName + ",清洗" + (bool ? "成功" : "失败"), map);
-                            } catch (Exception e) {
-                                log.warn(e.getMessage(), e);
-                            }
+                        } else {
+                            bool = readFile(dataFile, srcFile, regex, localDate, false);
                         }
+                        try {
+                            dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
+                                    + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                                    + "]，文件：" + fileName + ",清洗" + (bool ? "成功" : "失败"), map);
+                        } catch (Exception e) {
+                            log.warn(e.getMessage(), e);
+                        }
+
                     }
                 }
             }
@@ -162,9 +166,18 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     }
 
 
-    private boolean readFile(File file, String regex, Long syncConfigId
-            , String localPath, String apiCode, LocalDate localDate) {
+    /**
+     * 2024-08-12 11:28
+     *
+     * @param file      文件
+     * @param dataFile  文件信息
+     * @param localDate 日期
+     * @param regex     分隔符
+     * @return true 成功
+     */
+    private boolean readFile(MarketingCleanDataFile dataFile, File file, String regex, LocalDate localDate, boolean isCreate) {
         String name = file.getName();
+        String apiCode = dataFile.getApiCode();
         Set<String> appletDateSet = iMarketingDataValidService.getAppletDateSet(apiCode, localDate.toString());
         try {
             RandomAccessFile accessFile = new RandomAccessFile(file, "r");
@@ -182,8 +195,9 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         rowNum++;
                         continue;
                     } else {
-                        dataFileNew = saveDataFileInfo(name, syncConfigId, file.getParent()
-                                , localPath, "", apiCode, fileHeader, rowData);
+                        dataFileNew = isCreate ? saveDataFileInfo(dataFile, name, file.getParent(), "", fileHeader, rowData)
+                                : dataFile;
+                        dataFileNew.setFileData(rowData);
                     }
                 }
                 String[] split = rowData.split(regex);
@@ -194,7 +208,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     object.put(fileHeaders[i], split[i]);
                 }
                 map.put(uid, object);
-                if (map.size() == 2000 && dataFileNew != null) {
+                if (map.size() == 2000 && dataFileNew != null && dataFileNew.getId() != null) {
                     Map<String, JSONObject> finalMap = map;
                     MarketingCleanDataFile finalDataFileNew = dataFileNew;
                     THREAD_POOL.submit(() -> {
@@ -205,13 +219,17 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 }
                 rowNum++;
             }
-            if (dataFileNew != null) {
+            if (dataFileNew != null && dataFileNew.getId() != null) {
                 if (map.size() != 0) {
                     update(apiCode, map, appletDateSet, dataFileNew);
                 }
                 MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
                 dataFileUpdate.setId(dataFileNew.getId());
                 dataFileUpdate.setIsDel(9);
+                if (!isCreate) {
+                    dataFileUpdate.setFileData(dataFileNew.getFileData());
+                    dataFileUpdate.setFileHeader(fileHeader);
+                }
                 marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
             }
         } catch (IOException e) {
@@ -222,37 +240,38 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         return true;
     }
 
+
     /**
      * 2024-08-08 22:35
      * 保存文件信息
      *
-     * @param fileName     文件名
-     * @param syncConfigId sftp配置信息id
-     * @param targetPath   目标目录
-     * @param srcPath      源目录
-     * @param md5Value     md5
+     * @param fileName   文件名
+     * @param targetPath 目标目录
+     * @param md5Value   md5
      */
-    private MarketingCleanDataFile saveDataFileInfo(String fileName, Long syncConfigId
-            , String targetPath, String srcPath, String md5Value, String apiCode
+    private MarketingCleanDataFile saveDataFileInfo(MarketingCleanDataFile dataFile, String fileName
+            , String targetPath, String md5Value
             , String fileHeader, String fileData) {
-        MarketingCleanDataFile dataFile = new MarketingCleanDataFile();
-        dataFile.setFileName(fileName);
-        dataFile.setApiCode(apiCode);
-        dataFile.setFileHeader(fileHeader);
-        dataFile.setFileData(fileData);
-        dataFile.setCreateTime(new Date());
-        dataFile.setLocalPath(targetPath);
-        dataFile.setUpdateTime(new Date());
-        dataFile.setTargetSftpPath(srcPath);
-        dataFile.setMd5Value(md5Value);
-        dataFile.setSyncConfigId(syncConfigId);
-        int i = marketingCleanDataFileMapper.insertSelective(dataFile);
+        String apiCode = dataFile.getApiCode();
+        Long syncConfigId = dataFile.getSyncConfigId();
+        String localPath = dataFile.getLocalPath();
+        MarketingCleanDataFile dataFileNew = new MarketingCleanDataFile();
+        dataFileNew.setFileHeader(fileHeader);
+        dataFileNew.setFileName(fileName);
+        dataFileNew.setApiCode(apiCode);
+        dataFileNew.setFileData(fileData);
+        dataFileNew.setCreateTime(new Date());
+        dataFileNew.setLocalPath(targetPath);
+        dataFileNew.setUpdateTime(new Date());
+        dataFileNew.setTargetSftpPath(localPath);
+        dataFileNew.setMd5Value(md5Value);
+        dataFileNew.setSyncConfigId(syncConfigId);
+        int i = marketingCleanDataFileMapper.insertSelective(dataFileNew);
         if (i < 1) {
             log.warn("添加清洗文件失败！fileName:{},targetPath:{},srcPath:{},md5Value:{},syncConfigId:{}"
-                    , fileName, targetPath, srcPath, md5Value, syncConfigId);
-            return null;
+                    , fileName, targetPath, localPath, md5Value, syncConfigId);
         }
-        return dataFile;
+        return dataFileNew;
     }
 
     /**
