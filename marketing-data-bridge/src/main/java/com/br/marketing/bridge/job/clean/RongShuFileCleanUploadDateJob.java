@@ -123,7 +123,8 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                             if (1 == taskRule.getIsMd5Check() && StringUtils.isNotBlank(md5Value)) {
                                 MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
                                 fileExampleCount.createCriteria().andApiCodeEqualTo(apiCode).andSyncConfigIdEqualTo(syncConfigId)
-                                        .andIdNotEqualTo(dataFile.getId()).andCreateTimeLessThanOrEqualTo(dataFile.getCreateTime());
+                                        .andIdNotEqualTo(dataFile.getId()).andCreateTimeLessThanOrEqualTo(dataFile.getCreateTime())
+                                        .andMd5ValueNotEqualTo("").andMd5ValueIsNotNull();
                                 fileExampleCount.setOrderByClause("create_time desc limit 1");
                                 List<MarketingCleanDataFile> marketingCleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExampleCount);
                                 if (marketingCleanDataFiles.size() > 0 && md5Value.equals(marketingCleanDataFiles.get(0).getMd5Value())) {
@@ -163,15 +164,19 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     bool = readFile(dataFile, srcFile, regex, localDate, false);
                                 }
                             } else {
-                                log.warn("荣树({})待清洗文件{}不存在,目录：{}", apiCode, fileName, localPath);
+                                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode()
+                                        , "榕树(" + apiCode + ")待清洗文件" + fileName + "不存在,目录：" + localPath
+                                        , "榕树清洗上传数据异常-" + apiCode));
                             }
                         } catch (Exception e) {
-                            log.warn(e.getMessage(), e);
+                            bool = false;
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(), e.getMessage()
+                                    , "榕树清洗上传数据异常-" + apiCode), e);
                         }
                         try {
                             dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
                                     + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                    + "]，文件：" + fileName + ",清洗" + (bool ? "成功" : "失败"), map);
+                                    + "]，文件：" + fileName + ",清洗" + (bool ? "成功^_^" : "失败!!!"), map);
                         } catch (Exception e) {
                             log.warn(e.getMessage(), e);
                         }
@@ -249,7 +254,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
             }
         } catch (IOException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(), e.getMessage()
                     , "榕树清洗上传数据异常-" + apiCode), e);
             return false;
         }
