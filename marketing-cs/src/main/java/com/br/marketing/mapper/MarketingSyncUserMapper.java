@@ -357,9 +357,16 @@ public interface MarketingSyncUserMapper {
                                                   @Param("pageSize") Integer pageSize);
 
     MarketingSyncUser getMarketingSyncByCusBatch(@Param("apiCode") String apiCode,
-                                                 @Param("cusBatch") String cusBatch,
-                                                 @Param("userType") String userType,
-                                                 @Param("appletDate") String appletDate);
+                               @Param("cusBatch") String cusBatch,
+                               @Param("userType") String userType,
+                               @Param("appletDate") String appletDate);
+
+    Set<String> getCustNumSetByAppletDateInterval(
+            @Param("apiCode") String apiCode,
+            @Param("custNums") List<String> custNums,
+            @Param("appletDateStart") String appletDateStart,
+            @Param("appletDateEnd") String appletDateEnd
+    );
 
     /**
      * 2024-08-09 16:53

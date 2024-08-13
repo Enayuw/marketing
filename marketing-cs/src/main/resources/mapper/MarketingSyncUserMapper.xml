@@ -930,14 +930,23 @@
         limit #{pageSize}
     </select>
     <select id="getMarketingSyncByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select *
+        select * From  b_marketing_sync_${apiCode}
+        where cus_batch=#{cusBatch} and api_code = #{apiCode} and applet_date = #{appletDate}
+          and user_type =#{userType}
+        and status =1 and is_repeat in (1,2) limit 1
+    </select>
+
+    <select id="getCustNumSetByAppletDateInterval" resultType="String">
+        select cust_num
         From b_marketing_sync_${apiCode}
-        where cus_batch = #{cusBatch}
-          and api_code = #{apiCode}
-          and applet_date = #{appletDate}
-          and user_type = #{userType}
-          and status = 1
-          and is_repeat in (1, 2) limit 1
+        where
+            api_code =#{apiCode}
+            and cust_num in
+            <foreach collection ="custNums" item="item" separator ="," open="(" close=")">
+                #{item}
+            </foreach>
+            and <![CDATA[ applet_date>=#{appletDateStart} and applet_date<=#{appletDateEnd} ]]>
+            and status =1 and is_repeat in (1,2)
     </select>
 
     <select id="getReserveFieldByCustNumAndAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">

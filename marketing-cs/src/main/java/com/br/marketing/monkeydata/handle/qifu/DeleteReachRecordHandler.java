@@ -20,6 +20,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,32 +53,53 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
 
     @Override
     public Boolean isThread() {
-        JSONObject jsonObject;
-        return marketingCommonConfig.getCustomerJobConfig() == null
-                ? super.isThread() : (jsonObject = marketingCommonConfig.getCustomerJobConfig()
-                .get(this.getClass().getSimpleName())) == null
-                ? super.isThread() : jsonObject.containsKey("isThread")
-                ? jsonObject.getBoolean("isThread") : super.isThread();
+        HashMap<String, JSONObject> customerJobConfig = marketingCommonConfig.getCustomerJobConfig();
+        if(customerJobConfig == null){
+            return super.isThread();
+        }
+        JSONObject jsonObject = customerJobConfig.get(this.getClass().getSimpleName());
+        if(jsonObject == null){
+            return super.isThread();
+        }
+        if(!jsonObject.containsKey("isThread")){
+            return super.isThread();
+        }
+        Boolean isThread = jsonObject.getBoolean("isThread");
+        return isThread;
     }
 
     @Override
     public Boolean isPause() {
-        JSONObject jsonObject;
-        return marketingCommonConfig.getCustomerJobConfig() == null
-                ? super.isPause() : (jsonObject = marketingCommonConfig.getCustomerJobConfig()
-                .get(this.getClass().getSimpleName())) == null
-                ? super.isPause() : jsonObject.containsKey("isPause")
-                ? jsonObject.getBoolean("isPause") : super.isPause();
+        HashMap<String, JSONObject> customerJobConfig = marketingCommonConfig.getCustomerJobConfig();
+        if(customerJobConfig == null){
+            return super.isPause();
+        }
+        JSONObject jsonObject = customerJobConfig.get(this.getClass().getSimpleName());
+        if(jsonObject == null){
+            return super.isPause();
+        }
+        if(!jsonObject.containsKey("isPause")){
+            return super.isPause();
+        }
+        Boolean isPause = jsonObject.getBoolean("isPause");
+        return isPause;
     }
 
     @Override
     public Integer getThread() {
-        JSONObject jsonObject;
-        return marketingCommonConfig.getCustomerJobConfig() == null
-                ? super.getThread() : (jsonObject = marketingCommonConfig.getCustomerJobConfig()
-                .get(this.getClass().getSimpleName())) == null
-                ? super.getThread() : jsonObject.containsKey("threadNum")
-                ? jsonObject.getInteger("threadNum") : super.getThread();
+        HashMap<String, JSONObject> customerJobConfig = marketingCommonConfig.getCustomerJobConfig();
+        if(customerJobConfig == null){
+            return super.getThread();
+        }
+        JSONObject jsonObject = customerJobConfig.get(this.getClass().getSimpleName());
+        if(jsonObject == null){
+            return super.getThread();
+        }
+        if(!jsonObject.containsKey("threadNum")){
+            return super.getThread();
+        }
+        Integer threadNum = jsonObject.getInteger("threadNum");
+        return threadNum;
     }
 
     @Override
@@ -102,7 +124,7 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
         param.setBatchNo(cusBatch);
         IterationResult<SaveReachDeleteRecordReqBO, Page2Condition<QifuSaveReachDeleteRecordApiPushLog>> content
                 = new IterationResult<>();
-        List<SaveReachDeleteRecordReqBO> reqBOList = cusBatchList.stream().filter(b -> {
+        List<SaveReachDeleteRecordReqBO> reqBOList = cusBatchList.stream().filter((String b) -> {
             QifuSaveReachDeleteRecordApiPushLogExample example = new QifuSaveReachDeleteRecordApiPushLogExample();
             example.createCriteria()
                     .andBatchNoEqualTo(b)
@@ -110,7 +132,7 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
                     .andPushDateEqualTo(param.getPushDate())
                     .andSyncAppletDateEqualTo(param.getSyncAppletDate());
             return qifuSaveReachDeleteRecordApiPushLogMapper.countByExample(example) < 1;
-        }).map(b -> {
+        }).map((String b) -> {
             SaveReachDeleteRecordReqBO bo = new SaveReachDeleteRecordReqBO();
             bo.setApiCode(param.getApiCode());
             bo.setAppletDate(param.getSyncAppletDate());
@@ -143,7 +165,7 @@ public class DeleteReachRecordHandler extends IMonkeyDataHandle<SaveReachDeleteR
                 String batchNo = batchNoList.get(size - 1).getBatchNo();
                 param.setBatchNo(batchNo);
                 List<Long> list = new ArrayList<>();
-                List<SaveReachDeleteRecordReqBO> reqBOList = batchNoList.stream().map(b -> {
+                List<SaveReachDeleteRecordReqBO> reqBOList = batchNoList.stream().map((QifuSaveReachDeleteRecordApiPushLog b) -> {
                     list.add(b.getId());
                     SaveReachDeleteRecordReqBO bo = new SaveReachDeleteRecordReqBO();
                     bo.setApiCode(b.getApiCode());
