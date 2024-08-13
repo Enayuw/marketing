@@ -68,7 +68,7 @@ public class ServiceConfig {
     @Bean(name = "zhongYouCleanThreadPool")
     public ThreadPoolExecutor zhongYouCleanThreadPool() {
         return new ThreadPoolExecutor(30,30,10L, TimeUnit.SECONDS
-                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("xieCheng-sms-pushCustomer-pool-%d").build()
+                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("zhongyou_clean_thread_pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
 }
