@@ -212,7 +212,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             Integer maximumPoolSizeNew = rongShuCleanUploadTreadPoolSize.get(1);
             int maximumPoolSize = THREAD_POOL.getMaximumPoolSize();
             if (maximumPoolSizeNew >= corePoolSize && maximumPoolSizeNew != maximumPoolSize) {
-                THREAD_POOL.setCorePoolSize(maximumPoolSizeNew);
+                THREAD_POOL.setMaximumPoolSize(maximumPoolSizeNew);
             }
         } else if (size == 1) {
             Integer corePoolSizeNew = rongShuCleanUploadTreadPoolSize.get(0);
