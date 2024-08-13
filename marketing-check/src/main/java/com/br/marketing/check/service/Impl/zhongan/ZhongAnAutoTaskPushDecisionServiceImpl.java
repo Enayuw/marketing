@@ -26,6 +26,7 @@ import com.br.marketing.strategy.PolicyHandler;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -216,7 +217,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = periodBOMap.get(transferSyncUser.getCustNum());
             PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
             pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
-            pushMarketingUserDetailByRuleDTO.setBatchNumber(apiCode + "_" + LocalDate.now() + "_" + userType + "_" + status);
+            pushMarketingUserDetailByRuleDTO.setBatchNumber(apiCode + "_" + DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + userType + "_" + status);
             String cell = syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell();
             pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
             pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
