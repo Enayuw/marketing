@@ -10,6 +10,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OptConditionDTO;
 import com.br.marketing.dto.PushDecisionsDTO;
@@ -145,6 +146,21 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         pushDecisionsExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
         List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushDecisions);
+    }
+
+    @Override
+    public Result<Long> updatePushDecisions(PushDecisionsDTO dto) {
+        if (StringUtils.isEmpty(dto.getId())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("id为空");
+        }
+        PushDecisions pushDecisions = new PushDecisions();
+        pushDecisions.setId(dto.getId());
+        pushDecisions.setRuleName(dto.getRuleName());
+        pushDecisions.setAutoTime(dto.getAutoTime());
+        pushDecisions.setPushDatasets(dto.getPushDatasets());
+        pushDecisions.setReachStrategy(dto.getReachStrategy());
+        pushDecisionsMapper.updateByPrimaryKeySelective(pushDecisions);
+        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
     String buildConditionNumber(String apiCode) {

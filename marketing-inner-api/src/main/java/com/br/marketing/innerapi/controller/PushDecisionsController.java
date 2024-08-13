@@ -33,7 +33,7 @@ public class PushDecisionsController {
 
     @ApiOperation(value = "推送决策自动化配置", notes = "保存接口")
     @PostMapping("/savePushDecisions")
-    public ApiResult<Long> saveCondition(@RequestBody PushDecisionsDTO dto) {
+    public ApiResult<Long> savePushDecisions(@RequestBody PushDecisionsDTO dto) {
         return new ApiResult<Long>().fromResult(pushDecisionsService.savePushDecisions(dto), CODE_1);
     }
 
@@ -41,6 +41,12 @@ public class PushDecisionsController {
     @GetMapping("/deletePushDecisions")
     public ApiResult<Boolean> deletePushDecisions(@RequestParam Long id) {
         return new ApiResult<Boolean>().fromResult(pushDecisionsService.deletePushDecisions(id), CODE_1);
+    }
+
+    @ApiOperation(value = "编辑页面")
+    @PostMapping("/updatePushDecisions")
+    public ApiResult<Long> updatePushDecisions(@RequestBody PushDecisionsDTO dto) {
+        return new ApiResult<Long>().fromResult(pushDecisionsService.updatePushDecisions(dto), CODE_1);
     }
 
     @ApiOperation(value = "获取推决策模板")

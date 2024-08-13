@@ -14,6 +14,9 @@ import javax.validation.constraints.NotNull;
 @Data
 public class PushDecisionsDTO {
 
+    @ApiModelProperty(value = "id")
+    private Long id;
+
     @ApiModelProperty(value = "商户编号")
     @NotNull(message = "商户编个号不能为空")
     private String apiCode;

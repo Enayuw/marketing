@@ -28,4 +28,6 @@ public interface PushDecisionsService {
     Result updateStatus(OptConditionDTO dto);
 
     Result<List<PushDecisionsDetailVO>> getDecisionsByRule(String apiCode);
+
+    Result<Long> updatePushDecisions(PushDecisionsDTO dto);
 }
