@@ -971,7 +971,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                         timeOutTotalNum += pushRes.getData();
                     } else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                        sendAlert("推送决策失败", " 任务id："+customerInfoPushMain.getId());
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("apiCode："+customerInfoPushMain.getmApiCode());
+                        sb.append("，推送决策失败，任务id："+customerInfoPushMain.getId());
+                        sb.append("，返回结果："+pushRes.getData());
+                        sendAlert("携程推送决策失败", sb.toString());
                     } else {
                         realTotalNum += pushRes.getData();
                     }
@@ -1259,8 +1263,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         Long mId = customerInfoPushMain.getId();
         ids.add(String.valueOf(mId));
         StringBuilder sb = new StringBuilder();
-        sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append(",");
-        sb.append("任务流水号：").append(customerInfoPushMain.getId()).append(",");
+        sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append("，");
+        sb.append("任务流水号：").append(customerInfoPushMain.getId()).append("，");
         sb.append("推送数据量：").append(customerInfoPushMain.getmRealyNum()).append(" | ");
         // 失败原因
         Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(customerInfoPushMain.getmApiCode(), ids);

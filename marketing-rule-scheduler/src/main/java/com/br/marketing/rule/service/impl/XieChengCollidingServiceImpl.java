@@ -145,7 +145,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 Result<Integer> pushRes = pushFuture.get();
                 if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                     main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                    sendAlert("携程推送决策失败", " 任务id："+customerInfoPushMain.getId());
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("apiCode："+customerInfoPushMain.getmApiCode());
+                    sb.append("携程推送决策失败，任务id："+customerInfoPushMain.getId());
+                    sb.append("，返回结果："+pushRes.getData());
+                    sendAlert("携程推送决策失败", sb.toString());
                 } else {
                     realTotalNum += pushRes.getData();
                 }

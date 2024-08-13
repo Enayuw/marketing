@@ -55,11 +55,16 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
     @Override
     public Result<Long> savePushDecisions(PushDecisionsDTO dto) {
 
+        ScoreSearchCondition scoreSearchCondition = scoreSearchConditionMapper.selectByPrimaryKey(dto.getDependencyTemplateId());
+        if(scoreSearchCondition != null && scoreSearchCondition.getSourceType() == 0){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板未配置数据源！");
+        }
+
         PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
         pushDecisionsExample.createCriteria().andRuleNameEqualTo(dto.getRuleName()).andApiCodeEqualTo(dto.getApiCode()).andIsDelEqualTo(1);
         int i = pushDecisionsMapper.countByExample(pushDecisionsExample);
         if (i > 0) {
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("推决策规则模板名称重复");
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("推决策规则模板名称重复！");
         }
         PushDecisions pushDecisions = new PushDecisions();
         pushDecisions.setApiCode(dto.getApiCode());
