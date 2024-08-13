@@ -189,7 +189,7 @@ public class ZhongYouDataService {
             String fileName = localFile.getFileName();
             List<String> strategyIdList = zhongyouFileDataMapper.selectZhongYoustrategyIds(id);
             //根据策略ID分组查询
-            strategyIdList.forEach(strategyId -> {
+            strategyIdList.forEach((String strategyId) -> {
                 Long minId = null;
                 Boolean isContiue = Boolean.TRUE;
                 while (isContiue) {
@@ -241,10 +241,11 @@ public class ZhongYouDataService {
         pushInfoService.pushTransferByRetry(dto, null);
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
-    private void buildParam(String apiCode, List<ZhongyouFileData> zhongyouFileDataList, MarketingPreUserDTO uploadDataDTO, TransferDataDTO transferDataDTO, String fileName) {
+    private void buildParam(String apiCode, List<ZhongyouFileData> zhongyouFileDataList, MarketingPreUserDTO uploadDataDTO,
+                            TransferDataDTO transferDataDTO, String fileName) {
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         List<TransferDataItemDTO> transferDataItemDTOS = new ArrayList<>();
-        zhongyouFileDataList.forEach(zhongyouFileData -> {
+        zhongyouFileDataList.forEach((ZhongyouFileData zhongyouFileData) -> {
             List<String> list = new ArrayList<>(Arrays.asList(zhongyouFileData.getFileData().split("\\|\\|", -1)));
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
             TransferDataItemDTO transferDataItemDTO = new TransferDataItemDTO();
