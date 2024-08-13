@@ -18,6 +18,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataPackageExample;
+import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
 import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -204,9 +205,10 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         packageExample.createCriteria().andIsDeleteEqualTo(0);
         List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
 
+        List<XieChengCollidingDataPackage> validPackages = packages.stream().filter(this::checkPackageValid).collect(Collectors.toList());
         // 按轮次分组
         Map<Integer, List<XieChengCollidingDataPackage>> roundPackageMap =
-                packages.stream().collect(Collectors.groupingBy(XieChengCollidingDataPackage::getRound));
+                validPackages.stream().collect(Collectors.groupingBy(XieChengCollidingDataPackage::getRound));
 
         // 不开启轮次的撞库包
         List<XieChengCollidingDataPackage> nonRoundPackages = roundPackageMap.get(0);
@@ -278,5 +280,22 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
                     , "携程重置撞库次数作业，日志保存线程池结束异常"), ex);
             Thread.currentThread().interrupt();
         }
+    }
+
+    /**
+     * 根据撞库规则的撞库开始和结束时间获取有效撞库包
+     * @param dataPackage
+     * @return
+     */
+    private boolean checkPackageValid(XieChengCollidingDataPackage dataPackage) {
+        XiechengCollidingDataPackageRuleExample packageRuleExample = new XiechengCollidingDataPackageRuleExample();
+        packageRuleExample.createCriteria().andIsDeleteEqualTo(0).andPackageIdEqualTo(dataPackage.getId())
+                .andCollidingStartTimeLessThanOrEqualTo(new Date()).andCollidingEndTimeGreaterThanOrEqualTo(new Date());
+        List<XiechengCollidingDataPackageRule> packageRules = packageRuleMapper.selectByExample(packageRuleExample);
+        if (CollectionUtils.isEmpty(packageRules)) {
+            return false;
+        }
+
+        return true;
     }
 }
