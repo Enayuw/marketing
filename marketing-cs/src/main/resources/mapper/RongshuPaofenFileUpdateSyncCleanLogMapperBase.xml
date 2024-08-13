@@ -1,21 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingCleanDataFileMapper">
-    <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingCleanDataFile">
+<mapper namespace="com.br.marketing.mapper.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
-        <result column="clean_type" property="cleanType" jdbcType="INTEGER"/>
-        <result column="file_name" property="fileName" jdbcType="VARCHAR"/>
-        <result column="file_header" property="fileHeader" jdbcType="VARCHAR"/>
-        <result column="file_data" property="fileData" jdbcType="VARCHAR"/>
-        <result column="target_sftp_path" property="targetSftpPath" jdbcType="VARCHAR"/>
-        <result column="local_path" property="localPath" jdbcType="VARCHAR"/>
-        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="marketing_clean_data_file_id" property="marketingCleanDataFileId" jdbcType="BIGINT"/>
+        <result column="sync_apicode_id" property="syncApicodeId" jdbcType="BIGINT"/>
+        <result column="history_data_json" property="historyDataJson" jdbcType="VARCHAR"/>
+        <result column="uid" property="uid" jdbcType="VARCHAR"/>
+        <result column="is_success" property="isSuccess" jdbcType="INTEGER"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
         <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
         <result column="is_del" property="isDel" jdbcType="INTEGER"/>
-        <result column="sync_config_id" property="syncConfigId" jdbcType="BIGINT"/>
-        <result column="md5_value" property="md5Value" jdbcType="VARCHAR"/>
+        <result column="new_data_json" property="newDataJson" jdbcType="VARCHAR"/>
     </resultMap>
     <sql id="Example_Where_Clause">
         <where>
@@ -79,17 +76,17 @@
     </sql>
     <sql id="Base_Column_List">
         id
-        , api_code, clean_type, file_name, file_header, file_data, target_sftp_path, local_path,
-    `status`, create_time, update_time, is_del, sync_config_id, md5_value
+        , api_code, marketing_clean_data_file_id, sync_apicode_id, history_data_json, `uid`,
+    is_success, create_time, update_time, is_del, new_data_json
     </sql>
     <select id="selectByExample" resultMap="BaseResultMap"
-            parameterType="com.br.marketing.entity.MarketingCleanDataFileExample">
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogExample">
         select
         <if test="distinct">
             distinct
         </if>
         <include refid="Base_Column_List"/>
-        from b_marketing_clean_data_file
+        from b_rongshu_paofen_file_update_sync_clean_log
         <if test="_parameter != null">
             <include refid="Example_Where_Clause"/>
         </if>
@@ -100,64 +97,58 @@
     <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
         select
         <include refid="Base_Column_List"/>
-        from b_marketing_clean_data_file
+        from b_rongshu_paofen_file_update_sync_clean_log
         where id = #{id,jdbcType=BIGINT}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
         delete
-        from b_marketing_clean_data_file
+        from b_rongshu_paofen_file_update_sync_clean_log
         where id = #{id,jdbcType=BIGINT}
     </delete>
-    <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingCleanDataFileExample">
-        delete from b_marketing_clean_data_file
+    <delete id="deleteByExample"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogExample">
+        delete from b_rongshu_paofen_file_update_sync_clean_log
         <if test="_parameter != null">
             <include refid="Example_Where_Clause"/>
         </if>
     </delete>
-    <insert id="insert" parameterType="com.br.marketing.entity.MarketingCleanDataFile">
+    <insert id="insert" parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_marketing_clean_data_file (api_code, clean_type, file_name,
-        file_header, file_data, target_sftp_path,
-        local_path, `status`, create_time,
-        update_time, is_del, sync_config_id,
-        md5_value)
-        values (#{apiCode,jdbcType=VARCHAR}, #{cleanType,jdbcType=INTEGER}, #{fileName,jdbcType=VARCHAR},
-        #{fileHeader,jdbcType=VARCHAR}, #{fileData,jdbcType=VARCHAR}, #{targetSftpPath,jdbcType=VARCHAR},
-        #{localPath,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
-        #{updateTime,jdbcType=TIMESTAMP}, #{isDel,jdbcType=INTEGER}, #{syncConfigId,jdbcType=BIGINT},
-        #{md5Value,jdbcType=VARCHAR})
+        insert into b_rongshu_paofen_file_update_sync_clean_log (api_code, marketing_clean_data_file_id,
+        sync_apicode_id, history_data_json, `uid`,
+        is_success, create_time, update_time,
+        is_del, new_data_json)
+        values (#{apiCode,jdbcType=VARCHAR}, #{marketingCleanDataFileId,jdbcType=BIGINT},
+        #{syncApicodeId,jdbcType=BIGINT}, #{historyDataJson,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR},
+        #{isSuccess,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+        #{isDel,jdbcType=INTEGER}, #{newDataJson,jdbcType=VARCHAR})
     </insert>
-    <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCleanDataFile">
+    <insert id="insertSelective"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_marketing_clean_data_file
+        insert into b_rongshu_paofen_file_update_sync_clean_log
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="apiCode != null">
                 api_code,
             </if>
-            <if test="cleanType != null">
-                clean_type,
+            <if test="marketingCleanDataFileId != null">
+                marketing_clean_data_file_id,
             </if>
-            <if test="fileName != null">
-                file_name,
+            <if test="syncApicodeId != null">
+                sync_apicode_id,
             </if>
-            <if test="fileHeader != null">
-                file_header,
+            <if test="historyDataJson != null">
+                history_data_json,
             </if>
-            <if test="fileData != null">
-                file_data,
+            <if test="uid != null">
+                `uid`,
             </if>
-            <if test="targetSftpPath != null">
-                target_sftp_path,
-            </if>
-            <if test="localPath != null">
-                local_path,
-            </if>
-            <if test="status != null">
-                `status`,
+            <if test="isSuccess != null">
+                is_success,
             </if>
             <if test="createTime != null">
                 create_time,
@@ -168,37 +159,28 @@
             <if test="isDel != null">
                 is_del,
             </if>
-            <if test="syncConfigId != null">
-                sync_config_id,
-            </if>
-            <if test="md5Value != null">
-                md5_value,
+            <if test="newDataJson != null">
+                new_data_json,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="apiCode != null">
                 #{apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="cleanType != null">
-                #{cleanType,jdbcType=INTEGER},
+            <if test="marketingCleanDataFileId != null">
+                #{marketingCleanDataFileId,jdbcType=BIGINT},
             </if>
-            <if test="fileName != null">
-                #{fileName,jdbcType=VARCHAR},
+            <if test="syncApicodeId != null">
+                #{syncApicodeId,jdbcType=BIGINT},
             </if>
-            <if test="fileHeader != null">
-                #{fileHeader,jdbcType=VARCHAR},
+            <if test="historyDataJson != null">
+                #{historyDataJson,jdbcType=VARCHAR},
             </if>
-            <if test="fileData != null">
-                #{fileData,jdbcType=VARCHAR},
+            <if test="uid != null">
+                #{uid,jdbcType=VARCHAR},
             </if>
-            <if test="targetSftpPath != null">
-                #{targetSftpPath,jdbcType=VARCHAR},
-            </if>
-            <if test="localPath != null">
-                #{localPath,jdbcType=VARCHAR},
-            </if>
-            <if test="status != null">
-                #{status,jdbcType=INTEGER},
+            <if test="isSuccess != null">
+                #{isSuccess,jdbcType=INTEGER},
             </if>
             <if test="createTime != null">
                 #{createTime,jdbcType=TIMESTAMP},
@@ -209,23 +191,21 @@
             <if test="isDel != null">
                 #{isDel,jdbcType=INTEGER},
             </if>
-            <if test="syncConfigId != null">
-                #{syncConfigId,jdbcType=BIGINT},
-            </if>
-            <if test="md5Value != null">
-                #{md5Value,jdbcType=VARCHAR},
+            <if test="newDataJson != null">
+                #{newDataJson,jdbcType=VARCHAR},
             </if>
         </trim>
-  </insert>
-    <select id="countByExample" parameterType="com.br.marketing.entity.MarketingCleanDataFileExample"
-            resultType="java.lang.Long">
-        select count(*) from b_marketing_clean_data_file
+    </insert>
+    <select id="countByExample"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_rongshu_paofen_file_update_sync_clean_log
         <if test="_parameter != null">
             <include refid="Example_Where_Clause"/>
         </if>
     </select>
     <update id="updateByExampleSelective" parameterType="map">
-        update b_marketing_clean_data_file
+        update b_rongshu_paofen_file_update_sync_clean_log
         <set>
             <if test="record.id != null">
                 id = #{record.id,jdbcType=BIGINT},
@@ -233,26 +213,20 @@
             <if test="record.apiCode != null">
                 api_code = #{record.apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="record.cleanType != null">
-                clean_type = #{record.cleanType,jdbcType=INTEGER},
+            <if test="record.marketingCleanDataFileId != null">
+                marketing_clean_data_file_id = #{record.marketingCleanDataFileId,jdbcType=BIGINT},
             </if>
-            <if test="record.fileName != null">
-                file_name = #{record.fileName,jdbcType=VARCHAR},
+            <if test="record.syncApicodeId != null">
+                sync_apicode_id = #{record.syncApicodeId,jdbcType=BIGINT},
             </if>
-            <if test="record.fileHeader != null">
-                file_header = #{record.fileHeader,jdbcType=VARCHAR},
+            <if test="record.historyDataJson != null">
+                history_data_json = #{record.historyDataJson,jdbcType=VARCHAR},
             </if>
-            <if test="record.fileData != null">
-                file_data = #{record.fileData,jdbcType=VARCHAR},
+            <if test="record.uid != null">
+                `uid` = #{record.uid,jdbcType=VARCHAR},
             </if>
-            <if test="record.targetSftpPath != null">
-                target_sftp_path = #{record.targetSftpPath,jdbcType=VARCHAR},
-            </if>
-            <if test="record.localPath != null">
-                local_path = #{record.localPath,jdbcType=VARCHAR},
-            </if>
-            <if test="record.status != null">
-                `status` = #{record.status,jdbcType=INTEGER},
+            <if test="record.isSuccess != null">
+                is_success = #{record.isSuccess,jdbcType=INTEGER},
             </if>
             <if test="record.createTime != null">
                 create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -263,63 +237,52 @@
             <if test="record.isDel != null">
                 is_del = #{record.isDel,jdbcType=INTEGER},
             </if>
-            <if test="record.syncConfigId != null">
-                sync_config_id = #{record.syncConfigId,jdbcType=BIGINT},
-            </if>
-            <if test="record.md5Value != null">
-                md5_value = #{record.md5Value,jdbcType=VARCHAR},
+            <if test="record.newDataJson != null">
+                new_data_json = #{record.newDataJson,jdbcType=VARCHAR},
             </if>
         </set>
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
-  </update>
+    </update>
     <update id="updateByExample" parameterType="map">
-        update b_marketing_clean_data_file
+        update b_rongshu_paofen_file_update_sync_clean_log
         set id = #{record.id,jdbcType=BIGINT},
         api_code = #{record.apiCode,jdbcType=VARCHAR},
-        clean_type = #{record.cleanType,jdbcType=INTEGER},
-        file_name = #{record.fileName,jdbcType=VARCHAR},
-        file_header = #{record.fileHeader,jdbcType=VARCHAR},
-        file_data = #{record.fileData,jdbcType=VARCHAR},
-        target_sftp_path = #{record.targetSftpPath,jdbcType=VARCHAR},
-        local_path = #{record.localPath,jdbcType=VARCHAR},
-        `status` = #{record.status,jdbcType=INTEGER},
+        marketing_clean_data_file_id = #{record.marketingCleanDataFileId,jdbcType=BIGINT},
+        sync_apicode_id = #{record.syncApicodeId,jdbcType=BIGINT},
+        history_data_json = #{record.historyDataJson,jdbcType=VARCHAR},
+        `uid` = #{record.uid,jdbcType=VARCHAR},
+        is_success = #{record.isSuccess,jdbcType=INTEGER},
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
         is_del = #{record.isDel,jdbcType=INTEGER},
-        sync_config_id = #{record.syncConfigId,jdbcType=BIGINT},
-        md5_value = #{record.md5Value,jdbcType=VARCHAR}
+        new_data_json = #{record.newDataJson,jdbcType=VARCHAR}
         <if test="_parameter != null">
             <include refid="Update_By_Example_Where_Clause"/>
         </if>
     </update>
-    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingCleanDataFile">
-        update b_marketing_clean_data_file
+    <update id="updateByPrimaryKeySelective"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
+        update b_rongshu_paofen_file_update_sync_clean_log
         <set>
             <if test="apiCode != null">
                 api_code = #{apiCode,jdbcType=VARCHAR},
             </if>
-            <if test="cleanType != null">
-                clean_type = #{cleanType,jdbcType=INTEGER},
+            <if test="marketingCleanDataFileId != null">
+                marketing_clean_data_file_id = #{marketingCleanDataFileId,jdbcType=BIGINT},
             </if>
-            <if test="fileName != null">
-                file_name = #{fileName,jdbcType=VARCHAR},
+            <if test="syncApicodeId != null">
+                sync_apicode_id = #{syncApicodeId,jdbcType=BIGINT},
             </if>
-            <if test="fileHeader != null">
-                file_header = #{fileHeader,jdbcType=VARCHAR},
+            <if test="historyDataJson != null">
+                history_data_json = #{historyDataJson,jdbcType=VARCHAR},
             </if>
-            <if test="fileData != null">
-                file_data = #{fileData,jdbcType=VARCHAR},
+            <if test="uid != null">
+                `uid` = #{uid,jdbcType=VARCHAR},
             </if>
-            <if test="targetSftpPath != null">
-                target_sftp_path = #{targetSftpPath,jdbcType=VARCHAR},
-            </if>
-            <if test="localPath != null">
-                local_path = #{localPath,jdbcType=VARCHAR},
-            </if>
-            <if test="status != null">
-                `status` = #{status,jdbcType=INTEGER},
+            <if test="isSuccess != null">
+                is_success = #{isSuccess,jdbcType=INTEGER},
             </if>
             <if test="createTime != null">
                 create_time = #{createTime,jdbcType=TIMESTAMP},
@@ -330,30 +293,25 @@
             <if test="isDel != null">
                 is_del = #{isDel,jdbcType=INTEGER},
             </if>
-            <if test="syncConfigId != null">
-                sync_config_id = #{syncConfigId,jdbcType=BIGINT},
-            </if>
-            <if test="md5Value != null">
-                md5_value = #{md5Value,jdbcType=VARCHAR},
+            <if test="newDataJson != null">
+                new_data_json = #{newDataJson,jdbcType=VARCHAR},
             </if>
         </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCleanDataFile">
-        update b_marketing_clean_data_file
-        set api_code         = #{apiCode,jdbcType=VARCHAR},
-            clean_type       = #{cleanType,jdbcType=INTEGER},
-            file_name        = #{fileName,jdbcType=VARCHAR},
-            file_header      = #{fileHeader,jdbcType=VARCHAR},
-            file_data        = #{fileData,jdbcType=VARCHAR},
-            target_sftp_path = #{targetSftpPath,jdbcType=VARCHAR},
-            local_path       = #{localPath,jdbcType=VARCHAR},
-            `status`         = #{status,jdbcType=INTEGER},
-            create_time      = #{createTime,jdbcType=TIMESTAMP},
-            update_time      = #{updateTime,jdbcType=TIMESTAMP},
-            is_del           = #{isDel,jdbcType=INTEGER},
-            sync_config_id   = #{syncConfigId,jdbcType=BIGINT},
-            md5_value        = #{md5Value,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
+        update b_rongshu_paofen_file_update_sync_clean_log
+        set api_code                     = #{apiCode,jdbcType=VARCHAR},
+            marketing_clean_data_file_id = #{marketingCleanDataFileId,jdbcType=BIGINT},
+            sync_apicode_id              = #{syncApicodeId,jdbcType=BIGINT},
+            history_data_json            = #{historyDataJson,jdbcType=VARCHAR},
+            `uid`                        = #{uid,jdbcType=VARCHAR},
+            is_success                   = #{isSuccess,jdbcType=INTEGER},
+            create_time                  = #{createTime,jdbcType=TIMESTAMP},
+            update_time                  = #{updateTime,jdbcType=TIMESTAMP},
+            is_del                       = #{isDel,jdbcType=INTEGER},
+            new_data_json                = #{newDataJson,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
 </mapper>

@@ -137,4 +137,19 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="【bridge】-RongShuFileCleanUploadDateJob"
+                class="com.br.marketing.bridge.job.clean.RongShuFileCleanUploadDateJob"
+                cron="0 0/15 9-21 * * ? 2050-2050"
+                description="榕树上传数据更新"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters=""
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

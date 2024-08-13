@@ -367,4 +367,14 @@ public interface MarketingSyncUserMapper {
             @Param("appletDateStart") String appletDateStart,
             @Param("appletDateEnd") String appletDateEnd
     );
+
+    /**
+     * 2024-08-09 16:53
+     * 根据案件编号和上传时间查询扩展字段
+     */
+    List<MarketingSyncUser> getReserveFieldByCustNumAndAppletDateList(@Param("apiCode") String apiCode,
+                                                                      @Param("custNumSet") Set<String> custNumSet,
+                                                                      @Param("appletDateSet") Set<String> appletDateSet);
+
+    int updateReserveFieldByPrimaryKey(MarketingSyncUser record);
 }
