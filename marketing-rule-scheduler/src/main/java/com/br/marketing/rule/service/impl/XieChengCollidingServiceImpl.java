@@ -147,7 +147,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                     main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
                     StringBuilder sb = new StringBuilder();
                     sb.append("apiCode："+customerInfoPushMain.getmApiCode());
-                    sb.append("携程推送决策失败，任务id："+customerInfoPushMain.getId());
+                    sb.append("，携程推送决策失败，任务id："+customerInfoPushMain.getId());
                     sb.append("，返回结果："+pushRes.getData());
                     sendAlert("携程推送决策失败", sb.toString());
                 } else {

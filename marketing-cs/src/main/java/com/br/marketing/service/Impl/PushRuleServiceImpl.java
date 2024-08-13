@@ -1245,14 +1245,17 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!isContinue) {
             List<CustomerPushLogVO> pushLog = customerInfoPushLogMapper.getPushLog(mId, null);
             long count = pushLog.stream().filter(t -> !"00".equals(t.getRealStauts())).count();
+            log.error("推送决策状态确认，count：{}", count);
             CustomerInfoPushMain updateMain = new CustomerInfoPushMain();
             updateMain.setId(mId);
             updateMain.setmStatus(count > 0 ? PushRuleStatusEnum.CONFIRMED_FAIL.getValue() : PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
             customerInfoPushMainMapper.updateByPrimaryKeySelective(updateMain);
             // 推决策报警
-            List<String> pushAlarmApiCode = marketingCommonConfig.getPushAlarmApiCode();
-            if (pushAlarmApiCode.contains(customerInfoPushMain.getmApiCode())) {
-                pushDecisionsAlarm(customerInfoPushMain);
+            if(count > 0){
+                List<String> pushAlarmApiCode = marketingCommonConfig.getPushAlarmApiCode();
+                if (pushAlarmApiCode.contains(customerInfoPushMain.getmApiCode())) {
+                    pushDecisionsAlarm(customerInfoPushMain);
+                }
             }
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
@@ -1262,24 +1265,24 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> ids = new ArrayList<>();
         Long mId = customerInfoPushMain.getId();
         ids.add(String.valueOf(mId));
-        StringBuilder sb = new StringBuilder();
-        sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append("，");
-        sb.append("任务流水号：").append(customerInfoPushMain.getId()).append("，");
-        sb.append("推送数据量：").append(customerInfoPushMain.getmRealyNum()).append(" | ");
         // 失败原因
         Result<List<PolicyResultByTaskIdsDTO>> result = intelligentCustomerServiceClient.getTaskIdsResult(customerInfoPushMain.getmApiCode(), ids);
+        log.warn("决策查询接口返回值 result={}", JSON.toJSONString(result));
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             List<PolicyResultByTaskIdsDTO> resultByTaskIdsDTOS = result.getData();
             if (!resultByTaskIdsDTOS.isEmpty()) {
                 PolicyResultByTaskIdsDTO policyResultByTaskIdsDTO = resultByTaskIdsDTOS.get(0);
                 String verification = policyResultByTaskIdsDTO.getVerification();
                 String verificationReason = policyResultByTaskIdsDTO.getVerificationReason();
-                sb.append("推送失败，请求批次号："+ verification).append(",失败原因：" + verificationReason);
+                StringBuilder sb = new StringBuilder();
+                sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append("，");
+                sb.append("推送数据量：").append(customerInfoPushMain.getmRealyNum()).append(" | ");
+                sb.append("推送完成，请求批次号："+ verification).append(",推送结果：" + verificationReason);
+                sendAlert("【营销自动化推决策】", sb.toString());
             }
         } else {
             log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
         }
-        sendAlert("【营销自动化推决策】", sb.toString());
     }
 
     public void sendAlert(String title, String text) {
