@@ -154,6 +154,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 .andTaskStartTimeEqualTo(getStartOfDate())
                 .andTaskTypeEqualTo(0)
                 .andTaskStatusEqualTo(1);
+        processTaskExample.setOrderByClause("create_time asc");
         List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(processTaskExample);
         return taskList;
     }
