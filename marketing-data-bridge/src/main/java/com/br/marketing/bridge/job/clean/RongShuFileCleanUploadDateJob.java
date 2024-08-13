@@ -21,6 +21,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -29,7 +30,6 @@ import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -79,6 +79,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      * 2024-08-08 15:51
      * JobParameter 参数为apiCode
      */
+    @SneakyThrows
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String apiCode = context.getJobParameter();
@@ -110,6 +111,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                     fileExample.setOrderByClause("create_time");
                     List<MarketingCleanDataFile> cleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExample);
                     for (MarketingCleanDataFile dataFile : cleanDataFiles) {
+                        stopCheckOrUpdate(apiCode);
                         String md5Value = dataFile.getMd5Value();
                         String fileName = dataFile.getFileName();
                         try {
@@ -151,6 +153,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     File[] files = dir.listFiles();
                                     if (files != null) {
                                         for (File file : files) {
+                                            stopCheckOrUpdate(apiCode);
                                             long l = readFile(dataFile, file, regex, localDate, true);
                                             if (l < 0) {
                                                 bool = false;
@@ -194,6 +197,31 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         }
     }
 
+    private void stopCheckOrUpdate(String apiCode) throws Exception {
+        List<Integer> rongShuCleanUploadTreadPoolSize = marketingCommonConfig.getRongShuCleanUploadTreadPoolSize();
+        if (rongShuCleanUploadTreadPoolSize.size() == 0) {
+            throw new Exception(apiCode + "榕树上传停止清洗");
+        }
+        int size = rongShuCleanUploadTreadPoolSize.size();
+        if (size == 2) {
+            Integer corePoolSizeNew = rongShuCleanUploadTreadPoolSize.get(0);
+            int corePoolSize = THREAD_POOL.getCorePoolSize();
+            if (corePoolSizeNew > 0 && corePoolSizeNew != corePoolSize) {
+                THREAD_POOL.setCorePoolSize(corePoolSizeNew);
+            }
+            Integer maximumPoolSizeNew = rongShuCleanUploadTreadPoolSize.get(1);
+            int maximumPoolSize = THREAD_POOL.getMaximumPoolSize();
+            if (maximumPoolSizeNew >= corePoolSize && maximumPoolSizeNew != maximumPoolSize) {
+                THREAD_POOL.setCorePoolSize(maximumPoolSizeNew);
+            }
+        } else if (size == 1) {
+            Integer corePoolSizeNew = rongShuCleanUploadTreadPoolSize.get(0);
+            int corePoolSize = THREAD_POOL.getCorePoolSize();
+            if (corePoolSizeNew > 0 && corePoolSizeNew != corePoolSize) {
+                THREAD_POOL.setCorePoolSize(corePoolSizeNew);
+            }
+        }
+    }
 
     /**
      * 2024-08-12 11:28
@@ -216,6 +244,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             String[] fileHeaders = null;
             String rowData;
             while ((rowData = reader.readLine()) != null) {
+                stopCheckOrUpdate(apiCode);
                 if (rowNum < 2) {
                     if (rowNum == 0) {
                         fileHeader = rowData;
@@ -255,7 +284,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                 update(apiCode, map, appletDateSet, dataFileNew);
             }
             updateDataFile(dataFileNew, isCreate);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(), e.getMessage()
                     + "\n已清洗:" + (rowNum == 0L ? rowNum : rowNum - 1), "榕树清洗上传数据异常-" + apiCode), e);
             updateDataFile(dataFileNew, isCreate);

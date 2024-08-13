@@ -1993,9 +1993,15 @@ public class MarketingCommonConfig {
     private List<String> YiShiTransferApiCodes;
 
     /**
-         * 医时转化数据提取执行时间
+     * 医时转化数据提取执行时间
      */
     private String YiShiTransferFileExecuteTime;
+
+    /**
+     * 2024-08-13 15:42
+     * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
 
 }
 
