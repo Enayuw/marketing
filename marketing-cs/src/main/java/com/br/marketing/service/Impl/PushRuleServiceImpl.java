@@ -971,11 +971,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                         timeOutTotalNum += pushRes.getData();
                     } else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                        StringBuilder sb = new StringBuilder();
-                        sb.append("apiCode："+customerInfoPushMain.getmApiCode());
-                        sb.append("，推送决策失败，任务id："+customerInfoPushMain.getId());
-                        sb.append("，返回结果："+pushRes.getData());
-                        sendAlert("携程推送决策失败", sb.toString());
                     } else {
                         realTotalNum += pushRes.getData();
                     }
@@ -985,6 +980,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
+        StringBuilder sb = new StringBuilder();
+        sb.append("apiCode："+customerInfoPushMain.getmApiCode());
+        sb.append("，推送决策失败，任务id："+customerInfoPushMain.getId());
+        sendAlert("携程推送决策失败", sb.toString());
         try {
             actionEs.shutdown();
             pushJc.shutdown();
@@ -1245,7 +1244,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!isContinue) {
             List<CustomerPushLogVO> pushLog = customerInfoPushLogMapper.getPushLog(mId, null);
             long count = pushLog.stream().filter(t -> !"00".equals(t.getRealStauts())).count();
-            log.error("推送决策状态确认，count：{}", count);
+            log.warn("推送决策状态确认，count：{}", count);
             CustomerInfoPushMain updateMain = new CustomerInfoPushMain();
             updateMain.setId(mId);
             updateMain.setmStatus(count > 0 ? PushRuleStatusEnum.CONFIRMED_FAIL.getValue() : PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());

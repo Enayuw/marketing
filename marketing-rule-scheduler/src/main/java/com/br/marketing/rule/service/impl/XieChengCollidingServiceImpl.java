@@ -145,11 +145,6 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 Result<Integer> pushRes = pushFuture.get();
                 if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                     main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("apiCode："+customerInfoPushMain.getmApiCode());
-                    sb.append("，携程推送决策失败，任务id："+customerInfoPushMain.getId());
-                    sb.append("，返回结果："+pushRes.getData());
-                    sendAlert("携程推送决策失败", sb.toString());
                 } else {
                     realTotalNum += pushRes.getData();
                 }
@@ -158,6 +153,10 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
+        StringBuilder sb = new StringBuilder();
+        sb.append("apiCode："+customerInfoPushMain.getmApiCode());
+        sb.append("，携程推送决策失败，任务id："+customerInfoPushMain.getId());
+        sendAlert("携程推送决策失败", sb.toString());
         // 关闭线程池
         threadPool.shutdown();
         try {
