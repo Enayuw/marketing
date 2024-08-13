@@ -183,7 +183,8 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         try {
                             dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
                                     + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                    + "]\n文件：" + fileName + "\n清洗" + (bool ? "成功^_^\n清洗量级：" + sum : "失败!!!"), map);
+                                    + "]\n文件：" + fileName + "\n清洗" + (bool ? "成功^_^\n清洗量级：" + sum : "失败!!!")
+                                    + (sum < 1 ? "\n文件无内容或只存在表头" : ""), map);
                         } catch (Exception e) {
                             log.warn(e.getMessage(), e);
                         }
@@ -256,11 +257,11 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             updateDataFile(dataFileNew, isCreate);
         } catch (IOException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(), e.getMessage()
-                    + "\n已清洗:" + rowNum, "榕树清洗上传数据异常-" + apiCode), e);
+                    + "\n已清洗:" + (rowNum == 0L ? rowNum : rowNum - 1), "榕树清洗上传数据异常-" + apiCode), e);
             updateDataFile(dataFileNew, isCreate);
             return -1L;
         }
-        return rowNum;
+        return (rowNum == 0L ? rowNum : rowNum - 1);
     }
 
     /**
