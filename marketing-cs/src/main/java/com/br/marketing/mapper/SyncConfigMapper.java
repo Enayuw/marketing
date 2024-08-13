@@ -23,7 +23,7 @@ public interface SyncConfigMapper extends SyncConfigMapperBase {
      */
     List<SyncConfig> queryConfig(String type);
 
-    List<SyncConfig> queryConfigByTypeAndTargetType(@Param("type") String type, @Param("targetTypes") String... targetTypes);
+    List<SyncConfig> queryConfigByTypeAndTargetType(@Param("type") String type, @Param("targetTypes") List<String> targetTypes);
 
     SyncConfig queryConfigByConditaion(SyncConfig loanSyncConfig);
 

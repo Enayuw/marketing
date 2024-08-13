@@ -61,9 +61,9 @@ public class SyncServiceImpl implements SyncService {
     @Override
     public void getFromSftp() {
         List<SyncConfig> loanSyncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1"
-                , Constants.LOAN_WARNING_FTP, Constants.LOAN_WARNING_SFTP);
+                , Arrays.asList(Constants.LOAN_WARNING_FTP, Constants.LOAN_WARNING_SFTP));
         sync(loanSyncConfigs);
-        List<SyncConfig> syncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1", Constants.LOAN_DISK);
+        List<SyncConfig> syncConfigs = loanSyncConfigMapper.queryConfigByTypeAndTargetType("1", Arrays.asList(Constants.LOAN_DISK));
         sync(syncConfigs);
     }
 
@@ -499,8 +499,11 @@ public class SyncServiceImpl implements SyncService {
         String targetPath;
         // 判断本地路径是否正常
         if (bool) {
-            targetPath = StringUtils.isNotBlank(loanSyncConfig.getTargetPath()) ? loanSyncConfig.getTargetPath()
-                    : syncConfigService.getPath().concat("clean_file").concat(File.separator);
+            targetPath = loanSyncConfig.getTargetPath();
+            if (StringUtils.isBlank(targetPath)) {
+                log.warn("远程文件下载到本地，本地目录不存在，目录：{}", targetPath);
+                return Boolean.TRUE;
+            }
             String srcPath = loanSyncConfig.getSrcPath();
             InputStream inputStream = null;
             ReadableByteChannel readableByteChannel = null;
