@@ -344,9 +344,11 @@ public class VariableDicServiceImpl implements VariableDicService {
                         }
                     }
                 }
-                // 生成有效期
-                createValidDateConfig(apiDataInfoDTO, apiDataInfoDTO.getRawDataSaveTimeStr(), collectionDTO, apiCode
-                        , userType);
+                // 与泽强沟通，只有上传才生成有效期
+                if (apiDataInfoDTO.uploadMsgSource()) {
+                    createValidDateConfig(apiDataInfoDTO, apiDataInfoDTO.getRawDataSaveTimeStr(), collectionDTO, apiCode
+                            , userType);
+                }
             }
         } catch (Exception e) {
             log.error(e.getMessage() + "\n" + msgStr, e);
