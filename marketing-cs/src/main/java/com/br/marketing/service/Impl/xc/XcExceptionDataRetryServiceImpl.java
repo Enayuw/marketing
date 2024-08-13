@@ -65,9 +65,6 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         if (isLastTime()) {
             processByTrue(threadPool, true, pageSize);
             processByFalse(threadPool, true, pageSize);
-
-            // 统计撞库异常数据发系统告警
-            sendAlarmByRetryCountOfFour();
         }
 
         threadPool.shutdown();
@@ -106,27 +103,6 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         Integer threadNum = marketingCommonConfig.getXieChengSmsCollidingRetryThread();
         pool.setCorePoolSize(threadNum);
         pool.setMaximumPoolSize(threadNum);
-    }
-
-    /**
-     * 查retry_count=4，查全表不只查当天
-     */
-    private void sendAlarmByRetryCountOfFour() {
-        XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
-        cycleExample.createCriteria().andRetryCountEqualTo(4);
-        int loopCount = loopCycleMapper.countByExample(cycleExample);
-
-        XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
-        robExample.createCriteria().andRetryCountEqualTo(4);
-        int robCount = robMapper.countByExample(robExample);
-
-        int total = loopCount + robCount;
-        if (total > 0) {
-            // 发送钉钉告警
-            String msg = "携程最后一次重试撞库失败通知。重试失败量级:" + total + "条,需要关注！";
-            sendDingDingAlert("携程最后一次重试撞库失败通知", msg);
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), msg));
-        }
     }
 
     /**
