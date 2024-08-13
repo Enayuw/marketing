@@ -547,9 +547,9 @@ public class SyncServiceImpl implements SyncService {
                         , srcPath, fileName, targetPath, loanSyncConfig.getId(), e);
             } finally {
                 byteBuffer.clear();
-                if (inputStream != null) {
+                if (writableByteChannel != null) {
                     try {
-                        inputStream.close();
+                        writableByteChannel.close();
                     } catch (IOException e) {
                         log.warn(e.getMessage(), e);
                     }
@@ -561,9 +561,9 @@ public class SyncServiceImpl implements SyncService {
                         log.warn(e.getMessage(), e);
                     }
                 }
-                if (writableByteChannel != null) {
+                if (inputStream != null) {
                     try {
-                        writableByteChannel.close();
+                        inputStream.close();
                     } catch (IOException e) {
                         log.warn(e.getMessage(), e);
                     }
