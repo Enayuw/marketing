@@ -3725,7 +3725,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 若置为失效 则需判断该规则模板是否被推送决策配置引用
         if(new Integer(2).equals(dto.getStatus())){
             PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
-            pushDecisionsExample.createCriteria().andDependencyTemplateIdEqualTo(dto.getId());
+            pushDecisionsExample.createCriteria().andDependencyTemplateIdEqualTo(dto.getId()).andIsDelEqualTo(1);
             List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
             if(!pushDecisions.isEmpty()){
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板已被引用，不能修改为失效");
