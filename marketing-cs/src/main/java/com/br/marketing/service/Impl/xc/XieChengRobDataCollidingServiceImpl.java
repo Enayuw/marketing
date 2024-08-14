@@ -213,7 +213,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         // 不开启轮次的撞库包
         List<XieChengCollidingDataPackage> nonRoundPackages = roundPackageMap.get(0);
 
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(10, 10);
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
         try {
             resetCollidingCountByPackages(nonRoundPackages, threadPool);
 
