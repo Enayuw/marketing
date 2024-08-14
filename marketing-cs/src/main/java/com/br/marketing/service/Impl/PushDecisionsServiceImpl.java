@@ -148,7 +148,7 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
     @Override
     public Result<List<PushDecisionsDetailVO>> getDecisionsByRule(String apiCode) {
         PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
-        pushDecisionsExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(1);
+        pushDecisionsExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(Constants.DATA_VALID);
         List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushDecisions);
     }

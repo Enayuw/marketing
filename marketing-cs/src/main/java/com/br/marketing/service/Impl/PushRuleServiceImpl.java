@@ -3629,7 +3629,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         SearchConditionDTO searchConditionDTO = new SearchConditionDTO();
         searchConditionDTO.setApiCode(dto.getApiCode());
         searchConditionDTO.setName(dto.getName());
-        searchConditionDTO.setStatus(1);
+        searchConditionDTO.setStatus(Constants.DATA_VALID);
         Integer scoreCountBySearch = scoreSearchConditionMapper.getScoreCountBySearch(searchConditionDTO);
         if (scoreCountBySearch > 0) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("规则模板名称重复");
@@ -4257,7 +4257,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             // 判断该规则模板是否被推送决策配置引用
             PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
-            pushDecisionsExample.createCriteria().andDependencyTemplateIdEqualTo(id).andIsDelEqualTo(1);
+            pushDecisionsExample.createCriteria().andDependencyTemplateIdEqualTo(id).andIsDelEqualTo(Constants.DATA_VALID);
             List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
             if(!pushDecisions.isEmpty()){
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板已被引用，不能删除");
