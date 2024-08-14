@@ -1237,7 +1237,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             updateLog.setFailNum(error.keySet().size());
                         }
                     }
-                    log.error("推送决策后，查询决策结果出错，原始参数:{}--查询参数:{}", JSON.toJSONString(t), pushMarketingUserDTO);
+                    log.warn("推送决策后，查询决策结果出错，原始参数:{}--查询参数:{}", JSON.toJSONString(t), pushMarketingUserDTO);
                 }
                 if (StringUtils.isNotBlank(userStatus.getMessage())) {
                     updateLog.setErrorContent(userStatus.getMessage());
