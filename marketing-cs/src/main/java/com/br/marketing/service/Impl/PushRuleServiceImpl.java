@@ -962,6 +962,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
         try {
+            Integer count = 0;
             for (Future<List<Future<Result<Integer>>>> actionFuture : res) {
                 List<Future<Result<Integer>>> futures = actionFuture.get();
                 for (Future<Result<Integer>> pushFuture : futures) {
@@ -971,19 +972,24 @@ public class PushRuleServiceImpl implements PushRuleService {
                         timeOutTotalNum += pushRes.getData();
                     } else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                        count ++;
                     } else {
                         realTotalNum += pushRes.getData();
                     }
                 }
             }
+            if(count > 0){
+                StringBuilder sb = new StringBuilder();
+                sb.append("推送决策失败：\n");
+                sb.append("apiCode："+customerInfoPushMain.getmApiCode());
+                sb.append("，任务id："+customerInfoPushMain.getId());
+                sendAlert("推送决策失败", sb.toString());
+            }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("apiCode："+customerInfoPushMain.getmApiCode());
-        sb.append("，推送决策失败，任务id："+customerInfoPushMain.getId());
-        sendAlert("携程推送决策失败", sb.toString());
+
         try {
             actionEs.shutdown();
             pushJc.shutdown();

@@ -141,22 +141,27 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             });
         }
         try {
+            Integer count = 0;
             for (Future<Result<Integer>> pushFuture : resList) {
                 Result<Integer> pushRes = pushFuture.get();
                 if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                     main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                    count ++;
                 } else {
                     realTotalNum += pushRes.getData();
                 }
+            }
+            if(count > 0){
+                StringBuilder sb = new StringBuilder();
+                sb.append("携程推送决策失败：\n");
+                sb.append("apiCode："+customerInfoPushMain.getmApiCode());
+                sb.append("，任务id："+customerInfoPushMain.getId());
+                sendAlert("携程推送决策失败", sb.toString());
             }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("apiCode："+customerInfoPushMain.getmApiCode());
-        sb.append("，携程推送决策失败，任务id："+customerInfoPushMain.getId());
-        sendAlert("携程推送决策失败", sb.toString());
         // 关闭线程池
         threadPool.shutdown();
         try {
