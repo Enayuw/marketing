@@ -151,6 +151,11 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             Map<String, SyncUserValidityPeriodsBO> periodBOMap =
                     transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, "7", apiCode,
                             LocalDate.now());
+            marketingTransferSyncUserList.forEach(transfer -> {
+                if (Objects.isNull(periodBOMap.get(transfer.getCustNum()))) {
+                    log.warn("众安自动化任务推送决策有效期剔除custNum={}", transfer.getCustNum());
+                }
+            });
             marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
             filterHandler(tcId, apiCode, marketingTransferSyncUserList, configUserType, "7");
             //推送决策
@@ -247,6 +252,11 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
         List<String> filterCustNum = marketingTransferSyncUserMapper.getTransferCustNumByConditiontikv_(tcid, apiCode,
                 userType, config.getValidStartDate(), config.getValidEndDate(), custNumSets, "(reserve_field1->'$.eventType' is not null and " +
                         "reserve_field1->'$.eventType' != 'APP_LAUNCH' and " + "reserve_field1->'$.eventType' != 'APP_LOGIN')");
+        marketingTransferSyncUserList.forEach(transfer->{
+            if(filterCustNum.contains(transfer.getCustNum())){
+                log.warn("众安自动化任务推送决策剔除custNum={}",transfer.getCustNum());
+            }
+        });
         marketingTransferSyncUserList.removeIf(transfer -> filterCustNum.contains(transfer.getCustNum()));
 
     }
