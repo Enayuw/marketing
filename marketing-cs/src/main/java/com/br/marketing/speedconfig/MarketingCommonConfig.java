@@ -2010,5 +2010,10 @@ public class MarketingCommonConfig {
      */
     private List<String> xieChengScoreToDbKeepCamelColumns;
 
+    /**
+     * 携程清洗任务分页条数
+     */
+    private Map<String, Integer> xieChengCollidingDataProcessPageSize;
+
 }
 

@@ -77,7 +77,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
      * @return
      */
     List<Long> selectIdsOfTrueDataProcessTasktikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
-                                                   @Param("tableName") String tableName);
+                                                   @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
 
     /**
      * 更新is_delete：is_delete = 1,update_time = now()

@@ -14,6 +14,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.XiechengCollidingTaskBatchVo;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -56,6 +57,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     private DingDingRobotHookService dingDingRobotHookService;
     @Autowired
     RedisChgService redisChgService;
+
+    private final static int PAGE_SIZE = 10000;
+
+    private final static int PARTATION_SIZE = 50;
 
     @Override
     public void process() {
@@ -326,21 +331,31 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         String extend = "携程撞库数据清洗任务删除，任务id：" + vo.getCollidingDataTaskId();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
+        Integer pageSize;
+        Map<String, Integer> xieChengCollidingDataProcessPageSize = marketingCommonConfig.getXieChengCollidingDataProcessPageSize();
+        if (null == xieChengCollidingDataProcessPageSize) {
+            pageSize = PAGE_SIZE;
+        } else {
+            pageSize = xieChengCollidingDataProcessPageSize.getOrDefault("deletePageSize", PAGE_SIZE);
+        }
         for(; ; ) {
-            List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName);
+            List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
             if (CollectionUtils.isEmpty(longs)) {
                 break;
             }
             modifyThreadPool(threadPool);
             minId = longs.get(longs.size() - 1);
-            futures.add(CompletableFuture.runAsync(() -> {
-                try {
-                    batchCount.addAndGet(cycleMapper.updateIsDeleteByIds(longs, extend));
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                            "携程撞库TRUE数据删除，单线程处理异常：，batchId=" + vo.getId() + "errorMessage=" + e.getMessage()), e);
-                }
-            }, threadPool));
+            List<List<Long>> partitions = Lists.partition(longs, PARTATION_SIZE);
+            for (List<Long> partition : partitions) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        batchCount.addAndGet(cycleMapper.updateIsDeleteByIds(partition, extend));
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                                "携程撞库TRUE数据删除，单线程处理异常：，batchId=" + vo.getId() + "errorMessage=" + e.getMessage()), e);
+                    }
+                }, threadPool));
+            }
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         return batchCount.get();
@@ -456,22 +471,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
         // 将跑分数据插入新数据包
         insertRuleScoreDataToNewPackage(newPackage, task, threadPool);
-    }
-
-    /**
-     * 获取待执行的清洗任务，要保证先处理TRUE剔除，再处理FALSE清洗
-     * is_delete=0 && task_status=0(任务待执行) && task_start_time=当天 && order by task_type desc, create_time
-     * @param apiCode
-     * @param nowDate
-     * @return
-     */
-    private List<XiechengCollidingDataProcessTask> getXiechengCollidingDataProcessTasks(String apiCode, Date nowDate) {
-        XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
-        taskExample.createCriteria().andApiCodeEqualTo(apiCode).andIsDeleteEqualTo(0)
-                .andTaskStatusEqualTo(0).andTaskStartTimeEqualTo(nowDate);
-        taskExample.setOrderByClause("task_type desc, create_time asc");
-        List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(taskExample);
-        return taskList;
     }
 
     /**
@@ -623,6 +622,13 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     private void insertRuleScoreDataToNewPackage(XieChengCollidingDataPackage collidingDataPackage, XiechengCollidingDataProcessTask task,
                                                  ThreadPoolExecutor threadPool) {
         String conditions = task.getTaskExecutionConditions();
+        Integer pageSize;
+        Map<String, Integer> xieChengCollidingDataProcessPageSize = marketingCommonConfig.getXieChengCollidingDataProcessPageSize();
+        if (null == xieChengCollidingDataProcessPageSize) {
+            pageSize = PAGE_SIZE;
+        } else {
+            pageSize = xieChengCollidingDataProcessPageSize.getOrDefault("cleanPageSize", PAGE_SIZE);
+        }
         for (String batchNumber : task.getBatchNumber().split(",")) {
             if (StringUtils.isEmpty(batchNumber)) {
                 continue;
@@ -633,15 +639,16 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             Long minId = null;
             while (true) {
                 List<XieChengRuleScoreData> ruleScoreData = ruleScoreRecordMapper.selectRuleScoreDataExcludeTrueAndFalseDatatikv_(minId,
-                        queryRuleScoreDataSql);
+                        queryRuleScoreDataSql, pageSize);
                 if (CollectionUtils.isEmpty(ruleScoreData)) {
                     break;
                 }
-
                 minId = ruleScoreData.get(ruleScoreData.size() - 1).getId();
-
                 modifyThreadPool(threadPool);
-                futures.add(CompletableFuture.runAsync(() -> insertData(ruleScoreData, collidingDataPackage), threadPool));
+                List<List<XieChengRuleScoreData>> partitions = Lists.partition(ruleScoreData, PARTATION_SIZE);
+                for (List<XieChengRuleScoreData> partition : partitions) {
+                    futures.add(CompletableFuture.runAsync(() -> insertData(partition, collidingDataPackage), threadPool));
+                }
             }
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
