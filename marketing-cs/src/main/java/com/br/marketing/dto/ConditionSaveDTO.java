@@ -3,6 +3,7 @@ package com.br.marketing.dto;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 
 public class ConditionSaveDTO{
@@ -11,7 +12,7 @@ public class ConditionSaveDTO{
     @NotNull(message = "商户编个号不能为空")
     private String apiCode;
 
-    @ApiModelProperty(value = "商户编号")
+    @ApiModelProperty(value = "规则名称")
     @NotNull(message = "规则名称不能为空")
     private String name;
 
@@ -21,6 +22,12 @@ public class ConditionSaveDTO{
 
     @ApiModelProperty(value = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
+
+    @ApiModelProperty(value = "数据源类型")
+    private Integer sourceType;
+
+    @ApiModelProperty(value = "数据源内容")
+    private List<String> sources;
 
     public String getApiCode() {
         return apiCode;
@@ -52,5 +59,21 @@ public class ConditionSaveDTO{
 
     public void setmRuleConditionShow(String mRuleConditionShow) {
         this.mRuleConditionShow = mRuleConditionShow;
+    }
+
+    public List<String> getSources() {
+        return sources;
+    }
+
+    public void setSources(List<String> sources) {
+        this.sources = sources;
+    }
+
+    public Integer getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(Integer sourceType) {
+        this.sourceType = sourceType;
     }
 }

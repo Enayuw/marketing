@@ -17,7 +17,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportResource;
 
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
-@EnableAspectJAutoProxy
+@EnableAspectJAutoProxy(exposeProxy = true)
 @MapperScan("com.br.marketing.mapper")
 @ImportResource(locations = {"classpath:scheduler.xml"})
 @EnablePrometheusEndpoint

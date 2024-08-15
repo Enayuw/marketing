@@ -223,4 +223,6 @@ public interface PushRuleService {
     Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto);
 
     void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum);
+
+    Result<Boolean> deleteRule(Long id);
 }
