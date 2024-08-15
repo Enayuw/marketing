@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.score.ScoreCustomerStrategyProductFieldMapper">
+
+
+    <select id="getFieldNamePage" resultType="java.lang.String">
+        select t3.field_name
+        from b_score_strategy_product_field t3,
+             (
+                 select t2.id
+                 from b_score_customer_strategy_product_field t1
+                          inner join b_score_strategy_product_field t2 on t1.score_strategy_product_field_id = t2.id
+                 where t1.marketing_customer_id = ${customerId}
+                   and t1.is_del = 0
+                   and t2.is_del = 0
+                     limit ${offset}
+                     , ${rowCount}) t4
+        where t3.id = t4.id;
+    </select>
+</mapper>
