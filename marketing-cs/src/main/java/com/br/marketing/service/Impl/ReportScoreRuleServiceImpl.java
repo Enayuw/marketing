@@ -86,7 +86,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         String ids = reportTaskVO.getIds();
         String cid = reportTaskVO.getCid();
         String reportName = reportTaskVO.getReportName();
-        reportTaskVO.getRules()
+        reportTaskVO.getRules();
         List<Long> fileIds = Arrays.stream(ids.split(",")).map(t->Long.valueOf(t)).collect(Collectors.toList());
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
