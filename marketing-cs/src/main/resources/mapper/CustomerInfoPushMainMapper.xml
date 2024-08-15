@@ -23,6 +23,7 @@
             <if test="cusBatchNumber !=null and cusBatchNumber!= ''">
               and shf .show_title =#{cusBatchNumber}
             </if>
+            and bcipm .m_status != -1
             and bcipm .is_del =1
             order by bcipm.id desc
     </select>
@@ -40,6 +41,7 @@
         m_status as mStatus
         from b_customer_info_push_main
         where is_del=1
+          and m_status !=-1
         <if test="mApiCode !=null and mApiCode !=''">
             and m_api_code = #{mApiCode}
         </if>

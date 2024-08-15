@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 import java.util.List;
 import java.util.Map;
 
+import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import org.apache.ibatis.annotations.Param;
 
@@ -65,4 +66,11 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     void batchDeleteExcludeCollidingData(@Param("excludeData")List<String> excludeData, @Param("extend")String extend);
 
     void batchSaveFalseDynamicData(@Param("robs") List<XieChengCollidingDataRob> robs);
+
+    List<Long> selectRobsByNonRoundPackages(@Param("minId") Long minId,
+                                                                @Param("list") List<XieChengCollidingDataPackage> list);
+
+    int batchResetCollidingCountByIds(@Param("list") List<Long> list);
+
+    Long selectCountByRoundPackages(@Param("list") List<XieChengCollidingDataPackage> list);
 }

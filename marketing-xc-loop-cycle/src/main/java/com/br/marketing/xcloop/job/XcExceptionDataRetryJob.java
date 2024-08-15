@@ -1,9 +1,11 @@
 package com.br.marketing.xcloop.job;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.xiecheng.XieChengServiceNew;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.entity.XieChengCollidingDataLogExample;
@@ -101,7 +103,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         // 查TRUE表当天撞回量级是否超限（500w）
         Integer trueDataThresholdSize = variableAllocationService.getVariableAllocation().getNormalQuantity();
         if (trueDataThresholdSize == null) {
-            log.error("携程异常数据重试撞库,获取当天撞回阈值失败");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程异常数据重试撞库,获取当天撞回阈值失败"));
             return new Pair<>(-2, "获取当天撞回阈值失败");
         }
         LocalDate start = LocalDate.now().plusDays(7);
@@ -123,7 +126,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         // 查询堆积量级是否超限（10w）pushTime是当天
         Integer retryThresholdSize = variableAllocationService.getVariableAllocation().getAbnormalQuantity();
         if (retryThresholdSize == null) {
-            log.error("携程异常数据重试撞库,获取当天异常堆积阈值失败");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程异常数据重试撞库,获取当天异常堆积阈值失败"));
             return new Pair<>(-2, "携程异常数据重试撞库暂停通知:获取当天异常堆积阈值失败");
         }
         LocalDate pushDateStart = LocalDate.now();
@@ -173,7 +177,8 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
             log.warn("携程异常数据重试撞库，条件开关状态：{}", redisSwitch);
         } catch (Exception e) {
-            log.error("携程异常数据重试撞库，获取redis条件开关失败:" + e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程异常数据重试撞库，获取redis条件开关失败"), e);
             return false;
         }
 

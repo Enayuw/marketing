@@ -18,6 +18,7 @@ public enum CustomerPushDecisionActionEnum {
     PPD,
     YILIAN,
     RONG_SHU,
+    ZHONGAN_AUTOTASK
     ;
 
     CustomerPushDecisionActionEnum() {
