@@ -2009,6 +2009,11 @@ public class MarketingCommonConfig {
      * 推决策报警apiCode集合
      */
     private List<String> pushAlarmApiCode;
+    /**
+     *  * 2024-08-13 15:42
+     * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
 
 }
 

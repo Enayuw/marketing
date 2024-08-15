@@ -255,6 +255,21 @@ public interface TransferDataValidityPeriodService {
 
 
     /**
+     * 根据上传数据cell获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param cellSet        cell集合
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
+     * @author senyang.zheng
+     * @date 2023/12/08
+     */
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCells(Set<String> cellSet,
+                                                                     String apiCode,
+                                                                     Object requestDateObj);
+
+
+    /**
      * 根据上传数据custNum获取多组有效期范围,根据taskId获取有效上传数据 Tips：定制化有效期配置使用，有效期配置valid_start_date和valid_end_date字段都非空
      *
      * @param custNumSet     custNum集合

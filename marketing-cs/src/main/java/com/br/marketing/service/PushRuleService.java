@@ -203,11 +203,7 @@ public interface PushRuleService {
 
     Result<Boolean> consumerHaLuo(Long id);
 
-    /**
-     * 中邮清洗数据接口
-     * @return Result
-     */
-    Result<Boolean> HandleZhongYouData(Long id);
+
 
     /**
      * 模拟数据库或者redis异常

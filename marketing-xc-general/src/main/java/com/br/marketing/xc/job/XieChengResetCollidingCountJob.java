@@ -25,6 +25,8 @@ public class XieChengResetCollidingCountJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        long start = System.currentTimeMillis();
         xieChengRobDataCollidingService.resetCollidingCount();
+        log.warn("携程重置撞库次数任务，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }
