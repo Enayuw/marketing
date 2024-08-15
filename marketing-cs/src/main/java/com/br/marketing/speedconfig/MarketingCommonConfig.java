@@ -1997,5 +1997,10 @@ public class MarketingCommonConfig {
      */
     private String YiShiTransferFileExecuteTime;
 
+    /**
+     * 奇富360数据提取custNum对应上传字段
+     */
+    private HashMap<String, List<String>> qiFuExtDataCustNumMapConfig;
+
 }
 

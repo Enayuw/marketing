@@ -18,9 +18,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -48,6 +46,10 @@ public class TransferToFileByQiFuVtServiceImpl extends AbstractTransferToFileByQ
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    private final static String CUST_NUM = "cust_num";
+
+    private final static String CELL_MD5 = "cell_md5";
 
     /**
      * 2023-12-11 10:50
@@ -93,8 +95,7 @@ public class TransferToFileByQiFuVtServiceImpl extends AbstractTransferToFileByQ
                 10000 : marketingCommonConfig.getQiFuExtDataConfig().get(apiCode).getInteger("pageSize");
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(qiFuFullExtDataSoleNum, qiFuFullExtDataSoleNum, 1);
         for (; ; ) {
-            List<Map<String, Object>> transferData = marketingTransferSyncUserMapper
-                    .selectTransferWithValidtiflash_(transferSyncUser, pageSize);
+            List<Map<String, Object>> transferData = getTransferData(transferSyncUser, pageSize);
             if (CollectionUtils.isEmpty(transferData)) {
                 break;
             }
@@ -137,6 +138,38 @@ public class TransferToFileByQiFuVtServiceImpl extends AbstractTransferToFileByQ
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
+    }
+
+    /**
+     * @description 查询数据
+     * @param transferSyncUser
+     * @param pageSize
+     * @return java.util.List<java.util.Map<java.lang.String,java.lang.Object>>
+     * @author hedongshuo
+     * @date 2024/8/15 14:01
+     **/
+    private List<Map<String, Object>> getTransferData(MarketingTransferSyncUser transferSyncUser, Integer pageSize) {
+        String apiCode = transferSyncUser.getApiCode();
+        String custNumMapping = CUST_NUM;
+        HashMap<String, List<String>> config = marketingCommonConfig.getQiFuExtDataCustNumMapConfig();
+        Iterator<Map.Entry<String, List<String>>> iterator = config.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, List<String>> entry = iterator.next();
+            List<String> apiCodes = entry.getValue();
+            if (apiCodes.contains(apiCode)) {
+                custNumMapping = entry.getKey();
+                break;
+            }
+        }
+        List<Map<String, Object>> transferData = null;
+        if (CUST_NUM.equals(custNumMapping)) {
+            transferData = marketingTransferSyncUserMapper
+                    .selectTransferWithValidtiflash_(transferSyncUser, pageSize);
+        } else if (CELL_MD5.equals(custNumMapping)) {
+            transferData = marketingTransferSyncUserMapper
+                    .selectTransferWithValidByCelltiflash_(transferSyncUser, pageSize);
+        }
+        return transferData;
     }
 
     /**

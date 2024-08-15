@@ -590,6 +590,10 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
             @Param("pageSize") Integer pageSize);
 
+    List<Map<String, Object>> selectTransferWithValidByCelltiflash_(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("pageSize") Integer pageSize);
+
     List<Map<String, Object>> selectTransferByWbxc(
             @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
             @Param("pageSize") Integer pageSize);
