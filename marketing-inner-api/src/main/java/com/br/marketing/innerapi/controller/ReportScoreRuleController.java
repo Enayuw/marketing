@@ -5,6 +5,7 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.entity.ReportTaskVO;
 import com.br.marketing.service.ReportScoreRuleService;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.statement.select.FromItem;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -30,7 +31,7 @@ public class ReportScoreRuleController {
     }
 
     @PostMapping("/addReportTaskScore")
-    public ApiResult<Boolean> addReportTaskScore(@RequestParam(required = true) ReportTaskVO reportTaskVO){
+    public ApiResult<Boolean> addReportTaskScore(@RequestBody ReportTaskVO reportTaskVO){
         try {
             return reportScoreRuleService.addReportTask(reportTaskVO);
         }catch (Exception e){

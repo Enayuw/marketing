@@ -1,8 +1,12 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
+import java.io.Serializable;
 import java.util.Date;
 
-public class ReportTask {
+@Data
+public class ReportTask  implements Serializable {
     /**
      * 
      */
