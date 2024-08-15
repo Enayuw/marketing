@@ -243,6 +243,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileByYiShiServiceImpl transferToFileByYiShiService;
 
+    /**
+     * 58新客-营销名单上报-数据提取
+     */
+    @Resource
+    private TransferToFileByWuBaSubmitDataServiceImpl transferToFileByWuBaSubmitDataService;
+
     @Resource
     ICompatibleService iCompatibleService;
 
@@ -419,6 +425,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileBySuShangService, marketingCommonConfig.getSuShangTransferExtractApiCodes())
                 //医时转换数据提取
                 .addBind(transferToFileByYiShiService, marketingCommonConfig.getYiShiTransferApiCodes())
+                .addBind(transferToFileByWuBaSubmitDataService, marketingCommonConfig.getWuBaSubmitDataTransferApiCodes())
                 .build();
 
     }

@@ -1967,6 +1967,21 @@ public class MarketingCommonConfig {
     private Set<String> wuBaQueryConversionKnowFields;
 
     /**
+     * 58新客-营销名单上报-数据提取-执行时间
+     */
+    private String wuBaSubmitDataToFileExecuteTime;
+
+    /**
+     * 58新客-营销名单上报-数据提取-ApiCodes
+     */
+    private List<String> wuBaSubmitDataTransferApiCodes;
+
+    /**
+     * 58新客-营销名单上报-数据提取-StartDate, 例：20240814
+     */
+    private String wuBaSubmitDataToFileStartDate;
+
+    /**
      * 通用清洗线程池
      */
     private Integer autoCleanDataThreadNum;
