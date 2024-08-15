@@ -3,15 +3,22 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
+import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.TaskStatus;
 import com.br.marketing.entity.TaskStatusExample;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
+import com.br.marketing.mapper.MarketingTaskMapper;
+import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.service.MarketingTaskOptService;
+import com.br.marketing.vo.ScoreDetailVo;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,6 +49,12 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
 
     @Resource
     TaskStatusMapper taskStatusMapper;
+
+    @Resource
+    private MarketingTaskMapper marketingTaskMapper;
+
+    @Resource
+    private MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
 
     @Autowired(required = false)
     private CuratorFramework client;
@@ -132,5 +146,26 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
             log.error(e.getMessage(), e);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public PageResultReturn<List<ScoreDetailVo>> getBatchInfoFieldList(CustomerBatchNumDTO dto) {
+        dto = getCustomerBatchNumDTO(dto);
+        PageHelper.startPage(dto.getCurrent(), dto.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
+        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchFieldList(dto);
+        scoreDetailVos.forEach((ScoreDetailVo t) -> {
+            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(t.getBatchNumber());
+            t.setUserType(String.join(",", batchNumberList));
+        });
+        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent()
+                , dto.getSize());
+    }
+
+    public CustomerBatchNumDTO getCustomerBatchNumDTO(CustomerBatchNumDTO dto) {
+        if (StringUtils.isNotBlank(dto.getProductName())) {
+            String productName = dto.getProductName();
+            dto.setModuleList(Arrays.asList(productName.split(",")));
+        }
+        return dto;
     }
 }

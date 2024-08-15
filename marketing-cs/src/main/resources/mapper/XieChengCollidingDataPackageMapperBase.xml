@@ -1,38 +1,39 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataPackageMapperBase">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.XieChengCollidingDataPackage">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="package_name" jdbcType="VARCHAR" property="packageName" />
-    <result column="priority" jdbcType="INTEGER" property="priority" />
-    <result column="colliding_time" jdbcType="TIMESTAMP" property="collidingTime" />
-    <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
-    <result column="extend" jdbcType="VARCHAR" property="extend" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-    <result column="actual_number" jdbcType="INTEGER" property="actualNumber" />
-    <result column="discreet_number" jdbcType="INTEGER" property="discreetNumber" />
-    <result column="colliding_data_task_id" jdbcType="BIGINT" property="collidingDataTaskId" />
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengCollidingDataPackageMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.XieChengCollidingDataPackage" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="package_name" property="packageName" jdbcType="VARCHAR" />
+    <result column="priority" property="priority" jdbcType="INTEGER" />
+    <result column="round" property="round" jdbcType="INTEGER" />
+    <result column="colliding_time" property="collidingTime" jdbcType="TIMESTAMP" />
+    <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="actual_number" property="actualNumber" jdbcType="INTEGER" />
+    <result column="discreet_number" property="discreetNumber" jdbcType="INTEGER" />
+    <result column="colliding_data_task_id" property="collidingDataTaskId" jdbcType="BIGINT" />
   </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -43,25 +44,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -72,229 +73,249 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List">
-    id, package_name, priority, colliding_time, is_delete, extend, create_time, update_time, 
-    actual_number, discreet_number, colliding_data_task_id
+  <sql id="Base_Column_List" >
+    id, package_name, priority, round, colliding_time, is_delete, extend, create_time,
+    update_time, actual_number, discreet_number, colliding_data_task_id
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.XieChengCollidingDataPackageExample" resultMap="BaseResultMap">
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengCollidingDataPackageExample" >
     select
-    <if test="distinct">
+    <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_xiecheng_colliding_data_package
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null">
+    <if test="orderByClause != null" >
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-    select 
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
     <include refid="Base_Column_List" />
     from b_xiecheng_colliding_data_package
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_xiecheng_colliding_data_package
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.XieChengCollidingDataPackageExample">
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.XieChengCollidingDataPackageExample" >
     delete from b_xiecheng_colliding_data_package
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" useGeneratedKeys="true">
-    insert into b_xiecheng_colliding_data_package (package_name, priority, colliding_time, 
-      is_delete, extend, create_time, 
-      update_time, actual_number, discreet_number, 
-      colliding_data_task_id)
-    values (#{packageName,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, #{collidingTime,jdbcType=TIMESTAMP}, 
-      #{isDelete,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{actualNumber,jdbcType=INTEGER}, #{discreetNumber,jdbcType=INTEGER}, 
-      #{collidingDataTaskId,jdbcType=BIGINT})
+  <insert id="insert" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_xiecheng_colliding_data_package (package_name, priority, round,
+    colliding_time, is_delete, extend,
+    create_time, update_time, actual_number,
+    discreet_number, colliding_data_task_id)
+    values (#{packageName,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, #{round,jdbcType=INTEGER},
+    #{collidingTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{actualNumber,jdbcType=INTEGER},
+    #{discreetNumber,jdbcType=INTEGER}, #{collidingDataTaskId,jdbcType=BIGINT})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" useGeneratedKeys="true">
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_xiecheng_colliding_data_package
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="packageName != null">
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="packageName != null" >
         package_name,
       </if>
-      <if test="priority != null">
+      <if test="priority != null" >
         priority,
       </if>
-      <if test="collidingTime != null">
+      <if test="round != null" >
+        round,
+      </if>
+      <if test="collidingTime != null" >
         colliding_time,
       </if>
-      <if test="isDelete != null">
+      <if test="isDelete != null" >
         is_delete,
       </if>
-      <if test="extend != null">
+      <if test="extend != null" >
         extend,
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time,
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time,
       </if>
-      <if test="actualNumber != null">
+      <if test="actualNumber != null" >
         actual_number,
       </if>
-      <if test="discreetNumber != null">
+      <if test="discreetNumber != null" >
         discreet_number,
       </if>
-      <if test="collidingDataTaskId != null">
+      <if test="collidingDataTaskId != null" >
         colliding_data_task_id,
       </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="packageName != null">
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="packageName != null" >
         #{packageName,jdbcType=VARCHAR},
       </if>
-      <if test="priority != null">
+      <if test="priority != null" >
         #{priority,jdbcType=INTEGER},
       </if>
-      <if test="collidingTime != null">
+      <if test="round != null" >
+        #{round,jdbcType=INTEGER},
+      </if>
+      <if test="collidingTime != null" >
         #{collidingTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="isDelete != null">
+      <if test="isDelete != null" >
         #{isDelete,jdbcType=INTEGER},
       </if>
-      <if test="extend != null">
+      <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="actualNumber != null">
+      <if test="actualNumber != null" >
         #{actualNumber,jdbcType=INTEGER},
       </if>
-      <if test="discreetNumber != null">
+      <if test="discreetNumber != null" >
         #{discreetNumber,jdbcType=INTEGER},
       </if>
-      <if test="collidingDataTaskId != null">
+      <if test="collidingDataTaskId != null" >
         #{collidingDataTaskId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.XieChengCollidingDataPackageExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.br.marketing.entity.XieChengCollidingDataPackageExample" resultType="java.lang.Integer" >
     select count(*) from b_xiecheng_colliding_data_package
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map">
+  <update id="updateByExampleSelective" parameterType="map" >
     update b_xiecheng_colliding_data_package
-    <set>
-      <if test="record.id != null">
+    <set >
+      <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.packageName != null">
+      <if test="record.packageName != null" >
         package_name = #{record.packageName,jdbcType=VARCHAR},
       </if>
-      <if test="record.priority != null">
+      <if test="record.priority != null" >
         priority = #{record.priority,jdbcType=INTEGER},
       </if>
-      <if test="record.collidingTime != null">
+      <if test="record.round != null" >
+        round = #{record.round,jdbcType=INTEGER},
+      </if>
+      <if test="record.collidingTime != null" >
         colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.isDelete != null">
+      <if test="record.isDelete != null" >
         is_delete = #{record.isDelete,jdbcType=INTEGER},
       </if>
-      <if test="record.extend != null">
+      <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
-      <if test="record.createTime != null">
+      <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null">
+      <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.actualNumber != null">
+      <if test="record.actualNumber != null" >
         actual_number = #{record.actualNumber,jdbcType=INTEGER},
       </if>
-      <if test="record.discreetNumber != null">
+      <if test="record.discreetNumber != null" >
         discreet_number = #{record.discreetNumber,jdbcType=INTEGER},
       </if>
-      <if test="record.collidingDataTaskId != null">
+      <if test="record.collidingDataTaskId != null" >
         colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT},
       </if>
     </set>
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map">
+  <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_data_package
     set id = #{record.id,jdbcType=BIGINT},
-      package_name = #{record.packageName,jdbcType=VARCHAR},
-      priority = #{record.priority,jdbcType=INTEGER},
-      colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      actual_number = #{record.actualNumber,jdbcType=INTEGER},
-      discreet_number = #{record.discreetNumber,jdbcType=INTEGER},
-      colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT}
-    <if test="_parameter != null">
+    package_name = #{record.packageName,jdbcType=VARCHAR},
+    priority = #{record.priority,jdbcType=INTEGER},
+    round = #{record.round,jdbcType=INTEGER},
+    colliding_time = #{record.collidingTime,jdbcType=TIMESTAMP},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    actual_number = #{record.actualNumber,jdbcType=INTEGER},
+    discreet_number = #{record.discreetNumber,jdbcType=INTEGER},
+    colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT}
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage">
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
     update b_xiecheng_colliding_data_package
-    <set>
-      <if test="packageName != null">
+    <set >
+      <if test="packageName != null" >
         package_name = #{packageName,jdbcType=VARCHAR},
       </if>
-      <if test="priority != null">
+      <if test="priority != null" >
         priority = #{priority,jdbcType=INTEGER},
       </if>
-      <if test="collidingTime != null">
+      <if test="round != null" >
+        round = #{round,jdbcType=INTEGER},
+      </if>
+      <if test="collidingTime != null" >
         colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="isDelete != null">
+      <if test="isDelete != null" >
         is_delete = #{isDelete,jdbcType=INTEGER},
       </if>
-      <if test="extend != null">
+      <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="actualNumber != null">
+      <if test="actualNumber != null" >
         actual_number = #{actualNumber,jdbcType=INTEGER},
       </if>
-      <if test="discreetNumber != null">
+      <if test="discreetNumber != null" >
         discreet_number = #{discreetNumber,jdbcType=INTEGER},
       </if>
-      <if test="collidingDataTaskId != null">
+      <if test="collidingDataTaskId != null" >
         colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage">
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataPackage" >
     update b_xiecheng_colliding_data_package
     set package_name = #{packageName,jdbcType=VARCHAR},
-      priority = #{priority,jdbcType=INTEGER},
-      colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      actual_number = #{actualNumber,jdbcType=INTEGER},
-      discreet_number = #{discreetNumber,jdbcType=INTEGER},
-      colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT}
+        priority = #{priority,jdbcType=INTEGER},
+        round = #{round,jdbcType=INTEGER},
+        colliding_time = #{collidingTime,jdbcType=TIMESTAMP},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        actual_number = #{actualNumber,jdbcType=INTEGER},
+        discreet_number = #{discreetNumber,jdbcType=INTEGER},
+        colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

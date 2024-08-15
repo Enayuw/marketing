@@ -16,11 +16,17 @@ import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.*;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.entity.score.ScoreCustomerStrategyProductField;
+import com.br.marketing.entity.score.ScoreCustomerStrategyProductFieldExample;
+import com.br.marketing.entity.score.ScoreStrategyProductField;
+import com.br.marketing.entity.score.ScoreStrategyProductFieldExample;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.score.ScoreCustomerStrategyProductFieldMapper;
+import com.br.marketing.mapper.score.ScoreStrategyProductFieldMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
@@ -57,6 +63,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * 单任务多片跑分
@@ -148,6 +157,12 @@ public class TaskScoreServiceImpl {
 
     @Autowired
     private DingDingRobotHookService dingDingRobotHookService;
+
+    @Resource
+    private ScoreStrategyProductFieldMapper scoreStrategyProductFieldMapper;
+
+    @Resource
+    private ScoreCustomerStrategyProductFieldMapper scoreCustomerStrategyProductFieldMapper;
 
     /**
      * 跑分服务
@@ -486,6 +501,9 @@ public class TaskScoreServiceImpl {
                 }
             }
             //endregion
+
+            // 保存评分产品析出字段及映射关系
+            saveStrategyProductField(blt, customer);
         }
         //endregion
         StringBuilder addTaskContent = new StringBuilder();
@@ -493,6 +511,62 @@ public class TaskScoreServiceImpl {
         sendContent(addTaskContent.toString(), "任务开始", AlarmSendCodeEnum.SUCCESS_UPLOAD.getCode());
         scoreStatusListen(taskObj);
         core(blt, descPath, true, productJson, warrningExecutor, blt.getFileId().toString(), customer);
+    }
+
+    /**
+     * 2024-08-15 18:55
+     * 保存评分产品字段及用户映射
+     */
+    private void saveStrategyProductField(MarketingTask marketingTask, MarketingCustomer customer) {
+        try {
+            MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(marketingTask.getId());
+            String strategyProductJson = marketingTaskExtend.getStrategyProductJson();
+            if (JSONObject.isValidObject(strategyProductJson)) {
+                JSONObject jsonObject = JSONObject.parseObject(strategyProductJson);
+                JSONArray fields = jsonObject.getJSONArray("fields");
+                List<String> fieldList = fields.toJavaList(String.class);
+                ScoreStrategyProductFieldExample example = new ScoreStrategyProductFieldExample();
+                example.createCriteria().andIsDelEqualTo(0).andFieldNameIn(fieldList);
+                List<ScoreStrategyProductField> scoreStrategyProductFields = scoreStrategyProductFieldMapper.selectByExample(example);
+                Map<String, ScoreStrategyProductField> collect = scoreStrategyProductFields.stream().collect(
+                        Collectors.toMap(ScoreStrategyProductField::getFieldName, Function.identity()
+                                , BinaryOperator.maxBy(Comparator.comparing(ScoreStrategyProductField::getCreateTime))));
+                for (String field : fieldList) {
+                    ScoreStrategyProductField strategyProductField = collect.get(field);
+                    if (strategyProductField == null) {
+                        ScoreStrategyProductField sspf = new ScoreStrategyProductField();
+                        sspf.setFieldName(field);
+                        sspf.setCreateTime(new Date());
+                        sspf.setUpdateTime(sspf.getCreateTime());
+                        sspf.setIsDel(0);
+                        int i = scoreStrategyProductFieldMapper.insertSelective(sspf);
+                        if (i > 0 && sspf.getId() != null) {
+                            saveCustomerField(sspf.getId(), customer.getId());
+                        }
+                    } else {
+                        ScoreCustomerStrategyProductFieldExample fieldExample = new ScoreCustomerStrategyProductFieldExample();
+                        fieldExample.createCriteria().andScoreStrategyProductFieldIdEqualTo(strategyProductField.getId())
+                                .andMarketingCustomerIdEqualTo(customer.getId()).andIsDelEqualTo(0);
+                        int countByExample = scoreCustomerStrategyProductFieldMapper.countByExample(fieldExample);
+                        if (countByExample == 0) {
+                            saveCustomerField(strategyProductField.getId(), customer.getId());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    private void saveCustomerField(Long strategyProductFieldId, Long customerId) {
+        ScoreCustomerStrategyProductField scspf = new ScoreCustomerStrategyProductField();
+        scspf.setScoreStrategyProductFieldId(strategyProductFieldId);
+        scspf.setMarketingCustomerId(customerId);
+        scspf.setCreateTime(new Date());
+        scspf.setUpdateTime(scspf.getCreateTime());
+        scspf.setIsDel(0);
+        scoreCustomerStrategyProductFieldMapper.insertSelective(scspf);
     }
 
     private void sendContent(String msg, String title, String code) {

@@ -44,7 +44,7 @@
     </select>
 
     <select id="getScoreByNameNumberList" resultType="com.br.marketing.vo.ConditionOfScoreVO">
-        select `id`,`name`,`content`,`content_show`,`condition_number`
+        select `id`,`name`,`source_type`,`content`,`content_show`,`condition_number`
         from b_score_search_condition
         where condition_type = 1
         and `status` = 1

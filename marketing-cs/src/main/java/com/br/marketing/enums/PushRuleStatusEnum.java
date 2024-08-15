@@ -2,6 +2,7 @@ package com.br.marketing.enums;
 
 public enum PushRuleStatusEnum {
 
+    TO_BE_BUILDING(-1,"构建中"),
     TO_BE_RUNNING(0,"待执行"),
     RUNNING(1,"执行中"),
     TO_BE_CONFIRMED(2,"待确认"),

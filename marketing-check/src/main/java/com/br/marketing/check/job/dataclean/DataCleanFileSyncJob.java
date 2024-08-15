@@ -7,7 +7,7 @@ import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncConfigExample;
-import com.br.marketing.mapper.MarketingCleanDataFileMapperBase;
+import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.IFileActionService;
 import com.br.marketing.service.SyncConfigService;
@@ -47,7 +47,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
     IFileActionService iFileActionService;
 
     @Autowired
-    MarketingCleanDataFileMapperBase marketingCleanDataFileMapperBase;
+    MarketingCleanDataFileMapper marketingCleanDataFileMapper;
 
     @Value("${otherConfig.warning.sftpHost:00}")
     private String sftpHost;
@@ -114,7 +114,7 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
         dataFile.setCleanType(0);
         dataFile.setCreateTime(new Date());
         dataFile.setUpdateTime(new Date());
-        marketingCleanDataFileMapperBase.insertSelective(dataFile);
+        marketingCleanDataFileMapper.insertSelective(dataFile);
 
     }
 }
