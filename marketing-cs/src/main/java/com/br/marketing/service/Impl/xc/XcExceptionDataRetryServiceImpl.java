@@ -1,6 +1,8 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
@@ -63,9 +65,6 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         if (isLastTime()) {
             processByTrue(threadPool, true, pageSize);
             processByFalse(threadPool, true, pageSize);
-
-            // 统计撞库异常数据发系统告警
-            sendAlarmByRetryCountOfFour();
         }
 
         threadPool.shutdown();
@@ -75,7 +74,8 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.error("携程异常重试撞库，日志保存线程池结束异常！", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), ex.getMessage()
+                    , "携程异常重试撞库，日志保存线程池结束异常！"), ex);
             Thread.currentThread().interrupt();
         }
     }
@@ -103,27 +103,6 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
         Integer threadNum = marketingCommonConfig.getXieChengSmsCollidingRetryThread();
         pool.setCorePoolSize(threadNum);
         pool.setMaximumPoolSize(threadNum);
-    }
-
-    /**
-     * 查retry_count=4，查全表不只查当天
-     */
-    private void sendAlarmByRetryCountOfFour() {
-        XieChengCollidingDataLoopCycleExample cycleExample = new XieChengCollidingDataLoopCycleExample();
-        cycleExample.createCriteria().andRetryCountEqualTo(4);
-        int loopCount = loopCycleMapper.countByExample(cycleExample);
-
-        XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
-        robExample.createCriteria().andRetryCountEqualTo(4);
-        int robCount = robMapper.countByExample(robExample);
-
-        int total = loopCount + robCount;
-        if (total > 0) {
-            // 发送钉钉告警
-            String msg = "携程最后一次重试撞库失败通知。重试失败量级:" + total + "条,需要关注！";
-            sendDingDingAlert("携程最后一次重试撞库失败通知", msg);
-            log.error(msg);
-        }
     }
 
     /**
@@ -192,7 +171,8 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
             dingDingRobotHookService.sendMessageGroup(token,
                     secret, dingDingMarkdownMessage, true);
         } catch (Exception e) {
-            log.error(text+" 发送钉钉消息失败:"+e.getMessage(),e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "发送钉钉消息失败"), e);
         }
     }
 }

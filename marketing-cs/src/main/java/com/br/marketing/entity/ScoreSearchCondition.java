@@ -29,6 +29,16 @@ public class ScoreSearchCondition {
     private Integer conditionType;
 
     /**
+     * 数据源类型：0-无数据源(默认，存量的模板数据)；1-跑分数据源；2-众安转化数据源
+     */
+    private Integer sourceType;
+
+    /**
+     * 数据源字段
+     */
+    private String sourceCondition;
+
+    /**
      * 条件内容
      */
     private String content;
@@ -91,6 +101,22 @@ public class ScoreSearchCondition {
 
     public void setConditionType(Integer conditionType) {
         this.conditionType = conditionType;
+    }
+
+    public Integer getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(Integer sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public String getSourceCondition() {
+        return sourceCondition;
+    }
+
+    public void setSourceCondition(String sourceCondition) {
+        this.sourceCondition = sourceCondition == null ? null : sourceCondition.trim();
     }
 
     public String getContent() {

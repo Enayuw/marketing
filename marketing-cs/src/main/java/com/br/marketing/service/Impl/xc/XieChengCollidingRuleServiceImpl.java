@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -339,6 +340,22 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     public Boolean deleteStagingCollidingRule(Long prsId) {
         return stagingMapper.deleteByPrimaryKey(prsId) == 1;
+    }
+
+    /**
+     * 修改包轮次
+     *
+     * @param param param
+     * @return {@link Boolean }
+     * @author hong.chen
+     * @date 2024/08/07
+     */
+    @Override
+    public Boolean updateRound(UpdateRoundParam param) {
+        XieChengCollidingDataPackage update = new XieChengCollidingDataPackage();
+        update.setRound(param.getRound());
+        update.setId(param.getPkgId());
+        return packageMapper.updateByPrimaryKeySelective(update) == 1;
     }
 
 }

@@ -10,7 +10,7 @@
                rob.colliding_count
         FROM b_xiecheng_colliding_data_rob rob
         WHERE rob.package_id = #{packageId,jdbcType=BIGINT}
-          AND rob.is_delete = 0
+          AND rob.is_delete = 0 AND retry_count = 0
           AND rob.colliding_count <![CDATA[ < ]]> #{collidingTimes,jdbcType=INTEGER}
         ORDER BY IF(rob.push_time IS NULL, 0, 1),
                  rob.push_time
@@ -170,4 +170,35 @@
             #{item.cellSha256CodeList})
         </foreach>
     </insert>
+
+    <select id="selectRobsByNonRoundPackages" resultType="java.lang.Long">
+        select id
+        from b_xiecheng_colliding_data_rob
+        where is_delete = 0 and colliding_count > 0 and package_id in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item.id}
+        </foreach>
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id limit 100000
+    </select>
+
+    <update id="batchResetCollidingCountByIds">
+        update b_xiecheng_colliding_data_rob
+        set colliding_count = 0
+        where id in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="selectCountByRoundPackages" resultType="java.lang.Long">
+        select count(1)
+        from b_xiecheng_colliding_data_rob
+        where is_delete = 0 and colliding_count = 0 and package_id in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item.id}
+        </foreach>
+    </select>
 </mapper>

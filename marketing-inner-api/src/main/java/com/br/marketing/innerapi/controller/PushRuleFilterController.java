@@ -164,6 +164,12 @@ public class PushRuleFilterController {
         return new ApiResult<Long>().fromResult(pushRuleService.saveCondition(dto), CODE_1);
     }
 
+    @ApiOperation(value = "删除规则模板")
+    @GetMapping("/deleteRule")
+    public ApiResult<Boolean> deleteRule(@RequestParam Long id) {
+        return new ApiResult<Boolean>().fromResult(pushRuleService.deleteRule(id), CODE_1);
+    }
+
     @ApiOperation(value = "获取模板")
     @GetMapping("/getConditionByRule")
     public ApiResult<List<ConditionOfScoreVO>> getConditionByRule(String apiCode,String name) {
