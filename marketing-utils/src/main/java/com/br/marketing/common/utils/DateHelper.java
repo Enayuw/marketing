@@ -476,7 +476,7 @@ public class DateHelper {
         try {
             if (Pattern.matches("^T([+-])(\\d+)$", dateStr)) {
                 String operator = dateStr.substring(1, 2);
-                int num = operator.equals("-") ? Integer.valueOf(dateStr.substring(1)) : Integer.valueOf(dateStr.substring(2));
+                int num = ("-").equals(operator) ? Integer.valueOf(dateStr.substring(1)) : Integer.valueOf(dateStr.substring(2));
                 res = LocalDate.now().plusDays(num).toString();
             } else {
                 res = dateStr;

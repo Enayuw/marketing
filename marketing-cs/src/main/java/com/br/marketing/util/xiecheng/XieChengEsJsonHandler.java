@@ -76,7 +76,7 @@ public class XieChengEsJsonHandler {
 
         if (!CollectionUtils.isEmpty(releaseTime)) {
             Object value = releaseTime.get("value");
-            if ((releaseTime.get("operation")).equals("=")) {
+            if (("=").equals(releaseTime.get("operation"))) {
                 value = DateHelper.dateTNtransfer((String) releaseTime.get("value"));
             }
 
