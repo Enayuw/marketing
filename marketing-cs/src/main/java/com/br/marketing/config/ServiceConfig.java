@@ -65,4 +65,10 @@ public class ServiceConfig {
                 , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("requestInterfaceLogDb-pool-%d").build()
                 ,new ThreadPoolExecutor.CallerRunsPolicy());
     }
+    @Bean(name = "zhongYouCleanThreadPool")
+    public ThreadPoolExecutor zhongYouCleanThreadPool() {
+        return new ThreadPoolExecutor(30,30,10L, TimeUnit.SECONDS
+                , new ArrayBlockingQueue(5000),new ThreadFactoryBuilder().setNameFormat("zhongyou_clean_thread_pool-%d").build()
+                ,new ThreadPoolExecutor.CallerRunsPolicy());
+    }
 }
