@@ -12,7 +12,7 @@ public class XieChengCollidingDataPackageExample {
     protected List<Criteria> oredCriteria;
 
     public XieChengCollidingDataPackageExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class XieChengCollidingDataPackageExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -292,6 +292,66 @@ public class XieChengCollidingDataPackageExample {
 
         public Criteria andPriorityNotBetween(Integer value1, Integer value2) {
             addCriterion("priority not between", value1, value2, "priority");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundIsNull() {
+            addCriterion("round is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundIsNotNull() {
+            addCriterion("round is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundEqualTo(Integer value) {
+            addCriterion("round =", value, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundNotEqualTo(Integer value) {
+            addCriterion("round <>", value, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundGreaterThan(Integer value) {
+            addCriterion("round >", value, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundGreaterThanOrEqualTo(Integer value) {
+            addCriterion("round >=", value, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundLessThan(Integer value) {
+            addCriterion("round <", value, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundLessThanOrEqualTo(Integer value) {
+            addCriterion("round <=", value, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundIn(List<Integer> values) {
+            addCriterion("round in", values, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundNotIn(List<Integer> values) {
+            addCriterion("round not in", values, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundBetween(Integer value1, Integer value2) {
+            addCriterion("round between", value1, value2, "round");
+            return (Criteria) this;
+        }
+
+        public Criteria andRoundNotBetween(Integer value1, Integer value2) {
+            addCriterion("round not between", value1, value2, "round");
             return (Criteria) this;
         }
 
@@ -786,9 +846,8 @@ public class XieChengCollidingDataPackageExample {
         }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

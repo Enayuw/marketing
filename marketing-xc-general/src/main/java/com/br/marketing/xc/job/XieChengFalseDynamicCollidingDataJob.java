@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Component;
 
@@ -61,7 +63,8 @@ public class XieChengFalseDynamicCollidingDataJob extends AbstractSimpleElasticJ
             }
         } catch (InterruptedException e) {
             threadPool.shutdownNow();
-            log.error("动态包撞库数据补充：线程池关闭结束异常！", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "动态包撞库数据补充：线程池关闭结束异常！"), e);
             Thread.currentThread().interrupt();
         }
     }
