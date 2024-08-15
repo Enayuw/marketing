@@ -27,9 +27,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -125,11 +128,12 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         boolean bool = true;
                         try {
                             if (1 == taskRule.getIsMd5Check() && StringUtils.isNotBlank(md5Value)) {
+                                String[] split = fileName.split("\\.");
                                 MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
                                 fileExampleCount.createCriteria().andApiCodeEqualTo(apiCode).andSyncConfigIdEqualTo(syncConfigId)
                                         .andIdNotEqualTo(dataFile.getId()).andCreateTimeLessThanOrEqualTo(dataFile.getCreateTime())
-                                        .andMd5ValueNotEqualTo("").andMd5ValueIsNotNull();
-                                fileExampleCount.setOrderByClause("create_time desc limit 1");
+                                        .andMd5ValueNotEqualTo("").andMd5ValueIsNotNull().andFileNameLike("%" + split[1]);
+                                fileExampleCount.setOrderByClause("create_time desc limit 2");
                                 List<MarketingCleanDataFile> marketingCleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExampleCount);
                                 if (marketingCleanDataFiles.size() > 0 && md5Value.equals(marketingCleanDataFiles.get(0).getMd5Value())) {
                                     MarketingCleanDataFile dataFileOld = marketingCleanDataFiles.get(0);
@@ -241,9 +245,11 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         Map<String, JSONObject> map = new HashMap<>(2048);
         long rowNum = 0L;
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            MessageDigest md5 = MessageDigest.getInstance("MD5");
             String[] fileHeaders = null;
             String rowData;
             while ((rowData = reader.readLine()) != null) {
+                md5.update(rowData.getBytes(StandardCharsets.UTF_8));
                 stopCheckOrUpdate(apiCode);
                 if (rowNum < 2) {
                     if (rowNum == 0) {
@@ -282,6 +288,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             }
             if (dataFileNew != null && dataFileNew.getId() != null && map.size() != 0) {
                 update(apiCode, map, appletDateSet, dataFileNew);
+                dataFileNew.setMd5Value(DatatypeConverter.printHexBinary(md5.digest()));
             }
             updateDataFile(dataFileNew, isCreate);
         } catch (Exception e) {
@@ -301,6 +308,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         if (dataFileNew != null && dataFileNew.getId() != null) {
             MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
             dataFileUpdate.setId(dataFileNew.getId());
+            dataFileUpdate.setMd5Value(dataFileNew.getMd5Value());
             dataFileUpdate.setIsDel(9);
             if (isCreate) {
                 marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
