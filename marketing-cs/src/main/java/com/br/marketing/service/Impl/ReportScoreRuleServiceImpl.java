@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
@@ -12,6 +13,7 @@ import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.br.marketing.vo.TaskInfoVO;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -192,5 +194,17 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             reportTaskScoreSourceMapper.insertBatch(list);
         }
         return new ApiResult<Boolean>().success(true);
+    }
+
+    @Override
+    public PageResultReturn getTaskScoreProductsListPage(int page, int pageSize, String name) {
+        PageHelper.startPage(page, pageSize);
+        try {
+            List<ReportTask> list = reportTaskMapper.findList(name);
+            return PageResultReturn.setPageResult(list, page, pageSize);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
     }
 }

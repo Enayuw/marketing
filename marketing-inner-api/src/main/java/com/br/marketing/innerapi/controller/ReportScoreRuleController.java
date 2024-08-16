@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.ReportTaskVO;
 import com.br.marketing.service.ReportScoreRuleService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,17 @@ public class ReportScoreRuleController {
     @GetMapping("/getTaskScoreProducts")
     public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids){
         return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids));
+    }
+
+    @GetMapping("/getTaskScoreProductsList")
+    public ApiResult<PageResultReturn> getTaskScoreProductsList(@RequestParam(defaultValue = "1") int current
+            , @RequestParam(defaultValue = "10") int size
+            , @RequestParam(required = false) String name){
+        PageResultReturn listPage = reportScoreRuleService.getTaskScoreProductsListPage(current, size, name);
+        if (listPage != null) {
+            return new ApiResult<PageResultReturn>().success(listPage);
+        }
+        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 
     @PostMapping("/addReportTaskScore")

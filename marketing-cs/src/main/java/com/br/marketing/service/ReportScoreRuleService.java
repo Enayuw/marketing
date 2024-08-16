@@ -1,6 +1,7 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.ReportTaskVO;
 
 import java.util.Map;
@@ -27,5 +28,15 @@ public interface ReportScoreRuleService {
      * @return ApiResult<Boolean>
      */
     ApiResult<Boolean> addReportTask(ReportTaskVO reportTaskVO);
+
+    /**
+     * 获取任务列表信息
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/8/16 14:27
+     * @param current
+     * @param size
+     * @param name
+     */
+    PageResultReturn getTaskScoreProductsListPage(int current, int size, String name);
 
 }
