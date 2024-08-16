@@ -37,6 +37,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/resource/**")
                 .addPathPatterns("/transferFile/**")
                 .addPathPatterns("/role/**")
+                .addPathPatterns("/pushDecisions/**")
                 .addPathPatterns("/xiecheng/**");
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/rule/**")
@@ -45,6 +46,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/resource/**")
                 .addPathPatterns("/transferFile/**")
                 .addPathPatterns("/role/**")
+                .addPathPatterns("/pushDecisions/**")
                 .addPathPatterns("/xiecheng/**");
         super.addInterceptors(registry);
     }

@@ -13,7 +13,7 @@ public class CustomerInfoPushMainExample {
     protected List<Criteria> oredCriteria;
 
     public CustomerInfoPushMainExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -70,7 +70,7 @@ public class CustomerInfoPushMainExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -1645,11 +1645,200 @@ public class CustomerInfoPushMainExample {
             addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
+
+        public Criteria andSourceTypeIsNull() {
+            addCriterion("source_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeIsNotNull() {
+            addCriterion("source_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeEqualTo(Integer value) {
+            addCriterion("source_type =", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeNotEqualTo(Integer value) {
+            addCriterion("source_type <>", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeGreaterThan(Integer value) {
+            addCriterion("source_type >", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("source_type >=", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeLessThan(Integer value) {
+            addCriterion("source_type <", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("source_type <=", value, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeIn(List<Integer> values) {
+            addCriterion("source_type in", values, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeNotIn(List<Integer> values) {
+            addCriterion("source_type not in", values, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeBetween(Integer value1, Integer value2) {
+            addCriterion("source_type between", value1, value2, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andSourceTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("source_type not between", value1, value2, "sourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeIsNull() {
+            addCriterion("build_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeIsNotNull() {
+            addCriterion("build_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeEqualTo(Integer value) {
+            addCriterion("build_type =", value, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeNotEqualTo(Integer value) {
+            addCriterion("build_type <>", value, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeGreaterThan(Integer value) {
+            addCriterion("build_type >", value, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("build_type >=", value, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeLessThan(Integer value) {
+            addCriterion("build_type <", value, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("build_type <=", value, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeIn(List<Integer> values) {
+            addCriterion("build_type in", values, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeNotIn(List<Integer> values) {
+            addCriterion("build_type not in", values, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeBetween(Integer value1, Integer value2) {
+            addCriterion("build_type between", value1, value2, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andBuildTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("build_type not between", value1, value2, "buildType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeIsNull() {
+            addCriterion("strategy_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeIsNotNull() {
+            addCriterion("strategy_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeEqualTo(String value) {
+            addCriterion("strategy_code =", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeNotEqualTo(String value) {
+            addCriterion("strategy_code <>", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeGreaterThan(String value) {
+            addCriterion("strategy_code >", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("strategy_code >=", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeLessThan(String value) {
+            addCriterion("strategy_code <", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeLessThanOrEqualTo(String value) {
+            addCriterion("strategy_code <=", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeLike(String value) {
+            addCriterion("strategy_code like", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeNotLike(String value) {
+            addCriterion("strategy_code not like", value, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeIn(List<String> values) {
+            addCriterion("strategy_code in", values, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeNotIn(List<String> values) {
+            addCriterion("strategy_code not in", values, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeBetween(String value1, String value2) {
+            addCriterion("strategy_code between", value1, value2, "strategyCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andStrategyCodeNotBetween(String value1, String value2) {
+            addCriterion("strategy_code not between", value1, value2, "strategyCode");
+            return (Criteria) this;
+        }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }
