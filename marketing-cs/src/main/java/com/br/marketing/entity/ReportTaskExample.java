@@ -555,6 +555,66 @@ public class ReportTaskExample {
             return (Criteria) this;
         }
 
+        public Criteria andGroupCountIsNull() {
+            addCriterion("group_count is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountIsNotNull() {
+            addCriterion("group_count is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountEqualTo(Integer value) {
+            addCriterion("group_count =", value, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountNotEqualTo(Integer value) {
+            addCriterion("group_count <>", value, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountGreaterThan(Integer value) {
+            addCriterion("group_count >", value, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("group_count >=", value, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountLessThan(Integer value) {
+            addCriterion("group_count <", value, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountLessThanOrEqualTo(Integer value) {
+            addCriterion("group_count <=", value, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountIn(List<Integer> values) {
+            addCriterion("group_count in", values, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountNotIn(List<Integer> values) {
+            addCriterion("group_count not in", values, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountBetween(Integer value1, Integer value2) {
+            addCriterion("group_count between", value1, value2, "groupCount");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("group_count not between", value1, value2, "groupCount");
+            return (Criteria) this;
+        }
+
         public Criteria andIsDelIsNull() {
             addCriterion("is_del is null");
             return (Criteria) this;

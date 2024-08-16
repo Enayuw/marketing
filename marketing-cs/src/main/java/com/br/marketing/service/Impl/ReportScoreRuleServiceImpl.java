@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
@@ -12,6 +13,7 @@ import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.br.marketing.vo.TaskInfoVO;
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -40,7 +42,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     @Override
     public Map getProducts(String ids) {
         Map map = new HashMap();
-        Set<String> fieldsList = new HashSet<>();
+        Map<String,String> fieldsMap = new HashMap();
         // 给前端提示产品在不同跑分文件中差异结果<产品,跑分文件>
         Map<String,String> fieldsNoScoreMap = new HashMap();
         // 给前端提示产品在不同跑分文件中差异结果<跑分文件,产品Set>
@@ -70,32 +72,44 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                 Map<String,Set> scoreAndBatchSwiftMap = new HashMap<>();
                 scoreAndBatchSwiftMap.put(batchNumber, productSet);
                 batchSwiftAndScoreSetList.add(scoreAndBatchSwiftMap);
-                if(fields != null && fields.size() > 0){
-                    fieldsList.addAll(fields);
-                }
             }
         }
-        getFieldsNoScore(fieldsNoScoreMap, batchSwiftAndScoreSetList);
-        map.put("fields",fieldsList);
+        // 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
+        getFieldsNoScore(fieldsNoScoreMap, batchSwiftAndScoreSetList, fieldsMap);
+        map.put("fields",fieldsMap);
         map.put("fieldsNoScore",fieldsNoScoreMap);
         return map;
     }
 
     /**
-     * 循环对比跑分文件并获取 fieldsNoScore
+     * 循环对比跑分文件
+     * 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
      * @Author yu.xia@brgroup.com
      * @Date 2024/8/15 18:32
      * @param fieldsNoScoreMap 比较结果存放的结果集
-     * @param batchSwiftAndScoreSetList
+     * @param batchSwiftAndScoreSetList 给前端提示产品在不同跑分文件中差异结果<跑分文件,产品Set>，每个跑分文件对应一个set
+     * @param fieldsMap fields对应的结果
      */
-    private void getFieldsNoScore(Map<String, String> fieldsNoScoreMap, List<Map<String, Set>> batchSwiftAndScoreSetList) {
+    private void getFieldsNoScore(Map<String, String> fieldsNoScoreMap, List<Map<String, Set>> batchSwiftAndScoreSetList
+            , Map<String,String> fieldsMap) {
         for (int i = 0; i < batchSwiftAndScoreSetList.size(); i++) {
             Map<String, Set> stringSetMapI = batchSwiftAndScoreSetList.get(i);
             String batchNumberI = "";
             Set<String> productFromBatchSwiftSetI = new HashSet<>();
+            // 循环获取每个产品对应的 跑分文件（多个以逗号分隔）
             for(Map.Entry<String, Set> e : stringSetMapI.entrySet()){
                 batchNumberI = e.getKey();
                 productFromBatchSwiftSetI = e.getValue();
+                for (String product : productFromBatchSwiftSetI){
+                    String batchNumberString = fieldsMap.get(product);
+                    if(StringUtils.isNotBlank(batchNumberString)){
+                        if(!batchNumberString.contains(batchNumberI)){
+                            fieldsMap.put(product, batchNumberString+","+batchNumberI);
+                        }
+                    }else{
+                        fieldsMap.put(product,batchNumberI);
+                    }
+                }
             }
             for (int j = 1+i; j < batchSwiftAndScoreSetList.size(); j++) {
                 Map<String, Set> stringSetMapJ = batchSwiftAndScoreSetList.get(j);
@@ -105,6 +119,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                     batchNumberJ = e.getKey();
                     productFromBatchSwiftSetJ = e.getValue();
                 }
+                // 嵌套循环，对比每两个文件之间的产品差异
                 Set<String> finalProductFromBatchSwiftSetJ = productFromBatchSwiftSetJ;
                 Set<String> difference0 = productFromBatchSwiftSetI.stream()
                         .filter((String item) -> !finalProductFromBatchSwiftSetJ.contains(item))
@@ -143,10 +158,14 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         String cid = reportTaskVO.getCid();
         String reportName = reportTaskVO.getReportName();
         String rules = reportTaskVO.getRules();
+        String productAndBatchNumber = reportTaskVO.getProductAndBatchNumber();
+        JSONObject json = new JSONObject();
+        json.put("rules",rules);
+        json.put("productAndBatchNumber",productAndBatchNumber);
         // 给写入b_report_task表拼装数据
         ReportTask reportTask = new ReportTask();
         reportTask.setReportName(reportName);
-        reportTask.setReportRules(rules);
+        reportTask.setReportRules(json.toJSONString());
         reportTask.setStatus(0);
         reportTask.setReportType(1);
         reportTask.setIsDel(1);
@@ -175,5 +194,17 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             reportTaskScoreSourceMapper.insertBatch(list);
         }
         return new ApiResult<Boolean>().success(true);
+    }
+
+    @Override
+    public PageResultReturn getTaskScoreProductsListPage(int page, int pageSize, String name) {
+        PageHelper.startPage(page, pageSize);
+        try {
+            List<ReportTask> list = reportTaskMapper.findList(name);
+            return PageResultReturn.setPageResult(list, page, pageSize);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
     }
 }
