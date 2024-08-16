@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface ScoreCustomerStrategyProductFieldMapper extends ScoreCustomerStrategyProductFieldMapperBase {
 
-    List<String> getFieldNamePage(@Param("customerId ") String customerId, @Param("offset") int offset, @Param("rowCount") int rowCount);
+    List<String> getFieldNamePage(@Param("customerId") String customerId, @Param("offset") int offset, @Param("rowCount") int rowCount);
 
 }
