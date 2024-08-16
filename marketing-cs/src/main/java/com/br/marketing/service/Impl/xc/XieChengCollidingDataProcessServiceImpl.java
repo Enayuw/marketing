@@ -306,7 +306,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             processTask.setUpdateTime(new Date());
             taskMapper.updateByPrimaryKeySelective(processTask);
             if (actualNumber > 0) {
-                String msg = "携程撞库周期TRUE数据删除量级:" + deletingBatchCount;
+                String msg = "携程撞库周期TRUE数据删除量级:" + actualNumber;
                 Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
                 Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
                 dingDingRobotHookService.sendDingDingTextMessage(msg, map);
