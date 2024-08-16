@@ -52,6 +52,12 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
     @Resource
     private WubaSubmitConversionDataMapper wubaSubmitConversionDataMapper;
 
+    /**
+     * 自定义参数，例：["20240812","20240815","20240817"]
+     * @param apiCode
+     * @param jobParameter
+     * @return
+     */
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
         List<String> startDateList = marketingCommonConfig.getWuBaSubmitDataToFileStartDate();
@@ -61,14 +67,25 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
         return JSONObject.toJSONString(startDateList);
     }
 
+    /**
+     * 生成提取任务
+     * @param apiCode
+     * @param myParam
+     * @return
+     */
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode, String myParam) {
+        // 检查执行时间
         if(!checkExecuteTime()){
             return new Result<>().failure();
         }
 
+        // 解析日期参数
         List<TransferFileTask> taskList = new ArrayList<>();
         List<String> startDateList = parseParam(myParam);
+        log.warn(TITLE + "生成提取任务, apiCode：{}, param: {}", apiCode, JSONObject.toJSONString(startDateList));
+
+        // 按日期遍历生成提取任务
         for(String startDate : startDateList) {
             log.warn(TITLE + "开始执行, apiCode：{}, startDate: {}", apiCode, startDate);
 
@@ -100,6 +117,12 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
         return new Result().success().setDate(taskList);
     }
 
+    /**
+     * 生成文件表头
+     * @param transferFileTask
+     * @param jobParameter
+     * @return
+     */
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
         String apiCode = transferFileTask.getApiCode();
@@ -115,6 +138,7 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
         }
         transferFileTask.setFilePath(dirPath);
 
+        // 生成文件表头
         String fullFilePath = dirPath.concat(transferFileTask.getFileName());
         File file = new File(fullFilePath);
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
@@ -130,12 +154,20 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
         return new Result().success();
     }
 
+    /**
+     * 写入文件内容
+     * @param fw
+     * @param apiCode
+     * @param transferFileTask
+     * @throws Exception
+     */
     public void writeDataToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws Exception {
         String startDate = transferFileTask.getStartDate();
         int pageSize = 2000;
         int totalSize = 0;
-
         Long indexId = null;
+
+        // 分页遍历提取数据, 写入文件
         while (true) {
             LocalDate startLocalDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
             LocalDate pushTimeStartLocalDate = startLocalDate.plusDays(-1);
@@ -150,13 +182,14 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
 
             for (WubaSubmitConversionData data : submitDataList) {
                 StringBuilder buffer = new StringBuilder();
-                buffer.append(data.getCell().concat(","));
-                buffer.append(data.getMarketingTime());
-                buffer.append("\r\n");
+                buffer.append(data.getCell()).append(",")
+                        .append(data.getMarketingTime())
+                        .append("\r\n");
                 fw.append(buffer.toString());
                 totalSize++;
             }
         }
+
         // 更新文件任务状态为2-文件生成成功
         updateTaskStatus(transferFileTask, totalSize);
         log.warn(TITLE + "本地文件生成成功, apiCode: {}, startDate: {}, total: {}", apiCode, startDate, totalSize);
