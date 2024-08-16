@@ -732,27 +732,27 @@
         mt.api_code
         left join b_score_drois_log as sdl on sdl.batch_number = shf.batch_number
         where mt.api_code = #{apiCode}
-        <if test="productVersion !=null and productVersion !=''">
+        <if test="productVersion!=null and productVersion!=''">
             and msp.product_version =#{productVersion}
         </if>
-        <if test="uploadBeginTime !=null and uploadBeginTime !=''">
+        <if test="uploadBeginTime!=null and uploadBeginTime!=''">
             <![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
             <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
         </if>
-        <if test="scoreTimeList !=null and scoreTimeList.size()>0">
+        <if test="scoreTimeList!=null and scoreTimeList.size()>0">
             and
             <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
                 (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
             </foreach>
         </if>
-        <if test="userType !=null and userType !=''">
+        <if test="userType!=null and userType!=''">
             and mtut.user_type in(
             <foreach collection="userType.split(',')" item="item" index="index" separator=",">
                 #{item}
             </foreach>
             )
         </if>
-        <if test="productFieldSet !=null">
+        <if test="productFieldSet!=null and productFieldSet.size()>0">
             <foreach collection="productFieldSet" item="item" open="and" separator="and">
                 json_contains(json_extract(mte.strategy_product_json,'$.fields'),'"${item}"')=1
             </foreach>
@@ -762,13 +762,12 @@
         and sdl.status = 2
         group by batchNumber
         order by shf.create_time desc) vie
-        <if test="productName !=null and productName !=''">
+        <if test="productName!=null and productName!=''">
             where
             <foreach collection="moduleList" item="item" index="index" separator="and">
                 find_in_set (#{item},productName)
             </foreach>
         </if>
-
     </select>
 
 </mapper>
