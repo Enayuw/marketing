@@ -133,7 +133,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                 fileExampleCount.createCriteria().andApiCodeEqualTo(apiCode).andSyncConfigIdEqualTo(syncConfigId)
                                         .andIdNotEqualTo(dataFile.getId()).andCreateTimeLessThanOrEqualTo(dataFile.getCreateTime())
                                         .andMd5ValueNotEqualTo("").andMd5ValueIsNotNull().andFileNameLike("%" + split[1]);
-                                fileExampleCount.setOrderByClause("create_time desc limit 2");
+                                fileExampleCount.setOrderByClause("create_time desc limit 1");
                                 List<MarketingCleanDataFile> marketingCleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExampleCount);
                                 if (marketingCleanDataFiles.size() > 0 && md5Value.equals(marketingCleanDataFiles.get(0).getMd5Value())) {
                                     MarketingCleanDataFile dataFileOld = marketingCleanDataFiles.get(0);
