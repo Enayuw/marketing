@@ -162,8 +162,7 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                 //查询最接近该日期的外呼时间
                 SushangCallRecordData callRecordData = sushangCallRecordDataMapper.getLastedCallData(callRecordLocalId, minDealTime, custNum);
                 if (ObjectUtils.isEmpty(callRecordData)) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "custNum=" + custNum +
-                            "苏商银行规则一未查询到通话明细！"));
+                    log.warn( "custNum={} 苏商银行规则一未查询到通话明细！",custNum);
                     continue;
                 }
                 //日期后的所有外呼明细
