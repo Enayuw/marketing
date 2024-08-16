@@ -1,19 +1,30 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.entity.ReportTaskVO;
 import com.br.marketing.service.ReportScoreRuleService;
+import com.br.marketing.service.bi.AnalysisReportService;
+import com.br.marketing.vo.bi.AxisWrapVo;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.statement.select.FromItem;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 /**
- * 前端页面 跑分模型分布 规则选择并保存任务记录 功能对应接口
- * 技术方案地址： https://c.100credit.cn/pages/viewpage.action?pageId=174496665
+ * 前端页面 跑分模型分布 规则选择并保存任务记录 功能对应接口 技术方案地址： https://c.100credit.cn/pages/viewpage.action?pageId=174496665
+ * 
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-08-14
  */
@@ -24,20 +35,60 @@ public class ReportScoreRuleController {
 
     @Resource
     ReportScoreRuleService reportScoreRuleService;
+    @Resource
+    private AnalysisReportService analysisReportService;
+    @Resource
+    private FastDfsClient fastDfsClient;
 
     @GetMapping("/getTaskScoreProducts")
-    public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids){
+    public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids) {
         return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids));
     }
 
     @PostMapping("/addReportTaskScore")
-    public ApiResult<Boolean> addReportTaskScore(@RequestBody ReportTaskVO reportTaskVO){
+    public ApiResult<Boolean> addReportTaskScore(@RequestBody ReportTaskVO reportTaskVO) {
         try {
             return reportScoreRuleService.addReportTask(reportTaskVO);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.warn("添加跑分报表任务异常,入参:{}--", reportTaskVO, e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
 
+    @ApiOperation(value = "生成报告文件并上传至fastdfs")
+    @GetMapping("/uploadReportToFastDfs")
+    public ApiResult<String> uploadReportToFastDfs(@RequestParam Long taskId) {
+        try {
+            return new ApiResult<String>().success().setData(analysisReportService.uploadReportToFastDfs(taskId));
+        } catch (Exception e) {
+            log.warn("生成报告文件并上传至fastdfs异常,入参:{}--", taskId, e);
+            return new ApiResult<String>().fail(null, ServiceResultEnum.FAILED);
+        }
+    }
+
+    @ApiOperation(value = "获取报告详情")
+    @GetMapping("/getReportDetails")
+    public ApiResult<List<AxisWrapVo>> getReportDetails(@RequestParam Long taskId) {
+        try {
+            return new ApiResult<List<AxisWrapVo>>().success();
+        } catch (Exception e) {
+            log.warn("获取报告详情异常,入参:{}--", taskId, e);
+            return new ApiResult<List<AxisWrapVo>>().fail(null, ServiceResultEnum.FAILED);
+        }
+    }
+
+    @ApiOperation(value = "下载fastdfs文件")
+    @GetMapping("/downloadFile")
+    public ResponseEntity<byte[]> downloadFile(@RequestParam String fileName, @RequestParam String url) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            // 设置下载协议头，防止中文乱码做URLEncoder处理
+            String encodeFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+            headers.set("Content-Disposition", "attachment;filename*=UTF-8''" + encodeFileName);
+            byte[] bytes = fastDfsClient.downloadFile(url);
+            return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

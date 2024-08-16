@@ -163,6 +163,11 @@
             <artifactId>log4j-over-slf4j</artifactId>
             <version>${log4j.onver.slf4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.tobato</groupId>
+            <artifactId>fastdfs-client</artifactId>
+            <version>1.27.2</version>
+        </dependency>
     </dependencies>
     <repositories>
         <repository>
