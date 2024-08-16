@@ -752,7 +752,7 @@
             </foreach>
             )
         </if>
-        <if test="productFieldSet !=null and productFieldSet !=''">
+        <if test="productFieldSet !=null">
             <foreach collection="productFieldSet" item="item" open="and" separator="and">
                 json_contains(json_extract(mte.strategy_product_json,'$.fields'),'"${item}"')=1
             </foreach>
@@ -761,8 +761,9 @@
         and mt.status != 0
         and sdl.status = 2
         group by batchNumber
-        order by shf.create_time desc) vie where
+        order by shf.create_time desc) vie
         <if test="productName !=null and productName !=''">
+            where
             <foreach collection="moduleList" item="item" index="index" separator="and">
                 find_in_set (#{item},productName)
             </foreach>
