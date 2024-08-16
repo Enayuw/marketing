@@ -43,6 +43,11 @@ public class ReportTask  implements Serializable {
     private Integer reportType;
 
     /**
+     * 产品分为x、y之后组合的数量
+     */
+    private Integer groupCount;
+
+    /**
      * 1-有效；9-无效
      */
     private Integer isDel;
@@ -111,6 +116,14 @@ public class ReportTask  implements Serializable {
 
     public void setReportType(Integer reportType) {
         this.reportType = reportType;
+    }
+
+    public Integer getGroupCount() {
+        return groupCount;
+    }
+
+    public void setGroupCount(Integer groupCount) {
+        this.groupCount = groupCount;
     }
 
     public Integer getIsDel() {

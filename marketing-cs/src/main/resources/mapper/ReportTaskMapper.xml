@@ -10,6 +10,7 @@
             , `status`
             , down_status
             , report_type
+            , group_count
             , is_del
             , create_time
             , update_time
@@ -23,6 +24,6 @@
                 and report_name = #{name}
             </if>
         </where>
-        order by create_time desc
+        order by create_time,id desc
     </select>
 </mapper>
