@@ -23,7 +23,32 @@ public class ReportTaskVO {
     String reportName;
     /**
      * 页面配置的 跑分模型 规则
+     * [{
+     * 	"X": ["scorencashonxctx3"],
+     * 	"order": 1
+     * }, {
+     * 	"X": ["scorencashonxctx3", "scorescashonyxtfzcwjjcd"],
+     * 	"order": 2
+     * }, {
+     * 	"X": ["scorencashonxctx3"],
+     * 	"Y": ["scorescashonyxtfzcwjjcd"],
+     * 	"order": 3
+     * }, {
+     * 	"X": ["scorencashonxctx3", "scorencashonxcsx5"],
+     * 	"Y": ["scorescashonyxtfzcwjjcd"],
+     * 	"order": 4
+     * }]
      */
     String rules;
+    /**
+     * 产品与配置了该产品的跑分文件 映射关系
+     * {
+     * 		"pd_cell_province": "7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240613000000_5279",
+     * 		"pd_cell_type": "7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240613000000_5279",
+     * 		"scorecust": "7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240613000000_5279",
+     * 		"flag_score": "7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240613000000_5279"
+     * }
+     */
+    String productAndBatchNumber;
 
 }
