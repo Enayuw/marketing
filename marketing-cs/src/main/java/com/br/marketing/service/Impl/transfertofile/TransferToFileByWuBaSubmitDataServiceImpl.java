@@ -1,7 +1,7 @@
 package com.br.marketing.service.Impl.transfertofile;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.TransferFileTask;
@@ -35,6 +35,8 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
     private final static String TITLE = "【58新客-营销名单上报-数据提取】";
 
     private static final String EXECUTE_TIME_DEFAULT = "10:00:00";
+
+    private static final Integer FILE_TYPE = 2;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -52,99 +54,95 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
 
     @Override
     public String isMyParam(String apiCode, String jobParameter) {
-        String startDate = marketingCommonConfig.getWuBaSubmitDataToFileStartDate();
-        if(!StringUtils.isEmpty(startDate)){
-            return startDate;
+        List<String> startDateList = marketingCommonConfig.getWuBaSubmitDataToFileStartDate();
+        if(CollectionUtils.isEmpty(startDateList)){
+            return "";
         }
-        return "";
+        return JSONObject.toJSONString(startDateList);
     }
 
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode, String myParam) {
-        String executeTime = marketingCommonConfig.getWuBaSubmitDataToFileExecuteTime();
-        if(StringUtils.isBlank(executeTime)){
-            executeTime = EXECUTE_TIME_DEFAULT;
-        }
-        Date now = new Date();
-        Date executeDateTime = DateHelper.getDatePlusHourMinuteSecond(now, " " + executeTime);
-        if(now.before(executeDateTime)){
+        if(!checkExecuteTime()){
             return new Result<>().failure();
         }
 
-        String yyyyMMdd = "";
-        if(!StringUtils.isEmpty(myParam)){
-            yyyyMMdd = myParam;
-        }else{
-            yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
-        }
-
         List<TransferFileTask> taskList = new ArrayList<>();
+        List<String> startDateList = parseParam(myParam);
+        for(String startDate : startDateList) {
+            log.warn(TITLE + "开始执行, apiCode：{}, startDate: {}", apiCode, startDate);
 
-        TransferFileTaskExample taskExample = new TransferFileTaskExample();
-        taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(yyyyMMdd).andFileTypeEqualTo(1);
-        List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
-        String fileName = String.format("wuba_submit_%s_%s.txt", apiCode, yyyyMMdd);
+            TransferFileTaskExample taskExample = new TransferFileTaskExample();
+            taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(startDate).andFileTypeEqualTo(FILE_TYPE);
+            List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
 
-        if (CollectionUtils.isEmpty(transferFileTasks)) {
-            log.warn(TITLE + "开始执行, apiCode：{}, startDate: {}", apiCode, yyyyMMdd);
+            if (!CollectionUtils.isEmpty(transferFileTasks)) {
+                continue;
+            }
+
             Long transferFileContextId = ruleRedisService.getTransferFileContextId();
             String batchNumber = createBatchNumber(apiCode, transferFileContextId);
+            String fileName = String.format("%s_%s.txt", apiCode, startDate);
+
             TransferFileTask transferFileTask = new TransferFileTask();
             transferFileTask.setApiCode(apiCode);
-            transferFileTask.setFileType(1);
+            transferFileTask.setFileType(FILE_TYPE);
             transferFileTask.setBatchNumber(batchNumber);
             transferFileTask.setFileName(fileName);
             transferFileTask.setTaskNumber(0);
-            transferFileTask.setStartDate(yyyyMMdd);
+            transferFileTask.setStartDate(startDate);
             transferFileTask.setContextId(transferFileContextId);
             transferFileTask.setCreateTime(new Date());
             transferFileTask.setUpdateTime(new Date());
             transferFileTaskMapper.insertSelective(transferFileTask);
             taskList.add(transferFileTask);
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(taskList);
+        return new Result().success().setDate(taskList);
     }
 
     @Override
     public Result actionTransferToFile(TransferFileTask transferFileTask, String jobParameter) {
         String apiCode = transferFileTask.getApiCode();
-        log.warn(TITLE + "开始写入文件, apiCode ={}", apiCode);
-        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
-                .concat(transferFileTask.getStartDate()).concat("/");
-        File writeDic = new File(descPath);
+        String startDate = transferFileTask.getStartDate();
+        Long start = System.currentTimeMillis();
+        log.warn(TITLE + "写入文件开始, apiCode: {}, startDate: {}", apiCode, startDate);
+
+        String dirPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/")
+                .concat("submit").concat("/").concat(startDate).concat("/");
+        File writeDic = new File(dirPath);
         if (!writeDic.exists()) {
             writeDic.mkdirs();
         }
-        String fileAllPath = descPath.concat(transferFileTask.getFileName());
-        transferFileTask.setFilePath(descPath);
-        File file = new File(fileAllPath);
+        transferFileTask.setFilePath(dirPath);
+
+        String fullFilePath = dirPath.concat(transferFileTask.getFileName());
+        File file = new File(fullFilePath);
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
             fw.append("cell,marketingTime");
             fw.append("\r\n");
             writeDataToFile(fw, apiCode, transferFileTask);
         } catch (Exception e) {
-            log.error(e.getMessage());
-            return new Result().setCode(ResultCode.FAIL.getValue()).setDate(e.getMessage());
+            log.error(TITLE+"写入文件异常", e);
+            return new Result().failure();
         }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
+        Long end = System.currentTimeMillis();
+        log.warn(TITLE + "写入文件结束, apiCode: {}, startDate: {}, time: {}ms", apiCode, startDate, end - start);
+        return new Result().success();
     }
 
-    public void writeDataToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws IOException {
-        Long start = System.currentTimeMillis();
-        String startDateStr = transferFileTask.getStartDate();
+    public void writeDataToFile(Writer fw, String apiCode, TransferFileTask transferFileTask) throws Exception {
+        String startDate = transferFileTask.getStartDate();
         int pageSize = 2000;
         int totalSize = 0;
 
         Long indexId = null;
         while (true) {
-            LocalDate startLocalDate = LocalDate.parse(startDateStr, DateTimeFormatter.ofPattern("yyyyMMdd"));
+            LocalDate startLocalDate = LocalDate.parse(startDate, DateTimeFormatter.ofPattern("yyyyMMdd"));
             LocalDate pushTimeStartLocalDate = startLocalDate.plusDays(-1);
             LocalDate pushTimeEndLocalDate = startLocalDate;
-            String pushTimeStart = pushTimeStartLocalDate.toString();
-            String pushTimeEnd = pushTimeEndLocalDate.toString();
 
             List<WubaSubmitConversionData> submitDataList = wubaSubmitConversionDataMapper.findSubmitDataByPushTime(
-                    apiCode, pushTimeStart, pushTimeEnd, indexId, pageSize);
+                    apiCode, pushTimeStartLocalDate.toString(), pushTimeEndLocalDate.toString(), indexId, pageSize);
             if (CollectionUtils.isEmpty(submitDataList)) {
                 break;
             }
@@ -159,7 +157,44 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
                 totalSize++;
             }
         }
+        // 更新文件任务状态为2-文件生成成功
+        updateTaskStatus(transferFileTask, totalSize);
+        log.warn(TITLE + "本地文件生成成功, apiCode: {}, startDate: {}, total: {}", apiCode, startDate, totalSize);
+    }
 
+    private String createBatchNumber(String apiCode, Long contextId) {
+        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String concat = apiCode.concat("_").concat(yyyyMMdd).concat("_").concat(contextId.toString());
+        return concat;
+    }
+
+    private boolean checkExecuteTime(){
+        String executeTime = marketingCommonConfig.getWuBaSubmitDataToFileExecuteTime();
+        if(StringUtils.isBlank(executeTime)){
+            executeTime = EXECUTE_TIME_DEFAULT;
+        }
+        Date now = new Date();
+        Date executeDateTime = DateHelper.getDatePlusHourMinuteSecond(now, " " + executeTime);
+        if(now.after(executeDateTime)){
+            log.warn(TITLE+"到达执行时间");
+           return true;
+        }
+        log.warn(TITLE+"未到达执行时间");
+        return false;
+    }
+
+    private List<String> parseParam(String param){
+        List<String> startDateList = new ArrayList<>();
+        if(StringUtils.isEmpty(param)){
+            String startDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
+            startDateList.add(startDate);
+        }
+        startDateList = JSONObject.parseObject(param, List.class);
+        return startDateList;
+
+    }
+
+    private void updateTaskStatus(TransferFileTask transferFileTask, Integer totalSize){
         TransferFileTask task = new TransferFileTask();
         task.setId(transferFileTask.getId());
         task.setStatus(2);
@@ -168,13 +203,6 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
         task.setTaskNumber(totalSize);
         task.setUpdateTime(new Date());
         transferFileTaskMapper.updateByPrimaryKeySelective(task);
-        Long end = System.currentTimeMillis();
-        log.warn(TITLE + "本地文件生成成功, apiCode: {}, startDate: {}, time: {}ms, total: {}", apiCode, startDateStr, end - start, totalSize);
     }
 
-    String createBatchNumber(String apiCode, Long contextId) {
-        String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String concat = apiCode.concat("_").concat(yyyyMMdd).concat("_").concat(contextId.toString());
-        return concat;
-    }
 }

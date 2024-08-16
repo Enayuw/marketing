@@ -1979,7 +1979,7 @@ public class MarketingCommonConfig {
     /**
      * 58新客-营销名单上报-数据提取-StartDate, 例：20240814
      */
-    private String wuBaSubmitDataToFileStartDate;
+    private List<String> wuBaSubmitDataToFileStartDate;
 
     /**
      * 通用清洗线程池
