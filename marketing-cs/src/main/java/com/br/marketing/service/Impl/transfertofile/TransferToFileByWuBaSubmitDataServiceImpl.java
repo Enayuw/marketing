@@ -188,6 +188,7 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
         if(StringUtils.isEmpty(param)){
             String startDate = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
             startDateList.add(startDate);
+            return startDateList;
         }
         startDateList = JSONObject.parseObject(param, List.class);
         return startDateList;
