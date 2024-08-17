@@ -39,4 +39,14 @@ public interface ReportScoreRuleService {
      */
     PageResultReturn getTaskScoreProductsListPage(int current, int size, String name);
 
+    /**
+     * 获取报告任务列表
+     *
+     * @param current 电流
+     * @param size    尺寸
+     * @return {@link PageResultReturn }
+     * @author senyang.zheng
+     * @date 2024/08/17
+     */
+    PageResultReturn getReportTaskList(int current, int size);
 }

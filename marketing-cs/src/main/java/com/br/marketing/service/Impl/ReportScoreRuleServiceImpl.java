@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 /**
  * 跑分模型分布 规则选择并保存任务记录具体实现类
+ * 
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-08-15
  */
@@ -42,110 +43,108 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     @Override
     public Map getProducts(String ids) {
         Map map = new HashMap();
-        Map<String,String> fieldsMap = new HashMap();
+        Map<String, String> fieldsMap = new HashMap();
         // 给前端提示产品在不同跑分文件中差异结果<产品,跑分文件>
-        Map<String,String> fieldsNoScoreMap = new HashMap();
+        Map<String, String> fieldsNoScoreMap = new HashMap();
         // 给前端提示产品在不同跑分文件中差异结果<跑分文件,产品Set>
-        List<Map<String,Set>> batchSwiftAndScoreSetList = new ArrayList<>();
-        List<Long> fileIds = Arrays.stream(ids.split(",")).map(t->Long.valueOf(t)).collect(Collectors.toList());
+        List<Map<String, Set>> batchSwiftAndScoreSetList = new ArrayList<>();
+        List<Long> fileIds = Arrays.stream(ids.split(",")).map(t -> Long.valueOf(t)).collect(Collectors.toList());
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
-        if(straHisFiles == null || straHisFiles.size()<1){
+        if (straHisFiles == null || straHisFiles.size() < 1) {
             return map;
         }
         List<String> batchNumbers = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
-        Assert.notEmpty(batchNumbers,"没有匹配到批次号");
+        Assert.notEmpty(batchNumbers, "没有匹配到批次号");
         List<TaskInfoVO> products = marketingTaskExtendMapper.getProducts(batchNumbers);
         for (TaskInfoVO product : products) {
             String batchNumber = product.getBatchNumber();
             Integer taskType = product.getTaskType();
-            if(!TaskTypeEnum.PRODUCTDATA.getValue().equals(taskType)){
+            if (!TaskTypeEnum.PRODUCTDATA.getValue().equals(taskType)) {
                 log.warn("batchNumber:[{}]不属于产品跑分类型", batchNumber);
                 continue;
             }
             String strategyProductJson = product.getStrategyProductJson();
-            if(StringUtils.isNotBlank(strategyProductJson)){
-                StrategyProductDetailVO strategyProductDetailVO = JSONObject.parseObject(strategyProductJson,StrategyProductDetailVO.class);
+            if (StringUtils.isNotBlank(strategyProductJson)) {
+                StrategyProductDetailVO strategyProductDetailVO = JSONObject.parseObject(strategyProductJson, StrategyProductDetailVO.class);
                 List<String> fields = strategyProductDetailVO.getFields();
                 Set<String> productSet = new HashSet<>(fields);
-                Map<String,Set> scoreAndBatchSwiftMap = new HashMap<>();
+                Map<String, Set> scoreAndBatchSwiftMap = new HashMap<>();
                 scoreAndBatchSwiftMap.put(batchNumber, productSet);
                 batchSwiftAndScoreSetList.add(scoreAndBatchSwiftMap);
             }
         }
         // 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
         getFieldsNoScore(fieldsNoScoreMap, batchSwiftAndScoreSetList, fieldsMap);
-        map.put("fields",fieldsMap);
-        map.put("fieldsNoScore",fieldsNoScoreMap);
+        map.put("fields", fieldsMap);
+        map.put("fieldsNoScore", fieldsNoScoreMap);
         return map;
     }
 
     /**
-     * 循环对比跑分文件
-     * 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
+     * 循环对比跑分文件 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
+     * 
      * @Author yu.xia@brgroup.com
      * @Date 2024/8/15 18:32
      * @param fieldsNoScoreMap 比较结果存放的结果集
      * @param batchSwiftAndScoreSetList 给前端提示产品在不同跑分文件中差异结果<跑分文件,产品Set>，每个跑分文件对应一个set
      * @param fieldsMap fields对应的结果
      */
-    private void getFieldsNoScore(Map<String, String> fieldsNoScoreMap, List<Map<String, Set>> batchSwiftAndScoreSetList
-            , Map<String,String> fieldsMap) {
+    private void getFieldsNoScore(Map<String, String> fieldsNoScoreMap, List<Map<String, Set>> batchSwiftAndScoreSetList,
+        Map<String, String> fieldsMap) {
         for (int i = 0; i < batchSwiftAndScoreSetList.size(); i++) {
             Map<String, Set> stringSetMapI = batchSwiftAndScoreSetList.get(i);
             String batchNumberI = "";
             Set<String> productFromBatchSwiftSetI = new HashSet<>();
             // 循环获取每个产品对应的 跑分文件（多个以逗号分隔）
-            for(Map.Entry<String, Set> e : stringSetMapI.entrySet()){
+            for (Map.Entry<String, Set> e : stringSetMapI.entrySet()) {
                 batchNumberI = e.getKey();
                 productFromBatchSwiftSetI = e.getValue();
-                for (String product : productFromBatchSwiftSetI){
+                for (String product : productFromBatchSwiftSetI) {
                     String batchNumberString = fieldsMap.get(product);
-                    if(StringUtils.isNotBlank(batchNumberString)){
-                        if(!batchNumberString.contains(batchNumberI)){
-                            fieldsMap.put(product, batchNumberString+","+batchNumberI);
+                    if (StringUtils.isNotBlank(batchNumberString)) {
+                        if (!batchNumberString.contains(batchNumberI)) {
+                            fieldsMap.put(product, batchNumberString + "," + batchNumberI);
                         }
-                    }else{
-                        fieldsMap.put(product,batchNumberI);
+                    } else {
+                        fieldsMap.put(product, batchNumberI);
                     }
                 }
             }
-            for (int j = 1+i; j < batchSwiftAndScoreSetList.size(); j++) {
+            for (int j = 1 + i; j < batchSwiftAndScoreSetList.size(); j++) {
                 Map<String, Set> stringSetMapJ = batchSwiftAndScoreSetList.get(j);
                 String batchNumberJ = "";
                 Set<String> productFromBatchSwiftSetJ = new HashSet<>();;
-                for(Map.Entry<String, Set> e : stringSetMapJ.entrySet()){
+                for (Map.Entry<String, Set> e : stringSetMapJ.entrySet()) {
                     batchNumberJ = e.getKey();
                     productFromBatchSwiftSetJ = e.getValue();
                 }
                 // 嵌套循环，对比每两个文件之间的产品差异
                 Set<String> finalProductFromBatchSwiftSetJ = productFromBatchSwiftSetJ;
-                Set<String> difference0 = productFromBatchSwiftSetI.stream()
-                        .filter((String item) -> !finalProductFromBatchSwiftSetJ.contains(item))
-                        .collect(Collectors.toSet());
+                Set<String> difference0 = productFromBatchSwiftSetI.stream().filter((String item) -> !finalProductFromBatchSwiftSetJ.contains(item))
+                    .collect(Collectors.toSet());
                 for (String scoreProduct : difference0) {
                     String batchNumberString = fieldsNoScoreMap.get(scoreProduct);
-                    if(StringUtils.isNotBlank(batchNumberString)){
-                        if(!batchNumberString.contains(batchNumberJ)){
-                            fieldsNoScoreMap.put(scoreProduct,batchNumberString+","+batchNumberJ);
+                    if (StringUtils.isNotBlank(batchNumberString)) {
+                        if (!batchNumberString.contains(batchNumberJ)) {
+                            fieldsNoScoreMap.put(scoreProduct, batchNumberString + "," + batchNumberJ);
                         }
-                    }else{
-                        fieldsNoScoreMap.put(scoreProduct,batchNumberJ);
+                    } else {
+                        fieldsNoScoreMap.put(scoreProduct, batchNumberJ);
                     }
                 }
                 Set<String> finalProductFromBatchSwiftSetI = productFromBatchSwiftSetI;
                 Set<String> difference = finalProductFromBatchSwiftSetJ.stream()
-                        .filter((String item) -> !finalProductFromBatchSwiftSetI.contains(item))
-                        .collect(Collectors.toSet());
+                    .filter((String item) -> !finalProductFromBatchSwiftSetI.contains(item)).collect(Collectors.toSet());
                 for (String scoreProduct : difference) {
                     String batchNumberString = fieldsNoScoreMap.get(scoreProduct);
-                    if(StringUtils.isNotBlank(batchNumberString)){
-                        if(!batchNumberString.contains(batchNumberI)){
-                            fieldsNoScoreMap.put(scoreProduct,batchNumberString+","+batchNumberI);
+                    if (StringUtils.isNotBlank(batchNumberString)) {
+                        if (!batchNumberString.contains(batchNumberI)) {
+                            fieldsNoScoreMap.put(scoreProduct, batchNumberString + "," + batchNumberI);
                         }
-                    }else{
-                        fieldsNoScoreMap.put(scoreProduct,batchNumberI);
+                    } else {
+                        fieldsNoScoreMap.put(scoreProduct, batchNumberI);
                     }
                 }
             }
@@ -160,8 +159,8 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         String rules = reportTaskVO.getRules();
         String productAndBatchNumber = reportTaskVO.getProductAndBatchNumber();
         JSONObject json = new JSONObject();
-        json.put("rules",rules);
-        json.put("productAndBatchNumber",productAndBatchNumber);
+        json.put("rules", rules);
+        json.put("productAndBatchNumber", productAndBatchNumber);
         // 给写入b_report_task表拼装数据
         ReportTask reportTask = new ReportTask();
         reportTask.setReportName(reportName);
@@ -173,7 +172,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         reportTask.setUpdateTime(new Date());
         reportTaskMapper.insertSelective(reportTask);
         Long reportId = reportTask.getId();
-        List<Long> fileIds = Arrays.stream(ids.split(",")).map(t->Long.valueOf(t)).collect(Collectors.toList());
+        List<Long> fileIds = Arrays.stream(ids.split(",")).map(t -> Long.valueOf(t)).collect(Collectors.toList());
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
@@ -190,7 +189,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             reportTaskScoreSource.setUpdateTime(new Date());
             list.add(reportTaskScoreSource);
         }
-        if(list.size()>0){
+        if (list.size() > 0) {
             reportTaskScoreSourceMapper.insertBatch(list);
         }
         return new ApiResult<Boolean>().success(true);
@@ -201,6 +200,29 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         PageHelper.startPage(page, pageSize);
         try {
             List<ReportTask> list = reportTaskMapper.findList(name);
+            return PageResultReturn.setPageResult(list, page, pageSize);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * 获取报告任务列表
+     *
+     * @param page 第页
+     * @param pageSize 页面大小
+     * @return {@link PageResultReturn }
+     * @author senyang.zheng
+     * @date 2024/08/17
+     */
+    @Override
+    public PageResultReturn getReportTaskList(int page, int pageSize) {
+        PageHelper.startPage(page, pageSize);
+        try {
+            ReportTaskExample example = new ReportTaskExample();
+            example.createCriteria().andIsDelEqualTo(1);
+            List<ReportTask> list = reportTaskMapper.selectByExample(example);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
