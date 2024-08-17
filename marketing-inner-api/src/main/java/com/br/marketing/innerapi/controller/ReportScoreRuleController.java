@@ -102,7 +102,7 @@ public class ReportScoreRuleController {
         try {
             HttpHeaders headers = new HttpHeaders();
             // 设置下载协议头，防止中文乱码做URLEncoder处理
-            String encodeFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+            String encodeFileName = URLEncoder.encode(fileName + ".xlsx", StandardCharsets.UTF_8.toString());
             headers.set("Content-Disposition", "attachment;filename*=UTF-8''" + encodeFileName);
             byte[] bytes = fastDfsClient.downloadFile(url);
             return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
