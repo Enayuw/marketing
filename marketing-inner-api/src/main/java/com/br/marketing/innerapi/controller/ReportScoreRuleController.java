@@ -53,19 +53,11 @@ public class ReportScoreRuleController {
         return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids));
     }
 
-    @GetMapping("/getTaskScoreProductsList")
-    public ApiResult<PageResultReturn> getTaskScoreProductsList(@RequestParam(defaultValue = "1") int current,
-        @RequestParam(defaultValue = "10") int size, @RequestParam(required = false) String name) {
-        PageResultReturn listPage = reportScoreRuleService.getTaskScoreProductsListPage(current, size, name);
-        if (listPage != null) {
-            return new ApiResult<PageResultReturn>().success(listPage);
-        }
-        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
-    }
     @ApiOperation(value = "获取报告任务列表")
     @GetMapping("/getReportTaskList")
-    public ApiResult<PageResultReturn> getReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size) {
-        PageResultReturn listPage = reportScoreRuleService.getReportTaskList(current, size);
+    public ApiResult<PageResultReturn> getReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String name) {
+        PageResultReturn listPage = reportScoreRuleService.getReportTaskList(current, size, name);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }

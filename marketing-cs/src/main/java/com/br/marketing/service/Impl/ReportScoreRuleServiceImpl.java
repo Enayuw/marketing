@@ -195,34 +195,21 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         return new ApiResult<Boolean>().success(true);
     }
 
-    @Override
-    public PageResultReturn getTaskScoreProductsListPage(int page, int pageSize, String name) {
-        PageHelper.startPage(page, pageSize);
-        try {
-            List<ReportTask> list = reportTaskMapper.findList(name);
-            return PageResultReturn.setPageResult(list, page, pageSize);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
     /**
      * 获取报告任务列表
      *
      * @param page 第页
      * @param pageSize 页面大小
+     * @param name
      * @return {@link PageResultReturn }
      * @author senyang.zheng
      * @date 2024/08/17
      */
     @Override
-    public PageResultReturn getReportTaskList(int page, int pageSize) {
+    public PageResultReturn getReportTaskList(int page, int pageSize, String name) {
         PageHelper.startPage(page, pageSize);
         try {
-            ReportTaskExample example = new ReportTaskExample();
-            example.createCriteria().andIsDelEqualTo(1);
-            List<ReportTask> list = reportTaskMapper.selectByExample(example);
+            List<ReportTask> list = reportTaskMapper.findList(name);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

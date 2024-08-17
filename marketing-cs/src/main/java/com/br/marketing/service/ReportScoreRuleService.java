@@ -30,23 +30,14 @@ public interface ReportScoreRuleService {
     ApiResult<Boolean> addReportTask(ReportTaskVO reportTaskVO);
 
     /**
-     * 获取任务列表信息
-     * @Author yu.xia@brgroup.com
-     * @Date 2024/8/16 14:27
-     * @param current
-     * @param size
-     * @param name
-     */
-    PageResultReturn getTaskScoreProductsListPage(int current, int size, String name);
-
-    /**
      * 获取报告任务列表
      *
      * @param current 电流
      * @param size    尺寸
+     * @param name
      * @return {@link PageResultReturn }
      * @author senyang.zheng
      * @date 2024/08/17
      */
-    PageResultReturn getReportTaskList(int current, int size);
+    PageResultReturn getReportTaskList(int current, int size, String name);
 }
