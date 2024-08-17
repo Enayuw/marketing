@@ -27,6 +27,8 @@ import java.util.List;
 
 /**
  * 58新客-营销名单上报-数据提取
+ * @Author lixiang
+ * @Date 2024-08-16
  */
 @Slf4j
 @Service
@@ -106,6 +108,7 @@ public class TransferToFileByWuBaSubmitDataServiceImpl implements ITransferToFil
             transferFileTask.setFileType(FILE_TYPE);
             transferFileTask.setBatchNumber(batchNumber);
             transferFileTask.setFileName(fileName);
+            transferFileTask.setFileChildDir("submit");
             transferFileTask.setTaskNumber(0);
             transferFileTask.setStartDate(startDate);
             transferFileTask.setContextId(transferFileContextId);
