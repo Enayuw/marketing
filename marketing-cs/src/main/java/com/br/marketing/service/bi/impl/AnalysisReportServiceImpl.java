@@ -14,19 +14,17 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import cn.hutool.core.collection.CollectionUtil;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.entity.ReportStatisticsScore;
-import com.br.marketing.entity.ReportStatisticsScoreExample;
-import com.br.marketing.entity.ScoreStatisticsDetail;
-import com.br.marketing.entity.ScoreStatisticsDetailExample;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.br.marketing.client.FastDfsClient;
+import com.br.marketing.common.utils.Constants;
+import com.br.marketing.entity.ReportStatisticsScore;
+import com.br.marketing.entity.ReportStatisticsScoreExample;
 import com.br.marketing.entity.ReportTask;
+import com.br.marketing.entity.ScoreStatisticsDetail;
+import com.br.marketing.entity.ScoreStatisticsDetailExample;
 import com.br.marketing.mapper.ReportStatisticsScoreBaseMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ScoreStatisticsDetailBaseMapper;
@@ -34,8 +32,8 @@ import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVo;
 import com.br.marketing.vo.bi.WrapDataVo;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
@@ -65,8 +63,49 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     @Override
     public String uploadReportToFastDfs(Long taskId) throws IOException {
         ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(taskId);
+
+        List<AxisWrapVo> axisWrapVos = buildAxisWrapVo(taskId);
+        log.warn("axisWrapVos:{}", axisWrapVos);
+        // 分组sheet
+        LinkedHashMap<String, AxisWrapVo> map = axisWrapVos.stream().collect(Collectors.toMap(axisWrapVo -> {
+            String xAxisProduct = axisWrapVo.getXAxisProduct();
+            String yAxisProduct = axisWrapVo.getYAxisProduct();
+            return StringUtils.isEmpty(yAxisProduct) ? xAxisProduct : xAxisProduct + "_" + yAxisProduct;
+        }, axisWrapVo -> axisWrapVo, (existing, replacement) -> existing, LinkedHashMap::new));
+        ExcelWriter excelWriter = ExcelUtil.getWriter(true);
+        String tempPath = Constants.TMP_FILE_PATH;
+        // 保证每次生成目录不一样，后续根据目录删除临时文件时不会多删
+        String uuid = IdUtil.simpleUUID();
+        String tmpPath = tempPath + "/bi/" + uuid + File.separator;
+        String fileName = reportTask.getReportName();
+        String fullName = tmpPath + FilenameUtils.getName(fileName);
+        File tempFile = new File(fullName);
+        map.forEach((key, value) -> {
+            excelWriter.setSheet(key);
+            writeDistributedData(excelWriter, value);
+        });
+        excelWriter.flush(tempFile);
+        String url = fastDfsClient.uploadFile(tempFile);
+        // deleteTempFile(tmpPath);
+        return url;
+    }
+
+    /**
+     * 获取报告详细信息
+     *
+     * @param taskId 任务id
+     * @return {@link List }<{@link AxisWrapVo }>
+     * @author senyang.zheng
+     * @date 2024/08/17
+     */
+    @Override
+    public List<AxisWrapVo> getReportDetailsByTaskId(Long taskId) {
+        return buildAxisWrapVo(taskId);
+    }
+
+    private List<AxisWrapVo> buildAxisWrapVo(Long taskId) {
         ReportStatisticsScoreExample statisticsExample = new ReportStatisticsScoreExample();
-        statisticsExample.createCriteria().andIsDelEqualTo(1).andReportIdEqualTo(reportTask.getId());
+        statisticsExample.createCriteria().andIsDelEqualTo(1).andReportIdEqualTo(taskId);
         statisticsExample.setOrderByClause("statistics_order asc");
         List<ReportStatisticsScore> reportStatisticsScores = reportStatisticsScoreBaseMapper.selectByExample(statisticsExample);
         List<AxisWrapVo> axisWrapVos = Lists.newArrayList();
@@ -75,7 +114,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             axisWrapVo.setXAxisProduct(statisticsScore.getFieldX());
             axisWrapVo.setYAxisProduct(statisticsScore.getFieldY());
             ScoreStatisticsDetailExample detailExample = new ScoreStatisticsDetailExample();
-            detailExample.createCriteria().andStatisticsIdEqualTo(statisticsScore.getReportId());
+            detailExample.createCriteria().andStatisticsIdEqualTo(statisticsScore.getId());
             List<ScoreStatisticsDetail> details = scoreStatisticsDetailBaseMapper.selectByExample(detailExample);
             // 获取数据中全量区间段
             List<String> sections = details.stream().map(ScoreStatisticsDetail::getFieldXValue).distinct()
@@ -105,28 +144,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             axisWrapVo.setYAxis(wrapDataVoList);
             axisWrapVos.add(axisWrapVo);
         }
-        log.warn("axisWrapVos:{}", axisWrapVos);
-        // 分组sheet
-        LinkedHashMap<String, AxisWrapVo> map = axisWrapVos.stream().collect(Collectors.toMap(axisWrapVo -> {
-            String xAxisProduct = axisWrapVo.getXAxisProduct();
-            String yAxisProduct = axisWrapVo.getYAxisProduct();
-            return StringUtils.isEmpty(yAxisProduct) ? xAxisProduct : xAxisProduct + "_" + yAxisProduct;
-        }, axisWrapVo -> axisWrapVo, (existing, replacement) -> existing, LinkedHashMap::new));
-        ExcelWriter excelWriter = ExcelUtil.getWriter(true);
-        String tempPath = "/Users/yyyz/Desktop/work/marketing/distributed";
-        String uuid = IdUtil.simpleUUID();
-        String tmpPath = tempPath + uuid + File.separator;
-        String fileName = "评分分布.xlsx";
-        String fullName = tmpPath + FilenameUtils.getName(fileName);
-        File tempFile = new File(fullName);
-        map.forEach((key, value) -> {
-            excelWriter.setSheet(key);
-            writeDistributedData(excelWriter, value);
-        });
-        excelWriter.flush(tempFile);
-        String url = fastDfsClient.uploadFile(tempFile);
-        deleteTempFile(tmpPath);
-        return url;
+        return axisWrapVos;
     }
 
     protected void fillSectionData(Map<String, List<ScoreStatisticsDetail>> sectionData) {

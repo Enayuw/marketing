@@ -1,5 +1,23 @@
 package com.br.marketing.innerapi.controller;
 
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
@@ -8,20 +26,9 @@ import com.br.marketing.entity.ReportTaskVO;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVo;
+
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.statement.select.FromItem;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
 
 /**
  * 前端页面 跑分模型分布 规则选择并保存任务记录 功能对应接口 技术方案地址： https://c.100credit.cn/pages/viewpage.action?pageId=174496665
@@ -47,9 +54,8 @@ public class ReportScoreRuleController {
     }
 
     @GetMapping("/getTaskScoreProductsList")
-    public ApiResult<PageResultReturn> getTaskScoreProductsList(@RequestParam(defaultValue = "1") int current
-            , @RequestParam(defaultValue = "10") int size
-            , @RequestParam(required = false) String name){
+    public ApiResult<PageResultReturn> getTaskScoreProductsList(@RequestParam(defaultValue = "1") int current,
+        @RequestParam(defaultValue = "10") int size, @RequestParam(required = false) String name) {
         PageResultReturn listPage = reportScoreRuleService.getTaskScoreProductsListPage(current, size, name);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
@@ -82,7 +88,7 @@ public class ReportScoreRuleController {
     @GetMapping("/getReportDetails")
     public ApiResult<List<AxisWrapVo>> getReportDetails(@RequestParam Long taskId) {
         try {
-            return new ApiResult<List<AxisWrapVo>>().success();
+            return new ApiResult<List<AxisWrapVo>>().success(analysisReportService.getReportDetailsByTaskId(taskId));
         } catch (Exception e) {
             log.warn("获取报告详情异常,入参:{}--", taskId, e);
             return new ApiResult<List<AxisWrapVo>>().fail(null, ServiceResultEnum.FAILED);
