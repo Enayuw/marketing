@@ -235,5 +235,10 @@ public class RedisKeyConstant {
     public static final String LOCK_KEY_CLEAN_DATA = prefix.concat("lock_key_clean_data_auto");
 
     public static final String POLICY_BUILD_LOCK = prefix.concat("policy:build:lock:");
+    /**
+     * 跑分模型统计任务锁
+     */
+    public static final String SCORE_REPORT_TASK_LOCK = prefix.concat("score:report:task:lock:");
+
 
 }
