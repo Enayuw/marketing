@@ -31,8 +31,11 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -145,7 +148,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     if (files != null) {
                                         for (File file : files) {
                                             stopCheckOrUpdate(apiCode);
-                                            long l = readFile(dataFile, file, regex, localDate, true);
+                                            long l = readFile(dataFile, file, regex, localDate, true, map);
                                             if (l < 0) {
                                                 bool = false;
                                             } else {
@@ -155,7 +158,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                         updateDataFile(dataFile, false);
                                     }
                                 } else {
-                                    long l = readFile(dataFile, srcFile, regex, localDate, false);
+                                    long l = readFile(dataFile, srcFile, regex, localDate, false, map);
                                     if (l < 0) {
                                         bool = false;
                                     } else {
@@ -221,6 +224,47 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     }
 
     /**
+     * 2024-08-19 20:12
+     * 检查压缩包的明细文件MD5值
+     *
+     * @return true 一致
+     */
+    private boolean md5CheckDetaFile(File file, MarketingCleanDataFile dataFile, JSONObject map) throws IOException
+            , NoSuchAlgorithmException {
+        // 设置分段大小1M
+        int segmentSize = 1024 << 10;
+        FileChannel channel = FileChannel.open(file.toPath());
+        long size = channel.size();
+        long segments = size / segmentSize + 1;
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        for (int i = 0; i < segments; i++) {
+            int offset = i * segmentSize;
+            int remaining = (int) Math.min(segmentSize, size - offset);
+            MappedByteBuffer byteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, offset, remaining);
+            md5.update(byteBuffer);
+        }
+        String fileMd5 = DatatypeConverter.printHexBinary(md5.digest());
+        String fileName = file.getName();
+        String[] split = fileName.split("\\.");
+        MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
+        fileExampleCount.createCriteria().andApiCodeEqualTo(dataFile.getApiCode())
+                .andSyncConfigIdEqualTo(dataFile.getSyncConfigId()).andFileNameLike("%" + split[1]);
+        fileExampleCount.setOrderByClause("create_time desc limit 1");
+        List<MarketingCleanDataFile> marketingCleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExampleCount);
+        dataFile.setMd5Value(fileMd5);
+        if (marketingCleanDataFiles.size() > 0 && fileMd5.equals(marketingCleanDataFiles.get(0).getMd5Value())) {
+            MarketingCleanDataFile dataFileOld = marketingCleanDataFiles.get(0);
+            dingDingRobotHookService.sendDingDingTextMessage(
+                    "榕树上传数据更新-" + dataFile.getApiCode() + "文件：" + fileName + "与最近("
+                            + dataFileOld.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                            .toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ")的文件"
+                            + dataFileOld.getFileName() + "内容重复，本次文件不进行清洗\n文件MD5值：" + fileMd5, map);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 2024-08-16 20:03
      * 停止运行任务及更新线程池线程大小
      */
@@ -259,7 +303,8 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      * @param regex     分隔符
      * @return true 成功
      */
-    private long readFile(MarketingCleanDataFile dataFile, File file, String regex, LocalDate localDate, boolean isCreate) {
+    private long readFile(MarketingCleanDataFile dataFile, File file, String regex, LocalDate localDate
+            , boolean isCreate, JSONObject dingdingMap) {
         String name = file.getName();
         String apiCode = dataFile.getApiCode();
         Set<String> appletDateSet = iMarketingDataValidService.getAppletDateSet(apiCode, localDate.toString());
@@ -267,13 +312,11 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         Map<String, JSONObject> map = new HashMap<>(2048);
         long rowNum = 0L;
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
             String rowData;
             while ((rowData = reader.readLine()) != null) {
-                md5.update(rowData.getBytes(StandardCharsets.UTF_8));
                 stopCheckOrUpdate(apiCode);
                 if (rowNum == 0) {
-                    rowNum++;
+                    boolean b = md5CheckDetaFile(file, dataFile, dingdingMap);
                     if (isCreate) {
                         dataFileNew = saveDataFileInfo(dataFile, name, file.getParent(), rowData);
                     } else {
@@ -281,7 +324,9 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         dataFileNew.setFileData(rowData);
                         dataFileNew.setFileHeader(String.join(",", FILE_HEADER));
                     }
-                    continue;
+                    if (b) {
+                        break;
+                    }
                 }
                 String[] split = rowData.split(regex);
                 String uid = split[0];
@@ -304,7 +349,6 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             }
             if (dataFileNew != null && dataFileNew.getId() != null && map.size() != 0) {
                 update(apiCode, map, appletDateSet, dataFileNew);
-                dataFileNew.setMd5Value(DatatypeConverter.printHexBinary(md5.digest()));
             }
             updateDataFile(dataFileNew, isCreate);
         } catch (Exception e) {
@@ -324,7 +368,6 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         if (dataFileNew != null && dataFileNew.getId() != null) {
             MarketingCleanDataFile dataFileUpdate = new MarketingCleanDataFile();
             dataFileUpdate.setId(dataFileNew.getId());
-            dataFileUpdate.setMd5Value(dataFileNew.getMd5Value());
             dataFileUpdate.setIsDel(9);
             if (isCreate) {
                 marketingCleanDataFileMapper.updateByPrimaryKeySelective(dataFileUpdate);
@@ -359,8 +402,9 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         dataFileNew.setLocalPath(targetPath);
         dataFileNew.setUpdateTime(new Date());
         dataFileNew.setTargetSftpPath(localPath);
-        dataFileNew.setMd5Value("");
+        dataFileNew.setMd5Value(dataFile.getMd5Value());
         dataFileNew.setSyncConfigId(syncConfigId);
+        dataFileNew.setIsDel(dataFile.getIsDel());
         int i = marketingCleanDataFileMapper.insertSelective(dataFileNew);
         if (i < 1) {
             log.warn("添加清洗文件失败！fileName:{},targetPath:{},srcPath:{},syncConfigId:{}"
