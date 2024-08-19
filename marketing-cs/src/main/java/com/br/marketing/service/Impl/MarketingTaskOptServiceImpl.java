@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.TaskStatus;
@@ -31,7 +32,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -161,9 +162,11 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
     @Override
     public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
         if (batchNumVO.getApiCodeSet() == null || batchNumVO.getApiCodeSet().size() == 0) {
-            return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(
-                    Collections.emptyList(), batchNumVO.getCurrent()
-                    , batchNumVO.getSize());
+            String apiCode = ThreadContextInfo.getUser().getApiCode();
+            if (StringUtils.isNotBlank(apiCode)) {
+                String[] split = apiCode.split(",");
+                batchNumVO.setApiCodeSet(new HashSet<>(Arrays.asList(split)));
+            }
         }
         PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);

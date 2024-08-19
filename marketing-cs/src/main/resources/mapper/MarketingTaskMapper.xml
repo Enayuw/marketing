@@ -733,18 +733,25 @@
         left join b_score_doris_log as sdl on sdl.batch_number = shf.batch_number
         where
         <choose>
-            <when test="apiCodeSet.size()==1">
-                mt.api_code =
-                <foreach collection="apiCodeSet" item="item" index="index" separator=",">
-                    #{item}
-                </foreach>
+            <when test="apiCodeSet!=null and apiCodeSet.size()!=0">
+                <choose>
+                    <when test="apiCodeSet.size()==1">
+                        mt.api_code =
+                        <foreach collection="apiCodeSet" item="item" index="index" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        mt.api_code in(
+                        <foreach collection="apiCodeSet" item="item" index="index" separator=",">
+                            #{item}
+                        </foreach>
+                        )
+                    </otherwise>
+                </choose>
             </when>
             <otherwise>
-                mt.api_code in(
-                <foreach collection="apiCodeSet" item="item" index="index" separator=",">
-                    #{item}
-                </foreach>
-                )
+                1=1
             </otherwise>
         </choose>
         <if test="scoreTimeList!=null and scoreTimeList.size()>0">
