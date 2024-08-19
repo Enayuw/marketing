@@ -77,7 +77,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         try {
             analysisReportService.uploadReportToFastDfs(reportTask.getId());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "跑分模型统计上传FastDfs异常"), e);
         }
     }
 
@@ -187,8 +187,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
 
         }
         scoreSql = "SELECT " +
-                "concat('[',FLOOR(a.xModelName/xModelRange) * xModelRange,'-',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,']')AS xModelName," +
-                "concat('[',FLOOR(a.yModelName/yModelRange) * yModelRange,'-',FLOOR(a.yModelName/yModelRange) * yModelRange + yModelRange,']')AS yModelName," +
+                "concat('[',FLOOR(a.xModelName/xModelRange) * xModelRange,'-',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')AS xModelName," +
+                "concat('[',FLOOR(a.yModelName/yModelRange) * yModelRange,'-',FLOOR(a.yModelName/yModelRange) * yModelRange + yModelRange,')')AS yModelName," +
                 "count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange)" +
                 " ORDER BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange);";
         //替换变量
@@ -219,8 +219,9 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                         .concat(" union all ");
             }
         }
+        //sql拼接【0,50)
         scoreSql = "SELECT " +
-                "concat('[',FLOOR(a.xModelName / xModelRange) * xModelRange,'-',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,']')AS xModelName" +
+                "concat('[',FLOOR(a.xModelName / xModelRange) * xModelRange,'-',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')AS xModelName" +
                 ",count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange)" +
                 " ORDER BY FLOOR(a.xModelName / xModelRange);";
         //替换变量
