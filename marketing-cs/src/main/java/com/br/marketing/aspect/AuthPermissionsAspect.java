@@ -104,6 +104,10 @@ public class AuthPermissionsAspect {
         MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
         String[] parameterNames = methodSignature.getParameterNames();
         int index = ArrayUtils.indexOf(parameterNames, authDataControllerPermission.paramName());
+        if (index != -1 && args[index] == null) {
+            args[index] = authApiCodes;
+            return joinPoint.proceed(args);
+        }
         if (index != -1 && args[index] instanceof List) {
             List<String> argApiCodes = (List<String>)args[index];
             if (CollectionUtils.isEmpty(argApiCodes)) {
