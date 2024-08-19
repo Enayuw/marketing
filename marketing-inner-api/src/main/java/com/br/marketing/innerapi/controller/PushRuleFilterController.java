@@ -277,7 +277,7 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "跑分模型分布筛选批次列表")
     @PostMapping("getBatchInfoList")
-    @AuthDataControllerPermission()
+    @AuthDataControllerPermission
     public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoList(@RequestBody CustomerBatchNumVO batchNumVO) {
         return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(reportScoreRuleService.getBatchInfoList(batchNumVO));
     }

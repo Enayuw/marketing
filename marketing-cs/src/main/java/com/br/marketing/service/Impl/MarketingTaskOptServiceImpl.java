@@ -4,13 +4,11 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.curator.framework.CuratorFramework;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,8 +17,6 @@ import org.springframework.util.CollectionUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
-import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.TaskStatus;
 import com.br.marketing.entity.TaskStatusExample;
@@ -29,23 +25,8 @@ import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.service.MarketingTaskOptService;
-import com.br.marketing.vo.CustomerBatchNumVO;
-import com.br.marketing.vo.ScoreDetailVo;
-import com.github.pagehelper.PageHelper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.curator.framework.CuratorFramework;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import javax.annotation.Resource;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @Description TaskOptServiceImpl
@@ -63,12 +44,6 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
 
     @Resource
     TaskStatusMapper taskStatusMapper;
-
-    @Resource
-    private MarketingTaskMapper marketingTaskMapper;
-
-    @Resource
-    private MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
 
     @Autowired(required = false)
     private CuratorFramework client;
@@ -89,12 +64,12 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
         TaskStatus taskStatus = taskStatuses.get(0);
 
         try {
-            //region 暂停操作
+            // region 暂停操作
             if (isOrPause.equals(1)) {
                 return pauseTaskByStraHisFile(1, straHisFile, taskStatus);
             }
-            //endregion
-            //region 恢复操作
+            // endregion
+            // region 恢复操作
             if (isOrPause.equals(0)) {
                 if (!ScoreStatusEnum.PAUSEED.getValue().equals(straHisFile.getStatus())) {
                     return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该任务不是已暂停状态");
@@ -123,7 +98,7 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
                 entityOptService.writeOptLog(Long.valueOf(taskStatus.getId()), updateStatus, taskStatus);
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
-            //endregion
+            // endregion
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -160,18 +135,5 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
             log.error(e.getMessage(), e);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    @Override
-    public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
-        PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
-        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
-        scoreDetailVos.forEach((ScoreDetailVo t) -> {
-            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumberAndApiCodetikv_(
-                    t.getBatchNumber(), t.getApiCode());
-            t.setUserType(String.join(",", batchNumberList));
-        });
-        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent()
-                , batchNumVO.getSize());
     }
 }

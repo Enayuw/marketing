@@ -254,13 +254,6 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Override
     public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
-        if (batchNumVO.getApiCodeSet() == null || batchNumVO.getApiCodeSet().size() == 0) {
-            String apiCode = ThreadContextInfo.getUser().getApiCode();
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(apiCode)) {
-                String[] split = apiCode.split(",");
-                batchNumVO.setApiCodeSet(new HashSet<>(Arrays.asList(split)));
-            }
-        }
         PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
         scoreDetailVos.forEach((ScoreDetailVo t) -> {
