@@ -733,7 +733,7 @@
         left join b_score_doris_log as sdl on sdl.batch_number = shf.batch_number
         where
         <choose>
-            <when test="apiCodeSet.size()=1">
+            <when test="apiCodeSet.size()==1">
                 mt.api_code =
                 <foreach collection="apiCodeSet" item="item" index="index" separator=",">
                     #{item}
@@ -755,8 +755,8 @@
         </if>
         <if test="userTypeSet!=null and userTypeSet.size()>0">
             <choose>
-                <when test="userTypeSet.size()=1">
-                    mtut.user_type =
+                <when test="userTypeSet.size()==1">
+                    and mtut.user_type =
                     <foreach collection="userTypeSet" item="item" index="index" separator=",">
                         #{item}
                     </foreach>
