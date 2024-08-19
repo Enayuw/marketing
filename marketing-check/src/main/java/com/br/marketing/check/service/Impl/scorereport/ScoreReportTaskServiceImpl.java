@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.report.ScoreReportRuleDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.ReportTaskStatusEnum;
@@ -111,7 +112,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                         singleResult.forEach((Map<String, Object> resultMap) -> {
                             ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
                             statisticsDetail.setStatisticsId(statisticsScore.getId());
-                            statisticsDetail.setFieldXValue((String) resultMap.get(model));
+                            statisticsDetail.setFieldXValue(StringUtils.isEmpty(resultMap.get(model)) ? "[-1,0)" : (String) resultMap.get(model));
                             //单模型Y存储模型名称
                             statisticsDetail.setFieldYValue(model);
                             statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
@@ -138,8 +139,10 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                     mulResult.forEach((Map<String, Object> resultMap) -> {
                         ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
                         statisticsDetail.setStatisticsId(statisticsScore.getId());
-                        statisticsDetail.setFieldXValue((String) resultMap.get(statisticsScore.getFieldX()));
-                        statisticsDetail.setFieldYValue((String) resultMap.get(statisticsScore.getFieldY()));
+                        statisticsDetail.setFieldXValue(StringUtils.isEmpty(resultMap.get(statisticsScore.getFieldX())) ? "[-1,0)" :
+                                (String) resultMap.get(statisticsScore.getFieldX()));
+                        statisticsDetail.setFieldYValue(StringUtils.isEmpty(resultMap.get(statisticsScore.getFieldY())) ? "[-1,0)" :
+                                (String) resultMap.get(statisticsScore.getFieldY()));
                         statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
                         statisticsDetail.setCreateTime(new Date());
                         statisticsDetail.setUpdateTime(new Date());
@@ -189,8 +192,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
 
         }
         scoreSql = "SELECT " +
-                "concat('[',FLOOR(a.xModelName/xModelRange) * xModelRange,'-',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')AS xModelName," +
-                "concat('[',FLOOR(a.yModelName/yModelRange) * yModelRange,'-',FLOOR(a.yModelName/yModelRange) * yModelRange + yModelRange,')')AS yModelName," +
+                "concat('[',FLOOR(a.xModelName/xModelRange) * xModelRange,',',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')AS xModelName," +
+                "concat('[',FLOOR(a.yModelName/yModelRange) * yModelRange,',',FLOOR(a.yModelName/yModelRange) * yModelRange + yModelRange,')')AS yModelName," +
                 "count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange)" +
                 " ORDER BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange);";
         //替换变量
@@ -223,7 +226,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         }
         //sql拼接【0,50)
         scoreSql = "SELECT " +
-                "concat('[',FLOOR(a.xModelName / xModelRange) * xModelRange,'-',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')AS xModelName" +
+                "concat('[',FLOOR(a.xModelName / xModelRange) * xModelRange,',',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')AS xModelName" +
                 ",count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange)" +
                 " ORDER BY FLOOR(a.xModelName / xModelRange);";
         //替换变量
@@ -337,7 +340,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
 
         Integer scoreValue = scoreRecordMapper.getXieChengDataNumdoris_(scoreSql);
         //考虑speed配置
-        return scoreValue > 100 ? 50 : 5;
+        return scoreValue > 200 ? 50 : 5;
 
     }
 
