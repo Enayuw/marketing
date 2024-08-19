@@ -9,7 +9,7 @@ import java.util.Map;
 public interface ReportStatisticsScoreMapper extends ReportStatisticsScoreBaseMapper {
 
 
-    List<Map<String, String>> queryDataMapNumdoris_(@Param("querySql") String querySql);
+    List<Map<String, Object>> queryDataMapNumdoris_(@Param("querySql") String querySql);
 
 
 }

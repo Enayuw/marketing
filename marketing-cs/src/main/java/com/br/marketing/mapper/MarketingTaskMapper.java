@@ -4,6 +4,7 @@ import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.ApiCodeTask;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
+import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import org.apache.ibatis.annotations.Param;
@@ -233,7 +234,6 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     String selectHisFileById(String hisFileId);
 
-
     @AddDataAuth
-    List<ScoreDetailVo> queryBatchFieldList(CustomerBatchNumDTO dto);
+    List<ScoreDetailVo> queryBatchList(CustomerBatchNumVO batchNumVO);
 }
