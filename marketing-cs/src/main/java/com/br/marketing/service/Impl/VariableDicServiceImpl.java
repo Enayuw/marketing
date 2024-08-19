@@ -4,11 +4,13 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
@@ -67,8 +69,6 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Resource
     private VariableDicMapper variableDicMapper;
 
-    @Resource
-    private MarketingValidityChangeMapper validityChangeMapper;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -94,6 +94,9 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Resource
     private MarketingDataValidConfigDefaultMapper validConfigDefaultMapper;
 
+    @Resource
+    private MarketingCustomerMapper marketingCustomerMapper;
+
     @Override
     public List<VariableDicSelectVO> findListByCidAndApiCode(String cid, String apiCode) {
         VariableDicExample example = new VariableDicExample();
@@ -111,20 +114,28 @@ public class VariableDicServiceImpl implements VariableDicService {
     public PageResultReturn getVariableDicList(int page, int pageSize, String cid, String apiCode) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<VariableDicListVO> list = variableDicMapper.getVariableDicList(cid,apiCode);
+            List<VariableDicListVO> list = variableDicMapper.getVariableDicList(cid, apiCode);
             for (VariableDicListVO variableDicListVO : list) {
                 apiCode = variableDicListVO.getApiCode();
                 String userType = null;
-                if ("userType".equals(variableDicListVO.getFieldName())){
+                if ("userType".equals(variableDicListVO.getFieldName())) {
                     userType = variableDicListVO.getFieldValue();
                 }
-                Integer validDaysDefault = validityChangeMapper.selectValidDaysDefault(apiCode, userType);
-                if (ObjectUtil.isNotEmpty(validDaysDefault)){
-                    variableDicListVO.setValidDaysDefault("T+" + validDaysDefault);
+                MarketingDataValidConfigDefaultExample exampleConfig = new MarketingDataValidConfigDefaultExample();
+                exampleConfig.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andIsDelEqualTo(1);
+                exampleConfig.setOrderByClause("create_time DESC limit 1");
+                List<MarketingDataValidConfigDefault> validConfigDefaultList = validConfigDefaultMapper.selectByExample(exampleConfig);
+                if (!CollectionUtils.isEmpty(validConfigDefaultList)) {
+                    MarketingDataValidConfigDefault configDefault = validConfigDefaultList.get(0);
+                    if (configDefault.getValidType().equals(0)) {
+                        variableDicListVO.setValidDaysDefault("T+" + configDefault.getValidDaysDefault());
+                    } else {
+                        variableDicListVO.setValidDaysDefault(configDefault.getValidDaysDefault().toString());
+                    }
+                    variableDicListVO.setValidType(configDefault.getValidType());
                 } else {
                     log.warn("不存在有效期天数配置,apiCode={},userType={}", apiCode, userType);
                 }
-
             }
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
@@ -137,7 +148,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     public ApiResult<Boolean> saveOrUpdateVariableDic(VariableDicListVO vo, MarketingUserDetail user) {
         String apiCode, userType = null;
         apiCode = vo.getApiCode();
-        if (vo.getValidDaysDefault() == null){
+        if (vo.getValidDaysDefault() == null) {
             vo.setValidDaysDefault("0");
         }
         VariableDic variableDic = new VariableDic();
@@ -147,47 +158,60 @@ public class VariableDicServiceImpl implements VariableDicService {
         variableDic.setIsDel(vo.getIsDel());
         variableDic.setUpdateTime(new Date());
         MarketingDataValidConfigDefault validConfigDefault = new MarketingDataValidConfigDefault();
-        if ("userType".equals(vo.getFieldName())){
+        if ("userType".equals(vo.getFieldName())) {
             userType = vo.getFieldValue();
             validConfigDefault.setUserType(userType);
         }
         validConfigDefault.setValidDaysDefault(Integer.valueOf(vo.getValidDaysDefault()));
         validConfigDefault.setIsDel(vo.getIsDel());
-        if(StringUtils.isEmpty(vo.getId())){
+        validConfigDefault.setValidType(vo.getValidType());
+        if (StringUtils.isEmpty(vo.getId())) {
             //新增
             variableDic.setCid(vo.getCid());
             variableDic.setApiCode(apiCode);
             variableDic.setCreateTime(new Date());
             variableDicMapper.insertSelective(variableDic);
             entityOptService.writeOptLog(variableDic.getId(), variableDic, null);
-            Integer i = validityChangeMapper.selectNum(apiCode, userType);
-            MarketingDataValidConfigDefault date = validityChangeMapper.selectId(apiCode,userType);
-            if (i >= 1){
-                log.warn("该apiCode={} , userType={}维度下已存在有效期配置", apiCode, userType);
-                validConfigDefault.setId(date.getId());
+            MarketingDataValidConfigDefaultExample exampleConfig = new MarketingDataValidConfigDefaultExample();
+            exampleConfig.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andIsDelEqualTo(1);
+            exampleConfig.setOrderByClause("create_time DESC");
+            List<MarketingDataValidConfigDefault> validConfigDefaultList = validConfigDefaultMapper.selectByExample(exampleConfig);
+            if (!CollectionUtils.isEmpty(validConfigDefaultList)) {
+                if (validConfigDefaultList.size() > 1) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                            , "默认有效期配置表存在多条配置;apiCode:" + apiCode));
+                }
+                validConfigDefault.setId(validConfigDefaultList.get(0).getId());
                 validConfigDefault.setApiCode(apiCode);
                 validConfigDefault.setUpdateTime(new Date());
-                validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
-                entityOptService.writeOptLog(date.getId(), validConfigDefault, date);
+                validConfigDefaultMapper.updateByPrimaryKeySelective(validConfigDefault);
+                entityOptService.writeOptLog(validConfigDefaultList.get(0).getId(), validConfigDefault, validConfigDefaultList.get(0));
                 return new ApiResult<Boolean>().success(true);
             }
             validConfigDefault.setApiCode(apiCode);
             validConfigDefault.setCreateTime(new Date());
-            validityChangeMapper.insertSelective(validConfigDefault);
+            validConfigDefaultMapper.insertSelective(validConfigDefault);
             entityOptService.writeOptLog(validConfigDefault.getId(), validConfigDefault, null);
-        }else {
+        } else {
             VariableDic data = variableDicMapper.selectByPrimaryKey(vo.getId());
             //编辑
             variableDic.setId(vo.getId());
             variableDicMapper.updateByPrimaryKeySelective(variableDic);
             entityOptService.writeOptLog(vo.getId(), variableDic, data);
-            MarketingDataValidConfigDefault dataValidConfigDefault = validityChangeMapper.selectId(apiCode,userType);
-            if (ObjectUtil.isNotEmpty(dataValidConfigDefault)){
-                validConfigDefault.setId(dataValidConfigDefault.getId());
+            MarketingDataValidConfigDefaultExample exampleConfig = new MarketingDataValidConfigDefaultExample();
+            exampleConfig.createCriteria().andApiCodeEqualTo(apiCode).andUserTypeEqualTo(userType).andIsDelEqualTo(1);
+            exampleConfig.setOrderByClause("create_time DESC");
+            List<MarketingDataValidConfigDefault> validConfigDefaultList = validConfigDefaultMapper.selectByExample(exampleConfig);
+            if (!CollectionUtils.isEmpty(validConfigDefaultList)) {
+                if (validConfigDefaultList.size() > 1) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                            , "默认有效期配置表存在多条配置;apiCode:" + apiCode));
+                }
+                validConfigDefault.setId(validConfigDefaultList.get(0).getId());
                 validConfigDefault.setApiCode(apiCode);
                 validConfigDefault.setUpdateTime(new Date());
-                validityChangeMapper.updateMarketingDataValidConfigDefault(validConfigDefault);
-                entityOptService.writeOptLog(dataValidConfigDefault.getId(), validConfigDefault, dataValidConfigDefault);
+                validConfigDefaultMapper.updateByPrimaryKeySelective(validConfigDefault);
+                entityOptService.writeOptLog(validConfigDefaultList.get(0).getId(), validConfigDefault, validConfigDefaultList.get(0));
             } else {
                 MarketingDataValidConfigDefault configDefault = new MarketingDataValidConfigDefault();
                 configDefault.setApiCode(apiCode);
@@ -196,10 +220,10 @@ public class VariableDicServiceImpl implements VariableDicService {
                 configDefault.setCreateTime(data.getCreateTime());
                 configDefault.setUpdateTime(new Date());
                 configDefault.setIsDel(1);
+                configDefault.setValidType(vo.getValidType());
                 validConfigDefaultMapper.insertSelective(configDefault);
                 entityOptService.writeOptLog(configDefault.getId(), configDefault, null);
             }
-
         }
 
         return new ApiResult<Boolean>().success(true);
@@ -208,17 +232,30 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Override
     public List<Map> findListByCidsAndApiCodes(List<CustomerSelectVO> vos) {
         List<Map> list = new ArrayList<>();
-        if(vos!=null && vos.size()>0){
-            for (CustomerSelectVO vo :vos) {
-                String cid = vo.getCid();
-                String apiCode = vo.getApiCode();
-                List<VariableDicSelectVO> userTypeList = findListByCidAndApiCode(cid, apiCode);
-                Map map = new HashMap();
-                map.put("cid", cid);
-                map.put("apiCode", apiCode);
-                map.put("userTypeList", userTypeList);
-                list.add(map);
+        if(CollectionUtils.isEmpty(vos)){
+            return list;
+        }
+        List<String> apiCodes = vos.stream().map(CustomerSelectVO::getApiCode).collect(Collectors.toList());
+        MarketingCustomerExample customerExample = new MarketingCustomerExample();
+        customerExample.createCriteria().andApiCodeIn(apiCodes).andStatusEqualTo(Byte.valueOf("1"));
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
+        for (CustomerSelectVO vo : vos) {
+            String cid = vo.getCid();
+            String apiCode = vo.getApiCode();
+            List<VariableDicSelectVO> userTypeList = findListByCidAndApiCode(cid, apiCode);
+
+            Map map = new HashMap();
+            map.put("cid", cid);
+            map.put("apiCode", apiCode);
+            map.put("userTypeList", userTypeList);
+            Optional<MarketingCustomer> first = marketingCustomers.stream()
+                    .filter(t -> apiCode.equals(t.getApiCode()) && cid.equals(t.getCid())).findFirst();
+            if (first.isPresent()) {
+                MarketingCustomer marketingCustomer = first.get();
+                map.put("name", marketingCustomer.getName());
+                map.put("shortName", marketingCustomer.getShortName());
             }
+            list.add(map);
         }
 
         return list;
@@ -307,7 +344,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                         }
                     }
                 }
-                // 生成有效期
+
                 createValidDateConfig(apiDataInfoDTO, apiDataInfoDTO.getRawDataSaveTimeStr(), collectionDTO, apiCode
                         , userType);
             }

@@ -36,7 +36,7 @@
         <if test="distinct">
             distinct
         </if>
-        valid_days_default,api_code,user_type,create_time
+        valid_days_default,api_code,user_type,create_time,valid_type
         from b_marketing_data_valid_config_default
         <if test="_parameter != null">
             <include refid="Example_Where_Clause_1"/>

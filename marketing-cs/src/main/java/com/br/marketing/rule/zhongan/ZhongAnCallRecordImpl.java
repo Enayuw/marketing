@@ -1,5 +1,6 @@
 package com.br.marketing.rule.zhongan;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
@@ -91,6 +92,7 @@ public class ZhongAnCallRecordImpl implements AssembleData<ZaRosterLockingDataDT
         data.setTag("MG");
         data.setDataSource(2);
         data.setUserType(userType);
+        data.setIsConnect(ObjectUtil.isEmpty(bo.getDetail()) ? null : bo.getDetail().getIsConnect());
         return data;
     }
 

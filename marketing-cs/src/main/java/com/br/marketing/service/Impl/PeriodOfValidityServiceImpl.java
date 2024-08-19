@@ -382,7 +382,13 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 marketingDataValidConfigDefaultMapper.insertSelective(newConfigDefault);
             }
         } else {
-            String newDateStr = LocalDate.parse(appletDate).plusDays(days).toString();
+            String newDateStr;
+            MarketingDataValidConfigDefault configDefault = configDefaults.get(0);
+            if (configDefault.getValidType().equals(0)) {
+                newDateStr = LocalDate.parse(appletDate).plusDays(days).toString();
+            } else {// 按月维度
+                newDateStr = LocalDate.now().plusMonths(configDefault.getValidDaysDefault()).with(TemporalAdjusters.lastDayOfMonth()).toString();
+            }
             newDataValidConfig.setValidEndDate(newDateStr);
         }
         // 将默认有效期内容持久化到db

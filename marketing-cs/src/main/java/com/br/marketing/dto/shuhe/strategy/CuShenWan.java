@@ -10,7 +10,6 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 
@@ -20,7 +19,7 @@ import java.util.Map;
  * @author Guo Zeqiang
  * @dateTime 2022/2/10 17:33
  */
-public class CuShenWan extends IUserType {
+public class CuShenWan extends BaseUserType {
 
     public CuShenWan(String... api2Codes) {
         super(api2Codes);

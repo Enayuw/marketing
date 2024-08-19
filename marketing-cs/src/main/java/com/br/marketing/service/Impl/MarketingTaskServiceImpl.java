@@ -63,9 +63,12 @@ import com.br.marketing.vo.StatisticsDataDayVO;
 import com.github.pagehelper.PageHelper;
 import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
@@ -75,14 +78,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -251,8 +247,15 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Override
     public List<ScoreRuleConfig> getScoreRules(String apiCode) {
-        List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCode);
-        return list;
+        List<String> apiCodeList = new ArrayList<>();
+        if(!StringUtils.isEmpty(apiCode)){
+            String[] apiCodeArray = apiCode.split(",");
+            apiCodeList = Arrays.asList(apiCodeArray);
+        }
+        List<ScoreRuleConfig> list = scoreRuleConfigMapper.getScoreRules(apiCodeList);
+        List<ScoreRuleConfig> soleList =list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(
+                ()->new TreeSet<>(Comparator.comparing(ScoreRuleConfig::getId))), ArrayList::new));
+        return soleList;
     }
 
 
@@ -289,6 +292,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         // 判断是否达到开始时间
         if (nowTime.isBefore(validTime)) {
+            log.warn("该规则没达到开始时间, 暂不生成任务, ruleId: {}", vo.getId());
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该规则没达到开始时间，暂不生成任务");
         }
 
@@ -309,6 +313,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
                     .andCloseDateGreaterThanOrEqualTo(nowDateString);
             List<MarketingTaskAutoBuildConfig> autoBuildConfigList = buildConfigMapper.selectByExample(buildConfigExample);
             if (CollectionUtils.isEmpty(autoBuildConfigList)) {
+                log.warn("该周期生成任务规则, 已过期或已删除, ruleId: {}", vo.getId());
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setMessage("该周期生成任务规则，已过期或已删除");
             }
 
@@ -613,12 +618,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     public Result<Long> buildScoreTaskOfSelect(CustomerScoreRuleVO vo, List<String> userTypeList) {
         Boolean isVer = new Integer(1).equals(vo.getIsOrNoScoreVer());
         String apiCode = vo.getApiCode();
-        Result<List<String>> listResult = soleStrategyService.analysisConditions(vo.getConditionInfo());
-        if (!ResultCode.SUCCESS.getValue().equals(listResult.getCode())) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(listResult.getMessage());
+        Result<List<String>> analysisResult = soleStrategyService.analysisConditions(vo.getConditionInfo());
+        if (!ResultCode.SUCCESS.getValue().equals(analysisResult.getCode())) {
+            return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage(analysisResult.getMessage());
         }
 
-        List<String> data = listResult.getData();
+        List<String> conditionList = analysisResult.getData();
 
         Integer count = 0;
         Integer preMaxNum = vo.getDataLimit() != null && vo.getDataLimit() > 0 ? vo.getDataLimit() : 500;
@@ -629,11 +634,11 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             userTypeFromConditionInfosFlag = true;
             userTypeList = new ArrayList<>();
         }
-        for (int i = 0; i < data.size(); i++) {
+        for (int i = 0; i < conditionList.size(); i++) {
             if (isVer && preMaxNum <= 0) {
                 continue;
             }
-            String whereStr = data.get(i);
+            String whereStr = conditionList.get(i);
             String s = whereSqlToShow(whereStr);
             Integer integer = iDynamicSqlService.countByRuleScoreWithDate(apiCode, whereStr);
             if (isVer) {
@@ -642,14 +647,13 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             }
             count += integer;
             showStr.append(s).append("总数据").append(integer.toString());
-            if (i < data.size() - 1) {
+            if (i < conditionList.size() - 1) {
                 showStr.append(",");
             }
             if(userTypeFromConditionInfosFlag){
                 List<String> userTypeByList;
                 // 查询符合跑分数据的场景
-                userTypeByList = syncInfoMapper
-                        .queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
+                userTypeByList = syncInfoMapper.queryUserTypeListWithDatetikv_(apiCode, null, null, whereStr);
                 if(null != userTypeByList && userTypeByList.size() > 0){
                     userTypeList.addAll(userTypeByList);
                 }
@@ -691,32 +695,71 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     }
 
     @Override
+    public Result<List<Long>> saveTaskSelectV2(TaskSelectSaveDTO dto) {
+        MarketingTaskServiceImpl service = (MarketingTaskServiceImpl) AopContext.currentProxy();
+        Result<List<Long>> res;
+        try {
+            res = service.saveTaskSelectByCreateMethod(dto);
+        } catch (Exception e) {
+            return new Result<>().failure().setMessage(e.getMessage());
+        }
+        return res;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public Result<List<Long>> saveTaskSelectByCreateMethod(TaskSelectSaveDTO dto) throws Exception {
+        String taskCreateMethod = dto.getTaskCreateMethod();
+        if("2".equals(taskCreateMethod)) {
+            List<Long> dataIdDesc = dto.getDataIdDesc();
+            List<Long> resIds = new ArrayList<>();
+            for(Long dataId : dataIdDesc){
+                TaskSelectSaveDTO singeDTO = new TaskSelectSaveDTO();
+                BeanUtils.copyProperties(dto, singeDTO);
+                List<Long> dataIdList = new ArrayList<>();
+                dataIdList.add(dataId);
+                singeDTO.setDataIdDesc(dataIdList);
+                Result<List<Long>> singleResult = saveTaskSelect(singeDTO);
+                if (singleResult == null || !singleResult.isSuccess()) {
+                    throw new Exception("生成任务失败");
+                }
+                if (singleResult.getData() == null) {
+                    continue;
+                }
+                resIds.addAll(singleResult.getData());
+            }
+            return new Result<>().success().setDate(resIds);
+        }
+        return saveTaskSelect(dto);
+    }
+
+    @Override
     public Result<List<Long>> saveTaskSelect(TaskSelectSaveDTO dto) {
         List<Long> resIds = new ArrayList<>();
         // 查询符合跑分数据的场景
         List<String> userTypeList = new ArrayList<>();
 
-        Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds());
-        AssertResult.assertResult(scoreConfigNow);
+        Result<List<CustomerScoreRuleVO>> scoreConfigResult = iRuleConfigService.getScoreConfigNow(dto.getRuleIds(), dto.getApiCode());
+        AssertResult.assertResult(scoreConfigResult);
+        // getConditionInfo
         String conditionInfo = getConditionInfo(dto.getDataIdDesc(), userTypeList);
-        for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {
+        for (CustomerScoreRuleVO customerScoreRuleVO : scoreConfigResult.getData()) {
 
             // 每个任务的周期：校验该配置是否已存在
-            if (datum.getExecType() == 3) {
-                return buildCycleTaskBySelect(dto.getTaskDate(), dto.getTaskTime(), dto.getDataIdDesc(), datum, conditionInfo);
+            if (customerScoreRuleVO.getExecType() == 3) {
+                return buildCycleTaskBySelect(dto.getTaskDate(), dto.getTaskTime(), dto.getDataIdDesc(), customerScoreRuleVO, conditionInfo);
             }
 
-            datum.setConditionInfo(conditionInfo);
-            datum.setStartDate(dto.getTaskDate());
-            datum.setStartTime(dto.getTaskTime());
+            customerScoreRuleVO.setConditionInfo(conditionInfo);
+            customerScoreRuleVO.setStartDate(dto.getTaskDate());
+            customerScoreRuleVO.setStartTime(dto.getTaskTime());
             if (new Integer(1).equals(dto.getIsOrNoScoreVer())) {
-                datum.setExecType(2);
-                datum.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
-                datum.setDataLimit(dto.getDataLimit());
+                customerScoreRuleVO.setExecType(2);
+                customerScoreRuleVO.setIsOrNoScoreVer(dto.getIsOrNoScoreVer());
+                customerScoreRuleVO.setDataLimit(dto.getDataLimit());
             }
-            datum.setBuildType(1);
+            customerScoreRuleVO.setBuildType(1);
 
-            Result<Long> result = buildScoreTaskOfSelect(datum, userTypeList);
+            Result<Long> result = buildScoreTaskOfSelect(customerScoreRuleVO, userTypeList);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 resIds.add(result.getData());
             }

@@ -16,7 +16,7 @@
         , src.is_online as isOnline
         , src.priority as priority
         , bmc.cid
-        , bmc.api_code
+        , group_concat(bmc.api_code) as apiCode
         , case src.status
         when 1 then '开启'
         when 2 then '禁用'
@@ -63,6 +63,7 @@
                 and src.exec_type=#{execType}
             </if>
         </where>
+        group by bcr.rule_id
         order by src.update_time desc, src.create_time desc
     </select>
 
@@ -80,9 +81,113 @@
         left join b_marketing_customer bmc on bcr.customer_id = bmc.id
         <where>
             src.is_del=1 and src.status=1
-            <if test="apiCode != null and apiCode.trim() neq ''">
-                and  bmc.api_code=#{apiCode}
+            <if test="apiCodeList != null and apiCodeList.size() > 0">
+                and bmc.api_code in
+                <foreach collection="apiCodeList" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
             </if>
         </where>
+    </select>
+
+    <select id="getScoreRuleVoList" resultType="com.br.marketing.vo.CustomerScoreRuleVO">
+        select
+            src.id as id,
+            src.rule_name as ruleName,
+            src.rule_name_short as ruleNameShort,
+            src.start_time as startTime,
+            src.strategy_product_json as strategyProductJson,
+            src.strategy_id as strategyId,
+            src.product_info as productInfo,
+            src.base_info as baseInfo,
+            src.rule_type as ruleType,
+            src.is_del as isDel,
+            src.create_time as createTime,
+            src.exec_type as execType,
+            src.auto_build as autoBuild,
+            src.cycle_day as cycleDay,
+            src.cycle_end_day as cycleEndDay,
+            src.push_type as pushType,
+            src.task_type as taskType,
+            src.status as status,
+            src.update_time as updateTime,
+            src.strategy_product_show as strategyProductShow,
+            src.threek_encrypt_type as threekEncryptType,
+            src.is_online as isOnline,
+            src.is_stack_validity as isStackValidity,
+            src.priority as priority,
+            bmc.api_code as apiCode,
+            bmc.cid as cid,
+            bcr.condition_info as conditionInfo
+        from b_score_rule_config src
+        left join b_customer_rule bcr on src.id = bcr.rule_id
+        left join b_marketing_customer bmc on bcr.customer_id = bmc.id
+        <where>
+            src.is_del=1 and bcr.is_del = 1 and bmc.status = 1
+            <if test="ruleIdList != null and ruleIdList.size() > 0">
+                and src.id in
+                <foreach collection="ruleIdList" item="ruleId" separator="," open="(" close=")">
+                    #{ruleId}
+                </foreach>
+            </if>
+            <if test="apiCodeList != null and apiCodeList.size() > 0">
+                and bmc.api_code in
+                <foreach collection="apiCodeList" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by src.start_time asc
+    </select>
+
+    <select id="getScoreRuleDtoList" resultType="com.br.marketing.dto.CustomerScoreRuleDTO">
+        select
+        src.id as id,
+        src.rule_name as ruleName,
+        src.rule_name_short as ruleNameShort,
+        src.start_time as startTime,
+        src.strategy_product_json as strategyProductJson,
+        src.strategy_id as strategyId,
+        src.product_info as productInfo,
+        src.base_info as baseInfo,
+        src.rule_type as ruleType,
+        src.is_del as isDel,
+        src.create_time as createTime,
+        src.exec_type as execType,
+        src.auto_build as autoBuild,
+        src.cycle_day as cycleDay,
+        src.cycle_end_day as cycleEndDay,
+        src.push_type as pushType,
+        src.task_type as taskType,
+        src.status as status,
+        src.update_time as updateTime,
+        src.strategy_product_show as strategyProductShow,
+        src.threek_encrypt_type as threekEncryptType,
+        src.is_online as isOnline,
+        src.is_stack_validity as isStackValidity,
+        src.priority as priority,
+        bcr.customer_id as mid,
+        bcr.condition_info as conditionInfo,
+        bmc.api_code as apiCode,
+        bmc.cid as cid
+        from b_score_rule_config src
+        left join b_customer_rule bcr on src.id = bcr.rule_id
+        left join b_marketing_customer bmc on bcr.customer_id = bmc.id
+        <where>
+            src.is_del=1 and bcr.is_del = 1 and bmc.status = 1
+            <if test="ruleIdList != null and ruleIdList.size() > 0">
+                and src.id in
+                <foreach collection="ruleIdList" item="ruleId" separator="," open="(" close=")">
+                    #{ruleId}
+                </foreach>
+            </if>
+            <if test="apiCodeList != null and apiCodeList.size() > 0">
+                and bmc.api_code in
+                <foreach collection="apiCodeList" item="item" separator="," open="(" close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        order by src.start_time asc
     </select>
 </mapper>

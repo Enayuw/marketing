@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl.wuba;
 
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -21,7 +20,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -72,9 +70,9 @@ public class WuBaQueryConversionResultTransService {
     private MarketingCleanDataTaskMapper cleanDataTaskMapper;
 
     @Transactional(rollbackFor = Exception.class)
-    public Result<WubaCollidingBatchNo> processCallSuccess(WubaCollidingBatchNo wubaCollidingBatchNo,
-                                                           List<ConversionResponseDTO> dtoList) throws Exception {
-        Result<WubaCollidingBatchNo> result = new Result().failure();
+    public Result<WubaCollidingDataBatchNo> processCallSuccess(WubaCollidingDataBatchNo wubaCollidingBatchNo,
+                                                               List<ConversionResponseDTO> dtoList) throws Exception {
+        Result<WubaCollidingDataBatchNo> result = new Result().failure();
 
         // call success, 上报分流处理
         List<ConversionResponseDTO> successDtoList = new ArrayList<>();
@@ -108,8 +106,8 @@ public class WuBaQueryConversionResultTransService {
         return result.success();
     }
 
-    public Result processSuccessSubmit(WubaCollidingBatchNo wubaCollidingBatchNo,
-            List<ConversionResponseDTO> responseDtoList) throws Exception {
+    public Result processSuccessSubmit(WubaCollidingDataBatchNo wubaCollidingBatchNo,
+                                       List<ConversionResponseDTO> responseDtoList) throws Exception {
         if(CollectionUtils.isEmpty(responseDtoList)){
             return new Result().success();
         }
@@ -171,9 +169,9 @@ public class WuBaQueryConversionResultTransService {
         log.warn(TITLE + "更新上报日志状态成功, batchNo: {}", batchNo);
 
         // 营销名单上报表, push_status置为2-推送成功
-        List<String> successCellList = responseDtoList.stream().map(ConversionResponseDTO::getMobileEncrypt).collect(Collectors.toList());
-        updateDataStatus(successCellList,2, apiCode, wubaCollidingBatchNo.getPushTime());
-        log.warn(TITLE + "更新营销名单上报状态成功, batchNo: {}", batchNo);
+//        List<String> successCellList = responseDtoList.stream().map(ConversionResponseDTO::getMobileEncrypt).collect(Collectors.toList());
+//        updateDataStatus(successCellList,2, apiCode, wubaCollidingBatchNo.getPushTime());
+//        log.warn(TITLE + "更新营销名单上报状态成功, batchNo: {}", batchNo);
 
         // 更新清洗任务表
         MarketingCleanDataTask cleanDataTaskUpdate = new MarketingCleanDataTask();
@@ -185,7 +183,7 @@ public class WuBaQueryConversionResultTransService {
         return new Result().success();
     }
 
-    public Result<?> processFailureSubmit(WubaCollidingBatchNo wubaCollidingBatchNo,
+    public Result<?> processFailureSubmit(WubaCollidingDataBatchNo wubaCollidingBatchNo,
                                           List<ConversionResponseDTO> responseDtoList) throws Exception {
         if(CollectionUtils.isEmpty(responseDtoList)){
             return new Result().success();
@@ -196,17 +194,17 @@ public class WuBaQueryConversionResultTransService {
         updateDataLogStatus(wubaCollidingBatchNo, failureCellList, 2);
 
         // 营销名单上报表, push_status置为3-推送失败
-        updateDataStatus(failureCellList, 3, wubaCollidingBatchNo.getApiCode(), wubaCollidingBatchNo.getPushTime());
+//        updateDataStatus(failureCellList, 3, wubaCollidingBatchNo.getApiCode(), wubaCollidingBatchNo.getPushTime());
 
         return new Result().success();
     }
 
-    public Result updateBatchNoStatus(WubaCollidingBatchNo wubaCollidingBatchNo, Integer queryStatus) throws Exception {
-        WubaCollidingBatchNo batchNoUpdate = new WubaCollidingBatchNo();
+    public Result updateBatchNoStatus(WubaCollidingDataBatchNo wubaCollidingBatchNo, Integer queryStatus) throws Exception {
+        WubaCollidingDataBatchNo batchNoUpdate = new WubaCollidingDataBatchNo();
         batchNoUpdate.setBatchType(2);
         batchNoUpdate.setQueryStatus(queryStatus);
         //
-        WubaCollidingBatchNoExample batchNoUpdateExample = new WubaCollidingBatchNoExample();
+        WubaCollidingDataBatchNoExample batchNoUpdateExample = new WubaCollidingDataBatchNoExample();
         String batchNo = wubaCollidingBatchNo.getBatchNo();
         batchNoUpdateExample.createCriteria().andBatchNoEqualTo(batchNo);
         int batchNoUpdateResult = batchNoMapper.updateByExampleSelective(batchNoUpdate, batchNoUpdateExample);
@@ -218,24 +216,7 @@ public class WuBaQueryConversionResultTransService {
         return new Result().success();
     }
 
-    public Result updateDataStatus(List<String> cellList, Integer pushStatus, String apiCode, Date pushTime) {
-        WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
-        dataUpdate.setPushStatus(pushStatus);
-        //
-        Integer createDate = Integer.parseInt(DateUtils.format(pushTime, "yyyyMMdd"));
-        WubaSubmitConversionDataExample dataUpdateExample = new WubaSubmitConversionDataExample();
-        dataUpdateExample.createCriteria().andCellIn(cellList)
-                .andApiCodeEqualTo(apiCode)
-                .andCreateDateEqualTo(createDate);
-        int dataUpdateResult = dataMapper.updateByExampleSelective(dataUpdate, dataUpdateExample);
-        if(dataUpdateResult != cellList.size()){
-            log.warn(TITLE+"更新营销名单上报状态{}, 批次返回cell与上报表不一致", pushStatus);
-            // throw new Exception(TITLE+"营销名单上报表更新状态异常");
-        }
-        return new Result().success();
-    }
-
-    public Result updateDataLogStatus(WubaCollidingBatchNo wubaCollidingBatchNo, List<String> cellList,
+    public Result updateDataLogStatus(WubaCollidingDataBatchNo wubaCollidingBatchNo, List<String> cellList,
                                       Integer submitResult) throws Exception {
         WubaSubmitConversionDataLog dataLogUpdate = new WubaSubmitConversionDataLog();
         dataLogUpdate.setSubmitResult(submitResult);

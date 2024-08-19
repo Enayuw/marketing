@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
  * @dateTime 2022/4/12 15:14
  */
 @Slf4j
-public class CuFuJie extends IUserType {
+public class CuFuJie extends BaseUserType {
 
     public CuFuJie(String... api2Codes) {
         super(api2Codes);

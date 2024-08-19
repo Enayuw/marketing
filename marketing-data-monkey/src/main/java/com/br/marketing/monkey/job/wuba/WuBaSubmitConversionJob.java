@@ -1,7 +1,9 @@
 package com.br.marketing.monkey.job.wuba;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
@@ -14,9 +16,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.*;
 
 /**
  * @Description 58新客提交营销名单
@@ -52,8 +54,12 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
             for (Map<String, String> paramMap : paramList) {
                 String apiCode = paramMap.get("apiCode");
                 String bizDate = paramMap.get("bizDate");
-                Integer createDate = Integer.parseInt(bizDate.replace("-", ""));
-                action(apiCode, createDate, pageSize);
+                Integer createDate = Integer.parseInt(bizDate);
+                Result<Map<String, Object>> actionResult = action(apiCode, createDate, pageSize);
+                boolean hasScanData = judgeHasScanData(actionResult);
+                if(hasScanData){
+                    break;
+                }
             }
 
             log.warn(TITLE + "调度结束");
@@ -62,7 +68,7 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private void action(String apiCode, Integer createDate, Integer pageSize) {
+    private Result<Map<String, Object>> action(String apiCode, Integer createDate, Integer pageSize) {
         WubaSubmitConversionData param = new WubaSubmitConversionData();
         param.setApiCode(apiCode);
         param.setStatus(1);
@@ -71,7 +77,8 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
         Page2Condition<WubaSubmitConversionData> condition = new Page2Condition<>();
         condition.setParam(param);
         condition.setPageSize(pageSize);
-        service.action(condition);
+        log.warn(TITLE + "condition: {}", JSONObject.toJSON(condition));
+        return service.action(condition);
     }
 
     private boolean checkJobSwitch(){
@@ -86,20 +93,47 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
 
     /**
      * 解析Job参数，格式如下：
-     * e.g [{"apiCode":"3710155","bizDate":"2024-07-11"},{"apiCode":"3710155","bizDate":"2024-07-12"}]
+     * e.g [{"apiCode":"3710155","bizDate":"-6"},{"apiCode":"3710155","bizDate":"-5"}]
      */
     private List<Map<String, String>> parseParameter() throws Exception {
-        List<Map<String, String>> paramList = marketingCommonConfig.getWuBaSubmitConversionParams();
-        String curDate = DateUtils.format(new Date(), "yyyy-MM-dd");
+        List<Map<String, String>> paramList = new ArrayList<>();
+        List<Map<String, String>> configList = marketingCommonConfig.getWuBaSubmitConversionParams();
+        LocalDate curLocalDate = LocalDate.now();
+        log.warn(TITLE + "curDate: {}", curLocalDate);
 
-        for(Map<String, String> map : paramList){
-            if(StringUtils.isEmpty(map.get("apiCode"))){
-                throw new Exception("Job参数格式不正确");
+        for(Map<String, String> configMap : configList){
+            Map<String, String> paramMap = new HashMap<>();
+            // apiCode
+            String apiCode = configMap.get("apiCode");
+            if(StringUtils.isEmpty(apiCode)){
+                throw new Exception("Job参数apiCode格式不正确");
             }
-            if(StringUtils.isEmpty(map.get("bizDate"))){
-                map.put("bizDate", curDate);
+            paramMap.put("apiCode", apiCode);
+
+            // bizDate
+            String bizDateStr = configMap.get("bizDate");
+            if(StringUtils.isEmpty(bizDateStr)){
+                throw new Exception("Job参数bizDate格式不正确");
+            }
+            Long bizDateLong = Long.parseLong(bizDateStr);
+            LocalDate bizLocalDate = curLocalDate.plusDays(bizDateLong);
+            Date bizDate = Date.from(bizLocalDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant());
+            String bizDateFormat = DateUtils.format(bizDate, "yyyyMMdd");
+
+            paramMap.put("bizDate", bizDateFormat);
+            paramList.add(paramMap);
+        }
+        log.warn(TITLE + "paramList: {}", JSONObject.toJSONString(paramList));
+        return paramList;
+    }
+
+    private boolean judgeHasScanData(Result<Map<String, Object>> actionResult){
+        if (actionResult != null && actionResult.isSuccess() && actionResult.getData() != null) {
+            Map<String, Object> data = actionResult.getData();
+            if(data.get("hasScanData")!=null && "0".equals(String.valueOf(data.get("hasScanData")))) {
+                return false;
             }
         }
-        return paramList;
+        return true;
     }
 }

@@ -1,5 +1,5 @@
 import com.br.marketing.monkey.MarketingDataMonkeyApplication;
-import com.br.marketing.monkey.job.ZhongAnPushRosterLockingDataJob;
+import com.br.marketing.monkey.job.zhongan.ZhongAnPushRosterLockingDataJob;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;

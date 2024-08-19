@@ -57,10 +57,16 @@ public class VariableDicListVO{
     private String fieldDesc;
 
     /**
-     * 默认有效期是N天，代表T+N范围
+     * 默认有效期是N，代表T+N范围
      */
-    @ApiModelProperty(value = "默认有效期是N天，代表T+N范围")
+    @ApiModelProperty(value = "默认有效期是N，代表T+N范围")
     private String validDaysDefault;
+
+    /**
+     * 有效期类型：0按日维度,1按月维度
+     */
+    @ApiModelProperty(value = "有效期类型：0按日维度,1按月维度")
+    private Integer validType;
 
     /**
      * 删除标志；1-正常；9-删除；

@@ -101,7 +101,10 @@ public class MarketingCommonConfig {
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
+     *
+     * @deprecated 弃用，已使用新有效期配置
      */
+    @Deprecated
     private Map<String, String> shuHeTransferExtractDayMap;
 
     /**
@@ -117,13 +120,17 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾转化数据提取任务是否使用准全量转化数据
+     * @deprecated 弃用，已使用新版有效期范围
      */
+    @Deprecated
     private Boolean shuHeTransferExtractIfUseQuasiTotalQuantity;
 
     /**
      * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
+     * @deprecated 弃用，已使用最新版本有效期配置
      */
+    @Deprecated
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
     /**
@@ -1251,6 +1258,19 @@ public class MarketingCommonConfig {
     private HashMap<String, Object> baiYingUndoMock;
 
     /**
+     * 推送之家创建线索接口挡板开关 true:开启挡板。false:关闭挡板
+     * zhiJiaUndoMock={"switch":true,"httpcode":"200","code":"0"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * httpcode：
+     *      200:请求成功
+     * code：
+     *      0:调用之家创建线索接口成功
+     */
+    private HashMap<String, Object> zhiJiaUndoMock;
+
+    /**
      *
      */
     private HashMap<String, Object> qiFuDeleteReachRecordMock;
@@ -1603,7 +1623,9 @@ public class MarketingCommonConfig {
     /**
      * 2024-04-18 10:53
      * 数禾适配新有效期apiCode与场景信息eg:{apiCode:[场景]}
+     * @deprecated 已废弃
      */
+    @Deprecated
     private Map<String, JSONArray> shuHeNewPeriodOfValidityMap = new HashMap<>();
     /**
      * 修复cell的apiCode前缀集合
@@ -1775,6 +1797,20 @@ public class MarketingCommonConfig {
     private Long qiFuSyncToPolicyValidityCheckDelayTime;
 
     /**
+     * 之家创建线索程池数
+     */
+    private Integer zhiJiaCollidingThread;
+
+    /**
+     * 之家落库apiCode
+     */
+    private String zhiJiaApiCode;
+
+    /**
+     * 之家用户信息分页参数
+     */
+    private Integer zhiJiaQryUserMessageSize;
+    /**
      * 奇富360数据提取参数配置
      */
     private HashMap<String, JSONObject> qiFuExtDataConfig;
@@ -1856,6 +1892,21 @@ public class MarketingCommonConfig {
     private Integer wuBaCollidingQueryResultWaitMinutes;
 
     /**
+     * 58新客-营销名单上报-修改上报数据-开关，1-开，0-关
+     */
+    private String wuBaSubmitConversionChangeDataSwitch;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-条件参数
+     */
+    private List<Map<String, String>> wuBaSubmitConversionChangeDataParams;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-线程参数
+     */
+    private Map<String, String> wuBaSubmitConversionChangeDataThreadConfig;
+
+    /**
      * 58新客-营销名单上报-开关，1-开，0-关
      */
     private String wuBaSubmitConversionSwitch;
@@ -1931,5 +1982,45 @@ public class MarketingCommonConfig {
      * 通用Mock配置
      */
     private JSONObject commonMockConfig;
+
+    /**
+     *
+     * 58新课数据提取参数配置
+     */
+    private HashMap<String, JSONObject> wbxkExtDataConfig;
+
+    /**
+     * 58撞库接口参数配置
+     */
+    private JSONObject wuBaCollidingUrlConfig;
+
+    /**
+     * 医时转化数据提取apiCode集合
+     */
+    private List<String> YiShiTransferApiCodes;
+
+    /**
+         * 医时转化数据提取执行时间
+     */
+    private String YiShiTransferFileExecuteTime;
+
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化上传接口自定义配置apiCode
+     * eg:{"U_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
+
+    /**
+     * 推决策报警apiCode集合
+     */
+    private List<String> pushAlarmApiCode;
+    /**
+     *  * 2024-08-13 15:42
+     * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
+
 }
 

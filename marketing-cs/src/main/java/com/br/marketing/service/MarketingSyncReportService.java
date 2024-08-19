@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -85,12 +86,12 @@ public interface MarketingSyncReportService {
     /**
      * 修改有效期记录
      *
-     * @param id
+     * @param ids
      * @param validStartDate
      * @param validEndDate
      * @return
      */
-    boolean updateById(Long id, String validStartDate, String validEndDate);
+    boolean updateById(List<Long> ids, String validStartDate, String validEndDate);
 
 
     /**

@@ -16,7 +16,9 @@ public interface DataDistributeDetailLogMapper extends DataDistributeDetailLogMa
     Set<String> findDistributeLogCellSet(@Param("apiCode") String apiCode,
                                       @Param("distributeType") Integer distributeType,
                                       @Param("distributeDate") String distributeDate,
-                                      @Param("cells") Set<String> cells);
+                                      @Param("cells") Set<String> cells,
+                                      @Param("marketingDate") String marketingDate);
 
-
+    List<Long> findZhongAnLockingDataDistributeLog(@Param("apiCode") String apiCode, @Param("distributeType") Integer distributeType,
+        @Param("distributeDate") String distributeDate, @Param("cell") String cell, @Param("userType") String userType, @Param("tag") String tag);
 }

@@ -5,8 +5,8 @@ import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.ShuHeRuleCollectDataImpl;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
-import com.br.marketing.dto.shuhe.strategy.IUserType;
 import com.br.marketing.entity.CaseShuheUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.PhoneSaleExtendInfo;
@@ -61,15 +61,15 @@ public class ShuHeArtificialTransferImpl implements AssembleData<DassAssembleTra
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData shuHeContext =
                     (ShuHeRuleCollectDataImpl.ShuHeRuleNecessaryData) context.getRuleNecessaryData();
-            IUserType iUserType = shuHeContext.getIUserType();
-            if (iUserType instanceof CuFuJie) {
+            BaseUserType baseUserType = shuHeContext.getBaseUserType();
+            if (baseUserType instanceof CuFuJie) {
                 CaseShuheUser caseShuheUser = shuHeContext.getCaseShuheUser();
                 Date creatTime = shuHeContext.getCreatTime();
                 Integer day = handlerService.getShuHePeriodOfValidityDay(caseShuheUser.getUserType());
-                boolean isPeriod = iUserType.dataPeriodOfValidity(iMarketingSyncUserService
+                boolean isPeriod = baseUserType.dataPeriodOfValidity(iMarketingSyncUserService
                         , transfer.getCreateTime(), day, creatTime);
                 if (isPeriod) {
-                    bool = ((CuFuJie) iUserType).ifTransfer(caseShuheUser, creatTime, marketingCommonConfig);
+                    bool = ((CuFuJie) baseUserType).ifTransfer(caseShuheUser, creatTime, marketingCommonConfig);
                 }
             }
         }

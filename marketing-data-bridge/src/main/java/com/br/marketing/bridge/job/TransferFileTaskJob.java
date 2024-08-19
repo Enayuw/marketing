@@ -2,10 +2,12 @@ package com.br.marketing.bridge.job;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.RetryMainLogMapper;
@@ -23,6 +25,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -33,6 +36,12 @@ import java.util.*;
 @Slf4j
 public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     private static int initCollectionSize = 64;
+
+    @Value("${otherConfig.warning.sftpHost:00}")
+    private String sftpHost;
+
+    @Value("${innerSftp.uploadpath:00}")
+    private String upLoadPath;
 
     @Resource
     MarketingCustomerMapper marketingCustomerMapper;
@@ -221,7 +230,18 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private TransferToFileBySuShangServiceImpl transferToFileBySuShangService;
 
+    /**
+     * 苏商自动化回传-3710114
+     */
+    @Resource
+    private TransferToFileByWbxkServiceImpl transferToFileByWbxkService;
 
+
+    /**
+     * 医时
+     */
+    @Resource
+    private TransferToFileByYiShiServiceImpl transferToFileByYiShiService;
 
     @Resource
     ICompatibleService iCompatibleService;
@@ -258,7 +278,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                             listResult = serviceImpl.buildTransferTask(marketingCustomer.getApiCode(), myParam);
                         }
                     } catch (Exception e) {
-                        log.error("该apiCode:{}执行数据提取任务获取锁:{}异常", marketingCustomer.getApiCode(), redisKey, e);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode()
+                                , "该apiCode:" + marketingCustomer.getApiCode() + "执行数据提取任务获取锁:" + redisKey + "异常!"), e);
                     } finally {
                         redisChgService.unlock(redisKey, value);
                     }
@@ -284,17 +305,34 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                                 } else {
                                     //第一次执行，查询为空，不会进行删除，直接返回
                                     //第二次执行，删除b_sync_log的记录
+                                    String fileChildDir = "";
+                                    if (StringUtils.isNotEmpty(datum.getFileChildDir())) {
+                                        fileChildDir =  datum.getFileChildDir().concat("/");
+                                    }
+                                    String childDir = StringUtils.isNotEmpty(datum.getFileChildDir()) ? fileChildDir : "";
+                                    String srcPath = sftpHost.concat(":")
+                                            .concat(upLoadPath)
+                                            .concat(marketingCustomer.getApiCode())
+                                            .concat("/transferOutPut/")
+                                            .concat(childDir)
+                                            .concat(datum.getStartDate())
+                                            .concat("/");
                                     List<SyncLog> syncLogList = loanSyncLogMapper.querySyncLog(
-                                            ImmutableMap.of("apiCode", marketingCustomer.getApiCode(), "fileName", datum.getFileName()));
+                                            ImmutableMap.of("apiCode", marketingCustomer.getApiCode()
+                                                    , "fileName", datum.getFileName()
+                                                    , "srcPath", srcPath));
                                     if (!CollectionUtils.isEmpty(syncLogList)) {
                                         if (syncLogList.size() != 1) {
-                                            log.warn("重新执行数据提取异常，apiCode={},fileName={},syncLogSize={}"
-                                                    , marketingCustomer.getApiCode(), datum.getFileName(), syncLogList.size());
+                                            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode()
+                                                    , "重新执行数据提取异常，apiCode=" + marketingCustomer.getApiCode()
+                                                            + ",fileName=" + datum.getFileName()
+                                                            + ",syncLogSize=" + syncLogList.size()));
                                             return;
                                         }
                                         SyncLogExample syncLogExample = new SyncLogExample();
                                         syncLogExample.createCriteria().andApiCodeEqualTo(marketingCustomer.getApiCode())
-                                                .andFileNameIn(Lists.newArrayList(datum.getFileName(), datum.getFileName() + ".success"));
+                                                .andFileNameIn(Lists.newArrayList(datum.getFileName(), datum.getFileName() + ".success"))
+                                                .andSrcPathEqualTo(srcPath);
                                         loanSyncLogMapper.deleteByExample(syncLogExample);
                                     }
                                 }
@@ -302,7 +340,8 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                         }
                     }
                 } catch (Exception ex) {
-                    log.error(String.format("客户转化文件提取报错：%s,报错信息：%s", marketingCustomer.getApiCode(), ex.getMessage()), ex);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode()
+                            , String.format("客户转化文件提取报错：%s,报错信息：%s", marketingCustomer.getApiCode(), ex.getMessage())), ex);
                 }
             }
         }
@@ -375,7 +414,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByCuDongZhiService, marketingCommonConfig.getCuDongZhiTransferExtractApiCodes())
                 .addBind(transferToFileByQiFuFullService, ObjectUtil.isEmpty(marketingCommonConfig.getQiFuFullExtDataConfig()) ? null
                         : marketingCommonConfig.getQiFuFullExtDataConfig().keySet())
-                .addBind(transferToFileBySuShangService, marketingCommonConfig.getSuShangTransferExtractApiCodes()).build();
+                .addBind(transferToFileByWbxkService, ObjectUtil.isEmpty(marketingCommonConfig.getWbxkExtDataConfig()) ? null
+                        : marketingCommonConfig.getWbxkExtDataConfig().keySet())
+                .addBind(transferToFileBySuShangService, marketingCommonConfig.getSuShangTransferExtractApiCodes())
+                //医时转换数据提取
+                .addBind(transferToFileByYiShiService, marketingCommonConfig.getYiShiTransferApiCodes())
+                .build();
 
     }
 

@@ -36,6 +36,7 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
      * 数据结构如下
      * {
      *     "ruleIds": [123,324],
+     *     "apiCode": "7491638",
      *     "startDate": "2022-05-01",
      *     "taskTime": "01:00",
      *     "conditionInfo": "[{\"logicalOperation\":\"and\",\"operationFactor\":[{\"fieldName\":\"appletDate\",\"fieldValue\":\"2022-04-28\",\"operation\":\"=\"},{\"fieldName\":\"appletTime\",\"fieldValue\":\"2022-04-28 10:15:03\",\"operation\":\"<\"},{\"fieldName\":\"userType\",\"fieldValue\":\"S02\",\"operation\":\"=\"}]}]"
@@ -46,7 +47,7 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         String jobParameter = jobExecutionMultipleShardingContext.getJobParameter();
         BackEndScoreRuleConfigDTO dto = JSON.parseObject(jobParameter, BackEndScoreRuleConfigDTO.class);
-        Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds());
+        Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(dto.getRuleIds(), dto.getApiCode());
         AssertResult.assertResult(scoreConfigNow);
         for (CustomerScoreRuleVO datum : scoreConfigNow.getData()) {
             datum.setConditionInfo(dto.getConditionInfo());

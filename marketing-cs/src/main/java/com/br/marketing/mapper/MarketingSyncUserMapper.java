@@ -360,4 +360,21 @@ public interface MarketingSyncUserMapper {
                                @Param("cusBatch") String cusBatch,
                                @Param("userType") String userType,
                                @Param("appletDate") String appletDate);
+
+    Set<String> getCustNumSetByAppletDateInterval(
+            @Param("apiCode") String apiCode,
+            @Param("custNums") List<String> custNums,
+            @Param("appletDateStart") String appletDateStart,
+            @Param("appletDateEnd") String appletDateEnd
+    );
+
+    /**
+     * 2024-08-09 16:53
+     * 根据案件编号和上传时间查询扩展字段
+     */
+    List<MarketingSyncUser> getReserveFieldByCustNumAndAppletDateList(@Param("apiCode") String apiCode,
+                                                                      @Param("custNumSet") Set<String> custNumSet,
+                                                                      @Param("appletDateSet") Set<String> appletDateSet);
+
+    int updateReserveFieldByPrimaryKey(MarketingSyncUser record);
 }

@@ -30,6 +30,6 @@ public class PushMarketingUserDetailDTO implements Serializable {
      */
     private JSONObject variables;
 
-
+    private String strategyCode;
 
 }

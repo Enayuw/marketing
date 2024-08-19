@@ -12,15 +12,8 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingCustomizeDataValidConfig;
-import com.br.marketing.entity.MarketingCustomizeDataValidConfigExample;
-import com.br.marketing.entity.MarketingDataValidConfig;
-import com.br.marketing.entity.MarketingDataValidConfigExample;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserCell;
-import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.IPeriodOfValidityService;
@@ -1234,6 +1227,36 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return resultMap;
     }
 
+    /**
+     * 根据上传数据cell获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param cellSet        cell集合
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
+     * @author senyang.zheng
+     * @date 2023/12/08
+     */
+    @Override
+    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCells(Set<String> cellSet, String apiCode, Object requestDateObj) {
+        if (CollectionUtils.isEmpty(cellSet) || StringUtils.isEmpty(apiCode)) {
+            return Collections.emptyMap();
+        }
+        Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
+        // 统一时间格式
+        final String requestDateStr = switchDateStr(requestDateObj);
+        // 获取有效期配置不分页
+        List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, null, null, null);
+        if (CollectionUtil.isEmpty(configList)) {
+            return resultMap;
+        }
+        // 包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCellAndAppletDateList(apiCode, configList, cellSet);
+        // 组装有效期数据
+        buildValidityPeriodsInfo(syncUserList, configList, resultMap);
+        return resultMap;
+    }
+
     private void buildValidityPeriodsInfoByKeyMapper(Function<MarketingSyncUser, String> keyMapper,
                                                      List<MarketingSyncUser> syncUserList,
                                                      List<MarketingDataValidConfig> configList,
@@ -1484,6 +1507,82 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             return;
         }
         newBoMap.forEach((k, v) -> boMap.merge(k, v, this::latestSyncUserValidityPeriodBO));
+    }
+
+
+    @Override
+    public List<MarketingDataValidConfig> getDataValidityPeriodPageList(
+            String apiCode, String userType, Object requestDateObj, int pageNo, int pageSize) {
+        return getDataValidityPeriodPageList(apiCode, Collections.singleton(userType), requestDateObj, pageNo, pageSize);
+    }
+
+    @Override
+    public List<MarketingDataValidConfig> getDataValidityPeriodPageList(
+            String apiCode, Set<String> userTypeSet, Object requestDateObj, int pageNo, int pageSize) {
+        //统一时间格式
+        String requestDateStr = switchDateStr(requestDateObj);
+        return getDataValidConfig(apiCode, requestDateStr, userTypeSet, pageNo, pageSize);
+    }
+
+    @Override
+    public List<MarketingDataValidConfig> getDataMergeValidityPeriodList(String apiCode, String userType, Object requestDateObj) {
+        int pageNo = 0;
+        int pageSize = 2000;
+        //统一时间格式
+        String requestDateStr = switchDateStr(requestDateObj);
+        Set<String> set = Collections.singleton(userType);
+        List<MarketingDataValidConfig> mergeList = new ArrayList<>();
+        for (; true; ) {
+            List<MarketingDataValidConfig> list = getDataValidConfig(apiCode, requestDateStr, set, pageNo, pageSize);
+            if (list.isEmpty()) {
+                break;
+            }
+            // 收集分页的合并结果
+            mergeList.addAll(mergeValidityPeriod(list));
+            if (list.size() < pageSize) {
+                break;
+            }
+            pageNo++;
+        }
+        return pageNo > 0 ? mergeValidityPeriod(mergeList) : mergeList;
+    }
+
+    /**
+     * 2024-07-15 15:30
+     * 合并时间段
+     *
+     * @param list 有效期配置集合
+     * @return 合并时间段集合
+     */
+    private List<MarketingDataValidConfig> mergeValidityPeriod(List<MarketingDataValidConfig> list) {
+        if (CollectionUtils.isEmpty(list) || list.size() == 1) {
+            return list;
+        }
+        List<MarketingDataValidConfig> mergeList = new ArrayList<>();
+        list.sort(Comparator.comparing(config -> LocalDate.parse(config.getValidStartDate())));
+        for (MarketingDataValidConfig validConfig : list) {
+            validConfig.setId(null);
+            validConfig.setCreateTime(null);
+            validConfig.setUpdateTime(null);
+            validConfig.setAppletDate(null);
+            LocalDate startDate = LocalDate.parse(validConfig.getValidStartDate());
+            LocalDate mergeEndDate;
+            MarketingDataValidConfig mergeValidConfig;
+            if (mergeList.isEmpty()) {
+                mergeList.add(validConfig);
+            } else {
+                mergeValidConfig = mergeList.get(mergeList.size() - 1);
+                mergeEndDate = LocalDate.parse(mergeValidConfig.getValidEndDate());
+                if (startDate.isAfter(mergeEndDate)) {
+                    mergeList.add(validConfig);
+                } else {
+                    LocalDate endDate = LocalDate.parse(validConfig.getValidEndDate());
+                    mergeValidConfig.setValidEndDate(mergeEndDate.isAfter(endDate)
+                            ? mergeValidConfig.getValidEndDate() : validConfig.getValidEndDate());
+                }
+            }
+        }
+        return mergeList;
     }
 
 }

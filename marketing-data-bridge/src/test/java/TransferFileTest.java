@@ -5,6 +5,7 @@ import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByRongShuServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileBySuShangServiceImpl;
+import com.br.marketing.service.Impl.transfertofile.TransferToFileByYiShiServiceImpl;
 import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -55,6 +56,41 @@ public class TransferFileTest implements ApplicationContextAware {
 //        List<SyncConfig> syncConfigList = new ArrayList<>();
 //        syncConfigList.add(queryConfig);
 //        fileSyncService.pullFromSftp();
+    }
+
+    @Resource
+    TransferToFileByYiShiServiceImpl transferToFileByYiShiService;
+    private final static String TABLE_HEAD_TRANSFER_YiShi = "custNum,userType,callId,isBlack,extend01,extend02";
+    @Test
+    public void YiShiTransferFileTest() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7410716");
+        String apiCode = "7410716";
+        String myParam = "7410716#2024-07-29";
+        String dd = isMyParam("7410716", myParam);
+        String date = LocalDate.now().toString();
+        date = date.replace("-", "");
+        transferFileTask.setStartDate(dd);
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? dd.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("transform_yishi_%s.txt", dateyyyymmddStr));
+        log.warn("医时化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEAD_TRANSFER_YiShi);
+            fw.append("\r\n");
+            transferToFileByYiShiService.writeYiShiTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
     }
 
     private final static String FILE_HEADER_PPD = "requestId,requestTime,custNum,cell,userType,userType1,registerTime,ifApply,applyDt,applyResult,"

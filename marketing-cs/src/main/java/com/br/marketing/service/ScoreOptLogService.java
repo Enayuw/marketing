@@ -5,6 +5,7 @@ import com.br.marketing.entity.ScoreOptLog;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.vo.ScoreRuleVO;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -37,5 +38,5 @@ public interface ScoreOptLogService {
      * @author zeqiang.guo@brgroup.com
      * @dateTime 2021/9/10 18:03
      */
-    int save(ScoreRuleVO scoreRuleVO, int status, MarketingUserDetail userDetail);
+    int save(ScoreRuleVO scoreRuleVO, int status, MarketingUserDetail userDetail,String conditionInfo);
 }

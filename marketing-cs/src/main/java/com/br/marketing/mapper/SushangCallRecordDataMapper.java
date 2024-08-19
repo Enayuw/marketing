@@ -12,8 +12,10 @@ public interface SushangCallRecordDataMapper extends SushangCallRecordDataMapper
     SushangCallRecordData getLastedCallData(@Param("local_id")Long callRecordLocalId, @Param("minDealTime")String minDealTime,
                                             @Param("cust_num")String custNum);
 
-    List<SushangCallRecordData> getCallRecordList(@Param("local_id")Long callRecordLocalId,@Param("callTime")String callTime, @Param("cust_num")String custNum);
+    List<SushangCallRecordData> getCallRecordList(@Param("local_id")Long callRecordLocalId,@Param("callTime")String callTime,
+                                                  @Param("cust_num")String custNum);
 
     List<SushangCallRecordData> getHalfYearCallRecord(@Param("local_id")Long callRecordLocalId, @Param("indexId")Long indexId,
-                                                    @Param("pageSize")Integer pageSize,@Param("beginDate")String beginDate,@Param("endDate")String endDate);
+                                                      @Param("pageSize")Integer pageSize,
+                                                      @Param("beginDate")String beginDate, @Param("endDate")String endDate);
 }

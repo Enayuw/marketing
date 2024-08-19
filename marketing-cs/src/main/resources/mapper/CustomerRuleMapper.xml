@@ -9,4 +9,15 @@
         left join b_marketing_customer_rule_mapping mapping on rule.id = mapping.rule_id
         where mapping.api_code = #{apiCode} and mapping.is_delete = 0
     </select>
+    <select id="getCustomerAndUserType" resultType="java.util.HashMap">
+        select
+            customer.cid as cid
+            ,customer.api_code as apiCode
+            ,rule.condition_info as conditionInfo
+        from b_customer_rule rule
+                 join b_marketing_customer customer on rule.customer_id = customer.id
+        where rule.rule_id = #{ruleId}
+          and rule.is_del = '1'
+          and customer.status = '1'
+    </select>
 </mapper>

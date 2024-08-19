@@ -6,12 +6,9 @@ import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
-import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.ShuHeCuShouDengRuleCollectDataImpl;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -29,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -124,31 +120,7 @@ public class ShuHeCuShouDengCustomerBlackListImpl implements AssembleData<BlackD
                 return false;
             }
 
-            if (userTypeList.contains(transfer.getUserType())) {
-                ShuHeCuShouDengRuleCollectDataImpl.ShuHeCuShouDengRuleNecessaryData necessaryData =
-                        (ShuHeCuShouDengRuleCollectDataImpl.ShuHeCuShouDengRuleNecessaryData) context.getRuleNecessaryData();
-                Map<String, SyncUserValidityPeriodsBO> boMap = necessaryData.getPeriodBOMap();
-                String custNum = transfer.getCustNum();
-
-                if (CollectionUtils.isEmpty(boMap)) {
-                    log.warn("数禾促首登推送客服黑名单，该custNum不在有效期：{}", custNum);
-                    return false;
-                }
-
-                SyncUserValidityPeriodsBO periodsBO = boMap.get(custNum);
-                if (periodsBO == null) {
-                    log.warn("数禾促首登推送客服黑名单，该custNum不在有效期：{}", custNum);
-                    return false;
-                }
-
-                List<MarketingSyncUser> syncUsers = periodsBO.getSyncUsers();
-                if (CollectionUtils.isEmpty(syncUsers)) {
-                    log.warn("数禾促首登推送客服黑名单，该custNum不在有效期：{}", custNum);
-                    return false;
-                }
-
-                return true;
-            }
+            return userTypeList.contains(transfer.getUserType());
         }
 
         return false;
