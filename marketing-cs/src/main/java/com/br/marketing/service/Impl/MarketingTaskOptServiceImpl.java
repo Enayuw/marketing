@@ -1,10 +1,25 @@
 package com.br.marketing.service.Impl;
 
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.framework.CuratorFramework;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.TaskStatus;
@@ -19,22 +34,8 @@ import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.github.pagehelper.PageHelper;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.framework.CuratorFramework;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import javax.annotation.Resource;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Description TaskOptServiceImpl
@@ -161,13 +162,6 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
 
     @Override
     public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
-        if (batchNumVO.getApiCodeSet() == null || batchNumVO.getApiCodeSet().size() == 0) {
-            String apiCode = ThreadContextInfo.getUser().getApiCode();
-            if (StringUtils.isNotBlank(apiCode)) {
-                String[] split = apiCode.split(",");
-                batchNumVO.setApiCodeSet(new HashSet<>(Arrays.asList(split)));
-            }
-        }
         PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
         scoreDetailVos.forEach((ScoreDetailVo t) -> {

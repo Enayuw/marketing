@@ -1,7 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.aspect.AuthDataPermission;
+import com.br.marketing.aspect.AuthDataControllerPermission;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.StringUtils;
@@ -35,13 +35,13 @@ import java.util.stream.Collectors;
 @Service
 public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     @Resource
-    MarketingTaskExtendMapper marketingTaskExtendMapper;
+    private MarketingTaskExtendMapper marketingTaskExtendMapper;
     @Resource
-    StraHisFileMapper straHisFileMapper;
+    private StraHisFileMapper straHisFileMapper;
     @Resource
-    ReportTaskMapper reportTaskMapper;
+    private ReportTaskMapper reportTaskMapper;
     @Resource
-    ReportTaskScoreSourceMapper reportTaskScoreSourceMapper;
+    private ReportTaskScoreSourceMapper reportTaskScoreSourceMapper;
 
     @Override
     public Map getProducts(String ids) {
@@ -209,11 +209,10 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
      * @date 2024/08/19
      */
     @Override
-    @AuthDataPermission
     public PageResultReturn getReportTaskList(int page, int pageSize, List<String> apiCodes) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<ReportTaskVO> list = reportTaskMapper.findList(apiCodes);
+            List<ReportTaskVO> list = reportTaskMapper.findListtikv_(apiCodes);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

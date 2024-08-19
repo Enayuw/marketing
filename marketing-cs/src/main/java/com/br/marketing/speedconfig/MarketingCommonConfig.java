@@ -2015,5 +2015,10 @@ public class MarketingCommonConfig {
      */
     private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
 
+    /**
+     * bi报表步长配置
+     */
+    private Map<String,List<String>> biReportStepConfig;
+
 }
 

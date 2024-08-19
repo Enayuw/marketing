@@ -8,7 +8,6 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
-import com.google.api.client.util.Lists;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +18,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.br.marketing.aspect.AuthDataControllerPermission;
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVO;
+import com.br.marketing.vo.bi.param.ReportTaskParam;
 
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -56,8 +56,10 @@ public class ReportScoreRuleController {
 
     @ApiOperation(value = "获取报告任务列表")
     @GetMapping("/getReportTaskList")
-    public ApiResult<PageResultReturn> getReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size) {
-        PageResultReturn listPage = reportScoreRuleService.getReportTaskList(current, size, Lists.newArrayList());
+    @AuthDataControllerPermission
+    public ApiResult<PageResultReturn> getReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
+        @RequestParam String name, @RequestParam List<String> apiCodes) {
+        PageResultReturn listPage = reportScoreRuleService.getReportTaskList(current, size, apiCodes);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }

@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.marketing.aspect.AuthDataControllerPermission;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.common.commondto.ApiResult;
@@ -276,7 +277,7 @@ public class PushRuleFilterController {
      */
     @ApiOperation(value = "跑分模型分布筛选批次列表")
     @PostMapping("getBatchInfoList")
-    @AddDataAuthBusiness
+    @AuthDataControllerPermission()
     public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoList(@RequestBody CustomerBatchNumVO batchNumVO) {
         return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(marketingTaskOptService.getBatchInfoList(batchNumVO));
     }

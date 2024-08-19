@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -47,14 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AnalysisReportServiceImpl implements AnalysisReportService {
 
-    public static final List<String> FIVE_STEP_LENGTH = Lists.newArrayList("[0,50)", "[50,100)", "[100,150)", "[150,200)", "[200,250)", "[250,300)",
-        "[300,350)", "[350,400)", "[400,450)", "[450,500)", "[500,550)", "[550,600)", "[600,650)", "[650,700)", "[700,750)", "[750,800)", "[800,850)",
-        "[850,900)", "[900,950)", "[950,1000]");
-
-    public static final List<String> FIFTY_STEP_LENGTH =
-        Lists.newArrayList("[0,5)", "[5,10)", "[10,15)", "[15,20)", "[20,25)", "[25,30)", "[30,35)", "[35,40)", "[40,45)", "[45,50)", "[50,55)",
-            "[55,60)", "[60,65)", "[65,70)", "[70,75)", "[75,80)", "[80,85)", "[85,90)", "[90,95)", "[95,100]");
-
     public static final String BI_FILE_EXTENSION = ".xlsx";
 
     @Resource
@@ -65,6 +58,8 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     private ReportStatisticsScoreBaseMapper reportStatisticsScoreBaseMapper;
     @Resource
     private ScoreStatisticsDetailBaseMapper scoreStatisticsDetailBaseMapper;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -191,10 +186,10 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     private List<String> determineStepLength(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
         Map<String, List<ScoreStatisticsDetail>> sectionData = details.stream().collect(Collectors.groupingBy(keyMapper));
         List<String> keys = Lists.newArrayList(sectionData.keySet());
-        if (this.checkKeys(keys, FIVE_STEP_LENGTH)) {
-            return FIVE_STEP_LENGTH;
-        } else if (this.checkKeys(keys, FIFTY_STEP_LENGTH)) {
-            return FIFTY_STEP_LENGTH;
+        if (this.checkKeys(keys, marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"))) {
+            return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+        } else if (this.checkKeys(keys, marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"))) {
+            return marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
         }
         return keys;
     }
