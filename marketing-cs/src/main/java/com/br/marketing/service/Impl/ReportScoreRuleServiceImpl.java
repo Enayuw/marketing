@@ -5,12 +5,15 @@ import com.br.marketing.aspect.AuthDataPermission;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.*;
-import com.br.marketing.mapper.MarketingTaskExtendMapper;
-import com.br.marketing.mapper.ReportTaskMapper;
-import com.br.marketing.mapper.ReportTaskScoreSourceMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
+import com.br.marketing.context.ThreadContextInfo;
+import com.br.marketing.entity.ReportTask;
+import com.br.marketing.entity.ReportTaskScoreSource;
+import com.br.marketing.entity.StraHisFile;
+import com.br.marketing.entity.StraHisFileExample;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
+import com.br.marketing.vo.CustomerBatchNumVO;
+import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.br.marketing.vo.TaskInfoVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
@@ -41,6 +44,16 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     ReportTaskMapper reportTaskMapper;
     @Resource
     ReportTaskScoreSourceMapper reportTaskScoreSourceMapper;
+
+
+    @Resource
+    private MarketingTaskMapper marketingTaskMapper;
+
+    @Resource
+    private MarketingTaskUserTypeMapper marketingTaskUserTypeMapper;
+
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
 
     @Override
     public Map getProducts(String ids) {
@@ -220,5 +233,27 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             log.error(e.getMessage(), e);
         }
         return null;
+    }
+
+
+    @Override
+    public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
+        if (batchNumVO.getApiCodeSet() == null || batchNumVO.getApiCodeSet().size() == 0) {
+            String apiCode = ThreadContextInfo.getUser().getApiCode();
+            if (org.apache.commons.lang3.StringUtils.isNotBlank(apiCode)) {
+                String[] split = apiCode.split(",");
+                batchNumVO.setApiCodeSet(new HashSet<>(Arrays.asList(split)));
+            }
+        }
+        PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
+        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
+        scoreDetailVos.forEach((ScoreDetailVo t) -> {
+            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumberAndApiCodetikv_(
+                    t.getBatchNumber(), t.getApiCode());
+            t.setCid(tableCreateService.getCId(t.getApiCode()));
+            t.setUserType(String.join(",", batchNumberList));
+        });
+        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent()
+                , batchNumVO.getSize());
     }
 }
