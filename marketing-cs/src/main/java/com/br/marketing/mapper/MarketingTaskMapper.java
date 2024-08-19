@@ -234,5 +234,6 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     String selectHisFileById(String hisFileId);
 
+    @AddDataAuth
     List<ScoreDetailVo> queryBatchList(CustomerBatchNumVO batchNumVO);
 }
