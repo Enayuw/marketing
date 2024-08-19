@@ -97,10 +97,27 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
      * 方法处理前：
      * fieldsNoScoreMap=new HashMap();
      * fieldsMap=new HashMap();
-     * batchSwiftAndScoreSetList结构：
-     *
+     * batchSwiftAndScoreSetList:
+     *      [{
+     * 		  7410908_20240730000000_3346 = [pd_cell_province, pd_cell_type, scorecust, flag_score]
+     *        }, {
+     * 		  7410908_20240813000000_5934 = [pd_cell_province, pd_cell_type, scorecust, flag_score]
+     *      }, {
+     * 		  7410908_20240813000000_5283 = [pd_cell_province, pd_cell_type, scorecust, flag_score]
+     *      }]
      * 处理结束后：
-     *
+     * fieldsNoScoreMap:
+     *  {
+     *      pd_cell_province1 = 7410908_20240613000000_3779,7410908_20240613000000_6436,7410908_20240813000000_9817,
+     *      pd_cell_province = 7410908_20240813000000_5283
+     *  }
+     * fieldsMap:
+     *  {
+     * 	pd_cell_province = 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283,
+     * 	pd_cell_type = 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283,
+     * 	scorecust = 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283,
+     * 	flag_score = 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283
+     * }
      * @Author yu.xia@brgroup.com
      * @Date 2024/8/15 18:32
      * @param fieldsNoScoreMap 比较结果存放的结果集
