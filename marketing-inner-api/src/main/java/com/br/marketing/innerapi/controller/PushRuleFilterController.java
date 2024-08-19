@@ -14,11 +14,7 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.RuleCenterServiceImpl;
 import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.service.score.IScoreStrategyProductFieldService;
-import com.br.marketing.vo.ConditionOfScoreVO;
-import com.br.marketing.vo.PushInfoDetailVO;
-import com.br.marketing.vo.ScoreConditionDetailVO;
-import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 import io.swagger.annotations.Api;
@@ -63,9 +59,6 @@ public class PushRuleFilterController {
 
     @Autowired
     RuleCenterCollidingService ruleCenterCollidingService;
-
-    @Resource
-    private IScoreStrategyProductFieldService iScoreStrategyProductFieldService;
 
     @Resource
     private MarketingTaskOptService marketingTaskOptService;
@@ -272,37 +265,20 @@ public class PushRuleFilterController {
         return new ApiResult().fromResult(companyAndModule, CODE_000000);
     }
 
-    /**
-     * 跑分文件析出评分产品字段列表
-     *
-     * @param apiCode apiCode
-     */
-    @ApiOperation(value = "跑分文件析出评分产品字段列表", notes = "评分产品字段列表")
-    @ApiImplicitParams({@ApiImplicitParam(name = "apiCode", required = true, paramType = "query", dataType = "string")
-            , @ApiImplicitParam(name = "current", paramType = "query", dataType = "integer", defaultValue = "1")
-            , @ApiImplicitParam(name = "size", paramType = "query", dataType = "integer", defaultValue = "2000")
-    })
-    @GetMapping(path = {"getScoreProductField"})
-    public ApiResult<List<String>> getScoreProductField(@RequestParam String apiCode
-            , @RequestParam Integer current
-            , @RequestParam Integer size) {
-        List<String> fieldNamePage = iScoreStrategyProductFieldService.getFieldNamePage(apiCode, current, size);
-        ApiResult<List<String>> apiResult = new ApiResult<>();
-        return apiResult.success(fieldNamePage);
-    }
 
     /**
+     * 跑分模型分布筛选批次列表
      * 规则中心筛选批次列表（评分产品析出字段）
      *
-     * @param dto 检索条件
+     * @param batchNumVO 检索条件
      * @author Hua Qiang
      * @date 2024-08-15 17:07
      */
-    @ApiOperation(value = "规则中心筛选批次列表（评分产品析出字段）")
-    @PostMapping("getBatchInfoFieldList")
+    @ApiOperation(value = "跑分模型分布筛选批次列表")
+    @PostMapping("getBatchInfoList")
     @AddDataAuthBusiness
-    public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoFieldList(@RequestBody CustomerBatchNumDTO dto) {
-        return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(marketingTaskOptService.getBatchInfoFieldList(dto));
+    public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoList(@RequestBody CustomerBatchNumVO batchNumVO) {
+        return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(marketingTaskOptService.getBatchInfoList(batchNumVO));
     }
 
 

@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.entity.TaskStatus;
@@ -15,6 +16,7 @@ import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.service.MarketingTaskOptService;
+import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -148,24 +151,31 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    @Override
-    public PageResultReturn<List<ScoreDetailVo>> getBatchInfoFieldList(CustomerBatchNumDTO dto) {
-        dto = getCustomerBatchNumDTO(dto);
-        PageHelper.startPage(dto.getCurrent(), dto.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
-        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchFieldList(dto);
-        scoreDetailVos.forEach((ScoreDetailVo t) -> {
-            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(t.getBatchNumber());
-            t.setUserType(String.join(",", batchNumberList));
-        });
-        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent()
-                , dto.getSize());
-    }
-
     public CustomerBatchNumDTO getCustomerBatchNumDTO(CustomerBatchNumDTO dto) {
         if (StringUtils.isNotBlank(dto.getProductName())) {
             String productName = dto.getProductName();
             dto.setModuleList(Arrays.asList(productName.split(",")));
         }
         return dto;
+    }
+
+    @Override
+    public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
+        if (batchNumVO.getApiCodeSet() == null || batchNumVO.getApiCodeSet().size() == 0) {
+            String apiCode = ThreadContextInfo.getUser().getApiCode();
+            if (StringUtils.isNotBlank(apiCode)) {
+                String[] split = apiCode.split(",");
+                batchNumVO.setApiCodeSet(new HashSet<>(Arrays.asList(split)));
+            }
+        }
+        PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
+        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
+        scoreDetailVos.forEach((ScoreDetailVo t) -> {
+            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumberAndApiCodetikv_(
+                    t.getBatchNumber(), t.getApiCode());
+            t.setUserType(String.join(",", batchNumberList));
+        });
+        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent()
+                , batchNumVO.getSize());
     }
 }

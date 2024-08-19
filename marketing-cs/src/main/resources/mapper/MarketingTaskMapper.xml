@@ -713,7 +713,7 @@
         where id = #{hisFileId}
     </select>
 
-    <select id="queryBatchFieldList" parameterType="com.br.marketing.dto.CustomerBatchNumDTO"
+    <select id="queryBatchList" parameterType="com.br.marketing.vo.CustomerBatchNumVO"
             resultType="com.br.marketing.vo.ScoreDetailVo">
         select * from(select shf.api_code,
         shf.show_title as cusBatchNumber,
@@ -730,44 +730,58 @@
         left join b_marketing_task_extend as mte on mt.id = mte.task_id
         left join b_marketing_task_user_type as mtut on mtut.batch_number = mt.batch_number and mtut.api_code =
         mt.api_code
-        left join b_score_drois_log as sdl on sdl.batch_number = shf.batch_number
-        where mt.api_code = #{apiCode}
-        <if test="productVersion!=null and productVersion!=''">
-            and msp.product_version =#{productVersion}
-        </if>
-        <if test="uploadBeginTime!=null and uploadBeginTime!=''">
-            <![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
-            <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
-        </if>
+        left join b_score_doris_log as sdl on sdl.batch_number = shf.batch_number
+        where
+        <choose>
+            <when test="apiCodeSet!=null and apiCodeSet.size()!=0">
+                <choose>
+                    <when test="apiCodeSet.size()==1">
+                        mt.api_code =
+                        <foreach collection="apiCodeSet" item="item" index="index" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        mt.api_code in(
+                        <foreach collection="apiCodeSet" item="item" index="index" separator=",">
+                            #{item}
+                        </foreach>
+                        )
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                1=1
+            </otherwise>
+        </choose>
         <if test="scoreTimeList!=null and scoreTimeList.size()>0">
             and
             <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
                 (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
             </foreach>
         </if>
-        <if test="userType!=null and userType!=''">
-            and mtut.user_type in(
-            <foreach collection="userType.split(',')" item="item" index="index" separator=",">
-                #{item}
-            </foreach>
-            )
-        </if>
-        <if test="productFieldSet!=null and productFieldSet.size()>0">
-            <foreach collection="productFieldSet" item="item" open="and" separator="and">
-                json_contains(json_extract(mte.strategy_product_json,'$.fields'),'"${item}"')=1
-            </foreach>
+        <if test="userTypeSet!=null and userTypeSet.size()>0">
+            <choose>
+                <when test="userTypeSet.size()==1">
+                    and mtut.user_type =
+                    <foreach collection="userTypeSet" item="item" index="index" separator=",">
+                        #{item}
+                    </foreach>
+                </when>
+                <otherwise>
+                    and mtut.user_type in(
+                    <foreach collection="userTypeSet" item="item" index="index" separator=",">
+                        #{item}
+                    </foreach>
+                    )
+                </otherwise>
+            </choose>
         </if>
         and shf.score_status = 2
         and mt.status != 0
         and sdl.status = 2
-        group by batchNumber
-        order by shf.create_time desc) vie
-        <if test="productName!=null and productName!=''">
-            where
-            <foreach collection="moduleList" item="item" index="index" separator="and">
-                find_in_set (#{item},productName)
-            </foreach>
-        </if>
+        group by mt.api_code,batchNumber
+        order by mt.api_code,shf.create_time desc) vie
     </select>
 
 </mapper>
