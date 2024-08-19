@@ -2,6 +2,8 @@ package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.vo.CustomerBatchNumVO;
+import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 
 import java.util.List;
@@ -44,4 +46,13 @@ public interface ReportScoreRuleService {
      * @date 2024/08/19
      */
     PageResultReturn getReportTaskList(int current, int size, List<String> apiCodes);
+
+
+    /**
+     * 规则中心筛选批次列表
+     *
+     * @param batchNumVO vo
+     * @return List<ScoreDetailVo>
+     */
+    PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO);
 }
