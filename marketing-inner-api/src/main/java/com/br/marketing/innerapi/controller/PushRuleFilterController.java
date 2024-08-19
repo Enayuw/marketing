@@ -15,10 +15,7 @@ import com.br.marketing.service.Impl.RuleCenterServiceImpl;
 import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.score.IScoreStrategyProductFieldService;
-import com.br.marketing.vo.ConditionOfScoreVO;
-import com.br.marketing.vo.PushInfoDetailVO;
-import com.br.marketing.vo.ScoreConditionDetailVO;
-import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
 import io.swagger.annotations.Api;
@@ -303,6 +300,21 @@ public class PushRuleFilterController {
     @AddDataAuthBusiness
     public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoFieldList(@RequestBody CustomerBatchNumDTO dto) {
         return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(marketingTaskOptService.getBatchInfoFieldList(dto));
+    }
+
+    /**
+     * 跑分模型分布筛选批次列表
+     * 规则中心筛选批次列表（评分产品析出字段）
+     *
+     * @param batchNumVO 检索条件
+     * @author Hua Qiang
+     * @date 2024-08-15 17:07
+     */
+    @ApiOperation(value = "跑分模型分布筛选批次列表")
+    @PostMapping("getBatchInfoList")
+    @AddDataAuthBusiness
+    public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoList(@RequestBody CustomerBatchNumVO batchNumVO) {
+        return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(marketingTaskOptService.getBatchInfoList(batchNumVO));
     }
 
 

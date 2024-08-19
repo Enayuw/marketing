@@ -15,6 +15,7 @@ import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.service.MarketingTaskOptService;
+import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -167,5 +169,23 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
             dto.setModuleList(Arrays.asList(productName.split(",")));
         }
         return dto;
+    }
+
+    @Override
+    public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
+        if (batchNumVO.getApiCodeSet() == null || batchNumVO.getApiCodeSet().size() == 0) {
+            return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(
+                    Collections.emptyList(), batchNumVO.getCurrent()
+                    , batchNumVO.getSize());
+        }
+        PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
+        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
+        scoreDetailVos.forEach((ScoreDetailVo t) -> {
+            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumberAndApiCodetikv_(
+                    t.getBatchNumber(), t.getApiCode());
+            t.setUserType(String.join(",", batchNumberList));
+        });
+        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent()
+                , batchNumVO.getSize());
     }
 }
