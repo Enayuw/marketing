@@ -1,4 +1,4 @@
-package com.br.marketing.innerapi.rabbitmq.consumer;
+package com.br.marketing.innerapi.consumer.rabbitmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
