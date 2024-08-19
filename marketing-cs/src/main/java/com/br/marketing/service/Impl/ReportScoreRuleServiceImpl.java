@@ -3,7 +3,6 @@ package com.br.marketing.service.Impl;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.AuthDataPermission;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
@@ -63,11 +62,6 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         List<TaskInfoVO> products = marketingTaskExtendMapper.getProducts(batchNumbers);
         for (TaskInfoVO product : products) {
             String batchNumber = product.getBatchNumber();
-            Integer taskType = product.getTaskType();
-            if (!TaskTypeEnum.PRODUCTDATA.getValue().equals(taskType)) {
-                log.warn("batchNumber:[{}]不属于产品跑分类型", batchNumber);
-                continue;
-            }
             String strategyProductJson = product.getStrategyProductJson();
             if (StringUtils.isNotBlank(strategyProductJson)) {
                 StrategyProductDetailVO strategyProductDetailVO = JSONObject.parseObject(strategyProductJson, StrategyProductDetailVO.class);
@@ -87,7 +81,13 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     /**
      * 循环对比跑分文件 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
-     * 
+     * 方法处理前：
+     * fieldsNoScoreMap=new HashMap();
+     * fieldsMap=new HashMap();
+     * batchSwiftAndScoreSetList结构：
+     *
+     * 处理结束后：
+     *
      * @Author yu.xia@brgroup.com
      * @Date 2024/8/15 18:32
      * @param fieldsNoScoreMap 比较结果存放的结果集
@@ -100,10 +100,11 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             Map<String, Set> stringSetMapI = batchSwiftAndScoreSetList.get(i);
             String batchNumberI = "";
             Set<String> productFromBatchSwiftSetI = new HashSet<>();
-            // 循环获取每个产品对应的 跑分文件（多个以逗号分隔）
+            // 每个stringSetMapI只含有一个batchNumber
             for (Map.Entry<String, Set> e : stringSetMapI.entrySet()) {
                 batchNumberI = e.getKey();
                 productFromBatchSwiftSetI = e.getValue();
+                // 循环获取每个产品对应的 跑分文件（多个以逗号分隔）
                 for (String product : productFromBatchSwiftSetI) {
                     String batchNumberString = fieldsMap.get(product);
                     if (StringUtils.isNotBlank(batchNumberString)) {
