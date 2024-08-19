@@ -76,7 +76,7 @@ public class AuthPermissionsAspect {
         Object[] args = joinPoint.getArgs();
         MarketingUserDetail user = ThreadContextInfo.getUser();
         if (user == null) {
-            return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_USER_API_CODE_ERROR);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_USER_INVALID_SESSION_ERROR);
         }
         boolean isAdmin = user.getRoleList().stream().anyMatch(role -> role.getId() == 1);
         if (isAdmin) {
