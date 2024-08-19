@@ -16,6 +16,9 @@
         from b_report_task
         <where>
             is_del = 1
+            <if test="name != null">
+                and report_name = #{name}
+            </if>
             <if test="apiCodes != null and apiCodes.size() != 0">
                 and id in(
                 select report_id

@@ -8,5 +8,5 @@ import com.br.marketing.vo.bi.ReportTaskVO;
 
 public interface ReportTaskMapper extends ReportTaskMapperBase {
 
-    List<ReportTaskVO> findListtikv_(@Param("apiCodes") List<String> apiCodes);
+    List<ReportTaskVO> findListtikv_(@Param("name") String name,@Param("apiCodes") List<String> apiCodes);
 }

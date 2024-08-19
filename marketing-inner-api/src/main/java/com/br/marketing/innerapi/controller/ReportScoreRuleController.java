@@ -58,8 +58,8 @@ public class ReportScoreRuleController {
     @GetMapping("/getReportTaskList")
     @AuthDataControllerPermission
     public ApiResult<PageResultReturn> getReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
-        @RequestParam String name, @RequestParam List<String> apiCodes) {
-        PageResultReturn listPage = reportScoreRuleService.getReportTaskList(current, size, apiCodes);
+        @RequestParam(required = false) String name, @RequestParam(required = false) List<String> apiCodes) {
+        PageResultReturn listPage = reportScoreRuleService.getReportTaskList(current, size, name,apiCodes);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }

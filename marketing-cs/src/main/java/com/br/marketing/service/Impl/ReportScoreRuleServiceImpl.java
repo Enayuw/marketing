@@ -1,11 +1,9 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.aspect.AuthDataControllerPermission;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.ReportTask;
 import com.br.marketing.entity.ReportTaskScoreSource;
 import com.br.marketing.entity.StraHisFile;
@@ -44,7 +42,6 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     private ReportTaskMapper reportTaskMapper;
     @Resource
     private ReportTaskScoreSourceMapper reportTaskScoreSourceMapper;
-
 
     @Resource
     private MarketingTaskMapper marketingTaskMapper;
@@ -93,31 +90,16 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     /**
-     * 循环对比跑分文件 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
-     * 方法处理前：
-     * fieldsNoScoreMap=new HashMap();
-     * fieldsMap=new HashMap();
-     * batchSwiftAndScoreSetList:
-     *      [{
-     * 		  7410908_20240730000000_3346 = [pd_cell_province, pd_cell_type, scorecust, flag_score]
-     *        }, {
-     * 		  7410908_20240813000000_5934 = [pd_cell_province, pd_cell_type, scorecust, flag_score]
-     *      }, {
-     * 		  7410908_20240813000000_5283 = [pd_cell_province, pd_cell_type, scorecust, flag_score]
-     *      }]
-     * 处理结束后：
-     * fieldsNoScoreMap:
-     *  {
-     *      pd_cell_province1 = 7410908_20240613000000_3779,7410908_20240613000000_6436,7410908_20240813000000_9817,
-     *      pd_cell_province = 7410908_20240813000000_5283
-     *  }
-     * fieldsMap:
-     *  {
-     * 	pd_cell_province = 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283,
-     * 	pd_cell_type = 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283,
-     * 	scorecust = 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283,
-     * 	flag_score = 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283
-     * }
+     * 循环对比跑分文件 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端 方法处理前： fieldsNoScoreMap=new HashMap(); fieldsMap=new HashMap(); batchSwiftAndScoreSetList: [{
+     * 7410908_20240730000000_3346 = [pd_cell_province, pd_cell_type, scorecust, flag_score] }, { 7410908_20240813000000_5934 = [pd_cell_province,
+     * pd_cell_type, scorecust, flag_score] }, { 7410908_20240813000000_5283 = [pd_cell_province, pd_cell_type, scorecust, flag_score] }] 处理结束后：
+     * fieldsNoScoreMap: { pd_cell_province1 = 7410908_20240613000000_3779,7410908_20240613000000_6436,7410908_20240813000000_9817, pd_cell_province =
+     * 7410908_20240813000000_5283 } fieldsMap: { pd_cell_province =
+     * 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283, pd_cell_type =
+     * 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283, scorecust =
+     * 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283, flag_score =
+     * 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283 }
+     * 
      * @Author yu.xia@brgroup.com
      * @Date 2024/8/15 18:32
      * @param fieldsNoScoreMap 比较结果存放的结果集
@@ -234,16 +216,17 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
      *
      * @param page 第页
      * @param pageSize 页面大小
+     * @param name
      * @param apiCodes apiCodes
      * @return {@link PageResultReturn }
      * @author senyang.zheng
      * @date 2024/08/19
      */
     @Override
-    public PageResultReturn getReportTaskList(int page, int pageSize, List<String> apiCodes) {
+    public PageResultReturn getReportTaskList(int page, int pageSize, String name, List<String> apiCodes) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<ReportTaskVO> list = reportTaskMapper.findListtikv_(apiCodes);
+            List<ReportTaskVO> list = reportTaskMapper.findListtikv_(name, apiCodes);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -251,18 +234,15 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         return null;
     }
 
-
     @Override
     public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
         PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
         scoreDetailVos.forEach((ScoreDetailVo t) -> {
-            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumberAndApiCodetikv_(
-                    t.getBatchNumber(), t.getApiCode());
+            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumberAndApiCodetikv_(t.getBatchNumber(), t.getApiCode());
             t.setCid(tableCreateService.getCId(t.getApiCode()));
             t.setUserType(String.join(",", batchNumberList));
         });
-        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent()
-                , batchNumVO.getSize());
+        return (PageResultReturn<List<ScoreDetailVo>>)PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent(), batchNumVO.getSize());
     }
 }

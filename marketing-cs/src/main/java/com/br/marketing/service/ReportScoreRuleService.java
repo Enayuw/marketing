@@ -38,14 +38,15 @@ public interface ReportScoreRuleService {
     /**
      * 获取报告任务列表
      *
-     * @param current 电流
-     * @param size 尺寸
+     * @param current  电流
+     * @param size     尺寸
+     * @param name
      * @param apiCodes apiCodes
      * @return {@link PageResultReturn }
      * @author senyang.zheng
      * @date 2024/08/19
      */
-    PageResultReturn getReportTaskList(int current, int size, List<String> apiCodes);
+    PageResultReturn getReportTaskList(int current, int size, String name, List<String> apiCodes);
 
 
     /**
