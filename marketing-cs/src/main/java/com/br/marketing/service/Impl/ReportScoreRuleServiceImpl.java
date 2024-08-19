@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.aspect.AuthDataPermission;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.StringUtils;
@@ -13,6 +14,8 @@ import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.br.marketing.vo.TaskInfoVO;
+import com.br.marketing.vo.bi.ReportTaskVO;
+import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -152,12 +155,12 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     @Override
-    public ApiResult<Boolean> addReportTask(ReportTaskVO reportTaskVO) {
-        String ids = reportTaskVO.getIds();
-        String cid = reportTaskVO.getCid();
-        String reportName = reportTaskVO.getReportName();
-        String rules = reportTaskVO.getRules();
-        String productAndBatchNumber = reportTaskVO.getProductAndBatchNumber();
+    public ApiResult<Boolean> addReportTask(ReportTaskParam reportTaskParam) {
+        String ids = reportTaskParam.getIds();
+        String cid = reportTaskParam.getCid();
+        String reportName = reportTaskParam.getReportName();
+        String rules = reportTaskParam.getRules();
+        String productAndBatchNumber = reportTaskParam.getProductAndBatchNumber();
         JSONObject json = new JSONObject();
         json.put("rules", rules);
         json.put("productAndBatchNumber", productAndBatchNumber);
@@ -200,16 +203,17 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
      *
      * @param page 第页
      * @param pageSize 页面大小
-     * @param name
+     * @param apiCodes apiCodes
      * @return {@link PageResultReturn }
      * @author senyang.zheng
-     * @date 2024/08/17
+     * @date 2024/08/19
      */
     @Override
-    public PageResultReturn getReportTaskList(int page, int pageSize, String name) {
+    @AuthDataPermission
+    public PageResultReturn getReportTaskList(int page, int pageSize, List<String> apiCodes) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<ReportTask> list = reportTaskMapper.findList(name);
+            List<ReportTaskVO> list = reportTaskMapper.findList(apiCodes);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import com.google.api.client.util.Lists;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +23,10 @@ import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.ReportTaskVO;
+import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.bi.AnalysisReportService;
-import com.br.marketing.vo.bi.AxisWrapVo;
+import com.br.marketing.vo.bi.AxisWrapVO;
 
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -55,9 +56,8 @@ public class ReportScoreRuleController {
 
     @ApiOperation(value = "获取报告任务列表")
     @GetMapping("/getReportTaskList")
-    public ApiResult<PageResultReturn> getReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
-        @RequestParam(required = false) String name) {
-        PageResultReturn listPage = reportScoreRuleService.getReportTaskList(current, size, name);
+    public ApiResult<PageResultReturn> getReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size) {
+        PageResultReturn listPage = reportScoreRuleService.getReportTaskList(current, size, Lists.newArrayList());
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
@@ -65,11 +65,11 @@ public class ReportScoreRuleController {
     }
 
     @PostMapping("/addReportTaskScore")
-    public ApiResult<Boolean> addReportTaskScore(@RequestBody ReportTaskVO reportTaskVO) {
+    public ApiResult<Boolean> addReportTaskScore(@RequestBody ReportTaskParam reportTaskParam) {
         try {
-            return reportScoreRuleService.addReportTask(reportTaskVO);
+            return reportScoreRuleService.addReportTask(reportTaskParam);
         } catch (Exception e) {
-            log.warn("添加跑分报表任务异常,入参:{}--", reportTaskVO, e);
+            log.warn("添加跑分报表任务异常,入参:{}--", reportTaskParam, e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
@@ -87,12 +87,12 @@ public class ReportScoreRuleController {
 
     @ApiOperation(value = "获取报告详情")
     @GetMapping("/getReportDetails")
-    public ApiResult<List<AxisWrapVo>> getReportDetails(@RequestParam Long taskId) {
+    public ApiResult<List<AxisWrapVO>> getReportDetails(@RequestParam Long taskId) {
         try {
-            return new ApiResult<List<AxisWrapVo>>().success(analysisReportService.getReportDetailsByTaskId(taskId));
+            return new ApiResult<List<AxisWrapVO>>().success(analysisReportService.getReportDetailsByTaskId(taskId));
         } catch (Exception e) {
             log.warn("获取报告详情异常,入参:{}--", taskId, e);
-            return new ApiResult<List<AxisWrapVo>>().fail(null, ServiceResultEnum.FAILED);
+            return new ApiResult<List<AxisWrapVO>>().fail(null, ServiceResultEnum.FAILED);
         }
     }
 

@@ -1,29 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.ReportTaskMapper" >
-
-    <select id="findList" resultType="com.br.marketing.entity.ReportTask">
-        select id
-            , report_name
-            , report_rules
-            , download_url
-            , `status`
-            , down_status
-            , report_type
-            , group_count
-            , is_del
-            , create_time
-            , update_time
+<mapper namespace="com.br.marketing.mapper.ReportTaskMapper">
+    <select id="findList" resultType="com.br.marketing.vo.bi.ReportTaskVO">
+        select id,
+               report_name,
+               report_rules,
+               download_url,
+               status,
+               down_status,
+               report_type,
+               group_count,
+               is_del,
+               create_time,
+               update_time
         from b_report_task
         <where>
-            is_del=1
-<!--            <if test="status != null">-->
-<!--                and status= #{status}-->
-<!--            </if>-->
-            <if test="name != null">
-                and report_name = #{name}
+            is_del = 1
+            <if test="apiCodes != null and apiCodes.size() != 0">
+                and id in(
+                select report_id
+                from b_report_task_score_source
+                where api_code in
+                <foreach collection="apiCodes" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                )
             </if>
         </where>
-        order by create_time,id desc
+        order by create_time, id desc
     </select>
 </mapper>
