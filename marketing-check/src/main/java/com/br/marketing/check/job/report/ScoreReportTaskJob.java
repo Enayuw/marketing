@@ -1,8 +1,10 @@
 package com.br.marketing.check.job.report;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.Impl.scorereport.ScoreReportTaskService;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.ReportStatisticsScoreMapper;
@@ -38,8 +40,6 @@ public class ScoreReportTaskJob extends AbstractSimpleElasticJob {
     @Resource
     private ScoreReportTaskService scoreReportTaskService;
 
-    @Resource
-    private ReportStatisticsScoreMapper reportStatisticsScoreMapper;
 
 
     @Override
@@ -50,16 +50,6 @@ public class ScoreReportTaskJob extends AbstractSimpleElasticJob {
             return;
         }
         scoreReportTaskService.scoreReportCount(reportTask);
-        //更新报表任务
-        ReportStatisticsScoreExample statisticsScoreExample = new ReportStatisticsScoreExample();
-        statisticsScoreExample.createCriteria()
-                .andReportIdEqualTo(reportTask.getId())
-                .andIsDelEqualTo(Constants.DATA_VALID);
-        List<ReportStatisticsScore> statisticsScoreList = reportStatisticsScoreMapper.selectByExample(statisticsScoreExample);
-        Long failNum = statisticsScoreList.stream().filter(reportStatisticsScore -> reportStatisticsScore.getStatus() != 1).count();
-        reportTask.setStatus(failNum > 0 ? 3 : 2);
-        reportTask.setUpdateTime(new Date());
-        reportTaskMapper.updateByPrimaryKey(reportTask);
 
     }
 
@@ -78,7 +68,7 @@ public class ScoreReportTaskJob extends AbstractSimpleElasticJob {
                         5000L);
                 if (lock) {
                     ReportTask task = reportTaskMapper.selectByPrimaryKey(reportTask.getId());
-                    if (!("0").equals(task.getStatus())) {
+                    if (task.getStatus()!=0) {
                         redisChgService.unlock(redisKey, s);
                         continue;
                     }
@@ -86,16 +76,15 @@ public class ScoreReportTaskJob extends AbstractSimpleElasticJob {
                     update.setStatus(1);
                     update.setUpdateTime(new Date());
                     update.setId(reportTask.getId());
-                    reportTaskMapper.updateByPrimaryKey(update);
+                    reportTaskMapper.updateByPrimaryKeySelective(update);
                     return reportTask;
                 }
             } catch (Exception e) {
-                log.error("跑分模型报表获取任务失败");
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "跑分模型报表统计获取任务异常"), e);
             } finally {
                 redisChgService.unlock(redisKey, s);
             }
         }
-
         return null;
     }
 }

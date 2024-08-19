@@ -2,22 +2,27 @@ package com.br.marketing.check.service.Impl.scorereport;
 
 import com.alibaba.excel.util.CollectionUtils;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.report.ScoreReportRuleDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.ReportStatisticsScoreBaseMapper;
-import com.br.marketing.mapper.ReportStatisticsScoreMapper;
-import com.br.marketing.mapper.ScoreStatisticsDetailBaseMapper;
-import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
-import com.br.marketing.vo.VariableDicSelectVO;
+import com.br.marketing.mapper.*;
+import com.br.marketing.service.bi.AnalysisReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.*;
 
+/**
+ * 跑分报表统计service
+ *
+ * @author zhen.Li1
+ * @dateTime 2024/08/16 14:32
+ */
 @Slf4j
 @Service
 public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
@@ -30,25 +35,59 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
     private ReportStatisticsScoreMapper reportStatisticsScoreMapper;
 
     @Resource
-    private ScoreStatisticsDetailBaseMapper scoreStatisticsDetailBaseMapper;
+    private ScoreStatisticsDetailMapper scoreStatisticsDetailMapper;
+
+    @Resource
+    private ReportTaskMapper reportTaskMapper;
 
 
-    public static String X_MODEL = "xModel";
-    public static String X_MODEL_RANGE = "xModelRange";
-    public static String Y_MODEL = "yModel";
-    public static String Y_MODEL_RANGE = "yModelRange";
+    @Resource
+    private AnalysisReportService analysisReportService;
 
 
     @Override
     public void scoreReportCount(ReportTask reportTask) {
-        String reportRules = reportTask.getReportRules();
         //解析规则，生成报表
         reportRuleBuild(reportTask);
         //跑分统计计算
         reportRuleCount(reportTask);
+        //更新任务状态
+        updateReportTask(reportTask);
 
     }
 
+    /**
+     * 更新报表任务
+     *
+     * @param reportTask
+     * @return
+     */
+    private void updateReportTask(ReportTask reportTask) {
+        ReportStatisticsScoreExample statisticsScoreExample = new ReportStatisticsScoreExample();
+        statisticsScoreExample.createCriteria()
+                .andReportIdEqualTo(reportTask.getId())
+                .andIsDelEqualTo(Constants.DATA_VALID);
+        List<ReportStatisticsScore> statisticsScoreList = reportStatisticsScoreMapper.selectByExample(statisticsScoreExample);
+        Long failNum = statisticsScoreList.stream().filter(reportStatisticsScore -> reportStatisticsScore.getStatus() != 1).count();
+        reportTask.setStatus(failNum > 0 ? 3 : 2);
+        reportTask.setUpdateTime(new Date());
+        reportTask.setGroupCount(statisticsScoreList.size());
+        reportTaskMapper.updateByPrimaryKey(reportTask);
+        //上传至dfs
+        try {
+            analysisReportService.uploadReportToFastDfs(reportTask.getId());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * 统计任务统计
+     *
+     * @param reportTask
+     * @return
+     */
     private void reportRuleCount(ReportTask reportTask) {
         ReportStatisticsScoreExample statisticsScoreExample = new ReportStatisticsScoreExample();
         statisticsScoreExample.createCriteria()
@@ -65,112 +104,137 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 List<String> modelList = new ArrayList(Arrays.asList(statisticsScore.getFieldX().split(",")));
                 try {
                     modelList.forEach(model -> {
+                        List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
                         String batchNumebrs = JSONObject.parseObject(statisticsScore.getBatchNumberList()).getString(model);
-                        List<Map<String, String>> singleResult = singleModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
-                        singleResult.forEach((Map<String, String> resultMap) -> {
+                        List<Map<String, Object>> singleResult = singleModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
+                        singleResult.forEach((Map<String, Object> resultMap) -> {
                             ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
                             statisticsDetail.setStatisticsId(statisticsScore.getId());
-                            statisticsDetail.setFieldXValue(resultMap.get(model));
-                            statisticsDetail.setFieldNum(Integer.valueOf(resultMap.get("num")));
+                            statisticsDetail.setFieldXValue((String) resultMap.get(model));
+                            //单模型Y存储模型名称
+                            statisticsDetail.setFieldYValue(model);
+                            statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
                             statisticsDetail.setCreateTime(new Date());
                             statisticsDetail.setUpdateTime(new Date());
-                            scoreStatisticsDetailBaseMapper.insertSelective(statisticsDetail);
+                            statisticsDetails.add(statisticsDetail);
                         });
-
+                        //批量插入结果
+                        scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
                     });
                     updateReportScore(statisticsScore, 1, null);
                 } catch (Exception e) {
-                    log.error("跑分模型统计异常", e);
-                    updateReportScore(statisticsScore, 2, null);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "跑分模型统计异常"), e);
+                    updateReportScore(statisticsScore, 2, "跑分模型统计异常");
                 }
             } else {
                 //多模型统计
-                String batchNumebrs = JSONObject.parseObject(statisticsScore.getBatchNumberList()).getString(statisticsScore.getFieldX().concat("_").concat(statisticsScore.getFieldY()));
-                List<Map<String, String>> mulResult = mulModelCount(statisticsScore.getFieldX(), statisticsScore.getFieldY(),
-                        batchNumebrs, statisticsScore.getFieldXRange(), statisticsScore.getFieldYRange());
+                String batchNumebrs = JSONObject.parseObject(statisticsScore.getBatchNumberList()).getString(statisticsScore.getFieldX().concat("_")
+                        .concat(statisticsScore.getFieldY()));
                 try {
-                    mulResult.forEach((Map<String, String> resultMap) -> {
+                    List<Map<String, Object>> mulResult = mulModelCount(statisticsScore.getFieldX(), statisticsScore.getFieldY(),
+                            batchNumebrs, statisticsScore.getFieldXRange(), statisticsScore.getFieldYRange());
+                    List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
+                    mulResult.forEach((Map<String, Object> resultMap) -> {
                         ScoreStatisticsDetail statisticsDetail = new ScoreStatisticsDetail();
                         statisticsDetail.setStatisticsId(statisticsScore.getId());
-                        statisticsDetail.setFieldXValue(resultMap.get(statisticsScore.getFieldX()));
-                        statisticsDetail.setFieldYValue(resultMap.get(statisticsScore.getFieldY()));
-                        statisticsDetail.setFieldNum(Integer.valueOf(resultMap.get("num")));
+                        statisticsDetail.setFieldXValue((String) resultMap.get(statisticsScore.getFieldX()));
+                        statisticsDetail.setFieldYValue((String) resultMap.get(statisticsScore.getFieldY()));
+                        statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
                         statisticsDetail.setCreateTime(new Date());
                         statisticsDetail.setUpdateTime(new Date());
-                        scoreStatisticsDetailBaseMapper.insertSelective(statisticsDetail);
                     });
+                    scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
                     updateReportScore(statisticsScore, 1, null);
                 } catch (Exception e) {
-                    log.error("跑分模型统计异常", e);
-                    updateReportScore(statisticsScore, 2, null);
-
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "跑分模型统计异常"), e);
+                    updateReportScore(statisticsScore, 2, "跑分模型统计异常");
                 }
             }
         });
-
-
     }
+
 
     private void updateReportScore(ReportStatisticsScore statisticsScore, Integer status, String errorDesc) {
         statisticsScore.setStatus(status);
         statisticsScore.setUpdateTime(new Date());
         statisticsScore.setStatisticsDesc(errorDesc);
         reportStatisticsScoreMapper.updateByPrimaryKey(statisticsScore);
-
-
     }
 
-    private List<Map<String, String>> mulModelCount(String fieldX, String fieldY, String batchNumebrs, String fieldXRange, String fieldYRange) {
+
+    /**
+     * 多模型任务统计计算
+     *
+     * @param fieldX
+     * @param fieldY
+     * @param batchNumebrs
+     * @param fieldYRange
+     * @param fieldXRange
+     * @return List
+     */
+    private List<Map<String, Object>> mulModelCount(String fieldX, String fieldY, String batchNumebrs, String fieldXRange, String fieldYRange) {
 
         List<String> batchNumberList = Arrays.asList(batchNumebrs.split(","));
 
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_socre_report_").concat(batchNumberList.get(i));
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_socre_").concat(batchNumberList.get(i));
             } else {
-                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_socre_report_").concat(batchNumberList.get(i))
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_socre_").concat(batchNumberList.get(i))
                         .concat(" union all ");
             }
 
         }
-        scoreSql = "SELECT concat( '[', FLOOR(a.xModel / xModelRange) * xModelRange, '-', FLOOR(a.xModel / xModelRange) * xModelRange + xModelRange, ']') AS xModel,"
-                + "concat( '[', FLOOR(a.yModel / yModelRange) * yModelRange, '-', FLOOR(a.yModel / yModelRange) * yModelRange + yModelRange, ']' ) AS yModel, " +
-                "count(1) AS ’num‘ FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModel / xModelRange), FLOOR(a.yModel / yModelRange)" +
-                " ORDER BY FLOOR(a.xModel / xModelRange), FLOOR(a.yModel / yModelRange)";
-        scoreSql.replace("xModel", fieldX).replace("xModelRange", fieldXRange).replace("yModel", fieldY).replace("yModelRange", fieldYRange);
+        scoreSql = "SELECT " +
+                "concat('[',FLOOR(a.xModelName/xModelRange) * xModelRange,'-',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,']')AS xModelName," +
+                "concat('[',FLOOR(a.yModelName/yModelRange) * yModelRange,'-',FLOOR(a.yModelName/yModelRange) * yModelRange + yModelRange,']')AS yModelName," +
+                "count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange)" +
+                " ORDER BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange);";
+        //替换变量
+        scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange).replace("yModelName", fieldY)
+                .replace("yModelRange", fieldYRange);
         return reportStatisticsScoreMapper.queryDataMapNumdoris_(scoreSql);
     }
 
 
-    private List<Map<String, String>> singleModelCount(String model, String batchNumebrs, String fieldXRange) {
+    /**
+     * 单模型任务统计计算
+     *
+     * @param fieldX
+     * @param batchNumebrs
+     * @param fieldXRange
+     * @return List
+     */
+    private List<Map<String, Object>> singleModelCount(String fieldX, String batchNumebrs, String fieldXRange) {
 
         List<String> batchNumberList = Arrays.asList(batchNumebrs.split(","));
 
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select ").concat(model).concat(" from b_socre_report_").concat(batchNumberList.get(i));
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(" from b_socre_").concat(batchNumberList.get(i));
             } else {
-                scoreSql = scoreSql.concat("select ").concat(model).concat(" from b_socre_report_").concat(batchNumberList.get(i))
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(" from b_socre_").concat(batchNumberList.get(i))
                         .concat(" union all ");
             }
-
         }
-
-        scoreSql = "select concat('[',FLOOR(a.".concat(model).concat("/").concat(fieldXRange).concat(") * ").concat(fieldXRange).concat(",'-',FLOOR(a.")
-                .concat(model).concat("/").concat(fieldXRange).concat(") * ").concat(fieldXRange).concat(" +5,']') as ").concat(model)
-                .concat(",count(1) AS num from").concat(scoreSql).concat(" a GROUP BY FLOOR(a.").concat(model).concat("/").concat(fieldXRange)
-                .concat(")ORDER BY FLOOR(a.").concat(model).concat("/").concat(fieldXRange).concat(",");
-
+        scoreSql = "SELECT " +
+                "concat('[',FLOOR(a.xModelName / xModelRange) * xModelRange,'-',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,']')AS xModelName" +
+                ",count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange)" +
+                " ORDER BY FLOOR(a.xModelName / xModelRange);";
+        //替换变量
+        scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange);
         return reportStatisticsScoreMapper.queryDataMapNumdoris_(scoreSql);
-
-
     }
 
-
+    /**
+     * 报表统计任务构建
+     *
+     * @param reportTask
+     * @return
+     */
     private void reportRuleBuild(ReportTask reportTask) {
-
         JSONObject reportRules = JSON.parseObject(reportTask.getReportRules());
         JSONObject batchNumerJson = reportRules.getJSONObject("productAndBatchNumber");
         List<ScoreReportRuleDTO> reportRuleList = reportRules.getJSONArray("rules").toJavaList(ScoreReportRuleDTO.class);
@@ -221,6 +285,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 //多模型
                 List<String> xModelList = reportRule.getX();
                 List<String> YModelList = reportRule.getY();
+                //循环遍历X轴模型，Y轴模型
                 xModelList.forEach(xModel -> {
                     YModelList.forEach(yModel -> {
                         List xbatchNumber = new ArrayList(Arrays.asList(batchNumerJson.getString(xModel)));
@@ -259,33 +324,18 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_socre_report_").concat(batchNumberList.get(i));
+                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_socre_").concat(batchNumberList.get(i));
             } else {
-                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_socre_report_").concat(batchNumberList.get(i))
+                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_socre_").concat(batchNumberList.get(i))
                         .concat(" union all ");
             }
-
         }
         scoreSql = "select max(num) from ( ".concat(scoreSql).concat(") a;");
 
         Integer scoreValue = scoreRecordMapper.getXieChengDataNumdoris_(scoreSql);
-        if (scoreValue > 100) {
-            return 50;
-        } else {
-            return 5;
-        }
+        //考虑speed配置
+        return scoreValue > 100 ? 50 : 5;
+
     }
 
-
-    private Integer queryDoris(String sql) {
-
-        Integer total = null;
-        // 查询Doris
-        try {
-            total = scoreRecordMapper.getXieChengDataNumdoris_(sql);
-        } catch (Exception e) {
-            log.error("筛选查询Doris异常,sql={}", sql, e);
-        }
-        return total;
-    }
 }
