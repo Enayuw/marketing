@@ -7,6 +7,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.mapper.ReportStatisticsScoreMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -56,7 +57,7 @@ public class ScoreReportTaskJob extends AbstractSimpleElasticJob {
     private ReportTask getScoreReportTask() {
         ReportTaskExample taskExample = new ReportTaskExample();
         taskExample.createCriteria()
-                .andStatusEqualTo(0)
+                .andStatusEqualTo(ReportTaskStatusEnum.READY.getValue())
                 .andIsDelEqualTo(Constants.DATA_VALID);
         taskExample.setOrderByClause(" create_time");
         List<ReportTask> reportTaskList = reportTaskMapper.selectByExample(taskExample);
@@ -68,12 +69,12 @@ public class ScoreReportTaskJob extends AbstractSimpleElasticJob {
                         5000L);
                 if (lock) {
                     ReportTask task = reportTaskMapper.selectByPrimaryKey(reportTask.getId());
-                    if (task.getStatus()!=0) {
+                    if (!ReportTaskStatusEnum.READY.getValue().equals(task.getStatus())) {
                         redisChgService.unlock(redisKey, s);
                         continue;
                     }
                     ReportTask update = new ReportTask();
-                    update.setStatus(1);
+                    update.setStatus(ReportTaskStatusEnum.RUNNING.getValue());
                     update.setUpdateTime(new Date());
                     update.setId(reportTask.getId());
                     reportTaskMapper.updateByPrimaryKeySelective(update);

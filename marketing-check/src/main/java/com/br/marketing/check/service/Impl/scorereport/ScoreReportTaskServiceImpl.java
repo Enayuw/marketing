@@ -8,6 +8,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.report.ScoreReportRuleDTO;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.bi.AnalysisReportService;
 import lombok.extern.slf4j.Slf4j;
@@ -69,7 +70,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<ReportStatisticsScore> statisticsScoreList = reportStatisticsScoreMapper.selectByExample(statisticsScoreExample);
         Long failNum = statisticsScoreList.stream().filter(reportStatisticsScore -> reportStatisticsScore.getStatus() != 1).count();
-        reportTask.setStatus(failNum > 0 ? 3 : 2);
+        reportTask.setStatus(failNum > 0 ? ReportTaskStatusEnum.FAIL.getValue() : ReportTaskStatusEnum.SUCCESS.getValue());
         reportTask.setUpdateTime(new Date());
         reportTask.setGroupCount(statisticsScoreList.size());
         reportTaskMapper.updateByPrimaryKey(reportTask);
@@ -142,6 +143,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                         statisticsDetail.setFieldNum(((Long) resultMap.get("num")).intValue());
                         statisticsDetail.setCreateTime(new Date());
                         statisticsDetail.setUpdateTime(new Date());
+                        statisticsDetails.add(statisticsDetail);
                     });
                     scoreStatisticsDetailMapper.insertBatch(statisticsDetails);
                     updateReportScore(statisticsScore, 1, null);
@@ -179,9 +181,9 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_socre_").concat(batchNumberList.get(i));
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_score_").concat(batchNumberList.get(i));
             } else {
-                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_socre_").concat(batchNumberList.get(i))
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_score_").concat(batchNumberList.get(i))
                         .concat(" union all ");
             }
 
@@ -213,9 +215,9 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(" from b_socre_").concat(batchNumberList.get(i));
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(" from b_score_").concat(batchNumberList.get(i));
             } else {
-                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(" from b_socre_").concat(batchNumberList.get(i))
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(" from b_score_").concat(batchNumberList.get(i))
                         .concat(" union all ");
             }
         }
@@ -289,9 +291,9 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 //循环遍历X轴模型，Y轴模型
                 xModelList.forEach(xModel -> {
                     YModelList.forEach(yModel -> {
-                        List xbatchNumber = new ArrayList(Arrays.asList(batchNumerJson.getString(xModel)));
-                        List ybatchNumber = new ArrayList(Arrays.asList(batchNumerJson.getString(yModel)));
-                        //取交集
+                        List xbatchNumber = new ArrayList(Arrays.asList(batchNumerJson.getString(xModel).split(",")));
+                        List ybatchNumber = new ArrayList(Arrays.asList(batchNumerJson.getString(yModel).split(",")));
+                        //取交集 同时存在x，y模型
                         xbatchNumber.retainAll(ybatchNumber);
                         ReportStatisticsScore statisticsScore = new ReportStatisticsScore();
                         statisticsScore.setReportId(reportTask.getId());
@@ -325,9 +327,9 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_socre_").concat(batchNumberList.get(i));
+                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_score_").concat(batchNumberList.get(i));
             } else {
-                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_socre_").concat(batchNumberList.get(i))
+                scoreSql = scoreSql.concat("select max(").concat(model).concat(") as num from b_score_").concat(batchNumberList.get(i))
                         .concat(" union all ");
             }
         }
