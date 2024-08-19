@@ -6,7 +6,8 @@ import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class ReportTask  implements Serializable {
+public class ReportTask implements Serializable {
+    private static final long serialVersionUID = 1L;
     /**
      * 
      */
