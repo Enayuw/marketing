@@ -150,19 +150,6 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    @Override
-    public PageResultReturn<List<ScoreDetailVo>> getBatchInfoFieldList(CustomerBatchNumDTO dto) {
-        dto = getCustomerBatchNumDTO(dto);
-        PageHelper.startPage(dto.getCurrent(), dto.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
-        List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchFieldList(dto);
-        scoreDetailVos.forEach((ScoreDetailVo t) -> {
-            List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumbertikv_(t.getBatchNumber());
-            t.setUserType(String.join(",", batchNumberList));
-        });
-        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, dto.getCurrent()
-                , dto.getSize());
-    }
-
     public CustomerBatchNumDTO getCustomerBatchNumDTO(CustomerBatchNumDTO dto) {
         if (StringUtils.isNotBlank(dto.getProductName())) {
             String productName = dto.getProductName();

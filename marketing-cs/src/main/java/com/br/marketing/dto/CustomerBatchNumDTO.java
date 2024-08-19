@@ -5,7 +5,6 @@ import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Set;
 
 @Data
 public class CustomerBatchNumDTO {
@@ -37,9 +36,6 @@ public class CustomerBatchNumDTO {
     private Integer size;
 
     private List<String> moduleList;
-
-    @ApiModelProperty(value = "评分产品字段,集合", dataType = "Set")
-    private Set<String> productFieldSet;
 
 
 }

@@ -713,63 +713,6 @@
         where id = #{hisFileId}
     </select>
 
-    <select id="queryBatchFieldList" parameterType="com.br.marketing.dto.CustomerBatchNumDTO"
-            resultType="com.br.marketing.vo.ScoreDetailVo">
-        select * from(select shf.api_code,
-        shf.show_title as cusBatchNumber,
-        mt.batch_number as batchNumber,
-        shf.statistic_file_path as statisticFilePath,
-        shf.id as fileId,
-        DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
-        GROUP_CONCAT(distinct msp.product_name order by msp.product_name)as productName,
-        shf.actual_num as actualNum,
-        GROUP_CONCAT(distinct mtut.user_type order by mtut.user_type)as userType
-        from stra_his_file as shf
-        left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
-        left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
-        left join b_marketing_task_extend as mte on mt.id = mte.task_id
-        left join b_marketing_task_user_type as mtut on mtut.batch_number = mt.batch_number and mtut.api_code =
-        mt.api_code
-        left join b_score_drois_log as sdl on sdl.batch_number = shf.batch_number
-        where mt.api_code = #{apiCode}
-        <if test="productVersion!=null and productVersion!=''">
-            and msp.product_version =#{productVersion}
-        </if>
-        <if test="uploadBeginTime!=null and uploadBeginTime!=''">
-            <![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
-            <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
-        </if>
-        <if test="scoreTimeList!=null and scoreTimeList.size()>0">
-            and
-            <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
-                (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
-            </foreach>
-        </if>
-        <if test="userType!=null and userType!=''">
-            and mtut.user_type in(
-            <foreach collection="userType.split(',')" item="item" index="index" separator=",">
-                #{item}
-            </foreach>
-            )
-        </if>
-        <if test="productFieldSet!=null and productFieldSet.size()>0">
-            <foreach collection="productFieldSet" item="item" open="and" separator="and">
-                json_contains(json_extract(mte.strategy_product_json,'$.fields'),'"${item}"')=1
-            </foreach>
-        </if>
-        and shf.score_status = 2
-        and mt.status != 0
-        and sdl.status = 2
-        group by batchNumber
-        order by shf.create_time desc) vie
-        <if test="productName!=null and productName!=''">
-            where
-            <foreach collection="moduleList" item="item" index="index" separator="and">
-                find_in_set (#{item},productName)
-            </foreach>
-        </if>
-    </select>
-
     <select id="queryBatchList" parameterType="com.br.marketing.vo.CustomerBatchNumVO"
             resultType="com.br.marketing.vo.ScoreDetailVo">
         select * from(select shf.api_code,
