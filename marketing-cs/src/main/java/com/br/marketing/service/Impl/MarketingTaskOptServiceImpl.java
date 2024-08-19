@@ -26,8 +26,6 @@ import com.br.marketing.entity.TaskStatus;
 import com.br.marketing.entity.TaskStatusExample;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.TaskStatusMapper;
 import com.br.marketing.service.MarketingTaskOptService;
@@ -36,6 +34,18 @@ import com.br.marketing.vo.ScoreDetailVo;
 import com.github.pagehelper.PageHelper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.curator.framework.CuratorFramework;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Description TaskOptServiceImpl
@@ -150,14 +160,6 @@ public class MarketingTaskOptServiceImpl implements MarketingTaskOptService {
             log.error(e.getMessage(), e);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
-    }
-
-    public CustomerBatchNumDTO getCustomerBatchNumDTO(CustomerBatchNumDTO dto) {
-        if (StringUtils.isNotBlank(dto.getProductName())) {
-            String productName = dto.getProductName();
-            dto.setModuleList(Arrays.asList(productName.split(",")));
-        }
-        return dto;
     }
 
     @Override

@@ -13,8 +13,8 @@ import com.br.marketing.innerapi.service.RuleCenterCollidingService;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.RuleCenterServiceImpl;
-import com.br.marketing.service.MarketingTaskOptService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
 import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
@@ -62,7 +62,7 @@ public class PushRuleFilterController {
     RuleCenterCollidingService ruleCenterCollidingService;
 
     @Resource
-    private MarketingTaskOptService marketingTaskOptService;
+    private ReportScoreRuleService reportScoreRuleService;
 
 
     /**
@@ -279,7 +279,7 @@ public class PushRuleFilterController {
     @PostMapping("getBatchInfoList")
     @AuthDataControllerPermission()
     public ApiResult<PageResultReturn<List<ScoreDetailVo>>> getBatchInfoList(@RequestBody CustomerBatchNumVO batchNumVO) {
-        return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(marketingTaskOptService.getBatchInfoList(batchNumVO));
+        return new ApiResult<PageResultReturn<List<ScoreDetailVo>>>().success(reportScoreRuleService.getBatchInfoList(batchNumVO));
     }
 
 
