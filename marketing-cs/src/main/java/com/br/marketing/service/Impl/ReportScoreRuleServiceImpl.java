@@ -248,7 +248,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
         scoreDetailVos.forEach((ScoreDetailVo t) -> {
             List<String> batchNumberList = marketingTaskUserTypeMapper.queryUserTypeByBatchNumberAndApiCodetikv_(
-                    t.getBatchNumber(), t.getApiCode());
+                    t.getApiCode(), t.getBatchNumber());
             t.setCid(tableCreateService.getCId(t.getApiCode()));
             t.setUserType(String.join(",", batchNumberList));
         });
