@@ -234,6 +234,16 @@ public class RedisKeyConstant {
      */
     public static final String LOCK_KEY_CLEAN_DATA = prefix.concat("lock_key_clean_data_auto");
 
+    /**
+     * 携程剔除批次锁
+     */
+    public static final String XIECHENG_COLLIDING_DELETE = prefix.concat("xcCollidingDelete");
+
+    /**
+     * 携程清洗任务锁
+     */
+    public static final String XIECHENG_COLLIDING_CLEAN = prefix.concat("xcCollidingClean");
+
     public static final String POLICY_BUILD_LOCK = prefix.concat("policy:build:lock:");
 
 }

@@ -44,7 +44,7 @@
             and a.id > #{minId}
         </if>
         order by a.id
-        LIMIT 2000;
+        LIMIT #{pageSize};
     </select>
 
     <update id="updateDeleteByIdstikv_">

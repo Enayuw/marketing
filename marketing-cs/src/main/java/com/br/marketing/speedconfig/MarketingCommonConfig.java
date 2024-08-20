@@ -2006,6 +2006,16 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
 
     /**
+     * 携程跑分数据同步任务保持驼峰字段配置
+     */
+    private List<String> xieChengScoreToDbKeepCamelColumns;
+
+    /**
+     * 携程清洗任务分页条数
+     */
+    private Map<String, Integer> xieChengCollidingDataProcessPageSize;
+
+    /**
      * 推决策报警apiCode集合
      */
     private List<String> pushAlarmApiCode;
