@@ -229,7 +229,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      *
      * @return true 一致
      */
-    private boolean md5CheckDetaFile(File file, MarketingCleanDataFile dataFile, JSONObject map) throws IOException
+    private boolean md5CheckDetailsFile(File file, MarketingCleanDataFile dataFile, JSONObject map) throws IOException
             , NoSuchAlgorithmException {
         // 设置分段大小1M
         int segmentSize = 1024 << 10;
@@ -316,7 +316,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             while ((rowData = reader.readLine()) != null) {
                 stopCheckOrUpdate(apiCode);
                 if (rowNum == 0) {
-                    boolean b = md5CheckDetaFile(file, dataFile, dingdingMap);
+                    boolean b = md5CheckDetailsFile(file, dataFile, dingdingMap);
                     if (isCreate) {
                         dataFileNew = saveDataFileInfo(dataFile, name, file.getParent(), rowData);
                     } else {
