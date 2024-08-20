@@ -180,7 +180,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         try {
                             dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
                                     + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                    + "]\n文件：" + fileName + "\n清洗" + (bool ? "成功^_^\n清洗量级：" + sum : "失败!!!")
+                                    + "]\n文件：" + fileName + "\n清洗" + (bool ? ("成功^_^\n清洗量级：" + sum) : "失败!!!")
                                     + (sum < 1 ? "\n文件无内容" : ""), map);
                         } catch (Exception e) {
                             log.warn(e.getMessage(), e);
