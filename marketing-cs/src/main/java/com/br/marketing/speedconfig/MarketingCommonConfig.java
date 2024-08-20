@@ -1997,6 +1997,24 @@ public class MarketingCommonConfig {
      */
     private String YiShiTransferFileExecuteTime;
 
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化上传接口自定义配置apiCode
+     * eg:{"U_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
+
+    /**
+     * 推决策报警apiCode集合
+     */
+    private List<String> pushAlarmApiCode;
+    /**
+     *  * 2024-08-13 15:42
+     * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
+
     /**
      * 奇富360数据提取custNum对应上传字段
      */

@@ -1206,4 +1206,24 @@
         order by id asc limit #{pageSize}
     </select>
 
+
+    <select id="getTransferCustNumByConditiontikv_" resultType="java.lang.String">
+        select distinct cust_num
+        from b_marketing_transfer_sync_${tCid}
+        <where>
+            api_code = #{apiCode}
+            and cust_num in
+            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                #{custNum}
+            </foreach>
+            <if test="requestStartDate != null and requestStartDate!='' and requestEndDate !=null and requestEndDate !=''">
+                and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+            </if>
+            <if test="userType != null">
+                AND user_type =#{userType}
+            </if>
+            and ${querySql}
+        </where>
+    </select>
+
 </mapper>

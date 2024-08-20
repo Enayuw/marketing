@@ -1,10 +1,22 @@
 package com.br.marketing.api.controller;
 
+import javax.annotation.Resource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.marketing.api.customer.upload.service.CustomerUploadDataService;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.annoation.SaveLog;
 import com.br.marketing.common.commondto.ApiNoDataResult;
@@ -22,15 +34,9 @@ import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.IPushShuheDataService;
 import com.br.marketing.service.PushRuleService;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
-
 
 /**
  * 营销数据接入接口
@@ -48,6 +54,8 @@ public class MarketingUserPreController {
     @Resource
     private IPushShuheDataService iPushShuheDataService;
 
+    @Resource
+    private CustomerUploadDataService customerUploadDataService;
 
     /**
      * 智能营销数据落库接口
@@ -165,5 +173,25 @@ public class MarketingUserPreController {
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(BrCipherJsonUtils.cipherEncodeJsonDataArr(jsonData, Constants.TAG_KEY, Constants.JSON_DATA_KEYARR));
         return iPushShuheDataService.saveUploadData(apiCode, jsonData);
+    }
+
+    /**
+     * 接收客制化上传数据
+     *
+     * @param apiCode api代码
+     * @param jsonData json数据
+     * @return {@link ResponseCustomDTO }
+     * @author senyang.zheng
+     * @date 2024/08/06
+     */
+    @ApiOperation(value = "定制上传数据接入接口")
+    @PostMapping("/receiveCustomizeUploadData")
+    @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ResponseCustomDTO receiveCustomizeUploadData(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_1.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        return customerUploadDataService.receiveCustomizeUploadData(apiCode, jsonData);
     }
 }

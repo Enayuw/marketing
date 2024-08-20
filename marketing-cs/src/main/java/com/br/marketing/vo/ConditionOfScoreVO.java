@@ -11,6 +11,9 @@ public class ConditionOfScoreVO {
     @ApiModelProperty(value = "模板名称")
     private String name;
 
+    @ApiModelProperty(value = "数据源类型：0-无数据源(默认，存量的模板数据)；1-跑分数据源；2-众安转化数据源")
+    private Integer sourceType;
+
     @ApiModelProperty(value = "条件json")
     private String content;
 
@@ -63,5 +66,13 @@ public class ConditionOfScoreVO {
     public ConditionOfScoreVO setConditionNumber(String conditionNumber) {
         this.conditionNumber = conditionNumber;
         return this;
+    }
+
+    public Integer getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(Integer sourceType) {
+        this.sourceType = sourceType;
     }
 }

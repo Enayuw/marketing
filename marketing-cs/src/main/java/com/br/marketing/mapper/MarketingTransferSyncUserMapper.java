@@ -612,4 +612,13 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("limit") int limit
     );
 
+
+    List<String> getTransferCustNumByConditiontikv_(@Param("tCid") String tCid,
+                                                    @Param("apiCode") String apiCode,
+                                                    @Param("userType") String userType,
+                                                    @Param("requestStartDate") String requestStartDate,
+                                                    @Param("requestEndDate") String requestEndDate,
+                                                    @Param("custNums") Set<String> custNums,
+                                                    @Param("querySql") String querySql);
+
 }

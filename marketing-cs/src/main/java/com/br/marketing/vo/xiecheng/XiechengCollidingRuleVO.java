@@ -44,6 +44,9 @@ public class XiechengCollidingRuleVO implements Serializable {
     @ApiModelProperty("优先级")
     private Integer priority;
 
+    @ApiModelProperty("轮次")
+    private Integer round;
+
     @ApiModelProperty("设定撞得量级")
     private Integer collidingBackNumber;
 
