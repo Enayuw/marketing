@@ -27,9 +27,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -74,6 +80,9 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    private static final List<String> FILE_HEADER = new ArrayList<>(
+            Arrays.asList("uid", "register_no_first_login", "first_login_no_borrow", "borrow_no_credit", "credit_no_loan"));
+
 
     /**
      * 2024-08-08 15:51
@@ -96,7 +105,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         Instant instant = localDateTime.minusDays(1).atZone(ZoneId.systemDefault()).toInstant();
         LocalDate localDate = localDateTime.toLocalDate();
         LocalTime time = localDateTime.toLocalTime();
-        String regex = ",";
+        String regex = "\t";
         MarketingCleanCreateTaskRuleExample example = new MarketingCleanCreateTaskRuleExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(0).andDataTypeEqualTo(1);
         List<MarketingCleanCreateTaskRule> taskRules = marketingCleanCreateTaskRuleMapper.selectByExample(example);
@@ -116,31 +125,16 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                         String fileName = dataFile.getFileName();
                         try {
                             dingDingRobotHookService.sendDingDingTextMessage(
-                                    "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                                            + "]\n文件：" + fileName, map);
+                                    "榕树上传数据更新-" + apiCode + "开始[" + LocalDateTime.now().format(
+                                            DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "]\n文件：" + fileName, map);
                         } catch (Exception e) {
                             log.warn(e.getMessage(), e);
                         }
                         long sum = 0;
                         boolean bool = true;
                         try {
-                            if (1 == taskRule.getIsMd5Check() && StringUtils.isNotBlank(md5Value)) {
-                                MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
-                                fileExampleCount.createCriteria().andApiCodeEqualTo(apiCode).andSyncConfigIdEqualTo(syncConfigId)
-                                        .andIdNotEqualTo(dataFile.getId()).andCreateTimeLessThanOrEqualTo(dataFile.getCreateTime())
-                                        .andMd5ValueNotEqualTo("").andMd5ValueIsNotNull();
-                                fileExampleCount.setOrderByClause("create_time desc limit 1");
-                                List<MarketingCleanDataFile> marketingCleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExampleCount);
-                                if (marketingCleanDataFiles.size() > 0 && md5Value.equals(marketingCleanDataFiles.get(0).getMd5Value())) {
-                                    MarketingCleanDataFile dataFileOld = marketingCleanDataFiles.get(0);
-                                    dingDingRobotHookService.sendDingDingTextMessage(
-                                            "榕树上传数据更新-" + apiCode + "文件：" + fileName + "与最近("
-                                                    + dataFileOld.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                                                    .toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ")的文件"
-                                                    + dataFileOld.getFileName() + "内容重复，本次文件不进行清洗\n文件MD5值：" + md5Value, map);
-                                    updateDataFile(dataFile, false);
-                                    continue;
-                                }
+                            if (1 == taskRule.getIsMd5Check() && StringUtils.isNotBlank(md5Value) && md5Check(dataFile, map)) {
+                                continue;
                             }
                             String localPath = dataFile.getLocalPath();
                             File srcFile = new File(localPath.concat(File.separator).concat(fileName));
@@ -154,7 +148,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                     if (files != null) {
                                         for (File file : files) {
                                             stopCheckOrUpdate(apiCode);
-                                            long l = readFile(dataFile, file, regex, localDate, true);
+                                            long l = readFile(dataFile, file, regex, localDate, true, map);
                                             if (l < 0) {
                                                 bool = false;
                                             } else {
@@ -164,7 +158,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                                         updateDataFile(dataFile, false);
                                     }
                                 } else {
-                                    long l = readFile(dataFile, srcFile, regex, localDate, false);
+                                    long l = readFile(dataFile, srcFile, regex, localDate, false, map);
                                     if (l < 0) {
                                         bool = false;
                                     } else {
@@ -187,7 +181,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
                             dingDingRobotHookService.sendDingDingTextMessage("榕树上传数据更新-" + apiCode + "结束["
                                     + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
                                     + "]\n文件：" + fileName + "\n清洗" + (bool ? "成功^_^\n清洗量级：" + sum : "失败!!!")
-                                    + (sum < 1 ? "\n文件无内容或只存在表头" : ""), map);
+                                    + (sum < 1 ? "\n文件无内容" : ""), map);
                         } catch (Exception e) {
                             log.warn(e.getMessage(), e);
                         }
@@ -197,6 +191,83 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         }
     }
 
+    /**
+     * 2024-08-16 20:01
+     * 与最近一次同类型的文件md5值
+     *
+     * @param dataFile 清洗文件
+     * @param map      告警消息
+     * @return true 一致
+     */
+    private boolean md5Check(MarketingCleanDataFile dataFile, JSONObject map) {
+        String fileName = dataFile.getFileName();
+        String apiCode = dataFile.getApiCode();
+        String md5Value = dataFile.getMd5Value();
+        String[] split = fileName.split("\\.");
+        MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
+        fileExampleCount.createCriteria().andApiCodeEqualTo(apiCode).andSyncConfigIdEqualTo(dataFile.getSyncConfigId())
+                .andIdNotEqualTo(dataFile.getId()).andCreateTimeLessThanOrEqualTo(dataFile.getCreateTime())
+                .andMd5ValueNotEqualTo("").andMd5ValueIsNotNull().andFileNameLike("%" + split[1]);
+        fileExampleCount.setOrderByClause("create_time desc limit 1");
+        List<MarketingCleanDataFile> marketingCleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExampleCount);
+        if (marketingCleanDataFiles.size() > 0 && dataFile.getMd5Value().equals(marketingCleanDataFiles.get(0).getMd5Value())) {
+            MarketingCleanDataFile dataFileOld = marketingCleanDataFiles.get(0);
+            dingDingRobotHookService.sendDingDingTextMessage(
+                    "榕树上传数据更新-" + apiCode + "文件：" + fileName + "与最近("
+                            + dataFileOld.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                            .toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ")的文件"
+                            + dataFileOld.getFileName() + "内容重复，本次文件不进行清洗\n文件MD5值：" + md5Value, map);
+            updateDataFile(dataFile, false);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 2024-08-19 20:12
+     * 检查压缩包的明细文件MD5值
+     *
+     * @return true 一致
+     */
+    private boolean md5CheckDetailsFile(File file, MarketingCleanDataFile dataFile, JSONObject map) throws IOException
+            , NoSuchAlgorithmException {
+        // 设置分段大小1M
+        int segmentSize = 1024 << 10;
+        FileChannel channel = FileChannel.open(file.toPath());
+        long size = channel.size();
+        long segments = size / segmentSize + 1;
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        for (int i = 0; i < segments; i++) {
+            int offset = i * segmentSize;
+            int remaining = (int) Math.min(segmentSize, size - offset);
+            MappedByteBuffer byteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, offset, remaining);
+            md5.update(byteBuffer);
+        }
+        String fileMd5 = DatatypeConverter.printHexBinary(md5.digest());
+        String fileName = file.getName();
+        String[] split = fileName.split("\\.");
+        MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
+        fileExampleCount.createCriteria().andApiCodeEqualTo(dataFile.getApiCode())
+                .andSyncConfigIdEqualTo(dataFile.getSyncConfigId()).andFileNameLike("%" + split[1]);
+        fileExampleCount.setOrderByClause("create_time desc limit 1");
+        List<MarketingCleanDataFile> marketingCleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExampleCount);
+        dataFile.setMd5Value(fileMd5);
+        if (marketingCleanDataFiles.size() > 0 && fileMd5.equals(marketingCleanDataFiles.get(0).getMd5Value())) {
+            MarketingCleanDataFile dataFileOld = marketingCleanDataFiles.get(0);
+            dingDingRobotHookService.sendDingDingTextMessage(
+                    "榕树上传数据更新-" + dataFile.getApiCode() + "文件：" + fileName + "与最近("
+                            + dataFileOld.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+                            .toLocalDateTime().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + ")的文件"
+                            + dataFileOld.getFileName() + "内容重复，本次文件不进行清洗\n文件MD5值：" + fileMd5, map);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 2024-08-16 20:03
+     * 停止运行任务及更新线程池线程大小
+     */
     private void stopCheckOrUpdate(String apiCode) throws Exception {
         List<Integer> rongShuCleanUploadTreadPoolSize = marketingCommonConfig.getRongShuCleanUploadTreadPoolSize();
         if (rongShuCleanUploadTreadPoolSize.size() == 0) {
@@ -232,44 +303,40 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      * @param regex     分隔符
      * @return true 成功
      */
-    private long readFile(MarketingCleanDataFile dataFile, File file, String regex, LocalDate localDate, boolean isCreate) {
+    private long readFile(MarketingCleanDataFile dataFile, File file, String regex, LocalDate localDate
+            , boolean isCreate, JSONObject dingdingMap) {
         String name = file.getName();
         String apiCode = dataFile.getApiCode();
         Set<String> appletDateSet = iMarketingDataValidService.getAppletDateSet(apiCode, localDate.toString());
         MarketingCleanDataFile dataFileNew = null;
-        String fileHeader = "";
         Map<String, JSONObject> map = new HashMap<>(2048);
         long rowNum = 0L;
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String[] fileHeaders = null;
             String rowData;
             while ((rowData = reader.readLine()) != null) {
                 stopCheckOrUpdate(apiCode);
-                if (rowNum < 2) {
-                    if (rowNum == 0) {
-                        fileHeader = rowData;
-                        fileHeaders = fileHeader.split(regex);
-                        rowNum++;
-                        continue;
+                if (rowNum == 0) {
+                    boolean b = md5CheckDetailsFile(file, dataFile, dingdingMap);
+                    if (isCreate) {
+                        dataFileNew = saveDataFileInfo(dataFile, name, file.getParent(), rowData);
                     } else {
-                        if (isCreate) {
-                            dataFileNew = saveDataFileInfo(dataFile, name, file.getParent(), fileHeader, rowData);
-                        } else {
-                            dataFileNew = dataFile;
-                            dataFileNew.setFileData(rowData);
-                            dataFileNew.setFileHeader(fileHeader);
-                        }
+                        dataFileNew = dataFile;
+                        dataFileNew.setFileData(rowData);
+                        dataFileNew.setFileHeader(String.join(",", FILE_HEADER));
+                    }
+                    if (b) {
+                        break;
                     }
                 }
                 String[] split = rowData.split(regex);
-                int length = fileHeaders.length;
                 String uid = split[0];
                 JSONObject object = new JSONObject();
-                for (int i = 1; i < length; i++) {
-                    object.put(fileHeaders[i], split[i]);
+                int size = FILE_HEADER.size();
+                for (int i = 1; i < size; i++) {
+                    object.put(FILE_HEADER.get(i), split[i]);
                 }
                 map.put(uid, object);
-                if (map.size() == 2000 && dataFileNew != null && dataFileNew.getId() != null) {
+                if (map.size() == 2000 && dataFileNew.getId() != null) {
                     Map<String, JSONObject> finalMap = map;
                     MarketingCleanDataFile finalDataFileNew = dataFileNew;
                     THREAD_POOL.submit(() -> {
@@ -286,11 +353,11 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             updateDataFile(dataFileNew, isCreate);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(), e.getMessage()
-                    + "\n已清洗:" + (rowNum == 0L ? rowNum : rowNum - 1), "榕树清洗上传数据异常-" + apiCode), e);
+                    + "\n已清洗:" + (rowNum), "榕树清洗上传数据异常-" + apiCode), e);
             updateDataFile(dataFileNew, isCreate);
             return -1L;
         }
-        return (rowNum == 0L ? rowNum : rowNum - 1);
+        return rowNum;
     }
 
     /**
@@ -322,12 +389,12 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
      */
     private MarketingCleanDataFile saveDataFileInfo(MarketingCleanDataFile dataFile, String fileName
             , String targetPath
-            , String fileHeader, String fileData) {
+            , String fileData) {
         String apiCode = dataFile.getApiCode();
         Long syncConfigId = dataFile.getSyncConfigId();
         String localPath = dataFile.getLocalPath();
         MarketingCleanDataFile dataFileNew = new MarketingCleanDataFile();
-        dataFileNew.setFileHeader(fileHeader);
+        dataFileNew.setFileHeader(String.join(",", FILE_HEADER));
         dataFileNew.setFileName(fileName);
         dataFileNew.setApiCode(apiCode);
         dataFileNew.setFileData(fileData);
@@ -335,8 +402,9 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         dataFileNew.setLocalPath(targetPath);
         dataFileNew.setUpdateTime(new Date());
         dataFileNew.setTargetSftpPath(localPath);
-        dataFileNew.setMd5Value("");
+        dataFileNew.setMd5Value(dataFile.getMd5Value());
         dataFileNew.setSyncConfigId(syncConfigId);
+        dataFileNew.setIsDel(dataFile.getIsDel());
         int i = marketingCleanDataFileMapper.insertSelective(dataFileNew);
         if (i < 1) {
             log.warn("添加清洗文件失败！fileName:{},targetPath:{},srcPath:{},syncConfigId:{}"
