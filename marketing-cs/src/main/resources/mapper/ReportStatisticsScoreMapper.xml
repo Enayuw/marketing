@@ -3,7 +3,12 @@
 <mapper namespace="com.br.marketing.mapper.ReportStatisticsScoreMapper">
 
 
-    <select id="queryDataMapNumdoris_" resultType="java.util.Map">
+    <select id="queryDataMapNumbI_" resultType="java.util.Map">
+        ${querySql}
+    </select>
+
+
+    <select id="queryNumBybI_" resultType="java.lang.Integer">
         ${querySql}
     </select>
 </mapper>

@@ -2025,5 +2025,11 @@ public class MarketingCommonConfig {
      * 跑分模型分布 配置数据展示规则时需要的产品前缀
      */
     private Set<String> reportScorePrefixSet;
+
+    /**
+     * 跑分报表分值区间配置
+     */
+    private Map<String, Integer> scoreReportRangeConfig;
+
 }
 

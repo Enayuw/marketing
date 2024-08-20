@@ -12,6 +12,7 @@ import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.bi.AnalysisReportService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +46,9 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
 
     @Resource
     private AnalysisReportService analysisReportService;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
 
     @Override
@@ -199,7 +203,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         //替换变量
         scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange).replace("yModelName", fieldY)
                 .replace("yModelRange", fieldYRange);
-        return reportStatisticsScoreMapper.queryDataMapNumdoris_(scoreSql);
+        return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
     }
 
 
@@ -231,7 +235,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 " ORDER BY FLOOR(a.xModelName / xModelRange);";
         //替换变量
         scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange);
-        return reportStatisticsScoreMapper.queryDataMapNumdoris_(scoreSql);
+        return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
     }
 
     /**
@@ -338,9 +342,10 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         }
         scoreSql = "select max(num) from ( ".concat(scoreSql).concat(") a;");
 
-        Integer scoreValue = scoreRecordMapper.getXieChengDataNumdoris_(scoreSql);
-        //考虑speed配置
-        return scoreValue > 200 ? 50 : 5;
+        Integer scoreValue = reportStatisticsScoreMapper.queryNumBybI_(scoreSql);
+        Map<String, Integer> rangeConfig = marketingCommonConfig.getScoreReportRangeConfig();
+        //speed配置
+        return scoreValue > rangeConfig.get("scoreNum") ? rangeConfig.get("numRightStep") : rangeConfig.get("numLeftStep");
 
     }
 
