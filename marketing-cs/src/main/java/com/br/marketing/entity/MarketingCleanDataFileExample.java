@@ -12,7 +12,7 @@ public class MarketingCleanDataFileExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingCleanDataFileExample() {
-        oredCriteria = new ArrayList<>();
+        oredCriteria = new ArrayList<Criteria>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingCleanDataFileExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<>();
+            criteria = new ArrayList<Criterion>();
         }
 
         public boolean isValid() {
@@ -884,11 +884,140 @@ public class MarketingCleanDataFileExample {
             addCriterion("is_del not between", value1, value2, "isDel");
             return (Criteria) this;
         }
+
+        public Criteria andSyncConfigIdIsNull() {
+            addCriterion("sync_config_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdIsNotNull() {
+            addCriterion("sync_config_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdEqualTo(Long value) {
+            addCriterion("sync_config_id =", value, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdNotEqualTo(Long value) {
+            addCriterion("sync_config_id <>", value, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdGreaterThan(Long value) {
+            addCriterion("sync_config_id >", value, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("sync_config_id >=", value, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdLessThan(Long value) {
+            addCriterion("sync_config_id <", value, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdLessThanOrEqualTo(Long value) {
+            addCriterion("sync_config_id <=", value, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdIn(List<Long> values) {
+            addCriterion("sync_config_id in", values, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdNotIn(List<Long> values) {
+            addCriterion("sync_config_id not in", values, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdBetween(Long value1, Long value2) {
+            addCriterion("sync_config_id between", value1, value2, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncConfigIdNotBetween(Long value1, Long value2) {
+            addCriterion("sync_config_id not between", value1, value2, "syncConfigId");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueIsNull() {
+            addCriterion("md5_value is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueIsNotNull() {
+            addCriterion("md5_value is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueEqualTo(String value) {
+            addCriterion("md5_value =", value, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueNotEqualTo(String value) {
+            addCriterion("md5_value <>", value, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueGreaterThan(String value) {
+            addCriterion("md5_value >", value, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueGreaterThanOrEqualTo(String value) {
+            addCriterion("md5_value >=", value, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueLessThan(String value) {
+            addCriterion("md5_value <", value, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueLessThanOrEqualTo(String value) {
+            addCriterion("md5_value <=", value, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueLike(String value) {
+            addCriterion("md5_value like", value, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueNotLike(String value) {
+            addCriterion("md5_value not like", value, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueIn(List<String> values) {
+            addCriterion("md5_value in", values, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueNotIn(List<String> values) {
+            addCriterion("md5_value not in", values, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueBetween(String value1, String value2) {
+            addCriterion("md5_value between", value1, value2, "md5Value");
+            return (Criteria) this;
+        }
+
+        public Criteria andMd5ValueNotBetween(String value1, String value2) {
+            addCriterion("md5_value not between", value1, value2, "md5Value");
+            return (Criteria) this;
+        }
     }
 
-    /**
-     */
     public static class Criteria extends GeneratedCriteria {
+
         protected Criteria() {
             super();
         }

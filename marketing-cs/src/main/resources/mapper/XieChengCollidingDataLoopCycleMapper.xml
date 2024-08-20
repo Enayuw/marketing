@@ -157,4 +157,11 @@
             #{cell_sha256_code_list}
         </foreach>
     </update>
+
+    <select id="selectCycleCountOfStack" resultType="java.lang.Integer">
+        SELECT count(*) as count
+        FROM b_xiecheng_colliding_data_loop_cycle
+        WHERE is_delete = 0
+        <![CDATA[ and retry_count < 3 and release_time > #{startDate} and release_time < #{endDate}]]>
+    </select>
 </mapper>

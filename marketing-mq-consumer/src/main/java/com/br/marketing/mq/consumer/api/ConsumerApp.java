@@ -2,6 +2,7 @@ package com.br.marketing.mq.consumer.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.client.zhongyou.ZhongYouDataService;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
@@ -48,6 +49,8 @@ public class ConsumerApp {
     @Resource
     private TransferSyncReportService transferSyncReportService;
 
+    @Resource
+    private ZhongYouDataService zhongYouDataService;
 
     /**
      * 消费 原始上传数据消费端（大队列）
@@ -162,7 +165,7 @@ public class ConsumerApp {
 
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::HandleZhongYouData, o, null);
+        consumerService.consumerRun(channel, message, zhongYouDataService::HandleZhongYouData, o, null);
     }
 
     /**

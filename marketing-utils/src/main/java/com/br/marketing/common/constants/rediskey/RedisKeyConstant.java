@@ -57,6 +57,8 @@ public class RedisKeyConstant {
 
     public static final String conditionNumber = prefix.concat("conditionnumber");
 
+    public static final String decisionsNumber = prefix.concat("decisionsnumber");
+
     public static final String offLineLock = prefix.concat("offlinecallback");
 
     public static final String TASKSCORE_HXRESULTERROR = prefix.concat("taskscore:hxresult:error");
@@ -241,5 +243,7 @@ public class RedisKeyConstant {
      * 携程清洗任务锁
      */
     public static final String XIECHENG_COLLIDING_CLEAN = prefix.concat("xcCollidingClean");
+
+    public static final String POLICY_BUILD_LOCK = prefix.concat("policy:build:lock:");
 
 }

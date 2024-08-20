@@ -7,7 +7,6 @@ import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.enums.DataTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.LoanFileMapper;
@@ -31,7 +30,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 @Aspect
 @Component
@@ -46,19 +44,24 @@ public class CopyFileJoinAspect {
     TransferFileTaskMapper transferFileTaskMapper;
 
     @Pointcut("execution(public * com.br.marketing.sync.service.impl.SyncServiceImpl.copyFile(..))")
-    public void copyFile(){}
+    public void copyFile() {
+    }
+
+    @Pointcut("execution(public Boolean com.br.marketing.sync.service.impl.SyncServiceImpl.downloadFileToLocalDisk(..))")
+    public void downloadFileToLocalDisk() {
+    }
 
     @Around("com.br.marketing.sync.aspect.CopyFileJoinAspect.copyFile()")
-    public void copyFile(ProceedingJoinPoint joinPoint){
+    public void copyFile(ProceedingJoinPoint joinPoint) {
         Object[] args = joinPoint.getArgs();
-        SyncConfig loanSyncConfig= new SyncConfig();
-        String fileName="";
-        BaseFtpClient srcClient=null;
-        BaseFtpClient targetClient= null;
+        SyncConfig loanSyncConfig = new SyncConfig();
+        String fileName = "";
+        BaseFtpClient srcClient = null;
+        BaseFtpClient targetClient = null;
         for (int i = 0; i < args.length; i++) {
             if (0 == i) {
                 loanSyncConfig = (SyncConfig) args[i];
-            }else if(1 == i){
+            } else if (1 == i) {
                 fileName = (String) args[i];
             }else if(2 == i){
                 srcClient= (BaseFtpClient) args[i];
@@ -85,22 +88,54 @@ public class CopyFileJoinAspect {
             example.createCriteria().andApiCodeEqualTo(loanSyncConfig.getApiCode()).andFileNameEqualTo(fileName);
             TransferFileTask task = new TransferFileTask();
             task.setStatus(4);
-            transferFileTaskMapper.updateByExampleSelective(task,example);
-        }else{
-            boolean b = vaildatorFile(loanSyncConfig, fileName, loanSyncLog,targetClient);
-            insertSyncLog(loanSyncConfig,fileName,b,loanSyncLog);
-            updateFileHisStatus(loanSyncConfig,fileName,b);
+            transferFileTaskMapper.updateByExampleSelective(task, example);
+        } else {
+            boolean b = vaildatorFile(loanSyncConfig, fileName, loanSyncLog, targetClient);
+            insertSyncLog(loanSyncConfig, fileName, b, loanSyncLog);
+            updateFileHisStatus(loanSyncConfig, fileName, b);
         }
 
     }
 
+    @Around("downloadFileToLocalDisk()")
+    public Object localDisk(ProceedingJoinPoint joinPoint) {
+        Object[] args = joinPoint.getArgs();
+        SyncConfig loanSyncConfig = null;
+        String fileName = "";
+        BaseFtpClient srcClient = null;
+        for (int i = 0; i < args.length; i++) {
+            if (0 == i) {
+                loanSyncConfig = (SyncConfig) args[i];
+            } else if (1 == i) {
+                srcClient = (BaseFtpClient) args[i];
+            } else if (2 == i) {
+                fileName = (String) args[i];
+            } else {
+                break;
+            }
+        }
+        if (srcClient == null || loanSyncConfig == null) {
+            log.warn("Download File To Local Disk srcClient is null");
+            return Boolean.FALSE;
+        }
+        SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
+        Object proceed = Boolean.FALSE;
+        try {
+            proceed = joinPoint.proceed(args);
+            insertSyncLog(loanSyncConfig, fileName, (Boolean) proceed, loanSyncLog);
+        } catch (Throwable throwable) {
+            log.error("download File LocalDisk error", throwable);
+        }
+        return proceed;
+    }
 
 
     /**
      * 回传给客户的结果文件，同步完成之后需要更新stra_his_file表中的status字段
+     *
      * @param loanSyncConfig 文件同步配置
-     * @param fileName 文件名称
-     * @param b 文件同步是否成功
+     * @param fileName       文件名称
+     * @param b              文件同步是否成功
      */
     private void updateFileHisStatus(SyncConfig loanSyncConfig, String fileName, boolean b) {
         if(1==loanSyncConfig.getType()||!b||!fileName.endsWith(".zip")){

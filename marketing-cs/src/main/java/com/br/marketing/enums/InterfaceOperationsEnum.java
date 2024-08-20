@@ -18,6 +18,7 @@ public enum InterfaceOperationsEnum {
     XIECHENG_UPDATE_COLLIDING_RULE("100003","修改撞库规则"),
     XIECHENG_MAKE_COLLIDING_PACKAGE("100004","生成数据包"),
     XIECHENG_DELETE_COLLIDING_PACKAGE("100005","删除数据包"),
+    XIECHENG_UPDATE_ROUND("100007","修改数据包轮次"),
     ;
     /**
      * 接口状态码

@@ -344,7 +344,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                         }
                     }
                 }
-                // 生成有效期
+
                 createValidDateConfig(apiDataInfoDTO, apiDataInfoDTO.getRawDataSaveTimeStr(), collectionDTO, apiCode
                         , userType);
             }

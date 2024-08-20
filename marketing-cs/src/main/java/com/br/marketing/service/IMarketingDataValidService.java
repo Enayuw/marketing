@@ -6,6 +6,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface IMarketingDataValidService {
 
@@ -27,4 +28,16 @@ public interface IMarketingDataValidService {
      * @return
      */
     Boolean isValidByThreeType(Map<String, Integer> userTypeTN, MarketingSyncUser syncUser);
+
+
+    /**
+     * 2024-08-09 15:14
+     * 获取有效期内的上传日期
+     *
+     * @param apiCode
+     * @param dateStr 日期，格式：yyyy-MM-dd
+     * @return 上传日期集合，格式：yyyy-MM-dd
+     */
+    Set<String> getAppletDateSet(String apiCode, String dateStr);
+
 }
