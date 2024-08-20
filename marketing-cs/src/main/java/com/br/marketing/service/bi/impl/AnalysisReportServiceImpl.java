@@ -70,10 +70,10 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         reportTaskMapper.updateByPrimaryKeySelective(reportTask);
         List<AxisWrapVO> axisWrapVOS = buildAxisWrapVo(taskId);
         // 分组sheet
-        LinkedHashMap<String, AxisWrapVO> sheetMap = axisWrapVOS.stream().collect(Collectors.toMap(axisWrapVO -> {
+        LinkedHashMap<String, AxisWrapVO> sheetMap = axisWrapVOS.stream().collect(Collectors.toMap((AxisWrapVO axisWrapVO) -> {
             String xAxisProduct = axisWrapVO.getXAxisProduct();
             String yAxisProduct = axisWrapVO.getYAxisProduct();
-            return StringUtils.isEmpty(yAxisProduct) ? xAxisProduct : xAxisProduct + "_" + yAxisProduct;
+            return StringUtils.isEmpty(yAxisProduct) ? xAxisProduct : (xAxisProduct + "_" + yAxisProduct);
         }, axisWrapVO -> axisWrapVO, (existing, replacement) -> existing, LinkedHashMap::new));
         ExcelWriter excelWriter = ExcelUtil.getWriter(true);
         String tempPath = Constants.TMP_FILE_PATH;
@@ -164,7 +164,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         Map<String, Map<String, Integer>> groupedByY = details.stream().collect(Collectors.groupingBy(ScoreStatisticsDetail::getFieldYValue,
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
         // 构建 yAxis 列表
-        List<WrapDataVO> yAxisData = yStep.stream().map(yValue -> {
+        List<WrapDataVO> yAxisData = yStep.stream().map((String yValue) -> {
             List<String> data =
                 xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yValue, Collections.emptyMap()).getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
@@ -182,7 +182,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
         // 构建 yAxis 列表
         List<String> keys = Splitter.on(",").splitToList(axisWrapVo.getXAxisProduct());
-        List<WrapDataVO> yAxis = keys.stream().map(yName -> {
+        List<WrapDataVO> yAxis = keys.stream().map((String yName) -> {
             // 根据 X轴步长 填充Y轴数据
             List<String> data =
                 xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yName, Collections.emptyMap()).getOrDefault(xValue, 0)))
