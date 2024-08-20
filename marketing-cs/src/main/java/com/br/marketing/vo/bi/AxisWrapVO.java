@@ -2,6 +2,7 @@ package com.br.marketing.vo.bi;
 
 import java.util.List;
 
+import com.microsoft.schemas.office.visio.x2012.main.SheetType;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,4 +26,8 @@ public class AxisWrapVO {
     private List<String> xAxis;
     @ApiModelProperty(value = "Y轴数据")
     private List<WrapDataVO> yAxis;
+    @ApiModelProperty(value = "模型分布类型 1-单模型(field_x可多个,field_y无值)；2-多模型（field_x和field_y各一个值）")
+    private Integer reportScoreType;
+    @ApiModelProperty(value = "报表描述")
+    private String statisticsDesc;
 }

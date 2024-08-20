@@ -1,12 +1,9 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.aspect.AuthDataPermission;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.ReportTask;
 import com.br.marketing.entity.ReportTaskScoreSource;
 import com.br.marketing.entity.StraHisFile;
@@ -38,14 +35,13 @@ import java.util.stream.Collectors;
 @Service
 public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     @Resource
-    MarketingTaskExtendMapper marketingTaskExtendMapper;
+    private MarketingTaskExtendMapper marketingTaskExtendMapper;
     @Resource
-    StraHisFileMapper straHisFileMapper;
+    private StraHisFileMapper straHisFileMapper;
     @Resource
-    ReportTaskMapper reportTaskMapper;
+    private ReportTaskMapper reportTaskMapper;
     @Resource
-    ReportTaskScoreSourceMapper reportTaskScoreSourceMapper;
-
+    private ReportTaskScoreSourceMapper reportTaskScoreSourceMapper;
 
     @Resource
     private MarketingTaskMapper marketingTaskMapper;
@@ -76,11 +72,6 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         List<TaskInfoVO> products = marketingTaskExtendMapper.getProducts(batchNumbers);
         for (TaskInfoVO product : products) {
             String batchNumber = product.getBatchNumber();
-            Integer taskType = product.getTaskType();
-            if (!TaskTypeEnum.PRODUCTDATA.getValue().equals(taskType)) {
-                log.warn("batchNumber:[{}]不属于产品跑分类型", batchNumber);
-                continue;
-            }
             String strategyProductJson = product.getStrategyProductJson();
             if (StringUtils.isNotBlank(strategyProductJson)) {
                 StrategyProductDetailVO strategyProductDetailVO = JSONObject.parseObject(strategyProductJson, StrategyProductDetailVO.class);
@@ -99,7 +90,15 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     /**
-     * 循环对比跑分文件 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端
+     * 循环对比跑分文件 将不同跑分文件中产品对应的跑分文件和跑分文件之间产品差异显示给前端 方法处理前： fieldsNoScoreMap=new HashMap(); fieldsMap=new HashMap(); batchSwiftAndScoreSetList: [{
+     * 7410908_20240730000000_3346 = [pd_cell_province, pd_cell_type, scorecust, flag_score] }, { 7410908_20240813000000_5934 = [pd_cell_province,
+     * pd_cell_type, scorecust, flag_score] }, { 7410908_20240813000000_5283 = [pd_cell_province, pd_cell_type, scorecust, flag_score] }] 处理结束后：
+     * fieldsNoScoreMap: { pd_cell_province1 = 7410908_20240613000000_3779,7410908_20240613000000_6436,7410908_20240813000000_9817, pd_cell_province =
+     * 7410908_20240813000000_5283 } fieldsMap: { pd_cell_province =
+     * 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283, pd_cell_type =
+     * 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283, scorecust =
+     * 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283, flag_score =
+     * 7410908_20240730000000_3346,7410908_20240813000000_5934,7410908_20240813000000_5283 }
      * 
      * @Author yu.xia@brgroup.com
      * @Date 2024/8/15 18:32
@@ -113,10 +112,11 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             Map<String, Set> stringSetMapI = batchSwiftAndScoreSetList.get(i);
             String batchNumberI = "";
             Set<String> productFromBatchSwiftSetI = new HashSet<>();
-            // 循环获取每个产品对应的 跑分文件（多个以逗号分隔）
+            // 每个stringSetMapI只含有一个batchNumber
             for (Map.Entry<String, Set> e : stringSetMapI.entrySet()) {
                 batchNumberI = e.getKey();
                 productFromBatchSwiftSetI = e.getValue();
+                // 循环获取每个产品对应的 跑分文件（多个以逗号分隔）
                 for (String product : productFromBatchSwiftSetI) {
                     String batchNumberString = fieldsMap.get(product);
                     if (StringUtils.isNotBlank(batchNumberString)) {
@@ -216,17 +216,17 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
      *
      * @param page 第页
      * @param pageSize 页面大小
+     * @param name
      * @param apiCodes apiCodes
      * @return {@link PageResultReturn }
      * @author senyang.zheng
      * @date 2024/08/19
      */
     @Override
-    @AuthDataPermission
-    public PageResultReturn getReportTaskList(int page, int pageSize, List<String> apiCodes) {
+    public PageResultReturn getReportTaskList(int page, int pageSize, String name, List<String> apiCodes) {
         PageHelper.startPage(page, pageSize);
         try {
-            List<ReportTaskVO> list = reportTaskMapper.findList(apiCodes);
+            List<ReportTaskVO> list = reportTaskMapper.findListtikv_(name, apiCodes);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -234,16 +234,8 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         return null;
     }
 
-
     @Override
     public PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO) {
-        if (batchNumVO.getApiCodeSet() == null || batchNumVO.getApiCodeSet().size() == 0) {
-            String apiCode = ThreadContextInfo.getUser().getApiCode();
-            if (org.apache.commons.lang3.StringUtils.isNotBlank(apiCode)) {
-                String[] split = apiCode.split(",");
-                batchNumVO.setApiCodeSet(new HashSet<>(Arrays.asList(split)));
-            }
-        }
         PageHelper.startPage(batchNumVO.getCurrent(), batchNumVO.getSize()).setOrderBy(" scoreBeginTime desc,fileId desc ");
         List<ScoreDetailVo> scoreDetailVos = marketingTaskMapper.queryBatchList(batchNumVO);
         scoreDetailVos.forEach((ScoreDetailVo t) -> {
@@ -252,7 +244,6 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             t.setCid(tableCreateService.getCId(t.getApiCode()));
             t.setUserType(String.join(",", batchNumberList));
         });
-        return (PageResultReturn<List<ScoreDetailVo>>) PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent()
-                , batchNumVO.getSize());
+        return (PageResultReturn<List<ScoreDetailVo>>)PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent(), batchNumVO.getSize());
     }
 }

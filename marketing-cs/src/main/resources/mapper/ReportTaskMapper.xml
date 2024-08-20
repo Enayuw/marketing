@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.ReportTaskMapper">
-    <select id="findList" resultType="com.br.marketing.vo.bi.ReportTaskVO">
+    <select id="findListtikv_" resultType="com.br.marketing.vo.bi.ReportTaskVO">
         select id,
                report_name,
                report_rules,
@@ -16,6 +16,9 @@
         from b_report_task
         <where>
             is_del = 1
+            <if test="name != null and name!=''">
+                and report_name like CONCAT('%',#{name},'%')
+            </if>
             <if test="apiCodes != null and apiCodes.size() != 0">
                 and id in(
                 select report_id
@@ -27,6 +30,6 @@
                 )
             </if>
         </where>
-        order by create_time, id desc
+        order by create_time desc, id desc
     </select>
 </mapper>

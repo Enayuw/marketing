@@ -1,11 +1,9 @@
 package com.br.marketing.aspect;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
@@ -16,9 +14,12 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.context.ThreadApicodeInfo;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.entity.auth.MarketingUserDetail;
+import com.br.marketing.vo.BaseAuthPermissionData;
 import com.google.common.base.Splitter;
 
 /**
@@ -69,52 +70,58 @@ public class AuthPermissionsAspect {
         ThreadApicodeInfo.removeData();
     }
 
-    @Around("@annotation(authDataPermission)")
-    public Object handleAuthDataPermission(ProceedingJoinPoint joinPoint, AuthDataPermission authDataPermission) throws Throwable {
+    @Around("@annotation(authDataControllerPermission)")
+    public Object handleAuthDataPermission(ProceedingJoinPoint joinPoint, AuthDataControllerPermission authDataControllerPermission)
+        throws Throwable {
         Object[] args = joinPoint.getArgs();
-        String paramName = authDataPermission.paramName();
         MarketingUserDetail user = ThreadContextInfo.getUser();
         if (user == null) {
-            return joinPoint.proceed(args);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_USER_INVALID_SESSION_ERROR);
         }
         boolean isAdmin = user.getRoleList().stream().anyMatch(role -> role.getId() == 1);
         if (isAdmin) {
             return joinPoint.proceed(args);
         }
         List<String> authApiCodes = Splitter.on(",").splitToList(user.getApiCode());
-        MethodSignature signature = (MethodSignature)joinPoint.getSignature();
-        Method method = signature.getMethod();
-        int index = getParamIndexByName(method, paramName);
+        // 处理封装Object类型的参数
+        List<String> mixedApiCodes;
+        if (args[0] instanceof BaseAuthPermissionData) {
+            BaseAuthPermissionData baseAuthPermissionData = (BaseAuthPermissionData)args[0];
+            List<String> argApiCodes = baseAuthPermissionData.getApiCodes();
+            if (CollectionUtils.isEmpty(argApiCodes)) {
+                baseAuthPermissionData.setApiCodes(authApiCodes);
+                return joinPoint.proceed(args);
+            } else {
+                mixedApiCodes = argApiCodes.stream().filter(authApiCodes::contains).collect(Collectors.toList());
+                if (CollectionUtils.isEmpty(mixedApiCodes)) {
+                    return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_USER_API_CODE_ERROR);
+                }
+                baseAuthPermissionData.setApiCodes(mixedApiCodes);
+                return joinPoint.proceed(args);
+            }
+        }
+        // 处理散装参数
+        MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+        String[] parameterNames = methodSignature.getParameterNames();
+        int index = ArrayUtils.indexOf(parameterNames, authDataControllerPermission.paramName());
+        if (index != -1 && args[index] == null) {
+            args[index] = authApiCodes;
+            return joinPoint.proceed(args);
+        }
         if (index != -1 && args[index] instanceof List) {
             List<String> argApiCodes = (List<String>)args[index];
-            List<String> mixedApiCodes = argApiCodes.stream().filter(authApiCodes::contains).collect(Collectors.toList());
-            // 参数apiCode集合为空或参数apiCode集合和权限apiCode集合交集为空，默认为权限apiCode集合
-            if (CollectionUtils.isEmpty(argApiCodes) || CollectionUtils.isEmpty(mixedApiCodes)) {
+            if (CollectionUtils.isEmpty(argApiCodes)) {
                 args[index] = authApiCodes;
+                return joinPoint.proceed(args);
             } else {
+                mixedApiCodes = argApiCodes.stream().filter(authApiCodes::contains).collect(Collectors.toList());
+                if (CollectionUtils.isEmpty(mixedApiCodes)) {
+                    return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_USER_API_CODE_ERROR);
+                }
                 args[index] = mixedApiCodes;
             }
         }
         return joinPoint.proceed(args);
-    }
-
-    /**
-     * 根据参数名获取指定下标
-     *
-     * @param method 方法
-     * @param paramName param名称
-     * @return int
-     * @author senyang.zheng
-     * @date 2024/08/19
-     */
-    private int getParamIndexByName(Method method, String paramName) {
-        String[] paramNames = Arrays.stream(method.getParameters()).map(Parameter::getName).toArray(String[]::new);
-        for (int i = 0; i < paramNames.length; i++) {
-            if (paramNames[i].equals(paramName)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
 }

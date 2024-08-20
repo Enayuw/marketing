@@ -19,6 +19,7 @@ import javax.annotation.Resource;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.utils.Constants;
@@ -31,6 +32,7 @@ import com.br.marketing.mapper.ReportStatisticsScoreBaseMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ScoreStatisticsDetailBaseMapper;
 import com.br.marketing.service.bi.AnalysisReportService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.google.common.base.Splitter;
@@ -38,22 +40,14 @@ import com.google.common.collect.Lists;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 public class AnalysisReportServiceImpl implements AnalysisReportService {
-
-    public static final List<String> FIVE_STEP_LENGTH = Lists.newArrayList("[0,50)", "[50,100)", "[100,150)", "[150,200)", "[200,250)", "[250,300)",
-        "[300,350)", "[350,400)", "[400,450)", "[450,500)", "[500,550)", "[550,600)", "[600,650)", "[650,700)", "[700,750)", "[750,800)", "[800,850)",
-        "[850,900)", "[900,950)", "[950,1000]");
-
-    public static final List<String> FIFTY_STEP_LENGTH =
-        Lists.newArrayList("[0,5)", "[5,10)", "[10,15)", "[15,20)", "[20,25)", "[25,30)", "[30,35)", "[35,40)", "[40,45)", "[45,50)", "[50,55)",
-            "[55,60)", "[60,65)", "[65,70)", "[70,75)", "[75,80)", "[80,85)", "[85,90)", "[90,95)", "[95,100]");
 
     public static final String BI_FILE_EXTENSION = ".xlsx";
 
@@ -65,6 +59,8 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     private ReportStatisticsScoreBaseMapper reportStatisticsScoreBaseMapper;
     @Resource
     private ScoreStatisticsDetailBaseMapper scoreStatisticsDetailBaseMapper;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -74,10 +70,10 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         reportTaskMapper.updateByPrimaryKeySelective(reportTask);
         List<AxisWrapVO> axisWrapVOS = buildAxisWrapVo(taskId);
         // 分组sheet
-        LinkedHashMap<String, AxisWrapVO> sheetMap = axisWrapVOS.stream().collect(Collectors.toMap(axisWrapVO -> {
+        LinkedHashMap<String, AxisWrapVO> sheetMap = axisWrapVOS.stream().collect(Collectors.toMap((AxisWrapVO axisWrapVO) -> {
             String xAxisProduct = axisWrapVO.getXAxisProduct();
             String yAxisProduct = axisWrapVO.getYAxisProduct();
-            return StringUtils.isEmpty(yAxisProduct) ? xAxisProduct : xAxisProduct + "_" + yAxisProduct;
+            return StringUtils.isEmpty(yAxisProduct) ? xAxisProduct : (xAxisProduct + "_" + yAxisProduct);
         }, axisWrapVO -> axisWrapVO, (existing, replacement) -> existing, LinkedHashMap::new));
         ExcelWriter excelWriter = ExcelUtil.getWriter(true);
         String tempPath = Constants.TMP_FILE_PATH;
@@ -87,20 +83,18 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         String fileName = reportTask.getReportName() + BI_FILE_EXTENSION;
         String fullName = tmpPath + FilenameUtils.getName(fileName);
         File tempFile = new File(fullName);
-        boolean isFirstEntry = true;
         for (Map.Entry<String, AxisWrapVO> entry : sheetMap.entrySet()) {
             // excel sheet名称最大长度31，超出31截取前31位
             String sheetName = entry.getKey().length() > 31 ? entry.getKey().substring(0, 31) : entry.getKey();
-            // 处理默认生成的sheet1
-            if (isFirstEntry) {
-                excelWriter.renameSheet(sheetName);
-                isFirstEntry = false;
+            excelWriter.setSheet(sheetName);
+            if (entry.getValue().getStatisticsDesc() == null) {
+                writeDistributedData(excelWriter, entry.getValue());
             } else {
-                excelWriter.setSheet(sheetName);
+                writeErrorData(excelWriter, entry.getValue());
             }
-            writeDistributedData(excelWriter, entry.getValue());
         }
-        // 写入文件并关闭流
+        // 剔除默认生成的第一个sheet，写入文件并关闭流
+        excelWriter.getWorkbook().removeSheetAt(0);
         excelWriter.flush(tempFile);
         String url = fastDfsClient.uploadFile(tempFile);
         deleteTempFile(tmpPath);
@@ -108,6 +102,11 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         reportTask.setDownloadUrl(url);
         reportTaskMapper.updateByPrimaryKeySelective(reportTask);
         return url;
+    }
+
+    private void writeErrorData(ExcelWriter writer, AxisWrapVO wrapVO) {
+        writer.writeCellValue(0, 0, wrapVO.getStatisticsDesc());
+        writer.autoSizeColumnAll();
     }
 
     /**
@@ -133,14 +132,21 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             AxisWrapVO axisWrapVo = new AxisWrapVO();
             axisWrapVo.setXAxisProduct(statisticsScore.getFieldX());
             axisWrapVo.setYAxisProduct(statisticsScore.getFieldY());
+            if (ObjectUtil.notEqual(statisticsScore.getStatus(), 1)) {
+                axisWrapVo.setStatisticsDesc(StringUtils.isEmpty(statisticsScore.getStatisticsDesc()) ? "统计异常" : statisticsScore.getStatisticsDesc());
+                axisWrapVOS.add(axisWrapVo);
+                continue;
+            }
             ScoreStatisticsDetailExample detailExample = new ScoreStatisticsDetailExample();
             detailExample.createCriteria().andStatisticsIdEqualTo(statisticsScore.getId());
             List<ScoreStatisticsDetail> details = scoreStatisticsDetailBaseMapper.selectByExample(detailExample);
             switch (statisticsScore.getReportScoreType()) {
                 case 1:
+                    axisWrapVo.setReportScoreType(1);
                     singleConvert(axisWrapVo, details);
                     break;
                 case 2:
+                    axisWrapVo.setReportScoreType(2);
                     multipleConvert(axisWrapVo, details);
                     break;
                 default:
@@ -158,7 +164,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         Map<String, Map<String, Integer>> groupedByY = details.stream().collect(Collectors.groupingBy(ScoreStatisticsDetail::getFieldYValue,
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
         // 构建 yAxis 列表
-        List<WrapDataVO> yAxisData = yStep.stream().map(yValue -> {
+        List<WrapDataVO> yAxisData = yStep.stream().map((String yValue) -> {
             List<String> data =
                 xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yValue, Collections.emptyMap()).getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
@@ -176,7 +182,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
         // 构建 yAxis 列表
         List<String> keys = Splitter.on(",").splitToList(axisWrapVo.getXAxisProduct());
-        List<WrapDataVO> yAxis = keys.stream().map(yName -> {
+        List<WrapDataVO> yAxis = keys.stream().map((String yName) -> {
             // 根据 X轴步长 填充Y轴数据
             List<String> data =
                 xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yName, Collections.emptyMap()).getOrDefault(xValue, 0)))
@@ -191,10 +197,10 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     private List<String> determineStepLength(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
         Map<String, List<ScoreStatisticsDetail>> sectionData = details.stream().collect(Collectors.groupingBy(keyMapper));
         List<String> keys = Lists.newArrayList(sectionData.keySet());
-        if (this.checkKeys(keys, FIVE_STEP_LENGTH)) {
-            return FIVE_STEP_LENGTH;
-        } else if (this.checkKeys(keys, FIFTY_STEP_LENGTH)) {
-            return FIFTY_STEP_LENGTH;
+        if (this.checkKeys(keys, marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"))) {
+            return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+        } else if (this.checkKeys(keys, marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"))) {
+            return marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
         }
         return keys;
     }
@@ -208,9 +214,12 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     public void writeDistributedData(ExcelWriter writer, AxisWrapVO data) {
         List<String> xAxis = data.getXAxis();
         List<WrapDataVO> yAxis = data.getYAxis();
+        // 只有单模型不输出A1表格内容
+        if (data.getReportScoreType() == 2) {
+            writer.writeCellValue(0, 0,
+                StringUtils.isEmpty(data.getYAxisProduct()) ? data.getXAxisProduct() : (data.getXAxisProduct() + "\\" + data.getYAxisProduct()));
+        }
         // 写X轴数据
-        writer.writeCellValue(0, 0,
-            StringUtils.isEmpty(data.getYAxisProduct()) ? data.getXAxisProduct() : data.getXAxisProduct() + "\\" + data.getYAxisProduct());
         for (int i = 0; i < xAxis.size(); i++) {
             writer.writeCellValue(0, i + 1, xAxis.get(i));
         }
