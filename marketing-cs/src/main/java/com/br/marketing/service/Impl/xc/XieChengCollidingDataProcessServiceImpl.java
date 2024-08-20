@@ -60,7 +60,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
     private final static int PAGE_SIZE = 10000;
 
-    private final static int PARTATION_SIZE = 50;
+    private final static int PARTATION_SIZE = 2000;
 
     @Override
     public void process() {
