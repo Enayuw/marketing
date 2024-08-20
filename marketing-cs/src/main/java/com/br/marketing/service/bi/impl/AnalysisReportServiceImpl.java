@@ -244,15 +244,15 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         Path directPath = Paths.get(tmpPath);
         // 删除目录下的所有 xlsx 文件，最后删除目录
         try (Stream<Path> paths = Files.walk(directPath)) {
-            paths.sorted(Comparator.reverseOrder()).forEach((Path path) -> {
+            paths.sorted((Path path1, Path path2) -> -path1.compareTo(path2)).forEach((Path path) -> {
                 try {
                     Files.delete(path);
                 } catch (IOException e) {
-                    log.error("Error deleting file: {}", e.getMessage(), e);
+                    log.error("删除临时文件异常: {}", e.getMessage(), e);
                 }
             });
         } catch (IOException e) {
-            log.error("Error deleting files: {}", e.getMessage(), e);
+            log.error("删除临时文件异常: {}", e.getMessage(), e);
         }
     }
 }

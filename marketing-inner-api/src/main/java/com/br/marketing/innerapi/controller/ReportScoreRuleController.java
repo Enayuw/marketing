@@ -8,6 +8,8 @@ import java.util.Map;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.aspect.LogRecordAnnotation;
+import com.br.marketing.enums.InterfaceOperationsEnum;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -67,6 +69,7 @@ public class ReportScoreRuleController {
     }
 
     @PostMapping("/addReportTaskScore")
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_ADD_DISTRIBUTED_REPORT, extendInfo = "新建跑分分布报表{#param.reportName}")
     public ApiResult<Boolean> addReportTaskScore(@RequestBody ReportTaskParam reportTaskParam) {
         try {
             return reportScoreRuleService.addReportTask(reportTaskParam);
@@ -100,6 +103,7 @@ public class ReportScoreRuleController {
 
     @ApiOperation(value = "下载fastdfs文件")
     @GetMapping("/downloadFile")
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_DOWNLOAD_DISTRIBUTED_REPORT, extendInfo = "下载跑分分布报表：{#fileName}，下载文件路径：{#url}")
     public ResponseEntity<byte[]> downloadFile(@RequestParam String fileName, @RequestParam String url) {
         try {
             HttpHeaders headers = new HttpHeaders();
