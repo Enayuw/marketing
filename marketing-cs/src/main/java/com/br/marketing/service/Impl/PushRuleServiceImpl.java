@@ -390,6 +390,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     MarketingTaskExtendMapper marketingTaskExtendMapper;
 
+    @Resource
+    XiechengCollidingTaskBatchMapper xiechengCollidingTaskBatchMapper;
+
     @Autowired
     TransferFiledProcessImpl transferFiledProcess;
 
@@ -755,6 +758,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result collidingDataDelete(PushCustomerDTO dto) {
         if (!isXieChengData(dto)) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("缺失result或clean_time筛选条件");
@@ -762,9 +766,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+        List<String> batchNumberList = dto.getBatchNumberList();
         XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
         xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
-        xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", dto.getBatchNumberList()));
+        xiechengCollidingDataProcessTask.setBatchNumber(String.join(",", batchNumberList));
         xiechengCollidingDataProcessTask.setTaskStatus(0);
         xiechengCollidingDataProcessTask.setDiscreetNumber(dto.getmPlanNum());
         try {
@@ -775,10 +780,22 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         xiechengCollidingDataProcessTask.setTaskType(1);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList()));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
-        xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
+        int i = xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
+        if (i > 0 && !CollectionUtils.isEmpty(batchNumberList)) {
+            for (String batchNumber : batchNumberList) {
+                XiechengCollidingTaskBatch xiechengCollidingTaskBatch = new XiechengCollidingTaskBatch();
+                xiechengCollidingTaskBatch.setApiCode(dto.getApiCode());
+                xiechengCollidingTaskBatch.setCollidingDataTaskId(xiechengCollidingDataProcessTask.getId());
+                xiechengCollidingTaskBatch.setBatchNumber(batchNumber);
+                xiechengCollidingTaskBatch.setStatus(0);
+                xiechengCollidingTaskBatch.setCreateTime(new Date());
+                xiechengCollidingTaskBatch.setUpdateTime(new Date());
+                xiechengCollidingTaskBatchMapper.insertSelective(xiechengCollidingTaskBatch);
+            }
+        }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
