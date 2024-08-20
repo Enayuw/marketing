@@ -14,10 +14,8 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class ReportTaskVO extends ReportTask {
-    @ApiModelProperty(value = "cid")
-    private String cid;
     @ApiModelProperty(value = "apiCode")
-    private String apiCode;
+    private String apiCodes;
     @ApiModelProperty(value = "跑分文件")
-    private String batchNumber;
+    private String batchNumbers;
 }
