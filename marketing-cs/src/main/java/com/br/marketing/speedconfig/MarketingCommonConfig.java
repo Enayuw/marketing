@@ -2020,5 +2020,10 @@ public class MarketingCommonConfig {
      */
     private Map<String,List<String>> biReportStepConfig;
 
+    /**
+     * 2024-08-20 15:42
+     * 跑分模型分布 配置数据展示规则时需要的产品前缀
+     */
+    private Set<String> reportScorePrefixSet;
 }
 
