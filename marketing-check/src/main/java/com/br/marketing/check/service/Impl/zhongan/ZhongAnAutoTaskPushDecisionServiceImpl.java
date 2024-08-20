@@ -116,14 +116,14 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
         String apiCode = parameter.getApiCode();
         String tcId = tableCreateService.getTcId(apiCode);
         String requestDate = null;
-        String strategyCode = "";
+        Map<String,String> strategyCode =new HashMap<>();
         if (parameter.getParamMap() != null
                 && parameter.getParamMap().containsKey("requestDate")) {
             requestDate = (String) parameter.getParamMap().get("requestDate");
         }
         if (parameter.getParamMap() != null
                 && parameter.getParamMap().containsKey("strategyCode")) {
-            strategyCode = (String) parameter.getParamMap().get("strategyCode");
+            strategyCode = (Map) parameter.getParamMap().get("strategyCode");
         }
         List<String> requestDateList = Splitter.on(",").splitToList(requestDate);
         String requestDateSql = "";
@@ -136,7 +136,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             }
         }
         Long indexId = null;
-        //情况a处理
+        //情况c处理
         MarketingDataValidConfig configUserType = marketingDataValidConfigMapper
                 .queryStartDateEndDatetikv_(apiCode, dateToday, Sets.newHashSet("7"));
         while (true) {
@@ -151,7 +151,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             Map<String, SyncUserValidityPeriodsBO> periodBOMap =
                     transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, "7", apiCode,
                             LocalDate.now());
-            marketingTransferSyncUserList.forEach(transfer -> {
+            marketingTransferSyncUserList.forEach((MarketingTransferSyncUser transfer) -> {
                 if (Objects.isNull(periodBOMap.get(transfer.getCustNum()))) {
                     log.warn("众安自动化任务推送决策有效期剔除custNum={}", transfer.getCustNum());
                 }
@@ -159,12 +159,10 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
             filterHandler(tcId, apiCode, marketingTransferSyncUserList, configUserType, "7");
             //推送决策
-            pushPolicy(marketingTransferSyncUserList, periodBOMap, "a", "7", strategyCode);
+            pushPolicy(marketingTransferSyncUserList, periodBOMap, "c", "7", strategyCode.get("c"));
         }
-        //情况b处理
+        //情况d处理
         indexId = null;
-        MarketingDataValidConfig configUserTypeTwo = marketingDataValidConfigMapper
-                .queryStartDateEndDatetikv_(apiCode, dateToday, Sets.newHashSet("8"));
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferSyncUserByPage(tcId, apiCode,
                     null, null, indexId, "user_type =8  and (reserve_field1->'$.eventType' = 'APP_LAUNCH' or " +
@@ -178,11 +176,10 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
                     transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, "8", apiCode,
                             LocalDate.now());
             marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
-            filterHandler(tcId, apiCode, marketingTransferSyncUserList, configUserTypeTwo, "8");
             //推送决策
-            pushPolicy(marketingTransferSyncUserList, periodBOMap, "b", "8", strategyCode);
+            pushPolicy(marketingTransferSyncUserList, periodBOMap, "d", "8", strategyCode.get("d"));
         }
-        //情况c处理
+        //情况e处理
         indexId = null;
         while (true) {
             List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferSyncUserByPage(tcId, apiCode,
@@ -198,7 +195,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
                             LocalDate.now());
             marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
             //推送决策
-            pushPolicy(marketingTransferSyncUserList, periodBOMap, "c", "7", strategyCode);
+            pushPolicy(marketingTransferSyncUserList, periodBOMap, "e", "7", strategyCode.get("e"));
         }
         TransferActionFront actionFrontUpdate = new TransferActionFront();
         actionFrontUpdate.setId(actionFront.getId());
@@ -222,7 +219,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = periodBOMap.get(transferSyncUser.getCustNum());
             PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
             pushMarketingUserDetailByRuleDTO.setCaseNumber(transferSyncUser.getCustNum());
-            pushMarketingUserDetailByRuleDTO.setBatchNumber(apiCode + "_" + DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + userType + "_" + status);
+            pushMarketingUserDetailByRuleDTO.setBatchNumber(DateFormatUtils.format(new Date(), "yyyyMMdd") + "_" + apiCode + "_" + status);
             String cell = syncUserValidityPeriodsBO.getSyncUsers().get(0).getCell();
             pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
             pushMarketingUserDetailByRuleDTO.setInitId(transferSyncUser.getId());
@@ -252,7 +249,7 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
         List<String> filterCustNum = marketingTransferSyncUserMapper.getTransferCustNumByConditiontikv_(tcid, apiCode,
                 userType, config.getValidStartDate(), config.getValidEndDate(), custNumSets, "(reserve_field1->'$.eventType' is not null and " +
                         "reserve_field1->'$.eventType' != 'APP_LAUNCH' and " + "reserve_field1->'$.eventType' != 'APP_LOGIN')");
-        marketingTransferSyncUserList.forEach(transfer->{
+        marketingTransferSyncUserList.forEach((MarketingTransferSyncUser transfer)->{
             if(filterCustNum.contains(transfer.getCustNum())){
                 log.warn("众安自动化任务推送决策剔除custNum={}",transfer.getCustNum());
             }
