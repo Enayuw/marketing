@@ -16,8 +16,8 @@
         from b_report_task
         <where>
             is_del = 1
-            <if test="name != null">
-                and report_name = #{name}
+            <if test="name != null and name!=''">
+                and report_name like CONCAT('%',#{name},'%')
             </if>
             <if test="apiCodes != null and apiCodes.size() != 0">
                 and id in(

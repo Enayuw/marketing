@@ -16,10 +16,10 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.utils.Constants;
@@ -32,6 +32,7 @@ import com.br.marketing.mapper.ReportStatisticsScoreBaseMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ScoreStatisticsDetailBaseMapper;
 import com.br.marketing.service.bi.AnalysisReportService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.google.common.base.Splitter;
@@ -39,10 +40,10 @@ import com.google.common.collect.Lists;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -82,20 +83,18 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         String fileName = reportTask.getReportName() + BI_FILE_EXTENSION;
         String fullName = tmpPath + FilenameUtils.getName(fileName);
         File tempFile = new File(fullName);
-        boolean isFirstEntry = true;
         for (Map.Entry<String, AxisWrapVO> entry : sheetMap.entrySet()) {
             // excel sheet名称最大长度31，超出31截取前31位
             String sheetName = entry.getKey().length() > 31 ? entry.getKey().substring(0, 31) : entry.getKey();
-            // 处理默认生成的sheet1
-            if (isFirstEntry) {
-                excelWriter.renameSheet(sheetName);
-                isFirstEntry = false;
+            excelWriter.setSheet(sheetName);
+            if (entry.getValue().getStatisticsDesc() == null) {
+                writeDistributedData(excelWriter, entry.getValue());
             } else {
-                excelWriter.setSheet(sheetName);
+                writeErrorData(excelWriter, entry.getValue());
             }
-            writeDistributedData(excelWriter, entry.getValue());
         }
-        // 写入文件并关闭流
+        // 剔除默认生成的第一个sheet，写入文件并关闭流
+        excelWriter.getWorkbook().removeSheetAt(0);
         excelWriter.flush(tempFile);
         String url = fastDfsClient.uploadFile(tempFile);
         deleteTempFile(tmpPath);
@@ -103,6 +102,11 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         reportTask.setDownloadUrl(url);
         reportTaskMapper.updateByPrimaryKeySelective(reportTask);
         return url;
+    }
+
+    private void writeErrorData(ExcelWriter writer, AxisWrapVO wrapVO) {
+        writer.writeCellValue(0, 0, wrapVO.getStatisticsDesc());
+        writer.autoSizeColumnAll();
     }
 
     /**
@@ -128,14 +132,21 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             AxisWrapVO axisWrapVo = new AxisWrapVO();
             axisWrapVo.setXAxisProduct(statisticsScore.getFieldX());
             axisWrapVo.setYAxisProduct(statisticsScore.getFieldY());
+            if (ObjectUtil.notEqual(statisticsScore.getStatus(), 1)) {
+                axisWrapVo.setStatisticsDesc(StringUtils.isEmpty(statisticsScore.getStatisticsDesc()) ? "统计异常" : statisticsScore.getStatisticsDesc());
+                axisWrapVOS.add(axisWrapVo);
+                continue;
+            }
             ScoreStatisticsDetailExample detailExample = new ScoreStatisticsDetailExample();
             detailExample.createCriteria().andStatisticsIdEqualTo(statisticsScore.getId());
             List<ScoreStatisticsDetail> details = scoreStatisticsDetailBaseMapper.selectByExample(detailExample);
             switch (statisticsScore.getReportScoreType()) {
                 case 1:
+                    axisWrapVo.setReportScoreType(1);
                     singleConvert(axisWrapVo, details);
                     break;
                 case 2:
+                    axisWrapVo.setReportScoreType(2);
                     multipleConvert(axisWrapVo, details);
                     break;
                 default:
@@ -203,9 +214,12 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     public void writeDistributedData(ExcelWriter writer, AxisWrapVO data) {
         List<String> xAxis = data.getXAxis();
         List<WrapDataVO> yAxis = data.getYAxis();
+        // 只有单模型不输出A1表格内容
+        if (data.getReportScoreType() == 2) {
+            writer.writeCellValue(0, 0,
+                StringUtils.isEmpty(data.getYAxisProduct()) ? data.getXAxisProduct() : (data.getXAxisProduct() + "\\" + data.getYAxisProduct()));
+        }
         // 写X轴数据
-        writer.writeCellValue(0, 0,
-            StringUtils.isEmpty(data.getYAxisProduct()) ? data.getXAxisProduct() : data.getXAxisProduct() + "\\" + data.getYAxisProduct());
         for (int i = 0; i < xAxis.size(); i++) {
             writer.writeCellValue(0, i + 1, xAxis.get(i));
         }
