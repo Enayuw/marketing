@@ -203,6 +203,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         //替换变量
         scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange).replace("yModelName", fieldY)
                 .replace("yModelRange", fieldYRange);
+        log.warn("多模型={} 统计sql={}", fieldX.concat(",").concat(fieldY), scoreSql);
         return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
     }
 
@@ -235,6 +236,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 " ORDER BY FLOOR(a.xModelName / xModelRange);";
         //替换变量
         scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange);
+        log.warn("单模型={} 统计sql={}", fieldX, scoreSql);
         return reportStatisticsScoreMapper.queryDataMapNumbI_(scoreSql);
     }
 
