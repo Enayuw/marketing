@@ -2015,5 +2015,10 @@ public class MarketingCommonConfig {
      */
     private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
 
+    /**
+     * 奇富360数据提取custNum对应上传字段
+     */
+    private HashMap<String, List<String>> qiFuExtDataCustNumMapConfig;
+
 }
 
