@@ -215,7 +215,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                 .andReportNameEqualTo(reportName);
         List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
         if(reportTasks.size() > 0){
-            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.SUCCESS_3);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.SUCCESS_6);
         }
         JSONObject json = new JSONObject();
         json.put("rules", rules);
