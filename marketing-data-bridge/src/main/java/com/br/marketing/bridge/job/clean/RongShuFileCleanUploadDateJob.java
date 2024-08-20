@@ -247,7 +247,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         String fileName = file.getName();
         String[] split = fileName.split("\\.");
         MarketingCleanDataFileExample fileExampleCount = new MarketingCleanDataFileExample();
-        fileExampleCount.createCriteria().andApiCodeEqualTo(dataFile.getApiCode())
+        fileExampleCount.createCriteria().andApiCodeEqualTo(dataFile.getApiCode()).andIdNotEqualTo(dataFile.getId())
                 .andSyncConfigIdEqualTo(dataFile.getSyncConfigId()).andFileNameLike("%" + split[1]);
         fileExampleCount.setOrderByClause("create_time desc limit 1");
         List<MarketingCleanDataFile> marketingCleanDataFiles = marketingCleanDataFileMapper.selectByExample(fileExampleCount);
