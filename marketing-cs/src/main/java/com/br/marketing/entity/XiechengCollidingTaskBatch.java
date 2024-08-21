@@ -1,0 +1,105 @@
+package com.br.marketing.entity;
+
+import java.util.Date;
+
+public class XiechengCollidingTaskBatch {
+    /**
+     * 
+     */
+    private Long id;
+
+    /**
+     * 
+     */
+    private String apiCode;
+
+    /**
+     * 撞库数据清洗任务id
+     */
+    private Long collidingDataTaskId;
+
+    /**
+     * 批次号
+     */
+    private String batchNumber;
+
+    /**
+     * 0-未剔除，1-剔除中，2-剔除完成
+     */
+    private Integer status;
+
+    /**
+     * 数据数量
+     */
+    private Integer actualNumber;
+
+    /**
+     * 
+     */
+    private Date createTime;
+
+    /**
+     * 
+     */
+    private Date updateTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public Long getCollidingDataTaskId() {
+        return collidingDataTaskId;
+    }
+
+    public void setCollidingDataTaskId(Long collidingDataTaskId) {
+        this.collidingDataTaskId = collidingDataTaskId;
+    }
+
+    public String getBatchNumber() {
+        return batchNumber;
+    }
+
+    public void setBatchNumber(String batchNumber) {
+        this.batchNumber = batchNumber == null ? null : batchNumber.trim();
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Integer getActualNumber() { return actualNumber; }
+
+    public void setActualNumber(Integer actualNumber) { this.actualNumber = actualNumber; }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+}

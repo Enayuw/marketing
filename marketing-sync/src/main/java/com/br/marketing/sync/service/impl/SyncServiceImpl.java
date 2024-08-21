@@ -145,7 +145,7 @@ public class SyncServiceImpl implements SyncService {
             if(txtList!=null){
                 for(String fileName:txtList){
                     if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
-                        if (bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                        if (diskBoll && bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
                         bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
@@ -166,7 +166,7 @@ public class SyncServiceImpl implements SyncService {
             if(txtList!=null){
                 for(String fileName:txtList){
                     if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)) {
-                        if (bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                        if (diskBoll && bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
                         bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
@@ -187,7 +187,7 @@ public class SyncServiceImpl implements SyncService {
             if(zipList!=null){
                 for(String fileName:zipList){
                     if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)) {
-                        if (bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                        if (diskBoll && bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
                         bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);
@@ -206,7 +206,7 @@ public class SyncServiceImpl implements SyncService {
             log.info("--------------开始同步finish文件---------------");
             if(finishList!=null){
                 for(String fileName:finishList) {
-                    if (bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
+                    if (diskBoll && bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                         continue;
                     }
                     bean.copyFile(loanSyncConfig, fileName, srcClient, targetClient);

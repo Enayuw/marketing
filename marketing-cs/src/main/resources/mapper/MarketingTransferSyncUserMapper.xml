@@ -1178,6 +1178,34 @@
         </if>
     </select>
 
+    <select id="selectTransferWithValidByCelltiflash_" resultType="java.util.Map">
+        select transfer.id as id,
+               transfer.cust_num as custNum,
+               transfer.apply_dt as applyDt ,
+               transfer.apply_result as applyResult,
+               transfer.login_time as loginTime,
+               transfer.request_time as requestTime,
+               transfer.user_type as userType,
+               sync.cus_batch as taskId,
+               config.valid_end_date as expireDate,
+               config.valid_start_date as effectiveDate
+        from b_marketing_transfer_sync_${transferSyncUser.tCid} transfer
+            inner join b_marketing_sync_${transferSyncUser.apiCode} sync
+                on transfer.cust_num = sync.cell_md5
+            inner join b_marketing_customize_data_valid_config config
+                on sync.user_type = config.user_type
+                and sync.cus_batch = config.task_id
+                and sync.applet_date = config.applet_date
+        where
+        <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
+            transfer.id >= #{transferSyncUser.id} and
+        </if>
+        transfer.api_code = #{transferSyncUser.apiCode}
+        and <![CDATA[config.valid_start_date <= #{transferSyncUser.requestData}
+        and config.valid_end_date >= #{transferSyncUser.requestData}]]>
+        order by id asc limit #{pageSize}
+    </select>
+
 
     <select id="getTransferCustNumByConditiontikv_" resultType="java.lang.String">
         select distinct cust_num

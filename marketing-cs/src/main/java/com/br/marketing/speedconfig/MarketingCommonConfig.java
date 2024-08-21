@@ -1967,6 +1967,21 @@ public class MarketingCommonConfig {
     private Set<String> wuBaQueryConversionKnowFields;
 
     /**
+     * 58新客-营销名单上报-数据提取-执行时间
+     */
+    private String wuBaSubmitDataToFileExecuteTime;
+
+    /**
+     * 58新客-营销名单上报-数据提取-ApiCodes
+     */
+    private List<String> wuBaSubmitDataTransferApiCodes;
+
+    /**
+     * 58新客-营销名单上报-数据提取-StartDate, 例：20240814
+     */
+    private List<String> wuBaSubmitDataToFileStartDate;
+
+    /**
      * 通用清洗线程池
      */
     private Integer autoCleanDataThreadNum;
@@ -2006,6 +2021,16 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
 
     /**
+     * 携程跑分数据同步任务保持驼峰字段配置
+     */
+    private List<String> xieChengScoreToDbKeepCamelColumns;
+
+    /**
+     * 携程清洗任务分页条数
+     */
+    private Map<String, Integer> xieChengCollidingDataProcessPageSize;
+
+    /**
      * 推决策报警apiCode集合
      */
     private List<String> pushAlarmApiCode;
@@ -2014,6 +2039,11 @@ public class MarketingCommonConfig {
      * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
      */
     private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
+
+    /**
+     * 奇富360数据提取custNum对应上传字段
+     */
+    private HashMap<String, List<String>> qiFuExtDataCustNumMapConfig;
 
 }
 

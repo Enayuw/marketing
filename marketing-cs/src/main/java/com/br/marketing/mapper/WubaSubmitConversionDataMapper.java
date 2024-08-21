@@ -31,4 +31,12 @@ public interface WubaSubmitConversionDataMapper extends WubaSubmitConversionData
 
     int batchAdd(List<WubaSubmitConversionData> list);
 
+    List<WubaSubmitConversionData> findSubmitDataByPushTime(
+            @Param("apiCode") String apiCode,
+            @Param("pushTimeStart") String pushTimeStart,
+            @Param("pushTimeEnd") String pushTimeEnd,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize
+    );
+
 }
