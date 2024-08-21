@@ -8,7 +8,6 @@ import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -588,7 +587,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
-            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+            querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
@@ -663,10 +662,47 @@ public class PushRuleServiceImpl implements PushRuleService {
         return cycleAndscoreSql.toString();
     }
 
-    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList) {
+    private String cycleDataQueryForDelete(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
-        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
-                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
+        Date cleanTime = DateHelper.parseDate(xieChengCollidingFilterDTO.getCleanTime());
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String cycleSql = String.format
+                ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                "where '%s' <= release_time and release_time <= '%s' and is_delete=0"
+                        , cleanDateTime, cleanEndTime);
+        //True关联查询
+        //true筛选字段处理
+        String condition = XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
+        if (StringUtils.isNotEmpty(condition)) {
+            if (condition.contains("release_time")) {
+                cycleSql = String.format
+                        ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle where %s and is_delete=0"
+                                , condition);
+            } else {
+                cycleSql = String.format
+                        ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                        "where %s and '%s' <= release_time and release_time <= '%s' and is_delete=0"
+                                , condition, cleanDateTime, cleanEndTime);
+            }
+        }
+        StringBuilder cycleAndscoreSql = new StringBuilder();
+        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
+                "score.cell = cycle.cell;");
+        return cycleAndscoreSql.toString();
+    }
+
+    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanDate) {
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        Date cleanTime = DateHelper.parseDate(cleanDate);
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String cycleSql = String.format
+                ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                "where '%s' <= release_time and release_time <= '%s' and is_delete=0"
+                        , cleanDateTime, cleanEndTime);
         //True关联查询
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle left join (").append(scoreSql).append(") score on " +
@@ -676,7 +712,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 组装跑分筛选SQL
-     *
      * @param jsonObject      入参jsonsql
      * @param batchNumberList batchNumber集合
      * @return String
@@ -777,7 +812,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         xiechengCollidingDataProcessTask.setTaskType(1);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         int i = xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
@@ -838,7 +873,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
-        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList());
+        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
         // doris查询
         // 查询Doris
         try {
