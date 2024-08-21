@@ -9,6 +9,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.MarketingPreUserDTO;
@@ -282,8 +283,15 @@ public class ShuHeUserServiceImpl {
             transferInfo.setJsonData(JSONObject.toJSONString(transferDataDTO));
             transferInfo.setActualNum(1);
             marketingTransferInfoMapper.insertSelective(transferInfo);
-            pushRuleService.sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL, String.valueOf(transferInfo.getId()),
-                CustomerQueueEnum.ORG_TRANSFER);
+            String id = String.valueOf(transferInfo.getId());
+            HashMap<String, Boolean> rocketMqSwitch = marketingCommonConfig.getRocketMqSwitch();
+            if(null != rocketMqSwitch && Boolean.TRUE.equals(rocketMqSwitch.getOrDefault("api",Boolean.FALSE))){
+                pushRuleService.sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_SYNC);
+            }else{
+                pushRuleService.sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL, id,
+                        CustomerQueueEnum.ORG_TRANSFER);
+            }
         } catch (Exception e) {
             caseShuheUser.setStatus(2);
             caseShuheUserMapper.updateByPrimaryKey(caseShuheUser);
