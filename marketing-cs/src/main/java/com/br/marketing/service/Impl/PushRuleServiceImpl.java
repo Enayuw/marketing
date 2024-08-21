@@ -670,7 +670,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
         String cycleSql = String.format
                 ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
-                                "where '%s' <= release_time and release_time <= '%s' and is_delete=0"
+                                "where (release_time < '%s' or release_time >= '%s') and is_delete=0"
                         , cleanDateTime, cleanEndTime);
         //True关联查询
         //true筛选字段处理
@@ -683,7 +683,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             } else {
                 cycleSql = String.format
                         ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
-                                        "where %s and '%s' <= release_time and release_time <= '%s' and is_delete=0"
+                                        "where %s and (release_time < '%s' or release_time >= '%s') and is_delete=0"
                                 , condition, cleanDateTime, cleanEndTime);
             }
         }
@@ -701,7 +701,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
         String cycleSql = String.format
                 ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
-                                "where '%s' <= release_time and release_time <= '%s' and is_delete=0"
+                                "where (release_time < '%s' or release_time >= '%s') and is_delete=0"
                         , cleanDateTime, cleanEndTime);
         //True关联查询
         StringBuilder cycleAndscoreSql = new StringBuilder();
