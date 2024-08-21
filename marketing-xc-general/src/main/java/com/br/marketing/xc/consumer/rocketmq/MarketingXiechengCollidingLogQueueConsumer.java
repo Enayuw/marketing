@@ -26,8 +26,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
         topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_PUSH_DASS_SCORE,
-        tag = MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE,consumptionThreadCount = 20)
+        consumerGroup = MQConstants.MARKETING_XIECHENG_COLLIDING_LOG_QUEUE,
+        tag = MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG,consumptionThreadCount = 20)
 public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired
