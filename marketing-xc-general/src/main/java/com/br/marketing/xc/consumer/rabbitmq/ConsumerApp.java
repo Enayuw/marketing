@@ -1,4 +1,4 @@
-package com.br.marketing.xc.consumer;
+package com.br.marketing.xc.consumer.rabbitmq;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;

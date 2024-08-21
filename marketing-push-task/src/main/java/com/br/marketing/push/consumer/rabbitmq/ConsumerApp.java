@@ -1,4 +1,4 @@
-package com.br.marketing.push.consumer;
+package com.br.marketing.push.consumer.rabbitmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
@@ -6,8 +6,6 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.push.service.impl.CheckFileServiceImpl;
 import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.ConsumerService;
-import com.br.marketing.service.PushDataService;
-import com.br.marketing.service.PushRuleService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
