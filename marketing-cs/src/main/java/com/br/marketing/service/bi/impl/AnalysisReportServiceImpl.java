@@ -206,6 +206,9 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     }
 
     private boolean checkKeys(List<String> keys, List<String> config) {
+        //剔除 [-1,0) 区间做交集
+        keys.remove("[-1,0)");
+        config.remove("[-1,0)");
         List<String> intersection = Lists.newArrayList(keys);
         intersection.retainAll(config);
         return CollectionUtil.isNotEmpty(intersection);
