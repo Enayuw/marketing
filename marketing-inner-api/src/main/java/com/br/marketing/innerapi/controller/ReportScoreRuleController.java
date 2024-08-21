@@ -69,7 +69,7 @@ public class ReportScoreRuleController {
     }
 
     @PostMapping("/addReportTaskScore")
-    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_ADD_DISTRIBUTED_REPORT, extendInfo = "新建跑分分布报表{#param.reportName}")
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_ADD_DISTRIBUTED_REPORT, extendInfo = "新建跑分分布报表{#reportTaskParam.reportName}")
     public ApiResult<Boolean> addReportTaskScore(@RequestBody ReportTaskParam reportTaskParam) {
         try {
             return reportScoreRuleService.addReportTask(reportTaskParam);
