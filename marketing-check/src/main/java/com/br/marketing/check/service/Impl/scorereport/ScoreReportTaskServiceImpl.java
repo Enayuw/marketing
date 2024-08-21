@@ -75,7 +75,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 .andIsDelEqualTo(Constants.DATA_VALID);
         List<ReportStatisticsScore> statisticsScoreList = reportStatisticsScoreMapper.selectByExample(statisticsScoreExample);
         Long failNum = statisticsScoreList.stream().filter(reportStatisticsScore -> reportStatisticsScore.getStatus() != 1).count();
-        reportTask.setStatus(failNum > 0 ? ReportTaskStatusEnum.FAIL.getValue() : ReportTaskStatusEnum.SUCCESS.getValue());
+        reportTask.setStatus((statisticsScoreList.size() == 0 || failNum > 0) ? ReportTaskStatusEnum.FAIL.getValue() :
+                ReportTaskStatusEnum.SUCCESS.getValue());
         reportTask.setUpdateTime(new Date());
         reportTask.setGroupCount(statisticsScoreList.size());
         reportTaskMapper.updateByPrimaryKey(reportTask);
@@ -256,11 +257,16 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 List<String> xModelList = reportRule.getX();
                 xModelList.forEach(xModel -> {
                     String batchNumberStr = batchNumerJson.getString(xModel);
-                    String modelRange = getModelRangeByDoris(xModel, batchNumberStr).toString();
+                    Integer modelRange = getModelRangeByDoris(xModel, batchNumberStr);
+                    if(modelRange==null){
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), ("跑分模型统计异常,taskId=".
+                                concat(reportTask.getId().toString()).concat(" 单模型=").concat(xModel).concat("分值全为空"))));
+                        return;
+                    }
                     ReportStatisticsScoreExample statisticsScoreExample = new ReportStatisticsScoreExample();
                     statisticsScoreExample.createCriteria()
                             .andReportIdEqualTo(reportTask.getId())
-                            .andFieldXRangeEqualTo(modelRange)
+                            .andFieldXRangeEqualTo(modelRange.toString())
                             .andReportScoreTypeEqualTo(1)
                             .andStatisticsOrderEqualTo(reportRule.getOrder())
                             .andIsDelEqualTo(Constants.DATA_VALID);
@@ -275,7 +281,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                         batchNumberJson.put(xModel, batchNumberStr);
                         statisticsScore.setBatchNumberList(batchNumberJson.toString());
                         statisticsScore.setFieldX(xModel);
-                        statisticsScore.setFieldXRange(modelRange);
+                        statisticsScore.setFieldXRange(modelRange.toString());
                         statisticsScore.setStatisticsOrder(reportRule.getOrder());
                         statisticsScore.setIsDel(Constants.DATA_VALID);
                         statisticsScore.setCreateTime(new Date());
@@ -304,6 +310,13 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                         List ybatchNumber = new ArrayList(Arrays.asList(batchNumerJson.getString(yModel).split(",")));
                         //取交集 同时存在x，y模型
                         xbatchNumber.retainAll(ybatchNumber);
+                        Integer  xModelRange = getModelRangeByDoris(xModel, batchNumerJson.getString(xModel));
+                        Integer  yModelRange = getModelRangeByDoris(yModel, batchNumerJson.getString(yModel));
+                        if (xModelRange == null || yModelRange == null) {
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), ("跑分模型统计异常,taskId=".
+                                    concat(reportTask.getId().toString()).concat(" 多模型=").concat(xModel).concat("_").concat(yModel).concat("分值全为空"))));
+                            return;
+                        }
                         ReportStatisticsScore statisticsScore = new ReportStatisticsScore();
                         statisticsScore.setReportId(reportTask.getId());
                         statisticsScore.setReportRule(JSON.toJSONString(reportRule));
@@ -312,8 +325,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                         statisticsScore.setBatchNumberList(batchNumberJson.toString());
                         statisticsScore.setFieldX(xModel);
                         statisticsScore.setFieldY(yModel);
-                        statisticsScore.setFieldXRange(getModelRangeByDoris(xModel, batchNumerJson.getString(xModel)).toString());
-                        statisticsScore.setFieldYRange(getModelRangeByDoris(yModel, batchNumerJson.getString(yModel)).toString());
+                        statisticsScore.setFieldXRange(xModelRange.toString());
+                        statisticsScore.setFieldYRange(yModelRange.toString());
                         statisticsScore.setReportScoreType(2);
                         statisticsScore.setStatus(CollectionUtils.isEmpty(xbatchNumber) ? 3 : null);
                         statisticsScore.setStatisticsDesc(CollectionUtils.isEmpty(xbatchNumber) ? "模型不存在跑分文件" : null);
@@ -345,6 +358,10 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         scoreSql = "select max(num) from ( ".concat(scoreSql).concat(") a;");
 
         Integer scoreValue = reportStatisticsScoreMapper.queryNumBybI_(scoreSql);
+        //分值查询为空
+        if (scoreValue == null) {
+            return null;
+        }
         Map<String, Integer> rangeConfig = marketingCommonConfig.getScoreReportRangeConfig();
         //speed配置
         return scoreValue > rangeConfig.get("scoreNum") ? rangeConfig.get("numRightStep") : rangeConfig.get("numLeftStep");
