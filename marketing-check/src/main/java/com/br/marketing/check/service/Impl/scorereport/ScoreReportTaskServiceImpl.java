@@ -110,7 +110,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
             if (statisticsScore.getReportScoreType().equals(1)) {
                 List<String> modelList = new ArrayList(Arrays.asList(statisticsScore.getFieldX().split(",")));
                 try {
-                    modelList.forEach(model -> {
+                    modelList.forEach((String model) -> {
                         List<ScoreStatisticsDetail> statisticsDetails = new ArrayList<>();
                         String batchNumebrs = JSONObject.parseObject(statisticsScore.getBatchNumberList()).getString(model);
                         List<Map<String, Object>> singleResult = singleModelCount(model, batchNumebrs, statisticsScore.getFieldXRange());
@@ -189,18 +189,19 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
             if (i == batchNumberList.size() - 1) {
-                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_score_").concat(batchNumberList.get(i));
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_score_")
+                        .concat(batchNumberList.get(i));
             } else {
-                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_score_").concat(batchNumberList.get(i))
-                        .concat(" union all ");
+                scoreSql = scoreSql.concat("select ").concat(fieldX).concat(",").concat(fieldY).concat(" from b_score_")
+                        .concat(batchNumberList.get(i)).concat(" union all ");
             }
 
         }
         scoreSql = "SELECT " +
-                "concat('[',FLOOR(a.xModelName/xModelRange) * xModelRange,',',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')AS xModelName," +
-                "concat('[',FLOOR(a.yModelName/yModelRange) * yModelRange,',',FLOOR(a.yModelName/yModelRange) * yModelRange + yModelRange,')')AS yModelName," +
-                "count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange)" +
-                " ORDER BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange);";
+                "concat('[',FLOOR(a.xModelName/xModelRange) * xModelRange,',',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')" +
+                "AS xModelName,'[',FLOOR(a.yModelName/yModelRange) * yModelRange,',',FLOOR(a.yModelName/yModelRange) * yModelRange +" +
+                " yModelRange,')')AS yModelName,count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange), " +
+                "FLOOR(a.yModelName / yModelRange) ORDER BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange);";
         //替换变量
         scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange).replace("yModelName", fieldY)
                 .replace("yModelRange", fieldYRange);
@@ -232,8 +233,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         }
         //sql拼接【0,50)
         scoreSql = "SELECT " +
-                "concat('[',FLOOR(a.xModelName / xModelRange) * xModelRange,',',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')AS xModelName" +
-                ",count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange)" +
+                "concat('[',FLOOR(a.xModelName / xModelRange) * xModelRange,',',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')" +
+                "AS xModelName,count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange)" +
                 " ORDER BY FLOOR(a.xModelName / xModelRange);";
         //替换变量
         scoreSql = scoreSql.replace("xModelName", fieldX).replace("xModelRange", fieldXRange);
@@ -251,11 +252,11 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         JSONObject reportRules = JSON.parseObject(reportTask.getReportRules());
         JSONObject batchNumerJson = reportRules.getJSONObject("productAndBatchNumber");
         List<ScoreReportRuleDTO> reportRuleList = reportRules.getJSONArray("rules").toJavaList(ScoreReportRuleDTO.class);
-        reportRuleList.forEach(reportRule -> {
+        reportRuleList.forEach((ScoreReportRuleDTO reportRule) -> {
             // 单模型
             if (CollectionUtils.isEmpty(reportRule.getY())) {
                 List<String> xModelList = reportRule.getX();
-                xModelList.forEach(xModel -> {
+                xModelList.forEach((String xModel) -> {
                     String batchNumberStr = batchNumerJson.getString(xModel);
                     Integer modelRange = getModelRangeByDoris(xModel, batchNumberStr);
                     if(modelRange==null){
@@ -304,8 +305,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                 List<String> xModelList = reportRule.getX();
                 List<String> YModelList = reportRule.getY();
                 //循环遍历X轴模型，Y轴模型
-                xModelList.forEach(xModel -> {
-                    YModelList.forEach(yModel -> {
+                xModelList.forEach((String xModel) -> {
+                    YModelList.forEach((String yModel) -> {
                         List xbatchNumber = new ArrayList(Arrays.asList(batchNumerJson.getString(xModel).split(",")));
                         List ybatchNumber = new ArrayList(Arrays.asList(batchNumerJson.getString(yModel).split(",")));
                         //取交集 同时存在x，y模型
@@ -313,8 +314,8 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
                         Integer  xModelRange = getModelRangeByDoris(xModel, batchNumerJson.getString(xModel));
                         Integer  yModelRange = getModelRangeByDoris(yModel, batchNumerJson.getString(yModel));
                         if (xModelRange == null || yModelRange == null) {
-                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), ("跑分模型统计异常,taskId=".
-                                    concat(reportTask.getId().toString()).concat(" 多模型=").concat(xModel).concat("_").concat(yModel).concat("分值全为空"))));
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), ("跑分模型统计异常,taskId=".concat
+                                    (reportTask.getId().toString()).concat(" 多模型=").concat(xModel).concat("_").concat(yModel).concat("分值全为空"))));
                             return;
                         }
                         ReportStatisticsScore statisticsScore = new ReportStatisticsScore();
