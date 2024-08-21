@@ -2,6 +2,7 @@ package com.br.marketing.push.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
@@ -26,9 +27,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_PUSHTASK_FILE_INITMERGE,
-        tag = MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE,consumptionThreadCount = 20)
+        topic = MarketingAssistConstants.TOPIC,
+        consumerGroup = MarketingAssistConstants.MARKETING_PUSHTASK_FILE_INITMERGE,
+        tag = MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_INITMERGE,consumptionThreadCount = 20)
 public class MarketingPushTaskFileInitMergeConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

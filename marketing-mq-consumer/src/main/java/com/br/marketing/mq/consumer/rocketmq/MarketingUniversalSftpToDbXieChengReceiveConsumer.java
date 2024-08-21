@@ -1,6 +1,6 @@
 package com.br.marketing.mq.consumer.rocketmq;
 
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,
-        tag = MQConstants.ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,consumptionThreadCount = 20)
+        topic = MarketingAssistConstants.TOPIC,
+        consumerGroup = MarketingAssistConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,
+        tag = MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,consumptionThreadCount = 20)
 public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

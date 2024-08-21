@@ -32,19 +32,19 @@ public class MarketingTransferConstants {
     /**
      * 转化数据大队列对应的 consumerGroup
      */
-    public static final String MARKETING_PREUSER_RECEIVE = "Marketing_Transfer_Receive";
+    public static final String MARKETING_TRANSFER_RECEIVE = "Marketing_Transfer_Receive";
     /**
      * 转化数据小队列对应的 consumerGroup
      */
-    public static final String MARKETING_PREUSER_RECEIVE_SMALL = "Marketing_Transfer_Receive_Small";
+    public static final String MARKETING_TRANSFER_RECEIVE_SMALL = "Marketing_Transfer_Receive_Small";
     /**
      * 转化数据应急队列对应的 consumerGroup
      */
-    public static final String MARKETING_PREUSER_RECEIVE_EMERGENCY = "Marketing_Transfer_Receive_Emergency";
+    public static final String MARKETING_TRANSFER_RECEIVE_EMERGENCY = "Marketing_Transfer_Receive_Emergency";
     /**
      * 转化数据通用处理 consumerGroup
      */
-    public static final String MARKETING_PREUSER_SHUHE_RECEIVE = "Marketing_Universal_Transfer_Receive";
+    public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing_Universal_Transfer_Receive";
 //    consumerGroup 结束
 
 }

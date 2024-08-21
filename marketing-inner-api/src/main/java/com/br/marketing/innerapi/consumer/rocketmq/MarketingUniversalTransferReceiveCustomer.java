@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.consumer.rocketmq;
 
+import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.strategy.InterfaceHandlerService;
@@ -18,15 +19,16 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 上传、转化数据通用处理流程
+ * 代码调整时记得看看延迟处理消费端 {@link MarketingUniversalTransferReceiveDelayConsumer}
  * @Author yu.xia@brgroup.com
  * @Date 2024/8/19 11:33
  */
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE,
-        tag = MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE,consumptionThreadCount = 20)
+        topic = MarketingTransferConstants.TOPIC,
+        consumerGroup = MarketingTransferConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE,
+        tag = MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE,consumptionThreadCount = 20)
 public class MarketingUniversalTransferReceiveCustomer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

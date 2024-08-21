@@ -1,10 +1,7 @@
 package com.br.marketing.check.consumer.rocketmq;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.XieChengSmsPushToTransferService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_XIECHENG_SMSCOLLIDINGVT_CUSTOMER,
-        tag = MQConstants.ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER,consumptionThreadCount = 20)
+        topic = MarketingOutsideInterfaceConstants.TOPIC,
+        consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER,
+        tag = MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER,consumptionThreadCount = 20)
 public class MarketingXieChengSmsCollidingVtCustomer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

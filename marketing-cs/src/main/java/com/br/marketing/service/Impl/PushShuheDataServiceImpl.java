@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -254,7 +255,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         if (infoId != null) {
             HashMap<String, Boolean> rocketMqSwitch = marketingCommonConfig.getRocketMqSwitch();
             if(null != rocketMqSwitch && Boolean.TRUE.equals(rocketMqSwitch.getOrDefault("api",Boolean.FALSE))){
-                template.syncSend(MQConstants.MARKETINGEXCHANGER_NAME, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE
+                template.syncSend(MarketingUploadConstants.TOPIC, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE
                         , infoId.toString());
             }else{
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());

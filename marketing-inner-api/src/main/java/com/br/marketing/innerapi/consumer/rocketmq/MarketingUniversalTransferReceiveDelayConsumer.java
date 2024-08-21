@@ -1,10 +1,9 @@
-package com.br.marketing.mq.consumer.rocketmq;
+package com.br.marketing.innerapi.consumer.rocketmq;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.PushRuleService;
+import com.br.marketing.strategy.InterfaceHandlerService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
@@ -14,36 +13,37 @@ import org.apache.rocketmq.client.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 消费 数禾上传数据 处理
+ * 上传、转化数据通用处理延迟消费队列
+ * 代码调整时记得看看消费端 {@link MarketingUniversalTransferReceiveCustomer}
  * @Author: yu.xia@brgroup.com
- * @Date: 2024-07-18
+ * @Date: 2024-08-21
  */
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_PRE_USER_SHUHERECEIVE,
-        tag = MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE,consumptionThreadCount = 20)
-public class MarketingShuHePreUserConsumer extends BaseMqMessageListener implements RocketMQListener {
+        topic = MarketingDelayedConstants.TOPIC,
+        consumerGroup = MarketingDelayedConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
+        tag = MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,consumptionThreadCount = 20)
+public class MarketingUniversalTransferReceiveDelayConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
-    @Autowired
-    PushRuleService pushRuleService;
+    @Resource
+    private InterfaceHandlerService interfaceHandlerService;
 
     @Override
     protected ConsumeResult handleMessage(MessageView messageView) throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String bodyString = charset.decode(messageView.getBody()).toString();
-        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
-        }.getType());
-        log.warn("MARKETING_PRE_USER_SHUHERECEIVE：获取消息成功:{}",o);
-        consumerService.consumerRun(messageView, pushRuleService::insertMarketingPreUserSync, o, null);
+        log.warn("Marketing_Send_UserType_Message_Delay_Queue：获取消息成功:{}",bodyString);
+        /*消费逻辑*/
+        consumerService.consumerRun(messageView, interfaceHandlerService::handleDataDirection, bodyString, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
         return ConsumeResult.SUCCESS;
     }
 

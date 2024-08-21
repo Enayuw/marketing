@@ -1,6 +1,6 @@
 package com.br.marketing.mq.consumer.rocketmq;
 
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.MarketingSyncReportService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -24,9 +24,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS,// TODO 必须验证下RoutingKey带*的数据
-        tag = MQConstants.BINDING_KEY_MARKETING_UPLOAD_API_COLLECTION_FRAGMENTS,consumptionThreadCount = 20)
+        topic = MarketingAssistConstants.TOPIC,
+        consumerGroup = MarketingAssistConstants.MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS,// TODO 必须验证下RoutingKey带*的数据
+        tag = MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS,consumptionThreadCount = 20)
 public class MarketingUploadApiDataCountFragmentsConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

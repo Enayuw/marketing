@@ -2,7 +2,7 @@ package com.br.marketing.mq.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -25,9 +25,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY,
-        tag = MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_EMERGENCY,consumptionThreadCount = 20)
+        topic = MarketingTransferConstants.TOPIC,
+        consumerGroup = MarketingTransferConstants.MARKETING_TRANSFER_RECEIVE_EMERGENCY,
+        tag = MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY,consumptionThreadCount = 20)
 public class MarketingTransferReceiveEmergencyConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

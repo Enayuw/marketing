@@ -1,8 +1,11 @@
-package com.br.marketing.mq.consumer.rocketmq;
+package com.br.marketing.push.consumer.rocketmq;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.VariableDicService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
@@ -16,30 +19,33 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 发送场景消息死信队列
+ *
+ * 代码调整时记得看看消费端 {@link MarketingPushTaskFileMergeConsumer}
  * @Author: yu.xia@brgroup.com
- * @Date: 2024-07-18
+ * @Date: 2024-08-21
  */
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_DEAD_NAME,
-        consumerGroup = MQConstants.MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE,
-        tag = MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE,consumptionThreadCount = 20)
-public class MarketingSendUserTypeMessageDeadQueueConsumer extends BaseMqMessageListener implements RocketMQListener {
+        topic = MarketingDelayedConstants.TOPIC,
+        consumerGroup = MarketingDelayedConstants.MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY,
+        tag = MarketingDelayedConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY,consumptionThreadCount = 20)
+public class MarketingPushTaskFileMergeErrorDelayConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Autowired
-    VariableDicService variableDicService;
+    MergeWithMessageServiceImpl mergeWithMessageService;
 
     @Override
     protected ConsumeResult handleMessage(MessageView messageView) throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String bodyString = charset.decode(messageView.getBody()).toString();
-        log.warn("MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE：获取消息成功:{}",bodyString);
-        consumerService.consumerRun(messageView, variableDicService::delaySendUserTypeMessage, bodyString, null);
+        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
+        }.getType());
+        log.warn("Marketing_PushTask_File_Merge_ErrorDelay：获取消息成功:{}",o);
+        consumerService.consumerRun(messageView, mergeWithMessageService::consumerFileMsg, o, MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY);
         return ConsumeResult.SUCCESS;
     }
 

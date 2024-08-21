@@ -2,10 +2,10 @@ package com.br.marketing.push.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
@@ -20,15 +20,16 @@ import java.nio.charset.StandardCharsets;
 
 /**
  *
+ * 代码调整时记得看看消费端 {@link MarketingOffLineTaskFileCallBackErrorDelayConsumer}
  * @Author yu.xia@brgroup.com
  * @Date 2024/8/20 20:57
  */
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_OFFLINETASK_FILE_CALLBACK,
-        tag = MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK,consumptionThreadCount = 20)
+        topic = MarketingAssistConstants.TOPIC,
+        consumerGroup = MarketingAssistConstants.MARKETING_OFFLINETASK_FILE_CALLBACK,
+        tag = MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK,consumptionThreadCount = 20)
 public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

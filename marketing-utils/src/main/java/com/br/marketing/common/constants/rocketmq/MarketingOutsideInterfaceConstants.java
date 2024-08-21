@@ -44,11 +44,11 @@ public class MarketingOutsideInterfaceConstants {
     /**
      * 的 Tag
      */
-    public static final String TAG_MARKETING_PUSH_DASS_TRANSFER = "Marketing.Push.Daas.Transfer";
+    public static final String TAG_MARKETING_PUSH_DAAS_TRANSFER = "Marketing.Push.Daas.Transfer";
     /**
      * 的 Tag
      */
-    public static final String TAG_MARKETING_PUSH_DASS_IBU = "Marketing.Push.Dass.Ibu";
+    public static final String TAG_MARKETING_PUSH_DAAS_IBU = "Marketing.Push.Daas.Ibu";
     /**
      * 的 Tag
      */
@@ -100,7 +100,7 @@ public class MarketingOutsideInterfaceConstants {
     /**
      * 的 consumerGroup
      */
-    public static final String MARKETING_PUSH_DASS_IBU = "Marketing_Push_Dass_Ibu";
+    public static final String MARKETING_PUSH_DAAS_IBU = "Marketing_Push_Daas_Ibu";
     /**
      * 的 consumerGroup
      */

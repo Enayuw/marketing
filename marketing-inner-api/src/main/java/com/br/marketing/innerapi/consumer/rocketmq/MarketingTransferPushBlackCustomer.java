@@ -2,10 +2,9 @@ package com.br.marketing.innerapi.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushRuleService;
-import com.br.marketing.strategy.InterfaceHandlerService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
@@ -15,7 +14,6 @@ import org.apache.rocketmq.client.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -27,9 +25,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_TRANSFER_PUSH_BLACK,
-        tag = MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK,consumptionThreadCount = 20)
+        topic = MarketingOutsideInterfaceConstants.TOPIC,
+        consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_TRANSFER_PUSH_BLACK,
+        tag = MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK,consumptionThreadCount = 20)
 public class MarketingTransferPushBlackCustomer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

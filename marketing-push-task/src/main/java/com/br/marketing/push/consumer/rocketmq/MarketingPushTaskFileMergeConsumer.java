@@ -2,10 +2,10 @@ package com.br.marketing.push.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
@@ -26,9 +26,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MQConstants.MARKETINGEXCHANGER_NAME,
-        consumerGroup = MQConstants.MARKETING_PUSHTASK_FILE_MERGE,
-        tag = MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE,consumptionThreadCount = 20)
+        topic = MarketingAssistConstants.TOPIC,
+        consumerGroup = MarketingAssistConstants.MARKETING_PUSHTASK_FILE_MERGE,
+        tag = MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE,consumptionThreadCount = 20)
 public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

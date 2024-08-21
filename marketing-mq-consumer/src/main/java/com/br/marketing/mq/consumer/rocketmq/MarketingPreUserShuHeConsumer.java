@@ -1,11 +1,10 @@
-package com.br.marketing.check.consumer.rocketmq;
+package com.br.marketing.mq.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
-import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
@@ -19,23 +18,23 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- *
- * @Author yu.xia@brgroup.com
- * @Date 2024/8/20 20:57
+ * 消费 数禾上传数据 处理
+ * @Author: yu.xia@brgroup.com
+ * @Date: 2024-07-18
  */
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MarketingOutsideInterfaceConstants.TOPIC,
-        consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_PUSH_DASS_TRANSFER,
-        tag = MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_DAAS_TRANSFER,consumptionThreadCount = 20)
-public class MarketingPushDaasTransferConsumer extends BaseMqMessageListener implements RocketMQListener {
+        topic = MarketingUploadConstants.TOPIC,
+        consumerGroup = MarketingUploadConstants.MARKETING_PRE_USER_SHUHE_RECEIVE,
+        tag = MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE,consumptionThreadCount = 20)
+public class MarketingPreUserShuHeConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Autowired
-    PushDataService pushDataService;
+    PushRuleService pushRuleService;
 
     @Override
     protected ConsumeResult handleMessage(MessageView messageView) throws Exception {
@@ -43,8 +42,8 @@ public class MarketingPushDaasTransferConsumer extends BaseMqMessageListener imp
         String bodyString = charset.decode(messageView.getBody()).toString();
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        log.warn("Marketing_Push_Daas_Transfer：获取消息成功:{}",o);
-        consumerService.consumerRun(messageView, pushDataService::pushDassTransferData, o, "");
+        log.warn("MARKETING_PRE_USER_SHUHERECEIVE：获取消息成功:{}",o);
+        consumerService.consumerRun(messageView, pushRuleService::insertMarketingPreUserSync, o, null);
         return ConsumeResult.SUCCESS;
     }
 

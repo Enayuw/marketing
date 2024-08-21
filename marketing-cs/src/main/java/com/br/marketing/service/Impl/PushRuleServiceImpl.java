@@ -8,7 +8,6 @@ import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -27,6 +26,7 @@ import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
@@ -1454,7 +1454,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (!dbException) {
             HashMap<String, Boolean> rocketMqSwitch = marketingCommonConfig.getRocketMqSwitch();
             if(null != rocketMqSwitch && Boolean.TRUE.equals(rocketMqSwitch.getOrDefault("api",Boolean.FALSE))){
-                sendToRocketMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
+                sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
                 sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }

@@ -1,11 +1,9 @@
-package com.br.marketing.check.consumer.rocketmq;
+package com.br.marketing.mq.consumer.rocketmq;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.PushDataService;
+import com.br.marketing.service.VariableDicService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
@@ -19,32 +17,30 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
- *
- * @Author yu.xia@brgroup.com
- * @Date 2024/8/20 20:57
+ * 发送场景消息延时队列
+ * @Author: yu.xia@brgroup.com
+ * @Date: 2024-07-18
  */
 @Slf4j
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
-        topic = MarketingOutsideInterfaceConstants.TOPIC,
-        consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_PUSH_DASS_TRANSFER,
-        tag = MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_DAAS_TRANSFER,consumptionThreadCount = 20)
-public class MarketingPushDaasTransferConsumer extends BaseMqMessageListener implements RocketMQListener {
+        topic = MarketingDelayedConstants.TOPIC,
+        consumerGroup = MarketingDelayedConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
+        tag = MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,consumptionThreadCount = 20)
+public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
 
     @Autowired
-    PushDataService pushDataService;
+    VariableDicService variableDicService;
 
     @Override
     protected ConsumeResult handleMessage(MessageView messageView) throws Exception {
         Charset charset = StandardCharsets.UTF_8;
         String bodyString = charset.decode(messageView.getBody()).toString();
-        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
-        }.getType());
-        log.warn("Marketing_Push_Daas_Transfer：获取消息成功:{}",o);
-        consumerService.consumerRun(messageView, pushDataService::pushDassTransferData, o, "");
+        log.warn("MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE：获取消息成功:{}",bodyString);
+        consumerService.consumerRun(messageView, variableDicService::delaySendUserTypeMessage, bodyString, null);
         return ConsumeResult.SUCCESS;
     }
 
