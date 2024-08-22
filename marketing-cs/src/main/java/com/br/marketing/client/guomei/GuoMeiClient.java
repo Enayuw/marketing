@@ -84,7 +84,6 @@ public class GuoMeiClient {
      * @param map           响应信息
      * @param url           请求地址
      * @param responseClass 响应类型，不支持继承（实现）类的泛型
-     * @return httpcode 非正常时返回null
      */
     private static <T> Result<GmCallBackResponse<T>> getResponse(Map<String, String> map, String url, Class<T> responseClass) {
         Result<GmCallBackResponse<T>> result = new Result<>();
