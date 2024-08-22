@@ -1,9 +1,11 @@
 package com.br.marketing.service.Impl.xc;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.MarketingTaskExample;
@@ -25,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.File;
@@ -151,7 +152,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.error("携程跑分数据同步作业，日志保存线程池结束异常！", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程跑分数据同步作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
             Thread.currentThread().interrupt();
         }
     }
@@ -240,7 +242,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         String batchNumber = straHisFile.getBatchNumber();
         if (StringUtils.isEmpty(batchNumber)) {
             String errMsg = "跑分编号为空，跑分id：" + straHisFile.getId();
-            log.error(errMsg);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errMsg));
             return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
         }
         String tableName = "b_xiecheng_colliding_" + batchNumber;
@@ -251,7 +253,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
 
             if (!file.exists()) {
                 String errMsg = "跑分文件不存在，path：" + file.getAbsolutePath();
-                log.error(errMsg);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errMsg));
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
             }
 
@@ -260,7 +262,7 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 String header = reader.readLine();
                 if (header == null) {
                     String errMsg = "文件内容为空，path：" + file.getAbsolutePath();
-                    log.error(errMsg);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errMsg));
                     return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
@@ -270,14 +272,14 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 List<String> columns = Arrays.asList(headerColumn.split(",", -1));
                 if (!columns.contains("cell")) {
                     String errMsg = "文件表头缺少cell字段，path：" + file.getAbsolutePath();
-                    log.error(errMsg);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errMsg));
                     return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
                 boolean anyMatchBlank = columns.stream().anyMatch(StringUtils::isBlank);
                 if (anyMatchBlank) {
                     String errMsg = "文件表头缺失字段，path：" + file.getAbsolutePath();
-                    log.error(errMsg);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errMsg));
                     return result.setCode(ResultCode.FAIL.getValue()).setMessage(errMsg);
                 }
 
@@ -324,7 +326,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
                 // 删除该表所有重复数据
                 deleteCount = deleteRepeatData(tableName, deleteCount);
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                        "携程跑分文件同步DB异常, " + e.getMessage()), e);
                 return result.setCode(ResultCode.FAIL.getValue()).setMessage("未知异常");
             }
         }
@@ -351,11 +354,15 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
     }
 
     private void checkIsCamelCase(List<String> transferColumn, File file) {
+        List<String> xieChengScoreToDbKeepCamelColumns = marketingCommonConfig.getXieChengScoreToDbKeepCamelColumns();
         for (String column : transferColumn) {
+            if (xieChengScoreToDbKeepCamelColumns.contains(column)) {
+                continue;
+            }
             // 驼峰格式的正则表达式
             if (column.matches(REGEX)) {
                 String errMsg = "文件表头字段为驼峰格式，文件path：" + file.getAbsolutePath() + "，字段：" + column;
-                log.error(errMsg);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), errMsg));
             }
         }
     }
@@ -473,7 +480,8 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
             insertSql.setLength(insertSql.length() - 1);
             ruleScoreToDbService.insertXieChengScoreTidbTable(insertSql.toString(), batchData);
         } catch (Exception e) {
-            log.error("携程跑分数据同步作业，子线程异常", e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程跑分数据同步作业，子线程异常"), e);
         }
     }
 
@@ -482,7 +490,9 @@ public class XieChengRuleScoreToDbServiceImpl implements XieChengRuleScoreToDbSe
         try {
             scoreRecordMapper.insertXieChengScoreTidbTable(insertSql);
         } catch (Exception e) {
-            log.error("携程跑分数据同步作业,写入数据库异常:" + String.join(";", batchData), e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程跑分数据同步作业,写入数据库异常:" + String.join(";", batchData)), e);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
 

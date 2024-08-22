@@ -118,13 +118,15 @@ public class CopyFileJoinAspect {
             log.warn("Download File To Local Disk srcClient is null");
             return Boolean.FALSE;
         }
-        SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
         Object proceed = Boolean.FALSE;
-        try {
-            proceed = joinPoint.proceed(args);
-            insertSyncLog(loanSyncConfig, fileName, (Boolean) proceed, loanSyncLog);
-        } catch (Throwable throwable) {
-            log.error("download File LocalDisk error", throwable);
+        if (Constants.LOAN_DISK.equals(loanSyncConfig.getTargetType())) {
+            SyncLog loanSyncLog = setSyncLog(loanSyncConfig, fileName, srcClient);
+            try {
+                proceed = joinPoint.proceed(args);
+                insertSyncLog(loanSyncConfig, fileName, (Boolean) proceed, loanSyncLog);
+            } catch (Throwable throwable) {
+                log.error("download File LocalDisk error", throwable);
+            }
         }
         return proceed;
     }
