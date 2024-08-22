@@ -201,7 +201,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         List<String> keys = Lists.newArrayList(sectionData.keySet());
         List<String> fiveStepLength = Lists.newArrayList();
         fiveStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"));
-        List<String> fiftyStepLength = marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
+        List<String> fiftyStepLength = Lists.newArrayList();
         fiftyStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"));
         //剔除 [-1,0) 区间做交集
         keys.remove("[-1,0)");
