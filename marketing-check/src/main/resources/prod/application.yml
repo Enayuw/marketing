@@ -49,6 +49,6 @@ fdfs:
     width: 200
     height: 200
   pool:
-    max-total: 500
+    max-total: 50
     max-wait-millis: 150000
     max-total-per-key: 100
