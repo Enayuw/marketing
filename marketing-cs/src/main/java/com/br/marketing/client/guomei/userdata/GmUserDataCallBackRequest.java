@@ -1,5 +1,8 @@
-package com.br.marketing.client.guomei;
+package com.br.marketing.client.guomei.userdata;
 
+
+import com.br.marketing.client.guomei.base.AbstractGmCallBackRequestBase;
+import com.br.marketing.client.guomei.base.AbstractUserListBase;
 
 import java.util.List;
 

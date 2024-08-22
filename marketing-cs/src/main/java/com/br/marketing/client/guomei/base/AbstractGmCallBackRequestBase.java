@@ -1,4 +1,4 @@
-package com.br.marketing.client.guomei;
+package com.br.marketing.client.guomei.base;
 
 import java.io.Serializable;
 import java.util.Collection;

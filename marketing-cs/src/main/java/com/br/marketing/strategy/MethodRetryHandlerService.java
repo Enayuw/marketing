@@ -29,6 +29,10 @@ import com.br.marketing.client.didi.input.DiDiReachBO;
 import com.br.marketing.client.didi.input.DiDiReachRequestTO;
 import com.br.marketing.client.didi.input.DiDiReqVO;
 import com.br.marketing.client.didi.output.DiDiResponseTO;
+import com.br.marketing.client.guomei.GmCallBackResponse;
+import com.br.marketing.client.guomei.GuoMeiClient;
+import com.br.marketing.client.guomei.result.GmMarketingResultCallBackRequest;
+import com.br.marketing.client.guomei.userdata.GmUserDataCallBackRequest;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PolicyRetryByRuleSoleDTO;
@@ -182,7 +186,7 @@ public class MethodRetryHandlerService {
     private PushRuleServiceImpl pushRuleService;
 
     @Resource
-    private ZhongbangVoiceFileDetailMapper zhongBangVoiceFileDetailMapper;
+    private GuoMeiClient guoMeiClient;
 
     /**
      * 渠道唯一标识（由众邦银行提供）
@@ -1334,6 +1338,32 @@ public class MethodRetryHandlerService {
         }
         result.setDate(dto);
         return result;
+    }
+
+    /**
+     * 用户数据回传接口
+     *
+     * @param userDataCallBackRequest 封装的数据
+     * @param retry                   重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    public Result<GmCallBackResponse<Object>> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest
+            , Integer retry) {
+        return guoMeiClient.sendUserDataCallBack(userDataCallBackRequest, Object.class);
+    }
+
+    /**
+     * 营销结果数据回传接口
+     *
+     * @param resultCallBackRequest 封装的数据
+     * @param retry                 重试切面使用的标记，正常业务调用时赋值null
+     * @return 接口响应业务字段
+     */
+    @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
+    public Result<GmCallBackResponse<Object>> sendMarketingResultCallBack(GmMarketingResultCallBackRequest resultCallBackRequest
+            , Integer retry) {
+        return guoMeiClient.sendMarketingResultCallBack(resultCallBackRequest, Object.class);
     }
 
 }

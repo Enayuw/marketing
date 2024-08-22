@@ -1,4 +1,6 @@
-package com.br.marketing.client.guomei;
+package com.br.marketing.client.guomei.userdata;
+
+import com.br.marketing.client.guomei.base.AbstractUserListBase;
 
 /**
  * 用户数据回调回传

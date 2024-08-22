@@ -6,6 +6,8 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.guomei.result.GmMarketingResultCallBackRequest;
+import com.br.marketing.client.guomei.userdata.GmUserDataCallBackRequest;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -52,10 +54,10 @@ public class GuoMeiClient {
      * @return GmCallBackResponse
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public Result<GmCallBackResponse<?>> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest) {
+    public <T> Result<GmCallBackResponse<T>> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest, Class<T> responseClass) {
         Map<String, String> map = httpProxyClient.sendByCodeZw(userDataCallBackRequest
                 , pushDataCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
-        return getResponse(map, pushDataCallbackUrl);
+        return getResponse(map, pushDataCallbackUrl, responseClass);
     }
 
     /**
@@ -64,27 +66,33 @@ public class GuoMeiClient {
      * 营销结果数据回传接口
      * 1：批量推送：每次 1000 条
      * 2：如果有重推需保证 requestId 不变
+     *
+     * @return
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public Result<GmCallBackResponse<?>> sendMarketingResultCallBack(GmMarketingResultCallBackRequest marketingResultCallBackRequest) {
+    public <T> Result<GmCallBackResponse<T>> sendMarketingResultCallBack(GmMarketingResultCallBackRequest marketingResultCallBackRequest
+            , Class<T> responseClass) {
         Map<String, String> map = httpProxyClient.sendByCodeZw(marketingResultCallBackRequest
                 , pushResultCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
-        return getResponse(map, pushResultCallbackUrl);
+        return getResponse(map, pushResultCallbackUrl, responseClass);
     }
 
     /**
      * 2024-08-20 21:05
      * 获取响应数据
      *
+     * @param map           响应信息
+     * @param url           请求地址
+     * @param responseClass 响应类型，不支持继承（实现）类的泛型
      * @return httpcode 非正常时返回null
      */
-    private Result<GmCallBackResponse<?>> getResponse(Map<String, String> map, String url) {
-        Result<GmCallBackResponse<?>> result = new Result<>();
+    private static <T> Result<GmCallBackResponse<T>> getResponse(Map<String, String> map, String url, Class<T> responseClass) {
+        Result<GmCallBackResponse<T>> result = new Result<>();
         try {
             String httpCode = map.getOrDefault("httpcode", "");
             if (HTTP_CODE.equals(httpCode)) {
                 String respStr = map.getOrDefault("content", "");
-                GmCallBackResponse<?> gmCallBackResponse = JSON.parseObject(respStr, new TypeReference<GmCallBackResponse<?>>() {
+                GmCallBackResponse<T> gmCallBackResponse = JSON.parseObject(respStr, new TypeReference<GmCallBackResponse<T>>(responseClass) {
                 });
                 result.setDate(gmCallBackResponse);
                 result.setMessage(gmCallBackResponse.getMsg());

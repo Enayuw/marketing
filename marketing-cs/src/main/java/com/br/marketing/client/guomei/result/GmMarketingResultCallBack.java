@@ -1,6 +1,7 @@
-package com.br.marketing.client.guomei;
+package com.br.marketing.client.guomei.result;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.guomei.base.AbstractUserListBase;
 
 import java.util.Date;
 
