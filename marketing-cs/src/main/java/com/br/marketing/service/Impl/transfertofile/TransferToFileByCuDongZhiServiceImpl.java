@@ -144,7 +144,8 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
             if (!mkdirs) {
-                log.error(descPath + "目录创建失败！");
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                        , descPath + "目录创建失败！"));
             }
         }
         String fileAllPath = descPath.concat(transferFileTask.getFileName());
@@ -155,7 +156,8 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
             fw.append("\r\n");
             writeCuDongZhiTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
-            log.error("写入文件错误！",ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                    , "奇富360促动支转化数据提取写入文件错误！"), ex);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(ex.getMessage());
         }
@@ -242,14 +244,14 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
                         fw.append(sb.toString());
                         totalSize.incrementAndGet();
                     } catch (IOException e) {
-                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode()
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
                                 , "[" + apiCode + "]奇富360促动支转化数据提取[" + custNum + "]提取程序异常"), e);
                     }
                 }
                 try {
                     fw.flush();
                 } catch (IOException e) {
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode()
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
                             , "[" + apiCode + "]奇富360促动支转化数据提取flush异常!"), e);
                 }
             });
@@ -261,7 +263,7 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("奇富360促动支转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                    log.warn("奇富360促动支转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
@@ -269,7 +271,8 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
             log.warn("奇富360促动支转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
-            log.error("奇富360促动支转化数据提取-本地文件生成失败！" , e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                    , "奇富360促动支转化数据提取-本地文件生成失败！"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
