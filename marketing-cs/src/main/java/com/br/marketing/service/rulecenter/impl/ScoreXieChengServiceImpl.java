@@ -23,7 +23,6 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,31 +79,16 @@ public class ScoreXieChengServiceImpl {
         return total;
     }
 
-    public String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList
-            , XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
+    public String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
-        Date cleanTime = DateHelper.parseDate(xieChengCollidingFilterDTO.getCleanTime());
-        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
-        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
-        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
-        String cycleSql = String.format
-                ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
-                                "where (release_time < '%s' or release_time >= '%s') and is_delete=0"
-                        , cleanDateTime, cleanEndTime);
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
         //True关联查询
         //true筛选字段处理
         String condition = XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
-        if (StringUtils.isNotEmpty(condition)) {
-            if (condition.contains("release_time")) {
-                cycleSql = String.format
-                        ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle where %s and is_delete=0"
-                                , condition);
-            } else {
-                cycleSql = String.format
-                        ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
-                                        "where %s and (release_time < '%s' or release_time >= '%s') and is_delete=0"
-                                , condition, cleanDateTime, cleanEndTime);
-            }
+        if(StringUtils.isNotEmpty(condition)){
+            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + condition
+                    + " and is_delete=0";
         }
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
