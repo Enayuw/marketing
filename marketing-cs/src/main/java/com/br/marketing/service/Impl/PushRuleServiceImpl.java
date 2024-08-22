@@ -563,7 +563,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
-            querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+            if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
+                querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+            } else {
+                querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+            }
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
