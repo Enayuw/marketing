@@ -7,9 +7,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -85,9 +87,16 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         String fileName = reportTask.getReportName() + BI_FILE_EXTENSION;
         String fullName = tmpPath + FilenameUtils.getName(fileName);
         File tempFile = new File(fullName);
+        Set<String> sheetNames = new HashSet<>();
+        int counter = 1;
         for (Map.Entry<String, AxisWrapVO> entry : sheetMap.entrySet()) {
             // excel sheet名称最大长度31，超出31截取前31位
-            String sheetName = entry.getKey().length() > 31 ? entry.getKey().substring(0, 31) : entry.getKey();
+            String sheetName = entry.getKey().length() > 29 ? entry.getKey().substring(0, 29) : entry.getKey();
+            String originalSheetName = sheetName;
+            if (sheetNames.contains(sheetName)) {
+                sheetName = String.format("%s_%s", originalSheetName, counter++);
+            }
+            sheetNames.add(originalSheetName);
             excelWriter.setSheet(sheetName);
             if (entry.getValue().getStatisticsDesc() == null) {
                 writeDistributedData(excelWriter, entry.getValue());
