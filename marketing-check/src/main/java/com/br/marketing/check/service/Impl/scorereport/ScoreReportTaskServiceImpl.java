@@ -199,7 +199,7 @@ public class ScoreReportTaskServiceImpl implements ScoreReportTaskService {
         }
         scoreSql = "SELECT " +
                 "concat('[',FLOOR(a.xModelName/xModelRange) * xModelRange,',',FLOOR(a.xModelName/xModelRange) * xModelRange + xModelRange,')')" +
-                "AS xModelName,'[',FLOOR(a.yModelName/yModelRange) * yModelRange,',',FLOOR(a.yModelName/yModelRange) * yModelRange +" +
+                "AS xModelName,concat('[',FLOOR(a.yModelName/yModelRange) * yModelRange,',',FLOOR(a.yModelName/yModelRange) * yModelRange +" +
                 " yModelRange,')')AS yModelName,count(1) AS num FROM (" + scoreSql + " ) a GROUP BY FLOOR(a.xModelName / xModelRange), " +
                 "FLOOR(a.yModelName / yModelRange) ORDER BY FLOOR(a.xModelName / xModelRange), FLOOR(a.yModelName / yModelRange);";
         //替换变量

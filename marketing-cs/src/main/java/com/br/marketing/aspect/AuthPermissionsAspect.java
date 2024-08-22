@@ -3,6 +3,7 @@ package com.br.marketing.aspect;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.github.pagehelper.util.StringUtil;
 import org.apache.commons.lang.ArrayUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -81,6 +82,9 @@ public class AuthPermissionsAspect {
         boolean isAdmin = user.getRoleList().stream().anyMatch(role -> role.getId() == 1);
         if (isAdmin) {
             return joinPoint.proceed(args);
+        }
+        if(StringUtil.isEmpty(user.getApiCode())){
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.AUTH_USER_API_CODE_ERROR);
         }
         List<String> authApiCodes = Splitter.on(",").splitToList(user.getApiCode());
         // 处理封装Object类型的参数
