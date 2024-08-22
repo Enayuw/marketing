@@ -4,7 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -35,6 +39,8 @@ public class GuoMeiClient {
     @Resource
     private HttpProxyClient httpProxyClient;
 
+    private static final String HTTP_CODE = "200";
+
     /**
      * 2024-08-20 19:38
      * 用户数据回传接口：（所有接收到的用户数据）
@@ -46,10 +52,10 @@ public class GuoMeiClient {
      * @return GmCallBackResponse
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public GmCallBackResponse<?> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest) {
+    public Result<GmCallBackResponse<?>> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest) {
         Map<String, String> map = httpProxyClient.sendByCodeZw(userDataCallBackRequest
                 , pushDataCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
-        return getResponse(map);
+        return getResponse(map, pushDataCallbackUrl);
     }
 
     /**
@@ -60,10 +66,10 @@ public class GuoMeiClient {
      * 2：如果有重推需保证 requestId 不变
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public GmCallBackResponse<?> sendMarketingResultCallBack(GmMarketingResultCallBackRequest marketingResultCallBackRequest) {
+    public Result<GmCallBackResponse<?>> sendMarketingResultCallBack(GmMarketingResultCallBackRequest marketingResultCallBackRequest) {
         Map<String, String> map = httpProxyClient.sendByCodeZw(marketingResultCallBackRequest
                 , pushResultCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
-        return getResponse(map);
+        return getResponse(map, pushResultCallbackUrl);
     }
 
     /**
@@ -72,14 +78,27 @@ public class GuoMeiClient {
      *
      * @return httpcode 非正常时返回null
      */
-    private GmCallBackResponse<?> getResponse(Map<String, String> map) {
-        String httpCode = map.getOrDefault("httpcode", "");
-        if (httpCode.startsWith("2") || httpCode.startsWith("3")) {
-            String respStr = map.getOrDefault("content", "");
-            return JSON.parseObject(respStr, new TypeReference<GmCallBackResponse<?>>() {
-            });
+    private Result<GmCallBackResponse<?>> getResponse(Map<String, String> map, String url) {
+        Result<GmCallBackResponse<?>> result = new Result<>();
+        try {
+            String httpCode = map.getOrDefault("httpcode", "");
+            if (HTTP_CODE.equals(httpCode)) {
+                String respStr = map.getOrDefault("content", "");
+                GmCallBackResponse<?> gmCallBackResponse = JSON.parseObject(respStr, new TypeReference<GmCallBackResponse<?>>() {
+                });
+                result.setDate(gmCallBackResponse);
+                result.setMessage(gmCallBackResponse.getMsg());
+                result.setCode(ResultCode.SUCCESS.getValue());
+            } else {
+                // 网络非200客户要求需要重试，且重试时requestId 不更新
+                result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+        } catch (Exception e) {
+            result.setCode(ResultCode.FAIL.getValue());
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_INTERFACEERROR.getCode()
+                    , url + "\n" + e.getMessage(), "国美回调接口响应内容解析失败"), e.getMessage());
         }
-        return null;
+        return result;
     }
 
 }
