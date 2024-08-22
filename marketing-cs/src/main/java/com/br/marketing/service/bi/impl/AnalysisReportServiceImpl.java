@@ -16,6 +16,8 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -197,18 +199,23 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     private List<String> determineStepLength(List<ScoreStatisticsDetail> details, Function<ScoreStatisticsDetail, String> keyMapper) {
         Map<String, List<ScoreStatisticsDetail>> sectionData = details.stream().collect(Collectors.groupingBy(keyMapper));
         List<String> keys = Lists.newArrayList(sectionData.keySet());
-        if (this.checkKeys(keys, marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"))) {
+        List<String> fiveStepLength = Lists.newArrayList();
+        fiveStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"));
+        List<String> fiftyStepLength = marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
+        fiftyStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"));
+        //剔除 [-1,0) 区间做交集
+        keys.remove("[-1,0)");
+        fiveStepLength.remove("[-1,0)");
+        fiftyStepLength.remove("[-1,0)");
+        if (this.checkKeys(keys, fiveStepLength)) {
             return marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
-        } else if (this.checkKeys(keys, marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"))) {
+        } else if (this.checkKeys(keys, fiftyStepLength)) {
             return marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
         }
         return keys;
     }
 
     private boolean checkKeys(List<String> keys, List<String> config) {
-        //剔除 [-1,0) 区间做交集
-        keys.remove("[-1,0)");
-        config.remove("[-1,0)");
         List<String> intersection = Lists.newArrayList(keys);
         intersection.retainAll(config);
         return CollectionUtil.isNotEmpty(intersection);
@@ -251,11 +258,11 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
                 try {
                     Files.delete(path);
                 } catch (IOException e) {
-                    log.error("删除临时文件异常: {}", e.getMessage(), e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "删除临时文件异常"), e);
                 }
             });
         } catch (IOException e) {
-            log.error("删除临时文件异常: {}", e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "删除临时文件异常"), e);
         }
     }
 }
