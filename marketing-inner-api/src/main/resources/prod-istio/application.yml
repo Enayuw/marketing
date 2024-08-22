@@ -55,4 +55,4 @@ fdfs:
   pool:
     max-total: 50
     max-wait-millis: 150000
-    max-total-per-key: 100
+    max-total-per-key: 10
