@@ -1118,4 +1118,19 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="ScoreReportTaskJob"
+                class="com.br.marketing.check.job.report.ScoreReportTaskJob"
+                cron="0 1/5 * * * ?"
+                description="跑分报表任务统计job"
+                registry-center-ref="regCenter"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

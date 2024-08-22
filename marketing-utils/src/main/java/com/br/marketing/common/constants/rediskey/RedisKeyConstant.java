@@ -245,5 +245,10 @@ public class RedisKeyConstant {
     public static final String XIECHENG_COLLIDING_CLEAN = prefix.concat("xcCollidingClean");
 
     public static final String POLICY_BUILD_LOCK = prefix.concat("policy:build:lock:");
+    /**
+     * 跑分模型统计任务锁
+     */
+    public static final String SCORE_REPORT_TASK_LOCK = prefix.concat("score:report:task:lock:");
+
 
 }
