@@ -563,7 +563,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
-            querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
@@ -620,24 +620,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         return falseAndscoreSql.append(whereSql).toString();
     }
 
-    private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
-        String scoreSql = scoreSql(jsonObject, batchNumberList);
-        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
-                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
-        //True关联查询
-        //true筛选字段处理
-        String condition = XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
-        if (StringUtils.isNotEmpty(condition)) {
-            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + condition
-                    + " and is_delete=0";
-        }
-        StringBuilder cycleAndscoreSql = new StringBuilder();
-        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
-                "score.cell = cycle.cell;");
-        return cycleAndscoreSql.toString();
-    }
-
-    private String cycleDataQueryForDelete(JSONObject jsonObject, List<String> batchNumberList
+    private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList
             , XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         Date cleanTime = DateHelper.parseDate(xieChengCollidingFilterDTO.getCleanTime());
@@ -706,7 +689,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return scoreSql;
     }
-
 
     private Boolean isXieChengData(PushCustomerDTO dto) {
         Boolean isXieCheng = Boolean.FALSE;
@@ -2158,7 +2140,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
     }
 
-
     private String dateTimeComplet(String data) {
         if (data == null) {
             return null;
@@ -2252,7 +2233,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(vo).setMessage("成功");
     }
 
-
     @Transactional(rollbackFor = Exception.class)
     @Override
     public Result insertBatchTransferUser(String apiCode, String jsonData) {
@@ -2302,7 +2282,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (transfers.size() == 0) {
             throw new CommonException(MarketingErrorInfo.QUANTITY_ERROR);
         }
-
 
         StringBuilder sqlByTaskAndCustNum = new StringBuilder();
         String nowDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
@@ -2934,20 +2913,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
     }
 
-    private void sendAlarm(String smg, String key) {
-        log.warn(smg);
-        alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
-        redisChgService.incrBy(key, -1);
-        redisChgService.expire(key, getKeyExpiration());
-    }
-
-    private synchronized Long getApiCodeCount(String key) {
-        Long incr = redisChgService.incr(key);
-        int keyExpiration = getKeyExpiration();
-        redisChgService.expire(key, keyExpiration);
-        return incr;
-    }
-
     /**
      * 获取当前时间到第二天凌晨的秒
      *
@@ -3052,7 +3017,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 , pushStatus
         );
     }
-
 
     // 处理任务
     private class PushTransferDataToCustomerTask extends RecursiveTask<List<PushTransferCustomerLog>> {
@@ -3994,7 +3958,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             zhongbangCaifuDataMapper.updateByExampleSelective(record, updateExample);
         }
     }
-
 
     public void updateZhongBangRetryStatus(List<Long> ids) {
         //更新数据表状态
