@@ -274,11 +274,11 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
                 try {
                     Files.delete(path);
                 } catch (IOException e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "删除临时文件异常"), e);
+                    log.warn("删除临时文件异常,path:{}", tmpPath, e);
                 }
             });
         } catch (IOException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "删除临时文件异常"), e);
+            log.warn("删除临时文件异常,path:{}", tmpPath, e);
         }
     }
 }
