@@ -99,7 +99,7 @@ datasource:
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
       replicationAllocation: tag.location.default:3
     marketingBI:
-      name: marketing
+      name: marketing_bi
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi
