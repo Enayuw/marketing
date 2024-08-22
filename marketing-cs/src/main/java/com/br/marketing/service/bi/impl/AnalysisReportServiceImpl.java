@@ -69,6 +69,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public String uploadReportToFastDfs(Long taskId) throws IOException {
+        log.warn("上传taskId:{}任务报表", taskId);
         ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(taskId);
         reportTask.setDownStatus(1);
         reportTaskMapper.updateByPrimaryKeySelective(reportTask);
@@ -91,7 +92,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         int counter = 1;
         for (Map.Entry<String, AxisWrapVO> entry : sheetMap.entrySet()) {
             // excel sheet名称最大长度31，超出31截取前31位
-            String sheetName = entry.getKey().length() > 29 ? entry.getKey().substring(0, 29) : entry.getKey();
+            String sheetName = entry.getKey().length() > 28 ? entry.getKey().substring(0, 28) : entry.getKey();
             String originalSheetName = sheetName;
             if (sheetNames.contains(sheetName)) {
                 sheetName = String.format("%s_%s", originalSheetName, counter++);
@@ -107,7 +108,13 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         // 剔除默认生成的第一个sheet，写入文件并关闭流
         excelWriter.getWorkbook().removeSheetAt(0);
         excelWriter.flush(tempFile);
-        String url = fastDfsClient.uploadFile(tempFile);
+        String url;
+        try {
+            url = fastDfsClient.uploadFile(tempFile);
+        } catch (IOException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "fastDfs 上传文件异常 手动重试一次"));
+            url = fastDfsClient.uploadFile(tempFile);
+        }
         deleteTempFile(tmpPath);
         reportTask.setDownStatus(2);
         reportTask.setDownloadUrl(url);
