@@ -646,12 +646,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         Date cleanTime = DateHelper.parseDate(xieChengCollidingFilterDTO.getCleanTime());
         Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
         String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
         String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
         String cycleSql = String.format
                 ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
-                                "where (release_time < '%s' or release_time >= '%s') and is_delete=0"
-                        , cleanDateTime, cleanEndTime);
+                                "where (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                        , cleanDateTime, cleanEndTime, endDateTime);
         //True关联查询
         //true筛选字段处理
         String condition = XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
@@ -663,8 +665,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             } else {
                 cycleSql = String.format
                         ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
-                                        "where %s and (release_time < '%s' or release_time >= '%s') and is_delete=0"
-                                , condition, cleanDateTime, cleanEndTime);
+                                        "where %s and (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                                , condition, cleanDateTime, cleanEndTime, endDateTime);
             }
         }
         StringBuilder cycleAndscoreSql = new StringBuilder();
@@ -677,12 +679,14 @@ public class PushRuleServiceImpl implements PushRuleService {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         Date cleanTime = DateHelper.parseDate(cleanDate);
         Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
         String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
         String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
         String cycleSql = String.format
                 ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
-                                "where (release_time < '%s' or release_time >= '%s') and is_delete=0"
-                        , cleanDateTime, cleanEndTime);
+                                "where (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                        , cleanDateTime, cleanEndTime, endDateTime);
         //True关联查询
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle left join (").append(scoreSql).append(") score on " +
