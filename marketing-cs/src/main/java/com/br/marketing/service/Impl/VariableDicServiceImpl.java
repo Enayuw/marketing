@@ -407,7 +407,8 @@ public class VariableDicServiceImpl implements VariableDicService {
             boolean isRealTimeSend = (localTime.isAfter(startParse) || localTime.equals(startParse))
                     && (localTime.isBefore(endParse) || localTime.equals(endParse));
             if (isRealTimeSend) {
-                String content = ("apiCode  userType\n".concat(apiCode).concat("  " + (userType)).concat("\n"));
+                String content = ("新增场景通知 " + LocalDate.now() + "\napiCode  userType\n".concat(apiCode).concat("  "
+                        + (userType)).concat("\n"));
                 sendDingDingTextMessage(content, map);
             } else {
                 // T+1日延时定时发送消息
