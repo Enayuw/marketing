@@ -2,13 +2,16 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -56,6 +59,10 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
 
     @Resource
     private RabbitMqProducter producer;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     private DataLoadingHandlerService handlerService;
@@ -64,7 +71,7 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
     JSONObject call(List<MqFact> mqFacts, ProcessHandlerContext context) {
         String expireTime = StringUtils.hasText(marketingCommonConfig.getMessageQueueExpireTime())
                 ?marketingCommonConfig.getMessageQueueExpireTime():EXPIRE_TIME;
-
+        String apiCode = context.getApiCode();
         /**
          * eg:{"last": 0,"tcId": 772,"ids": [607772,607771,607770,607769,607768],"apiCode": "7410430"}
          */
@@ -76,7 +83,7 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
         }else{
             HashMap<String, List<String>> ppdCustomerType = marketingCommonConfig.getPpdCustomerType();
             // 拍拍贷处理规则
-            if (ppdCustomerType.get("transform").contains(context.getApiCode())){
+            if (ppdCustomerType.get("transform").contains(apiCode)){
                 set.add("PPD_TransferData_ArtificialBatch");
             }else{
                 //宜信处理规则
@@ -84,9 +91,9 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
             }
         }
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("apiCode",context.getApiCode());
+        jsonObject.put("apiCode", apiCode);
         jsonObject.put("ids",mqFacts.stream().map(MqFact::getSourceId).collect(Collectors.toSet()));
-        jsonObject.put("tcId",handlerService.getTcIdFromRedis(context.getApiCode()));
+        jsonObject.put("tcId",handlerService.getTcIdFromRedis(apiCode));
 
         MqFact mqFact = new MqFact();
         mqFact.setSourceId(context.getTransferInfoId());
@@ -95,7 +102,13 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
         mqFact.setMessage(jsonObject.toJSONString());
         mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
         String message = JSON.toJSONString(mqFact);
-        producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,expireTime);
+        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
+            template.syncSendDelay(MarketingDelayedConstants.TOPIC
+                    , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
+                    ,Integer.valueOf(expireTime)/1000);
+        }else{
+            producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,expireTime);
+        }
         return null;
     }
 

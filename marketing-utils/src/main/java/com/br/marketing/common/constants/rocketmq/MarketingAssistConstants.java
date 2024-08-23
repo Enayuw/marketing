@@ -12,15 +12,15 @@ public class MarketingAssistConstants {
     /**
      * 的 Tag
      */
-    public static final String TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION = "Marketing.Transfer.Api.UserType.Collection.*.Fragments";
+    public static final String TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION = "Marketing.Transfer.Api.UserType.Collection";
     /**
      * 的 Tag
      */
-    public static final String TAG_MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS = "marketing.transfer.api.*.collection.count.fragments";
+    public static final String TAG_MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS = "marketing.transfer.api.*.collection.fragments";
     /**
      * 的 Tag
      */
-    public static final String TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION = "marketing.upload.api.usertype.collection.*.fragments";
+    public static final String TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION = "Marketing.Upload.Api.Usertype.Collection";
     /**
      * 的 Tag
      */

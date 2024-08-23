@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -10,15 +9,16 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.commonentity.PageResultReturn;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
-import com.br.marketing.mapper.MarketingValidityChangeMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPeriodOfValidityService;
@@ -31,6 +31,7 @@ import com.br.marketing.vo.VariableDicSelectVO;
 import com.br.marketing.webhook.dingding.msgtype.At;
 import com.br.marketing.webhook.dingding.msgtype.DingDingTextMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
@@ -87,6 +88,10 @@ public class VariableDicServiceImpl implements VariableDicService {
 
     @Resource
     private RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     private TransactionTemplate transactionTemplate;
@@ -396,8 +401,13 @@ public class VariableDicServiceImpl implements VariableDicService {
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
-                    producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key
-                            , String.valueOf(ttl), priority);
+                    if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
+                        template.syncSendDelay(MarketingDelayedConstants.TOPIC
+                                , MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key, (int)ttl/1000);
+                    }else{
+                        producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key
+                                , String.valueOf(ttl), priority);
+                    }
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  ") + (userType));
@@ -423,10 +433,16 @@ public class VariableDicServiceImpl implements VariableDicService {
                 redisChgService.lock(key.concat(":lock"), id);
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
+                    long ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate()
+                            .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()));
                     // 不存在添加延迟队列
-                    producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
-                            key, String.valueOf(ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate()
-                                    .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()))), priority);
+                    if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
+                        template.syncSendDelay(MarketingDelayedConstants.TOPIC
+                                , MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key, (int)ttl/1000);
+                    }else{
+                        producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
+                                key, String.valueOf(ttl), priority);
+                    }
                 }
                 // 缓存批量结果
                 redisChgService.saddMember(key, apiCode.concat("  " + userType));

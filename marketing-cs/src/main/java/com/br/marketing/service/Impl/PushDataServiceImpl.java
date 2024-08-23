@@ -35,9 +35,11 @@ import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.*;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
@@ -51,10 +53,9 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
-import com.br.marketing.thread.HaierCollidingDataThread;
 import com.br.marketing.util.TimeUtils;
-import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -186,6 +187,10 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Autowired
     RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Autowired
     YiqianbaoDataMapper yiqianbaoDataMapper;
@@ -1194,8 +1199,12 @@ public class PushDataServiceImpl implements PushDataService {
         phoneSaleExtendShuhe.setLocalId(localFile.getId());
         phoneSaleExtendShuhe.setpId(phoneSale.getId());
         phoneSaleExtendShuheMapper.insertSelective(phoneSaleExtendShuhe);
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
-
+        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_DAAS_SCORE)){
+            template.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                    , MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_DAAS_SCORE, localFile.getId().toString());
+        }else{
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
+        }
         removeHaluoLock(apiCode, phoneSaleExtendShuhe.getCustNum(), phoneSaleExtendShuhe.getStatus());
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
@@ -1697,8 +1706,14 @@ public class PushDataServiceImpl implements PushDataService {
                 .filter(item -> !item.getResult())
                 .map(XieChengSmsCollidingDataLogVt::getSha256CodeList)
                 .collect(Collectors.toList());
-        producter.send(ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER
-                , JSON.toJSONString(sha256CodeListFalseList));
+        String jsonString = JSON.toJSONString(sha256CodeListFalseList);
+        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER)){
+            template.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                    , MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER, jsonString);
+        }else{
+            producter.send(ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER
+                    , jsonString);
+        }
     }
 
 

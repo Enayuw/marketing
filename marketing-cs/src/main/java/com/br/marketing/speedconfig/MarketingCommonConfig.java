@@ -1950,13 +1950,56 @@ public class MarketingCommonConfig {
      * 58新客-营销转化结果查询-调用线程
      */
     private List<Integer> wuBaQueryConversionThreadPool;
+//    /**
+//     * 是否使用 RocketMq 发送消息
+//     * true：使用 RocketMq 发送消息
+//     * false：使用 RabbitMq 发送消息
+//     * {"api":true,"inner-api":false,"mq-consumer":true}
+//     * JSONObject rocketMqSwitch1上线后，删除rocketMqSwitch
+//     */
+//    private HashMap<String,Boolean> rocketMqSwitch;
     /**
-     * 是否使用 RocketMq 发送消息
-     * true：使用 RocketMq 发送消息
-     * false：使用 RabbitMq 发送消息
-     * {"api":true,"inner-api":false,"mq-consumer":true}
+     * 是否使用 RocketMq 发送消息配置:
+     *      speed中不写该配置时使用RabbitMQ
+     *      speed中env、name、apiCodes、tags但凡满足一个条件都使用RocketMQ
+     * {
+     * 	"env": "pre,prod",
+     * 	"name": "marketing-api,marketing-mq-consumer",
+     * 	"apiCodes": "7410950,7410957",
+     * 	"tags": "Marketing.PreUser.Receive,Marketing.PreUser.Receive.Small"
+     * }
+     * 说明：
+     *      env：SRE中yaml文件里面配置的环境变量SPEED_ENV,多个以逗号分隔
+     *      name：配置启用RocketMQ的服务名称,多个以逗号分隔
+     *      apiCodes：配置启用RocketMQ的apiCode,多个以逗号分隔
+     *      tags：配置启用RocketMQ的tag,多个以逗号分隔
      */
-    private HashMap<String,Boolean> rocketMqSwitch;
+    private JSONObject rocketMqSwitch1;
+    /**
+     * 是否使用 RocketMq 发送消息配置:
+     *      speed中global=false时使用RabbitMQ
+     *      flag=true且tag中对应生产着参数包含apiCode配置的使用RocketMQ
+     *  {
+     * 	"global": "true",
+     * 	"group": [{
+     * 		"flag": true,
+     * 		"tag": {
+     * 			"Marketing.PreUser.Receive": "apiCodes"
+     *       }
+     *  }, {
+     * 		"flag": true,
+     * 		"tag": {
+     * 			"Marketing.PreUser.Receive.Small": "apiCodes"
+     * 		}
+     * 	}]
+     * }
+     * 说明：
+     *      global：全局
+     *      name：配置启用RocketMQ的服务名称,多个以逗号分隔
+     *      apiCodes：配置启用RocketMQ的apiCode,多个以逗号分隔
+     *      tags：配置启用RocketMQ的tag,多个以逗号分隔
+     */
+    private String rocketMqSwitch2;
 
     /**
      * 58新客-营销转化结果查询-批量DB线程

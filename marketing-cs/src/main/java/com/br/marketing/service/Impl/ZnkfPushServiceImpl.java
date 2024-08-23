@@ -1,14 +1,16 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
-import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
@@ -28,6 +30,7 @@ import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.service.PushDataService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,14 +69,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Autowired
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
-    @Resource
-    private AlarmApiClient alarmClient;
-
     @Autowired
     RedisChgService redisChgService;
 
     @Resource
     private RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     private DataLoadingHandlerService handlerService;
@@ -125,14 +129,20 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 if (apiCodes == null) {
                     apiCodes = Arrays.asList("3710004", "3710023", "3710043", "7410785");
                 }
-                if (apiCodes.contains(callRecord.getApiCode())) {
+                String apiCode = callRecord.getApiCode();
+                if (apiCodes.contains(apiCode)) {
                     //推mq
                     final MqFact mqFact = new MqFact();
                     mqFact.setSourceId(callRecord.getId());
                     mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
-                    producter.sendToUniversalTransferQueue(mqFact);
+                    if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                        String message = JSON.toJSONString(mqFact);
+                        template.syncSend(MarketingTransferConstants.TOPIC
+                                , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+                    }else{
+                        producter.sendToUniversalTransferQueue(mqFact);
+                    }
                 }
-
             }
         } catch (Exception ex) {
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId(), ex);

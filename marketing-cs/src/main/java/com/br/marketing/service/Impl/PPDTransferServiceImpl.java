@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
@@ -8,7 +9,9 @@ import com.br.marketing.client.dassservice.input.DassImportDataDTO;
 import com.br.marketing.client.dassservice.input.userdata.BatchRealTimeUserDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -21,6 +24,7 @@ import com.br.marketing.service.IPPDTransferService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.ArtificialBatchRealTimeDataHandler;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +55,10 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
 
     @Autowired
     RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     YiXinTransferServiceImpl yiXinTransferService;
@@ -114,7 +122,13 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
                 mqFact.setIncludeRules(Sets.newHashSet("PPD_TransferData_ArtificialTransfer"));
                 mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
                 mqFact.setMessage(JSONObject.toJSONString(paramMessage));
-                producter.sendToUniversalTransferQueue(mqFact);
+                if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                    String message = JSON.toJSONString(mqFact);
+                    template.syncSend(MarketingTransferConstants.TOPIC
+                            , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+                }else{
+                    producter.sendToUniversalTransferQueue(mqFact);
+                }
             }
         }
         yiXinTransferService.updateFrontDataStatus(frontId, 2);

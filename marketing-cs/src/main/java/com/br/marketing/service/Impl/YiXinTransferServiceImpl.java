@@ -12,11 +12,13 @@ import com.br.marketing.client.haier.output.Response2Entity;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
@@ -25,6 +27,7 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +81,10 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
 
     @Autowired
     RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Autowired
     ZnkfPushService znkfPushService;
@@ -376,7 +383,12 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         mq.setIncludeRules(rule);
                         mq.setMessage(JSON.toJSONString(jo));
                         String mqStr = JSON.toJSONString(mq);
-                        producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
+                        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                            template.syncSend(MarketingTransferConstants.TOPIC
+                                    , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
+                        }else{
+                            producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
+                        }
                         if (log.isWarnEnabled()) {
                             log.warn(String.format("推送非实时决策 pushUid:%s,mq消息：%s", pushUid, mqStr));
                         }
@@ -677,7 +689,13 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         mqFact.setIncludeRules(Sets.newHashSet("YiXin_NonRealTime_CustomerTransfer"));
         mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
         mqFact.setMessage(JSONObject.toJSONString(paramMessage));
-        producter.sendToUniversalTransferQueue(mqFact);
+        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+            String message = JSON.toJSONString(mqFact);
+            template.syncSend(MarketingTransferConstants.TOPIC
+                    , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+        }else{
+            producter.sendToUniversalTransferQueue(mqFact);
+        }
     }
 
     @Override

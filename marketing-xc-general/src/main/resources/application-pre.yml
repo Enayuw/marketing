@@ -233,3 +233,14 @@ corn:
   monitoringExpirationAlarmJob: 00 00 10 * * ?
   progressReportJob: 00 00 09 * * ?
   reportJob: 00 00 18 * * ?
+
+rocketmq:
+  producer:
+    endpoints: 10.100.123.171:8081;10.100.123.172:8081;10.100.123.173:8081  #预发rocketmq代理地址
+    topic: gate_test
+  consumer:
+    endpoints: 10.100.123.171:8081;10.100.123.172:8081;10.100.123.173:8081 #预发rocketmq代理地址
+    filter-expression-type: tag
+    tag: "*"
+    topic: gate_test
+    consumer-group: Marketing_PreUser_Receive

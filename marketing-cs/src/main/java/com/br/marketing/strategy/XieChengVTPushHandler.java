@@ -2,7 +2,10 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.entity.XieChengData;
@@ -11,6 +14,7 @@ import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -37,6 +41,10 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
 
     @Resource
     private RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -64,8 +72,13 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                     JSONObject msg = new JSONObject();
                     msg.put("localId", dto.getInitId());
                     msg.put("type", 2);
-                    producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
-                            , msg.toJSONString());
+                    if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
+                        template.syncSend(MarketingAssistConstants.TOPIC
+                                , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
+                    }else{
+                        producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
+                                , msg.toJSONString());
+                    }
                 }
             } else {
                 // 推送至延迟队列
@@ -77,7 +90,13 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                 mqFact.setIncludeRules(set);
                 mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                 String message = JSON.toJSONString(mqFact);
-                producter.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY, message, expireTime);
+                if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
+                    template.syncSendDelay(MarketingDelayedConstants.TOPIC
+                            , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
+                            ,Integer.valueOf(expireTime)/1000);
+                }else{
+                    producter.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY, message, expireTime);
+                }
             }
         }
         return null;

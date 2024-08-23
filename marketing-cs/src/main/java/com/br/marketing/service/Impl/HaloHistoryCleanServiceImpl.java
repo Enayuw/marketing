@@ -6,17 +6,19 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.HaloHistoryCleanService;
 import com.br.marketing.thread.HaloCleanHistoryThread;
 import com.br.marketing.util.TimeUtils;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,6 +55,10 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
 
     @Autowired
     private RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     private AlarmApiClient alarmClient;
@@ -77,7 +83,12 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
             return new ApiResult<Boolean>().fail("入参数据异常");
         }
         redisChgService.setnx("cid-halo-button" + cid, cid, TimeUtils.getRemainSecondsOneDay(new Date()));
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
+        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingOutsideInterfaceConstants.TAG_MARKETING_HALUO_CLEAN_HISTORY)){
+            template.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                    , MarketingOutsideInterfaceConstants.TAG_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
+        }else{
+            producter.send(MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
+        }
         return new ApiResult<Boolean>().success().setData(true);
     }
 

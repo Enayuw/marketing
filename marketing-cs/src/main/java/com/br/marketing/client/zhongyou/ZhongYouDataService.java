@@ -8,8 +8,9 @@ import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.TransferDataDTO;
@@ -23,6 +24,7 @@ import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN;
 
@@ -64,6 +65,10 @@ public class ZhongYouDataService {
 
     @Resource
     private RabbitMqProducter producter;
+    @Resource
+    private RocketMqTemplate template;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -135,7 +140,12 @@ public class ZhongYouDataService {
             if (!Integer.valueOf(fileData).equals(num)) {
                 log.error("中邮文件数据量级不匹配：文件给定量级-> {},实际入库量级-> {}", fileData, num);
             }
-            producter.send(ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN, String.valueOf(fileId));
+            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN)){
+                template.syncSend(MarketingAssistConstants.TOPIC
+                        , MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN, String.valueOf(fileId));
+            }else{
+                producter.send(ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN, String.valueOf(fileId));
+            }
         }else {
             log.error("中邮文件内容数据异常 fileId ：{}",fileId);
         }

@@ -9,6 +9,9 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.config.RocketMQSwitch;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -33,6 +36,10 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
 
     @Resource
     private RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -52,7 +59,12 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
                 JSONObject msg = new JSONObject();
                 msg.put("localId", dto.getInitId());
                 msg.put("type", 2);
-                producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
+                if(rocketMQSwitch.rocketMQSwitchFlag(xieChengData.getApiCode(), MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
+                    template.syncSend(MarketingAssistConstants.TOPIC
+                            , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
+                }else{
+                    producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
+                }
             }
         }
         return null;

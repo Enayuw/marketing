@@ -12,6 +12,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.TransferDataDTO;
@@ -77,6 +78,8 @@ public class ShuHeUserServiceImpl {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
 
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
@@ -284,8 +287,7 @@ public class ShuHeUserServiceImpl {
             transferInfo.setActualNum(1);
             marketingTransferInfoMapper.insertSelective(transferInfo);
             String id = String.valueOf(transferInfo.getId());
-            HashMap<String, Boolean> rocketMqSwitch = marketingCommonConfig.getRocketMqSwitch();
-            if(null != rocketMqSwitch && Boolean.TRUE.equals(rocketMqSwitch.getOrDefault("api",Boolean.FALSE))){
+            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)){
                 pushRuleService.sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_SYNC);
             }else{

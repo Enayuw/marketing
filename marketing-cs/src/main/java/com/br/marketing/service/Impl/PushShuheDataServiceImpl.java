@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -43,16 +44,12 @@ import com.br.marketing.dto.shuhe.Response2ShuheDTO;
 import com.br.marketing.dto.shuhe.ResponseShuheDTO;
 import com.br.marketing.dto.shuhe.ShuheTransferJsonDTO;
 import com.br.marketing.entity.CaseShuheUploadData;
-import com.br.marketing.enums.CustomerQueueEnum;
 import com.br.marketing.mapper.CaseShuheUploadDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPushShuheDataService;
-import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ApiFieldCheckUtils;
-import com.br.marketing.util.ShuHeAESencUtil;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
-import com.github.pagehelper.util.StringUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -75,9 +72,9 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private AlarmApiClient alarmClient;
+    private RocketMQSwitch rocketMQSwitch;
     @Resource
-    private PushRuleService pushRuleService;
+    private AlarmApiClient alarmClient;
     @Autowired
     private RocketMqTemplate template;
 
@@ -253,8 +250,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             }
         }
         if (infoId != null) {
-            HashMap<String, Boolean> rocketMqSwitch = marketingCommonConfig.getRocketMqSwitch();
-            if(null != rocketMqSwitch && Boolean.TRUE.equals(rocketMqSwitch.getOrDefault("api",Boolean.FALSE))){
+            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE)){
                 template.syncSend(MarketingUploadConstants.TOPIC, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE
                         , infoId.toString());
             }else{
@@ -322,7 +318,13 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
         }
         if (infoId != null) {
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
+            String idString = infoId.toString();
+            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE)){
+                template.syncSend(MarketingUploadConstants.TOPIC, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE
+                        , idString);
+            }else{
+                producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, idString);
+            }
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue());
         }
         return new Result<Boolean>().setCode(ResultCode.FAIL.getValue());

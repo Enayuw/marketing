@@ -1,11 +1,14 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,10 @@ public class XiechengPushImpl {
 
     @Resource
     private RabbitMqProducter producter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     public void pushXieCheng(String date){
         Long id = null;
@@ -43,7 +50,12 @@ public class XiechengPushImpl {
                     JSONObject msg = new JSONObject();
                     msg.put("localId", xieChengDatum.getLocalId());
                     msg.put("type", 2);
-                    producter.send("Marketing.Universal.SftpToDb.XieChengReceive" , msg.toJSONString());
+                    if(rocketMQSwitch.rocketMQSwitchFlag(xieChengDatum.getApiCode(), MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
+                        template.syncSend(MarketingAssistConstants.TOPIC
+                                , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
+                    }else{
+                        producter.send("Marketing.Universal.SftpToDb.XieChengReceive" , msg.toJSONString());
+                    }
                 }
             });
             id = xieChengData.get(xieChengData.size()-1).getId();
