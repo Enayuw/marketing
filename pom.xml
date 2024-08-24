@@ -29,6 +29,7 @@
         <speed.version>2.0.1</speed.version>
         <lettuce.version>6.2.0.RELEASE</lettuce.version>
         <reactor.version>3.4.24</reactor.version>
+        <commons-pool2.version>2.8.0</commons-pool2.version>
     </properties>
     <dependencies>
         <dependency>
