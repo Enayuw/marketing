@@ -38,5 +38,4 @@ public class CustomerBatchNumDTO {
     private List<String> moduleList;
 
 
-
 }

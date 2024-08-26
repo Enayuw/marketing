@@ -621,4 +621,41 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                     @Param("custNums") Set<String> custNums,
                                                     @Param("querySql") String querySql);
 
+    /**
+     * 获取满足条件的最小id
+     * @author guangxiu.li
+     * @date 2024/8/21 10:25
+     * @param apiCode
+     * @param requestDate
+     * @param tCid
+     * @return java.lang.Long
+     */
+    Long minId(@Param("apiCode") String apiCode, @Param("requestDate") String requestDate, @Param("tCid") String tCid);
+
+    /**
+     * 获取满足条件的最大id
+     * @author guangxiu.li
+     * @date 2024/8/21 10:21
+     * @param apiCode
+     * @param requestDate
+     * @param tCid
+     * @return java.lang.Long
+     */
+    Long maxId(@Param("apiCode") String apiCode, @Param("requestDate") String requestDate, @Param("tCid") String tCid);
+
+    /**
+     *
+     * @author guangxiu.li
+     * @date 2024/8/21 10:08
+     * @param transferSyncUser
+     * @param beginId
+     * @param endId
+     * @return java.util.List<com.br.marketing.entity.MarketingTransferSyncUser>
+     */
+    List<MarketingTransferSyncUser> getTransferBySyncUser(
+            @Param("transferSyncUser") MarketingTransferSyncUser transferSyncUser
+            , @Param("beginId") Long beginId
+            , @Param("endId") Long endId);
+
+
 }

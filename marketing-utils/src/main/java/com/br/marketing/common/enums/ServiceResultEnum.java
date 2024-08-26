@@ -33,8 +33,10 @@ public enum ServiceResultEnum {
 
     DELETE_ROLE_ERROR("200008", "当前角色存在用户使用，禁止删除！"),
     EDIT_PASSWORD("200009", "当前用户为首次登录，需要修改密码"),
+    AUTH_USER_API_CODE_ERROR("200010", "当前用户没有该apiCode权限"),
     //访问成功业务自定义通用状态
     SUCCESS_5("05", "服务开小差了"),
+    SUCCESS_6("06", "规则名称重复"),
 
     // 5xxx 访问失败
     UNKNOWN_ERROR("5000", "遇到未知错误，请稍后重试"),
