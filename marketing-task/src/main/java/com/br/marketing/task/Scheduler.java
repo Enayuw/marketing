@@ -38,6 +38,7 @@ public class Scheduler {
      */
     public static void main(String[] args) {
         Long start=System.currentTimeMillis();
+        log.warn("Scheduler开始启动！");
         ac= new SpringApplicationBuilder().sources(Scheduler.class).run(args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
