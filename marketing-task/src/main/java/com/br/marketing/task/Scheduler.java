@@ -37,9 +37,7 @@ public class Scheduler {
      * @param args incr 增量、all 全量、once 一次
      */
     public static void main(String[] args) {
-        log.warn("回滚验证日志！");
         Long start=System.currentTimeMillis();
-        log.warn("Scheduler开始启动！");
         ac= new SpringApplicationBuilder().sources(Scheduler.class).run(args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override

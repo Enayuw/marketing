@@ -30,7 +30,6 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 public class MarketingMqConsumerApplication {
 
     public static void main(String[] args) {
-        log.warn("回滚验证日志！");
         Long start = System.currentTimeMillis();
         log.warn("marketing-mq-consumer开始启动！");
         SpringApplication.run(MarketingMqConsumerApplication.class, args);
