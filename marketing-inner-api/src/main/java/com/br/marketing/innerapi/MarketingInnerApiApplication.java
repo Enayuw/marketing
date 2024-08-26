@@ -53,6 +53,7 @@ public class MarketingInnerApiApplication {
      */
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
+        log.warn("回滚验证日志！");
         log.warn("marketing-inner-api开始启动！");
         ac =SpringApplication.run(MarketingInnerApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {

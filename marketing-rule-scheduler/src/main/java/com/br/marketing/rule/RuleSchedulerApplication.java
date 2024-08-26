@@ -30,6 +30,7 @@ public class RuleSchedulerApplication {
     public static ConfigurableApplicationContext ac;
 
     public static void main(String[] args) {
+        log.warn("回滚验证日志！");
         log.warn("marketing-rule-scheduler开始启动！");
         Long start = System.currentTimeMillis();
         ac = new SpringApplicationBuilder().sources(RuleSchedulerApplication.class).run(args);

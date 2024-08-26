@@ -49,6 +49,7 @@ public class MarketingApiApplication {
      */
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
+        log.warn("回滚验证日志！");
         log.warn("marketing-api开始启动！");
         SpringApplication.run(MarketingApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
