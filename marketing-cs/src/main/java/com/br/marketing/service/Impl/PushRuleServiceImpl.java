@@ -1301,7 +1301,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 StringBuilder sb = new StringBuilder();
                 sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append("，");
                 sb.append("【推送完成，请求批次号】："+ verification).append("，【推送结果】：" + verificationReason);
-                sendAlert("【营销自动化推决策失败】", sb.toString());
+                sendAlert("【营销自动化推决策确认失败】", sb.toString());
             }
         } else {
             log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
