@@ -5,14 +5,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.QiFuRuleCollectDataImpl;
 import com.br.marketing.context.impl.ZhongAnRuleCollectCustomerTransferImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -24,13 +22,15 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-
 /**
- * 众安转化数据自动化过滤
+ * @ClassName ZhongAnTransferDataByUserType7Filter
+ * @Description 众安转化数据自动化过滤 userType=7
+ * @Author kongbx
+ * @Date 2024/8/27 16:30
  */
 @Service
 @Slf4j
-public class ZhongAnTransferDataToCustomerFilter implements AssembleData<ConversionData> {
+public class ZhongAnTransferDataByUserType7Filter implements AssembleData<ConversionData> {
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
@@ -72,11 +72,6 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
                 log.warn("众安转化数据推客服过滤数据不在有效期：{}", transfer.getCustNum());
                 return false;
             }
-            String userType = transfer.getUserType();
-            if(!"1".equals(userType)){
-                log.warn("众安转化数据推客服过滤数据userType不符合规则1：{}", userType);
-                return false;
-            }
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.isBlank(reserveField1)) {
                 log.warn("众安转化数据推客服过滤数据reserveField1为空：{}", transfer.getCustNum());
@@ -84,7 +79,12 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
             }
             JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
             String eventType = jsonObjectReserveField1.getString("eventType");
-            if ("FINISH".equals(eventType) || "CREDIT_SUCCESS".equals(eventType)) {
+            String userType = jsonObjectReserveField1.getString("userType");
+            if(!"7".equals(userType)){
+                log.warn("众安转化数据推客服过滤数据userType不符合规则5：{}", userType);
+                return false;
+            }
+            if ("LOAN_APPLY".equals(eventType) || "WITHDRAW_SUCCESS".equals(eventType)) {
                 return true;
             }
             log.warn("众安转化数据推客服过滤数据eventType不符合推送要求：{}", transfer.getCustNum());
