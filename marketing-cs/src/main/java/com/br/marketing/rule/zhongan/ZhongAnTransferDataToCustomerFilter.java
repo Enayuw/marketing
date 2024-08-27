@@ -21,8 +21,10 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 /**
@@ -72,9 +74,12 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
                 log.warn("众安转化数据推客服过滤数据不在有效期：{}", transfer.getCustNum());
                 return false;
             }
-            String userType = transfer.getUserType();
-            if(!"1".equals(userType)){
-                log.warn("众安转化数据推客服过滤数据userType不符合规则1：{}", userType);
+            List<String> userTypes = syncUserValidityPeriodsBO.getSyncUsers().stream()
+                    .map(MarketingSyncUser::getUserType)
+                    .collect(Collectors.toList());
+
+            if(!userTypes.contains("1")){
+                log.warn("众安转化数据推客服过滤数据userType不包含1：{}", userTypes);
                 return false;
             }
             String reserveField1 = transfer.getReserveField1();

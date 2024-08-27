@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName ZhongAnTransferDataByUserType8Filter
@@ -72,6 +73,14 @@ public class ZhongAnTransferDataByUserType8Filter implements AssembleData<Conver
                 log.warn("众安转化数据推客服过滤数据不在有效期：{}", transfer.getCustNum());
                 return false;
             }
+            List<String> userTypes = syncUserValidityPeriodsBO.getSyncUsers().stream()
+                    .map(MarketingSyncUser::getUserType)
+                    .collect(Collectors.toList());
+
+            if(!userTypes.contains("8")){
+                log.warn("众安转化数据推客服过滤数据userType不包含8：{}", userTypes);
+                return false;
+            }
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.isBlank(reserveField1)) {
                 log.warn("众安转化数据推客服过滤数据reserveField1为空：{}", transfer.getCustNum());
@@ -79,11 +88,6 @@ public class ZhongAnTransferDataByUserType8Filter implements AssembleData<Conver
             }
             JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
             String eventType = jsonObjectReserveField1.getString("eventType");
-            String userType = jsonObjectReserveField1.getString("userType");
-            if(!"8".equals(userType)){
-                log.warn("众安转化数据推客服过滤数据userType不符合规则5：{}", userType);
-                return false;
-            }
             if ("LOAN_APPLY".equals(eventType) || "WITHDRAW_SUCCESS".equals(eventType)) {
                 return true;
             }

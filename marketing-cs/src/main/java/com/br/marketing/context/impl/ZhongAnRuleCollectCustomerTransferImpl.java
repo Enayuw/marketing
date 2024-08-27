@@ -12,10 +12,7 @@ import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -34,8 +31,12 @@ public class ZhongAnRuleCollectCustomerTransferImpl extends CommonMethodHandlerS
         if (!transmitFacts.isEmpty() && transmitFacts.get(0) instanceof MarketingTransferSyncUser) {
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Set<String> userTypeSet = new HashSet<>();
+            userTypeSet.add("1");
+            userTypeSet.add("7");
+            userTypeSet.add("8");
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(set,"1", context.getApiCode(), new Date());
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserTypeSet(set, userTypeSet, context.getApiCode(), new Date());
             ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData zhongBangRuleNecessaryData = new ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData();
             zhongBangRuleNecessaryData.setCustomerMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(zhongBangRuleNecessaryData);
