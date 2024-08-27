@@ -6,6 +6,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
+import com.br.marketing.client.dassservice.input.transfer.ConversionDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.StringUtils;
@@ -31,9 +32,9 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class ZhongAnTransferDataByUserType8Filter implements AssembleData<ConversionData> {
+public class ZhongAnTransferDataByUserType8Filter implements AssembleData<ConversionDataSoleDTO> {
     @Override
-    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public ConversionDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(marketingTransferSyncUser.getId().toString());
@@ -59,7 +60,10 @@ public class ZhongAnTransferDataByUserType8Filter implements AssembleData<Conver
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
-        return conversionData;
+        ConversionDataSoleDTO dataSoleDTO = new ConversionDataSoleDTO();
+        dataSoleDTO.setConversionData(conversionData);
+        dataSoleDTO.setStatus("8");
+        return dataSoleDTO;
     }
 
     @Override
@@ -103,7 +107,7 @@ public class ZhongAnTransferDataByUserType8Filter implements AssembleData<Conver
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_STATUS.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_USE_STATUS.getCode();
     }
 
     @Override

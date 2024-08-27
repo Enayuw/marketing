@@ -5,14 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
+import com.br.marketing.client.dassservice.input.transfer.ConversionDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.QiFuRuleCollectDataImpl;
 import com.br.marketing.context.impl.ZhongAnRuleCollectCustomerTransferImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -21,7 +20,6 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,9 +30,9 @@ import java.util.stream.Collectors;
  */
 @Service
 @Slf4j
-public class ZhongAnTransferDataToCustomerFilter implements AssembleData<ConversionData> {
+public class ZhongAnTransferDataToCustomerFilter implements AssembleData<ConversionDataSoleDTO> {
     @Override
-    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public ConversionDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(marketingTransferSyncUser.getId().toString());
@@ -60,7 +58,10 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
-        return conversionData;
+        ConversionDataSoleDTO dataSoleDTO = new ConversionDataSoleDTO();
+        dataSoleDTO.setConversionData(conversionData);
+        dataSoleDTO.setStatus("1");
+        return dataSoleDTO;
     }
 
     @Override
@@ -104,7 +105,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_STATUS.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_USE_STATUS.getCode();
     }
 
     @Override
