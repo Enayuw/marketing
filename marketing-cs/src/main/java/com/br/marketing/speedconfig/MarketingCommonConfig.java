@@ -2046,6 +2046,16 @@ public class MarketingCommonConfig {
     private HashMap<String, List<String>> qiFuExtDataCustNumMapConfig;
 
     /**
+     * 原始上传数据清洗映射配置 key:apiCode value:映射的原值字段
+     */
+    private HashMap<String, String> dataCleanMappingMap;
+
+    /**
+     * 原始上传数据清洗映射新值字段
+     */
+    private List<String> dataCleanValue;
+
+    /**
      * bi报表步长配置
      */
     private Map<String,List<String>> biReportStepConfig;

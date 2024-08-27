@@ -1279,7 +1279,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 StringBuilder sb = new StringBuilder();
                 sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append("，");
                 sb.append("【推送完成，请求批次号】："+ verification).append("，【推送结果】：" + verificationReason);
-                sendAlert("【营销自动化推决策失败】", sb.toString());
+                sendAlert("【营销自动化推决策确认失败】", sb.toString());
             }
         } else {
             log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
@@ -1571,7 +1571,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setCellMd5(marketingPreUserDetailDTO.getCellMd5());
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
-                marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField, finalReserveFileld1Json));
+                marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField,
+                        finalReserveFileld1Json,apiCode));
                 marketingSyncUser.setReserveField2(marketingPreUserDetailDTO.getReserveField2());
                 marketingSyncUser.setCreateTime(nowData);
                 marketingSyncUser.setUpdateTime(nowData);
@@ -1834,7 +1835,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     //ReserveField1DTO中的属性是固定的，无法满足，客户动态增加字段的需求,
     //所以检查下客户上传的原始JSON，如果有些字段没有在ReserveField1DTO中，则动态拼装到数据中。
-    private String assembleReserveField1(ReserveField1DTO finalReserveField, JSONObject finalReserveFileld1Json) {
+    private String assembleReserveField1(ReserveField1DTO finalReserveField, JSONObject finalReserveFileld1Json,
+                                         String apiCode) {
         JSONObject finalReserveFieldObject = (JSONObject) JSONObject.toJSON(finalReserveField);
         if (null != finalReserveFileld1Json) {
             finalReserveFileld1Json.keySet().stream().forEach(k -> {
@@ -1842,8 +1844,21 @@ public class PushRuleServiceImpl implements PushRuleService {
                     finalReserveFieldObject.put(k, finalReserveFileld1Json.get(k));
                 }
             });
+            cleanData(finalReserveFieldObject,finalReserveFileld1Json,apiCode);
         }
         return JSONObject.toJSONString(finalReserveFieldObject);
+    }
+
+    private void cleanData(JSONObject finalReserveFieldObject, JSONObject finalReserveFileld1Json,
+                           String apiCode) {
+        // 定制化清洗apiCode
+        HashMap<String, String> dataCleanMappingMap = marketingCommonConfig.getDataCleanMappingMap();
+        String value = dataCleanMappingMap.get(apiCode);
+        if(value != null){
+            List<String> dataCleanValue = marketingCommonConfig.getDataCleanValue();
+            String customNameType = dataCleanValue != null ? dataCleanValue.get(0) : "customNameType";
+            finalReserveFieldObject.put(customNameType,finalReserveFileld1Json.get(value));
+        }
     }
 
     @Override
