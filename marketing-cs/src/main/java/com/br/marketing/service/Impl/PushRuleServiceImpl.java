@@ -8,7 +8,6 @@ import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -93,7 +92,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -264,14 +262,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     public CustomerBatchNumDTO getCustomerBatchNumDTO(CustomerBatchNumDTO dto) {
-        //if(StringUtils.isNotBlank(dto.getUploadBeginTime())){
-        //    Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
-        //    dto.setUploadEndTime(DateUtils.format(dateUpdate, "yyyy-MM-dd"));
-        //}
-        //if(StringUtils.isNotBlank(dto.getScoreBeginTime())){
-        //    Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
-        //    dto.setScoreEndTime(DateUtils.format(date, "yyyy-MM-dd"));
-        //}
         if (StringUtils.isNotBlank(dto.getProductName())) {
             String productName = dto.getProductName();
             String[] module = productName.split(",");
@@ -335,14 +325,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     RobotaiApiServiceClient robotaiApiServiceClient;
-
-    final String redisKey_apiCode_taskId = "marketing:preuser:";
-
-    final String redisKeySoleNum = "sole:thread:num";
-
-    final String redisKeyPushCustomer = "marketing:transfer:pushcustomer:apicode";
-
-    final String redisKeyPushHaluo = "marketing:transfer:pushhaluo:apicode";
 
     @Autowired
     TableCreateServiceImpl tableCreateService;
@@ -490,8 +472,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             pushNum = totalRes.getData().getTotal();
         }
-        //endregion
-
         //region insert db
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
@@ -538,11 +518,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmFileId(t.getId());
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
         });
-
-        //endregion
-
-        //region push mq
-//        producter.send("Marketing.Push.CustomerService", customerInfoPushMain.getId().toString());
         //endregion
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
@@ -588,7 +563,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
-            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+            if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
+                querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+            } else {
+                querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+            }
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
@@ -607,7 +586,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         String condition = falseDataCondition(jsonObject, batchNumberList, cleanTime);
         querySql.append("select count(1) from (").append(condition).append(") a ;");
         return querySql.toString();
-
     }
 
     private String falseDataCondition(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
@@ -663,10 +641,52 @@ public class PushRuleServiceImpl implements PushRuleService {
         return cycleAndscoreSql.toString();
     }
 
-    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList) {
+    private String cycleDataQueryForDelete(JSONObject jsonObject, List<String> batchNumberList
+            , XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
-        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
-                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
+        Date cleanTime = DateHelper.parseDate(xieChengCollidingFilterDTO.getCleanTime());
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
+        String cycleSql = String.format
+                ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                "where (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                        , cleanDateTime, cleanEndTime, endDateTime);
+        //True关联查询
+        //true筛选字段处理
+        String condition = XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
+        if (StringUtils.isNotEmpty(condition)) {
+            if (condition.contains("release_time")) {
+                cycleSql = String.format
+                        ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle where %s and is_delete=0"
+                                , condition);
+            } else {
+                cycleSql = String.format
+                        ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                        "where %s and (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                                , condition, cleanDateTime, cleanEndTime, endDateTime);
+            }
+        }
+        StringBuilder cycleAndscoreSql = new StringBuilder();
+        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
+                "score.cell = cycle.cell;");
+        return cycleAndscoreSql.toString();
+    }
+
+    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanDate) {
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        Date cleanTime = DateHelper.parseDate(cleanDate);
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
+        String cycleSql = String.format
+                ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                "where (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                        , cleanDateTime, cleanEndTime, endDateTime);
         //True关联查询
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle left join (").append(scoreSql).append(") score on " +
@@ -676,13 +696,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 组装跑分筛选SQL
-     *
      * @param jsonObject      入参jsonsql
      * @param batchNumberList batchNumber集合
      * @return String
      */
     private String scoreSql(JSONObject jsonObject, List<String> batchNumberList) {
-
         String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
@@ -693,7 +711,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ")
                         .concat(sqlCondition).concat(" and is_delete=0 ").concat(" union all ");
             }
-
         }
         return scoreSql;
     }
@@ -711,16 +728,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return isXieCheng;
-
     }
 
 
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
-
         AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
         return getTotal(dto);
-
     }
 
     @Override
@@ -729,13 +743,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         straHisFileExample.createCriteria().andIdIn(fileIds);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
         List<String> batchNumbers = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
-
         MarketingTaskExample taskExample = new MarketingTaskExample();
         taskExample.createCriteria().andBatchNumberIn(batchNumbers);
-
         List<MarketingTask> marketingTasks = marketingTaskMapper.selectByExample(taskExample);
         List<Long> taskIds = marketingTasks.stream().map(t -> t.getId()).collect(Collectors.toList());
-
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
         taskExtendExample.createCriteria().andTaskIdIn(taskIds);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
@@ -777,7 +788,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         xiechengCollidingDataProcessTask.setTaskType(1);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         int i = xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
@@ -838,7 +849,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
-        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList());
+        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
         // doris查询
         // 查询Doris
         try {
@@ -856,14 +867,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)) {
             return DigestUtils.md5DigestAsHex(content.getBytes());
         }
-
         if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
             return Sha256Util.getSHA256Encrypt(content);
         }
         return content;
     }
 
-    //    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<Boolean> consumerPushCustomer(Long id) {
         long initTime = System.currentTimeMillis();
@@ -906,28 +915,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         extendInfosByFileIds.forEach(t -> {
             hsTaskExtend.put(t.getFileId(), t);
         });
-
-//        if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
-//            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString()
-//                    .concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
-//        }
-        //region push Intelligent Customer Service
-
-        //调用es查询接口
-//        int minTop = (customerInfoPushMain.getmNumMin() == null) ? 0 : customerInfoPushMain.getmNumMin();
-//        int startPageYushu = minTop % 10000;
-//        Integer startPage = minTop / 10000 + (startPageYushu > 0 ? 1 : 0);
-//        for (int i = 1; i <= startPage; i++) {
-//
-//            if (i == startPage && startPageYushu > 0) {
-//                queryBaseBean.setPageSize(startPageYushu);
-//            } else {
-//                queryBaseBean.setPageSize(10000);
-//            }
-//            queryBaseBean.setSearchAfter(searchAfterStr);
-//            String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
-//            searchAfterStr = s;
-//        }
         Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
                 && marketingCommonConfig.getScoreByEsThreadNum() > 0
                 ? marketingCommonConfig.getScoreByEsThreadNum()
@@ -972,7 +959,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
         }
-
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
                     , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i))));
@@ -1006,7 +992,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
-
         try {
             actionEs.shutdown();
             pushJc.shutdown();
@@ -1028,12 +1013,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
-
-        //region push mq
-//        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY
-//                , customerInfoPushMain.getId().toString());
-        //endregion
-
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
@@ -1163,7 +1142,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
                     pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
                     pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-
                     resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
                             , pushMarketingUserTaskInfoDTO.getAccessNumber()
                             , customerInfoPushMain.getId()
@@ -1309,10 +1287,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     public void sendAlert(String title, String text) {
-
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
         Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
-
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
         markdown.setTitle(title);
         markdown.setText(text);
@@ -1330,7 +1306,6 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public Result insertMarketingPreUserText(String apiCode, String jsonData) {
-
         //region check
         long l1 = System.currentTimeMillis();
         RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();
@@ -1388,12 +1363,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.info("check耗时:{}", (System.currentTimeMillis() - l1));
         }
         //endregion
-
         long l = System.currentTimeMillis();
         String uploadKey = RedisKeyConstant.uploadKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String syncInfoId = "";
         Boolean dbException = Boolean.FALSE;
-
         //region 数据入库
         try {
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -1446,13 +1419,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         //endregion
-
         //region 写入上传明细MQ
         if (!dbException) {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         }
-        //endregion
-
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
@@ -1759,13 +1729,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                     taskTime.setCreateTime(new Date());
                     taskTimeMapper.insertSelective(taskTime);
                 } catch (DuplicateKeyException ex) {
-
                 }
                 if (taskApiCodeSet.size() >= 1000) {
                     taskApiCodeSet.clear();
                 }
                 taskApiCodeSet.add(concat);
-
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
@@ -2684,7 +2652,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
             }
-
             // 不同apicode上传数据，根据applet_time取最新一条
             Optional<MarketingSyncUser> optional = list.stream().sorted(Comparator.comparing(MarketingSyncUser::getAppletTime).reversed()).findFirst();
             if (optional.isPresent()) {
