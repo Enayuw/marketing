@@ -1399,6 +1399,32 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         }
     }
 
+    @Override
+    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndUserTypeSet(Set<String> custNumSet,
+                                                                                            Set<String> userTypeSet,
+                                                                                            String apiCode,
+                                                                                            Object requestDateObj) {
+        if (CollectionUtils.isEmpty(custNumSet) || CollectionUtils.isEmpty(userTypeSet) || StringUtils.isEmpty(apiCode)) {
+            return Collections.emptyMap();
+        }
+        Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
+        //统一时间格式
+        final String requestDateStr = switchDateStr(requestDateObj);
+        //获取有效期配置不分页
+        List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, userTypeSet
+                , null, null);
+        if (CollectionUtil.isEmpty(configList)) {
+            return resultMap;
+        }
+        //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCustNumAndAppletDateList(
+                apiCode, configList, custNumSet);
+        //根据自定义Key组装有效期数据
+        buildValidityPeriodsInfoByKeyMapper(MarketingSyncUser::getCustNum, syncUserList, configList, resultMap);
+        return resultMap;
+    }
+
+
     /**
      * 2023-07-28 13:31
      * 验证数据及获取合法的有效期配置
