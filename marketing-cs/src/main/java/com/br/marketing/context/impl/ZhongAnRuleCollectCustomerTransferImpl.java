@@ -5,7 +5,6 @@ import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import lombok.Data;
@@ -35,10 +34,10 @@ public class ZhongAnRuleCollectCustomerTransferImpl extends CommonMethodHandlerS
             userTypeSet.add("1");
             userTypeSet.add("7");
             userTypeSet.add("8");
-            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+            Map<String, Map<String, SyncUserValidityPeriodsBO>> validityPeriodsByCustNum =
                     transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserTypeSet(set, userTypeSet, context.getApiCode(), new Date());
             ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData zhongBangRuleNecessaryData = new ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData();
-            zhongBangRuleNecessaryData.setCustomerMap(validityPeriodsByCustNum);
+            zhongBangRuleNecessaryData.setCustomerUserTypeMap(validityPeriodsByCustNum);
             context.setRuleNecessaryData(zhongBangRuleNecessaryData);
         }
     }
@@ -53,7 +52,12 @@ public class ZhongAnRuleCollectCustomerTransferImpl extends CommonMethodHandlerS
         /**
          * 转化所需要的数据
          */
+        @Deprecated
         private Map<String, SyncUserValidityPeriodsBO> customerMap;
+        /**
+         * 转化所需要的有效期数据
+         */
+        private Map<String, Map<String, SyncUserValidityPeriodsBO>> customerUserTypeMap;
 
     }
 }
