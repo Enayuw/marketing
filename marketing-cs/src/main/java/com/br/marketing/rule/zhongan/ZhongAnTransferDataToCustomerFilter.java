@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 
 /**
@@ -42,11 +41,9 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData ruleNecessaryData =
                 (ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
-        Map<String, SyncUserValidityPeriodsBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = syncUserPeriodMap.get(marketingTransferSyncUser.getCustNum());
-        if (syncUserValidityPeriodsBO == null) {
-            return null;
-        }
+        Map<String, Map<String, SyncUserValidityPeriodsBO>> customerUserTypeMap = ruleNecessaryData.getCustomerUserTypeMap();
+        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = customerUserTypeMap.get(marketingTransferSyncUser.getCustNum());
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get("1");
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
         conversionData.setGroupType(syncUsers.get(0).getUserType());
@@ -70,17 +67,15 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData ruleNecessaryData =
                     (ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData) context.getRuleNecessaryData();
-            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
-            if (syncUserValidityPeriodsBO == null) {
+            Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getCustomerUserTypeMap()
+                    .get(transfer.getCustNum());
+            if (userValidityPeriodsBOMap == null) {
                 log.warn("众安转化数据推客服过滤数据不在有效期：{}", transfer.getCustNum());
                 return false;
             }
-            List<String> userTypes = syncUserValidityPeriodsBO.getSyncUsers().stream()
-                    .map(MarketingSyncUser::getUserType)
-                    .collect(Collectors.toList());
 
-            if(!userTypes.contains("1")){
-                log.warn("众安转化数据推客服过滤数据userType不包含1：{}", userTypes);
+            if (!userValidityPeriodsBOMap.containsKey("1")) {
+                log.warn("众安转化数据推客服过滤数据userType不包含1：{}", userValidityPeriodsBOMap.keySet());
                 return false;
             }
             String reserveField1 = transfer.getReserveField1();
