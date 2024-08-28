@@ -102,6 +102,8 @@ public class WuBaServiceClient {
         String data = resultJson.getString("data");
         if (code == 0 && StringUtils.isNotEmpty(data)) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+        } else if (code == 9999) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(data);
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }

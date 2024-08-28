@@ -46,4 +46,10 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
         wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode);
         wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteLoopAndSaveRob(List<String> cells, String apiCode) {
+        wubaCollidingDataLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+        wubaCollidingDataRobMapper.batchSaveTrueToFalseData(cells, apiCode);
+    }
 }
