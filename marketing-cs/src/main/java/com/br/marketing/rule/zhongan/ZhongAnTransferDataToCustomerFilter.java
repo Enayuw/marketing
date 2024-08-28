@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 public class ZhongAnTransferDataToCustomerFilter implements AssembleData<ConversionDataSoleDTO> {
     @Override
     public ConversionDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        String userType = "1";
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(marketingTransferSyncUser.getId().toString());
@@ -49,7 +50,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         }
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
-        conversionData.setGroupType(syncUsers.get(0).getUserType());
+        conversionData.setGroupType(userType);
         // 去重参数设置
         conversionData.setInitId(marketingTransferSyncUser.getId());
         conversionData.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
@@ -60,7 +61,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         ConversionDataSoleDTO dataSoleDTO = new ConversionDataSoleDTO();
         dataSoleDTO.setConversionData(conversionData);
-        dataSoleDTO.setStatus("1");
+        dataSoleDTO.setStatus(userType);
         return dataSoleDTO;
     }
 
