@@ -55,8 +55,8 @@ public class GuoMeiClient {
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public <T> Result<GmCallBackResponse<T>> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest, Class<T> responseClass) {
-        Map<String, String> map = httpProxyClient.sendByCodeZw(userDataCallBackRequest
-                , pushDataCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        Map<String, String> map = httpProxyClient.sendByCodeWithLog(userDataCallBackRequest
+                , pushDataCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", true, false);
         return getResponse(map, pushDataCallbackUrl, responseClass);
     }
 
@@ -72,8 +72,8 @@ public class GuoMeiClient {
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public <T> Result<GmCallBackResponse<T>> sendMarketingResultCallBack(GmMarketingResultCallBackRequest marketingResultCallBackRequest
             , Class<T> responseClass) {
-        Map<String, String> map = httpProxyClient.sendByCodeZw(marketingResultCallBackRequest
-                , pushResultCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "");
+        Map<String, String> map = httpProxyClient.sendByCodeWithLog(marketingResultCallBackRequest
+                , pushResultCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", true, false);
         return getResponse(map, pushResultCallbackUrl, responseClass);
     }
 
@@ -90,7 +90,12 @@ public class GuoMeiClient {
         try {
             String httpCode = map.getOrDefault("httpcode", "");
             if (HTTP_CODE.equals(httpCode)) {
-                String respStr = map.getOrDefault("content", "");
+                String respStr = map.getOrDefault("content", null);
+                if ("".equals(respStr)) {
+                    log.warn("国美回调接口响应内容为空！url：{},响应内容：{}", url, JSON.toJSONString(map));
+                    result.setCode(ResultCode.FAIL.getValue());
+                    return result;
+                }
                 GmCallBackResponse<T> gmCallBackResponse = JSON.parseObject(respStr, new TypeReference<GmCallBackResponse<T>>(responseClass) {
                 });
                 result.setDate(gmCallBackResponse);
