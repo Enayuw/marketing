@@ -111,8 +111,8 @@
     />
     <job:simple id="【bridge】-ZhongYouDataPullJob"
                 class="com.br.marketing.bridge.job.ZhongYouDataPullJob"
-                cron="0 30 9 * * ?"
-                description="中邮数据拉取"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="中邮数据拉取--待下线"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
