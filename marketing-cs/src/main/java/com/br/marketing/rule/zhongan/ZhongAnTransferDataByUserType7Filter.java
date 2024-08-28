@@ -80,6 +80,7 @@ public class ZhongAnTransferDataByUserType7Filter implements AssembleData<Conver
             }
             List<String> userTypes = syncUserValidityPeriodsBO.getSyncUsers().stream()
                     .map(MarketingSyncUser::getUserType)
+                    .distinct()
                     .collect(Collectors.toList());
 
             if(!userTypes.contains("7")){

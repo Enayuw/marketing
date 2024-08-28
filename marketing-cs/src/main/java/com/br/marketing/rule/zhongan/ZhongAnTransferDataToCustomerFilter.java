@@ -78,6 +78,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
             }
             List<String> userTypes = syncUserValidityPeriodsBO.getSyncUsers().stream()
                     .map(MarketingSyncUser::getUserType)
+                    .distinct()
                     .collect(Collectors.toList());
 
             if(!userTypes.contains("1")){
