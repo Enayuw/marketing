@@ -62,7 +62,11 @@ public class CustomerTransferSoleUseStatusHandler extends AbstractExternalInterf
                 robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
                 robotOutboundDTO.setData(sendList);
                 robotOutboundDTO.setDetailLogList(logList);
-                robotOutboundDTO.setLast(sum == totalCount ? last : (last != null ? "0" : null));
+                if(sum == totalCount){
+                    robotOutboundDTO.setLast(last);
+                }else {
+                    robotOutboundDTO.setLast(last != null ? "0" : null);
+                }
                 //传参去重
                 //去重字段维度,根据传入值赋值，默认为cell维度去重
                 if (conversionData.getSoleField() != null) {
