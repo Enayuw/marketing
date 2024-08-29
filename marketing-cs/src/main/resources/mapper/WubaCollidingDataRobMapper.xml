@@ -44,7 +44,7 @@
     <insert id="batchSaveTrueToFalseData" >
         INSERT INTO b_wuba_colliding_data_rob (cell, api_code, data_source_type, is_deleted)
         VALUES
-        <foreach collection="robs" item="item" separator=",">
+        <foreach collection="cells" item="item" separator=",">
             (#{item.cell}, #{apiCode}, 'T', 1)
         </foreach>
     </insert>
