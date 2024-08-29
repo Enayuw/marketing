@@ -67,7 +67,9 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         // 判断redis中超限标记
-        if (exceed()) return;
+        if (exceed()) {
+            return;
+        }
 
         Integer pagesize = marketingCommonConfig.getWuBaCollidingDataSubmitPageSize();
         marketingCommonConfig.getWubaCollidingApiCodes().forEach((String apiCode) -> {
@@ -217,7 +219,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         // 周期数据
         if (marketingCommonConfig.getWuBaCollidingDataSwitch()) {
             DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(8).toString(), DatePattern.NORM_DATE_PATTERN);
-            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(9).toString(), DatePattern.NORM_DATE_PATTERN);
+            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(7).toString(), DatePattern.NORM_DATE_PATTERN);
             List<WubaCollidingData> loopCycles = wubaCollidingDataLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
                     limit);
             if (!CollectionUtils.isEmpty(loopCycles)) {

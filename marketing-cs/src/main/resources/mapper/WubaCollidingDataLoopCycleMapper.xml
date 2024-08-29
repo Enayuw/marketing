@@ -15,6 +15,7 @@
         where is_deleted = 0
           and api_code = #{apiCode}
           <![CDATA[ and push_time >= #{pushTimeStart} and push_time < #{pushTimeEnd} ]]>
+        order by push_time
         limit #{pageSize}
     </select>
 
