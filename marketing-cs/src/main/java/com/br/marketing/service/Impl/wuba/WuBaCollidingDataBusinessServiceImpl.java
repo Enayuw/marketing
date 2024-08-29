@@ -47,6 +47,9 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
         wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
     }
 
+    /**
+     * 不可营销数据从周期表删除，并保存到非周期表
+     */
     @Transactional(rollbackFor = Exception.class)
     public void deleteLoopAndSaveRob(List<String> cells, String apiCode) {
         wubaCollidingDataLoopCycleMapper.batchDeleteByCell(cells, apiCode);
