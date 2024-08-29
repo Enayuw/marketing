@@ -1,0 +1,83 @@
+package com.br.marketing.service.bi.impl;
+
+import cn.hutool.poi.excel.ExcelUtil;
+import cn.hutool.poi.excel.ExcelWriter;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.bi.BiReportConverterSelector;
+import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.service.bi.BiReportService;
+import com.br.marketing.vo.bi.BiReportVO;
+import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
+import com.br.marketing.vo.bi.param.BiReportParam;
+import groovy.util.logging.Slf4j;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+/**
+ * BI报表相关Service实现
+ *
+ * @author senyang.zheng
+ * @date 2024/08/28
+ */
+@Service
+@Slf4j
+public class BiReportServiceImpl implements BiReportService {
+
+    @Resource
+    private BiReportConverterSelector selector;
+
+    /**
+     * 获取BI报表
+     *
+     * @param param 参数
+     * @return {@link BiReportVO }
+     * @author senyang.zheng
+     * @date 2024/08/28
+     */
+    @Override
+    public BiReportVO getBiReport(BiReportParam param) {
+        BiReportTypeEnum reportType = BiReportTypeEnum.getEnumByTypeName(param.getReportTypeName());
+        //根据报告名称未匹配到对应报告类型
+        if (reportType == null) {
+            return null;
+        }
+        List<?> data = selector.fetchData(param, reportType);
+        JSONObject extend = selector.buildExtend(param, reportType);
+        return selector.process(data, extend, reportType);
+    }
+
+    /**
+     * 下载报表
+     *
+     * @param param    参数
+     * @param request  请求
+     * @param response 响应
+     * @throws Exception 例外
+     * @author senyang.zheng
+     * @date 2024/08/28
+     */
+    @Override
+    public void downloadReport(BiReportDownLoadParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        BiReportTypeEnum reportType = BiReportTypeEnum.getEnumByTypeName(param.getReportTypeName());
+        //根据报告名称未匹配到对应报告类型
+        if (reportType == null) {
+            return;
+        }
+        // 设置下载协议头，防止中文乱码做URLEncoder处理
+        String encodeFileName = URLEncoder.encode(param.getReportName() + ".xlsx", StandardCharsets.UTF_8.toString());
+        //try-with-resource 的方式关闭流
+        try (ExcelWriter excelWriter = ExcelUtil.getWriter(true); ServletOutputStream out = response.getOutputStream()) {
+            selector.exportData(excelWriter, param, reportType);
+            response.setHeader("Content-Disposition", "attachment;filename*=UTF-8''" + encodeFileName);
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8");
+            excelWriter.flush(out, true);
+        }
+    }
+}
