@@ -67,17 +67,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         // 判断redis中超限标记
-        String exceedLimit;
-        try {
-            exceedLimit = redisChgService.get(RedisKeyConstant.WUBA_COLLIDING_EXCEED_LIMIT);
-            if (Objects.equals(exceedLimit, "1")) {
-                return;
-            }
-        } catch (Exception e) {
-            // 获取key异常，认为不超限
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
-                    , "58撞库，获取redis撞库超限标记失败"), e);
-        }
+        if (exceed()) return;
 
         Integer pagesize = marketingCommonConfig.getWuBaCollidingDataSubmitPageSize();
         marketingCommonConfig.getWubaCollidingApiCodes().forEach((String apiCode) -> {
@@ -99,6 +89,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
 
             // 获取待撞数据
             Pair<String, List<WubaCollidingData>> pair = getCollidingDatas(apiCode, limit);
+
             List<WubaCollidingData> collidingData = pair.getValue();
             if (CollectionUtils.isEmpty(collidingData)) {
                 return;
@@ -111,23 +102,14 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
 
             // code返回9999，撞库超限
             if (Objects.equals(result.getCode(), ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
-//                JSONObject resMap = JSONObject.parseObject(result.getData().toString());
-//                String title = "58提交撞库名单，调用客户接口异常";
-//                String msg = title + "，响应内容：" + JSON.toJSONString(resMap);
-//                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
-//                        , title));
-                // 改为钉钉告警
-                // 当前日期
-                LocalDateTime now = LocalDateTime.now();
-                // 当前时间至23:59:59
-                LocalDateTime endOfDay = now.with(LocalTime.MAX);
-                // 计算当前时间至23:59:59的秒数
-                int secondsUntilEndOfDay = (int) ChronoUnit.SECONDS.between(now, endOfDay);
-                try {
-                    redisChgService.setex(RedisKeyConstant.WUBA_COLLIDING_EXCEED_LIMIT, "1", secondsUntilEndOfDay);
-                } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage(), "58提交撞库名单，设置redis超限标记失败"));
-                }
+                JSONObject resMap = JSONObject.parseObject(result.getData().toString());
+                String title = "58提交撞库名单，客户返回超限，撞库暂停";
+                String msg = title + "，响应内容：" + JSON.toJSONString(resMap);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                        , title));
+                wuBaServiceClient.sendDingDingAlert(title, msg);
+                // redis中设置超限标记，当天有效
+                setRedisExceedMark();
                 return;
             }
 
@@ -137,6 +119,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                 String msg = title + "，响应内容：" + JSON.toJSONString(resMap);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                         , title));
+                wuBaServiceClient.sendDingDingAlert(title, msg);
                 return;
             }
 
@@ -167,6 +150,36 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                 pool.submit(() -> batchSaveLog(apiCode, partition, batchNo, sourceType));
             }
         });
+    }
+
+    private void setRedisExceedMark() {
+        // 当前日期
+        LocalDateTime now = LocalDateTime.now();
+        // 当前时间至23:59:59
+        LocalDateTime endOfDay = now.with(LocalTime.MAX);
+        // 计算当前时间至23:59:59的秒数
+        int secondsUntilEndOfDay = (int) ChronoUnit.SECONDS.between(now, endOfDay);
+        try {
+            redisChgService.setex(RedisKeyConstant.WUBA_COLLIDING_EXCEED_LIMIT, "1", secondsUntilEndOfDay);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage(), "58提交撞库名单，设置redis超限标记失败"));
+        }
+    }
+
+    private boolean exceed() {
+        String exceedLimit;
+        try {
+            exceedLimit = redisChgService.get(RedisKeyConstant.WUBA_COLLIDING_EXCEED_LIMIT);
+            if (Objects.equals(exceedLimit, "1")) {
+                return true;
+            }
+        } catch (Exception e) {
+            // 异常，认为不超限
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                    , "58撞库，获取redis撞库超限标记失败"), e);
+        }
+
+        return false;
     }
 
     private void batchSaveLog(String apiCode, List<WubaCollidingData> datas, String batchNo, String dataSourceType) {

@@ -2081,5 +2081,15 @@ public class MarketingCommonConfig {
      */
     private Map<String, Integer> scoreReportRangeConfig;
 
+    /**
+     * 58钉钉告警token
+     */
+    private String wuBaDingDingAccessToken;
+
+    /**
+     * 58钉钉告警密钥
+     */
+    private String wuBaDingDingSecret;
+
 }
 

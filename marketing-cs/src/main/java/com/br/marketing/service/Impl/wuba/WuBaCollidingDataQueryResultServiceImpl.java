@@ -130,6 +130,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 msg = title + "，响应内容：" + JSON.toJSONString(resMap);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                         , title));
+                wuBaServiceClient.sendDingDingAlert(title, msg);
                 return;
             }
 
@@ -138,6 +139,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             msg = title + "，响应内容：" + JSON.toJSONString(resMap);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
             return;
         }
 
@@ -148,6 +150,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             msg = title + "，响应内容：" + JSON.toJSONString(resMap);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
             updateQueryStatus(wubaCollidingBatchNo, 2);
             return;
         }
@@ -167,8 +170,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             // 根据批次号更新log表撞库结果，并返回不可营销数据
             ArrayList<String> falseDatas = updateLogResultByBatchNo(trueDatas, batchNo, apiCode);
 
+            // 根据sourceType更新数据表
             List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, trueDatas, falseDatas, apiCode, batchNo, taskId);
-
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
     }
@@ -245,7 +248,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         return wubaCollidingDataSyncCleans.size();
     }
 
-    private List<CompletableFuture<Void>> batchHandleBusinessAsync(List<String> data, Consumer<List<String>> businessFunction) {
+    private List<CompletableFuture<Void>> batchHandleBusinessAsync(List<String> data, Consumer<List<String>> businessFunction, String businessName) {
         if (CollectionUtils.isEmpty(data)) {
             return Collections.emptyList();
         }
@@ -255,25 +258,29 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                     try {
                         businessFunction.accept(partition);
                     } catch (Exception e) {
-                        String subject = "58查询撞库结果作业，子线程处理异常！";
+                        String subject = "58查询撞库结果作业，" + businessName + "，子线程处理异常！";
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage(), subject), e);
                     }
                 }, pool))
                 .collect(Collectors.toList());
     }
 
-    // 抽取方法：根据 sourceType 处理数据
+    /**
+     * 根据sourceType处理数据
+     */
     private List<CompletableFuture<Void>> handleDataBySourceType(String sourceType, List<String> trueDatas, List<String> falseDatas, String apiCode
             , String batchNo, Long taskId) {
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
         switch (sourceType) {
             case "T":
-                futures.addAll(batchHandleBusinessAsync(trueDatas, data -> wubaCollidingDataSyncCleanMapper.batchSaveData(data, batchNo, apiCode,
-                        taskId)));
-                futures.addAll(batchHandleBusinessAsync(falseDatas, data -> wuBaCollidingDataBusinessService.deleteLoopAndSaveRob(data, apiCode)));
+                futures.addAll(batchHandleBusinessAsync(trueDatas,
+                        (List<String> data) -> wubaCollidingDataSyncCleanMapper.batchSaveData(data, batchNo, apiCode, taskId), "周期可营销数据"));
+                futures.addAll(batchHandleBusinessAsync(falseDatas,
+                        (List<String> data) -> wuBaCollidingDataBusinessService.deleteLoopAndSaveRob(data, apiCode), "周期不可营销数据"));
                 break;
             case "F":
-                futures.addAll(batchHandleBusinessAsync(trueDatas, data -> falseToTrueBusiness(data, apiCode, batchNo, taskId)));
+                futures.addAll(batchHandleBusinessAsync(trueDatas, (List<String> data) -> falseToTrueBusiness(data, apiCode, batchNo, taskId),
+                        "非周期业务"));
                 break;
             default:
                 break;
