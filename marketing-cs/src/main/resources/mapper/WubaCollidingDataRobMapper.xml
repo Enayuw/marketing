@@ -45,7 +45,7 @@
         INSERT INTO b_wuba_colliding_data_rob (cell, api_code, data_source_type, is_deleted)
         VALUES
         <foreach collection="cells" item="item" separator=",">
-            (#{item.cell}, #{apiCode}, 'T', 1)
+            (#{item}, #{apiCode}, 'T', 1)
         </foreach>
     </insert>
 </mapper>
