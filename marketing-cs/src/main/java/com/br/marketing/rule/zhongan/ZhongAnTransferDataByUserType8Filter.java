@@ -97,7 +97,7 @@ public class ZhongAnTransferDataByUserType8Filter implements AssembleData<Conver
 
     @Override
     public String label() {
-        return "ZhongAn_TransferData_To_CustomerFilter";
+        return "ZhongAn_TransferData_To_CustomerFilter7";
     }
 
     @Override
