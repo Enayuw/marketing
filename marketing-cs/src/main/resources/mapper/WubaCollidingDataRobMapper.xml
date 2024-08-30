@@ -5,7 +5,7 @@
         INSERT INTO b_wuba_colliding_data_rob (cell, api_code, package_id, data_source_type)
         VALUES
         <foreach collection="robs" item="item" separator=",">
-            (#{item.cell}, #{apiCode}, #{item.local_id}, 'F')
+            (#{item.cell}, #{apiCode}, #{item.localId}, 'F')
         </foreach>
     </insert>
 
