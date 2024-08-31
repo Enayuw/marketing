@@ -2,7 +2,6 @@ package com.br.marketing.mapper;
 
 
 import com.br.marketing.entity.DataDistributeDetailLog;
-import com.br.marketing.entity.PhoneSaleTransferInfo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -14,4 +13,12 @@ public interface DataDistributeDetailLogMapper extends DataDistributeDetailLogMa
 
     void insertBatch(@Param("list") List<DataDistributeDetailLog> list);
 
+    Set<String> findDistributeLogCellSet(@Param("apiCode") String apiCode,
+                                      @Param("distributeType") Integer distributeType,
+                                      @Param("distributeDate") String distributeDate,
+                                      @Param("cells") Set<String> cells,
+                                      @Param("marketingDate") String marketingDate);
+
+    List<Long> findZhongAnLockingDataDistributeLog(@Param("apiCode") String apiCode, @Param("distributeType") Integer distributeType,
+        @Param("distributeDate") String distributeDate, @Param("cell") String cell, @Param("userType") String userType, @Param("tag") String tag);
 }

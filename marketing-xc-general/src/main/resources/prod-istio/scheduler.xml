@@ -58,7 +58,7 @@
                 cron="0 00 14 * * ? *"
                 description="携程撞库数据处理作业"
                 registry-center-ref="regCenter"
-                sharding-total-count="1"
+                sharding-total-count="5"
                 sharding-item-parameters="0=A"
                 monitor-execution="true"
                 failover="false"

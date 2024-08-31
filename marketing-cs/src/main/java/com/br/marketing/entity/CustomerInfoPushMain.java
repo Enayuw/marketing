@@ -1,16 +1,12 @@
 package com.br.marketing.entity;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import lombok.Data;
 
-/**
- * b_customer_info_push_main
- * @author 
- */
-
-public class CustomerInfoPushMain implements Serializable {
+public class CustomerInfoPushMain {
+    /**
+     * 
+     */
     private Long id;
 
     /**
@@ -119,13 +115,29 @@ public class CustomerInfoPushMain implements Serializable {
     private Integer filterType;
 
     /**
+     * 数据集名称
+     */
+    private String batchName;
+
+    /**
      * 扩展字段
      */
     private String extend;
 
+    /**
+     * 数据源类型：1-跑分;2-转化
+     */
+    private Integer sourceType;
 
+    /**
+     * 任务生成类型1-手动生成；2-自动生成
+     */
+    private Integer buildType;
 
-    private static final long serialVersionUID = 1L;
+    /**
+     * 触达策略编号
+     */
+    private String strategyCode;
 
     public Long getId() {
         return id;
@@ -140,7 +152,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmApiCode(String mApiCode) {
-        this.mApiCode = mApiCode;
+        this.mApiCode = mApiCode == null ? null : mApiCode.trim();
     }
 
     public String getmModel() {
@@ -148,7 +160,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmModel(String mModel) {
-        this.mModel = mModel;
+        this.mModel = mModel == null ? null : mModel.trim();
     }
 
     public String getmModelVersion() {
@@ -156,7 +168,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmModelVersion(String mModelVersion) {
-        this.mModelVersion = mModelVersion;
+        this.mModelVersion = mModelVersion == null ? null : mModelVersion.trim();
     }
 
     public Integer getmNumMin() {
@@ -212,7 +224,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmCusBatchNumberList(String mCusBatchNumberList) {
-        this.mCusBatchNumberList = mCusBatchNumberList;
+        this.mCusBatchNumberList = mCusBatchNumberList == null ? null : mCusBatchNumberList.trim();
     }
 
     public Integer getmStatus() {
@@ -260,7 +272,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmRuleCondition(String mRuleCondition) {
-        this.mRuleCondition = mRuleCondition;
+        this.mRuleCondition = mRuleCondition == null ? null : mRuleCondition.trim();
     }
 
     public String getmRuleConditionShow() {
@@ -268,7 +280,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setmRuleConditionShow(String mRuleConditionShow) {
-        this.mRuleConditionShow = mRuleConditionShow;
+        this.mRuleConditionShow = mRuleConditionShow == null ? null : mRuleConditionShow.trim();
     }
 
     public BigDecimal getmPercentage() {
@@ -284,7 +296,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setOptUserId(String optUserId) {
-        this.optUserId = optUserId;
+        this.optUserId = optUserId == null ? null : optUserId.trim();
     }
 
     public String getOptUserName() {
@@ -292,7 +304,7 @@ public class CustomerInfoPushMain implements Serializable {
     }
 
     public void setOptUserName(String optUserName) {
-        this.optUserName = optUserName;
+        this.optUserName = optUserName == null ? null : optUserName.trim();
     }
 
     public Integer getFilterType() {
@@ -303,11 +315,43 @@ public class CustomerInfoPushMain implements Serializable {
         this.filterType = filterType;
     }
 
+    public String getBatchName() {
+        return batchName;
+    }
+
+    public void setBatchName(String batchName) {
+        this.batchName = batchName == null ? null : batchName.trim();
+    }
+
     public String getExtend() {
         return extend;
     }
 
     public void setExtend(String extend) {
-        this.extend = extend;
+        this.extend = extend == null ? null : extend.trim();
+    }
+
+    public Integer getSourceType() {
+        return sourceType;
+    }
+
+    public void setSourceType(Integer sourceType) {
+        this.sourceType = sourceType;
+    }
+
+    public Integer getBuildType() {
+        return buildType;
+    }
+
+    public void setBuildType(Integer buildType) {
+        this.buildType = buildType;
+    }
+
+    public String getStrategyCode() {
+        return strategyCode;
+    }
+
+    public void setStrategyCode(String strategyCode) {
+        this.strategyCode = strategyCode == null ? null : strategyCode.trim();
     }
 }

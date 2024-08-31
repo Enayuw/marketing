@@ -13,7 +13,7 @@ public class MarketingDataValidConfigDefaultExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingDataValidConfigDefaultExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -70,7 +70,7 @@ public class MarketingDataValidConfigDefaultExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -117,7 +117,7 @@ public class MarketingDataValidConfigDefaultExample {
             if (values == null || values.size() == 0) {
                 throw new RuntimeException("Value list for " + property + " cannot be null or empty");
             }
-            List<java.sql.Date> dateList = new ArrayList<java.sql.Date>();
+            List<java.sql.Date> dateList = new ArrayList<>();
             Iterator<Date> iter = values.iterator();
             while (iter.hasNext()) {
                 dateList.add(new java.sql.Date(iter.next().getTime()));
@@ -392,6 +392,66 @@ public class MarketingDataValidConfigDefaultExample {
             return (Criteria) this;
         }
 
+        public Criteria andValidTypeIsNull() {
+            addCriterion("valid_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeIsNotNull() {
+            addCriterion("valid_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeEqualTo(Integer value) {
+            addCriterion("valid_type =", value, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeNotEqualTo(Integer value) {
+            addCriterion("valid_type <>", value, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeGreaterThan(Integer value) {
+            addCriterion("valid_type >", value, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("valid_type >=", value, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeLessThan(Integer value) {
+            addCriterion("valid_type <", value, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("valid_type <=", value, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeIn(List<Integer> values) {
+            addCriterion("valid_type in", values, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeNotIn(List<Integer> values) {
+            addCriterion("valid_type not in", values, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeBetween(Integer value1, Integer value2) {
+            addCriterion("valid_type between", value1, value2, "validType");
+            return (Criteria) this;
+        }
+
+        public Criteria andValidTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("valid_type not between", value1, value2, "validType");
+            return (Criteria) this;
+        }
+
         public Criteria andValidDaysDefaultIsNull() {
             addCriterion("valid_days_default is null");
             return (Criteria) this;
@@ -633,8 +693,9 @@ public class MarketingDataValidConfigDefaultExample {
         }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

@@ -21,4 +21,7 @@ public class CustUserTypeSelectVO {
 
     @ApiModelProperty(value = "规则信息")
     private JSONObject conditionInfo;
+
+    @ApiModelProperty(value = "是否适应全场景")
+    private Integer allUserType;
 }

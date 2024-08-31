@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -12,6 +13,10 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -62,6 +67,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private RedisChgService redisChgService;
     @Resource
     private XiechengCollidingDataEliminationMapper eliminationMapper;
+    @Resource
+    private XieChengCollidingDataRobMapper robMapper;
 
     private final static int PARTATION_SIZE = 50;
 
@@ -74,22 +81,12 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     public void pushDataAndHandleResult(List<XieChengCollidingDataLoopCycle> list) {
         try {
             // 组装撞库用cell
-            List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
-            try {
-                List<String> excludeData = eliminationMapper.getExcludeData(cells);
-                if (!CollectionUtils.isEmpty(excludeData)) {
-                    List<String> distinctExcludeData = excludeData.stream().distinct().collect(Collectors.toList());
-                    String extend = DateUtil.today() + " 转化数据convType=107或105";
-                    dataLoopCycleMapper.batchDeleteExcludeCollidingData(excludeData, extend);
-                    cells.removeAll(distinctExcludeData);
-                    if (CollectionUtils.isEmpty(cells)) {
-                        log.warn("该批次手机号全部被过滤掉:{}", distinctExcludeData);
-                        return;
-                    }
-                }
-            } catch (Exception e) {
-                log.error("携程周期撞库剔除撞库数据异常", e);
+            List<String> originalCells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
+            List<String> cells = excludeData(originalCells, "T");
+            if (CollectionUtils.isEmpty(cells)) {
+                return;
             }
+
             Result resultInfo = xieChengServiceNew.pushXieChengSmsCollidingDataNew(cells);
             JSONObject resMap = JSONObject.parseObject((String)resultInfo.getData());
             String httpcode = resMap.getString("httpcode");
@@ -114,7 +111,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             JSONArray returnDataList = resultJson.getJSONArray("data");
 
             if (CollectionUtils.isEmpty(returnDataList)) {
-                log.error("携程TRUE数据撞库，接口返回code为0，但数据为空。resMap：{}", JSON.toJSONString(resMap));
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), JSON.toJSONString(resMap)
+                        , "携程TRUE数据撞库，接口返回code为0，但数据为空。resMap"));
                 return;
             }
 
@@ -136,8 +134,34 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
 
             logService.pushLogMessage(collidingLogs);
         } catch (Exception e) {
-            log.error("携程TRUE数据撞库,单线程处理异常：" + e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程TRUE数据撞库,单线程处理异常"), e);
         }
+    }
+
+    /**
+     * 剔除转化数据convType=107或105
+     */
+    @Override
+    public List<String> excludeData(List<String> cells, String dataSourceType) {
+        try {
+            List<String> excludeData = eliminationMapper.getExcludeData(cells);
+            if (!CollectionUtils.isEmpty(excludeData)) {
+                List<String> distinctExcludeData = excludeData.stream().distinct().collect(Collectors.toList());
+                String extend = DateUtil.today() + " 转化数据convType=107或105";
+                if (Objects.equals(dataSourceType, "T")) {
+                    dataLoopCycleMapper.batchDeleteExcludeCollidingData(excludeData, extend);
+                } else if (Objects.equals(dataSourceType, "F")) {
+                    robMapper.batchDeleteExcludeCollidingData(excludeData, extend);
+                }
+                cells.removeAll(distinctExcludeData);
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程剔除撞库数据异常"), e);
+        }
+
+        return cells;
     }
 
     /**
@@ -159,27 +183,36 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
      * @param cellMaps
      */
     private void falseHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
-        List<XieChengCollidingDataLoopCycle> falseList = returnDataList.stream().map(t -> (JSONObject)t)
-            .filter(t -> t.getBoolean("result").equals(Boolean.FALSE)).map(t -> buildFalseDataDto(t, cellMaps)).collect(Collectors.toList());
-
         // 设置packageId为package表优先级为0的id
         Long packageId = getPackageId();
-
-        falseList.forEach((XieChengCollidingDataLoopCycle t) -> {
-            try {
-                handleService.cycleDataHandle(t, packageId);
-            } catch (Exception e) {
-                log.error("携程TRUE数据撞库，同时写true和false表失败，cell：" + t.getCellSha256CodeList(), e.getMessage());
-            }
-        });
+        returnDataList.stream().map(obj -> (JSONObject)obj).filter(returnData -> !returnData.getBoolean("result"))
+            .forEach((JSONObject returnData) -> {
+                String sha256Code = returnData.getString("sha256Code");
+                XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
+                if (loopCycle == null) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), sha256Code
+                            , "携程TRUE数据撞库，返回未知sha256Code"));
+                    return;
+                }
+                XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
+                dto.setId(loopCycle.getId());
+                dto.setCellSha256CodeList(sha256Code);
+                Date releaseDate =
+                    StringUtils.isNotEmpty(returnData.getString("releaseDate")) ? DateUtil.parse(returnData.getString("releaseDate")) : null;
+                try {
+                    handleService.cycleDataHandle(dto, packageId, releaseDate);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                            , "携程TRUE数据撞库，同时写true和false表失败"), e);
+                }
+            });
     }
 
     private Long getPackageId() {
         XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
         packageExample.createCriteria().andPriorityEqualTo(0);
         List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
-        Long packageId = CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
-        return packageId;
+        return CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
     }
 
     private XieChengCollidingDataLoopCycle buildTrueDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
@@ -187,7 +220,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         String sha256Code = t.getString("sha256Code");
         XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
         if (loopCycle == null) {
-            log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=true", sha256Code);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), sha256Code
+                    , "携程TRUE数据撞库，返回未知sha256Code"));
             return new XieChengCollidingDataLoopCycle();
         }
 
@@ -199,22 +233,21 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         dto.setRetryCount(0);
         // 更新releaseTime
         dto.setReleaseTime(DateUtil.parse(t.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
-
-        return dto;
-    }
-
-    private XieChengCollidingDataLoopCycle buildFalseDataDto(JSONObject t, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
-        XieChengCollidingDataLoopCycle dto = new XieChengCollidingDataLoopCycle();
-        String sha256Code = t.getString("sha256Code");
-        XieChengCollidingDataLoopCycle loopCycle = cellMaps.get(sha256Code);
-        if (loopCycle == null) {
-            log.error("携程TRUE数据撞库，返回未知sha256Code：{}，result=false", sha256Code);
-            return new XieChengCollidingDataLoopCycle();
+        try {
+            JSONArray jsonArray = t.getJSONArray("marketCouponList");
+            if (jsonArray != null && !jsonArray.isEmpty()) {
+                dto.setMarketCouponList(jsonArray.toJSONString());
+                JSONObject firstCoupon = jsonArray.getJSONObject(0);
+                String couponCode = firstCoupon.getString("couponCode");
+                String couponDesc = firstCoupon.getString("couponDesc");
+                dto.setCouponCode(couponCode);
+                dto.setCouponDesc(couponDesc);
+            }
+        } catch (Exception e) {
+            dto.setMarketCouponList(String.valueOf(t.get("marketCouponList")));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程周期撞库析出marketCouponList异常"), e);
         }
-
-        dto.setId(loopCycle.getId());
-        dto.setCellSha256CodeList(sha256Code);
-
         return dto;
     }
 
@@ -257,7 +290,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.error("携程TRUE数据撞库：日志保存线程池结束异常！", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), ex.getMessage()
+                    , "携程TRUE数据撞库：日志保存线程池结束异常！"), ex);
             Thread.currentThread().interrupt();
         }
     }
@@ -287,7 +321,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         try {
             redisSwitch = redisChgService.get(RedisKeyConstant.XIECHENG_CONDITIONSWITCH);
         } catch (Exception e) {
-            log.error("携程TRUE数据撞库，获取redis条件开关失败:" + e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程TRUE数据撞库，获取redis条件开关失败"), e);
             return false;
         }
 

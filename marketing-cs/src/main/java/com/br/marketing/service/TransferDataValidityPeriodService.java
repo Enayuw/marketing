@@ -255,6 +255,21 @@ public interface TransferDataValidityPeriodService {
 
 
     /**
+     * 根据上传数据cell获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param cellSet        cell集合
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
+     * @author senyang.zheng
+     * @date 2023/12/08
+     */
+    Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCells(Set<String> cellSet,
+                                                                     String apiCode,
+                                                                     Object requestDateObj);
+
+
+    /**
      * 根据上传数据custNum获取多组有效期范围,根据taskId获取有效上传数据 Tips：定制化有效期配置使用，有效期配置valid_start_date和valid_end_date字段都非空
      *
      * @param custNumSet     custNum集合
@@ -267,6 +282,22 @@ public interface TransferDataValidityPeriodService {
     Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCustNumAndTaskId(Set<String> custNumSet,
                                                                                 String apiCode,
                                                                                 Object requestDateObj);
+
+    /**
+     * 根据上传数据custNum集合+userType集合获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param custNumSet     custNum集合
+     * @param userTypeSet    场景集合
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return Map key:custNum value:{@link Map<String, SyncUserValidityPeriodsBO>} key:userType value:{@link SyncUserValidityPeriodsBO}
+     * @author Hua Qiang
+     * @date 2024-08-27 18:50
+     */
+    Map<String, Map<String, SyncUserValidityPeriodsBO>> getValidityPeriodsByCustNumAndUserTypeSet(Set<String> custNumSet,
+                                                                                                  Set<String> userTypeSet,
+                                                                                                  String apiCode,
+                                                                                                  Object requestDateObj);
 
     /**
      * 获取有效期的有效期配置,分页
@@ -282,4 +313,49 @@ public interface TransferDataValidityPeriodService {
      */
     List<MarketingDataValidConfig> getDataValidityPeriodPageList(
             String apiCode, Object requestDateObj, Integer page, Integer pageSize);
+
+    /**
+     * 指定场景获取有效期的有效期配置
+     *
+     * @param apiCode        客户编号
+     * @param userType       场景
+     * @param requestDateObj 请求时间
+     * @param pageNo         页号
+     * @param pageSize       页大小
+     * @return 有效期的有效期配置
+     * @author Guo Zeqiang
+     * @version 1.0
+     * @dateTime 2024-01-09 15:30
+     */
+    List<MarketingDataValidConfig> getDataValidityPeriodPageList(
+            String apiCode, String userType, Object requestDateObj, int pageNo, int pageSize);
+
+    /**
+     * 指定场景集合获取有效期的有效期配置
+     *
+     * @param apiCode        客户编号
+     * @param userTypeSet    场景集合
+     * @param requestDateObj 请求时间
+     * @param pageNo         页号
+     * @param pageSize       页大小
+     * @return 有效期的有效期配置
+     * @author Guo Zeqiang
+     * @version 1.0
+     * @dateTime 2024-01-09 15:30
+     */
+    List<MarketingDataValidConfig> getDataValidityPeriodPageList(
+            String apiCode, Set<String> userTypeSet, Object requestDateObj, int pageNo, int pageSize);
+
+    /**
+     * 指定场景获取合并重叠时间后的有效期
+     *
+     * @param apiCode        客户编号
+     * @param userType       场景
+     * @param requestDateObj 请求时间
+     * @return 合并重叠时间后的有效期的有效期集合
+     * @author Guo Zeqiang
+     * @version 1.0
+     * @dateTime 2024-01-09 15:30
+     */
+    List<MarketingDataValidConfig> getDataMergeValidityPeriodList(String apiCode, String userType, Object requestDateObj);
 }

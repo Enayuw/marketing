@@ -14,7 +14,8 @@
         create_time,
         update_time,
         source_id,
-        source_type
+        source_type,
+        extend
         )values
         <foreach collection="list" item="data" separator=",">
             (#{data.apiCode},
@@ -28,7 +29,9 @@
             #{data.createTime},
             #{data.updateTime},
             #{data.sourceId,jdbcType=BIGINT},
-            #{data.sourceType,jdbcType=VARCHAR})
+            #{data.sourceType,jdbcType=VARCHAR},
+            #{data.extend,jdbcType=VARCHAR}
+            )
         </foreach>
     </insert>
 
@@ -42,5 +45,32 @@
             #{item}
         </foreach>
         and DATE_FORMAT(now(),"%Y-%m-%d") = date_format(create_time,"%Y-%m-%d")
+    </select>
+
+    <select id="findDistributeLogCellSet" resultType="java.lang.String">
+        select
+        cell
+        from b_data_distribute_detail_log
+        where api_code = #{apiCode}
+            and distribute_type = #{distributeType}
+            and distribute_date = #{distributeDate}
+            and cell in
+            <foreach collection="cells" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        <if test="marketingDate !=null and marketingDate!=''">
+            and JSON_EXTRACT(extend, '$.marketingDate') = #{marketingDate}
+        </if>
+    </select>
+
+    <select id="findZhongAnLockingDataDistributeLog" resultType="java.lang.Long">
+        select id
+        from b_data_distribute_detail_log
+        where api_code = #{apiCode}
+          and distribute_type = #{distributeType}
+          and distribute_date = #{distributeDate}
+          and cell = #{cell}
+          and JSON_EXTRACT(extend, '$.userType') = #{userType}
+          and JSON_EXTRACT(extend, '$.tag') = #{tag}
     </select>
 </mapper>

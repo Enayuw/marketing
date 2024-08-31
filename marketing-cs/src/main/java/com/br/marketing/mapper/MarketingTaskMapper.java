@@ -4,11 +4,10 @@ import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.ApiCodeTask;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
-import com.br.marketing.vo.FastTaskRuleListVO;
+import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
@@ -229,9 +228,12 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     MarketingTask selectCycleTopByApiCode(String apiCode);
 
-    List<MarketingTask> getScoreTasks(@Param("date") String date,@Param("taskId") Long taskId,@Param("hm")String hm);
+    List<MarketingTask> getScoreTasks(@Param("date") String date, @Param("taskId") Long taskId, @Param("hm") String hm);
 
     Integer selectByPriority(Integer priority);
 
     String selectHisFileById(String hisFileId);
+
+    @AddDataAuth
+    List<ScoreDetailVo> queryBatchList(CustomerBatchNumVO batchNumVO);
 }

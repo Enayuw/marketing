@@ -133,16 +133,14 @@ public class SftpToDbByDXService {
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
             while ((row = br.readLine()) != null) {
                 String trim = row.trim();
-                if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim)) {
-                    if (line > 1) {
-                        Integer lineNum = line;
-                        threadPool.submit(() -> {
-                            PhoneSale phoneSale = new PhoneSale();
-                            phoneSale.setApiCode(localFile.getApiCode());
-                            phoneSale.setLocalId(localFile.getId().toString());
-                            setDataByPhone(trim, phoneSale, address, extSetField, errorMark, lineNum);
-                        });
-                    }
+                if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim) && line > 1) {
+                    Integer lineNum = line;
+                    threadPool.submit(() -> {
+                        PhoneSale phoneSale = new PhoneSale();
+                        phoneSale.setApiCode(localFile.getApiCode());
+                        phoneSale.setLocalId(localFile.getId().toString());
+                        setDataByPhone(trim, phoneSale, address, extSetField, errorMark, lineNum);
+                    });
                 }
                 line++;
             }
@@ -170,6 +168,7 @@ public class SftpToDbByDXService {
             producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
         }catch (Exception e){
             log.error(e.getMessage(),e);
+            Thread.currentThread().interrupt();
         }
         long end = System.currentTimeMillis();
         if(log.isWarnEnabled()){
@@ -209,7 +208,8 @@ public class SftpToDbByDXService {
                 }
                 log.warn("{}，内容为{}", context.getConfigFileName(), configMap);
                 if (task.getMonitorType() == 1) {
-                    if (StringUtils.isNotEmpty(configMap.get("strategyId")) && fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")) {
+                    if (StringUtils.isNotEmpty(configMap.get("strategyId"))
+                            && fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")) {
                         task.setStrategyId(configMap.get("strategyId"));
                         task.setFrequency(0 + "");
                         task.setCloseDate(DateHelper.getDateAdd(2));
@@ -222,7 +222,8 @@ public class SftpToDbByDXService {
                         return;
                     }
                 } else if (task.getMonitorType() == 2 || task.getMonitorType() == 3 || task.getMonitorType() == 4) {
-                    if (StringUtils.isNotEmpty(configMap.get("strategyId")) && fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")) {
+                    if (StringUtils.isNotEmpty(configMap.get("strategyId"))
+                            && fileCheckService.checkConfig("strategyId", configMap.get("strategyId"), task.getApiCode(), "")) {
                         task.setStrategyId(configMap.get("strategyId"));
                     } else {
                         task.setMonitorStatus(3);
@@ -231,7 +232,9 @@ public class SftpToDbByDXService {
                         fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
                         return;
                     }
-                    if (StringUtils.isNotEmpty(configMap.get("monitorFrequency")) && fileCheckService.checkConfig("monitorFrequency", configMap.get("monitorFrequency"), task.getApiCode(), "")) {
+                    if (StringUtils.isNotEmpty(configMap.get("monitorFrequency"))
+                            && fileCheckService.checkConfig("monitorFrequency"
+                            , configMap.get("monitorFrequency"), task.getApiCode(), "")) {
                         task.setFrequency(configMap.get("monitorFrequency"));
                     } else {
                         task.setMonitorStatus(3);
@@ -240,7 +243,9 @@ public class SftpToDbByDXService {
                         fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
                         return;
                     }
-                    if (StringUtils.isNotEmpty(configMap.get("monitorStartTime")) && fileCheckService.checkConfig("monitorStartTime", configMap.get("monitorStartTime"), task.getApiCode(), "")) {
+                    if (StringUtils.isNotEmpty(configMap.get("monitorStartTime"))
+                            && fileCheckService.checkConfig("monitorStartTime"
+                            , configMap.get("monitorStartTime"), task.getApiCode(), "")) {
                         task.setStartDate(configMap.get("monitorStartTime"));
                     } else {
                         task.setMonitorStatus(3);
@@ -249,7 +254,9 @@ public class SftpToDbByDXService {
                         fileCheckService.errorDetail(context, task.getErrorMessage(), ErrorFileTypeEnum.ERROR_CONFIG);
                         return;
                     }
-                    if (StringUtils.isNotEmpty(configMap.get("monitorStartTime")) && fileCheckService.checkConfig("monitorendTime", configMap.get("monitorendTime"), task.getApiCode(), configMap.get("monitorStartTime"))) {
+                    if (StringUtils.isNotEmpty(configMap.get("monitorStartTime"))
+                            && fileCheckService.checkConfig("monitorendTime"
+                            , configMap.get("monitorendTime"), task.getApiCode(), configMap.get("monitorStartTime"))) {
                         task.setCloseDate(configMap.get("monitorStartTime"));
                     } else {
                         task.setMonitorStatus(3);
@@ -283,7 +290,8 @@ public class SftpToDbByDXService {
     }
 
 
-    private Result setDataByPhone(String row,PhoneSale phoneSale,HashMap<Integer,String> address,HashMap<Integer,String> extSetFields,AtomicInteger errorMark,Integer line){
+    private Result setDataByPhone(String row,PhoneSale phoneSale
+            ,HashMap<Integer,String> address,HashMap<Integer,String> extSetFields,AtomicInteger errorMark,Integer line){
         try {
             List<String> datas = Splitter.on(",").splitToList(row);
             JSONObject jo = null;

@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.PushDecisionsMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.PushDecisions" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="rule_number" property="ruleNumber" jdbcType="VARCHAR" />
+    <result column="rule_name" property="ruleName" jdbcType="VARCHAR" />
+    <result column="dependency_template_id" property="dependencyTemplateId" jdbcType="BIGINT" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="auto_time" property="autoTime" jdbcType="VARCHAR" />
+    <result column="push_datasets" property="pushDatasets" jdbcType="VARCHAR" />
+    <result column="reach_strategy" property="reachStrategy" jdbcType="VARCHAR" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, rule_number, rule_name, dependency_template_id, `status`, auto_time, 
+    push_datasets, reach_strategy, is_del, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.PushDecisionsExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_push_decisions
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_push_decisions
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_marketing_push_decisions
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.PushDecisionsExample" >
+    delete from b_marketing_push_decisions
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.PushDecisions" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_push_decisions (api_code, rule_number, rule_name, 
+      dependency_template_id, `status`, auto_time, 
+      push_datasets, reach_strategy, is_del, 
+      create_time, update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{ruleNumber,jdbcType=VARCHAR}, #{ruleName,jdbcType=VARCHAR}, 
+      #{dependencyTemplateId,jdbcType=BIGINT}, #{status,jdbcType=INTEGER}, #{autoTime,jdbcType=VARCHAR}, 
+      #{pushDatasets,jdbcType=VARCHAR}, #{reachStrategy,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.PushDecisions" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_push_decisions
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="ruleNumber != null" >
+        rule_number,
+      </if>
+      <if test="ruleName != null" >
+        rule_name,
+      </if>
+      <if test="dependencyTemplateId != null" >
+        dependency_template_id,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="autoTime != null" >
+        auto_time,
+      </if>
+      <if test="pushDatasets != null" >
+        push_datasets,
+      </if>
+      <if test="reachStrategy != null" >
+        reach_strategy,
+      </if>
+      <if test="isDel != null" >
+        is_del,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleNumber != null" >
+        #{ruleNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleName != null" >
+        #{ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="dependencyTemplateId != null" >
+        #{dependencyTemplateId,jdbcType=BIGINT},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="autoTime != null" >
+        #{autoTime,jdbcType=VARCHAR},
+      </if>
+      <if test="pushDatasets != null" >
+        #{pushDatasets,jdbcType=VARCHAR},
+      </if>
+      <if test="reachStrategy != null" >
+        #{reachStrategy,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.PushDecisionsExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_push_decisions
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_marketing_push_decisions
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ruleNumber != null" >
+        rule_number = #{record.ruleNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ruleName != null" >
+        rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dependencyTemplateId != null" >
+        dependency_template_id = #{record.dependencyTemplateId,jdbcType=BIGINT},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.autoTime != null" >
+        auto_time = #{record.autoTime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushDatasets != null" >
+        push_datasets = #{record.pushDatasets,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reachStrategy != null" >
+        reach_strategy = #{record.reachStrategy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDel != null" >
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_marketing_push_decisions
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      rule_number = #{record.ruleNumber,jdbcType=VARCHAR},
+      rule_name = #{record.ruleName,jdbcType=VARCHAR},
+      dependency_template_id = #{record.dependencyTemplateId,jdbcType=BIGINT},
+      `status` = #{record.status,jdbcType=INTEGER},
+      auto_time = #{record.autoTime,jdbcType=VARCHAR},
+      push_datasets = #{record.pushDatasets,jdbcType=VARCHAR},
+      reach_strategy = #{record.reachStrategy,jdbcType=VARCHAR},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.PushDecisions" >
+    update b_marketing_push_decisions
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleNumber != null" >
+        rule_number = #{ruleNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="ruleName != null" >
+        rule_name = #{ruleName,jdbcType=VARCHAR},
+      </if>
+      <if test="dependencyTemplateId != null" >
+        dependency_template_id = #{dependencyTemplateId,jdbcType=BIGINT},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="autoTime != null" >
+        auto_time = #{autoTime,jdbcType=VARCHAR},
+      </if>
+      <if test="pushDatasets != null" >
+        push_datasets = #{pushDatasets,jdbcType=VARCHAR},
+      </if>
+      <if test="reachStrategy != null" >
+        reach_strategy = #{reachStrategy,jdbcType=VARCHAR},
+      </if>
+      <if test="isDel != null" >
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.PushDecisions" >
+    update b_marketing_push_decisions
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      rule_number = #{ruleNumber,jdbcType=VARCHAR},
+      rule_name = #{ruleName,jdbcType=VARCHAR},
+      dependency_template_id = #{dependencyTemplateId,jdbcType=BIGINT},
+      `status` = #{status,jdbcType=INTEGER},
+      auto_time = #{autoTime,jdbcType=VARCHAR},
+      push_datasets = #{pushDatasets,jdbcType=VARCHAR},
+      reach_strategy = #{reachStrategy,jdbcType=VARCHAR},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

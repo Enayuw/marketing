@@ -1,0 +1,360 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.clean.MarketingCleanCreateTaskRuleMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.clean.MarketingCleanCreateTaskRule">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="sync_config_id" property="syncConfigId" jdbcType="BIGINT"/>
+        <result column="data_type" property="dataType" jdbcType="INTEGER"/>
+        <result column="marketing_data_file_config_id" property="marketingDataFileConfigId" jdbcType="BIGINT"/>
+        <result column="dml" property="dml" jdbcType="INTEGER"/>
+        <result column="start_time" property="startTime" jdbcType="VARCHAR"/>
+        <result column="task_create_rule" property="taskCreateRule" jdbcType="INTEGER"/>
+        <result column="cycle_day" property="cycleDay" jdbcType="INTEGER"/>
+        <result column="zip_password" property="zipPassword" jdbcType="VARCHAR"/>
+        <result column="is_md5_check" property="isMd5Check" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="is_del" property="isDel" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id
+        , api_code, sync_config_id, data_type, marketing_data_file_config_id, dml, start_time,
+    task_create_rule, cycle_day, zip_password, is_md5_check, create_time, update_time, 
+    is_del
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.clean.MarketingCleanCreateTaskRuleExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_marketing_clean_create_task_rule
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from b_marketing_clean_create_task_rule
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from b_marketing_clean_create_task_rule
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample" parameterType="com.br.marketing.entity.clean.MarketingCleanCreateTaskRuleExample">
+        delete from b_marketing_clean_create_task_rule
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.br.marketing.entity.clean.MarketingCleanCreateTaskRule">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_marketing_clean_create_task_rule (api_code, sync_config_id, data_type,
+        marketing_data_file_config_id, dml, start_time,
+        task_create_rule, cycle_day, zip_password,
+        is_md5_check, create_time, update_time,
+        is_del)
+        values (#{apiCode,jdbcType=VARCHAR}, #{syncConfigId,jdbcType=BIGINT}, #{dataType,jdbcType=INTEGER},
+        #{marketingDataFileConfigId,jdbcType=BIGINT}, #{dml,jdbcType=INTEGER}, #{startTime,jdbcType=VARCHAR},
+        #{taskCreateRule,jdbcType=INTEGER}, #{cycleDay,jdbcType=INTEGER}, #{zipPassword,jdbcType=VARCHAR},
+        #{isMd5Check,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+        #{isDel,jdbcType=INTEGER})
+    </insert>
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.clean.MarketingCleanCreateTaskRule">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_marketing_clean_create_task_rule
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="syncConfigId != null">
+                sync_config_id,
+            </if>
+            <if test="dataType != null">
+                data_type,
+            </if>
+            <if test="marketingDataFileConfigId != null">
+                marketing_data_file_config_id,
+            </if>
+            <if test="dml != null">
+                dml,
+            </if>
+            <if test="startTime != null">
+                start_time,
+            </if>
+            <if test="taskCreateRule != null">
+                task_create_rule,
+            </if>
+            <if test="cycleDay != null">
+                cycle_day,
+            </if>
+            <if test="zipPassword != null">
+                zip_password,
+            </if>
+            <if test="isMd5Check != null">
+                is_md5_check,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="isDel != null">
+                is_del,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="syncConfigId != null">
+                #{syncConfigId,jdbcType=BIGINT},
+            </if>
+            <if test="dataType != null">
+                #{dataType,jdbcType=INTEGER},
+            </if>
+            <if test="marketingDataFileConfigId != null">
+                #{marketingDataFileConfigId,jdbcType=BIGINT},
+            </if>
+            <if test="dml != null">
+                #{dml,jdbcType=INTEGER},
+            </if>
+            <if test="startTime != null">
+                #{startTime,jdbcType=VARCHAR},
+            </if>
+            <if test="taskCreateRule != null">
+                #{taskCreateRule,jdbcType=INTEGER},
+            </if>
+            <if test="cycleDay != null">
+                #{cycleDay,jdbcType=INTEGER},
+            </if>
+            <if test="zipPassword != null">
+                #{zipPassword,jdbcType=VARCHAR},
+            </if>
+            <if test="isMd5Check != null">
+                #{isMd5Check,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isDel != null">
+                #{isDel,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="com.br.marketing.entity.clean.MarketingCleanCreateTaskRuleExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_marketing_clean_create_task_rule
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update b_marketing_clean_create_task_rule
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.apiCode != null">
+                api_code = #{record.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.syncConfigId != null">
+                sync_config_id = #{record.syncConfigId,jdbcType=BIGINT},
+            </if>
+            <if test="record.dataType != null">
+                data_type = #{record.dataType,jdbcType=INTEGER},
+            </if>
+            <if test="record.marketingDataFileConfigId != null">
+                marketing_data_file_config_id = #{record.marketingDataFileConfigId,jdbcType=BIGINT},
+            </if>
+            <if test="record.dml != null">
+                dml = #{record.dml,jdbcType=INTEGER},
+            </if>
+            <if test="record.startTime != null">
+                start_time = #{record.startTime,jdbcType=VARCHAR},
+            </if>
+            <if test="record.taskCreateRule != null">
+                task_create_rule = #{record.taskCreateRule,jdbcType=INTEGER},
+            </if>
+            <if test="record.cycleDay != null">
+                cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+            </if>
+            <if test="record.zipPassword != null">
+                zip_password = #{record.zipPassword,jdbcType=VARCHAR},
+            </if>
+            <if test="record.isMd5Check != null">
+                is_md5_check = #{record.isMd5Check,jdbcType=INTEGER},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.isDel != null">
+                is_del = #{record.isDel,jdbcType=INTEGER},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update b_marketing_clean_create_task_rule
+        set id = #{record.id,jdbcType=BIGINT},
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+        sync_config_id = #{record.syncConfigId,jdbcType=BIGINT},
+        data_type = #{record.dataType,jdbcType=INTEGER},
+        marketing_data_file_config_id = #{record.marketingDataFileConfigId,jdbcType=BIGINT},
+        dml = #{record.dml,jdbcType=INTEGER},
+        start_time = #{record.startTime,jdbcType=VARCHAR},
+        task_create_rule = #{record.taskCreateRule,jdbcType=INTEGER},
+        cycle_day = #{record.cycleDay,jdbcType=INTEGER},
+        zip_password = #{record.zipPassword,jdbcType=VARCHAR},
+        is_md5_check = #{record.isMd5Check,jdbcType=INTEGER},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+        is_del = #{record.isDel,jdbcType=INTEGER}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.clean.MarketingCleanCreateTaskRule">
+        update b_marketing_clean_create_task_rule
+        <set>
+            <if test="apiCode != null">
+                api_code = #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="syncConfigId != null">
+                sync_config_id = #{syncConfigId,jdbcType=BIGINT},
+            </if>
+            <if test="dataType != null">
+                data_type = #{dataType,jdbcType=INTEGER},
+            </if>
+            <if test="marketingDataFileConfigId != null">
+                marketing_data_file_config_id = #{marketingDataFileConfigId,jdbcType=BIGINT},
+            </if>
+            <if test="dml != null">
+                dml = #{dml,jdbcType=INTEGER},
+            </if>
+            <if test="startTime != null">
+                start_time = #{startTime,jdbcType=VARCHAR},
+            </if>
+            <if test="taskCreateRule != null">
+                task_create_rule = #{taskCreateRule,jdbcType=INTEGER},
+            </if>
+            <if test="cycleDay != null">
+                cycle_day = #{cycleDay,jdbcType=INTEGER},
+            </if>
+            <if test="zipPassword != null">
+                zip_password = #{zipPassword,jdbcType=VARCHAR},
+            </if>
+            <if test="isMd5Check != null">
+                is_md5_check = #{isMd5Check,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isDel != null">
+                is_del = #{isDel,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.clean.MarketingCleanCreateTaskRule">
+        update b_marketing_clean_create_task_rule
+        set api_code                      = #{apiCode,jdbcType=VARCHAR},
+            sync_config_id                = #{syncConfigId,jdbcType=BIGINT},
+            data_type                     = #{dataType,jdbcType=INTEGER},
+            marketing_data_file_config_id = #{marketingDataFileConfigId,jdbcType=BIGINT},
+            dml                           = #{dml,jdbcType=INTEGER},
+            start_time                    = #{startTime,jdbcType=VARCHAR},
+            task_create_rule              = #{taskCreateRule,jdbcType=INTEGER},
+            cycle_day                     = #{cycleDay,jdbcType=INTEGER},
+            zip_password                  = #{zipPassword,jdbcType=VARCHAR},
+            is_md5_check                  = #{isMd5Check,jdbcType=INTEGER},
+            create_time                   = #{createTime,jdbcType=TIMESTAMP},
+            update_time                   = #{updateTime,jdbcType=TIMESTAMP},
+            is_del                        = #{isDel,jdbcType=INTEGER}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

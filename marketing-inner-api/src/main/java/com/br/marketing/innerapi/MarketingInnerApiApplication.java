@@ -31,7 +31,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  * @Version 1.0
  */
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
-@EnableAspectJAutoProxy
+@EnableAspectJAutoProxy(exposeProxy = true)
 @EnableFeignClients(basePackages = {"com.br.marketing"})
 @MapperScan("com.br.marketing.mapper")
 @Slf4j
@@ -53,6 +53,7 @@ public class MarketingInnerApiApplication {
      */
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
+
         log.warn("marketing-inner-api开始启动！");
         ac =SpringApplication.run(MarketingInnerApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {

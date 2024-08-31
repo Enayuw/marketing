@@ -194,11 +194,38 @@ api:
     isProxy: true
   qifu:
     baseUri: https://stg1-gws-bps-web.daikuan.360.cn
+    baseCuDongZhiUri: https://stg3-gws-bps-web.daikuan.360.cn
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
+    qrySleepUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
+    saveReachDeleteRecordCuDongZhiUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/agentOperationActSaveReachDeleteRecord
     qifuPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwQAaMvE6+7Wy+rf6jfW8OEKhGSmmg6LaiSLaTui3lBA4V4eqfQEpLfL8dGYYcakiH6CUAMPZ0jqNEN/En3Mtfclhr8903m/xG3IOUxhbqiVZBZmQ8esG6nP8MHsFWK2hMHN20xh0qKN6hg0BHQIIkbbnZjN9FGD/hz1t4NJvwIHxqJC+I3pRkCrC+SPWH5djzQdhYczgpyGwNqrGpg5dPibZJ+/qw15Va0vDBMp8cGad+Njcw5n7QcxBvSpViTYl704+wyohX36bF1CkrtfV6z1JnDqR+9KtEaRpfnUC/eh7gvltDbl/vTfeZLuShLs+/csgVshVIXEpL8g9uC0XOQIDAQAB"
     brPrivateKey: "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDdAO5CXKe5ugLICKdPeAXE7/4V484BPYdZVMoexCoWN7vwFV1dW8AyjsOYvvMOYSd/MOCqE0sK4CN/Tf857nalMqA5oU+MIEUkbb+KyXFXpNFi/LLi8FGGHQgTQFAS+Tikz1sHtYg3W8G7wQJsTDKXGQ7dEH9pJv3RbGZzQnTlzj/1brJ8uDGXYmKVPr2MbuOmtzCzzd9O0cPO1fEVwpnJbAUfQxZleMUL21OpkmTjqIBQfANf/24DjbJelZjRUA7YIR42XpxGXWeOlXR1D3jzIN0lguacwy+en3JvhbC62E6f04rzqs3TThlKxH4cjFZjOPvoGml2Z43S1k46lPjtAgMBAAECggEBANTyjKFM/iArZ3qvO+eK0qRMSxt0gY8YZk5hMNAsXBFEasaPD4NhYPRWM4n+k9yLKK+ZvSCjrm8wQYPs97wuVgwfl9tv32I5xeWwChwEtj2pBkjHDOc2gJclah6CnaVqlnXXhvMKq9ILi8UJ2PfZA/YrovLHbr03YOJl/OGaa2DxbIyDQsz8LH/4o7QLaRkAkwZw3egd/jepSB9hZwZ8NghkpqbSnRokjH+Rfx9b8uQ/MIqIfDXD8gMCALV+JFjG60mP/yGYS9xb1pHiW07M3QphYo8IV+X1YCnJ1nt7FrAQaPUIe+/zJhFsBM7EN6hX4RdqTacnpKZ0IfEOn/jU9YECgYEA9DLxbNPaAm5HnBA0tD7euFokyP9td8+EVhjeMPCZqPlVnWDm3c9bdrAWQbtwyMA0gvkcELtgFnPf0ICuV2FCKaTPtPa6C73ZR5ElBWkJ/pSbyYw8YGvN98Nh8xbEVqippN5Ypp8vQrZAT5A/qoekq0kYTS7Ymgqj7pq3xIPfHUUCgYEA568H8/qyhmrna84pAQf9gz3ln6EQWm/RfdOi+v42ZdL6sjmpHfT0VYaBuxc54D6OvhvPSoYizhZaHLuDnioaGwkDgducA057EIumDgn2Fvw1mUfcKymGngk4Z5GiWsFqJ66yO5X7ci/4JaD9rG8sKI0JKkhfhL0EyrzgWIykg4kCgYEAvy0eus9EDsEdSL2bNT0/Cd5wi/cEUVbhyLGhSXkjIxlIAHR7aU1L0qhaVE2VJ2Tp91tksGiw+gLvRoFne7sFnCqN/aNm1YhkkVW9QPYRv//B0tD595aOYhjRFwlM3ncekJcNmixnSHf78w3/+dZFgV8xKkOxiS8pVcREeBGxW20CgYBAbLuZbK0YE8ImiD1+u+oTBLNFoFQb0dw/UQqRIP+fcPulc8NDQUpwPeb1T5AYe0zWMIWEA6jKBg0o0DvZT3vS6L7A7YCEqt4ty6dxX/O+kIOXDBR9LB7y8z1sD2NGOWJ7hmipiRtStWQbkpj3yjJNVGqoB1gIYUdj2QHJndJhgQKBgQDTkCUFF0CgiBWUIyI96RkaSW/9/+3PAFojgHrbp93RLsW18j+YVZOyvQshhmNjlhEs2cONLYdNl5kPEi4yt/f8TrFbKBSgBlO0t9u0z0tAo+xfpocTzmYCw1eDnkXWxzZLwBSsB3Vkt7GJb11Uee7HW4MjHOTXuUvdQ8Alg+NXqw=="
     brPublicKey: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3QDuQlynuboCyAinT3gFxO/+FePOAT2HWVTKHsQqFje78BVdXVvAMo7DmL7zDmEnfzDgqhNLCuAjf03/Oe52pTKgOaFPjCBFJG2/islxV6TRYvyy4vBRhh0IE0BQEvk4pM9bB7WIN1vBu8ECbEwylxkO3RB/aSb90Wxmc0J05c4/9W6yfLgxl2JilT69jG7jprcws83fTtHDztXxFcKZyWwFH0MWZXjFC9tTqZJk46iAUHwDX/9uA42yXpWY0VAO2CEeNl6cRl1njpV0dQ948yDdJYLmnMMvnp9yb4WwuthOn9OK86rN004ZSsR+HIxWYzj76BppdmeN0tZOOpT47QIDAQAB"
     appId: "bairong"
+    isProxy: true
+  zhongyou:
+    baseUrl: https://alissl.youcash.com/facadeuat/outmarketing-fileserver/file/out
+    query: ${api.zhongyou.baseUrl}/query
+    download: ${api.zhongyou.baseUrl}/download
+    keyAlgorithm: RSA
+    signAlgorithms: SHA1WithRSA
+    aesKey: 3nbkz1h7kg7mueaq
+    aesIv: hfhogkpfypizg2gi
+    channelCode: BRYXkHIAvr0m2U0T
+    rsaPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhnl5uzpi0XZ2LIlc0C7kLe9JQ3v9els+K7WcsgRRrtszGCae6ko48NHf8xJvr8tWZqJf3P1YDzQe86pff9x7u6Xx4XqCbYIaH/DDsoXaZG+gvRtlRLDq5rXwncGFvx7lXAE/dOfyvK2OW7/bWbA9iZ5Za4mWKr3qwSHwOEptd93KPsvi5Xk0I8hcfik9BnTPds/P9nGNesHKk9E+Rt2GnPxa8h9aF8jFweie4MlaXzb3CkrM7vEaQZA+mwPTKvvYdCd20rIJmKwUMdG/k/KA80x3l6XwC5QCpa82AoBFVvUJyCXkxG9VRJ9q2nawLMiq6sES5Lq6sYIvu2O+b/z0DQIDAQAB
+    rsaPrivateKey: MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAr1BcLtKFLRQ92jl9mS4DyMyMOgYf0EZfmhE0R5WGs92XstydpUr8xVN5pwYkU3RNeKzNjXMR3K4aBksoren2mwIDAQABAkBc3ogGsbSkva1KVdwn8g1FKL472pStwynPtr9oEFisHJ024o7CJSHq6tqThFmNNg2vH9R1anILVC5JgfeRsWSBAiEA2t8fKnx5D41rywHyoSCBxhbokBS8qmO5O9PzSgEVPEECIQDNDavQZ5wTE151HkRXjlt12G5b+b/PVe3FC+p6MYCr2wIhAJ3/3/G9tW7iumPsXgiu/L/RHcWVErU2FCv6T3Cm43uBAiB37kYOh3r+oTZ+86vvNeEChQrPGrz4DH8b38NNosRqPwIgW8lPWHq4OlsW1G/KojSjigkRUtu2BEk+GJxW/aIYOrY=
+    isProxy: true
+  zhijia:
+    baseUri: https://openapi.autohome.com.cn/che168/apiclueopen
+    addC1HiqClueUrl: ${api.zhijia.baseUri}/CarEstimate/AddC1HiqClue.ashx
+    brandUrl: ${api.zhijia.baseUri}/public/getbrands.ashx
+    seriesUrl: ${api.zhijia.baseUri}/public/getseriesbybrandId.ashx
+    cityInfoUrl: ${api.zhijia.baseUri}/public/queryarea.ashx
+    getTokenUrl: https://openapi.autohome.com.cn/api/oauth2/authorize
+    zhiJiaClientId: JwpfGWx6hkxgIqUI7ncBjy0m7cQg1r39
+    zhiJiaClientSecret: pQDg3DG3qWfkIfDqH8NVLZnhBOvxJjlW
+    zhiJiaClientAppid: 1742
+    zhiJiaClientEncryption: wE2FKj/Vb10=
     isProxy: true
   tongchengAgentMkt:
     baseUrl: https://mns.qa.lylend.com

@@ -70,6 +70,12 @@ otherConfig:
     appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer
     destinationName: marketing_query_log
+  proxy:
+    proxy_host: squid-proxy2.brapp.com
+    proxy_port: 3128
+    proxy_username: bairong
+    proxy_password: Proxy_br
+    proxy_host_zw: 192.168.22.169
   #mom上传日志
   uploadMom:
     producerKey: marketing_api_upload_producer

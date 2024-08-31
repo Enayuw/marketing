@@ -57,6 +57,8 @@ public class RedisKeyConstant {
 
     public static final String conditionNumber = prefix.concat("conditionnumber");
 
+    public static final String decisionsNumber = prefix.concat("decisionsnumber");
+
     public static final String offLineLock = prefix.concat("offlinecallback");
 
     public static final String TASKSCORE_HXRESULTERROR = prefix.concat("taskscore:hxresult:error");
@@ -106,6 +108,10 @@ public class RedisKeyConstant {
      * 推送众安分发数据日志锁
      */
     public static final String PUSH_ZHONGAN_DISTRIBUTE_DATA_SLOE_LOCK = prefix.concat("zhongan:dributeData:cell");
+    /**
+     * 榕树推决策手机号去重加锁
+     */
+    public static final String RONG_SHU_PUSH_DECISION_LOCK = prefix.concat("rongshu:PushDecision:cell");
 
     /**
      * 宜信推送百应数据日志锁
@@ -116,6 +122,11 @@ public class RedisKeyConstant {
      * 宜信推送百应数据redis去重
      */
     public static final String YIXIN_TRANSFER_PUSH_BAIYING_REDIS_SLOE = prefix.concat("sole:redis");
+
+    /**
+     * 58新客提交营销名单去重锁
+     */
+    public static final String WUBA_SUBMIT_CONVERSION_DISTRIBUTE_DATA_SLOE_LOCK = prefix.concat("wuba:distributeData:cell");
 
     /**
      * 榕树推送人工Ibu手机号加锁  key
@@ -208,5 +219,36 @@ public class RedisKeyConstant {
      * 携程撞库releaseTime
      */
     public static final String XIECHENG_RELEASE_TIME = prefix.concat("xiecheng:releaseTime:");
+
+    /**
+     * 之家获取token
+     */
+    public static final String ZHIJIA_GET_TOKEN_KEY = prefix.concat("zhijia:get:token");
+
+    /**
+     * 之家获取token加锁key
+     */
+    public static final String ZHIJIA_GET_TOKEN_KEY_LOCK = prefix.concat("zhijia:get:token:lock");
+    /**
+     * 清洗流程任务锁
+     */
+    public static final String LOCK_KEY_CLEAN_DATA = prefix.concat("lock_key_clean_data_auto");
+
+    /**
+     * 携程剔除批次锁
+     */
+    public static final String XIECHENG_COLLIDING_DELETE = prefix.concat("xcCollidingDelete");
+
+    /**
+     * 携程清洗任务锁
+     */
+    public static final String XIECHENG_COLLIDING_CLEAN = prefix.concat("xcCollidingClean");
+
+    public static final String POLICY_BUILD_LOCK = prefix.concat("policy:build:lock:");
+    /**
+     * 跑分模型统计任务锁
+     */
+    public static final String SCORE_REPORT_TASK_LOCK = prefix.concat("score:report:task:lock:");
+
 
 }

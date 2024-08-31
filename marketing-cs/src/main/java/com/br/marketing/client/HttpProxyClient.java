@@ -3,6 +3,8 @@ package com.br.marketing.client;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.BrCipherMaker;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.mapper.InterfaceLogMapper;
@@ -19,11 +21,16 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.ClientContext;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.*;
+import org.apache.http.impl.client.BasicAuthCache;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -37,7 +44,14 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
@@ -217,7 +231,10 @@ public class HttpProxyClient {
                 StringBuilder paramStr = new StringBuilder();
                 BeanMap beanMap = BeanMap.create(param);
                 for (Object o : beanMap.keySet()) {
-                    paramStr.append(String.format("%s=%s&", o.toString(), URLEncoder.encode(beanMap.get(o).toString(), "utf-8")));
+                    Object value = beanMap.get(o);
+                    if (value != null) {
+                        paramStr.append(String.format("%s=%s&", o.toString(), URLEncoder.encode(beanMap.get(o).toString(), "utf-8")));
+                    }
                 }
                 interfaceLog.setRequestParam(paramStr.toString());
                 requestEntity = new StringEntity(paramStr.toString(), CHARSET_UTF8);
@@ -486,4 +503,39 @@ public class HttpProxyClient {
         }
         return mark;
     }
+
+    /**
+     * @description:get请求封装
+     * @author: zhen.Li1
+     * @time: 2024-07-11
+     */
+    public HashMap<String, String> get(String uri, Boolean isPorxy, String charset) {
+        HashMap<String, String> res = new HashMap<>();
+        HttpClient httpClient = getHttpClientInner(isPorxy);
+        if (StringUtils.isEmpty(charset)) {
+            charset = CHARSET_UTF8;
+        }
+        try {
+            HttpGet httpGet = new HttpGet(uri);
+            RequestConfig requestConfig = getRequestConfig(isPorxy, 10000, null);
+            httpGet.setConfig(requestConfig);
+            log.warn("请求url={},proxy={}", httpGet.getURI().toString(),isPorxy);
+            HttpResponse response = httpClient.execute(httpGet);
+            int statusCode = response.getStatusLine().getStatusCode();
+            res.put("httpcode", String.valueOf(statusCode));
+            //toString方法有坑，不能处理编码转换
+            //String result = EntityUtils.toString(response.getEntity(), CHARSET_UTF8);
+            byte[] responseBodyBytes = EntityUtils.toByteArray(response.getEntity());
+            String result = new String(responseBodyBytes, Charset.forName(charset));
+            res.put("content", result);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INTERFACE_ERROR.getCode(), "url=" + uri), e);
+            res.put("content", e.getMessage());
+        }
+        return res;
+    }
+
+
+
+
 }

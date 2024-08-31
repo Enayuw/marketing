@@ -1,50 +1,54 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.br.marketing.mapper.CustomerInfoPushMainMapperBase">
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerInfoPushMain">
-    <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="m_api_code" jdbcType="VARCHAR" property="mApiCode" />
-    <result column="m_model" jdbcType="VARCHAR" property="mModel" />
-    <result column="m_model_version" jdbcType="VARCHAR" property="mModelVersion" />
-    <result column="m_num_min" jdbcType="INTEGER" property="mNumMin" />
-    <result column="m_num_max" jdbcType="INTEGER" property="mNumMax" />
-    <result column="m_score_min" jdbcType="INTEGER" property="mScoreMin" />
-    <result column="m_score_max" jdbcType="INTEGER" property="mScoreMax" />
-    <result column="m_plan_num" jdbcType="INTEGER" property="mPlanNum" />
-    <result column="m_realy_num" jdbcType="INTEGER" property="mRealyNum" />
-    <result column="m_cus_batch_number_list" jdbcType="VARCHAR" property="mCusBatchNumberList" />
-    <result column="m_status" jdbcType="INTEGER" property="mStatus" />
-    <result column="is_del" jdbcType="INTEGER" property="isDel" />
-    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-    <result column="finish_time" jdbcType="TIMESTAMP" property="finishTime" />
-    <result column="m_rule_condition" jdbcType="VARCHAR" property="mRuleCondition" />
-    <result column="m_rule_condition_show" jdbcType="VARCHAR" property="mRuleConditionShow" />
-    <result column="m_percentage" jdbcType="DECIMAL" property="mPercentage" />
-    <result column="opt_user_id" jdbcType="VARCHAR" property="optUserId" />
-    <result column="opt_user_name" jdbcType="VARCHAR" property="optUserName" />
-    <result column="filter_type" jdbcType="INTEGER" property="filterType" />
-    <result column="extend" jdbcType="VARCHAR" property="extend" />
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CustomerInfoPushMainMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.CustomerInfoPushMain" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="m_api_code" property="mApiCode" jdbcType="VARCHAR" />
+    <result column="m_model" property="mModel" jdbcType="VARCHAR" />
+    <result column="m_model_version" property="mModelVersion" jdbcType="VARCHAR" />
+    <result column="m_num_min" property="mNumMin" jdbcType="INTEGER" />
+    <result column="m_num_max" property="mNumMax" jdbcType="INTEGER" />
+    <result column="m_score_min" property="mScoreMin" jdbcType="INTEGER" />
+    <result column="m_score_max" property="mScoreMax" jdbcType="INTEGER" />
+    <result column="m_plan_num" property="mPlanNum" jdbcType="INTEGER" />
+    <result column="m_realy_num" property="mRealyNum" jdbcType="INTEGER" />
+    <result column="m_cus_batch_number_list" property="mCusBatchNumberList" jdbcType="VARCHAR" />
+    <result column="m_status" property="mStatus" jdbcType="INTEGER" />
+    <result column="is_del" property="isDel" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="finish_time" property="finishTime" jdbcType="TIMESTAMP" />
+    <result column="m_rule_condition" property="mRuleCondition" jdbcType="VARCHAR" />
+    <result column="m_rule_condition_show" property="mRuleConditionShow" jdbcType="VARCHAR" />
+    <result column="m_percentage" property="mPercentage" jdbcType="DECIMAL" />
+    <result column="opt_user_id" property="optUserId" jdbcType="VARCHAR" />
+    <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
+    <result column="filter_type" property="filterType" jdbcType="INTEGER" />
+    <result column="batch_name" property="batchName" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="source_type" property="sourceType" jdbcType="INTEGER" />
+    <result column="build_type" property="buildType" jdbcType="INTEGER" />
+    <result column="strategy_code" property="strategyCode" jdbcType="VARCHAR" />
   </resultMap>
-  <sql id="Example_Where_Clause">
-    <where>
-      <foreach collection="oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -55,25 +59,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause">
-    <where>
-      <foreach collection="example.oredCriteria" item="criteria" separator="or">
-        <if test="criteria.valid">
-          <trim prefix="(" prefixOverrides="and" suffix=")">
-            <foreach collection="criteria.criteria" item="criterion">
-              <choose>
-                <when test="criterion.noValue">
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue">
+                <when test="criterion.singleValue" >
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue">
+                <when test="criterion.betweenValue" >
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue">
+                <when test="criterion.listValue" >
                   and ${criterion.condition}
-                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
                     #{listItem}
                   </foreach>
                 </when>
@@ -84,43 +88,47 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List">
+  <sql id="Base_Column_List" >
     id, m_api_code, m_model, m_model_version, m_num_min, m_num_max, m_score_min, m_score_max, 
     m_plan_num, m_realy_num, m_cus_batch_number_list, m_status, is_del, create_time, 
     update_time, finish_time, m_rule_condition, m_rule_condition_show, m_percentage, 
-    opt_user_id, opt_user_name, filter_type, extend
+    opt_user_id, opt_user_name, filter_type, batch_name, extend, source_type, build_type, 
+    strategy_code
   </sql>
-  <select id="selectByExample" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" resultMap="BaseResultMap">
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" >
     select
-    <if test="distinct">
+    <if test="distinct" >
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_customer_info_push_main
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null">
+    <if test="orderByClause != null" >
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
     from b_customer_info_push_main
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from b_customer_info_push_main
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample">
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" >
     delete from b_customer_info_push_main
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CustomerInfoPushMain" useGeneratedKeys="true">
+  <insert id="insert" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_customer_info_push_main (m_api_code, m_model, m_model_version, 
       m_num_min, m_num_max, m_score_min, 
       m_score_max, m_plan_num, m_realy_num, 
@@ -128,7 +136,8 @@
       create_time, update_time, finish_time, 
       m_rule_condition, m_rule_condition_show, m_percentage, 
       opt_user_id, opt_user_name, filter_type, 
-      extend)
+      batch_name, extend, source_type, 
+      build_type, strategy_code)
     values (#{mApiCode,jdbcType=VARCHAR}, #{mModel,jdbcType=VARCHAR}, #{mModelVersion,jdbcType=VARCHAR}, 
       #{mNumMin,jdbcType=INTEGER}, #{mNumMax,jdbcType=INTEGER}, #{mScoreMin,jdbcType=INTEGER}, 
       #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER}, 
@@ -136,231 +145,271 @@
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP}, 
       #{mRuleCondition,jdbcType=VARCHAR}, #{mRuleConditionShow,jdbcType=VARCHAR}, #{mPercentage,jdbcType=DECIMAL}, 
       #{optUserId,jdbcType=VARCHAR}, #{optUserName,jdbcType=VARCHAR}, #{filterType,jdbcType=INTEGER}, 
-      #{extend,jdbcType=VARCHAR})
+      #{batchName,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{sourceType,jdbcType=INTEGER}, 
+      #{buildType,jdbcType=INTEGER}, #{strategyCode,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.CustomerInfoPushMain" useGeneratedKeys="true">
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
     insert into b_customer_info_push_main
-    <trim prefix="(" suffix=")" suffixOverrides=",">
-      <if test="mApiCode != null">
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="mApiCode != null" >
         m_api_code,
       </if>
-      <if test="mModel != null">
+      <if test="mModel != null" >
         m_model,
       </if>
-      <if test="mModelVersion != null">
+      <if test="mModelVersion != null" >
         m_model_version,
       </if>
-      <if test="mNumMin != null">
+      <if test="mNumMin != null" >
         m_num_min,
       </if>
-      <if test="mNumMax != null">
+      <if test="mNumMax != null" >
         m_num_max,
       </if>
-      <if test="mScoreMin != null">
+      <if test="mScoreMin != null" >
         m_score_min,
       </if>
-      <if test="mScoreMax != null">
+      <if test="mScoreMax != null" >
         m_score_max,
       </if>
-      <if test="mPlanNum != null">
+      <if test="mPlanNum != null" >
         m_plan_num,
       </if>
-      <if test="mRealyNum != null">
+      <if test="mRealyNum != null" >
         m_realy_num,
       </if>
-      <if test="mCusBatchNumberList != null">
+      <if test="mCusBatchNumberList != null" >
         m_cus_batch_number_list,
       </if>
-      <if test="mStatus != null">
+      <if test="mStatus != null" >
         m_status,
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         is_del,
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time,
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time,
       </if>
-      <if test="finishTime != null">
+      <if test="finishTime != null" >
         finish_time,
       </if>
-      <if test="mRuleCondition != null">
+      <if test="mRuleCondition != null" >
         m_rule_condition,
       </if>
-      <if test="mRuleConditionShow != null">
+      <if test="mRuleConditionShow != null" >
         m_rule_condition_show,
       </if>
-      <if test="mPercentage != null">
+      <if test="mPercentage != null" >
         m_percentage,
       </if>
-      <if test="optUserId != null">
+      <if test="optUserId != null" >
         opt_user_id,
       </if>
-      <if test="optUserName != null">
+      <if test="optUserName != null" >
         opt_user_name,
       </if>
-      <if test="filterType != null">
+      <if test="filterType != null" >
         filter_type,
       </if>
-      <if test="extend != null">
+      <if test="batchName != null" >
+        batch_name,
+      </if>
+      <if test="extend != null" >
         extend,
       </if>
+      <if test="sourceType != null" >
+        source_type,
+      </if>
+      <if test="buildType != null" >
+        build_type,
+      </if>
+      <if test="strategyCode != null" >
+        strategy_code,
+      </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides=",">
-      <if test="mApiCode != null">
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="mApiCode != null" >
         #{mApiCode,jdbcType=VARCHAR},
       </if>
-      <if test="mModel != null">
+      <if test="mModel != null" >
         #{mModel,jdbcType=VARCHAR},
       </if>
-      <if test="mModelVersion != null">
+      <if test="mModelVersion != null" >
         #{mModelVersion,jdbcType=VARCHAR},
       </if>
-      <if test="mNumMin != null">
+      <if test="mNumMin != null" >
         #{mNumMin,jdbcType=INTEGER},
       </if>
-      <if test="mNumMax != null">
+      <if test="mNumMax != null" >
         #{mNumMax,jdbcType=INTEGER},
       </if>
-      <if test="mScoreMin != null">
+      <if test="mScoreMin != null" >
         #{mScoreMin,jdbcType=INTEGER},
       </if>
-      <if test="mScoreMax != null">
+      <if test="mScoreMax != null" >
         #{mScoreMax,jdbcType=INTEGER},
       </if>
-      <if test="mPlanNum != null">
+      <if test="mPlanNum != null" >
         #{mPlanNum,jdbcType=INTEGER},
       </if>
-      <if test="mRealyNum != null">
+      <if test="mRealyNum != null" >
         #{mRealyNum,jdbcType=INTEGER},
       </if>
-      <if test="mCusBatchNumberList != null">
+      <if test="mCusBatchNumberList != null" >
         #{mCusBatchNumberList,jdbcType=VARCHAR},
       </if>
-      <if test="mStatus != null">
+      <if test="mStatus != null" >
         #{mStatus,jdbcType=INTEGER},
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="finishTime != null">
+      <if test="finishTime != null" >
         #{finishTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="mRuleCondition != null">
+      <if test="mRuleCondition != null" >
         #{mRuleCondition,jdbcType=VARCHAR},
       </if>
-      <if test="mRuleConditionShow != null">
+      <if test="mRuleConditionShow != null" >
         #{mRuleConditionShow,jdbcType=VARCHAR},
       </if>
-      <if test="mPercentage != null">
+      <if test="mPercentage != null" >
         #{mPercentage,jdbcType=DECIMAL},
       </if>
-      <if test="optUserId != null">
+      <if test="optUserId != null" >
         #{optUserId,jdbcType=VARCHAR},
       </if>
-      <if test="optUserName != null">
+      <if test="optUserName != null" >
         #{optUserName,jdbcType=VARCHAR},
       </if>
-      <if test="filterType != null">
+      <if test="filterType != null" >
         #{filterType,jdbcType=INTEGER},
       </if>
-      <if test="extend != null">
+      <if test="batchName != null" >
+        #{batchName,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceType != null" >
+        #{sourceType,jdbcType=INTEGER},
+      </if>
+      <if test="buildType != null" >
+        #{buildType,jdbcType=INTEGER},
+      </if>
+      <if test="strategyCode != null" >
+        #{strategyCode,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" resultType="java.lang.Long">
+  <select id="countByExample" parameterType="com.br.marketing.entity.CustomerInfoPushMainExample" resultType="java.lang.Integer" >
     select count(*) from b_customer_info_push_main
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map">
+  <update id="updateByExampleSelective" parameterType="map" >
     update b_customer_info_push_main
-    <set>
-      <if test="record.id != null">
+    <set >
+      <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.mApiCode != null">
+      <if test="record.mApiCode != null" >
         m_api_code = #{record.mApiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.mModel != null">
+      <if test="record.mModel != null" >
         m_model = #{record.mModel,jdbcType=VARCHAR},
       </if>
-      <if test="record.mModelVersion != null">
+      <if test="record.mModelVersion != null" >
         m_model_version = #{record.mModelVersion,jdbcType=VARCHAR},
       </if>
-      <if test="record.mNumMin != null">
+      <if test="record.mNumMin != null" >
         m_num_min = #{record.mNumMin,jdbcType=INTEGER},
       </if>
-      <if test="record.mNumMax != null">
+      <if test="record.mNumMax != null" >
         m_num_max = #{record.mNumMax,jdbcType=INTEGER},
       </if>
-      <if test="record.mScoreMin != null">
+      <if test="record.mScoreMin != null" >
         m_score_min = #{record.mScoreMin,jdbcType=INTEGER},
       </if>
-      <if test="record.mScoreMax != null">
+      <if test="record.mScoreMax != null" >
         m_score_max = #{record.mScoreMax,jdbcType=INTEGER},
       </if>
-      <if test="record.mPlanNum != null">
+      <if test="record.mPlanNum != null" >
         m_plan_num = #{record.mPlanNum,jdbcType=INTEGER},
       </if>
-      <if test="record.mRealyNum != null">
+      <if test="record.mRealyNum != null" >
         m_realy_num = #{record.mRealyNum,jdbcType=INTEGER},
       </if>
-      <if test="record.mCusBatchNumberList != null">
+      <if test="record.mCusBatchNumberList != null" >
         m_cus_batch_number_list = #{record.mCusBatchNumberList,jdbcType=VARCHAR},
       </if>
-      <if test="record.mStatus != null">
+      <if test="record.mStatus != null" >
         m_status = #{record.mStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.isDel != null">
+      <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
-      <if test="record.createTime != null">
+      <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null">
+      <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.finishTime != null">
+      <if test="record.finishTime != null" >
         finish_time = #{record.finishTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.mRuleCondition != null">
+      <if test="record.mRuleCondition != null" >
         m_rule_condition = #{record.mRuleCondition,jdbcType=VARCHAR},
       </if>
-      <if test="record.mRuleConditionShow != null">
+      <if test="record.mRuleConditionShow != null" >
         m_rule_condition_show = #{record.mRuleConditionShow,jdbcType=VARCHAR},
       </if>
-      <if test="record.mPercentage != null">
+      <if test="record.mPercentage != null" >
         m_percentage = #{record.mPercentage,jdbcType=DECIMAL},
       </if>
-      <if test="record.optUserId != null">
+      <if test="record.optUserId != null" >
         opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
       </if>
-      <if test="record.optUserName != null">
+      <if test="record.optUserName != null" >
         opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
       </if>
-      <if test="record.filterType != null">
+      <if test="record.filterType != null" >
         filter_type = #{record.filterType,jdbcType=INTEGER},
       </if>
-      <if test="record.extend != null">
+      <if test="record.batchName != null" >
+        batch_name = #{record.batchName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
+      <if test="record.sourceType != null" >
+        source_type = #{record.sourceType,jdbcType=INTEGER},
+      </if>
+      <if test="record.buildType != null" >
+        build_type = #{record.buildType,jdbcType=INTEGER},
+      </if>
+      <if test="record.strategyCode != null" >
+        strategy_code = #{record.strategyCode,jdbcType=VARCHAR},
+      </if>
     </set>
-    <if test="_parameter != null">
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map">
+  <update id="updateByExample" parameterType="map" >
     update b_customer_info_push_main
     set id = #{record.id,jdbcType=BIGINT},
       m_api_code = #{record.mApiCode,jdbcType=VARCHAR},
@@ -384,84 +433,100 @@
       opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
       opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
       filter_type = #{record.filterType,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR}
-    <if test="_parameter != null">
+      batch_name = #{record.batchName,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      source_type = #{record.sourceType,jdbcType=INTEGER},
+      build_type = #{record.buildType,jdbcType=INTEGER},
+      strategy_code = #{record.strategyCode,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain">
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
     update b_customer_info_push_main
-    <set>
-      <if test="mApiCode != null">
+    <set >
+      <if test="mApiCode != null" >
         m_api_code = #{mApiCode,jdbcType=VARCHAR},
       </if>
-      <if test="mModel != null">
+      <if test="mModel != null" >
         m_model = #{mModel,jdbcType=VARCHAR},
       </if>
-      <if test="mModelVersion != null">
+      <if test="mModelVersion != null" >
         m_model_version = #{mModelVersion,jdbcType=VARCHAR},
       </if>
-      <if test="mNumMin != null">
+      <if test="mNumMin != null" >
         m_num_min = #{mNumMin,jdbcType=INTEGER},
       </if>
-      <if test="mNumMax != null">
+      <if test="mNumMax != null" >
         m_num_max = #{mNumMax,jdbcType=INTEGER},
       </if>
-      <if test="mScoreMin != null">
+      <if test="mScoreMin != null" >
         m_score_min = #{mScoreMin,jdbcType=INTEGER},
       </if>
-      <if test="mScoreMax != null">
+      <if test="mScoreMax != null" >
         m_score_max = #{mScoreMax,jdbcType=INTEGER},
       </if>
-      <if test="mPlanNum != null">
+      <if test="mPlanNum != null" >
         m_plan_num = #{mPlanNum,jdbcType=INTEGER},
       </if>
-      <if test="mRealyNum != null">
+      <if test="mRealyNum != null" >
         m_realy_num = #{mRealyNum,jdbcType=INTEGER},
       </if>
-      <if test="mCusBatchNumberList != null">
+      <if test="mCusBatchNumberList != null" >
         m_cus_batch_number_list = #{mCusBatchNumberList,jdbcType=VARCHAR},
       </if>
-      <if test="mStatus != null">
+      <if test="mStatus != null" >
         m_status = #{mStatus,jdbcType=INTEGER},
       </if>
-      <if test="isDel != null">
+      <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null">
+      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null">
+      <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="finishTime != null">
+      <if test="finishTime != null" >
         finish_time = #{finishTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="mRuleCondition != null">
+      <if test="mRuleCondition != null" >
         m_rule_condition = #{mRuleCondition,jdbcType=VARCHAR},
       </if>
-      <if test="mRuleConditionShow != null">
+      <if test="mRuleConditionShow != null" >
         m_rule_condition_show = #{mRuleConditionShow,jdbcType=VARCHAR},
       </if>
-      <if test="mPercentage != null">
+      <if test="mPercentage != null" >
         m_percentage = #{mPercentage,jdbcType=DECIMAL},
       </if>
-      <if test="optUserId != null">
+      <if test="optUserId != null" >
         opt_user_id = #{optUserId,jdbcType=VARCHAR},
       </if>
-      <if test="optUserName != null">
+      <if test="optUserName != null" >
         opt_user_name = #{optUserName,jdbcType=VARCHAR},
       </if>
-      <if test="filterType != null">
+      <if test="filterType != null" >
         filter_type = #{filterType,jdbcType=INTEGER},
       </if>
-      <if test="extend != null">
+      <if test="batchName != null" >
+        batch_name = #{batchName,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="sourceType != null" >
+        source_type = #{sourceType,jdbcType=INTEGER},
+      </if>
+      <if test="buildType != null" >
+        build_type = #{buildType,jdbcType=INTEGER},
+      </if>
+      <if test="strategyCode != null" >
+        strategy_code = #{strategyCode,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerInfoPushMain">
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.CustomerInfoPushMain" >
     update b_customer_info_push_main
     set m_api_code = #{mApiCode,jdbcType=VARCHAR},
       m_model = #{mModel,jdbcType=VARCHAR},
@@ -484,7 +549,11 @@
       opt_user_id = #{optUserId,jdbcType=VARCHAR},
       opt_user_name = #{optUserName,jdbcType=VARCHAR},
       filter_type = #{filterType,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR}
+      batch_name = #{batchName,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      source_type = #{sourceType,jdbcType=INTEGER},
+      build_type = #{buildType,jdbcType=INTEGER},
+      strategy_code = #{strategyCode,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

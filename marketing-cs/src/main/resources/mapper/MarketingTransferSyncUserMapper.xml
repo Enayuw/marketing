@@ -254,19 +254,6 @@
         left join b_marketing_transfer_sync_${cid} b on a.cust_num = b.cust_num and a.request_time = b.request_time
     </select>
 
-    <select id="findShuHeTransferList" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
-        select t1.* from b_marketing_transfer_sync_${tCid} t1 , (select id from b_marketing_transfer_sync_${tCid} where
-        <choose>
-            <when test="sqlPart != null and sqlPart.trim() neq ''">
-                ${sqlPart}
-            </when>
-            <otherwise>
-                1!=1
-            </otherwise>
-        </choose>
-        ) t2 where t1.id = t2.id
-    </select>
-
     <select id="getTransferByApiCodeAndCreateTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from
         b_marketing_transfer_sync_${tCid}
@@ -642,7 +629,7 @@
 
     <select id="getRongShuTransferDatatikv_" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select duplicate.*
-        from (select *, row_number() over (partition by cust_num order by request_time desc ) as row_num
+        from (select *, row_number() over (partition by cust_num order by insert_time desc ) as row_num
         from b_marketing_transfer_sync_${tCid} a
         where a.api_code = #{apiCode}
         and a.request_data = #{requestDate}
@@ -1072,4 +1059,209 @@
         </if>
         order by id asc limit #{pageSize}
     </select>
+
+    <select id="selectFullTransferWithValid" resultType="java.util.Map">
+        select transfer.id as id,
+               transfer.cust_num as custNum,
+               transfer.apply_dt as applyDt ,
+               transfer.apply_result as applyResult,
+               transfer.login_time as loginTime,
+               transfer.request_time as requestTime,
+               transfer.user_type as userType,
+               sync.cus_batch as taskId,
+               sync.reserve_field1 as reserveField1
+        from
+            (select id,
+                   cust_num,
+                   apply_dt,
+                   apply_result,
+                   login_time,
+                   request_time,
+                   user_type
+            from b_marketing_transfer_sync_${transferSyncUser.tCid}
+            where api_code = #{transferSyncUser.apiCode}
+                <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
+                    AND id >= #{transferSyncUser.id}
+                </if>
+            order by id asc limit 2000) transfer
+            left join b_marketing_sync_${transferSyncUser.apiCode} sync
+                on transfer.cust_num = sync.cust_num and transfer.user_type = sync.user_type
+    </select>
+
+    <select id="selectTransferWithValid" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select id, cust_num, apply_dt, apply_result, login_time, request_time, user_type
+        from b_marketing_transfer_sync_${transferSyncUser.tCid}
+        where
+        <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+            api_code=#{transferSyncUser.apiCode}
+        </if>
+        <![CDATA[ and request_data >= #{startDate}  and  request_data <= #{endDate} ]]>
+        <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
+            AND id >= #{transferSyncUser.id}
+        </if>
+        order by id asc limit 2000
+    </select>
+
+    <select id="selectTransferWithValidtiflash_" resultType="java.util.Map">
+        select transfer.id as id,
+               transfer.cust_num as custNum,
+               transfer.apply_dt as applyDt ,
+               transfer.apply_result as applyResult,
+               transfer.login_time as loginTime,
+               transfer.request_time as requestTime,
+               transfer.user_type as userType,
+               sync.cus_batch as taskId,
+               config.valid_end_date as expireDate,
+               config.valid_start_date as effectiveDate
+        from b_marketing_transfer_sync_${transferSyncUser.tCid} transfer
+            inner join b_marketing_sync_${transferSyncUser.apiCode} sync
+                on transfer.cust_num = sync.cust_num
+            inner join b_marketing_customize_data_valid_config config
+                on sync.user_type = config.user_type
+                and sync.cus_batch = config.task_id
+                and sync.applet_date = config.applet_date
+        where
+            <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
+                transfer.id >= #{transferSyncUser.id} and
+            </if>
+            transfer.api_code = #{transferSyncUser.apiCode}
+            and <![CDATA[config.valid_start_date <= #{transferSyncUser.requestData}
+            and config.valid_end_date >= #{transferSyncUser.requestData}]]>
+        order by id asc limit #{pageSize}
+    </select>
+
+    <select id="selectTransferByWbxc" resultType="java.util.Map">
+        select id as id,
+               cust_num as custNum,
+               user_type as userType,
+               login_time as loginTime,
+               apply_dt as applyDt ,
+               apply_result as applyResult,
+               audit_time as auditTime,
+               lent_time as lentTime,
+               lent_amount as lentAmount,
+               reserve_field1 as reserveField1
+        from b_marketing_transfer_sync_${transferSyncUser.tCid} transfer
+        where
+        <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
+            id >= #{transferSyncUser.id} and
+        </if>
+            transfer.api_code = #{transferSyncUser.apiCode}
+        order by id asc limit #{pageSize}
+    </select>
+
+
+    <select id="selectByExampleAndMaxIdList" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.MarketingTransferSyncUserExample">
+        select
+        <if test="example.distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_marketing_transfer_sync_${example.tCid}
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause_1"/>
+        </if>
+        <if test="maxId != null and maxId>0">
+            and id>${maxId}
+        </if>
+        <choose>
+            <when test="example.orderByClause != null">
+                order by id,'${orderByClause}'
+            </when>
+            <otherwise>
+                order by id
+            </otherwise>
+        </choose>
+        <if test="limit>0">
+            limit ${limit}
+        </if>
+    </select>
+
+    <select id="selectTransferWithValidByCelltiflash_" resultType="java.util.Map">
+        select transfer.id as id,
+               transfer.cust_num as custNum,
+               transfer.apply_dt as applyDt ,
+               transfer.apply_result as applyResult,
+               transfer.login_time as loginTime,
+               transfer.request_time as requestTime,
+               transfer.user_type as userType,
+               sync.cus_batch as taskId,
+               config.valid_end_date as expireDate,
+               config.valid_start_date as effectiveDate
+        from b_marketing_transfer_sync_${transferSyncUser.tCid} transfer
+            inner join b_marketing_sync_${transferSyncUser.apiCode} sync
+                on transfer.cust_num = sync.cell_md5
+            inner join b_marketing_customize_data_valid_config config
+                on sync.user_type = config.user_type
+                and sync.cus_batch = config.task_id
+                and sync.applet_date = config.applet_date
+        where
+        <if test="transferSyncUser.id != null and transferSyncUser.id > 0">
+            transfer.id >= #{transferSyncUser.id} and
+        </if>
+        transfer.api_code = #{transferSyncUser.apiCode}
+        and <![CDATA[config.valid_start_date <= #{transferSyncUser.requestData}
+        and config.valid_end_date >= #{transferSyncUser.requestData}]]>
+        order by id asc limit #{pageSize}
+    </select>
+
+
+    <select id="getTransferCustNumByConditiontikv_" resultType="java.lang.String">
+        select distinct cust_num
+        from b_marketing_transfer_sync_${tCid}
+        <where>
+            api_code = #{apiCode}
+            and cust_num in
+            <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+                #{custNum}
+            </foreach>
+            <if test="requestStartDate != null and requestStartDate!='' and requestEndDate !=null and requestEndDate !=''">
+                and <![CDATA[ request_data >= #{requestStartDate} and request_data <= #{requestEndDate}]]>
+            </if>
+            <if test="userType != null">
+                AND user_type =#{userType}
+            </if>
+            and ${querySql}
+        </where>
+    </select>
+
+    <select id="maxId" resultType="java.lang.Long">
+        SELECT
+        max(id) as id
+        FROM
+        b_marketing_transfer_sync_${tCid}
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        request_data = #{requestDate}
+    </select>
+
+    <select id="minId" resultType="java.lang.Long">
+        SELECT
+        min(id) as id
+        FROM
+        b_marketing_transfer_sync_${tCid}
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        request_data = #{requestDate}
+    </select>
+
+    <select id="getTransferBySyncUser" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from b_marketing_transfer_sync_${transferSyncUser.tCid}
+        where
+            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+                api_code=#{transferSyncUser.apiCode}
+            </if>
+            <if test="transferSyncUser.requestData != null and transferSyncUser.requestData.trim() neq ''">
+                AND request_data=#{transferSyncUser.requestData}
+            </if>
+        <![CDATA[ and id >= #{beginId} and id < #{endId} ]]>
+        order by id
+    </select>
+
+
 </mapper>

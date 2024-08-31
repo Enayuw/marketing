@@ -1,38 +1,28 @@
 package com.br.marketing.service.Impl.xc;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.XieChengCollidingDataPackageExample;
-import com.br.marketing.entity.XieChengCollidingDataRob;
-import com.br.marketing.entity.XieChengRuleScoreData;
-import com.br.marketing.entity.XiechengCollidingDataPackageRule;
-import com.br.marketing.entity.XiechengCollidingDataProcessTask;
-import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
-import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
-import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
-import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import com.br.marketing.mapper.XieChengRuleScoreRecordMapper;
-import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
-import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.XiechengCollidingTaskBatchVo;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -61,61 +51,349 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     XieChengCollidingDataPackageMapper packageMapper;
     @Resource
     XiechengCollidingDataPackageRuleMapper packageRuleMapper;
+    @Resource
+    XiechengCollidingTaskBatchMapper taskBatchMapper;
     @Autowired
     private DingDingRobotHookService dingDingRobotHookService;
+    @Autowired
+    RedisChgService redisChgService;
+
+    private final static int PAGE_SIZE = 10000;
+
+    private final static int PARTATION_SIZE = 2000;
 
     @Override
     public void process() {
-        LocalDate localDate = LocalDate.now();
-        Date nowDate = Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
-
-        marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apicode) -> {
-            // 获取当天待执行的清洗任务id
-            List<XiechengCollidingDataProcessTask> taskList = getXiechengCollidingDataProcessTasks(apicode, nowDate);
-            List<Long> newTaskIds = taskList.stream().map(XiechengCollidingDataProcessTask::getId).collect(Collectors.toList());
-
-            if (CollectionUtils.isEmpty(taskList)) {
+        marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) -> {
+            //1.创建线程池
+            ThreadPoolExecutor threadPool = getThreadPoolExecutor();
+            //2.剔除流程
+            deleteProcess(apiCode, threadPool);
+            //3.当天所有剔除task是否全部剔除完成
+            if (!queryDeletingTaskCount(apiCode)) {
+                threadPoolShutDown(threadPool);
                 return;
             }
-
-            // 创建线程池
-            Integer threadPoolSize = marketingCommonConfig.getXieChengCollidingDataProcessThread();
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
-
-            taskList.forEach((XiechengCollidingDataProcessTask task) -> {
-                // 修改任务状态：task_status=1(任务执行中)
-                updateTaskStatus(task);
-
-                // 执行数据处理
-                int actualNumber = doProcess(task, newTaskIds, threadPool);
-
-                // 更新任务状态和实际数据量级：task_status=2(任务执行完成)
-                updateTaskStatusAndActualNumber(task, actualNumber);
-            });
-
-            // 关闭线程池
+            //4.清洗流程
+            cleanProcess(apiCode, threadPool);
             threadPoolShutDown(threadPool);
         });
     }
 
-    private int doProcess(XiechengCollidingDataProcessTask task, List<Long> newTaskIds, ThreadPoolExecutor threadPool) {
-        // False数据清洗
-        if (task.getTaskType() == 0) {
-            // 根据taskId获取package
-            List<XieChengCollidingDataPackage> packages = getPackageByTaskId(task);
-            if (CollectionUtils.isEmpty(packages)) {
-                return 0;
+    /**
+     * @description 清洗流程
+     * @param apiCode
+     * @param threadPool
+     * @return void
+     * @author hedongshuo
+     * @date 2024/8/8 14:43
+     **/
+    private void cleanProcess(String apiCode, ThreadPoolExecutor threadPool) {
+        String key = RedisKeyConstant.XIECHENG_COLLIDING_CLEAN.concat(":").concat(apiCode);
+        String lockValue = UUID.randomUUID().toString();
+        try {
+            boolean lock = redisChgService.lock(key, lockValue, 5000L);
+            if (lock) {
+                if (queryUnCleanedTaskCount(apiCode)) {
+                    //更新当日清洗task的status=1
+                    updateTaskToCleaning(apiCode);
+                    redisChgService.unlock(key, lockValue);
+                    //清洗逻辑
+                    cleanProcessForTasks(apiCode, threadPool);
+                } else {
+                    redisChgService.unlock(key, lockValue);
+                }
             }
-
-            return cleanFalseData(task, packages, newTaskIds, threadPool);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程清洗抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
+            redisChgService.unlock(key, lockValue);
         }
+    }
 
-        // TRUE数据剔除
-        if (task.getTaskType() == 1) {
-            return deleteTrueData(task, threadPool);
+    /**
+     * @description 清洗逻辑
+     * @param apiCode
+     * @param threadPool
+     * @return void
+     * @author hedongshuo
+     * @date 2024/8/8 17:28
+     **/
+    private void cleanProcessForTasks(String apiCode, ThreadPoolExecutor threadPool) {
+        List<XiechengCollidingDataProcessTask> taskList = queryCleanTasks(apiCode);
+        List<Long> newTaskIds = taskList.stream().map(XiechengCollidingDataProcessTask::getId).collect(Collectors.toList());
+        taskList.forEach((XiechengCollidingDataProcessTask task) -> {
+            cleanForTask(task, newTaskIds, threadPool);
+        });
+    }
+
+    /**
+     * @description 单条task清洗
+     * @param task
+     * @param newTaskIds
+     * @param threadPool
+     * @return void
+     * @author hedongshuo
+     * @date 2024/8/8 17:51
+     **/
+    private void cleanForTask(XiechengCollidingDataProcessTask task, List<Long> newTaskIds, ThreadPoolExecutor threadPool) {
+        int actualNumber = 0;
+        List<XieChengCollidingDataPackage> packages = getPackageByTaskId(task);
+        if (!CollectionUtils.isEmpty(packages)) {
+            actualNumber = cleanFalseData(task, packages, newTaskIds, threadPool);
         }
+        updateTaskStatusAndActualNumber(task, actualNumber);
+    }
 
-        return 0;
+    /**
+     * @description 查询当日所有清洗task
+     * @param apiCode
+     * @return java.util.List<com.br.marketing.entity.XiechengCollidingDataProcessTask>
+     * @author hedongshuo
+     * @date 2024/8/8 17:32
+     **/
+    private List<XiechengCollidingDataProcessTask> queryCleanTasks(String apiCode) {
+        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
+        processTaskExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskTypeEqualTo(0)
+                .andTaskStatusEqualTo(1);
+        processTaskExample.setOrderByClause("create_time asc");
+        List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(processTaskExample);
+        return taskList;
+    }
+
+    /**
+     * @description
+     * @param apiCode
+     * @return void
+     * @author hedongshuo
+     * @date 2024/8/8 17:20
+     **/
+    private void updateTaskToCleaning(String apiCode) {
+        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
+        processTaskExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskTypeEqualTo(0)
+                .andTaskStatusEqualTo(0);
+        XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
+        processTask.setTaskStatus(1);
+        processTask.setUpdateTime(new Date());
+        taskMapper.updateByExampleSelective(processTask, processTaskExample);
+    }
+
+    /**
+     * @description 查询当日有无status=0的清洗task
+     * @param apiCode
+     * @return boolean
+     * @author hedongshuo
+     * @date 2024/8/8 17:20
+     **/
+    private boolean queryUnCleanedTaskCount(String apiCode) {
+        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
+        processTaskExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskTypeEqualTo(0)
+                .andTaskStatusEqualTo(0);
+        int unCleanedTaskCount = taskMapper.countByExample(processTaskExample);
+        if (unCleanedTaskCount > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @description 当天所有剔除task是否全部剔除完成
+     * @param apiCode
+     * @return void
+     * @author hedongshuo
+     * @date 2024/8/8 14:33
+     **/
+    private boolean queryDeletingTaskCount(String apiCode) {
+        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
+        processTaskExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskTypeEqualTo(1)
+                .andTaskStatusNotEqualTo(2);
+        int deletingTaskCount = taskMapper.countByExample(processTaskExample);
+        if (deletingTaskCount > 0) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @description 获取当天0时，精确到秒
+     * @return java.util.Date
+     * @author hedongshuo
+     * @date 2024/8/7 20:53
+     **/
+    private static Date getStartOfDate() {
+        LocalDate localDate = LocalDate.now();
+        Date nowDate = Date.from(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
+        return nowDate;
+    }
+
+    /**
+     * @description 剔除流程
+     * @param apiCode
+     * @param threadPool
+     * @return void
+     * @author hedongshuo
+     * @date 2024/8/7 16:57
+     **/
+    private void deleteProcess(String apiCode, ThreadPoolExecutor threadPool) {
+        String key = RedisKeyConstant.XIECHENG_COLLIDING_DELETE.concat(":").concat(apiCode);
+        for (; ; ) {
+            String lockValue = UUID.randomUUID().toString();
+            XiechengCollidingTaskBatchVo vo = null;
+            try {
+                //1.抢锁
+                redisChgService.lock(key, lockValue);
+                //2.查数据
+                vo = taskBatchMapper.selectEarliestBatch(apiCode, getStartOfDate());
+                if (null == vo) {
+                    redisChgService.unlock(key, lockValue);
+                    break;
+                }
+                //3.更新数据
+                updateBatchAndTask(vo);
+                //4.释放锁
+                redisChgService.unlock(key, lockValue);
+                //5.剔除
+                int batchCount = deleteForBatch(vo, threadPool);
+                //6.数据状态更新
+                processAfterDeleteForBatch(batchCount, vo);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                        "携程剔除流程出现异常，batchId=" + vo.getId() + "errorMessage=" + e.getMessage()), e);
+                redisChgService.unlock(key, lockValue);
+            }
+        }
+    }
+
+    /**
+     * 针对batch剔除后，数据状态更新及处理
+     * @param batchCount
+     * @param vo
+     */
+    private void processAfterDeleteForBatch(int batchCount, XiechengCollidingTaskBatchVo vo) {
+        //1.更新当前batch数据
+        XiechengCollidingTaskBatch taskBatch = new XiechengCollidingTaskBatch();
+        taskBatch.setId(vo.getId());
+        taskBatch.setStatus(2);
+        taskBatch.setActualNumber(batchCount);
+        taskBatch.setUpdateTime(new Date());
+        taskBatchMapper.updateByPrimaryKeySelective(taskBatch);
+        //2.若当前batch对应的task下的所有batch的status = 2，更新task的数据
+        XiechengCollidingTaskBatchExample taskBatchExample = new XiechengCollidingTaskBatchExample();
+        taskBatchExample.createCriteria()
+                .andApiCodeEqualTo(vo.getApiCode())
+                .andCollidingDataTaskIdEqualTo(vo.getCollidingDataTaskId());
+        List<XiechengCollidingTaskBatch> batchList = taskBatchMapper.selectByExample(taskBatchExample);
+        long deletingBatchCount = batchList.stream().filter(batch -> batch.getStatus() == 0 || batch.getStatus() == 1).count();
+        if (deletingBatchCount == 0) {
+            Integer actualNumber = batchList.stream().collect(Collectors.summingInt(XiechengCollidingTaskBatch::getActualNumber));
+            XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
+            processTask.setId(vo.getCollidingDataTaskId());
+            processTask.setTaskStatus(2);
+            processTask.setActualNumber(actualNumber);
+            processTask.setTaskEndTime(new Date());
+            processTask.setUpdateTime(new Date());
+            taskMapper.updateByPrimaryKeySelective(processTask);
+            if (actualNumber > 0) {
+                String msg = "携程撞库周期TRUE数据删除量级:" + actualNumber;
+                Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+                Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
+                dingDingRobotHookService.sendDingDingTextMessage(msg, map);
+            }
+        }
+    }
+
+    /**
+     * @description 以batch为维度，做剔除
+     * @param vo
+     * @param threadPool
+     * @return int
+     * @author hedongshuo
+     * @date 2024/8/8 11:09
+     **/
+    private int deleteForBatch(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
+        AtomicInteger batchCount = new AtomicInteger(0);
+        String conditions = vo.getTaskExecutionConditions();
+        String batchNumber = vo.getBatchNumber();
+        String tableName = "b_xiecheng_colliding_" + batchNumber;
+        String queryRuleScoreDataSql = "select id, cell, is_delete from "
+                + tableName + " where " + conditions;
+        String extend = "携程撞库数据清洗任务删除，任务id：" + vo.getCollidingDataTaskId();
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        Long minId = null;
+        Integer pageSize;
+        Map<String, Integer> xieChengCollidingDataProcessPageSize = marketingCommonConfig.getXieChengCollidingDataProcessPageSize();
+        if (null == xieChengCollidingDataProcessPageSize) {
+            pageSize = PAGE_SIZE;
+        } else {
+            pageSize = xieChengCollidingDataProcessPageSize.getOrDefault("deletePageSize", PAGE_SIZE);
+        }
+        for(; ; ) {
+            List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
+            if (CollectionUtils.isEmpty(longs)) {
+                break;
+            }
+            modifyThreadPool(threadPool);
+            minId = longs.get(longs.size() - 1);
+            List<List<Long>> partitions = Lists.partition(longs, PARTATION_SIZE);
+            for (List<Long> partition : partitions) {
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        batchCount.addAndGet(cycleMapper.updateIsDeleteByIds(partition, extend));
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                                "携程撞库TRUE数据删除，单线程处理异常：，batchId=" + vo.getId() + "errorMessage=" + e.getMessage()), e);
+                    }
+                }, threadPool));
+            }
+        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        return batchCount.get();
+    }
+
+    /**
+     * @description
+     * @param vo
+     * @return void
+     * @author hedongshuo
+     * @date 2024/8/8 10:24
+     **/
+    private void updateBatchAndTask(XiechengCollidingTaskBatchVo vo) {
+        Integer taskStatus = vo.getTaskStatus();
+        if (2 == taskStatus) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程剔除任务状态异常，batchId=" + vo.getId()));
+            return;
+        }
+        XiechengCollidingTaskBatch taskBatch = new XiechengCollidingTaskBatch();
+        taskBatch.setId(vo.getId());
+        taskBatch.setStatus(1);
+        taskBatch.setUpdateTime(new Date());
+        taskBatchMapper.updateByPrimaryKeySelective(taskBatch);
+        if (0 == taskStatus) {
+            XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
+            processTask.setId(vo.getCollidingDataTaskId());
+            processTask.setTaskStatus(1);
+            processTask.setUpdateTime(new Date());
+            taskMapper.updateByPrimaryKeySelective(processTask);
+        }
+    }
+
+    private ThreadPoolExecutor getThreadPoolExecutor() {
+        Integer threadPoolSize = marketingCommonConfig.getXieChengCollidingDataProcessThread();
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
+        return threadPool;
     }
 
     private void threadPoolShutDown(ThreadPoolExecutor threadPool) {
@@ -126,7 +404,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.error("携程撞库数据清洗作业，日志保存线程池结束异常！", ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程撞库数据清洗作业，日志保存线程池结束异常！errorMessage=" + ex.getMessage()), ex);
             Thread.currentThread().interrupt();
         }
     }
@@ -193,107 +472,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
         // 将跑分数据插入新数据包
         insertRuleScoreDataToNewPackage(newPackage, task, threadPool);
-    }
-
-    private void updateTaskStatus(XiechengCollidingDataProcessTask task) {
-        task.setUpdateTime(new Date());
-        task.setTaskStatus(1);
-        taskMapper.updateByPrimaryKeySelective(task);
-    }
-
-    /**
-     * 获取待执行的清洗任务
-     * is_delete=0 && task_status=0(任务待执行) && task_start_time=当天 && order by create_time
-     * @param apicode
-     * @param nowDate
-     * @return
-     */
-    private List<XiechengCollidingDataProcessTask> getXiechengCollidingDataProcessTasks(String apicode, Date nowDate) {
-        XiechengCollidingDataProcessTaskExample taskExample = new XiechengCollidingDataProcessTaskExample();
-        taskExample.createCriteria().andApiCodeEqualTo(apicode).andIsDeleteEqualTo(0)
-                .andTaskStatusEqualTo(0).andTaskStartTimeEqualTo(nowDate);
-        taskExample.setOrderByClause("create_time asc");
-        List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(taskExample);
-        return taskList;
-    }
-
-    /**
-     * TRUE数据剔除
-     * @param task
-     * @param threadPool
-     * @return
-     */
-    private int deleteTrueData(XiechengCollidingDataProcessTask task, ThreadPoolExecutor threadPool) {
-        AtomicInteger totalDeleteCount = new AtomicInteger(0);
-        String conditions = task.getTaskExecutionConditions();
-        String extend = "携程撞库数据清洗任务删除，任务id：" + task.getId();
-
-        // 获取跑分数据查询条件
-        String queryRuleScoreDataSql = getQueryRuleScoreDataSql(task, conditions);
-        log.warn("携程撞库数据清洗任务，TRUE数据保留查询条件:{}", queryRuleScoreDataSql);
-
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
-        Long minId = null;
-        while (true) {
-            List<Long> longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql);
-            if (CollectionUtils.isEmpty(longs)) {
-                break;
-            }
-
-            modifyThreadPool(threadPool);
-            minId = longs.get(longs.size() - 1);
-
-            futures.add(CompletableFuture.runAsync(() -> {
-                try {
-                    totalDeleteCount.addAndGet(cycleMapper.updateIsDeleteByIds(longs, extend));
-                } catch (Exception e) {
-                    log.error("携程撞库TRUE数据删除，单线程处理异常：" + e.getMessage(), e);
-                }
-            }, threadPool));
-        }
-
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-        // 发送钉钉告警
-        int count = totalDeleteCount.get();
-        if (count > 0) {
-            String msg = "携程撞库周期TRUE数据删除量级:" + count;
-            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-            Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
-
-            dingDingRobotHookService.sendDingDingTextMessage(msg, map);
-        }
-
-        return count;
-    }
-
-    /**
-     * 根据batchNum拼接跑分数据查询条件
-     * @param task
-     * @param conditions
-     * @return
-     */
-    private String getQueryRuleScoreDataSql(XiechengCollidingDataProcessTask task, String conditions) {
-        List<String> batchNumberList = Arrays.asList(task.getBatchNumber().split(","));
-        String queryRuleScoreDataSql = "";
-        for (int i = 0; i < batchNumberList.size(); i++) {
-            String batchNumber = batchNumberList.get(i);
-            if (StringUtils.isEmpty(batchNumber)) {
-                continue;
-            }
-
-            if (i == batchNumberList.size() - 1) {
-                queryRuleScoreDataSql = queryRuleScoreDataSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumber).concat(" " +
-                                "where ")
-                        .concat(conditions).concat(" and is_delete=0 ");
-            } else {
-                queryRuleScoreDataSql = queryRuleScoreDataSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumber).concat(" " +
-                                "where ")
-                        .concat(conditions).concat(" and is_delete=0 ").concat(" union all ");
-            }
-        }
-
-        return queryRuleScoreDataSql;
     }
 
     /**
@@ -367,7 +545,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         if (CollectionUtils.isEmpty(maxEndTimeGroupByPackageId)) {
             return new ArrayList<>();
         }
-
         List<Long> reserveIds;
         // 获取当前任务清洗时间
         LocalDate cleanDate = task.getTaskStartTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -377,7 +554,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                         .filter((XiechengCollidingDataPackageRule t) -> {
                             LocalDate collidingMaxDate = t.getCollidingEndTime().toInstant()
                                     .atZone(ZoneId.systemDefault()).toLocalDate();
-
                             return !cleanDate.isAfter(collidingMaxDate);
                         }).map(XiechengCollidingDataPackageRule::getPackageId).collect(Collectors.toList());
         return reserveIds;
@@ -397,7 +573,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             if (StringUtils.isEmpty(batchNumber)) {
                 continue;
             }
-
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (XieChengCollidingDataPackage deletePackage : deletePackages) {
                 String queryRuleScoreDataSql = "select cell, is_delete from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
@@ -410,7 +585,6 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                     if (CollectionUtils.isEmpty(repeatWithFalseData)) {
                         break;
                     }
-
                     List<Long> ids = repeatWithFalseData.stream().map(XieChengCollidingDataRob::getId).collect(Collectors.toList());
                     minId = repeatWithFalseData.get(repeatWithFalseData.size() - 1).getId();
 
@@ -419,11 +593,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                         try {
                             robMapper.updateDeleteByIds(ids, extend);
                         } catch (Exception e) {
-                            log.error("携程撞库FALSE数据删除，单线程处理异常：" + e.getMessage(), e);
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                                    "携程撞库FALSE数据删除，单线程处理异常，taskId=" + task.getId() + "errorMessage=" + e.getMessage()), e);
                         }
                     }, threadPool));
                 }
-
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             }
         }
@@ -449,29 +623,34 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     private void insertRuleScoreDataToNewPackage(XieChengCollidingDataPackage collidingDataPackage, XiechengCollidingDataProcessTask task,
                                                  ThreadPoolExecutor threadPool) {
         String conditions = task.getTaskExecutionConditions();
+        Integer pageSize;
+        Map<String, Integer> xieChengCollidingDataProcessPageSize = marketingCommonConfig.getXieChengCollidingDataProcessPageSize();
+        if (null == xieChengCollidingDataProcessPageSize) {
+            pageSize = PAGE_SIZE;
+        } else {
+            pageSize = xieChengCollidingDataProcessPageSize.getOrDefault("cleanPageSize", PAGE_SIZE);
+        }
         for (String batchNumber : task.getBatchNumber().split(",")) {
             if (StringUtils.isEmpty(batchNumber)) {
                 continue;
             }
-
             String queryRuleScoreDataSql = "select id, cell, is_delete from b_xiecheng_colliding_" + batchNumber + " where " + conditions;
             log.warn("携程撞库数据清洗任务，新包新增数据查询条件:{}", queryRuleScoreDataSql);
-
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             Long minId = null;
             while (true) {
                 List<XieChengRuleScoreData> ruleScoreData = ruleScoreRecordMapper.selectRuleScoreDataExcludeTrueAndFalseDatatikv_(minId,
-                        queryRuleScoreDataSql);
+                        queryRuleScoreDataSql, pageSize);
                 if (CollectionUtils.isEmpty(ruleScoreData)) {
                     break;
                 }
-
                 minId = ruleScoreData.get(ruleScoreData.size() - 1).getId();
-
                 modifyThreadPool(threadPool);
-                futures.add(CompletableFuture.runAsync(() -> insertData(ruleScoreData, collidingDataPackage), threadPool));
+                List<List<XieChengRuleScoreData>> partitions = Lists.partition(ruleScoreData, PARTATION_SIZE);
+                for (List<XieChengRuleScoreData> partition : partitions) {
+                    futures.add(CompletableFuture.runAsync(() -> insertData(partition, collidingDataPackage), threadPool));
+                }
             }
-
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
     }
@@ -492,10 +671,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 rob.setDataSourceType("F");
                 return rob;
             }).collect(Collectors.toList());
-
             robMapper.saveBatch(insertRobList);
         } catch (Exception e) {
-            log.error("携程撞库FALSE数据插入，单线程处理异常：" + e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                    "携程撞库FALSE数据插入，单线程处理异常：packageId=" + collidingDataPackage.getId()
+                            + "errorMessage=" + e.getMessage()), e);
         }
     }
 }

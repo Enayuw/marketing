@@ -17,7 +17,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.ImportResource;
 
 @SpringBootApplication(exclude = {MultipartAutoConfiguration.class, SpringBootConfiguration.class}, scanBasePackages = {"com.br.marketing"})
-@EnableAspectJAutoProxy
+@EnableAspectJAutoProxy(exposeProxy = true)
 @MapperScan("com.br.marketing.mapper")
 @ImportResource(locations = {"classpath:scheduler.xml"})
 @EnablePrometheusEndpoint
@@ -30,6 +30,7 @@ public class RuleSchedulerApplication {
     public static ConfigurableApplicationContext ac;
 
     public static void main(String[] args) {
+        log.warn("回滚验证日志！");
         log.warn("marketing-rule-scheduler开始启动！");
         Long start = System.currentTimeMillis();
         ac = new SpringApplicationBuilder().sources(RuleSchedulerApplication.class).run(args);

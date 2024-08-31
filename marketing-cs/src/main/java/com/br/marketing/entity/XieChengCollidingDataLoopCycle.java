@@ -32,6 +32,21 @@ public class XieChengCollidingDataLoopCycle{
     private Date releaseTime;
 
     /**
+     * 券码信息
+     */
+    private String marketCouponList;
+
+    /**
+     * 券码code
+     */
+    private String couponCode;
+
+    /**
+     * 券码名称
+     */
+    private String couponDesc;
+
+    /**
      * 最近一次撞库时间
      */
     private Date pushTime;
@@ -60,92 +75,4 @@ public class XieChengCollidingDataLoopCycle{
      * 扩展字段
      */
     private String extend;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getPackageId() {
-        return packageId;
-    }
-
-    public void setPackageId(Long packageId) {
-        this.packageId = packageId;
-    }
-
-    public String getDataSourceType() {
-        return dataSourceType;
-    }
-
-    public void setDataSourceType(String dataSourceType) {
-        this.dataSourceType = dataSourceType == null ? null : dataSourceType.trim();
-    }
-
-    public String getCellSha256CodeList() {
-        return cellSha256CodeList;
-    }
-
-    public void setCellSha256CodeList(String cellSha256CodeList) {
-        this.cellSha256CodeList = cellSha256CodeList == null ? null : cellSha256CodeList.trim();
-    }
-
-    public Date getReleaseTime() {
-        return releaseTime;
-    }
-
-    public void setReleaseTime(Date releaseTime) {
-        this.releaseTime = releaseTime;
-    }
-
-    public Date getPushTime() {
-        return pushTime;
-    }
-
-    public void setPushTime(Date pushTime) {
-        this.pushTime = pushTime;
-    }
-
-    public Integer getIsDelete() {
-        return isDelete;
-    }
-
-    public void setIsDelete(Integer isDelete) {
-        this.isDelete = isDelete;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Integer getRetryCount() {
-        return retryCount;
-    }
-
-    public void setRetryCount(Integer retryCount) {
-        this.retryCount = retryCount;
-    }
-
-    public String getExtend() {
-        return extend;
-    }
-
-    public void setExtend(String extend) {
-        this.extend = extend == null ? null : extend.trim();
-    }
 }

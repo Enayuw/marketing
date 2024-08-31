@@ -101,7 +101,10 @@ public class MarketingCommonConfig {
     /**
      * 数禾转化数据提取分场景, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
+     *
+     * @deprecated 弃用，已使用新有效期配置
      */
+    @Deprecated
     private Map<String, String> shuHeTransferExtractDayMap;
 
     /**
@@ -117,13 +120,17 @@ public class MarketingCommonConfig {
 
     /**
      * 数禾转化数据提取任务是否使用准全量转化数据
+     * @deprecated 弃用，已使用新版有效期范围
      */
+    @Deprecated
     private Boolean shuHeTransferExtractIfUseQuasiTotalQuantity;
 
     /**
      * 数禾有效期, T 代表当前天到月底； T+/-day 代表当前天到day-1天，共day天
      * eg：{"促首登":"T","促申完":"T-15","促首借":"T+31","促复借":"T+0"}
+     * @deprecated 弃用，已使用最新版本有效期配置
      */
+    @Deprecated
     private Map<String, String> shuHePeriodOfValidityDayMap;
 
     /**
@@ -1096,13 +1103,13 @@ public class MarketingCommonConfig {
      * 2023-09-27 19:12
      * 奇富钉钉告警机器人token
      */
-    private String qiFuDingDingAccessToken = "b1d0849bd627e067d1c3be1ad8a82fa265dcb9afec94197859b0e08bda0dbaf2";
+    private String qiFuDingDingAccessToken = "7f32618dafd2d2126f5564aaf57a35867c8775baf78777140990c16d56edc457";
 
     /**
      * 2023-09-27 19:12
      * 奇富钉钉告警机器人密钥
      */
-    private String qiFuDingDingSecret = "SEC0d7cfb05455c035eea424a4824e63c75dd287a86d796cc96826ba7fb3f51e07e";
+    private String qiFuDingDingSecret = "SEC4d2d8a91842ad25136e92213a852ebe5cf1c22ddaf49dcfd352d5a9323eb1ca8";
 
     /**
      * 2023-09-27 19:12
@@ -1133,6 +1140,12 @@ public class MarketingCommonConfig {
      * 奇富断点自动化数据推决策线程数
      */
     private Integer qiFuBreakPointDataToJueCeThreadNum;
+
+    /**
+     * 2024-06-27
+     * 奇富删除触达记录删除区间
+     */
+    private Integer qiFuDeleteReachRecordDay;
 
     /**
      * 页数动态调整配置
@@ -1243,6 +1256,24 @@ public class MarketingCommonConfig {
      *      000000:调用百应黑名单接口成功
      */
     private HashMap<String, Object> baiYingUndoMock;
+
+    /**
+     * 推送之家创建线索接口挡板开关 true:开启挡板。false:关闭挡板
+     * zhiJiaUndoMock={"switch":true,"httpcode":"200","code":"0"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * httpcode：
+     *      200:请求成功
+     * code：
+     *      0:调用之家创建线索接口成功
+     */
+    private HashMap<String, Object> zhiJiaUndoMock;
+
+    /**
+     *
+     */
+    private HashMap<String, Object> qiFuDeleteReachRecordMock;
 
     /**
      * 同程不运营名单推送客户接口线程数
@@ -1592,7 +1623,9 @@ public class MarketingCommonConfig {
     /**
      * 2024-04-18 10:53
      * 数禾适配新有效期apiCode与场景信息eg:{apiCode:[场景]}
+     * @deprecated 已废弃
      */
+    @Deprecated
     private Map<String, JSONArray> shuHeNewPeriodOfValidityMap = new HashMap<>();
     /**
      * 修复cell的apiCode前缀集合
@@ -1702,5 +1735,341 @@ public class MarketingCommonConfig {
      * 携程CPA撞库过滤转化数据convType配置
      */
     private List<String> xieChengCpaExcludeConvTypeConfig = Lists.newArrayList("107","105");
+
+    /**
+     * 奇富360获取用户信息接口线程数
+     */
+    private Integer qiFuQryUserMessageThreadNum;
+
+    /**
+     * 奇富360用户信息接口分页参数
+     */
+    private Integer qiFuQryUserMessageSize;
+
+    /**
+     * 奇富360转化数据提取apiCode集合
+     */
+    private List<String> CuDongZhiTransferExtractApiCodes;
+
+    /**
+     * 奇富360转化数据提取执行时间
+     */
+    private String CuDongZhiTransferFileExecuteTime;
+    /**
+     * 奇富360数据清洗调用转化接口线程数
+     */
+    private Integer dataCleanQiFu360CoreAndMaxNum;
+    /**
+     * #奇富360获取用户信息接口挡板 true:开启挡板。false:关闭挡板
+     */
+    private HashMap<String, Object> qifuQryUserMessageMock;
+
+    /**
+     * 数禾推送客服黑名单促首登场景apicode映射配置
+     * eg:{"3710149":["促首登"],"7410727":["促首登"]}
+     */
+    private HashMap<String, List<String>> shuHeCuShouDengBlackListApiCodeMapping;
+
+    /**
+     * 数禾推送客服转化促首登场景apicode映射配置
+     * eg:{"3710149":["促首登"],"7410727":["促首登"]}
+     */
+    private HashMap<String, List<String>> shuHeCuShouDengTransferApiCodeMapping;
+
+    /**
+     *  携程撞库推决策分页查询数量
+     */
+    private Integer xiechengZkToPlicyPageSize;
+
+    /**
+     *  携程短信撞库接口参数配置
+     */
+    private JSONObject xieChengSmsCollidingConfig;
+
+    /**
+     *  奇富360推决策策略编号配置
+     */
+    private JSONObject qiFuToPolicyStrategyCodeConfig;
+
+    /**
+     * 奇富360上传推决策有效期检测延迟时长配置，单位：秒
+     */
+    private Long qiFuSyncToPolicyValidityCheckDelayTime;
+
+    /**
+     * 之家创建线索程池数
+     */
+    private Integer zhiJiaCollidingThread;
+
+    /**
+     * 之家落库apiCode
+     */
+    private String zhiJiaApiCode;
+
+    /**
+     * 之家用户信息分页参数
+     */
+    private Integer zhiJiaQryUserMessageSize;
+    /**
+     * 奇富360数据提取参数配置
+     */
+    private HashMap<String, JSONObject> qiFuExtDataConfig;
+
+    /**
+     * 奇富360全量数据提取VT切换参数配置
+     */
+    private Boolean qiFuExtDataVTConfig;
+
+    /**
+     * 奇富360全量数据提取参数配置
+     */
+    private HashMap<String, JSONObject> qiFuFullExtDataConfig;
+
+    /**
+     * 奇富360全量数据提取线程数
+     */
+    private Integer qiFuFullExtDataSoleNum;
+
+    /**
+     * 苏商推送通话明细apiCode
+     */
+    private List<String> suShangApiCodes;
+
+    /**
+     * 苏商查询数据 limit 量级
+     */
+    private Integer suShangSearchPageSize;
+
+    /**
+     * 苏商推送数据线程数
+     */
+    private Integer suShangPushThreadNum;
+
+    /**
+     * 苏商自动化回传apiCode集合
+     */
+    private List<String> SuShangTransferExtractApiCodes;
+
+    /**
+     * 苏商自动化回传执行时间
+     */
+    private String SuShangTransferFileExecuteTime;
+
+
+    /**
+     * 58同程撞库提交撞库apiCode集合
+     */
+    private List<String> wubaCollidingApiCodes;
+
+    /**
+     * 58撞库数据落库线程数（同步、提交撞库、查询撞库结果）
+     */
+    private Integer wubaCollidingDataSyncThreadNum;
+
+    /**
+     * 58同步撞库数据分页条数
+     */
+    private Integer wuBaCollidingDataSyncPageSize;
+
+    /**
+     * 58提交撞库开关(true:开启，false关闭)
+     */
+    private Boolean wuBaCollidingDataSwitch;
+
+    /**
+     * 58提交撞库数据分页条数
+     */
+    private Integer wuBaCollidingDataSubmitPageSize;
+
+    /**
+     * 58查询撞库结果分页条数
+     */
+    private Integer wuBaCollidingQueryResultPageSize;
+
+    /**
+     * 58查询撞库结果等待时长（分钟）
+     */
+    private Integer wuBaCollidingQueryResultWaitMinutes;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-开关，1-开，0-关
+     */
+    private String wuBaSubmitConversionChangeDataSwitch;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-条件参数
+     */
+    private List<Map<String, String>> wuBaSubmitConversionChangeDataParams;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-线程参数
+     */
+    private Map<String, String> wuBaSubmitConversionChangeDataThreadConfig;
+
+    /**
+     * 58新客-营销名单上报-开关，1-开，0-关
+     */
+    private String wuBaSubmitConversionSwitch;
+
+    /**
+     * 58新客-营销名单上报-条件参数
+     */
+    private List<Map<String, String>> wuBaSubmitConversionParams;
+
+    /**
+     * 58新客-营销名单上报-分页条数
+     */
+    private Integer wuBaSubmitConversionPageSize;
+
+    /**
+     * 58新客-修改营销名单上报批次-开关，1-开，0-关
+     */
+    private String wuBaChangeQueryBatchSwitch;
+
+    /**
+     * 58新客-修改营销名单上报批次-pushTime查询区间
+     */
+    private JSONObject wuBaChangeQueryBatchPushTimeInterval;
+
+    /**
+     * 58新客-营销转化结果查询-开关，1-开，0-关
+     */
+    private String wuBaQueryConversionSwitch;
+
+    /**
+     * 58新客-营销转化结果查询-apiCode集合
+     */
+    private List<String> wuBaQueryConversionApiCodes;
+
+    /**
+     * 58新客-营销转化结果查询-pushTime查询区间
+     */
+    private JSONObject wuBaQueryConversionPushTimeInterval;
+
+    /**
+     * 58新客-营销转化结果查询-调用线程
+     */
+    private List<Integer> wuBaQueryConversionThreadPool;
+
+    /**
+     * 58新客-营销转化结果查询-批量DB线程
+     */
+    private Integer wuBaQueryConversionBatDBThreadPool;
+
+    /**
+     * 58新客-营销转化结果查询-批量DB分页条数
+     */
+    private Integer wuBaQueryConversionBatDBPartitionSize;
+
+    /**
+     * 58新客-营销转化结果查询-通用字段配置
+     */
+    private Set<String> wuBaQueryConversionKnowFields;
+
+    /**
+     * 58新客-营销名单上报-数据提取-执行时间
+     */
+    private String wuBaSubmitDataToFileExecuteTime;
+
+    /**
+     * 58新客-营销名单上报-数据提取-ApiCodes
+     */
+    private List<String> wuBaSubmitDataTransferApiCodes;
+
+    /**
+     * 58新客-营销名单上报-数据提取-StartDate, 例：20240814
+     */
+    private List<String> wuBaSubmitDataToFileStartDate;
+
+    /**
+     * 通用清洗线程池
+     */
+    private Integer autoCleanDataThreadNum;
+
+    /**
+     * 通用Mock配置
+     */
+    private JSONObject commonMockConfig;
+
+    /**
+     *
+     * 58新课数据提取参数配置
+     */
+    private HashMap<String, JSONObject> wbxkExtDataConfig;
+
+    /**
+     * 58撞库接口参数配置
+     */
+    private JSONObject wuBaCollidingUrlConfig;
+
+    /**
+     * 医时转化数据提取apiCode集合
+     */
+    private List<String> YiShiTransferApiCodes;
+
+    /**
+         * 医时转化数据提取执行时间
+     */
+    private String YiShiTransferFileExecuteTime;
+
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化上传接口自定义配置apiCode
+     * eg:{"U_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
+
+    /**
+     * 携程跑分数据同步任务保持驼峰字段配置
+     */
+    private List<String> xieChengScoreToDbKeepCamelColumns;
+
+    /**
+     * 携程清洗任务分页条数
+     */
+    private Map<String, Integer> xieChengCollidingDataProcessPageSize;
+
+    /**
+     * 推决策报警apiCode集合
+     */
+    private List<String> pushAlarmApiCode;
+    /**
+     *  * 2024-08-13 15:42
+     * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
+
+    /**
+     * 奇富360数据提取custNum对应上传字段
+     */
+    private HashMap<String, List<String>> qiFuExtDataCustNumMapConfig;
+
+    /**
+     * 原始上传数据清洗映射配置 key:apiCode value:映射的原值字段
+     */
+    private HashMap<String, String> dataCleanMappingMap;
+
+    /**
+     * 原始上传数据清洗映射新值字段
+     */
+    private List<String> dataCleanValue;
+
+    /**
+     * bi报表步长配置
+     */
+    private Map<String,List<String>> biReportStepConfig;
+
+    /**
+     * 2024-08-20 15:42
+     * 跑分模型分布 配置数据展示规则时需要的产品前缀
+     */
+    private Set<String> reportScorePrefixSet;
+
+    /**
+     * 跑分报表分值区间配置
+     */
+    private Map<String, Integer> scoreReportRangeConfig;
+
 }
 

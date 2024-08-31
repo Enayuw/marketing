@@ -2,9 +2,7 @@ package com.br.marketing.mq.consumer.api;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.api.customer.service.CustomerTransferDataService;
-import com.br.marketing.common.constants.PulsarSubscription;
-import com.br.marketing.common.constants.PulsarTopic;
+import com.br.marketing.client.zhongyou.ZhongYouDataService;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
@@ -19,7 +17,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
@@ -40,9 +37,6 @@ public class ConsumerApp {
     @Autowired
     IPushShuheDataService pushShuheDataService;
 
-    @Resource
-    private CustomerTransferDataService customerTransferDataService;
-
     @Autowired
     PushDataService pushDataService;
 
@@ -55,6 +49,8 @@ public class ConsumerApp {
     @Resource
     private TransferSyncReportService transferSyncReportService;
 
+    @Resource
+    private ZhongYouDataService zhongYouDataService;
 
     /**
      * 消费 原始上传数据消费端（大队列）
@@ -169,7 +165,7 @@ public class ConsumerApp {
 
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
-        consumerService.consumerRun(channel, message, pushRuleService::HandleZhongYouData, o, null);
+        consumerService.consumerRun(channel, message, zhongYouDataService::HandleZhongYouData, o, null);
     }
 
     /**
@@ -268,24 +264,4 @@ public class ConsumerApp {
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
     }
 
-    @PostConstruct
-    void init() {
-        // 标准上传数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.upLoadSubscription, pushRuleService::consumerSyncInfo, 2, PulsarTopic.upLoadTopic);
-
-        // 数禾上传数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.upLoadShSubscription, pushShuheDataService::consumerShUpload, 2, PulsarTopic.upLoadShTopic);
-
-        //标准转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferSubscription, pushRuleService::consumerTransferInfo, 2, PulsarTopic.transferTopic);
-
-        //数禾转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferShSubscription, pushShuheDataService::consumerShTransfer, 2, PulsarTopic.transferShTopic);
-
-        // 定制客户转化数据pulsar消费端
-        consumerService.consumerPulsar(PulsarSubscription.transferCustomSubscription
-                , customerTransferDataService::consumerTransferPayData, 2, PulsarTopic.transferCustomTopic);
-
-
-    }
 }

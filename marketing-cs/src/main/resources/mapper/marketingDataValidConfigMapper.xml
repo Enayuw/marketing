@@ -33,10 +33,19 @@
           and is_del = 1
           and valid_type = 1
         <if test="userTypeSet != null and userTypeSet.size() > 0">
-            and user_type in
-            <foreach collection="userTypeSet" item="userType" separator="," open="(" close=")">
-                '${userType}'
-            </foreach>
+            <choose>
+                <when test="userTypeSet.size() == 1">
+                    <foreach collection="userTypeSet" item="userType" separator="" open="" close="">
+                        and user_type='${userType}'
+                    </foreach>
+                </when>
+                <otherwise>
+                    and user_type in
+                    <foreach collection="userTypeSet" item="userType" separator="," open="(" close=")">
+                        '${userType}'
+                    </foreach>
+                </otherwise>
+            </choose>
         </if>
         and <![CDATA[ valid_start_date <= '${dateStr}' ]]>
         and <![CDATA[ valid_end_date >= '${dateStr}'
@@ -112,4 +121,24 @@
                                         FROM b_marketing_data_valid_config
                                         WHERE id = #{id,jdbcType=BIGINT});
     </select>
+
+    <update id="updateBatchById">
+        update b_marketing_data_valid_config set valid_start_date = #{validStartDate},valid_end_date = #{validEndDate}
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="getAppletDateByApiCodeAndDateStr" resultType="java.lang.String">
+        SELECT applet_date
+        FROM b_marketing_data_valid_config
+        WHERE is_del = 1
+          AND valid_type = 1
+          AND api_code = #{apiCode}
+        <![CDATA[ AND valid_start_date <= '${dateStr}'
+          AND valid_end_date >= '${dateStr}'
+        ]]>
+    </select>
+
 </mapper>

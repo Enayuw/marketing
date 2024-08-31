@@ -41,3 +41,17 @@ endpoints:
     enabled: true
     path: /prometheus
     sensitive: false
+
+#fastDfs配置
+fdfs:
+  tracker-list:            #TrackerList参数,支持多个
+    - 10.100.123.110:22122
+  so-timeout: 1501
+  connect-timeout: 601
+  thumb-image:             #缩略图生成参数
+    width: 200
+    height: 200
+  pool:
+    max-total: 500
+    max-wait-millis: 150000
+    max-total-per-key: 100

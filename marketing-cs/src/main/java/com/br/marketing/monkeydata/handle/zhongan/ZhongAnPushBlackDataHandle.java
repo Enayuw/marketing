@@ -210,7 +210,7 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
         Map<String,String> channelCodes = marketingCommonConfig.getZhongAnZkUserTypeChannelCode();
         List<MarketingSyncUser> retryDataList = new ArrayList<>();
         List<BlackDetailDTO> blackDetailDTOList = new ArrayList<>();
-        String key = RedisKeyConstant.ZHONGAN_ZK_CELL_TODAY.concat(apiCode).concat(LocalDate.now().toString());
+        String key = RedisKeyConstant.ZHONGAN_ZK_CELL_TODAY.concat(apiCode).concat(":new:").concat(LocalDate.now().toString());
         dataList.forEach(t -> {
             String redisKey = key.concat(":").concat(t.getUserType()).concat(":").concat(t.getCell());
             //添加当日userType+cell到redis中，过期时间第二日凌晨
@@ -231,8 +231,12 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             //需要重试加入重试表
             if (result.getCode().equals(ResultCode.INTERNAL_SERVER_ERROR.getValue())) {
                 //需要重试的删除key
-                if (redisChgService.exists(key)) {
-                    redisChgService.del(key);
+                try {
+                    if (redisChgService.exists(redisKey)) {
+                        redisChgService.del(redisKey);
+                    }
+                }catch(Exception e){
+                    log.warn("众安撞库redis删除key失败,key={}", redisKey);
                 }
                 retryDataList.add(t);
             }

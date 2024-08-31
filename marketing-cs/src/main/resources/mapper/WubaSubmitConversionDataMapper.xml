@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaSubmitConversionDataMapper" >
+
+    <select id="findByConditionAndPage" resultType="com.br.marketing.entity.WubaSubmitConversionData">
+        select id, api_code, cell, marketing_time, push_status, status, create_date
+        from b_wuba_submit_conversion_data
+        where api_code = #{apiCode}
+            and create_date = #{createDate}
+            and status = #{status}
+            and push_status = #{pushStatus}
+            and is_deleted =0
+        limit #{pageSize}
+    </select>
+
+    <select id="findWithMarketingTimeByPage" resultType="com.br.marketing.entity.WubaSubmitConversionData">
+        select id, api_code, cell, marketing_time, push_status, status, create_date
+        from b_wuba_submit_conversion_data
+        where api_code = #{apiCode}
+          and <![CDATA[ marketing_time >= #{marketingTimeStart} and marketing_time < #{marketingTimeEnd} ]]>
+          and status = #{status}
+          and push_status = #{pushStatus}
+          and is_deleted =0
+        limit #{pageSize}
+    </select>
+
+    <select id="findWithMarketingTimeByIndex" resultType="com.br.marketing.entity.WubaSubmitConversionData">
+        select id, api_code, cell, marketing_time, push_status, status, create_date
+        from b_wuba_submit_conversion_data
+        where api_code = #{apiCode}
+            and <![CDATA[ marketing_time >= #{marketingTimeStart} and marketing_time < #{marketingTimeEnd} ]]>
+            and is_deleted =0
+            <if test="indexId != null and indexId != ''">
+                and <![CDATA[ id > #{indexId} ]]>
+            </if>
+        order by id asc limit #{pageSize}
+    </select>
+
+
+    <insert id="batchAdd">
+        INSERT INTO b_wuba_submit_conversion_data
+        (api_code, local_id, cell, marketing_time, push_status, status, create_date)
+        VALUES
+        <foreach collection ="list" item="item" separator =",">
+            (#{item.apiCode}, #{item.localId}, #{item.cell}, #{item.marketingTime}, #{item.pushStatus},
+             #{item.status}, #{item.createDate})
+        </foreach>
+    </insert>
+
+    <select id="findSubmitDataByPushTime" resultType="com.br.marketing.entity.WubaSubmitConversionData">
+        select a.id, a.cell, b.marketing_time
+        from b_wuba_submit_conversion_data_log a
+        left join b_wuba_submit_conversion_data b on a.data_id =b.id
+        where a.api_code = #{apiCode}
+          and <![CDATA[ a.create_time >= #{pushTimeStart} and a.create_time < #{pushTimeEnd} ]]>
+        <if test="indexId != null and indexId != ''">
+            and <![CDATA[ a.id > #{indexId} ]]>
+        </if>
+        order by a.id asc limit #{pageSize}
+    </select>
+
+</mapper>

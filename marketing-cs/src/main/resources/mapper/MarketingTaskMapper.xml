@@ -502,9 +502,11 @@
             <![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
             <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
         </if>
-        <if test="scoreBeginTime !=null and scoreBeginTime !=''">
-            <![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
-            <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
+        <if test="scoreTimeList !=null and scoreTimeList.size()>0">
+            and
+            <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
+                (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
+            </foreach>
         </if>
         <if test="userType !=null and userType !=''">
              and mtut.user_type in(
@@ -557,9 +559,11 @@
             <![CDATA[ and mte.upload_time >= #{uploadBeginTime} ]]>
             <![CDATA[ and mte.upload_time <= #{uploadEndTime} ]]>
         </if>
-        <if test="scoreBeginTime !=null and scoreBeginTime !=''">
-            <![CDATA[ and shf.create_time>= #{scoreBeginTime} ]]>
-            <![CDATA[ and shf.create_time<= #{scoreEndTime} ]]>
+        <if test="scoreTimeList !=null and scoreTimeList.size()>0">
+            and
+            <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
+                (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
+            </foreach>
         </if>
         <if test="userType !=null and userType !=''">
             and mtut.user_type in(
@@ -698,10 +702,86 @@
     </select>
 
     <select id="selectByPriority" resultType="java.lang.Integer">
-        select count(*) from b_marketing_task where status = 1 and priority = #{priority}
+        select count(*)
+        from b_marketing_task
+        where status = 1
+          and priority = #{priority}
     </select>
     <select id="selectHisFileById" resultType="java.lang.String">
-        select status from stra_his_file where id =#{hisFileId}
+        select status
+        from stra_his_file
+        where id = #{hisFileId}
+    </select>
+
+    <select id="queryBatchList" parameterType="com.br.marketing.vo.CustomerBatchNumVO"
+            resultType="com.br.marketing.vo.ScoreDetailVo">
+        select * from(select shf.api_code,
+        shf.show_title as cusBatchNumber,
+        mt.batch_number as batchNumber,
+        shf.statistic_file_path as statisticFilePath,
+        shf.id as fileId,
+        DATE_FORMAT(shf.create_time,'%Y-%m-%d %H:%i:%s') as scoreBeginTime,
+        GROUP_CONCAT(distinct msp.product_name order by msp.product_name)as productName,
+        shf.actual_num as actualNum,
+        GROUP_CONCAT(distinct mtut.user_type order by mtut.user_type)as userType
+        from stra_his_file as shf
+        left join b_marketing_strategy_product as msp on shf.id = msp.file_id and msp.is_del=1
+        left join b_marketing_task as mt on mt.api_code = shf.api_code and mt.batch_number = shf.batch_number
+        left join b_marketing_task_extend as mte on mt.id = mte.task_id
+        left join b_marketing_task_user_type as mtut on mtut.batch_number = mt.batch_number and mtut.api_code =
+        mt.api_code
+        left join b_score_doris_log as sdl on sdl.batch_number = shf.batch_number
+        where
+        <choose>
+            <when test="apiCodes!=null and apiCodes.size()!=0">
+                <choose>
+                    <when test="apiCodes.size()==1">
+                        mt.api_code =
+                        <foreach collection="apiCodes" item="item" index="index" separator=",">
+                            #{item}
+                        </foreach>
+                    </when>
+                    <otherwise>
+                        mt.api_code in(
+                        <foreach collection="apiCodes" item="item" index="index" separator=",">
+                            #{item}
+                        </foreach>
+                        )
+                    </otherwise>
+                </choose>
+            </when>
+            <otherwise>
+                1=1
+            </otherwise>
+        </choose>
+        <if test="scoreTimeList!=null and scoreTimeList.size()>0">
+            and
+            <foreach collection="scoreTimeList" item="item" open="(" close=")" separator="or">
+                (<![CDATA[ shf.create_time>= #{item.scoreBeginTime} and shf.create_time<= #{item.scoreEndTime} ]]>)
+            </foreach>
+        </if>
+        <if test="userTypeSet!=null and userTypeSet.size()>0">
+            <choose>
+                <when test="userTypeSet.size()==1">
+                    and mtut.user_type =
+                    <foreach collection="userTypeSet" item="item" index="index" separator=",">
+                        #{item}
+                    </foreach>
+                </when>
+                <otherwise>
+                    and mtut.user_type in(
+                    <foreach collection="userTypeSet" item="item" index="index" separator=",">
+                        #{item}
+                    </foreach>
+                    )
+                </otherwise>
+            </choose>
+        </if>
+        and shf.score_status = 2
+        and mt.status != 0
+        and sdl.status = 2
+        group by mt.api_code,batchNumber
+        order by mt.api_code,shf.create_time desc) vie
     </select>
 
 </mapper>

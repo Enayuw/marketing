@@ -7,7 +7,6 @@
     <result column="rule_name_short" property="ruleNameShort" jdbcType="VARCHAR" />
     <result column="start_time" property="startTime" jdbcType="VARCHAR" />
     <result column="strategy_product_json" property="strategyProductJson" jdbcType="VARCHAR" />
-    <result column="condition_info" property="conditionInfo" jdbcType="VARCHAR" />
     <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
     <result column="product_info" property="productInfo" jdbcType="VARCHAR" />
     <result column="base_info" property="baseInfo" jdbcType="VARCHAR" />
@@ -87,10 +86,10 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, rule_name, rule_name_short, start_time, strategy_product_json, condition_info, 
-    strategy_id, product_info, base_info, rule_type, is_del, create_time, exec_type, 
-    auto_build, cycle_day, cycle_end_day, push_type, task_type, `status`, update_time, 
-    strategy_product_show, threek_encrypt_type, is_online, is_stack_validity, priority
+    id, rule_name, rule_name_short, start_time, strategy_product_json, strategy_id, product_info, 
+    base_info, rule_type, is_del, create_time, exec_type, auto_build, cycle_day, cycle_end_day, 
+    push_type, task_type, `status`, update_time, strategy_product_show, threek_encrypt_type, 
+    is_online, is_stack_validity, priority
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreRuleConfigExample" >
     select
@@ -126,22 +125,22 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_score_rule_config (rule_name, rule_name_short, start_time, 
-      strategy_product_json, condition_info, strategy_id, 
-      product_info, base_info, rule_type, 
-      is_del, create_time, exec_type, 
-      auto_build, cycle_day, cycle_end_day, 
-      push_type, task_type, `status`, 
-      update_time, strategy_product_show, threek_encrypt_type, 
+    insert into b_score_rule_config (rule_name, rule_name_short, start_time,
+      strategy_product_json, strategy_id, product_info, 
+      base_info, rule_type, is_del, 
+      create_time, exec_type, auto_build, 
+      cycle_day, cycle_end_day, push_type, 
+      task_type, `status`, update_time, 
+      strategy_product_show, threek_encrypt_type, 
       is_online, is_stack_validity, priority
       )
     values (#{ruleName,jdbcType=VARCHAR}, #{ruleNameShort,jdbcType=VARCHAR}, #{startTime,jdbcType=VARCHAR}, 
-      #{strategyProductJson,jdbcType=VARCHAR}, #{conditionInfo,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
-      #{productInfo,jdbcType=VARCHAR}, #{baseInfo,jdbcType=VARCHAR}, #{ruleType,jdbcType=INTEGER}, 
-      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{execType,jdbcType=INTEGER}, 
-      #{autoBuild,jdbcType=INTEGER}, #{cycleDay,jdbcType=INTEGER}, #{cycleEndDay,jdbcType=VARCHAR}, 
-      #{pushType,jdbcType=INTEGER}, #{taskType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{strategyProductShow,jdbcType=VARCHAR}, #{threekEncryptType,jdbcType=INTEGER}, 
+      #{strategyProductJson,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, #{productInfo,jdbcType=VARCHAR}, 
+      #{baseInfo,jdbcType=VARCHAR}, #{ruleType,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{execType,jdbcType=INTEGER}, #{autoBuild,jdbcType=INTEGER}, 
+      #{cycleDay,jdbcType=INTEGER}, #{cycleEndDay,jdbcType=VARCHAR}, #{pushType,jdbcType=INTEGER}, 
+      #{taskType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{strategyProductShow,jdbcType=VARCHAR}, #{threekEncryptType,jdbcType=INTEGER}, 
       #{isOnline,jdbcType=INTEGER}, #{isStackValidity,jdbcType=INTEGER}, #{priority,jdbcType=INTEGER}
       )
   </insert>
@@ -162,9 +161,6 @@
       </if>
       <if test="strategyProductJson != null" >
         strategy_product_json,
-      </if>
-      <if test="conditionInfo != null" >
-        condition_info,
       </if>
       <if test="strategyId != null" >
         strategy_id,
@@ -236,9 +232,6 @@
       </if>
       <if test="strategyProductJson != null" >
         #{strategyProductJson,jdbcType=VARCHAR},
-      </if>
-      <if test="conditionInfo != null" >
-        #{conditionInfo,jdbcType=VARCHAR},
       </if>
       <if test="strategyId != null" >
         #{strategyId,jdbcType=VARCHAR},
@@ -323,9 +316,6 @@
       <if test="record.strategyProductJson != null" >
         strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
       </if>
-      <if test="record.conditionInfo != null" >
-        condition_info = #{record.conditionInfo,jdbcType=VARCHAR},
-      </if>
       <if test="record.strategyId != null" >
         strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       </if>
@@ -395,7 +385,6 @@
       rule_name_short = #{record.ruleNameShort,jdbcType=VARCHAR},
       start_time = #{record.startTime,jdbcType=VARCHAR},
       strategy_product_json = #{record.strategyProductJson,jdbcType=VARCHAR},
-      condition_info = #{record.conditionInfo,jdbcType=VARCHAR},
       strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       product_info = #{record.productInfo,jdbcType=VARCHAR},
       base_info = #{record.baseInfo,jdbcType=VARCHAR},
@@ -433,9 +422,6 @@
       </if>
       <if test="strategyProductJson != null" >
         strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
-      </if>
-      <if test="conditionInfo != null" >
-        condition_info = #{conditionInfo,jdbcType=VARCHAR},
       </if>
       <if test="strategyId != null" >
         strategy_id = #{strategyId,jdbcType=VARCHAR},
@@ -503,7 +489,6 @@
       rule_name_short = #{ruleNameShort,jdbcType=VARCHAR},
       start_time = #{startTime,jdbcType=VARCHAR},
       strategy_product_json = #{strategyProductJson,jdbcType=VARCHAR},
-      condition_info = #{conditionInfo,jdbcType=VARCHAR},
       strategy_id = #{strategyId,jdbcType=VARCHAR},
       product_info = #{productInfo,jdbcType=VARCHAR},
       base_info = #{baseInfo,jdbcType=VARCHAR},

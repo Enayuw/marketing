@@ -15,6 +15,7 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,7 @@ import java.util.stream.Collectors;
  *
  * @author zhen.Li1
  * @dateTime 2024/03/23 14:07
+ * 20240723增加数据接收日期 https://c.100credit.cn/pages/viewpage.action?pageId=171450464
  */
 @Component
 @Slf4j
@@ -71,7 +73,7 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
                 return;
             }
             MarketingEmailSendConfig sendConfig = sendConfigList.get(0);
-            String subject = EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getDesc() + "_" + LocalDate.now().toString();
+            String subject = EmailSubjectEnum.QIFU_STRATEGYREPORT_SUNJECT.getDesc() + "_" + LocalDate.now();
             // 生成文件
             String excelPath = syncConfigService.getPath().concat("excel/").concat("360/").concat(apiCode).concat("/");
             File excelDic = new File(excelPath);
@@ -87,6 +89,7 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
                     .map((QifuStrategyReportData reportData) -> {
                         QiFuStrategyReportExcelModel reportExcelModel = new QiFuStrategyReportExcelModel();
                         BeanUtils.copyProperties(reportData, reportExcelModel);
+                        reportExcelModel.setStrategyDate(LocalDate.now().toString());
                         return reportExcelModel;
                     }).collect(Collectors.toList());
             if (CollectionUtils.isEmpty(reportExcelModelList)) {
@@ -101,4 +104,5 @@ public class QiFuStrategyReportEmailJob extends AbstractSimpleElasticJob {
             log.error("360 策略效果数据发送Email失败{}", e);
         }
     }
+
 }

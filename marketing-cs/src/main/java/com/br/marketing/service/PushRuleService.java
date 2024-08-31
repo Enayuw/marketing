@@ -1,23 +1,35 @@
 package com.br.marketing.service;
 
+import java.util.List;
+import java.util.Map;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.dto.*;
+import com.br.marketing.dto.ConditionSaveDTO;
+import com.br.marketing.dto.CustomerBatchNumDTO;
+import com.br.marketing.dto.MarketingPreUserSyncStatusDTO;
+import com.br.marketing.dto.OptConditionDTO;
+import com.br.marketing.dto.PushCustomerDTO;
+import com.br.marketing.dto.RequestPushInfoDTO;
+import com.br.marketing.dto.SearchConditionDTO;
+import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.entity.CustomerInfoPushMain;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferInfo;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.vo.*;
+import com.br.marketing.enums.CustomerQueueEnum;
+import com.br.marketing.vo.ConditionOfScoreVO;
+import com.br.marketing.vo.MarketingPreUserSyncDetailVO;
+import com.br.marketing.vo.MarketingTransferUserStatusVO;
+import com.br.marketing.vo.PushInfoDetailVO;
+import com.br.marketing.vo.ScoreConditionDetailVO;
 import com.br.marketing.vo.xiecheng.PushViewVO;
-import com.br.marketing.vo.xiecheng.XiechengCollidingDataVO;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
 
 public interface PushRuleService {
 
@@ -191,11 +203,7 @@ public interface PushRuleService {
 
     Result<Boolean> consumerHaLuo(Long id);
 
-    /**
-     * 中邮清洗数据接口
-     * @return Result
-     */
-    Result<Boolean> HandleZhongYouData(Long id);
+
 
     /**
      * 模拟数据库或者redis异常
@@ -213,4 +221,8 @@ public interface PushRuleService {
     Result collidingDataPachageMake(PushCustomerDTO dto);
 
     Result<Integer> collidingDataDeleteNum(PushCustomerDTO dto);
+
+    void sendToMqByConfig(String apiCode, String defaultRoutingKey, String infoId, CustomerQueueEnum queueEnum);
+
+    Result<Boolean> deleteRule(Long id);
 }

@@ -911,4 +911,62 @@
         from b_marketing_sync_${apiCode}
         where api_code =#{apiCode} and request_batch = #{requestBatch}
     </select>
+
+    <select id="getSyncUserByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select
+          b.*
+        from b_marketing_sync_${apiCode} as b
+        LEFT JOIN b_qifu_batch_query_user_real_message bq ON
+            b.cell_md5 = bq.mobile_md5 AND b.cust_num = bq.unique_req_no AND bq.create_date = #{createDate}
+        where b.api_code =#{apiCode}
+          AND b.cus_batch =#{cusBatch}
+          AND b.status=1
+          AND b.is_repeat in (1,2)
+          AND bq.mobile_md5 IS NULL
+        <if test="minId !=null and minId >0">
+            and b.id > #{minId}
+        </if>
+        order by b.id asc
+        limit #{pageSize}
+    </select>
+    <select id="getMarketingSyncByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * From  b_marketing_sync_${apiCode}
+        where cus_batch=#{cusBatch} and api_code = #{apiCode} and applet_date = #{appletDate}
+          and user_type =#{userType}
+        and status =1 and is_repeat in (1,2) limit 1
+    </select>
+
+    <select id="getCustNumSetByAppletDateInterval" resultType="String">
+        select cust_num
+        From b_marketing_sync_${apiCode}
+        where
+            api_code =#{apiCode}
+            and cust_num in
+            <foreach collection ="custNums" item="item" separator ="," open="(" close=")">
+                #{item}
+            </foreach>
+            and <![CDATA[ applet_date>=#{appletDateStart} and applet_date<=#{appletDateEnd} ]]>
+            and status =1 and is_repeat in (1,2)
+    </select>
+
+    <select id="getReserveFieldByCustNumAndAppletDateList" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select id,cust_num,reserve_field1
+        from b_marketing_sync_${apiCode}
+        where api_code = '${apiCode}'
+        and cust_num in
+        <foreach collection="custNumSet" item="custNum" open="(" separator="," close=")">
+            '${custNum}'
+        </foreach>
+        and applet_date in
+        <foreach collection="appletDateSet" open="(" close=")" separator="," item="appletDate">
+            '${appletDate}'
+        </foreach>
+        and status =1 and is_repeat in (1,2)
+    </select>
+
+    <update id="updateReserveFieldByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSyncUser">
+        update b_marketing_sync_${apiCode}
+        set reserve_field1 = #{reserveField1,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
 </mapper>

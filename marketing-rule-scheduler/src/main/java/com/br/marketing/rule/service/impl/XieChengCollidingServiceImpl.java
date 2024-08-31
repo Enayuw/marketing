@@ -10,12 +10,10 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
-import com.br.marketing.enums.PushRuleStatusEnum;
-import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
-import com.br.marketing.enums.ThreeKeyEncryptEnum;
-import com.br.marketing.enums.ThreeKeyTypeEnum;
+import com.br.marketing.enums.*;
 import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.bean.QueryBaseBean;
@@ -30,6 +28,8 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EncAndDecUtil;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
+import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +82,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
     @Resource
     XieChengCollidingDataLogMapper xieChengCollidingDataLogMapper;
 
+    @Resource
+    private DingDingRobotHookService dingDingRobotHookService;
+
     /**
      * 携程撞库数据推决策
      *
@@ -104,18 +107,18 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         Result<Integer> integerResult = pushRuleService.checkThreekEnc(fileIds);
         Integer threeEncrypt = integerResult.getData();
         JSONObject jsonRule = JSON.parseObject(customerInfoPushMain.getmRuleCondition());
-        Object releaseTime = jsonRule.getJSONArray("data").stream().filter(obj ->("release_time").equals(
+        Object releaseTime = jsonRule.getJSONArray("data").stream().filter(obj -> ("release_time").equals(
                 ((JSONObject) obj).getString("key"))).findAny().orElse(null);
         if (ObjectUtils.isEmpty(releaseTime)) {
             log.error("携程撞库推送决策缺少release_time，请检查");
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
-        JSONObject releaseTimeJson = (JSONObject) releaseTime;
-        String condition = EsConditionTransferSqlUtil.assemblefiled(releaseTimeJson.getString("key"), releaseTimeJson.getString("operation"),
-                releaseTimeJson.get("value"));
+        XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
+        XieChengEsJsonHandler.handlerJson(jsonRule, collidingFilterDTO);
+        String condition = XieChengEsJsonHandler.zkTrueCondition(collidingFilterDTO);
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
-        Integer pageSize = 3000;
+        Integer pageSize = marketingCommonConfig.getXiechengZkToPlicyPageSize();
         Long minId = null;
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 200);
         List<Future<Result<Integer>>> resList = new ArrayList<>();
@@ -138,13 +141,22 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             });
         }
         try {
+            Integer count = 0;
             for (Future<Result<Integer>> pushFuture : resList) {
                 Result<Integer> pushRes = pushFuture.get();
                 if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                     main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                    count ++;
                 } else {
                     realTotalNum += pushRes.getData();
                 }
+            }
+            if(count > 0){
+                StringBuilder sb = new StringBuilder();
+                sb.append("携程推送决策失败：\n");
+                sb.append("apiCode："+customerInfoPushMain.getmApiCode());
+                sb.append("，任务id："+customerInfoPushMain.getId());
+                sendAlert("携程推送决策失败", sb.toString());
             }
         } catch (Exception ex) {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
@@ -162,7 +174,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             Thread.currentThread().interrupt();
         }
         main.setId(customerInfoPushMain.getId());
-        main.setmRealyNum(realTotalNum);
+        //main.setmRealyNum(realTotalNum);
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         log.warn("携程撞库推送决策完成，推送数据量num={}", realTotalNum);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
@@ -176,11 +188,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
             List<String> logCells = new ArrayList<>();
             //es查询cell为Log加密
-            Long encstart=System.currentTimeMillis();
+            Long encstart = System.currentTimeMillis();
             cells.forEach((String cell) -> {
                 logCells.add(EncAndDecUtil.digestToLog(cell, ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.sha256).getData());
             });
-            log.warn("【携程撞库推决策解密】，耗时：{}",System.currentTimeMillis()-encstart);
+            log.warn("【携程撞库推决策解密】，耗时：{}", System.currentTimeMillis() - encstart);
             JSONObject jsonRule = JSON.parseObject(customerInfoPushMain.getmRuleCondition());
             //去除result，release_time
             XieChengEsJsonHandler.handlerJson(jsonRule, new XieChengCollidingFilterDTO());
@@ -200,10 +212,10 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             //兼容数据重复的情况
             queryBaseBean.setPageSize(2000);
             //根据跑分条件查询ES，符合条件的数据即为要推送数据
-            Long queryStart=System.currentTimeMillis();
+            Long queryStart = System.currentTimeMillis();
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-            log.warn("【携程撞库推决策查询es】，耗时：{}，量级={}",System.currentTimeMillis()-queryStart,marketingHistories.size());
-            if(CollectionUtils.isEmpty(marketingHistories)){
+            log.warn("【携程撞库推决策查询es】，耗时：{}，量级={}", System.currentTimeMillis() - queryStart, marketingHistories.size());
+            if (CollectionUtils.isEmpty(marketingHistories)) {
                 return result.setCode(ResultCode.SUCCESS.getValue()).setDate(0);
             }
             List<String> sha256Cell = marketingHistories.stream().map(marketingHistory ->
@@ -211,10 +223,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             XieChengCollidingDataLogExample dataLogExample = new XieChengCollidingDataLogExample();
             XieChengCollidingDataLogExample.Criteria criteria = dataLogExample.createCriteria();
             criteria.andCellSha256CodeListIn(sha256Cell).andCreateTimeGreaterThanOrEqualTo
-                    (Date.from(LocalDate.now().minusDays(7).atStartOfDay().atZone( ZoneId.systemDefault()).toInstant()));
+                    (Date.from(LocalDate.now().minusDays(7).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())).
+                    andHttpCodeEqualTo(200).andBusinessCodeEqualTo(0);
             List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataLogExample);
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
-            assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt,xieChengCollidingDataLogs);
+            assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt, xieChengCollidingDataLogs);
             //推送任务基础信息
             PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
             pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
@@ -222,6 +235,10 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             pushMarketingUserTaskInfoDTO.setAccessNumber(customerInfoPushMain.getId() + "_" + UUID.randomUUID());
             pushMarketingUserTaskInfoDTO.setData(userDetailDTOS);
             pushMarketingUserTaskInfoDTO.setTaskId(customerInfoPushMain.getId().toString());
+            pushMarketingUserTaskInfoDTO.setBatchName(customerInfoPushMain.getBatchName());
+            if(StringUtils.isNotEmpty(customerInfoPushMain.getStrategyCode())){
+                pushMarketingUserTaskInfoDTO.setStrategyCode(customerInfoPushMain.getStrategyCode());
+            }
             //传输参数信息
             PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
             pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
@@ -245,7 +262,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
     private void assmbleUserDetail(List<MarketingHistory> marketingHistories, List<PushMarketingUserDetailDTO> userDetailDTOS, Integer threeEncrypt,
                                    List<XieChengCollidingDataLog> xieChengCollidingDataLogs) {
-        Map<String, XieChengCollidingDataLog> dataLogMap =getDataLogGroupByCell(xieChengCollidingDataLogs);
+        Map<String, XieChengCollidingDataLog> dataLogMap = getDataLogGroupByCell(xieChengCollidingDataLogs);
         for (int k = 0; k < marketingHistories.size(); k++) {
             MarketingHistory marketingHistory = marketingHistories.get(k);
             //人员信息
@@ -295,6 +312,17 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                                 , Optional::get)));
     }
 
+    public void sendAlert(String title, String text) {
 
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
+
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        markdown.setTitle(title);
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+        dingDingRobotHookService.sendMessageGroup(map.get("token").toString(), map.get("secret").toString(), dingDingMarkdownMessage, true);
+    }
 
 }

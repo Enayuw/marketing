@@ -2,18 +2,35 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.br.marketing.mapper.SyncConfigMapper">
 	<select id="queryConfig" resultType="com.br.marketing.entity.SyncConfig" parameterType="java.lang.String">
-		select * from b_sync_config where status=1 and type=#{type}
+		select *
+		from b_sync_config
+		where status = 1
+		  and type = #{type}
 	</select>
-	<select id="queryConfigByConditaion" resultType="com.br.marketing.entity.SyncConfig" parameterType="com.br.marketing.entity.SyncConfig">
-		select * from b_sync_config where status=1 and api_code=#{apiCode} and type=#{type} and data_type=#{dataType}
+	<select id="queryConfigByTypeAndTargetType" resultType="com.br.marketing.entity.SyncConfig">
+		select * from b_sync_config where status=1 and type=#{type}
+		<if test="targetTypes != null">
+			and target_type in
+			<foreach collection="targetTypes" item="targetType" separator="," close=")" open="(">
+				'${targetType}'
+			</foreach>
+		</if>
+	</select>
+	<select id="queryConfigByConditaion" resultType="com.br.marketing.entity.SyncConfig"
+			parameterType="com.br.marketing.entity.SyncConfig">
+		select *
+		from b_sync_config
+		where status = 1
+		  and api_code = #{apiCode}
+		  and type = #{type}
+		  and data_type = #{dataType}
 	</select>
 	<insert id="insertConfig" parameterType="com.br.marketing.entity.SyncConfig">
-	   INSERT INTO `b_sync_config` (
-			`api_code`,
-			`type`,
-			`src_path`,
-			`target_path`,
-			`suffix`,
+		INSERT INTO `b_sync_config` (`api_code`,
+									 `type`,
+									 `src_path`,
+									 `target_path`,
+									 `suffix`,
 			`check_finish`,
 			`check_success`,
 			`status`,
