@@ -33,7 +33,7 @@
     <select id="selectHighValueCollidingData" resultType="com.br.marketing.entity.WubaCollidingData">
         select a.id, a.cell, a.package_id
         from b_wuba_colliding_data_rob a join b_local_file b on a.package_id = b.id
-        where a.is_deleted = 0 and a.api_code = #{apiCode} <![CDATA[ and a.push_time < #{nowDate} ]]>
+        where a.is_deleted = 0 and a.api_code = #{apiCode} <![CDATA[ and (a.push_time < #{nowDate} or a.push_time is null) ]]>
         and b.api_code = #{apiCode} and b.status = 2 and b.complete = 1 and b.push_status = 2 and b.file_name in
         <foreach collection="fileNames" item="fileName" open="(" separator="," close=")">
             #{fileName}
