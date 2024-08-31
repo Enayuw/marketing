@@ -108,6 +108,10 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
 
     private String getHighValueFileIds(String apiCode) {
         List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
+        if (CollectionUtils.isEmpty(highValueFiles)) {
+            return "(\"\")";
+        }
+
         LocalFileExample localFileExample = new LocalFileExample();
         localFileExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo("2")
                 .andCompleteEqualTo("1").andPushStatusEqualTo("2").andFileNameIn(highValueFiles);
