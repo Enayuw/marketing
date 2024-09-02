@@ -4,6 +4,7 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bi.BiReportConverterSelector;
+import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.service.bi.BiReportService;
 import com.br.marketing.vo.bi.BiReportVO;
@@ -16,6 +17,9 @@ import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -32,6 +36,8 @@ public class BiReportServiceImpl implements BiReportService {
 
     @Resource
     private BiReportConverterSelector selector;
+    @Resource
+    private FastDfsClient fastDfsClient;
 
     /**
      * 获取BI报表
@@ -59,16 +65,18 @@ public class BiReportServiceImpl implements BiReportService {
      * @param param    参数
      * @param request  请求
      * @param response 响应
+     * @return {@link String }
      * @throws Exception 例外
      * @author senyang.zheng
      * @date 2024/08/28
      */
     @Override
-    public void downloadReport(BiReportDownLoadParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public String downloadReport(BiReportDownLoadParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String fastDfsUrl;
         BiReportTypeEnum reportType = BiReportTypeEnum.getEnumByTypeName(param.getReportTypeName());
         //根据报告名称未匹配到对应报告类型
         if (reportType == null) {
-            return;
+            return null;
         }
         // 设置下载协议头，防止中文乱码做URLEncoder处理
         String encodeFileName = URLEncoder.encode(param.getReportName() + ".xlsx", StandardCharsets.UTF_8.toString());
@@ -78,6 +86,16 @@ public class BiReportServiceImpl implements BiReportService {
             response.setHeader("Content-Disposition", "attachment;filename*=UTF-8''" + encodeFileName);
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8");
             excelWriter.flush(out, true);
+            fastDfsUrl = syncToFastDfs(excelWriter, encodeFileName);
         }
+        return fastDfsUrl;
+    }
+
+    private String syncToFastDfs(ExcelWriter writer, String encodeFileName) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        writer.flush(out);
+        int fileSize = out.toByteArray().length;
+        InputStream inputStream = new ByteArrayInputStream(out.toByteArray());
+        return fastDfsClient.uploadFile(inputStream, (long) fileSize, encodeFileName);
     }
 }

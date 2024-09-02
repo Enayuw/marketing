@@ -30,9 +30,10 @@ public interface BiReportService {
      * @param param    参数
      * @param request  request
      * @param response response
+     * @return {@link String }
      * @throws Exception 例外
      * @author senyang.zheng
      * @date 2024/08/28
      */
-    void downloadReport(BiReportDownLoadParam param, HttpServletRequest request, HttpServletResponse response) throws Exception;
+    String downloadReport(BiReportDownLoadParam param, HttpServletRequest request, HttpServletResponse response) throws Exception;
 }
