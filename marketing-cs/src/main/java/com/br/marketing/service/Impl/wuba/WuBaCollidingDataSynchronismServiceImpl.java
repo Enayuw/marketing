@@ -84,7 +84,7 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         while (true) {
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
 
-            // local_id and status =1 and push_status =1，前置表去重后与非周期表去重
+            // local_id and status =1 and push_status =1，去重逻辑：1.该文件本身去重、2.该文件与非周期当天已同步数据或高质量数据去重、3.该文件与周期表全量去重
             Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
