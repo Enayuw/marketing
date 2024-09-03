@@ -244,6 +244,9 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         for (MarketingTransferSyncUser transferSyncUser : outputDataList) {
             BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
             blacklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
+            blacklistDataDTO.setExpireDate(LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    .concat(" 23:59:59"));
             pushList.add(blacklistDataDTO);
             count++;
 
