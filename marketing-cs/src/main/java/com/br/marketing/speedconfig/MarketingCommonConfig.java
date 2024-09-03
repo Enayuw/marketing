@@ -1872,7 +1872,17 @@ public class MarketingCommonConfig {
     private Integer wuBaCollidingDataSyncPageSize;
 
     /**
-     * 58提交撞库开关(true:开启，false关闭)
+     * 58撞库高价值文件名集合
+     */
+    private List<String> wubaCollidingHighValueFiles;
+
+    /**
+     * 58撞库每日最大量级限制
+     */
+    private Integer wubaCollidingDataMaxCountLimit;
+
+    /**
+     * 58提交周期撞库开关(true:开启，false关闭)
      */
     private Boolean wuBaCollidingDataSwitch;
 
@@ -2070,6 +2080,16 @@ public class MarketingCommonConfig {
      * 跑分报表分值区间配置
      */
     private Map<String, Integer> scoreReportRangeConfig;
+
+    /**
+     * 58钉钉告警token
+     */
+    private String wuBaDingDingAccessToken;
+
+    /**
+     * 58钉钉告警密钥
+     */
+    private String wuBaDingDingSecret;
 
 }
 

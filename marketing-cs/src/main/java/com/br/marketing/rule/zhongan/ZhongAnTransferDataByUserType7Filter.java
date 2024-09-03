@@ -23,13 +23,15 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 
-
 /**
- * 众安转化数据自动化过滤
+ * @ClassName ZhongAnTransferDataByUserType7Filter
+ * @Description 众安转化数据自动化过滤 userType=7
+ * @Author kongbx
+ * @Date 2024/8/27 16:30
  */
 @Service
 @Slf4j
-public class ZhongAnTransferDataToCustomerFilter implements AssembleData<ConversionDataSoleDTO> {
+public class ZhongAnTransferDataByUserType7Filter implements AssembleData<ConversionDataSoleDTO> {
     @Override
     public ConversionDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
@@ -43,7 +45,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         conversionData.setInversionStatus("0");
         Map<String, Map<String, SyncUserValidityPeriodsBO>> customerUserTypeMap = ruleNecessaryData.getCustomerUserTypeMap();
         Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = customerUserTypeMap.get(marketingTransferSyncUser.getCustNum());
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get("1");
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get("7");
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
         conversionData.setGroupType(syncUsers.get(0).getUserType());
@@ -57,7 +59,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         ConversionDataSoleDTO dataSoleDTO = new ConversionDataSoleDTO();
         dataSoleDTO.setConversionData(conversionData);
-        dataSoleDTO.setStatus("1");
+        dataSoleDTO.setStatus("7");
         return dataSoleDTO;
     }
 
@@ -74,7 +76,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
                 return false;
             }
 
-            if (!userValidityPeriodsBOMap.containsKey("1")) {
+            if (!userValidityPeriodsBOMap.containsKey("7")) {
                 log.warn("众安转化数据推客服过滤数据userType不包含1：{}", userValidityPeriodsBOMap.keySet());
                 return false;
             }
@@ -85,7 +87,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
             }
             JSONObject jsonObjectReserveField1 = JSON.parseObject(reserveField1);
             String eventType = jsonObjectReserveField1.getString("eventType");
-            if ("FINISH".equals(eventType) || "CREDIT_SUCCESS".equals(eventType)) {
+            if ("LOAN_APPLY".equals(eventType) || "WITHDRAW_SUCCESS".equals(eventType)) {
                 return true;
             }
             log.warn("众安转化数据推客服过滤数据eventType不符合推送要求：{}", transfer.getCustNum());
@@ -95,7 +97,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
 
     @Override
     public String label() {
-        return "ZhongAn_TransferData_To_CustomerFilter";
+        return "ZhongAn_TransferData_To_CustomerFilter7";
     }
 
     @Override

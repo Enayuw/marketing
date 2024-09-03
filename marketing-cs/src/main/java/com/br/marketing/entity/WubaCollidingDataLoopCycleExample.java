@@ -235,6 +235,76 @@ public class WubaCollidingDataLoopCycleExample {
             return (Criteria) this;
         }
 
+        public Criteria andDataSourceTypeIsNull() {
+            addCriterion("data_source_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeIsNotNull() {
+            addCriterion("data_source_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeEqualTo(String value) {
+            addCriterion("data_source_type =", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotEqualTo(String value) {
+            addCriterion("data_source_type <>", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeGreaterThan(String value) {
+            addCriterion("data_source_type >", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("data_source_type >=", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeLessThan(String value) {
+            addCriterion("data_source_type <", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeLessThanOrEqualTo(String value) {
+            addCriterion("data_source_type <=", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeLike(String value) {
+            addCriterion("data_source_type like", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotLike(String value) {
+            addCriterion("data_source_type not like", value, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeIn(List<String> values) {
+            addCriterion("data_source_type in", values, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotIn(List<String> values) {
+            addCriterion("data_source_type not in", values, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeBetween(String value1, String value2) {
+            addCriterion("data_source_type between", value1, value2, "dataSourceType");
+            return (Criteria) this;
+        }
+
+        public Criteria andDataSourceTypeNotBetween(String value1, String value2) {
+            addCriterion("data_source_type not between", value1, value2, "dataSourceType");
+            return (Criteria) this;
+        }
+
         public Criteria andCellIsNull() {
             addCriterion("cell is null");
             return (Criteria) this;
