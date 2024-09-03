@@ -250,5 +250,9 @@ public class RedisKeyConstant {
      */
     public static final String SCORE_REPORT_TASK_LOCK = prefix.concat("score:report:task:lock:");
 
+    /**
+     * 58撞库超限标记
+     */
+    public static final String WUBA_COLLIDING_EXCEED_LIMIT = prefix.concat("wuba:colliding:exceed:limit");
 
 }
