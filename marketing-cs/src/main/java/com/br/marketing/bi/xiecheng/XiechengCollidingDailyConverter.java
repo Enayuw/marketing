@@ -195,7 +195,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                     Map<String, Long> dataMap = entry.getValue();
                     // 依据X轴顺序构造List<String> data,若根据X轴未匹配到数据写入默认值0
                     List<String> data = xAxis.stream()
-                            .map(axis -> dataMap.getOrDefault(axis, 0L).toString())
+                            .map(axis -> String.format(Locale.getDefault(), "%,d", dataMap.getOrDefault(axis, 0L)))
                             .collect(Collectors.toList());
                     return new WrapDataVO(reportDate, data);
                 }).collect(Collectors.toList());
