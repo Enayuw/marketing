@@ -31,6 +31,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.SynchronousQueue;
@@ -261,6 +263,9 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         for (MarketingSyncUser syncUser : outputDataList) {
             BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
             blacklistDataDTO.setCaseNum(syncUser.getCustNum());
+            blacklistDataDTO.setExpireDate(LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    .concat(" 23:59:59"));
             pushList.add(blacklistDataDTO);
             count++;
 
