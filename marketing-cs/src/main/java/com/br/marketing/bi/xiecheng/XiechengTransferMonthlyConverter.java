@@ -1,6 +1,15 @@
 package com.br.marketing.bi.xiecheng;
 
-import cn.hutool.core.date.DateUtil;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -11,16 +20,9 @@ import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
-import groovy.util.logging.Slf4j;
-import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import cn.hutool.core.date.DateUtil;
+import groovy.util.logging.Slf4j;
 
 /**
  * 携程月转化报表适配实现
@@ -50,62 +52,61 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
             // 创建DailyReportDTO实例并设置数据
             XiechengTransferMonthlyReportDTO report = new XiechengTransferMonthlyReportDTO();
             report.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -i)));
-            report.setLockNum((long) random.nextInt(5000000));
-            report.setSubmitNum((long) random.nextInt(5000000));
-            report.setOutboundNum((long) random.nextInt(5000000));
-            report.setOperateNum((long) random.nextInt(5000000));
-            report.setCertifyNum((long) random.nextInt(5000000));
-            report.setApplyNum((long) random.nextInt(5000000));
-            report.setCreditNum((long) random.nextInt(5000000));
-            report.setApplyWithdrawNum((long) random.nextInt(5000000));
-            report.setWithdrawSucNum((long) random.nextInt(5000000));
-            report.setCreditAvgNum((long) random.nextInt(5000000));
-            report.setCertifyRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setApplyRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setCreditRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setApplyWithdrawRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setWithdrawRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setCertifyCompleteRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setOverPieceRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            report.setLockNum((long)random.nextInt(5000000));
+            report.setSubmitNum((long)random.nextInt(5000000));
+            report.setOutboundNum((long)random.nextInt(5000000));
+            report.setOperateNum((long)random.nextInt(5000000));
+            report.setCertifyNum((long)random.nextInt(5000000));
+            report.setApplyNum((long)random.nextInt(5000000));
+            report.setCreditNum((long)random.nextInt(5000000));
+            report.setApplyWithdrawNum((long)random.nextInt(5000000));
+            report.setWithdrawSucNum((long)random.nextInt(5000000));
+            report.setCreditAvgNum((long)random.nextInt(5000000));
+            report.setCertifyRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setApplyRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setCreditRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setApplyWithdrawRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setWithdrawRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setCertifyCompleteRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setOverPieceRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
             report.setCreditWithdrawLaunchRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+                .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
             report.setCreditWithdrawSucRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setApplyCreditNum2((long) random.nextInt(5000000));
-            report.setWithdrawSucNum2((long) random.nextInt(5000000));
-            report.setApplyWithdrawRatio2(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setWithdrawRatio2(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setWithdrawLaunchRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setWithdrawSucRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setIncome(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setCost(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setRoi(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setCreditCompleteRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+                .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            report.setApplyCreditNum2((long)random.nextInt(5000000));
+            report.setWithdrawSucNum2((long)random.nextInt(5000000));
+            report.setApplyWithdrawRatio2(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setWithdrawRatio2(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setWithdrawLaunchRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setWithdrawSucRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setIncome(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setCost(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setRoi(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setCreditCompleteRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
             dtos.add(report);
         }
         return dtos;
     }
 
-
     /**
      * 数据处理
      *
-     * @param dtos   数据
+     * @param dtos 数据
      * @param extend 扩展参数
      * @return {@link BiReportVO }
      * @author senyang.zheng
@@ -115,16 +116,16 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
     public BiReportVO process(List<XiechengTransferMonthlyReportDTO> dtos, JSONObject extend) {
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_MONTHLY_REPORT.getTypeName());
-        biReportVO.setReportName("数据使用率表");
+        biReportVO.setReportName("月转化报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据时间排序
-        List<XiechengTransferMonthlyReportDTO> sortedData = dtos.stream().sorted(Comparator.comparing(XiechengTransferMonthlyReportDTO::getReportDate
-                , Comparator.naturalOrder())).collect(Collectors.toList());
-        //构造横坐标数据
+        List<XiechengTransferMonthlyReportDTO> sortedData = dtos.stream()
+            .sorted(Comparator.comparing(XiechengTransferMonthlyReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
+        // 构造横坐标数据
         List<String> xAxis = sortedData.stream().map(XiechengTransferMonthlyReportDTO::getReportDate).distinct().collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
         biReportVO.setXAxis(xAxis);
-        //构造纵坐标数据
+        // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
         yAxis.add(buildWrapDataVO("锁定名单量级", sortedData, XiechengTransferMonthlyReportDTO::getLockNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("上报名单量级", sortedData, XiechengTransferMonthlyReportDTO::getSubmitNum, FormatType.THOUSAND_SEPARATOR));

@@ -1,7 +1,18 @@
 package com.br.marketing.bi.xiecheng;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.poi.excel.ExcelWriter;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -14,12 +25,10 @@ import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
-import groovy.util.logging.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.poi.excel.ExcelWriter;
+import groovy.util.logging.Slf4j;
 
 /**
  * 携程单日撞库结果分布报表适配实现
@@ -51,7 +60,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("1400wdx");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -60,7 +69,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("1400wlt");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -69,7 +78,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("1200w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -78,7 +87,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("2800w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -87,7 +96,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("300w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -96,7 +105,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("800w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -105,7 +114,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("900w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -114,7 +123,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("3300w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -123,7 +132,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("3500w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -132,7 +141,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("360w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -141,7 +150,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("830w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setLockNum((long) random.nextInt(5000000));
+                dto.setLockNum((long)random.nextInt(5000000));
                 dtos.add(dto);
             }
         }
@@ -151,7 +160,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
     /**
      * 数据处理
      *
-     * @param dtos   数据
+     * @param dtos 数据
      * @param extend 自定义参数
      * @return {@link BiReportVO }
      * @author senyang.zheng
@@ -163,14 +172,13 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_COLLIDING_DAILY_REPORT.getTypeName());
         biReportVO.setReportName("单日撞库结果分布");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
-        //根据标签排序，添加空值处理
+        // 根据标签排序，添加空值处理
         dtos.sort(Comparator.comparing(XiechengCollidingDailyReportDTO::getDataPacket, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
+            .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
-        List<String> xAxis = dtos.stream()
-                .map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo())
-                .distinct().collect(Collectors.toList());
+        List<String> xAxis = dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo()).distinct()
+            .collect(Collectors.toList());
         biReportVO.setXAxisName("dataPacket_orgChannel_info");
         biReportVO.setXAxis(xAxis);
         /*
@@ -178,27 +186,25 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
          * 数据格式 Map<日期, Map<dataPacket_orgChannel_info, 量级>> reportDateToDataMap
          *
          */
-        Map<String, Map<String, Long>> reportDateToDataMap = dtos.stream()
+        Map<String,
+            Map<String, Long>> reportDateDataMap = dtos.stream()
                 .collect(Collectors.groupingBy(XiechengCollidingDailyReportDTO::getReportDate,
-                        Collectors.toMap(dto -> dto.getDataPacket() + "_" + dto.getOrgChannel() + "_" + dto.getInfo(),
-                                XiechengCollidingDailyReportDTO::getLockNum, (oldValue, newValue) -> newValue, LinkedHashMap::new)));
+                    Collectors.toMap(dto -> dto.getDataPacket() + "_" + dto.getOrgChannel() + "_" + dto.getInfo(),
+                        XiechengCollidingDailyReportDTO::getLockNum, (oldValue, newValue) -> newValue, LinkedHashMap::new)));
         /*
          * 构造Y轴数据
          * 1.Map<日期, Map<dataPacket_orgChannel_info, 量级>> reportDateToDataMap先根据日期排序
          * 2.遍历reportDateToDataMap key为WrapDataVO中name字段
          * 3.根据X轴顺序构造WrapDataVO中List<String> data
          */
-        List<WrapDataVO> yAxis = reportDateToDataMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(entry -> {
-                    String reportDate = entry.getKey();
-                    Map<String, Long> dataMap = entry.getValue();
-                    // 依据X轴顺序构造List<String> data,若根据X轴未匹配到数据写入默认值0
-                    List<String> data = xAxis.stream()
-                            .map(axis -> String.format(Locale.getDefault(), "%,d", dataMap.getOrDefault(axis, 0L)))
-                            .collect(Collectors.toList());
-                    return new WrapDataVO(reportDate, data);
-                }).collect(Collectors.toList());
+        List<WrapDataVO> yAxis = reportDateDataMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(entry -> {
+            String reportDate = entry.getKey();
+            Map<String, Long> dataMap = entry.getValue();
+            // 依据X轴顺序构造List<String> data,若根据X轴未匹配到数据写入默认值0
+            List<String> data =
+                xAxis.stream().map(axis -> String.format(Locale.getDefault(), "%,d", dataMap.getOrDefault(axis, 0L))).collect(Collectors.toList());
+            return new WrapDataVO(reportDate, data);
+        }).collect(Collectors.toList());
         biReportVO.setYAxis(yAxis);
         return biReportVO;
     }
@@ -207,7 +213,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
      * 导出数据
      *
      * @param excelWriter excelWriter
-     * @param param       参数
+     * @param param 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
@@ -226,7 +232,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
      * 写入数据
      *
      * @param writer writer
-     * @param param  参数
+     * @param param 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
@@ -256,7 +262,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
             // 写入Y轴数据
             for (int j = 0; j < xAxis.size(); j++) {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
-                //求和时处理千分位
+                // 求和时处理千分位
                 total += Long.parseLong(yData.get(j).replaceAll(",", ""));
                 writer.writeCellValue(i + 3, j + 1, value);
             }

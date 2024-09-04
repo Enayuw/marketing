@@ -1,7 +1,14 @@
 package com.br.marketing.bi.xiecheng;
 
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -12,16 +19,10 @@ import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
-import groovy.util.logging.Slf4j;
-import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import groovy.util.logging.Slf4j;
 
 /**
  * 携程7日滚动转化报表实现
@@ -52,27 +53,27 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
             DateTime weekStart = DateUtil.offsetDay(weekEnd, -6);
             XiechengTransferWeeklyReportDTO report = new XiechengTransferWeeklyReportDTO();
             report.setRollPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
-            report.setOutboundNum((long) random.nextInt(5000000));
-            report.setCertifyNum((long) random.nextInt(5000000));
-            report.setApplyNum((long) random.nextInt(5000000));
-            report.setCreditNum((long) random.nextInt(5000000));
-            report.setApplyWithdrawNum((long) random.nextInt(5000000));
-            report.setWithdrawNum((long) random.nextInt(5000000));
-            report.setCreditAvgNum((long) random.nextInt(5000000));
-            report.setCertifyRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setApplyRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setCreditRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setWithdrawRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setCertifyCompleteRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setOverPieceRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            report.setWithdrawSucRatio(new BigDecimal(random.nextInt(100))
-                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            report.setOutboundNum((long)random.nextInt(5000000));
+            report.setCertifyNum((long)random.nextInt(5000000));
+            report.setApplyNum((long)random.nextInt(5000000));
+            report.setCreditNum((long)random.nextInt(5000000));
+            report.setApplyWithdrawNum((long)random.nextInt(5000000));
+            report.setWithdrawNum((long)random.nextInt(5000000));
+            report.setCreditAvgNum((long)random.nextInt(5000000));
+            report.setCertifyRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setApplyRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setCreditRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setWithdrawRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setCertifyCompleteRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setOverPieceRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+            report.setWithdrawSucRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
             dtos.add(report);
         }
         return dtos;
@@ -81,7 +82,7 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
     /**
      * 数据处理
      *
-     * @param dtos   数据
+     * @param dtos 数据
      * @param extend 扩展参数
      * @return {@link BiReportVO }
      * @author senyang.zheng
@@ -91,16 +92,16 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
     public BiReportVO process(List<XiechengTransferWeeklyReportDTO> dtos, JSONObject extend) {
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_MONTHLY_REPORT.getTypeName());
-        biReportVO.setReportName("数据使用率表");
+        biReportVO.setReportName("7日滚动转化报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据时间排序
-        List<XiechengTransferWeeklyReportDTO> sortedData = dtos.stream().sorted(Comparator.comparing(XiechengTransferWeeklyReportDTO::getRollPeriod
-                , Comparator.naturalOrder())).collect(Collectors.toList());
-        //构造横坐标数据
+        List<XiechengTransferWeeklyReportDTO> sortedData = dtos.stream()
+            .sorted(Comparator.comparing(XiechengTransferWeeklyReportDTO::getRollPeriod, Comparator.naturalOrder())).collect(Collectors.toList());
+        // 构造横坐标数据
         List<String> xAxis = sortedData.stream().map(XiechengTransferWeeklyReportDTO::getRollPeriod).distinct().collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
         biReportVO.setXAxis(xAxis);
-        //构造纵坐标数据
+        // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
         yAxis.add(buildWrapDataVO("实际外呼量级", sortedData, XiechengTransferWeeklyReportDTO::getOutboundNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("身份认证量", sortedData, XiechengTransferWeeklyReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
