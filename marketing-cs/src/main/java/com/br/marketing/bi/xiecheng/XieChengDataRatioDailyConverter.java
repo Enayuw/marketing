@@ -21,11 +21,11 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
  * 携程数据使用率报表适配实现
+ *
  * @author senyang.zheng
  * @date 2024/08/28
  */
@@ -38,6 +38,7 @@ public class XieChengDataRatioDailyConverter extends AbstractBiReportConverter<B
 
     /**
      * 获取数据
+     *
      * @param param 查询条件
      * @return {@link List }<{@link XiechengDataRatioDailyReportDTO }>
      * @author senyang.zheng
@@ -61,9 +62,9 @@ public class XieChengDataRatioDailyConverter extends AbstractBiReportConverter<B
             // 创建DailyReportDTO实例并设置数据
             XiechengDataRatioDailyReportDTO report = new XiechengDataRatioDailyReportDTO();
             report.setReportDate(dwsXcDataRatioD.getReportDate());
-            report.setCollidingBackNumber(collidingBackNumber);
-            report.setExtractionNumber(extractionNumber);
-            report.setCallableNumber(callableNumber);
+            report.setCollidingBackNum(collidingBackNumber);
+            report.setExtractionNum(extractionNumber);
+            report.setCallableNum(callableNumber);
             report.setExtractionRatio(extractionRatio);
             report.setCallableRatio(callableRatio);
             dtos.add(report);
