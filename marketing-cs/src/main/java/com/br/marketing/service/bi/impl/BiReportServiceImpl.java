@@ -5,12 +5,18 @@ import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bi.BiReportConverterSelector;
 import com.br.marketing.client.FastDfsClient;
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.mapper.SourceStatisticDictMapper;
 import com.br.marketing.service.bi.BiReportService;
+import com.br.marketing.vo.bi.BiReportConfigDictVO;
 import com.br.marketing.vo.bi.BiReportVO;
+import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import groovy.util.logging.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -22,11 +28,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * BI报表相关Service实现
- *
  * @author senyang.zheng
  * @date 2024/08/28
  */
@@ -39,9 +46,11 @@ public class BiReportServiceImpl implements BiReportService {
     @Resource
     private FastDfsClient fastDfsClient;
 
+    @Resource
+    private SourceStatisticDictMapper statisticDictMapper;
+
     /**
      * 获取BI报表
-     *
      * @param param 参数
      * @return {@link BiReportVO }
      * @author senyang.zheng
@@ -61,7 +70,6 @@ public class BiReportServiceImpl implements BiReportService {
 
     /**
      * 下载报表
-     *
      * @param param    参数
      * @param request  请求
      * @param response 响应
@@ -91,11 +99,38 @@ public class BiReportServiceImpl implements BiReportService {
         return fastDfsUrl;
     }
 
+
     private String syncToFastDfs(ExcelWriter writer, String encodeFileName) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         writer.flush(out);
         int fileSize = out.toByteArray().length;
         InputStream inputStream = new ByteArrayInputStream(out.toByteArray());
         return fastDfsClient.uploadFile(inputStream, (long) fileSize, encodeFileName);
+    }
+
+    @Override
+    public List<BiReportConfigDictVO> getBiReportConfigDict(BiReportConfigDIctParam param) {
+        List<SourceStatisticDict> sourceStatisticDicts = statisticDictMapper.selectListbI_(param.getDictKey(), param.getApiCode());
+        return sourceStatisticDicts.stream().map((SourceStatisticDict t) -> {
+            BiReportConfigDictVO vo = new BiReportConfigDictVO();
+            BeanUtils.copyProperties(t, vo);
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDIctParam param) {
+        SourceStatisticDict sourceStatisticDict = new SourceStatisticDict();
+        sourceStatisticDict.setDictKey(param.getDictKey());
+        sourceStatisticDict.setDictDesc(param.getDictDesc());
+        sourceStatisticDict.setDictValue(param.getDictValue());
+        sourceStatisticDict.setApiCode(param.getApiCode());
+        sourceStatisticDict.setDictDesc(param.getDictDesc());
+        sourceStatisticDict.setCreateTime(new Date());
+        sourceStatisticDict.setUpdateTime(new Date());
+        sourceStatisticDict.setIsDel(param.getIsDel());
+
+        statisticDictMapper.insertbI_(sourceStatisticDict);
+        return new ApiResult<Boolean>().success();
     }
 }
