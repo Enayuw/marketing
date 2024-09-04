@@ -1,6 +1,11 @@
 package com.br.marketing.dto.report.xiecheng;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 携程月转化报表dto
@@ -9,5 +14,97 @@ import lombok.Data;
  * @date 2024/08/28
  */
 @Data
-public class XiechengTransferMonthlyReportDTO {
+@ApiModel(value = "携程月转化报表dto")
+public class XiechengTransferMonthlyReportDTO implements Serializable {
+
+    private static final long serialVersionUID = -3827396898483783969L;
+    @ApiModelProperty("日期")
+    private String reportDate;
+
+    @ApiModelProperty("锁定名单量级")
+    private Long lockNum;
+
+    @ApiModelProperty("上报名单量级")
+    private Long submitNum;
+
+    @ApiModelProperty("实际外呼量级")
+    private Long outboundNum;
+
+    @ApiModelProperty("累计运营量级")
+    private Long operateNum;
+
+    @ApiModelProperty("身份认证量级")
+    private Long certifyNum;
+
+    @ApiModelProperty("申请量")
+    private Long applyNum;
+
+    @ApiModelProperty("授信量")
+    private Long creditNum;
+
+    @ApiModelProperty("申请提现量")
+    private Long applyWithdrawNum;
+
+    @ApiModelProperty("提现成功量")
+    private Long withdrawSucNum;
+
+    @ApiModelProperty("日均授信量")
+    private Long creditAvgNum;
+
+    @ApiModelProperty("身份认证率")
+    private BigDecimal certifyRatio;
+
+    @ApiModelProperty("申请率")
+    private BigDecimal applyRatio;
+
+    @ApiModelProperty("授信率")
+    private BigDecimal creditRatio;
+
+    @ApiModelProperty("申请提现率")
+    private BigDecimal applyWithdrawRatio;
+
+    @ApiModelProperty("提现率")
+    private BigDecimal withdrawRatio;
+
+    @ApiModelProperty("身份认证完成率")
+    private BigDecimal certifyCompleteRatio;
+
+    @ApiModelProperty("过件率")
+    private BigDecimal overPieceRatio;
+
+    @ApiModelProperty("授信后提现发起率")
+    private BigDecimal creditWithdrawLaunchRatio;
+
+    @ApiModelProperty("授信后提现成功率")
+    private BigDecimal creditWithdrawSucRatio;
+
+    @ApiModelProperty("申请授信量级2")
+    private Long applyCreditNum2;
+
+    @ApiModelProperty("提现成功量级2")
+    private Long withdrawSucNum2;
+
+    @ApiModelProperty("申请提现率2")
+    private BigDecimal applyWithdrawRatio2;
+
+    @ApiModelProperty("提现率2")
+    private BigDecimal withdrawRatio2;
+
+    @ApiModelProperty("提现发起率")
+    private BigDecimal withdrawLaunchRatio;
+
+    @ApiModelProperty("提现成功率")
+    private BigDecimal withdrawSucRatio;
+
+    @ApiModelProperty("总收入")
+    private BigDecimal income;
+
+    @ApiModelProperty("总成本")
+    private BigDecimal cost;
+
+    @ApiModelProperty("ROI")
+    private BigDecimal roi;
+
+    @ApiModelProperty("授信目标完成率")
+    private BigDecimal creditCompleteRatio;
 }

@@ -44,14 +44,14 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
     public List<XiechengCollidingDailyReportDTO> fetchData(BiReportParam param) {
         List<XiechengCollidingDailyReportDTO> dtos = Lists.newArrayList();
         Random random = new Random();
-        for (int j = 0; j < 50; j++) {
+        for (int j = 0; j < 40; j++) {
             for (int i = 0; i < 2; i++) {
                 XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
                 dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
                 dto.setDataPacket("1400wdx");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -60,7 +60,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("1400wlt");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -69,7 +69,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("1200w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -78,7 +78,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("2800w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -87,7 +87,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("300w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -96,7 +96,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("800w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -105,7 +105,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("900w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -114,7 +114,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("3300w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -123,7 +123,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("3500w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -132,7 +132,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("360w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
             for (int i = 0; i < 2; i++) {
@@ -141,7 +141,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 dto.setDataPacket("830w");
                 dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
                 dto.setInfo(null);
-                dto.setCount((long) random.nextInt(5000000));
+                dto.setLockNum((long) random.nextInt(5000000));
                 dtos.add(dto);
             }
         }
@@ -181,7 +181,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         Map<String, Map<String, Long>> reportDateToDataMap = dtos.stream()
                 .collect(Collectors.groupingBy(XiechengCollidingDailyReportDTO::getReportDate,
                         Collectors.toMap(dto -> dto.getDataPacket() + "_" + dto.getOrgChannel() + "_" + dto.getInfo(),
-                                XiechengCollidingDailyReportDTO::getCount, (oldValue, newValue) -> newValue, LinkedHashMap::new)));
+                                XiechengCollidingDailyReportDTO::getLockNum, (oldValue, newValue) -> newValue, LinkedHashMap::new)));
         /*
          * 构造Y轴数据
          * 1.Map<日期, Map<dataPacket_orgChannel_info, 量级>> reportDateToDataMap先根据日期排序

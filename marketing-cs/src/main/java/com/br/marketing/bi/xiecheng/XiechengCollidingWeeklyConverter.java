@@ -1,0 +1,189 @@
+package com.br.marketing.bi.xiecheng;
+
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.aspect.BiReportType;
+import com.br.marketing.bi.AbstractBiReportConverter;
+import com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO;
+import com.br.marketing.enums.report.BiReportChartTypeEnum;
+import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.vo.bi.BiReportVO;
+import com.br.marketing.vo.bi.WrapDataVO;
+import com.br.marketing.vo.bi.param.BiReportParam;
+import com.google.api.client.util.Lists;
+import groovy.util.logging.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+/**
+ * 携程7日撞库结果分布报表适配实现
+ *
+ * @author senyang.zheng
+ * @date 2024/09/04
+ */
+@Slf4j
+@Service
+@BiReportType(reportType = BiReportTypeEnum.XIECHENG_COLLIDING_WEEKLY_REPORT)
+public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengCollidingWeeklyReportDTO> {
+    /**
+     * 获取数据
+     *
+     * @param param 参数
+     * @return {@link List }<{@link XiechengCollidingWeeklyReportDTO }>
+     * @author senyang.zheng
+     * @date 2024/08/28
+     */
+    @Override
+    public List<XiechengCollidingWeeklyReportDTO> fetchData(BiReportParam param) {
+        List<XiechengCollidingWeeklyReportDTO> dtos = Lists.newArrayList();
+        Random random = new Random();
+        DateTime startDate = DateUtil.parse("2024-08-31", "yyyy-MM-dd");
+        for (int i = 0; i < 20; i++) {
+            // Calculate the end of the week
+            DateTime weekEnd = DateUtil.offsetWeek(startDate, -i);
+            // Calculate the start of the week (subtracting 6 days from the end of the week)
+            DateTime weekStart = DateUtil.offsetDay(weekEnd, -6);
+
+            XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();
+            dto.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto.setDataPacket("1400wdx&1400wlt");
+            dto.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto.setIntersectionNum((long) random.nextInt(5000000));
+            dto.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto);
+
+            XiechengCollidingWeeklyReportDTO dto1 = new XiechengCollidingWeeklyReportDTO();
+            dto1.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto1.setDataPacket("1400wlt");
+            dto1.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto1.setIntersectionNum((long) random.nextInt(5000000));
+            dto1.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto1);
+
+            XiechengCollidingWeeklyReportDTO dto2 = new XiechengCollidingWeeklyReportDTO();
+            dto2.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto2.setDataPacket("1200w");
+            dto2.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto2.setIntersectionNum((long) random.nextInt(5000000));
+            dto2.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto2);
+
+            XiechengCollidingWeeklyReportDTO dto3 = new XiechengCollidingWeeklyReportDTO();
+            dto3.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto3.setDataPacket("2800w");
+            dto3.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto3.setIntersectionNum((long) random.nextInt(5000000));
+            dto3.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto3);
+
+            XiechengCollidingWeeklyReportDTO dto4 = new XiechengCollidingWeeklyReportDTO();
+            dto4.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto4.setDataPacket("300w");
+            dto4.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto4.setIntersectionNum((long) random.nextInt(5000000));
+            dto4.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto4);
+
+            XiechengCollidingWeeklyReportDTO dto5 = new XiechengCollidingWeeklyReportDTO();
+            dto5.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto5.setDataPacket("800w");
+            dto5.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto5.setIntersectionNum((long) random.nextInt(5000000));
+            dto5.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto5);
+
+            XiechengCollidingWeeklyReportDTO dto6 = new XiechengCollidingWeeklyReportDTO();
+            dto6.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto6.setDataPacket("900w");
+            dto6.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto6.setIntersectionNum((long) random.nextInt(5000000));
+            dto6.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto6);
+
+            XiechengCollidingWeeklyReportDTO dto7 = new XiechengCollidingWeeklyReportDTO();
+            dto7.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto7.setDataPacket("3300w");
+            dto7.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto7.setIntersectionNum((long) random.nextInt(5000000));
+            dto7.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto7);
+
+            XiechengCollidingWeeklyReportDTO dto8 = new XiechengCollidingWeeklyReportDTO();
+            dto8.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto8.setDataPacket("3500w");
+            dto8.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto8.setIntersectionNum((long) random.nextInt(5000000));
+            dto8.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto8);
+
+            XiechengCollidingWeeklyReportDTO dto9 = new XiechengCollidingWeeklyReportDTO();
+            dto9.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto9.setDataPacket("360w");
+            dto9.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto9.setIntersectionNum((long) random.nextInt(5000000));
+            dto9.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto9);
+
+            XiechengCollidingWeeklyReportDTO dto10 = new XiechengCollidingWeeklyReportDTO();
+            dto10.setLockPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
+            dto10.setDataPacket("830w");
+            dto10.setCollidingBackRatio(new BigDecimal(random.nextInt(100))
+                    .divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
+            dto10.setIntersectionNum((long) random.nextInt(5000000));
+            dto10.setLockNum((long) random.nextInt(5000000));
+            dtos.add(dto10);
+        }
+        return dtos;
+
+    }
+
+    /**
+     * 数据处理
+     *
+     * @param dtos   数据
+     * @param extend 扩展参数
+     * @return {@link BiReportVO }
+     * @author senyang.zheng
+     * @date 2024/08/28
+     */
+    @Override
+    public BiReportVO process(List<XiechengCollidingWeeklyReportDTO> dtos, JSONObject extend) {
+        BiReportVO biReportVO = new BiReportVO();
+        biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_COLLIDING_DAILY_REPORT.getTypeName());
+        biReportVO.setReportName("单日撞库结果分布");
+        biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
+        //根据标签排序，添加空值处理
+        dtos.sort(Comparator.comparing(XiechengCollidingWeeklyReportDTO::getDataPacket, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(XiechengCollidingWeeklyReportDTO::getIntersectionNum, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(XiechengCollidingWeeklyReportDTO::getLockPeriod, Comparator.nullsLast(Comparator.naturalOrder())));
+        // 按照标签维度做横坐标
+        List<String> xAxis = dtos.stream()
+                .map(report -> report.getDataPacket() + "_" + report.getIntersectionNum() + "_" + report.getLockPeriod())
+                .distinct().collect(Collectors.toList());
+        biReportVO.setXAxisName("dataPacket_intersectionNum_lockPeriod");
+        biReportVO.setXAxis(xAxis);
+        //构造纵坐标数据
+        List<WrapDataVO> yAxis = Lists.newArrayList();
+        yAxis.add(buildWrapDataVO("锁定量级", dtos, XiechengCollidingWeeklyReportDTO::getLockNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("撞回率", dtos, XiechengCollidingWeeklyReportDTO::getCollidingBackRatio, FormatType.PERCENT_SIGN));
+        biReportVO.setYAxis(yAxis);
+        return biReportVO;
+    }
+}

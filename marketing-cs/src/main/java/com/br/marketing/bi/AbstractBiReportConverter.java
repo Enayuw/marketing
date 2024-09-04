@@ -8,6 +8,9 @@ import com.br.marketing.vo.bi.param.BiReportParam;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * BI报表数据转换
@@ -44,13 +47,13 @@ public abstract class AbstractBiReportConverter<V, T> {
     /**
      * 数据处理
      *
-     * @param data   数据
-     * @param extend 延长
+     * @param dtos   数据
+     * @param extend 扩展参数
      * @return {@link V }
      * @author senyang.zheng
      * @date 2024/08/28
      */
-    public abstract V process(List<T> data, JSONObject extend);
+    public abstract V process(List<T> dtos, JSONObject extend);
 
     /**
      * 导出数据
@@ -103,4 +106,29 @@ public abstract class AbstractBiReportConverter<V, T> {
         writer.autoSizeColumnAll();
     }
 
+    protected WrapDataVO buildWrapDataVO(String name, List<T> sortedData, Function<T, Object> extractor, FormatType formatType) {
+        WrapDataVO wrapDataVO = new WrapDataVO();
+        wrapDataVO.setName(name);
+        wrapDataVO.setData(sortedData.stream()
+                .map(dto -> {
+                    Object value = extractor.apply(dto);
+                    switch (formatType) {
+                        case THOUSAND_SEPARATOR:
+                            return String.format(Locale.getDefault(), "%,d", ((Number) value).longValue());
+                        case PERCENT_SIGN:
+                            return value + "%";
+                        default:
+                            return String.valueOf(value);
+                    }
+                })
+                .collect(Collectors.toList()));
+
+        return wrapDataVO;
+    }
+
+    protected enum FormatType {
+        THOUSAND_SEPARATOR,
+        PERCENT_SIGN,
+        DEFAULT
+    }
 }

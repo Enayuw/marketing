@@ -16,7 +16,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -56,9 +59,9 @@ public class XieChengDataRatioDailyConverter extends AbstractBiReportConverter<B
             // 创建DailyReportDTO实例并设置数据
             XiechengDataRatioDailyReportDTO report = new XiechengDataRatioDailyReportDTO();
             report.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -i)));
-            report.setCollidingBackNumber(collidingBackNumber);
-            report.setExtractionNumber(extractionNumber);
-            report.setCallableNumber(callableNumber);
+            report.setCollidingBackNum(collidingBackNumber);
+            report.setExtractionNum(extractionNumber);
+            report.setCallableNum(callableNumber);
             report.setExtractionRatio(extractionRatio);
             report.setCallableRatio(callableRatio);
             dtos.add(report);
@@ -90,34 +93,13 @@ public class XieChengDataRatioDailyConverter extends AbstractBiReportConverter<B
         biReportVO.setXAxis(xAxis);
         //构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
-        WrapDataVO collidingBackData = new WrapDataVO();
-        collidingBackData.setName("撞得量");
-        collidingBackData.setData(sortedData.stream().map(dto -> String.format(Locale.getDefault(), "%,d", dto.getCollidingBackNumber())).collect(Collectors.toList()));
-        yAxis.add(collidingBackData);
-
-        WrapDataVO extractionData = new WrapDataVO();
-        extractionData.setName("析出量");
-        extractionData.setData(sortedData.stream().map(dto -> String.format(Locale.getDefault(), "%,d", dto.getExtractionNumber())).collect(Collectors.toList()));
-        yAxis.add(extractionData);
-
-        WrapDataVO callableData = new WrapDataVO();
-        callableData.setName("可外呼量");
-        callableData.setData(sortedData.stream().map(dto -> String.format(Locale.getDefault(), "%,d", dto.getCallableNumber())).collect(Collectors.toList()));
-        yAxis.add(callableData);
-
-        WrapDataVO extractionRatioData = new WrapDataVO();
-        extractionRatioData.setName("析出率");
-        extractionRatioData.setData(sortedData.stream().map(dto -> dto.getExtractionRatio() + "%").collect(Collectors.toList()));
-        yAxis.add(extractionRatioData);
-
-        WrapDataVO callableRatioData = new WrapDataVO();
-        callableRatioData.setName("可外呼率");
-        callableRatioData.setData(sortedData.stream().map(dto -> dto.getCallableRatio() + "%").collect(Collectors.toList()));
-        yAxis.add(callableRatioData);
-
+        yAxis.add(buildWrapDataVO("撞得量", sortedData, XiechengDataRatioDailyReportDTO::getCollidingBackNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("析出量", sortedData, XiechengDataRatioDailyReportDTO::getExtractionNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("可外呼量", sortedData, XiechengDataRatioDailyReportDTO::getCallableNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("析出率", sortedData, XiechengDataRatioDailyReportDTO::getExtractionRatio, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("可外呼率", sortedData, XiechengDataRatioDailyReportDTO::getCallableRatio, FormatType.PERCENT_SIGN));
         biReportVO.setYAxis(yAxis);
         return biReportVO;
     }
-
 
 }

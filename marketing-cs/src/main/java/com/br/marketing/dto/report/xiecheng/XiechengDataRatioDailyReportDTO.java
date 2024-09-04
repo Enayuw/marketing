@@ -19,11 +19,11 @@ public class XiechengDataRatioDailyReportDTO {
     @ApiModelProperty(value = "日期")
     private String reportDate;
     @ApiModelProperty(value = "撞得量")
-    private Long collidingBackNumber;
+    private Long collidingBackNum;
     @ApiModelProperty(value = "析出量")
-    private Long extractionNumber;
+    private Long extractionNum;
     @ApiModelProperty(value = "可外呼量")
-    private Long callableNumber;
+    private Long callableNum;
     @ApiModelProperty(value = "析出率")
     private BigDecimal extractionRatio;
     @ApiModelProperty(value = "可外呼率")
