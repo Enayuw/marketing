@@ -46,9 +46,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         Random random = new Random();
         DateTime startDate = DateUtil.parse("2024-08-31", "yyyy-MM-dd");
         for (int i = 0; i < 20; i++) {
-            // Calculate the end of the week
             DateTime weekEnd = DateUtil.offsetWeek(startDate, -i);
-            // Calculate the start of the week (subtracting 6 days from the end of the week)
             DateTime weekStart = DateUtil.offsetDay(weekEnd, -6);
 
             XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();

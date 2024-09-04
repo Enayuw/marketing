@@ -1,5 +1,6 @@
 package com.br.marketing.bi.xiecheng;
 
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
@@ -43,12 +44,14 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
     @Override
     public List<XiechengTransferWeeklyReportDTO> fetchData(BiReportParam param) {
         List<XiechengTransferWeeklyReportDTO> dtos = Lists.newArrayList();
+        DateTime startDate = DateUtil.parse("2024-08-31", "yyyy-MM-dd");
         // 创建Random实例
         Random random = new Random();
         for (int i = 0; i < 30; i++) {
-            // 创建DailyReportDTO实例并设置数据
+            DateTime weekEnd = DateUtil.offsetWeek(startDate, -i);
+            DateTime weekStart = DateUtil.offsetDay(weekEnd, -6);
             XiechengTransferWeeklyReportDTO report = new XiechengTransferWeeklyReportDTO();
-            report.setRollPeriod(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -i)));
+            report.setRollPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
             report.setOutboundNum((long) random.nextInt(5000000));
             report.setCertifyNum((long) random.nextInt(5000000));
             report.setApplyNum((long) random.nextInt(5000000));
