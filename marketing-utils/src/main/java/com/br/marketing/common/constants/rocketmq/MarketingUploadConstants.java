@@ -24,7 +24,7 @@ public class MarketingUploadConstants {
     /**
      * 数禾上传专用队列对应的 Tag
      */
-    public static final String TAG_MARKETING_PRE_USER_SHUHE_RECEIVE = "Marketing.PreUser.ShuHe.Receive";
+    public static final String TAG_MARKETING_PRE_USER_SHUHE_RECEIVE = "Marketing.PreUser.ShuHeReceive";
 //    Tag 结束
 
 

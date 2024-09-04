@@ -60,6 +60,9 @@ public class RocketMQSwitch {
 
     public Boolean rocketMQSwitchFlag(String apiCode, String tag){
         String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
+        if(StringUtils.isBlank(rocketMqSwitchString)){
+            return Boolean.FALSE;
+        }
         RocketMQSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMQSwitchEntity>() {
         }.getType());
         String global = entity.getGlobal();
@@ -73,6 +76,9 @@ public class RocketMQSwitch {
                 if(flagBoolean){
                     JSONObject tagJSONObject = object.getJSONObject(TAG);
                     String tagUseApiCodes = tagJSONObject.getString(tag);
+                    if(null != tagUseApiCodes && StringUtils.isBlank(apiCode)){
+                        return Boolean.TRUE;
+                    }
                     if(StringUtils.isNotBlank(tagUseApiCodes) && tagUseApiCodes.contains(apiCode)){
                         return Boolean.TRUE;
                     }

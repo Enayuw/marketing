@@ -79,15 +79,18 @@ public class TestSre {
     }
 
     @RequestMapping("/testSend")
-    public SendReceipt testSend(@RequestParam("type") String type)   {
+    public SendReceipt testSend(@RequestParam("topic") String topic
+            , @RequestParam("tag") String tag
+            , @RequestParam("msg") Object msg
+            , @RequestParam("type") String type) {
         if("syncSend".equalsIgnoreCase(type)){
-            return template.syncSend("gate_test", "test", "syncSend发送同步消息!!");
+            return template.syncSend(topic, tag, msg);
 //        }else if("sendAsync".equalsIgnoreCase(type)){
 //            return template.sendAsync("gate_test", "test",);
         }else if("syncSendDelay".equalsIgnoreCase(type)){
-            return template.syncSendDelay("deadgate_test", "test", "syncSendDelay发送延时消息!!",10);
+            return template.syncSendDelay(topic, tag, msg,10);
         }else if("sendSyncOrderly".equalsIgnoreCase(type)){
-            return template.sendSyncOrderly("gate_test", "test", "sendSyncOrderly发送同步顺序消息!!","orderly");
+            return template.sendSyncOrderly(topic, tag, msg,"orderly");
         }
 //        else{
 //            return template.sendMessageInTransaction("gate_test", "test", "sendMessageInTransaction发送事务消息!!");

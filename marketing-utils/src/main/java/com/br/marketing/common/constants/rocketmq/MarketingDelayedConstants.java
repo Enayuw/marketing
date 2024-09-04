@@ -12,7 +12,7 @@ public class MarketingDelayedConstants {
     /**
      * 的 Tag
      */
-    public static final String TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "Marketing.Send.UserType.Message.Delay.Queue";
+    public static final String TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "marketing.send.usertype.message.delay.queue";
     /**
      * 的 Tag
      */

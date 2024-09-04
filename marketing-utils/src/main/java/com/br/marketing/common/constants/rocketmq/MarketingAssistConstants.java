@@ -52,7 +52,7 @@ public class MarketingAssistConstants {
     /**
      * 的 Tag
      */
-    public static final String TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "Marketing.XieCheng.Colliding.Log";
+    public static final String TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "marketing.xiecheng.colliding.log";
 //    Tag 结束
 
 
@@ -76,7 +76,7 @@ public class MarketingAssistConstants {
     /**
      * 的 consumerGroup
      */
-    public static final String MARKETING_ZHONGYOU_DATA_CLEAN = "Marketing_ZhongYou_Data_Clean";
+    public static final String MARKETING_ZHONGYOU_DATA_CLEAN = "marketing_zhongyou_data_clean";
     /**
      * 的 consumerGroup
      */

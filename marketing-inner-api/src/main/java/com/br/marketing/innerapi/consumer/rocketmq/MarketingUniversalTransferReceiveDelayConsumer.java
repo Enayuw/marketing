@@ -28,7 +28,9 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
         topic = MarketingDelayedConstants.TOPIC,
         consumerGroup = MarketingDelayedConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
-        tag = MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,consumptionThreadCount = 20)
+        tag = MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE+"||"
+                +MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY,
+        consumptionThreadCount = 20)
 public class MarketingUniversalTransferReceiveDelayConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

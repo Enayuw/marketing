@@ -28,8 +28,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
         topic = MarketingDelayedConstants.TOPIC,
-        consumerGroup = MarketingDelayedConstants.MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY,
-        tag = MarketingDelayedConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY,consumptionThreadCount = 20)
+        consumerGroup = MarketingDelayedConstants.MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY,
+        tag = MarketingDelayedConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY,consumptionThreadCount = 20)
 public class MarketingOffLineTaskFileCallBackErrorDelayConsumer extends BaseMqMessageListener implements RocketMQListener {
 
     @Autowired

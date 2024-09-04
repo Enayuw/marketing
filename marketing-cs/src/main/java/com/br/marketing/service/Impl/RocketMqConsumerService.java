@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
@@ -32,16 +33,16 @@ public class RocketMqConsumerService {
     private RocketMqTemplate template;
 
     public static Boolean consumerDownStatus = Boolean.FALSE;
-
     /**
      * rabbitMQ消费端
      * @param messageView 消费消息
      * @param method 消费业务
      * @param t 消费信息
-     * @param retryRouteKey 重试路由key
-     * @param <T> 消费消息类型
+     * @param retryTag Tag（消息重试使用）
+     * @param delayTopic 消息延时对应的延时队列
+     * @param delayTime 消息延时时间（单位：秒）
      */
-    public <T> Boolean consumerRun(MessageView messageView, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
+    public <T> Boolean consumerRun(MessageView messageView, Function<T, Result<Boolean>> method, T t, String retryTag, String delayTopic, int delayTime) {
         String message = null;
         try {
             /**
@@ -63,8 +64,12 @@ public class RocketMqConsumerService {
             if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
 //                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
                 if (apply.getData()) {
-                    if (StringUtils.isNotBlank(retryRouteKey)) {
-                        template.syncSend(messageView.getTopic(), retryRouteKey, message);
+                    if (StringUtils.isNotBlank(retryTag)) {
+                        if(MarketingDelayedConstants.TOPIC.equalsIgnoreCase(delayTopic)){
+                            template.syncSendDelay(messageView.getTopic(), retryTag, message, delayTime);
+                        }else{
+                            template.syncSend(messageView.getTopic(), retryTag, message);
+                        }
 //                        producter.send(retryRouteKey, new String(message.getBody(), StandardCharsets.UTF_8));
                     } else {
                         template.syncSend(messageView.getTopic(), messageView.getTag().get(), message);
@@ -76,7 +81,7 @@ public class RocketMqConsumerService {
 //                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             }
         } catch (Exception e) {
-            template.syncSend(messageView.getTopic(), messageView.getTag().get(), message);
+//            template.syncSend(messageView.getTopic(), messageView.getTag().get(), message);
             String error = String.format("路由键：%s,\r\n消息内容：%s,\r\n错误信息：%s"
                     , messageView.getTag()
                     , message
@@ -90,6 +95,18 @@ public class RocketMqConsumerService {
 //            }
         }
         return Boolean.FALSE;
+    }
+
+    /**
+     * rabbitMQ消费端
+     * @param messageView 消费消息
+     * @param method 消费业务
+     * @param t 消费信息
+     * @param retryRouteKey 重试路由key
+     * @param <T> 消费消息类型
+     */
+    public <T> Boolean consumerRun(MessageView messageView, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
+        return consumerRun(messageView, method, t, retryRouteKey, null, 0);
     }
 
     /**
