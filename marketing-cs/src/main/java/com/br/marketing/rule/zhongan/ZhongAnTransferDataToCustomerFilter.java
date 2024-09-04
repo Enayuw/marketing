@@ -5,14 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
+import com.br.marketing.client.dassservice.input.transfer.ConversionDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.QiFuRuleCollectDataImpl;
 import com.br.marketing.context.impl.ZhongAnRuleCollectCustomerTransferImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -30,9 +29,9 @@ import java.util.Map;
  */
 @Service
 @Slf4j
-public class ZhongAnTransferDataToCustomerFilter implements AssembleData<ConversionData> {
+public class ZhongAnTransferDataToCustomerFilter implements AssembleData<ConversionDataSoleDTO> {
     @Override
-    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public ConversionDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(marketingTransferSyncUser.getId().toString());
@@ -42,11 +41,9 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData ruleNecessaryData =
                 (ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
-        Map<String, SyncUserValidityPeriodsBO> syncUserPeriodMap = ruleNecessaryData.getCustomerMap();
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = syncUserPeriodMap.get(marketingTransferSyncUser.getCustNum());
-        if (syncUserValidityPeriodsBO == null) {
-            return null;
-        }
+        Map<String, Map<String, SyncUserValidityPeriodsBO>> customerUserTypeMap = ruleNecessaryData.getCustomerUserTypeMap();
+        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = customerUserTypeMap.get(marketingTransferSyncUser.getCustNum());
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get("1");
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
         conversionData.setGroupType(syncUsers.get(0).getUserType());
@@ -58,7 +55,10 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
-        return conversionData;
+        ConversionDataSoleDTO dataSoleDTO = new ConversionDataSoleDTO();
+        dataSoleDTO.setConversionData(conversionData);
+        dataSoleDTO.setStatus("1");
+        return dataSoleDTO;
     }
 
     @Override
@@ -67,9 +67,15 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData ruleNecessaryData =
                     (ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData) context.getRuleNecessaryData();
-            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = ruleNecessaryData.getCustomerMap().get(transfer.getCustNum());
-            if (syncUserValidityPeriodsBO == null) {
+            Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getCustomerUserTypeMap()
+                    .get(transfer.getCustNum());
+            if (userValidityPeriodsBOMap == null) {
                 log.warn("众安转化数据推客服过滤数据不在有效期：{}", transfer.getCustNum());
+                return false;
+            }
+
+            if (!userValidityPeriodsBOMap.containsKey("1")) {
+                log.warn("众安转化数据推客服过滤数据userType不包含1：{}", userValidityPeriodsBOMap.keySet());
                 return false;
             }
             String reserveField1 = transfer.getReserveField1();
@@ -94,7 +100,7 @@ public class ZhongAnTransferDataToCustomerFilter implements AssembleData<Convers
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_STATUS.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_USE_STATUS.getCode();
     }
 
     @Override

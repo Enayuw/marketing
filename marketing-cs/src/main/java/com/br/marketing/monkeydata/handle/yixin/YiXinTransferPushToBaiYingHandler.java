@@ -24,6 +24,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -241,6 +244,9 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         for (MarketingTransferSyncUser transferSyncUser : outputDataList) {
             BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
             blacklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
+            blacklistDataDTO.setExpireDate(LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    .concat(" 23:59:59"));
             pushList.add(blacklistDataDTO);
             count++;
 

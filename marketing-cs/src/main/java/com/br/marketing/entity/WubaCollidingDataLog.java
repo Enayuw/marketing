@@ -14,6 +14,16 @@ public class WubaCollidingDataLog {
     private String apiCode;
 
     /**
+     * 撞库包id
+     */
+    private Long packageId;
+
+    /**
+     * 数据来源类型：T-周期，F-非周期
+     */
+    private String dataSourceType;
+
+    /**
      * 
      */
     private Long dataId;
@@ -67,6 +77,22 @@ public class WubaCollidingDataLog {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public Long getPackageId() {
+        return packageId;
+    }
+
+    public void setPackageId(Long packageId) {
+        this.packageId = packageId;
+    }
+
+    public String getDataSourceType() {
+        return dataSourceType;
+    }
+
+    public void setDataSourceType(String dataSourceType) {
+        this.dataSourceType = dataSourceType == null ? null : dataSourceType.trim();
     }
 
     public Long getDataId() {

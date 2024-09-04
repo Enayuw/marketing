@@ -1146,8 +1146,8 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             MarketingDataValidConfig config = configMap.get(configKey);
             if (config != null) {
                 PeriodOfValidityBO.Builder builder = PeriodOfValidityBO.custom(
-                    Date.from(LocalDate.parse(config.getValidStartDate(), DATE_FORMAT_PATTERN).atStartOfDay(ZoneId.systemDefault()).toInstant()),
-                    Date.from(LocalDate.parse(config.getValidEndDate(), DATE_FORMAT_PATTERN).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                        Date.from(LocalDate.parse(config.getValidStartDate(), DATE_FORMAT_PATTERN).atStartOfDay(ZoneId.systemDefault()).toInstant()),
+                        Date.from(LocalDate.parse(config.getValidEndDate(), DATE_FORMAT_PATTERN).atStartOfDay(ZoneId.systemDefault()).toInstant()));
                 validityPeriodsBO.getSyncUsers().add(syncUser);
                 validityPeriodsBO.getBuilders().add(builder);
             }
@@ -1156,6 +1156,45 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         validityPeriodsBO.getBuilders().sort(Comparator.comparing(b -> b.builder().getEnDate(), Comparator.reverseOrder()));
         validityPeriodsBO.getSyncUsers().sort(Comparator.comparing(MarketingSyncUser::getAppletTime, Comparator.reverseOrder()));
         return validityPeriodsBO;
+    }
+
+    /**
+     * 2024-08-28 23:14
+     * 场景有效映射，组装有效期
+     *
+     * @param syncUsers 上传数据
+     * @param configMap 有效期配置
+     * @return map key：userType, value: {@link SyncUserValidityPeriodsBO}
+     */
+    private Map<String, SyncUserValidityPeriodsBO> buildSyncUserValidityPeriodUserTypeBO(
+            List<MarketingSyncUser> syncUsers, Map<String, MarketingDataValidConfig> configMap) {
+        Map<String, SyncUserValidityPeriodsBO> map = new HashMap<>();
+        // 按场景分组
+        Map<String, List<MarketingSyncUser>> collect = syncUsers.stream().collect(Collectors.groupingBy(
+                MarketingSyncUser::getUserType));
+        collect.forEach((String userType, List<MarketingSyncUser> syncUserList) -> {
+            SyncUserValidityPeriodsBO validityPeriodsBO = new SyncUserValidityPeriodsBO();
+            syncUserList.forEach((MarketingSyncUser syncUser) -> {
+                String configKey = syncUser.getUserType() + syncUser.getAppletDate();
+                MarketingDataValidConfig config = configMap.get(configKey);
+                if (config != null) {
+                    PeriodOfValidityBO.Builder builder = PeriodOfValidityBO.custom(
+                            Date.from(LocalDate.parse(config.getValidStartDate(), DATE_FORMAT_PATTERN).atStartOfDay(
+                                    ZoneId.systemDefault()).toInstant()),
+                            Date.from(LocalDate.parse(config.getValidEndDate(), DATE_FORMAT_PATTERN).atStartOfDay(
+                                    ZoneId.systemDefault()).toInstant()));
+                    builder.addBeginDateStrAndEnDateStr(config.getValidStartDate(), config.getValidEndDate());
+                    validityPeriodsBO.getSyncUsers().add(syncUser);
+                    validityPeriodsBO.getBuilders().add(builder);
+                }
+            });
+            //倒序排序
+            validityPeriodsBO.getBuilders().sort(Comparator.comparing(b -> b.builder().getEnDate(), Comparator.reverseOrder()));
+            validityPeriodsBO.getSyncUsers().sort(Comparator.comparing(MarketingSyncUser::getAppletTime, Comparator.reverseOrder()));
+            // 按场景生成场景有效期映射
+            map.put(userType, validityPeriodsBO);
+        });
+        return map;
     }
 
     /**
@@ -1269,6 +1308,31 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                         BinaryOperator.maxBy(Comparator.comparing(c -> c.getUpdateTime() == null ? c.getCreateTime() : c.getUpdateTime()))));
         // key: cell, value: SyncUserValidityPeriodsBO
         custNumMap.forEach((key, value) -> resultMap.put(key, buildSyncUserValidityPeriodsBO(value, configMap)));
+    }
+
+
+    /**
+     * 2024-08-28 23:12
+     * 案件编号与场景有效期映射
+     *
+     * @param keyMapper    key生成函数
+     * @param syncUserList 上传数据集合
+     * @param configList   有效期配置集合
+     * @param resultMap    场景有效期
+     */
+    private void buildValidityPeriodsUserTypeInfoByKeyMapper(Function<MarketingSyncUser, String> keyMapper,
+                                                             List<MarketingSyncUser> syncUserList,
+                                                             List<MarketingDataValidConfig> configList,
+                                                             Map<String, Map<String, SyncUserValidityPeriodsBO>> resultMap) {
+        // key: UserType + appletDate, value: MarketingDataValidConfig
+        Map<String, MarketingDataValidConfig> configMap =
+                configList.stream().collect(Collectors.toMap(config -> config.getUserType() + config.getAppletDate()
+                        , Function.identity(), BinaryOperator.maxBy(Comparator.comparing(
+                                c -> c.getUpdateTime() == null ? c.getCreateTime() : c.getUpdateTime()))));
+        // key: custNum, value: List<MarketingSyncUser>>
+        Map<String, List<MarketingSyncUser>> custNumMap = syncUserList.stream().collect(Collectors.groupingBy(keyMapper));
+        // key: custNum, value: Map<String, SyncUserValidityPeriodsBO>  key: userType, value:SyncUserValidityPeriodsBO
+        custNumMap.forEach((key, value) -> resultMap.put(key, buildSyncUserValidityPeriodUserTypeBO(value, configMap)));
     }
 
     @Override
@@ -1398,6 +1462,32 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                     , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
         }
     }
+
+    @Override
+    public Map<String, Map<String, SyncUserValidityPeriodsBO>> getValidityPeriodsByCustNumAndUserTypeSet(Set<String> custNumSet,
+                                                                                                         Set<String> userTypeSet,
+                                                                                                         String apiCode,
+                                                                                                         Object requestDateObj) {
+        if (CollectionUtils.isEmpty(custNumSet) || CollectionUtils.isEmpty(userTypeSet) || StringUtils.isEmpty(apiCode)) {
+            return Collections.emptyMap();
+        }
+        Map<String, Map<String, SyncUserValidityPeriodsBO>> resultMap = new ConcurrentHashMap<>(2048);
+        //统一时间格式
+        final String requestDateStr = switchDateStr(requestDateObj);
+        //获取有效期配置不分页
+        List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, userTypeSet
+                , null, null);
+        if (CollectionUtil.isEmpty(configList)) {
+            return resultMap;
+        }
+        //包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
+        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCustNumAndAppletDateList(
+                apiCode, configList, custNumSet);
+        //根据自定义Key组装有效期数据
+        buildValidityPeriodsUserTypeInfoByKeyMapper(MarketingSyncUser::getCustNum, syncUserList, configList, resultMap);
+        return resultMap;
+    }
+
 
     /**
      * 2023-07-28 13:31

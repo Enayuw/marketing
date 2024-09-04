@@ -2964,13 +2964,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         redisChgService.expire(key, getKeyExpiration());
     }
 
-    private synchronized Long getApiCodeCount(String key) {
-        Long incr = redisChgService.incr(key);
-        int keyExpiration = getKeyExpiration();
-        redisChgService.expire(key, keyExpiration);
-        return incr;
-    }
-
     /**
      * 获取当前时间到第二天凌晨的秒
      *

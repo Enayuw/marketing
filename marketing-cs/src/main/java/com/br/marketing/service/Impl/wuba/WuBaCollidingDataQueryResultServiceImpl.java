@@ -33,11 +33,13 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -110,6 +112,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     private void queryAndSaveResult(WubaCollidingDataBatchNo wubaCollidingBatchNo, Long taskId) {
         String batchNo = wubaCollidingBatchNo.getBatchNo();
         String apiCode = wubaCollidingBatchNo.getApiCode();
+        String sourceType = wubaCollidingBatchNo.getDataSourceType();
         if (StringUtils.isEmpty(batchNo)) {
             return;
         }
@@ -127,6 +130,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 msg = title + "，响应内容：" + JSON.toJSONString(resMap);
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                         , title));
+                wuBaServiceClient.sendDingDingAlert(title, msg);
                 return;
             }
 
@@ -135,6 +139,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             msg = title + "，响应内容：" + JSON.toJSONString(resMap);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
             return;
         }
 
@@ -145,39 +150,33 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             msg = title + "，响应内容：" + JSON.toJSONString(resMap);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
             updateQueryStatus(wubaCollidingBatchNo, 2);
             return;
         }
 
         if (Objects.equals(result.getCode(), ResultCode.SUCCESS.getValue())) {
             updateQueryStatus(wubaCollidingBatchNo, 1);
-            ArrayList<String> resultList = updateLogResultByBatchNo(result, batchNo, apiCode);
 
-            if (CollectionUtils.isEmpty(resultList)) {
-                return;
+            JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(result.getData()));
+            // 可营销数据
+            ArrayList<String> trueDatas = Lists.newArrayList();
+            for (Object o : jsonArray) {
+                JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(o));
+                String mobileEncrypt = jsonObject.getString("mobileEncrypt");
+                trueDatas.add(mobileEncrypt);
             }
 
-            List<CompletableFuture<Void>> futures = Lists.newArrayList();
+            // 根据批次号更新log表撞库结果，并返回不可营销数据
+            ArrayList<String> falseDatas = updateLogResultByBatchNo(trueDatas, batchNo, apiCode);
 
-            List<List<String>> partitions = Lists.partition(resultList, PARTATION_SIZE);
-
-            for (List<String> partition : partitions) {
-                futures.add(CompletableFuture.runAsync(() -> {
-                    try {
-                        saveAndDelete(partition, apiCode, batchNo, taskId);
-                    } catch (Exception e) {
-                        String subject = "58查询撞库结果作业，子线程处理异常！";
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
-                                , subject), e);
-                    }
-                }, pool));
-            }
-
+            // 根据sourceType更新数据表
+            List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, trueDatas, falseDatas, apiCode, batchNo, taskId);
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
     }
 
-    private void saveAndDelete(List<String> resultList, String apiCode, String batchNo, Long taskId) {
+    private void falseToTrueBusiness(List<String> resultList, String apiCode, String batchNo, Long taskId) {
         // 可营销数据保存到周期表，并从非周期表删除
         wuBaCollidingDataBusinessService.saveLoopAnddeleteRob(resultList, apiCode);
 
@@ -192,25 +191,24 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         marketingCleanDataTaskMapper.updateByPrimaryKeySelective(cleanDataTask);
     }
 
-    private ArrayList<String> updateLogResultByBatchNo(Result result, String batchNo, String apiCode) {
-        // 根据批次号更新log表撞库结果
-        JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(result.getData()));
-        ArrayList<String> resultList = Lists.newArrayList();
-        for (Object o : jsonArray) {
-            JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(o));
-            String mobileEncrypt = jsonObject.getString("mobileEncrypt");
-            resultList.add(mobileEncrypt);
-        }
-
+    /**
+     * 根据批次号更新log表撞库结果，并返回不可营销数据
+     * @param trueDatas
+     * @param batchNo
+     * @param apiCode
+     * @return 不可营销数据
+     */
+    private ArrayList<String> updateLogResultByBatchNo(ArrayList<String> trueDatas, String batchNo, String apiCode) {
         List<WubaCollidingDataLog> logs = getLogs(batchNo, apiCode);
         List<WubaCollidingDataLog> trueDataLogs =
-                logs.stream().filter((WubaCollidingDataLog t) -> resultList.contains(t.getCell())).collect(Collectors.toList());
+                logs.stream().filter((WubaCollidingDataLog t) -> trueDatas.contains(t.getCell())).collect(Collectors.toList());
         saveResult(trueDataLogs, Boolean.TRUE);
 
         List<WubaCollidingDataLog> falseDataLogs =
-                logs.stream().filter((WubaCollidingDataLog t) -> !resultList.contains(t.getCell())).collect(Collectors.toList());
+                logs.stream().filter((WubaCollidingDataLog t) -> !trueDatas.contains(t.getCell())).collect(Collectors.toList());
         saveResult(falseDataLogs, Boolean.FALSE);
-        return resultList;
+
+        return (ArrayList<String>) falseDataLogs.stream().map(WubaCollidingDataLog::getCell).collect(Collectors.toList());
     }
 
     private void saveResult(List<WubaCollidingDataLog> logs, Boolean result) {
@@ -248,5 +246,46 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 .andCleanStatusEqualTo(0);
         List<WubaCollidingDataSyncClean> wubaCollidingDataSyncCleans = wubaCollidingDataSyncCleanMapper.selectByExample(example);
         return wubaCollidingDataSyncCleans.size();
+    }
+
+    private List<CompletableFuture<Void>> batchHandleBusinessAsync(List<String> data, Consumer<List<String>> businessFunction, String businessName) {
+        if (CollectionUtils.isEmpty(data)) {
+            return Collections.emptyList();
+        }
+
+        return Lists.partition(data, PARTATION_SIZE).stream()
+                .map(partition -> CompletableFuture.runAsync(() -> {
+                    try {
+                        businessFunction.accept(partition);
+                    } catch (Exception e) {
+                        String subject = "58查询撞库结果作业，" + businessName + "，子线程处理异常！";
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage(), subject), e);
+                    }
+                }, pool))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据sourceType处理数据
+     */
+    private List<CompletableFuture<Void>> handleDataBySourceType(String sourceType, List<String> trueDatas, List<String> falseDatas, String apiCode
+            , String batchNo, Long taskId) {
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        switch (sourceType) {
+            case "T":
+                futures.addAll(batchHandleBusinessAsync(trueDatas,
+                        (List<String> data) -> wubaCollidingDataSyncCleanMapper.batchSaveData(data, batchNo, apiCode, taskId), "周期可营销数据"));
+                futures.addAll(batchHandleBusinessAsync(falseDatas,
+                        (List<String> data) -> wuBaCollidingDataBusinessService.deleteLoopAndSaveRob(data, apiCode), "周期不可营销数据"));
+                break;
+            case "F":
+                futures.addAll(batchHandleBusinessAsync(trueDatas, (List<String> data) -> falseToTrueBusiness(data, apiCode, batchNo, taskId),
+                        "非周期业务"));
+                break;
+            default:
+                break;
+        }
+
+        return futures;
     }
 }

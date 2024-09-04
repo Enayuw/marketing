@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SourceStatisticDictMapper">
+    <select id="selectListbI_" resultType="com.br.marketing.entity.SourceStatisticDict">
+        select * from source_statistic_dict where is_del = 1
+        <if test="dictKey !=null and dictKey!=''">
+            and dict_key = #{dictKey}
+        </if>
+        <if test="apiCode !=null and apiCode!=''">
+            and api_code = #{apiCode}
+        </if>
+    </select>
+
+    <insert id="insertbI_">
+        insert into source_statistic_dict (dict_key, api_code, is_del, dict_value, dict_desc, create_time, update_time)
+        values (#{statisticDict.dictKey,jdbcType=VARCHAR}, #{statisticDict.apiCode,jdbcType=VARCHAR}, #{statisticDict.isDel,jdbcType=INTEGER},
+                #{statisticDict.dictValue,jdbcType=VARCHAR},
+                #{statisticDict.dictDesc,jdbcType=VARCHAR},
+                #{statisticDict.createTime,jdbcType=TIMESTAMP},
+                #{statisticDict.updateTime,jdbcType=TIMESTAMP})
+    </insert>
+</mapper>
