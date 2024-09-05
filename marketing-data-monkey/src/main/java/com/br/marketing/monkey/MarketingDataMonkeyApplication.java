@@ -34,7 +34,6 @@ import org.springframework.context.annotation.ImportResource;
 public class MarketingDataMonkeyApplication {
     public static ConfigurableApplicationContext ac;
     public static void main(String[] args) {
-        log.warn("回滚验证日志！");
         Long start = System.currentTimeMillis();
         log.warn("marketing-data-monkey开始启动！");
         ac = SpringApplication.run(MarketingDataMonkeyApplication.class, args);
