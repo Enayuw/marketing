@@ -166,7 +166,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             List<WubaCollidingDataSyncClean> trueDatas = trueList.stream().map((JSONObject t) -> {
                 WubaCollidingDataSyncClean data = new WubaCollidingDataSyncClean();
                 data.setCell(t.getString(MOBILE_ENCRYPT));
-                data.setExtend(JSON.toJSONString(t.remove(MOBILE_ENCRYPT)));
+                data.setExtend(JSON.toJSONString(t));
                 return data;
             }).collect(Collectors.toList());
 
