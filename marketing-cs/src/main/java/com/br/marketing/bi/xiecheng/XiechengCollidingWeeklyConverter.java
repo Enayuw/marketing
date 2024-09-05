@@ -20,7 +20,6 @@ import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
 import groovy.util.logging.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -62,67 +61,99 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         List<XiechengCollidingWeeklyReportDTO> dtos = Lists.newArrayList();
         String lockPeriodStartDate = getDictByKeyAndApiCode("xc_lock_period_start_date", "3710058");
         DateTime startDate = DateUtil.parse(lockPeriodStartDate, "yyyy-MM-dd");
-        // 当前时间
-        DateTime currentDate = DateUtil.date();
-        // 计算当前滚动周期的开始和结束日期
-        long daysBetween = DateUtil.betweenDay(startDate, currentDate, false);
-        // 计算当前滚动周期的偏移量
-        int currentCycleOffset = (int) (daysBetween / 7);
-        // 获取当前滚动周期的开始日期和结束日期
-        DateTime currentPeriodStart = DateUtil.offsetDay(startDate, currentCycleOffset * 7);
+        DateTime currentDate = DateUtil.date(); // 当前时间
+        long daysBetween = DateUtil.betweenDay(startDate, currentDate, false); // 计算当前滚动周期的天数
+        int currentCycleOffset = (int) (daysBetween / 7); // 计算偏移量
+        DateTime currentPeriodStart = DateUtil.offsetDay(startDate, currentCycleOffset * 7); // 当前周期的开始日期
 
         for (int i = 0; i < 5; i++) {
             DateTime periodStart = DateUtil.offsetDay(currentPeriodStart, -(i + 1) * 7);
             DateTime periodEnd = DateUtil.offsetDay(periodStart, 6);
+
             // 查询交集量级
-            BiReportConfigDIctParam configDIctParam = new BiReportConfigDIctParam();
-            configDIctParam.setStartDate(periodStart);
-            configDIctParam.setEndDate(periodEnd);
-            List<SourceStatisticDict> sourceStatisticDicts = statisticDictMapper.selectListbI_(configDIctParam);
-            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xieChengBiReportMapper.selectXcCollidingWeeklybI_(periodStart.toDateStr(),
-                    periodEnd.toDateStr());
+            List<SourceStatisticDict> sourceStatisticDicts = getSourceStatisticDicts(periodStart, periodEnd);
 
-            List<XiechengCollidingWeeklyReportDTO> wdxAndWltReport = weeklyReportDTOS.stream().filter(t -> Objects.equals(t.getDataPacket(),
-                    "1400wdx")
-                    || Objects.equals(t.getDataPacket(),
-                    "1400wlt")).collect(Collectors.toList());
+            // 根据datapackact分组，对锁定量级求和
+            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xieChengBiReportMapper.selectXcCollidingWeeklybI_(periodStart.toDateStr(), periodEnd.toDateStr());
 
-            if (!org.springframework.util.CollectionUtils.isEmpty(wdxAndWltReport)) {
-                XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();
-                dto.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-                dto.setDataPacket("1400wdx&1400wlt");
-                long wdxAndwltLockNum = wdxAndWltReport.stream().mapToLong(XiechengCollidingWeeklyReportDTO::getLockNum).sum();
-                dto.setLockNum(wdxAndwltLockNum);
-                assembleAndAddToList(dto, sourceStatisticDicts, dtos);
-            }
+            // 处理"1400wdx"和"1400wlt"数据包
+            processSpecialPackets(weeklyReportDTOS, periodStart, periodEnd, sourceStatisticDicts, dtos);
 
-            List<XiechengCollidingWeeklyReportDTO> generalReport = weeklyReportDTOS.stream().filter(t -> !Objects.equals(t.getDataPacket(),
-                    "1400wdx")
-                    && !Objects.equals(t.getDataPacket(),
-                    "1400wlt")).collect(Collectors.toList());
-
-            for (XiechengCollidingWeeklyReportDTO weeklyReportDTO : generalReport) {
-                XiechengCollidingWeeklyReportDTO genDto = new XiechengCollidingWeeklyReportDTO();
-                genDto.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-                genDto.setDataPacket(weeklyReportDTO.getDataPacket());
-                genDto.setLockNum(weeklyReportDTO.getLockNum());
-                assembleAndAddToList(genDto, sourceStatisticDicts, dtos);
-            }
+            // 处理其他数据包
+            processGeneralPackets(weeklyReportDTOS, periodStart, periodEnd, sourceStatisticDicts, dtos);
         }
         return dtos;
     }
 
-    private void assembleAndAddToList(XiechengCollidingWeeklyReportDTO genDto, List<SourceStatisticDict> sourceStatisticDicts,
-                                      List<XiechengCollidingWeeklyReportDTO> dtos) {
-        String dictKey = "xc_dataPacket_intersection_" + genDto.getDataPacket();
-        List<String> dictValue = sourceStatisticDicts.stream().filter(t -> Objects.equals(dictKey, t.getDictKey()))
-                .map(SourceStatisticDict::getDictValue).collect(Collectors.toList());
-        Long intersectionNum = CollectionUtils.isEmpty(dictValue) ? 0L : Long.parseLong(dictValue.get(0));
-        genDto.setIntersectionNum(intersectionNum);
+    private List<SourceStatisticDict> getSourceStatisticDicts(DateTime periodStart, DateTime periodEnd) {
+        BiReportConfigDIctParam configDIctParam = new BiReportConfigDIctParam();
+        configDIctParam.setStartDate(periodStart);
+        configDIctParam.setEndDate(periodEnd);
+        List<SourceStatisticDict> sourceStatisticDicts = statisticDictMapper.selectListbI_(configDIctParam);
+        return sourceStatisticDicts;
+    }
 
-        genDto.setCollidingBackRatio(new BigDecimal(genDto.getLockNum()).divide(new BigDecimal(genDto.getIntersectionNum()), 2, RoundingMode.FLOOR)
-                .multiply(new BigDecimal(100)));
-        dtos.add(genDto);
+    private void processSpecialPackets(List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS, DateTime periodStart, DateTime periodEnd,
+                                       List<SourceStatisticDict> sourceStatisticDicts, List<XiechengCollidingWeeklyReportDTO> dtos) {
+        List<XiechengCollidingWeeklyReportDTO> wdxAndWltReport = weeklyReportDTOS.stream()
+                .filter(t -> Objects.equals(t.getDataPacket(), "1400wdx") || Objects.equals(t.getDataPacket(), "1400wlt"))
+                .collect(Collectors.toList());
+
+        if (!wdxAndWltReport.isEmpty()) {
+            XiechengCollidingWeeklyReportDTO dto = createDto("1400wdx&1400wlt", wdxAndWltReport, periodStart, periodEnd);
+            assembleAndAddToList(dto, sourceStatisticDicts, dtos);
+        }
+    }
+
+    private void processGeneralPackets(List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS, DateTime periodStart, DateTime periodEnd,
+                                       List<SourceStatisticDict> sourceStatisticDicts, List<XiechengCollidingWeeklyReportDTO> dtos) {
+        weeklyReportDTOS.stream()
+                .filter(t -> !Objects.equals(t.getDataPacket(), "1400wdx") && !Objects.equals(t.getDataPacket(), "1400wlt"))
+                .forEach(weeklyReportDTO -> {
+                    XiechengCollidingWeeklyReportDTO genDto = createDto(weeklyReportDTO.getDataPacket(), weeklyReportDTO.getLockNum(), periodStart, periodEnd);
+                    assembleAndAddToList(genDto, sourceStatisticDicts, dtos);
+                });
+    }
+
+    private XiechengCollidingWeeklyReportDTO createDto(String dataPacket, List<XiechengCollidingWeeklyReportDTO> reportList,
+                                                       DateTime periodStart, DateTime periodEnd) {
+        XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();
+        dto.setDataPacket(dataPacket);
+        dto.setLockPeriod(formatPeriod(periodStart, periodEnd));
+        dto.setLockNum(reportList.stream().mapToLong(XiechengCollidingWeeklyReportDTO::getLockNum).sum());
+        return dto;
+    }
+
+    private XiechengCollidingWeeklyReportDTO createDto(String dataPacket, long lockNum, DateTime periodStart, DateTime periodEnd) {
+        XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();
+        dto.setDataPacket(dataPacket);
+        dto.setLockPeriod(formatPeriod(periodStart, periodEnd));
+        dto.setLockNum(lockNum);
+        return dto;
+    }
+
+    private String formatPeriod(DateTime start, DateTime end) {
+        return DateUtil.format(start, "yyyy-MM-dd") + " ~ " + DateUtil.format(end, "yyyy-MM-dd");
+    }
+
+    private void assembleAndAddToList(XiechengCollidingWeeklyReportDTO dto, List<SourceStatisticDict> sourceStatisticDicts,
+                                      List<XiechengCollidingWeeklyReportDTO> dtos) {
+        String dictKey = "xc_dataPacket_intersection_" + dto.getDataPacket();
+        Long intersectionNum = sourceStatisticDicts.stream()
+                .filter(t -> Objects.equals(dictKey, t.getDictKey()))
+                .map(SourceStatisticDict::getDictValue)
+                .map(value -> Long.parseLong(value))
+                .findFirst()
+                .orElse(0L);
+        dto.setIntersectionNum(intersectionNum);
+
+        if (intersectionNum != 0) {
+            dto.setCollidingBackRatio(new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 2, RoundingMode.FLOOR)
+                    .multiply(new BigDecimal(100)));
+        } else {
+            dto.setCollidingBackRatio(BigDecimal.ZERO);
+        }
+        dtos.add(dto);
     }
 
     /**
