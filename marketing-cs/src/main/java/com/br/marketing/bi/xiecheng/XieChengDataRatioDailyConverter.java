@@ -1,7 +1,5 @@
 package com.br.marketing.bi.xiecheng;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
@@ -46,18 +44,9 @@ public class XieChengDataRatioDailyConverter extends AbstractBiReportConverter<B
      */
     @Override
     public List<XiechengDataRatioDailyReportDTO> fetchData(BiReportParam param) {
-        List<XiechengDataRatioDailyReportDTO> dtos = Lists.newArrayList();
         // 近30天数据列表
         String reportDateStart = LocalDate.now().minusDays(30).toString();
-        List<XiechengDataRatioDailyReportDTO> dwsXcDataRatioDS = xieChengBiReportMapper.selectXcDataRatioListbI_(reportDateStart);
-        for (XiechengDataRatioDailyReportDTO dwsXcDataRatioD : dwsXcDataRatioDS) {
-            BigDecimal extractionRatio = dwsXcDataRatioD.getExtractionRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            BigDecimal callableRatio = dwsXcDataRatioD.getCallableRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            dwsXcDataRatioD.setExtractionRatio(extractionRatio);
-            dwsXcDataRatioD.setCallableRatio(callableRatio);
-            dtos.add(dwsXcDataRatioD);
-        }
-        return dtos;
+        return xieChengBiReportMapper.selectXcDataRatioListbI_(reportDateStart);
     }
 
     /**
