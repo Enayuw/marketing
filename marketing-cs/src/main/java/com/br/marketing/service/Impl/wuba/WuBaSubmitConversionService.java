@@ -83,6 +83,7 @@ public class WuBaSubmitConversionService {
         String apiCode = param.getApiCode();
         Integer status = param.getStatus();
         Integer pushStatus = param.getPushStatus();
+        String userType = param.getUserType();
         Integer createDate = param.getCreateDate();
         Integer pageSize = condition.getPageSize();
 
@@ -92,7 +93,7 @@ public class WuBaSubmitConversionService {
             String marketingTimeStart = marketingTimeInterval.get("marketingTimeStart");
             String marketingTimeEnd = marketingTimeInterval.get("marketingTimeEnd");
             List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findWithMarketingTimeByPage(
-                    apiCode, status, pushStatus, marketingTimeStart, marketingTimeEnd, pageSize);
+                    apiCode, status, pushStatus, userType, marketingTimeStart, marketingTimeEnd, pageSize);
             if (CollectionUtils.isEmpty(pageList)) {
                 log.warn(TITLE+"scanData, 未获取到数据");
                 data.put("hasScanData", "0");
