@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.mapper.XieChengBiReportMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -49,6 +51,9 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
     @Resource
     private XiechengBiReportService xiechengBiReportService;
 
+    @Autowired
+    private XieChengBiReportMapper xieChengBiReportMapper;
+
     @Resource
     private SourceStatisticDictMapper statisticDictMapper;
 
@@ -77,7 +82,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             List<SourceStatisticDict> sourceStatisticDicts = getSourceStatisticDicts(periodStart, periodEnd);
 
             // 根据datapackact分组，对锁定量级求和
-            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xiechengBiReportService.selectXcCollidingWeeklybI_(periodStart.toDateStr(),
+            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xieChengBiReportMapper.selectXcCollidingWeeklybI_(periodStart.toDateStr(),
                     periodEnd.toDateStr());
 
             // 处理"1400wdx"和"1400wlt"数据包

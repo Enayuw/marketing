@@ -27,7 +27,7 @@ public class XiechengBiReportServiceImpl implements XiechengBiReportService{
     }
 
     @Override
-    public List<XiechengTransferDailyReportDTO> selectXcTransferDailybI_(String reportDateStart, String reportDateEnd) {
+    public List<XiechengTransferDailyReportDTO> selectXcTransferDaily(String reportDateStart, String reportDateEnd) {
         return xieChengBiReportMapper.selectXcTransferDailybI_(reportDateStart, reportDateEnd);
     }
 
@@ -42,40 +42,8 @@ public class XiechengBiReportServiceImpl implements XiechengBiReportService{
     }
 
     @Override
-    public List<XiechengCollidingWeeklyReportDTO> selectXcCollidingWeekly(String reportDateStart, String reportDateEnd) {
-        return xieChengBiReportMapper.selectXcCollidingWeeklybI_(reportDateStart, reportDateEnd);
-    }
-
-    @Override
     public List<XiechengDataRatioDailyReportDTO> selectXcDataRatioList(String reportDateStart) {
         return xieChengBiReportMapper.selectXcDataRatioListbI_(reportDateStart);
     }
-
-
-    @Override
-    public List<XiechengDataRatioDailyReportDTO> selectXcDataRatioListbI_(String reportDateStart) {
-        return xieChengBiReportMapper.selectXcDataRatioListbI_(reportDateStart);
-    }
-
-    @Override
-    public List<XiechengTransferMonthlyReportDTO> selectXcTrabsferMonthlyListbI_(String month) {
-        return xieChengBiReportMapper.selectXcTrabsferMonthlyListbI_(month);
-    }
-
-    @Override
-    public List<XiechengTransferWeeklyReportDTO> selectXcTransferSevenRollListbI_(String reportDateStart, String reportDateEnd) {
-        return xieChengBiReportMapper.selectXcTransferSevenRollListbI_(reportDateStart,reportDateEnd);
-    }
-
-    @Override
-    public List<XiechengCollidingDailyReportDTO> selectXcColldingDistrubuteDayListbI_(String reportDateStart, String reportDateEnd) {
-        return xieChengBiReportMapper.selectXcColldingDistrubuteDayListbI_(reportDateStart,reportDateEnd);
-    }
-
-    @Override
-    public List<XiechengCollidingWeeklyReportDTO> selectXcCollidingWeeklybI_(String reportDateStart, String reportDateEnd) {
-        return xieChengBiReportMapper.selectXcCollidingWeeklybI_(reportDateStart,reportDateEnd);
-    }
-
 
 }

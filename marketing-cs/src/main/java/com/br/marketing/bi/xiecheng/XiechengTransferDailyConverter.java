@@ -50,27 +50,7 @@ public class XiechengTransferDailyConverter extends AbstractBiReportConverter<Bi
     public List<XiechengTransferDailyReportDTO> fetchData(BiReportParam param) {
         String startDate = param.getCondition().getString("startDate");
         String endDate = param.getCondition().getString("endDate");
-        List<XiechengTransferDailyReportDTO> reportDTOS = xiechengBiReportService.selectXcTransferDailybI_(startDate, endDate);
-
-        List<XiechengTransferDailyReportDTO> dtos = Lists.newArrayList();
-        for (XiechengTransferDailyReportDTO reportDTO : reportDTOS) {
-            // 创建DailyReportDTO实例并设置数据
-            XiechengTransferDailyReportDTO report = new XiechengTransferDailyReportDTO();
-            BeanUtils.copyProperties(reportDTO, report);
-            report.setCertifyRatio(report.getCertifyRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setApplyRatio(report.getApplyRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setCreditRatio(report.getCertifyRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setApplyWithdrawRatio(report.getApplyWithdrawRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setWithdrawRatio(report.getWithdrawRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setCertifyCompleteRatio(report.getCertifyCompleteRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setOverPieceRatio(report.getOverPieceRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setWithdrawLaunchRatio(report.getWithdrawLaunchRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setWithdrawSucRatio(report.getWithdrawSucRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setCreditWithdrawLaunchRatio(report.getCreditWithdrawLaunchRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            report.setCreditWithdrawSucRatio(report.getCreditWithdrawSucRatio().multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR));
-            dtos.add(report);
-        }
-        return dtos;
+        return xiechengBiReportService.selectXcTransferDaily(startDate, endDate);
     }
 
     /**

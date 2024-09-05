@@ -15,29 +15,11 @@ public interface XiechengBiReportService {
 
     List<XiechengTransferMonthlyReportDTO> selectXcTrabsferMonthlyList(String month);
 
-    List<XiechengTransferDailyReportDTO> selectXcTransferDailybI_(String reportDateStart, String reportDateEnd);
+    List<XiechengTransferDailyReportDTO> selectXcTransferDaily(String reportDateStart, String reportDateEnd);
 
     List<XiechengTransferWeeklyReportDTO> selectXcTransferSevenRollList(String reportDateStart, String reportDateEnd);
 
     List<XiechengCollidingDailyReportDTO> selectXcColldingDistrubuteDayList(String reportDateStart, String reportDateEnd);
 
-    List<XiechengCollidingWeeklyReportDTO> selectXcCollidingWeekly(String reportDateStart, String reportDateEnd);
-
     List<XiechengDataRatioDailyReportDTO> selectXcDataRatioList(String reportDateStart);
-
-
-    List<XiechengDataRatioDailyReportDTO> selectXcDataRatioListbI_(String reportDateStart);
-
-
-    List<XiechengTransferMonthlyReportDTO> selectXcTrabsferMonthlyListbI_(@Param("month") String month);
-
-
-    List<XiechengTransferWeeklyReportDTO> selectXcTransferSevenRollListbI_(@Param("reportDateStart") String reportDateStart,
-                                                                           @Param("reportDateEnd") String reportDateEnd);
-
-    List<XiechengCollidingDailyReportDTO> selectXcColldingDistrubuteDayListbI_(@Param("reportDateStart") String reportDateStart,
-                                                                               @Param("reportDateEnd") String reportDateEnd);
-
-    List<XiechengCollidingWeeklyReportDTO> selectXcCollidingWeeklybI_(@Param("reportDateStart") String reportDateStart,
-                                                                      @Param("reportDateEnd") String reportDateEnd);
 }

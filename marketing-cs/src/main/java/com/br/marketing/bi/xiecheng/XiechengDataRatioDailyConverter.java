@@ -46,7 +46,7 @@ public class XiechengDataRatioDailyConverter extends AbstractBiReportConverter<B
     public List<XiechengDataRatioDailyReportDTO> fetchData(BiReportParam param) {
         // 近30天数据列表
         String reportDateStart = LocalDate.now().minusDays(30).toString();
-        return xiechengBiReportService.selectXcDataRatioListbI_(reportDateStart);
+        return xiechengBiReportService.selectXcDataRatioList(reportDateStart);
     }
 
     /**
