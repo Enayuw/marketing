@@ -36,12 +36,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -165,7 +163,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                     jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t))).filter((JSONObject t) -> Objects.equals(t.getInteger("status"),
                             1)).collect(Collectors.toList());
 
-            List<WubaCollidingDataSyncClean> trueDatas = trueList.stream().map(t -> {
+            List<WubaCollidingDataSyncClean> trueDatas = trueList.stream().map((JSONObject t) -> {
                 WubaCollidingDataSyncClean data = new WubaCollidingDataSyncClean();
                 data.setCell(t.getString(MOBILE_ENCRYPT));
                 data.setExtend(JSON.toJSONString(t.remove(MOBILE_ENCRYPT)));
@@ -176,16 +174,15 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                     jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t))).filter((JSONObject t) -> !Objects.equals(t.getInteger("status"),
                             1)).collect(Collectors.toList());
 
-            List<WubaCollidingDataSyncClean> falseDatas = falseList.stream().map(t -> {
+            List<WubaCollidingDataSyncClean> falseDatas = falseList.stream().map((JSONObject t) -> {
                 WubaCollidingDataSyncClean data = new WubaCollidingDataSyncClean();
                 data.setCell(t.getString(MOBILE_ENCRYPT));
                 return data;
             }).collect(Collectors.toList());
 
             // 根据批次号更新log表撞库结果，并返回不可营销数据
-            Map<String, JSONObject> trueMap =
-                    trueList.stream().collect(Collectors.toMap(t -> t.getString(MOBILE_ENCRYPT), Function.identity(), (t1, t2) -> t1));
-            ArrayList<String> trueCells = new ArrayList<>(trueMap.keySet());
+            ArrayList<String> trueCells =
+                    (ArrayList<String>) trueList.stream().map((JSONObject t) -> t.getString(MOBILE_ENCRYPT)).collect(Collectors.toList());
             updateLogResultByBatchNo(trueCells, batchNo, apiCode);
 
             List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, trueDatas, falseDatas, apiCode, batchNo, taskId);
