@@ -3,13 +3,14 @@
 <mapper namespace="com.br.marketing.mapper.WubaCollidingDataFrontMapper">
     <select id="selectNoDupDataByCurDatetikv_" resultType="com.br.marketing.entity.WubaCollidingDataFront">
         select c.*
-        from (SELECT a.id, a.cell, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
+        from (SELECT a.id, a.cell, a.local_id, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
         from b_wuba_colliding_data_front a
+        left join b_wuba_colliding_data_loop_cycle d on a.cell = d.cell and d.is_deleted = 0
         left join b_wuba_colliding_data_rob b
         on a.cell = b.cell
-        <![CDATA[ and b.create_time >= #{today} and b.create_time < #{tomorrow} ]]>
+        <![CDATA[ and ((b.create_time >= #{today} and b.create_time < #{tomorrow} ]]>) or (b.package_id in ${highValueIds}))
         and b.api_code = #{apiCode} and b.is_deleted = 0
-        where b.id is null
+        where b.id is null and d.id is null
         and a.is_deleted = 0
         and a.api_code = #{apiCode}
         and a.local_id = #{localId}

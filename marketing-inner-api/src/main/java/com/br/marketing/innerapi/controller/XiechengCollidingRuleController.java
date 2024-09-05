@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -180,6 +181,19 @@ public class XiechengCollidingRuleController {
     @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_SAVE_COLLIDING_RULE, extendInfo = "[saveCollidingRuleLog]")
     public ApiResult<Boolean> saveCollidingRule() {
         return xieChengCollidingRuleService.saveCollidingRule();
+    }
+
+    @ApiOperation(value = "13-修改包轮次")
+    @PostMapping("/package/round")
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.XIECHENG_UPDATE_ROUND,
+            extendInfo = "修改了{#param.packageName}轮次，修改为{#param.round}")
+    public ApiResult<Boolean> updateRound(UpdateRoundParam param) {
+        try {
+            return new ApiResult<Boolean>().success(xieChengCollidingRuleService.updateRound(param));
+        } catch (Exception e) {
+            log.error("修改包轮次异常", e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
     }
 
 }

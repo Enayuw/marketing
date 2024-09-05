@@ -169,6 +169,16 @@ public class PeriodOfValidityBO {
             this.periodOfValidityBO = new PeriodOfValidityBO(date, date);
         }
 
+        /**
+         * 2024-08-28 22:56
+         * 添加已格式化的日期字符串，格式：yyyy-MM-dd
+         */
+        public Builder addBeginDateStrAndEnDateStr(String beginDateStr, String enDateStr) {
+            periodOfValidityBO.beginDateStr = beginDateStr;
+            periodOfValidityBO.enDateStr = enDateStr;
+            return this;
+        }
+
         public Builder addDateString() {
             if (periodOfValidityBO.getBeginDate() != null) {
                 periodOfValidityBO.beginDateStr = DateUtils.format(periodOfValidityBO.getBeginDate());

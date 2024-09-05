@@ -3,6 +3,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.TransferFileTask;
 import com.br.marketing.mapper.SyncConfigMapper;
+import com.br.marketing.service.Impl.transfertofile.TransferToFileByCuDongZhiServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByRongShuServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileBySuShangServiceImpl;
 import com.br.marketing.service.Impl.transfertofile.TransferToFileByYiShiServiceImpl;
@@ -172,6 +173,45 @@ public class TransferFileTest implements ApplicationContextAware {
             log.error(ex.getMessage());
         }
     }
+
+    @Resource
+    TransferToFileByCuDongZhiServiceImpl transferToFileByCuDongZhiService;
+
+    private final static String TABLE_HEAD_TRANSFER = "custNum,userType,loginTime,applyDt,applyResult,auditAmount,ifLent,firstName" +
+            ",cell,stopMarketingSign,gender,isLightMarkting,operationScene,applyLoan,succAmtType";
+
+
+    @Test
+    public void CuDongZhiWriteTransferToFile() {
+        TransferFileTask transferFileTask = new TransferFileTask();
+        transferFileTask.setApiCode("7491635");
+        String myParam = "7491635#2024-08-21";
+        String dd = isMyParam("7491635", myParam);
+        transferFileTask.setStartDate(dd);
+        String apiCode = transferFileTask.getApiCode();
+        String recordDate = transferFileTask.getStartDate();
+        boolean isParam = StringUtils.isNotBlank(dd);
+        String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        transferFileTask.setFileName(String.format("%s_360cudong_zhuahua_%s.txt", apiCode, dateyyyymmddStr));
+        log.warn("奇富360促动支转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
+        File writeDic = new File(descPath);
+        if (!writeDic.exists()) {
+            writeDic.mkdirs();
+        }
+        String fileAllPath = descPath.concat(transferFileTask.getFileName());
+        transferFileTask.setFilePath(descPath);
+        File file = new File(fileAllPath);
+        try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));) {
+            fw.append(TABLE_HEAD_TRANSFER);
+            fw.append("\r\n");
+            transferToFileByCuDongZhiService.writeCuDongZhiTransferToFile(fw,apiCode,transferFileTask, recordDate);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+        }
+    }
+
 
     public String isMyParam(String apiCode, String jobParameter) {
         if (jobParameter.contains(apiCode)) {

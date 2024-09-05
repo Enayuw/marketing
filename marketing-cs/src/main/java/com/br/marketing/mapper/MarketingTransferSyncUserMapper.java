@@ -590,6 +590,10 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
             @Param("pageSize") Integer pageSize);
 
+    List<Map<String, Object>> selectTransferWithValidByCelltiflash_(
+            @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
+            @Param("pageSize") Integer pageSize);
+
     List<Map<String, Object>> selectTransferByWbxc(
             @Param("transferSyncUser")MarketingTransferSyncUser transferSyncUser,
             @Param("pageSize") Integer pageSize);
@@ -607,5 +611,51 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("maxId") Long maxId
             , @Param("limit") int limit
     );
+
+
+    List<String> getTransferCustNumByConditiontikv_(@Param("tCid") String tCid,
+                                                    @Param("apiCode") String apiCode,
+                                                    @Param("userType") String userType,
+                                                    @Param("requestStartDate") String requestStartDate,
+                                                    @Param("requestEndDate") String requestEndDate,
+                                                    @Param("custNums") Set<String> custNums,
+                                                    @Param("querySql") String querySql);
+
+    /**
+     * 获取满足条件的最小id
+     * @author guangxiu.li
+     * @date 2024/8/21 10:25
+     * @param apiCode
+     * @param requestDate
+     * @param tCid
+     * @return java.lang.Long
+     */
+    Long minId(@Param("apiCode") String apiCode, @Param("requestDate") String requestDate, @Param("tCid") String tCid);
+
+    /**
+     * 获取满足条件的最大id
+     * @author guangxiu.li
+     * @date 2024/8/21 10:21
+     * @param apiCode
+     * @param requestDate
+     * @param tCid
+     * @return java.lang.Long
+     */
+    Long maxId(@Param("apiCode") String apiCode, @Param("requestDate") String requestDate, @Param("tCid") String tCid);
+
+    /**
+     *
+     * @author guangxiu.li
+     * @date 2024/8/21 10:08
+     * @param transferSyncUser
+     * @param beginId
+     * @param endId
+     * @return java.util.List<com.br.marketing.entity.MarketingTransferSyncUser>
+     */
+    List<MarketingTransferSyncUser> getTransferBySyncUser(
+            @Param("transferSyncUser") MarketingTransferSyncUser transferSyncUser
+            , @Param("beginId") Long beginId
+            , @Param("endId") Long endId);
+
 
 }

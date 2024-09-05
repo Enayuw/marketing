@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogMapper">
+    <resultMap id="BaseResultMap" type="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="api_code" property="apiCode" jdbcType="VARCHAR"/>
+        <result column="marketing_clean_data_file_id" property="marketingCleanDataFileId" jdbcType="BIGINT"/>
+        <result column="sync_apicode_id" property="syncApicodeId" jdbcType="BIGINT"/>
+        <result column="history_data_json" property="historyDataJson" jdbcType="VARCHAR"/>
+        <result column="uid" property="uid" jdbcType="VARCHAR"/>
+        <result column="is_success" property="isSuccess" jdbcType="INTEGER"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+        <result column="is_del" property="isDel" jdbcType="INTEGER"/>
+        <result column="new_data_json" property="newDataJson" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id
+        , api_code, marketing_clean_data_file_id, sync_apicode_id, history_data_json, `uid`,
+    is_success, create_time, update_time, is_del, new_data_json
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        <include refid="Base_Column_List"/>
+        from b_rongshu_paofen_file_update_sync_clean_log
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from b_rongshu_paofen_file_update_sync_clean_log
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from b_rongshu_paofen_file_update_sync_clean_log
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <delete id="deleteByExample"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogExample">
+        delete from b_rongshu_paofen_file_update_sync_clean_log
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_rongshu_paofen_file_update_sync_clean_log (api_code, marketing_clean_data_file_id,
+        sync_apicode_id, history_data_json, `uid`,
+        is_success, create_time, update_time,
+        is_del, new_data_json)
+        values (#{apiCode,jdbcType=VARCHAR}, #{marketingCleanDataFileId,jdbcType=BIGINT},
+        #{syncApicodeId,jdbcType=BIGINT}, #{historyDataJson,jdbcType=VARCHAR}, #{uid,jdbcType=VARCHAR},
+        #{isSuccess,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
+        #{isDel,jdbcType=INTEGER}, #{newDataJson,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_rongshu_paofen_file_update_sync_clean_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="marketingCleanDataFileId != null">
+                marketing_clean_data_file_id,
+            </if>
+            <if test="syncApicodeId != null">
+                sync_apicode_id,
+            </if>
+            <if test="historyDataJson != null">
+                history_data_json,
+            </if>
+            <if test="uid != null">
+                `uid`,
+            </if>
+            <if test="isSuccess != null">
+                is_success,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+            <if test="isDel != null">
+                is_del,
+            </if>
+            <if test="newDataJson != null">
+                new_data_json,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="marketingCleanDataFileId != null">
+                #{marketingCleanDataFileId,jdbcType=BIGINT},
+            </if>
+            <if test="syncApicodeId != null">
+                #{syncApicodeId,jdbcType=BIGINT},
+            </if>
+            <if test="historyDataJson != null">
+                #{historyDataJson,jdbcType=VARCHAR},
+            </if>
+            <if test="uid != null">
+                #{uid,jdbcType=VARCHAR},
+            </if>
+            <if test="isSuccess != null">
+                #{isSuccess,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isDel != null">
+                #{isDel,jdbcType=INTEGER},
+            </if>
+            <if test="newDataJson != null">
+                #{newDataJson,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLogExample"
+            resultType="java.lang.Integer">
+        select count(*) from b_rongshu_paofen_file_update_sync_clean_log
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update b_rongshu_paofen_file_update_sync_clean_log
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.apiCode != null">
+                api_code = #{record.apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="record.marketingCleanDataFileId != null">
+                marketing_clean_data_file_id = #{record.marketingCleanDataFileId,jdbcType=BIGINT},
+            </if>
+            <if test="record.syncApicodeId != null">
+                sync_apicode_id = #{record.syncApicodeId,jdbcType=BIGINT},
+            </if>
+            <if test="record.historyDataJson != null">
+                history_data_json = #{record.historyDataJson,jdbcType=VARCHAR},
+            </if>
+            <if test="record.uid != null">
+                `uid` = #{record.uid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.isSuccess != null">
+                is_success = #{record.isSuccess,jdbcType=INTEGER},
+            </if>
+            <if test="record.createTime != null">
+                create_time = #{record.createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updateTime != null">
+                update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.isDel != null">
+                is_del = #{record.isDel,jdbcType=INTEGER},
+            </if>
+            <if test="record.newDataJson != null">
+                new_data_json = #{record.newDataJson,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update b_rongshu_paofen_file_update_sync_clean_log
+        set id = #{record.id,jdbcType=BIGINT},
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+        marketing_clean_data_file_id = #{record.marketingCleanDataFileId,jdbcType=BIGINT},
+        sync_apicode_id = #{record.syncApicodeId,jdbcType=BIGINT},
+        history_data_json = #{record.historyDataJson,jdbcType=VARCHAR},
+        `uid` = #{record.uid,jdbcType=VARCHAR},
+        is_success = #{record.isSuccess,jdbcType=INTEGER},
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+        is_del = #{record.isDel,jdbcType=INTEGER},
+        new_data_json = #{record.newDataJson,jdbcType=VARCHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
+        update b_rongshu_paofen_file_update_sync_clean_log
+        <set>
+            <if test="apiCode != null">
+                api_code = #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="marketingCleanDataFileId != null">
+                marketing_clean_data_file_id = #{marketingCleanDataFileId,jdbcType=BIGINT},
+            </if>
+            <if test="syncApicodeId != null">
+                sync_apicode_id = #{syncApicodeId,jdbcType=BIGINT},
+            </if>
+            <if test="historyDataJson != null">
+                history_data_json = #{historyDataJson,jdbcType=VARCHAR},
+            </if>
+            <if test="uid != null">
+                `uid` = #{uid,jdbcType=VARCHAR},
+            </if>
+            <if test="isSuccess != null">
+                is_success = #{isSuccess,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isDel != null">
+                is_del = #{isDel,jdbcType=INTEGER},
+            </if>
+            <if test="newDataJson != null">
+                new_data_json = #{newDataJson,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey"
+            parameterType="com.br.marketing.entity.clean.rongshu.RongshuPaofenFileUpdateSyncCleanLog">
+        update b_rongshu_paofen_file_update_sync_clean_log
+        set api_code                     = #{apiCode,jdbcType=VARCHAR},
+            marketing_clean_data_file_id = #{marketingCleanDataFileId,jdbcType=BIGINT},
+            sync_apicode_id              = #{syncApicodeId,jdbcType=BIGINT},
+            history_data_json            = #{historyDataJson,jdbcType=VARCHAR},
+            `uid`                        = #{uid,jdbcType=VARCHAR},
+            is_success                   = #{isSuccess,jdbcType=INTEGER},
+            create_time                  = #{createTime,jdbcType=TIMESTAMP},
+            update_time                  = #{updateTime,jdbcType=TIMESTAMP},
+            is_del                       = #{isDel,jdbcType=INTEGER},
+            new_data_json                = #{newDataJson,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

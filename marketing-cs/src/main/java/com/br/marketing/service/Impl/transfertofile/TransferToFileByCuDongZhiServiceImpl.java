@@ -2,8 +2,10 @@ package com.br.marketing.service.Impl.transfertofile;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -62,7 +64,7 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
 
 
     private final static String TABLE_HEAD_TRANSFER = "custNum,userType,loginTime,applyDt,applyResult,auditAmount,ifLent,firstName" +
-            ",cell,stopMarketingSign,gender,age,isLightMarkting,operationScene,applyLoan,succAmtType";
+            ",cell,stopMarketingSign,gender,isLightMarkting,operationScene,applyLoan,succAmtType";
 
     final static String EXECUTE_TIME = "23:00:00";
 
@@ -142,7 +144,8 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
         if (!writeDic.exists()) {
             boolean mkdirs = writeDic.mkdirs();
             if (!mkdirs) {
-                log.error(descPath + "目录创建失败！");
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                        , descPath + "目录创建失败！"));
             }
         }
         String fileAllPath = descPath.concat(transferFileTask.getFileName());
@@ -151,9 +154,10 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
         try (Writer fw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             fw.append(TABLE_HEAD_TRANSFER);
             fw.append("\r\n");
-            writeQifuCuDongZhiTransferToFile(fw, apiCode, transferFileTask, requestDate);
+            writeCuDongZhiTransferToFile(fw, apiCode, transferFileTask, requestDate);
         } catch (Exception ex) {
-            log.error("写入文件错误！",ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                    , "奇富360促动支转化数据提取写入文件错误！"), ex);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(ex.getMessage());
         }
@@ -161,28 +165,35 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
         return result;
     }
 
-    public void writeQifuCuDongZhiTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
-        Long start = System.currentTimeMillis();
-        String tcId = tableCreateService.getTcId(apiCode);
-        Integer page = 0;
+    public void writeCuDongZhiTransferToFile(Writer fw, String apiCode, TransferFileTask transferFileTask, String requestDate) {
+        long start = System.currentTimeMillis();
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
-        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(100, 100, 1);
-
+        String tcId = tableCreateService.getTcId(apiCode);
+        String localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE).toString();
+        // 创建线程池
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(12, 12, 100);
+        Integer pageSize = null;
+        Long beginId = marketingTransferSyncUserMapper.minId(apiCode, localDate, tcId);
+        Long endId = marketingTransferSyncUserMapper.maxId(apiCode, localDate, tcId);
+        Long middleId;
+        Boolean continueFlag = Boolean.TRUE;
+        if (endId == null || endId == 0 || beginId == null || beginId == 0){
+            continueFlag = Boolean.FALSE;
+        }
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        syncUser.setRequestData(localDate.toString());
-        Integer pageSize = dynamicParameterService.getPageSize(null);
-
-        for (; ; ) {
-            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper
-                    .findTransferByApiCodeAndCreateTimePage(syncUser, null, null, null, page * pageSize, pageSize);
-            if (CollectionUtils.isEmpty(transferData)) {
-                break;
+        syncUser.setRequestData(localDate);
+        while (continueFlag) {
+            pageSize = dynamicParameterService.getPageSize(null);
+            middleId = beginId + pageSize;
+            if(middleId >= endId){
+                middleId = endId+1;
+                continueFlag = Boolean.FALSE;
             }
-            page++;
+            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferBySyncUser(syncUser, beginId, middleId);
+            beginId = middleId;
             threadPool.submit(() -> {
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = emptyDefault(transferFilterData.getCustNum());
@@ -196,7 +207,6 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
                     String cell = "";
                     String stopMarketingSign = "";
                     String gender = "";
-                    String age = "";
                     String isLightMarkting = "";
                     String operationScene = "";
                     String applyLoan = "";
@@ -208,39 +218,43 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
                         cell = jsonObject.getString("cell");
                         stopMarketingSign = jsonObject.getString("stopMarketingSign");
                         gender = jsonObject.getString("gender");
-                        age = jsonObject.getString("age");
                         isLightMarkting = jsonObject.getString("isLightMarkting");
                         operationScene = jsonObject.getString("operationScene");
                         applyLoan = jsonObject.getString("applyLoan");
                         succAmtType = jsonObject.getString("succAmtType");
                     }
                     StringBuilder sb = new StringBuilder();
-                    sb.append(custNum.concat(","))
-                            .append(userType.concat(","))
-                            .append(loginTime.concat(","))
-                            .append(applyDt.concat(","))
-                            .append(applyResult.concat(","))
-                            .append(auditAmount.concat(","))
-                            .append(ifLent.concat(","))
-                            .append(emptyDefault(firstName).concat(","))
-                            .append(emptyDefault(cell).concat(","))
-                            .append(emptyDefault(stopMarketingSign).concat(","))
-                            .append(emptyDefault(gender).concat(","))
-                            .append(emptyDefault(age).concat(","))
-                            .append(emptyDefault(isLightMarkting).concat(","))
-                            .append(emptyDefault(operationScene).concat(","))
-                            .append(emptyDefault(applyLoan).concat(","))
-                            .append(emptyDefault(succAmtType))
-                            .append("\r\n");
                     try {
+                        sb.append(custNum.concat(","))
+                                .append(userType.concat(","))
+                                .append(loginTime.concat(","))
+                                .append(applyDt.concat(","))
+                                .append(applyResult.concat(","))
+                                .append(auditAmount.concat(","))
+                                .append(ifLent.concat(","))
+                                .append(emptyDefault(firstName).concat(","))
+                                .append(emptyDefault(cell).concat(","))
+                                .append(emptyDefault(stopMarketingSign).concat(","))
+                                .append(emptyDefault(gender).concat(","))
+                                .append(emptyDefault(isLightMarkting).concat(","))
+                                .append(emptyDefault(operationScene).concat(","))
+                                .append(emptyDefault(applyLoan).concat(","))
+                                .append(emptyDefault(succAmtType))
+                                .append("\r\n");
                         fw.append(sb.toString());
                         totalSize.incrementAndGet();
                     } catch (IOException e) {
-                        log.error(e.getMessage(), e);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                                , "[" + apiCode + "]奇富360促动支转化数据提取[" + custNum + "]提取程序异常"), e);
                     }
                 }
+                try {
+                    fw.flush();
+                } catch (IOException e) {
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                            , "[" + apiCode + "]奇富360促动支转化数据提取flush异常!"), e);
+                }
             });
-
         }
         threadPool.shutdown();
 
@@ -249,7 +263,7 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("奇富360促动支转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                    log.warn("奇富360促动支转化数据提取写入文件大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
@@ -257,12 +271,12 @@ public class TransferToFileByCuDongZhiServiceImpl implements ITransferToFileServ
             log.warn("奇富360促动支转化数据提取-本地文件生成成功,apiCode = {},time = {}ms,total = {}"
                     , apiCode, System.currentTimeMillis() - start, totalSize.intValue());
         } catch (InterruptedException e) {
-            log.error("奇富360促动支转化数据提取-本地文件生成失败！" , e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                    , "奇富360促动支转化数据提取-本地文件生成失败！"), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
             transferFileTaskMapper.deleteByPrimaryKey(transferFileTask.getId());
         }
-
     }
 
     private void saveUpdateTask(TransferFileTask transferFileTask, int totalSize) {

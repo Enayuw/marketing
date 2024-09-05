@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl.wuba;
 
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -21,7 +20,6 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -171,9 +169,9 @@ public class WuBaQueryConversionResultTransService {
         log.warn(TITLE + "更新上报日志状态成功, batchNo: {}", batchNo);
 
         // 营销名单上报表, push_status置为2-推送成功
-        List<String> successCellList = responseDtoList.stream().map(ConversionResponseDTO::getMobileEncrypt).collect(Collectors.toList());
-        updateDataStatus(successCellList,2, apiCode, wubaCollidingBatchNo.getPushTime());
-        log.warn(TITLE + "更新营销名单上报状态成功, batchNo: {}", batchNo);
+//        List<String> successCellList = responseDtoList.stream().map(ConversionResponseDTO::getMobileEncrypt).collect(Collectors.toList());
+//        updateDataStatus(successCellList,2, apiCode, wubaCollidingBatchNo.getPushTime());
+//        log.warn(TITLE + "更新营销名单上报状态成功, batchNo: {}", batchNo);
 
         // 更新清洗任务表
         MarketingCleanDataTask cleanDataTaskUpdate = new MarketingCleanDataTask();
@@ -196,7 +194,7 @@ public class WuBaQueryConversionResultTransService {
         updateDataLogStatus(wubaCollidingBatchNo, failureCellList, 2);
 
         // 营销名单上报表, push_status置为3-推送失败
-        updateDataStatus(failureCellList, 3, wubaCollidingBatchNo.getApiCode(), wubaCollidingBatchNo.getPushTime());
+//        updateDataStatus(failureCellList, 3, wubaCollidingBatchNo.getApiCode(), wubaCollidingBatchNo.getPushTime());
 
         return new Result().success();
     }
@@ -214,23 +212,6 @@ public class WuBaQueryConversionResultTransService {
             String errorMsg = String.format("更新上报批次表状态异常, batchNo: %d, queryStatus: %s", queryStatus, batchNo);
             log.warn(TITLE + errorMsg);
             throw new Exception(TITLE + errorMsg);
-        }
-        return new Result().success();
-    }
-
-    public Result updateDataStatus(List<String> cellList, Integer pushStatus, String apiCode, Date pushTime) {
-        WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
-        dataUpdate.setPushStatus(pushStatus);
-        //
-        Integer createDate = Integer.parseInt(DateUtils.format(pushTime, "yyyyMMdd"));
-        WubaSubmitConversionDataExample dataUpdateExample = new WubaSubmitConversionDataExample();
-        dataUpdateExample.createCriteria().andCellIn(cellList)
-                .andApiCodeEqualTo(apiCode)
-                .andCreateDateEqualTo(createDate);
-        int dataUpdateResult = dataMapper.updateByExampleSelective(dataUpdate, dataUpdateExample);
-        if(dataUpdateResult != cellList.size()){
-            log.warn(TITLE+"更新营销名单上报状态{}, 批次返回cell与上报表不一致", pushStatus);
-            // throw new Exception(TITLE+"营销名单上报表更新状态异常");
         }
         return new Result().success();
     }

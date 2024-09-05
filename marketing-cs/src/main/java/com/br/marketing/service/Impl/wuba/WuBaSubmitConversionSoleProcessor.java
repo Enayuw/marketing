@@ -11,6 +11,7 @@ import com.br.marketing.entity.DataDistributeDetailLog;
 import com.br.marketing.entity.DataDistributeDetailLogExample;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.mapper.DataDistributeDetailLogMapper;
+import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -109,14 +110,18 @@ public class WuBaSubmitConversionSoleProcessor {
             return notPushIds;
         }
         String apiCode = param.getApiCode();
+        Integer createDate = param.getCreateDate();
         Integer distributeType = DistributeTypeEnum.WUBA_SUBMIT_CONVERSION.getValue();
         String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
         // soleCellSet
         Set<String> soleCellSet = new HashSet<>();
         // allCells
         Set<String> allCells = pushList.stream().map(WubaSubmitConversionData::getCell).collect(Collectors.toSet());
         // distributeCellSet
-        Set<String> distributeCellSet = distributeLogMapper.findDistributeLogCellSet(apiCode, distributeType, distributeDate, allCells);
+        String marketingDate = String.valueOf(createDate);
+        Set<String> distributeCellSet = distributeLogMapper.findDistributeLogCellSet(apiCode, distributeType, distributeDate,
+                allCells, marketingDate);
         // iterator pushList
         Iterator<WubaSubmitConversionData> iterator = pushList.iterator();
         while (iterator.hasNext()){
@@ -132,13 +137,14 @@ public class WuBaSubmitConversionSoleProcessor {
         return notPushIds;
     }
 
-    public void addDistributeLog(List<WubaSubmitConversionData> pushList) {
+    public void addDistributeLog(List<WubaSubmitConversionData> pushList, Page2Condition<WubaSubmitConversionData> condition) {
         Integer distributeType = DistributeTypeEnum.WUBA_SUBMIT_CONVERSION.getValue();
         String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         if(CollectionUtils.isEmpty(pushList)) {
             return;
         }
+        Integer marketingDate = condition.getParam().getCreateDate();
         List<DataDistributeDetailLog> distributeLogList = pushList.stream().map((WubaSubmitConversionData data) -> {
             DataDistributeDetailLog distributeLog = new DataDistributeDetailLog();
             distributeLog.setApiCode(data.getApiCode());
@@ -153,6 +159,7 @@ public class WuBaSubmitConversionSoleProcessor {
             distributeLog.setUpdateTime(new Date());
             distributeLog.setSourceId(data.getId());
             distributeLog.setSourceType(DistributeSourceTypeEnum.TRANSFER.getValue());
+            distributeLog.setExtend("{\"marketingDate\":\""+ marketingDate+"\"}");
             return distributeLog;
         }).collect(Collectors.toList());
 

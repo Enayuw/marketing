@@ -457,4 +457,50 @@ public class DateHelper {
         return isDate;
     }
 
+
+
+    /**
+     * 转化T+n/T-n为日期格式
+     *
+     * @param  dateStr
+     * @return LocalDate
+     */
+
+
+    public static String dateTNtransfer(String dateStr) {
+        if (StringUtils.isBlank(dateStr)) {
+            return null;
+        }
+        String res = null;
+
+        try {
+            if (Pattern.matches("^T([+-])(\\d+)$", dateStr)) {
+                String operator = dateStr.substring(1, 2);
+                int num = ("-").equals(operator) ? Integer.valueOf(dateStr.substring(1)) : Integer.valueOf(dateStr.substring(2));
+                res = LocalDate.now().plusDays(num).toString();
+            } else {
+                res = dateStr;
+            }
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+        }
+        return res;
+    }
+
+    /**
+     * @description Date转为时分秒时间戳
+     * @param date
+     * @return java.lang.String
+     * @author hedongshuo
+     * @date 2024/8/21 20:55
+     **/
+    public static String dateToDateTime(Date date) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateTime = format.format(date);
+        return dateTime;
+    }
+
+
+
+
 }

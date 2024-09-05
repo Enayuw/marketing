@@ -14,6 +14,29 @@ public interface WubaSubmitConversionDataMapper extends WubaSubmitConversionData
             @Param("createDate") Integer createDate,
             @Param("pageSize") Integer pageSize);
 
+    List<WubaSubmitConversionData> findWithMarketingTimeByPage(
+            @Param("apiCode") String apiCode,
+            @Param("status") Integer requestDate,
+            @Param("pushStatus") Integer pushStatus,
+            @Param("marketingTimeStart") String marketingTimeStart,
+            @Param("marketingTimeEnd") String marketingTimeEnd,
+            @Param("pageSize") Integer pageSize);
+
+    List<WubaSubmitConversionData> findWithMarketingTimeByIndex(
+            @Param("apiCode") String apiCode,
+            @Param("marketingTimeStart") String marketingTimeStart,
+            @Param("marketingTimeEnd") String marketingTimeEnd,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize);
+
     int batchAdd(List<WubaSubmitConversionData> list);
+
+    List<WubaSubmitConversionData> findSubmitDataByPushTime(
+            @Param("apiCode") String apiCode,
+            @Param("pushTimeStart") String pushTimeStart,
+            @Param("pushTimeEnd") String pushTimeEnd,
+            @Param("indexId") Long indexId,
+            @Param("pageSize") Integer pageSize
+    );
 
 }

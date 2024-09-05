@@ -175,6 +175,7 @@ public class JobManager {
         QIFU_DELETE_REACH_RECORD(1, "3710139"),
 
         WUBA_CHANGE_QUERY_BATCH(1, "3710155", "7491580"),
+        WUBA_CHANGE_SUBMIT_DATA_BATCH(2, "3710155", "7491580"),
         ;
 
         /**

@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 public class MarketingDataValidServiceImpl implements IMarketingDataValidService {
@@ -53,5 +54,10 @@ public class MarketingDataValidServiceImpl implements IMarketingDataValidService
         } else {
             return Boolean.FALSE;
         }
+    }
+
+    @Override
+    public Set<String> getAppletDateSet(String apiCode, String dateStr) {
+        return marketingDataValidConfigMapper.getAppletDateByApiCodeAndDateStr(apiCode, dateStr);
     }
 }

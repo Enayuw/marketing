@@ -45,12 +45,18 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
         String dateTodayReduceTwo = LocalDate.now().minusDays(2).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         //查询待推送文件
         LocalFileExample example = new LocalFileExample();
-        example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_TRANSFER.getValue()).andFileNameLike("%" + dateTodayReduceTwo + "%")
-                .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
+        example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_TRANSFER.getValue())
+                .andFileNameLike("%" + dateTodayReduceTwo + "%")
+                .andStatusEqualTo("2")
+                .andPushStatusIsNull()
+                .andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
         List<LocalFile> transferFiles = localFileMapper.selectByExample(example);
         LocalFileExample exampleCallRecord = new LocalFileExample();
-        exampleCallRecord.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_CALLRECORD.getValue()).andFileNameLike("%" + dateToday + "%")
-                .andStatusEqualTo("2").andPushStatusIsNull().andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
+        exampleCallRecord.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_CALLRECORD.getValue())
+                .andFileNameLike("%" + dateToday + "%")
+                .andStatusEqualTo("2")
+                .andPushStatusIsNull()
+                .andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
         List<LocalFile> callRecordFiles = localFileMapper.selectByExample(exampleCallRecord);
         //T日通话明细和T-2日转化数据
         if (CollectionUtils.isEmpty(transferFiles) || CollectionUtils.isEmpty(callRecordFiles)) {
@@ -65,7 +71,7 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
                 localFile.setPushStatus("3");
                 localFile.setId(localFile.getId());
                 localFileMapper.updateByPrimaryKeySelective(localFile);
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SERVICEERROR_UNKNOWN.getCode(), "苏商推送通话明细异常！"), e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "苏商推送通话明细异常！"), e);
             }
         });
     }

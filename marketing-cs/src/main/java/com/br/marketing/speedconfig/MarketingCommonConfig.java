@@ -1872,7 +1872,17 @@ public class MarketingCommonConfig {
     private Integer wuBaCollidingDataSyncPageSize;
 
     /**
-     * 58提交撞库开关(true:开启，false关闭)
+     * 58撞库高价值文件名集合
+     */
+    private List<String> wubaCollidingHighValueFiles;
+
+    /**
+     * 58撞库每日最大量级限制
+     */
+    private Integer wubaCollidingDataMaxCountLimit;
+
+    /**
+     * 58提交周期撞库开关(true:开启，false关闭)
      */
     private Boolean wuBaCollidingDataSwitch;
 
@@ -1890,6 +1900,21 @@ public class MarketingCommonConfig {
      * 58查询撞库结果等待时长（分钟）
      */
     private Integer wuBaCollidingQueryResultWaitMinutes;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-开关，1-开，0-关
+     */
+    private String wuBaSubmitConversionChangeDataSwitch;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-条件参数
+     */
+    private List<Map<String, String>> wuBaSubmitConversionChangeDataParams;
+
+    /**
+     * 58新客-营销名单上报-修改上报数据-线程参数
+     */
+    private Map<String, String> wuBaSubmitConversionChangeDataThreadConfig;
 
     /**
      * 58新客-营销名单上报-开关，1-开，0-关
@@ -1952,6 +1977,21 @@ public class MarketingCommonConfig {
     private Set<String> wuBaQueryConversionKnowFields;
 
     /**
+     * 58新客-营销名单上报-数据提取-执行时间
+     */
+    private String wuBaSubmitDataToFileExecuteTime;
+
+    /**
+     * 58新客-营销名单上报-数据提取-ApiCodes
+     */
+    private List<String> wuBaSubmitDataTransferApiCodes;
+
+    /**
+     * 58新客-营销名单上报-数据提取-StartDate, 例：20240814
+     */
+    private List<String> wuBaSubmitDataToFileStartDate;
+
+    /**
      * 通用清洗线程池
      */
     private Integer autoCleanDataThreadNum;
@@ -1981,6 +2021,75 @@ public class MarketingCommonConfig {
          * 医时转化数据提取执行时间
      */
     private String YiShiTransferFileExecuteTime;
+
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化上传接口自定义配置apiCode
+     * eg:{"U_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerUploadHandlerEnumConfigMap;
+
+    /**
+     * 携程跑分数据同步任务保持驼峰字段配置
+     */
+    private List<String> xieChengScoreToDbKeepCamelColumns;
+
+    /**
+     * 携程清洗任务分页条数
+     */
+    private Map<String, Integer> xieChengCollidingDataProcessPageSize;
+
+    /**
+     * 推决策报警apiCode集合
+     */
+    private List<String> pushAlarmApiCode;
+    /**
+     *  * 2024-08-13 15:42
+     * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     */
+    private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
+
+    /**
+     * 奇富360数据提取custNum对应上传字段
+     */
+    private HashMap<String, List<String>> qiFuExtDataCustNumMapConfig;
+
+    /**
+     * 原始上传数据清洗映射配置 key:apiCode value:映射的原值字段
+     */
+    private HashMap<String, String> dataCleanMappingMap;
+
+    /**
+     * 原始上传数据清洗映射新值字段
+     */
+    private List<String> dataCleanValue;
+
+    /**
+     * bi报表步长配置
+     */
+    private Map<String,List<String>> biReportStepConfig;
+
+    /**
+     * 2024-08-20 15:42
+     * 跑分模型分布 配置数据展示规则时需要的产品前缀
+     */
+    private Set<String> reportScorePrefixSet;
+
+    /**
+     * 跑分报表分值区间配置
+     */
+    private Map<String, Integer> scoreReportRangeConfig;
+
+    /**
+     * 58钉钉告警token
+     */
+    private String wuBaDingDingAccessToken;
+
+    /**
+     * 58钉钉告警密钥
+     */
+    private String wuBaDingDingSecret;
 
 }
 

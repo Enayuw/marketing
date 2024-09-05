@@ -57,6 +57,8 @@ public class RedisKeyConstant {
 
     public static final String conditionNumber = prefix.concat("conditionnumber");
 
+    public static final String decisionsNumber = prefix.concat("decisionsnumber");
+
     public static final String offLineLock = prefix.concat("offlinecallback");
 
     public static final String TASKSCORE_HXRESULTERROR = prefix.concat("taskscore:hxresult:error");
@@ -231,5 +233,26 @@ public class RedisKeyConstant {
      * 清洗流程任务锁
      */
     public static final String LOCK_KEY_CLEAN_DATA = prefix.concat("lock_key_clean_data_auto");
+
+    /**
+     * 携程剔除批次锁
+     */
+    public static final String XIECHENG_COLLIDING_DELETE = prefix.concat("xcCollidingDelete");
+
+    /**
+     * 携程清洗任务锁
+     */
+    public static final String XIECHENG_COLLIDING_CLEAN = prefix.concat("xcCollidingClean");
+
+    public static final String POLICY_BUILD_LOCK = prefix.concat("policy:build:lock:");
+    /**
+     * 跑分模型统计任务锁
+     */
+    public static final String SCORE_REPORT_TASK_LOCK = prefix.concat("score:report:task:lock:");
+
+    /**
+     * 58撞库超限标记
+     */
+    public static final String WUBA_COLLIDING_EXCEED_LIMIT = prefix.concat("wuba:colliding:exceed:limit");
 
 }

@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl.wuba;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.common.util.DateUtils;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
@@ -25,8 +26,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -58,20 +62,23 @@ public class WuBaSubmitConversionService {
     private WuBaServiceClient wuBaServiceClient;
 
     @Resource
-    private WuBaDingDingService wuBaDingDingService;
+    private WuBaSubmitConversionSoleProcessor soleProcessor;
 
     @Resource
-    private WuBaSubmitConversionSoleProcessor soleProcessor;
+    private WuBaSubmitConversionValidityProcessor ValidityProcessor;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
 
-    public void action(Page2Condition<WubaSubmitConversionData> condition) {
-        scanData(condition);
+    public Result<Map<String, Object>> action(Page2Condition<WubaSubmitConversionData> condition) {
+        return scanData(condition);
     }
 
-    public void scanData(Page2Condition<WubaSubmitConversionData> condition) {
+    public Result<Map<String, Object>> scanData(Page2Condition<WubaSubmitConversionData> condition) {
+        Result result = new Result().success();
+        Map<String, Object> data= new HashMap<>();
+
         WubaSubmitConversionData param = condition.getParam();
         String apiCode = param.getApiCode();
         Integer status = param.getStatus();
@@ -81,11 +88,15 @@ public class WuBaSubmitConversionService {
 
         try{
             // 循环获取条件数据，每次pageSize条
-            List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findByConditionAndPage(
-                    apiCode, status, pushStatus, createDate,  pageSize);
+            Map<String, String> marketingTimeInterval = calculateMarketingTimeInterval(createDate);
+            String marketingTimeStart = marketingTimeInterval.get("marketingTimeStart");
+            String marketingTimeEnd = marketingTimeInterval.get("marketingTimeEnd");
+            List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findWithMarketingTimeByPage(
+                    apiCode, status, pushStatus, marketingTimeStart, marketingTimeEnd, pageSize);
             if (CollectionUtils.isEmpty(pageList)) {
                 log.warn(TITLE+"scanData, 未获取到数据");
-                return;
+                data.put("hasScanData", "0");
+                return new Result().success().setDate(data);
             }
             log.warn(TITLE + "scanData 获取到数据, 条数{}", pageList.size());
 
@@ -101,12 +112,24 @@ public class WuBaSubmitConversionService {
             }
             log.warn(TITLE + "scanData, 去重条数{}, 推送条数{}", noPushIds.size(), pageList.size());
 
+            // 判断有效期
+            List<Long> noValidIds = ValidityProcessor.validate(pageList, param);
+            if(!CollectionUtils.isEmpty(noValidIds)){
+                WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
+                dataUpdate.setStatus(4);
+                WubaSubmitConversionDataExample dataExample = new WubaSubmitConversionDataExample();
+                dataExample.createCriteria().andIdIn(noValidIds);
+                wubaSubmitConversionDataMapper.updateByExampleSelective(dataUpdate, dataExample);
+            }
+            log.warn(TITLE + "scanData, 不在有效期条数{}, 推送条数{}", noValidIds.size(), pageList.size());
+
             // process submit data
             processData(pageList, condition);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), TITLE+ e.getMessage()));
             Thread.currentThread().interrupt();
         }
+        return result;
     }
 
     public Result processData(List<WubaSubmitConversionData> pageList, Page2Condition<WubaSubmitConversionData> condition)
@@ -146,12 +169,13 @@ public class WuBaSubmitConversionService {
         log.warn(TITLE + "上报批次表增加记录成功, batchNo{}", batchNo);
 
         WuBaSubmitConversionService service = (WuBaSubmitConversionService) AopContext.currentProxy();
-        service.processSuccess(pageList, batchNo);
+        service.processSuccess(pageList, batchNo, condition);
         return result.success();
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Result processSuccess(List<WubaSubmitConversionData> pushList, String batchNo)
+    public Result processSuccess(List<WubaSubmitConversionData> pushList, String batchNo,
+                                 Page2Condition<WubaSubmitConversionData> condition)
         throws Exception {
         Result result = new Result().failure();
         if (CollectionUtils.isEmpty(pushList)) {
@@ -201,7 +225,7 @@ public class WuBaSubmitConversionService {
         log.warn(TITLE + "营销名单上报表push_status置为1成功, batchNo{}", batchNo);
 
         // addDistributeLog
-        soleProcessor.addDistributeLog(pushList);
+        soleProcessor.addDistributeLog(pushList, condition);
         log.warn(TITLE + "去重表增加记录成功, batchNo{}", batchNo);
         return result.success();
     }
@@ -251,5 +275,18 @@ public class WuBaSubmitConversionService {
         long endTime = System.currentTimeMillis();
         log.warn(TITLE+"callClient, 量级{}, 耗时{}", magnitudes, (endTime-startTime));
         return result.success().setDate(batchNo);
+    }
+
+    private Map<String, String> calculateMarketingTimeInterval(Integer bizDateInteger) throws ParseException {
+        Map<String, String> res = new HashMap<>();
+        Date bizDate = DateUtils.parse(String.valueOf(bizDateInteger), "yyyyMMdd");
+        Date endDate = new Date(bizDate.getTime() + 86400000L);
+
+        String marketingTimeStart = DateUtils.format(bizDate, "yyyy-MM-dd 00:00:00");
+        String marketingTimeEnd = DateUtils.format(endDate, "yyyy-MM-dd 00:00:00");
+
+        res.put("marketingTimeStart", marketingTimeStart);
+        res.put("marketingTimeEnd", marketingTimeEnd);
+        return res;
     }
 }

@@ -11,6 +11,7 @@ import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @Description 58撞库数据同步作业实现类
@@ -75,16 +77,19 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         String apiCode = localFile.getApiCode();
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(marketingCommonConfig.getWubaCollidingDataSyncThreadNum(),
                 marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
+
+        // 查询高价值文件id
+        String highValueIds = getHighValueFileIds(apiCode);
         Long minId = null;
         while (true) {
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
 
-            // local_id and status =1 and push_status =1，前置表去重后与非周期表去重
+            // local_id and status =1 and push_status =1，去重逻辑：1.该文件本身去重、2.该文件与非周期当天已同步数据或高质量数据去重、3.该文件与周期表全量去重
             Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDatetikv_(localFile.getId(),
-                    apiCode, minId, pageSize, today, tomorrow);
+                    apiCode, minId, pageSize, today, tomorrow, highValueIds);
             if (CollectionUtils.isEmpty(wubaCollidingDataFronts)) {
                 break;
             }
@@ -99,6 +104,24 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         }
 
         threadPoolShutDown(pool);
+    }
+
+    private String getHighValueFileIds(String apiCode) {
+        List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
+        if (CollectionUtils.isEmpty(highValueFiles)) {
+            return "(\"\")";
+        }
+
+        LocalFileExample localFileExample = new LocalFileExample();
+        localFileExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo("2")
+                .andCompleteEqualTo("1").andPushStatusEqualTo("2").andFileNameIn(highValueFiles);
+        List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
+        List<Long> highValueIds = localFiles.stream().map(LocalFile::getId).collect(Collectors.toList());
+
+        if (CollectionUtils.isEmpty(highValueIds)) {
+            return "(\"\")";
+        }
+        return "(" + Joiner.on(",").join(highValueIds) + ")";
     }
 
     private void modifyThreadPool(ThreadPoolExecutor pool) {

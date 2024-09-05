@@ -37,6 +37,7 @@ public class Constants {
     public static final String SFTP_P_SECRET_KEY = "s%^*K%)l*R(a20201105";
     public static final String LOAN_WARNING_FTP = "ftp";
     public static final String LOAN_WARNING_SFTP = "sftp";
+    public static final String LOAN_DISK = "localDisk";
 
     /**
      * 1.按逗号分隔

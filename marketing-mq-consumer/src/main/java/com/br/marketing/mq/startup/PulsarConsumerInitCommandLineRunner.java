@@ -2,10 +2,11 @@ package com.br.marketing.mq.startup;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.api.customer.upload.service.CustomerUploadDataService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 
-import com.br.marketing.api.customer.service.CustomerTransferDataService;
+import com.br.marketing.api.customer.transfer.service.CustomerTransferDataService;
 import com.br.marketing.common.constants.PulsarSubscription;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.service.IPushShuheDataService;
@@ -28,6 +29,10 @@ public class PulsarConsumerInitCommandLineRunner implements CommandLineRunner {
 
     @Resource
     private CustomerTransferDataService customerTransferDataService;
+
+    @Resource
+    private CustomerUploadDataService customerUploadDataService;
+
 
     /**
      * Callback used to run the bean.
@@ -54,5 +59,8 @@ public class PulsarConsumerInitCommandLineRunner implements CommandLineRunner {
         consumerService.consumerPulsar(PulsarSubscription.transferCustomSubscription, customerTransferDataService::consumerTransferPayData, 2,
             PulsarTopic.transferCustomTopic);
 
+        // 定制客户上传数据pulsar消费端
+        consumerService.consumerPulsar(PulsarSubscription.uploadCustomSubscription, customerUploadDataService::consumerUploadPayData, 2,
+                                       PulsarTopic.uploadCustomTopic);
     }
 }

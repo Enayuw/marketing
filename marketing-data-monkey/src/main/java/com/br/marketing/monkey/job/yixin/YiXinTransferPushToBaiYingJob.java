@@ -57,7 +57,9 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         try {
             log.warn(TITLE + "调度开始");
-            if (!checkExecuteTime()) return;
+            if (!checkExecuteTime()) {
+                return;
+            }
             List<Map<String, String>> paramList = processJobParameter(shardingContext.getJobParameter());
             processTransfer(paramList);
             log.warn(TITLE + "调度结束");
