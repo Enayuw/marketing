@@ -160,7 +160,7 @@ public abstract class AbstractBiReportConverter<V, T> {
      * @author senyang.zheng
      * @date 2024/09/05
      */
-    protected String getDictByKey(String dictKey, String apiCode) {
+    protected String getDictByKeyAndApiCode(String dictKey, String apiCode) {
         List<SourceStatisticDict> dits = sourceStatisticDictMapper.selectListbI_(dictKey, apiCode);
         if (CollectionUtil.isEmpty(dits)) {
             return null;
