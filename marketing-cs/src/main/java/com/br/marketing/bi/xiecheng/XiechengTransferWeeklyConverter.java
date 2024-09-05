@@ -37,10 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengTransferWeeklyReportDTO> {
 
     @Resource
-    XiechengBiReportService xiechengBiReportService;
+    private XiechengBiReportService xiechengBiReportService;
 
     @Resource
-    MarketingCommonConfig marketingCommonConfig;
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 获取数据

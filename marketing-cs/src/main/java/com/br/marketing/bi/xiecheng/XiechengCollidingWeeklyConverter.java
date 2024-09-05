@@ -23,7 +23,7 @@ import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.mapper.SourceStatisticDictMapper;
-import com.br.marketing.mapper.XieChengBiReportMapper;
+import com.br.marketing.proxy.XiechengBiReportService;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
@@ -47,7 +47,8 @@ import groovy.util.logging.Slf4j;
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_COLLIDING_WEEKLY_REPORT)
 public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengCollidingWeeklyReportDTO> {
     @Resource
-    private XieChengBiReportMapper xieChengBiReportMapper;
+    private XiechengBiReportService xiechengBiReportService;
+
     @Resource
     private SourceStatisticDictMapper statisticDictMapper;
 
@@ -76,7 +77,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             List<SourceStatisticDict> sourceStatisticDicts = getSourceStatisticDicts(periodStart, periodEnd);
 
             // 根据datapackact分组，对锁定量级求和
-            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xieChengBiReportMapper.selectXcCollidingWeeklybI_(periodStart.toDateStr(),
+            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xiechengBiReportService.selectXcCollidingWeeklybI_(periodStart.toDateStr(),
                     periodEnd.toDateStr());
 
             // 处理"1400wdx"和"1400wlt"数据包

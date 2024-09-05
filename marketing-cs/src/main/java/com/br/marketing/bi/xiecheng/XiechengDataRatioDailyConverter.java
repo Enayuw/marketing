@@ -15,7 +15,7 @@ import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.xiecheng.XiechengDataRatioDailyReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
-import com.br.marketing.mapper.XieChengBiReportMapper;
+import com.br.marketing.proxy.XiechengBiReportService;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
@@ -31,9 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_DATARATIO_DAILY_REPORT)
-public class XieChengDataRatioDailyConverter extends AbstractBiReportConverter<BiReportVO, XiechengDataRatioDailyReportDTO> {
+public class XiechengDataRatioDailyConverter extends AbstractBiReportConverter<BiReportVO, XiechengDataRatioDailyReportDTO> {
     @Resource
-    private XieChengBiReportMapper xieChengBiReportMapper;
+    private XiechengBiReportService xiechengBiReportService;
 
     /**
      * 获取数据
@@ -46,7 +46,7 @@ public class XieChengDataRatioDailyConverter extends AbstractBiReportConverter<B
     public List<XiechengDataRatioDailyReportDTO> fetchData(BiReportParam param) {
         // 近30天数据列表
         String reportDateStart = LocalDate.now().minusDays(30).toString();
-        return xieChengBiReportMapper.selectXcDataRatioListbI_(reportDateStart);
+        return xiechengBiReportService.selectXcDataRatioListbI_(reportDateStart);
     }
 
     /**
