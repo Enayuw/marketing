@@ -105,14 +105,15 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
          * 2.遍历reportDateToDataMap key为WrapDataVO中name字段
          * 3.根据X轴顺序构造WrapDataVO中List<String> data
          */
-        List<WrapDataVO> yAxis = reportDateDataMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).map(entry -> {
-            String reportDate = entry.getKey();
-            Map<String, Long> dataMap = entry.getValue();
-            // 依据X轴顺序构造List<String> data,若根据X轴未匹配到数据写入默认值0
-            List<String> data =
-                xAxis.stream().map(axis -> String.format(Locale.getDefault(), "%,d", dataMap.getOrDefault(axis, 0L))).collect(Collectors.toList());
-            return new WrapDataVO(reportDate, data);
-        }).collect(Collectors.toList());
+        List<WrapDataVO> yAxis =
+            reportDateDataMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((Map.Entry<String, Map<String, Long>> entry) -> {
+                String reportDate = entry.getKey();
+                Map<String, Long> dataMap = entry.getValue();
+                // 依据X轴顺序构造List<String> data,若根据X轴未匹配到数据写入默认值0
+                List<String> data = xAxis.stream().map(axis -> String.format(Locale.getDefault(), "%,d", dataMap.getOrDefault(axis, 0L)))
+                    .collect(Collectors.toList());
+                return new WrapDataVO(reportDate, data);
+            }).collect(Collectors.toList());
         biReportVO.setYAxis(yAxis);
         return biReportVO;
     }

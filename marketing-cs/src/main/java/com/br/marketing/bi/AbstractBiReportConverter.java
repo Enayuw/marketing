@@ -9,6 +9,7 @@ import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Resource;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
  * @author senyang.zheng
  * @date 2024/08/28
  */
+@Slf4j
 public abstract class AbstractBiReportConverter<V, T> {
 
     @Resource
@@ -108,6 +110,10 @@ public abstract class AbstractBiReportConverter<V, T> {
                 writer.writeCellValue(i + 1, j + 1, value);
             }
         }
+        // 自适应宽度
+        int columnCount = writer.getColumnCount();
+        log.warn("reportTypeName：{},columnCount:{}", param.getReportName(), columnCount);
+        writer.autoSizeColumnAll();
     }
 
     /**

@@ -8,13 +8,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
-import com.br.marketing.mapper.XieChengBiReportMapper;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -25,7 +24,7 @@ import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.mapper.SourceStatisticDictMapper;
-import com.br.marketing.proxy.XiechengBiReportService;
+import com.br.marketing.mapper.XieChengBiReportMapper;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
@@ -48,10 +47,10 @@ import groovy.util.logging.Slf4j;
 @Service
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_COLLIDING_WEEKLY_REPORT)
 public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengCollidingWeeklyReportDTO> {
-    @Resource
-    private XiechengBiReportService xiechengBiReportService;
 
-    @Autowired
+    private static final Pattern COMMA_PATTERN = Pattern.compile(",");
+
+    @Resource
     private XieChengBiReportMapper xieChengBiReportMapper;
 
     @Resource
@@ -98,8 +97,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         BiReportConfigDIctParam configDIctParam = new BiReportConfigDIctParam();
         configDIctParam.setStartDate(periodStart);
         configDIctParam.setEndDate(periodEnd);
-        List<SourceStatisticDict> sourceStatisticDicts = statisticDictMapper.selectListbI_(configDIctParam);
-        return sourceStatisticDicts;
+        return statisticDictMapper.selectListbI_(configDIctParam);
     }
 
     private void processSpecialPackets(List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS, DateTime periodStart, DateTime periodEnd,
@@ -264,7 +262,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             for (int j = 0; j < tags.size(); j++) {
                 writer.writeCellValue(j, i + 1, Objects.equals("null", tags.get(j)) ? "空" : tags.get(j));
                 if (j == 1) {
-                    totalIntersectionNum += Long.parseLong(tags.get(j).replaceAll(",", ""));
+                    totalIntersectionNum += Long.parseLong(COMMA_PATTERN.matcher(tags.get(j)).replaceAll(""));
                 }
             }
         }

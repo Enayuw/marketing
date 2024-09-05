@@ -21,7 +21,7 @@ public class PercentConvertorAspect {
     @Around("@within(com.br.marketing.common.annoation.PercentConvertor)")
     public Object convert(ProceedingJoinPoint jp) throws Throwable {
         List dtos = (List<Class>) jp.proceed();
-        dtos.forEach(dto ->{
+        dtos.forEach((Object dto) ->{
             Class<?> aClass = dto.getClass();
             Field[] fields = aClass.getDeclaredFields();
             for (int i = 0; i < fields.length; i++) {

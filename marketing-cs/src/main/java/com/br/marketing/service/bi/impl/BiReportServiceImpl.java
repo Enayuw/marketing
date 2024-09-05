@@ -94,8 +94,6 @@ public class BiReportServiceImpl implements BiReportService {
         // try-with-resource 的方式关闭流
         try (ExcelWriter excelWriter = ExcelUtil.getWriter(true); ServletOutputStream out = response.getOutputStream()) {
             selector.exportData(excelWriter, param, reportType);
-            // 自适应宽度
-            excelWriter.autoSizeColumnAll();
             response.setHeader("Content-Disposition", "attachment;filename*=UTF-8''" + encodeFileName);
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8");
             excelWriter.flush(out, true);
