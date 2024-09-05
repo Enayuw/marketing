@@ -13,11 +13,14 @@ public interface DataDistributeDetailLogMapper extends DataDistributeDetailLogMa
 
     void insertBatch(@Param("list") List<DataDistributeDetailLog> list);
 
-    Set<String> findDistributeLogCellSet(@Param("apiCode") String apiCode,
-                                      @Param("distributeType") Integer distributeType,
-                                      @Param("distributeDate") String distributeDate,
-                                      @Param("cells") Set<String> cells,
-                                      @Param("marketingDate") String marketingDate);
+    Set<String> findDistributeLogCellSet(
+            @Param("apiCode") String apiCode,
+            @Param("distributeType") Integer distributeType,
+            @Param("distributeDate") String distributeDate,
+            @Param("cells") Set<String> cells,
+            @Param("marketingDate") String marketingDate,
+            @Param("userType") String userType
+    );
 
     List<Long> findZhongAnLockingDataDistributeLog(@Param("apiCode") String apiCode, @Param("distributeType") Integer distributeType,
         @Param("distributeDate") String distributeDate, @Param("cell") String cell, @Param("userType") String userType, @Param("tag") String tag);
