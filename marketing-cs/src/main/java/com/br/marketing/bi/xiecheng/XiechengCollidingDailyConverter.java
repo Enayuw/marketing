@@ -1,6 +1,18 @@
 package com.br.marketing.bi.xiecheng;
 
-import cn.hutool.poi.excel.ExcelWriter;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -14,20 +26,9 @@ import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.common.base.Splitter;
+
+import cn.hutool.poi.excel.ExcelWriter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 
 /**
  * 携程单日撞库结果分布报表适配实现
@@ -79,9 +80,9 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         biReportVO.setReportName("单日撞库结果分布");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据标签排序，添加空值处理
-        dtos.sort(((Comparator<XiechengCollidingDailyReportDTO>) (o1, o2) -> getOrderScore(o1.getDataPacket()) - getOrderScore(o2.getDataPacket()))
-                .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
+        dtos.sort(((Comparator<XiechengCollidingDailyReportDTO>)(o1, o2) -> getOrderScore(o1.getDataPacket()) - getOrderScore(o2.getDataPacket()))
+            .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
         List<String> xAxis = dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo()).distinct()
             .collect(Collectors.toList());
@@ -116,7 +117,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
     }
 
     private int getOrderScore(String dataPacket) {
-        int orderScore = 0;
+        int orderScore;
         switch (dataPacket) {
             case "1400wdx":
                 orderScore = 1;
