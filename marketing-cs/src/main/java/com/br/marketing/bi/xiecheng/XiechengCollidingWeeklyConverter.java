@@ -2,31 +2,29 @@ package com.br.marketing.bi.xiecheng;
 
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.mapper.SourceStatisticDictMapper;
+import com.br.marketing.mapper.XieChengBiReportMapper;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
-import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import groovy.util.logging.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -40,6 +38,11 @@ import java.util.stream.Collectors;
 @Service
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_COLLIDING_WEEKLY_REPORT)
 public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengCollidingWeeklyReportDTO> {
+    @Autowired
+    private XieChengBiReportMapper xieChengBiReportMapper;
+    @Resource
+    private SourceStatisticDictMapper statisticDictMapper;
+
     /**
      * 获取数据
      *
@@ -51,7 +54,6 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
     @Override
     public List<XiechengCollidingWeeklyReportDTO> fetchData(BiReportParam param) {
         List<XiechengCollidingWeeklyReportDTO> dtos = Lists.newArrayList();
-        Random random = new Random();
         String lockPeriodStartDate = getDictByKeyAndApiCode("xc_lock_period_start_date", "3710058");
         DateTime startDate = DateUtil.parse(lockPeriodStartDate, "yyyy-MM-dd");
         // 当前时间
@@ -62,93 +64,58 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         int currentCycleOffset = (int) (daysBetween / 7);
         // 获取当前滚动周期的开始日期和结束日期
         DateTime currentPeriodStart = DateUtil.offsetDay(startDate, currentCycleOffset * 7);
-
+        // 查询静态变量
+        List<SourceStatisticDict> sourceStatisticDicts = statisticDictMapper.selectListbI_(null, null);
         for (int i = 0; i < 5; i++) {
             DateTime periodStart = DateUtil.offsetDay(currentPeriodStart, -(i + 1) * 7);
             DateTime periodEnd = DateUtil.offsetDay(periodStart, 6);
 
-            XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();
-            dto.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto.setDataPacket("1400wdx&1400wlt");
-            dto.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto.setIntersectionNum(10000L);
-            dto.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto);
+            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xieChengBiReportMapper.selectXcCollidingWeeklybI_(periodStart.toDateStr(),
+                    periodEnd.toDateStr());
 
-            XiechengCollidingWeeklyReportDTO dto2 = new XiechengCollidingWeeklyReportDTO();
-            dto2.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto2.setDataPacket("1200w");
-            dto2.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto2.setIntersectionNum(20000L);
-            dto2.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto2);
+            List<XiechengCollidingWeeklyReportDTO> wdxAndWltReport = weeklyReportDTOS.stream().filter(t -> Objects.equals(t.getDataPacket(),
+                    "1400wdx")
+                    || Objects.equals(t.getDataPacket(),
+                    "1400wlt")).collect(Collectors.toList());
 
-            XiechengCollidingWeeklyReportDTO dto3 = new XiechengCollidingWeeklyReportDTO();
-            dto3.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto3.setDataPacket("2800w");
-            dto3.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto3.setIntersectionNum(30000L);
-            dto3.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto3);
+            if (!CollectionUtils.isEmpty(wdxAndWltReport)) {
+                XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();
+                dto.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
+                dto.setDataPacket("1400wdx&1400wlt");
+                long wdxAndwltLockNum = wdxAndWltReport.stream().mapToLong(XiechengCollidingWeeklyReportDTO::getLockNum).sum();
+                dto.setLockNum(wdxAndwltLockNum);
 
-            XiechengCollidingWeeklyReportDTO dto4 = new XiechengCollidingWeeklyReportDTO();
-            dto4.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto4.setDataPacket("300w");
-            dto4.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto4.setIntersectionNum(40000L);
-            dto4.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto4);
+                assebleAndAddToList(dto, sourceStatisticDicts, dtos);
+            }
 
-            XiechengCollidingWeeklyReportDTO dto5 = new XiechengCollidingWeeklyReportDTO();
-            dto5.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto5.setDataPacket("800w");
-            dto5.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto5.setIntersectionNum(50000L);
-            dto5.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto5);
+            List<XiechengCollidingWeeklyReportDTO> generalReport = weeklyReportDTOS.stream().filter(t -> !Objects.equals(t.getDataPacket(),
+                    "1400wdx")
+                    && !Objects.equals(t.getDataPacket(),
+                    "1400wlt")).collect(Collectors.toList());
 
-            XiechengCollidingWeeklyReportDTO dto6 = new XiechengCollidingWeeklyReportDTO();
-            dto6.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto6.setDataPacket("900w");
-            dto6.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto6.setIntersectionNum(60000L);
-            dto6.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto6);
-
-            XiechengCollidingWeeklyReportDTO dto7 = new XiechengCollidingWeeklyReportDTO();
-            dto7.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto7.setDataPacket("3300w");
-            dto7.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto7.setIntersectionNum(70000L);
-            dto7.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto7);
-
-            XiechengCollidingWeeklyReportDTO dto8 = new XiechengCollidingWeeklyReportDTO();
-            dto8.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto8.setDataPacket("3500w");
-            dto8.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto8.setIntersectionNum(80000L);
-            dto8.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto8);
-
-            XiechengCollidingWeeklyReportDTO dto9 = new XiechengCollidingWeeklyReportDTO();
-            dto9.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto9.setDataPacket("360w");
-            dto9.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto9.setIntersectionNum(90000L);
-            dto9.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto9);
-
-            XiechengCollidingWeeklyReportDTO dto10 = new XiechengCollidingWeeklyReportDTO();
-            dto10.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
-            dto10.setDataPacket("830w");
-            dto10.setCollidingBackRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR).multiply(new BigDecimal(100)));
-            dto10.setIntersectionNum(100000L);
-            dto10.setLockNum((long) random.nextInt(5000000));
-            dtos.add(dto10);
+            for (XiechengCollidingWeeklyReportDTO weeklyReportDTO : generalReport) {
+                XiechengCollidingWeeklyReportDTO genDto = new XiechengCollidingWeeklyReportDTO();
+                genDto.setLockPeriod(DateUtil.format(periodStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(periodEnd, "yyyy-MM-dd"));
+                genDto.setDataPacket(weeklyReportDTO.getDataPacket());
+                genDto.setLockNum(weeklyReportDTO.getLockNum());
+                assebleAndAddToList(genDto, sourceStatisticDicts, dtos);
+            }
         }
         return dtos;
+    }
 
+    private void assebleAndAddToList(XiechengCollidingWeeklyReportDTO genDto, List<SourceStatisticDict> sourceStatisticDicts,
+                                     List<XiechengCollidingWeeklyReportDTO> dtos) {
+        String dictKey = "xc_dataPacket_intersection_" + genDto.getDataPacket();
+        List<String> dictValue =
+                sourceStatisticDicts.stream().filter(t -> Objects.equals(dictKey, t.getDictKey())).map(SourceStatisticDict::getDictValue).collect(Collectors.toList());
+        Long intersectionNum = CollectionUtils.isEmpty(dictValue) ? 0L : Long.valueOf(dictValue.get(0));
+        genDto.setIntersectionNum(intersectionNum);
+
+        genDto.setCollidingBackRatio(new BigDecimal(genDto.getLockNum()).divide(new BigDecimal(genDto.getIntersectionNum()), 2,
+                        RoundingMode.FLOOR)
+                .multiply(new BigDecimal(100)));
+        dtos.add(genDto);
     }
 
     /**
