@@ -28,7 +28,6 @@ public abstract class AbstractBiReportConverter<V, T> {
     @Resource
     private SourceStatisticDictMapper sourceStatisticDictMapper;
 
-
     /**
      * 获取数据
      *
@@ -51,11 +50,10 @@ public abstract class AbstractBiReportConverter<V, T> {
         return new JSONObject();
     }
 
-
     /**
      * 数据处理
      *
-     * @param dtos   数据
+     * @param dtos 数据
      * @param extend 扩展参数
      * @return {@link V }
      * @author senyang.zheng
@@ -67,7 +65,7 @@ public abstract class AbstractBiReportConverter<V, T> {
      * 导出数据
      *
      * @param excelWriter excelWriter
-     * @param param       参数
+     * @param param 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
@@ -85,7 +83,7 @@ public abstract class AbstractBiReportConverter<V, T> {
      * 写入数据
      *
      * @param writer writer
-     * @param param  参数
+     * @param param 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
@@ -117,9 +115,9 @@ public abstract class AbstractBiReportConverter<V, T> {
     /**
      * 构造Y轴数据
      *
-     * @param name       姓名
+     * @param name 姓名
      * @param sortedData 排序后数据
-     * @param function   功能
+     * @param function 功能
      * @param formatType 格式化类型
      * @return {@link WrapDataVO }
      * @author senyang.zheng
@@ -128,29 +126,24 @@ public abstract class AbstractBiReportConverter<V, T> {
     protected WrapDataVO buildWrapDataVO(String name, List<T> sortedData, Function<T, Object> function, FormatType formatType) {
         WrapDataVO wrapDataVO = new WrapDataVO();
         wrapDataVO.setName(name);
-        wrapDataVO.setData(sortedData.stream()
-                .map(dto -> {
-                    Object value = function.apply(dto);
-                    switch (formatType) {
-                        case THOUSAND_SEPARATOR:
-                            return String.format(Locale.getDefault(), "%,d", ((Number) value).longValue());
-                        case PERCENT_SIGN:
-                            return value + "%";
-                        default:
-                            return String.valueOf(value);
-                    }
-                })
-                .collect(Collectors.toList()));
+        wrapDataVO.setData(sortedData.stream().map(dto -> {
+            Object value = function.apply(dto);
+            switch (formatType) {
+                case THOUSAND_SEPARATOR:
+                    return value == null ? "0" : String.format(Locale.getDefault(), "%,d", ((Number)value).longValue());
+                case PERCENT_SIGN:
+                    return value + "%";
+                default:
+                    return String.valueOf(value);
+            }
+        }).collect(Collectors.toList()));
 
         return wrapDataVO;
     }
 
     protected enum FormatType {
-        THOUSAND_SEPARATOR,
-        PERCENT_SIGN,
-        DEFAULT
+        THOUSAND_SEPARATOR, PERCENT_SIGN, DEFAULT
     }
-
 
     /**
      * 获取统计配置
