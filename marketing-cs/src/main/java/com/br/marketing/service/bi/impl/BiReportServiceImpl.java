@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 /**
  * BI报表相关Service实现
+ * 
  * @author senyang.zheng
  * @date 2024/08/28
  */
@@ -51,6 +52,7 @@ public class BiReportServiceImpl implements BiReportService {
 
     /**
      * 获取BI报表
+     * 
      * @param param 参数
      * @return {@link BiReportVO }
      * @author senyang.zheng
@@ -59,7 +61,7 @@ public class BiReportServiceImpl implements BiReportService {
     @Override
     public BiReportVO getBiReport(BiReportParam param) {
         BiReportTypeEnum reportType = BiReportTypeEnum.getEnumByTypeName(param.getReportTypeName());
-        //根据报告名称未匹配到对应报告类型
+        // 根据报告名称未匹配到对应报告类型
         if (reportType == null) {
             return null;
         }
@@ -70,8 +72,9 @@ public class BiReportServiceImpl implements BiReportService {
 
     /**
      * 下载报表
-     * @param param    参数
-     * @param request  请求
+     * 
+     * @param param 参数
+     * @param request 请求
      * @param response 响应
      * @return {@link String }
      * @throws Exception 例外
@@ -82,15 +85,17 @@ public class BiReportServiceImpl implements BiReportService {
     public String downloadReport(BiReportDownLoadParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
         String fastDfsUrl;
         BiReportTypeEnum reportType = BiReportTypeEnum.getEnumByTypeName(param.getReportTypeName());
-        //根据报告名称未匹配到对应报告类型
+        // 根据报告名称未匹配到对应报告类型
         if (reportType == null) {
             return null;
         }
         // 设置下载协议头，防止中文乱码做URLEncoder处理
         String encodeFileName = URLEncoder.encode(param.getReportName() + ".xlsx", StandardCharsets.UTF_8.toString());
-        //try-with-resource 的方式关闭流
+        // try-with-resource 的方式关闭流
         try (ExcelWriter excelWriter = ExcelUtil.getWriter(true); ServletOutputStream out = response.getOutputStream()) {
             selector.exportData(excelWriter, param, reportType);
+            // 自适应宽度
+            excelWriter.autoSizeColumnAll();
             response.setHeader("Content-Disposition", "attachment;filename*=UTF-8''" + encodeFileName);
             response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8");
             excelWriter.flush(out, true);
@@ -99,13 +104,12 @@ public class BiReportServiceImpl implements BiReportService {
         return fastDfsUrl;
     }
 
-
     private String syncToFastDfs(ExcelWriter writer, String encodeFileName) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         writer.flush(out);
         int fileSize = out.toByteArray().length;
         InputStream inputStream = new ByteArrayInputStream(out.toByteArray());
-        return fastDfsClient.uploadFile(inputStream, (long) fileSize, encodeFileName);
+        return fastDfsClient.uploadFile(inputStream, (long)fileSize, encodeFileName);
     }
 
     @Override
