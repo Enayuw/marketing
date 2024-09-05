@@ -246,6 +246,9 @@ public class WuBaServiceClient {
                             .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
                     jsonObject.put("id", randomNumber);
                     jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
+                    int i = new Random().nextInt(2) + 1;
+                    jsonObject.put("status", i);
+                    jsonObject.put("userType", String.valueOf(i));
                     array.add(jsonObject);
                 }
             }
