@@ -2091,5 +2091,10 @@ public class MarketingCommonConfig {
      */
     private String wuBaDingDingSecret;
 
+    /**
+     * 携程Bi报表展示数量
+     */
+    private Map<String, Integer> xiechengBiReportShowNumMap;
+
 }
 

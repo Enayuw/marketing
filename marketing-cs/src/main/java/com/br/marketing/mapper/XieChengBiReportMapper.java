@@ -1,5 +1,6 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO;
 import com.br.marketing.entity.DwsXcDataRatioD;
 import org.apache.ibatis.annotations.Param;
 
@@ -7,5 +8,7 @@ import java.util.List;
 
 public interface XieChengBiReportMapper {
     List<DwsXcDataRatioD> selectXcDataRatioListbI_(@Param("reportDateStart") String reportDateStart);
+
+    List<XiechengCollidingDailyReportDTO> selectXcColldingDistrubuteDayListbI_(@Param("reportDateStart") String reportDateStart, @Param("reportDateEnd") String reportDateEnd);
 
 }

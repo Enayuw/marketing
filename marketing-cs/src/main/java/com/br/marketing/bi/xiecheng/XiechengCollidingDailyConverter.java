@@ -1,5 +1,6 @@
 package com.br.marketing.bi.xiecheng;
 
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -10,9 +11,11 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import com.br.marketing.mapper.XieChengBiReportMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -25,7 +28,6 @@ import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
-
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import groovy.util.logging.Slf4j;
@@ -41,6 +43,12 @@ import groovy.util.logging.Slf4j;
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_COLLIDING_DAILY_REPORT)
 public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<BiReportVO, XiechengCollidingDailyReportDTO> {
 
+    @Autowired
+    private XieChengBiReportMapper xieChengBiReportMapper;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     /**
      * 获取数据
      *
@@ -51,109 +59,11 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
      */
     @Override
     public List<XiechengCollidingDailyReportDTO> fetchData(BiReportParam param) {
-        List<XiechengCollidingDailyReportDTO> dtos = Lists.newArrayList();
-        Random random = new Random();
-        for (int j = 0; j < 40; j++) {
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("1400wdx");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("1400wlt");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("1200w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("2800w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("300w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("800w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("900w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("3300w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("3500w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("360w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-            for (int i = 0; i < 2; i++) {
-                XiechengCollidingDailyReportDTO dto = new XiechengCollidingDailyReportDTO();
-                dto.setReportDate(DateUtil.formatDate(DateUtil.offsetDay(new Date(), -j)));
-                dto.setDataPacket("830w");
-                dto.setOrgChannel(i % 2 == 0 ? "CTRIP" : "QUNAR");
-                dto.setInfo(null);
-                dto.setLockNum((long)random.nextInt(5000000));
-                dtos.add(dto);
-            }
-        }
+        Map<String, Integer> xiechengBiReportShowNumMap = marketingCommonConfig.getXiechengBiReportShowNumMap();
+        Integer distrubuteDay = xiechengBiReportShowNumMap.getOrDefault("distrubuteDay", 7);
+        String reportDateStart = LocalDate.now().minusDays(distrubuteDay).toString();
+        String reportDateEnd = LocalDate.now().minusDays(1).toString();
+        List<XiechengCollidingDailyReportDTO> dtos = xieChengBiReportMapper.selectXcColldingDistrubuteDayListbI_(reportDateStart, reportDateEnd);
         return dtos;
     }
 
@@ -173,9 +83,9 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         biReportVO.setReportName("单日撞库结果分布");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据标签排序，添加空值处理
-        dtos.sort(Comparator.comparing(XiechengCollidingDailyReportDTO::getDataPacket, Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
+        dtos.sort(((Comparator<XiechengCollidingDailyReportDTO>) (o1, o2) -> getOrderScore(o1.getDataPacket()) - getOrderScore(o2.getDataPacket()))
+                .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
         List<String> xAxis = dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo()).distinct()
             .collect(Collectors.toList());
@@ -207,6 +117,48 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         }).collect(Collectors.toList());
         biReportVO.setYAxis(yAxis);
         return biReportVO;
+    }
+
+    private int getOrderScore(String dataPacket) {
+        int orderScore = 0;
+        switch (dataPacket) {
+            case "1400wdx":
+                orderScore = 1;
+                break;
+            case "1400wlt":
+                orderScore = 2;
+                break;
+            case "1200w":
+                orderScore = 3;
+                break;
+            case "2800w":
+                orderScore = 4;
+                break;
+            case "300w":
+                orderScore = 5;
+                break;
+            case "800w":
+                orderScore = 6;
+                break;
+            case "900w":
+                orderScore = 7;
+                break;
+            case "3300w":
+                orderScore = 8;
+                break;
+            case "3500w":
+                orderScore = 9;
+                break;
+            case "360w":
+                orderScore = 10;
+                break;
+            case "830w":
+                orderScore = 11;
+                break;
+            default:
+                orderScore = 12;
+        }
+        return orderScore;
     }
 
     /**
