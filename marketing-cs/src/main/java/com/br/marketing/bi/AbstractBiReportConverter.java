@@ -1,12 +1,16 @@
 package com.br.marketing.bi;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.entity.SourceStatisticDict;
+import com.br.marketing.mapper.SourceStatisticDictMapper;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
@@ -19,6 +23,9 @@ import java.util.stream.Collectors;
  * @date 2024/08/28
  */
 public abstract class AbstractBiReportConverter<V, T> {
+
+    @Resource
+    private SourceStatisticDictMapper sourceStatisticDictMapper;
 
 
     /**
@@ -106,12 +113,23 @@ public abstract class AbstractBiReportConverter<V, T> {
         writer.autoSizeColumnAll();
     }
 
-    protected WrapDataVO buildWrapDataVO(String name, List<T> sortedData, Function<T, Object> extractor, FormatType formatType) {
+    /**
+     * 构造Y轴数据
+     *
+     * @param name       姓名
+     * @param sortedData 排序后数据
+     * @param function   功能
+     * @param formatType 格式化类型
+     * @return {@link WrapDataVO }
+     * @author senyang.zheng
+     * @date 2024/09/05
+     */
+    protected WrapDataVO buildWrapDataVO(String name, List<T> sortedData, Function<T, Object> function, FormatType formatType) {
         WrapDataVO wrapDataVO = new WrapDataVO();
         wrapDataVO.setName(name);
         wrapDataVO.setData(sortedData.stream()
                 .map(dto -> {
-                    Object value = extractor.apply(dto);
+                    Object value = function.apply(dto);
                     switch (formatType) {
                         case THOUSAND_SEPARATOR:
                             return String.format(Locale.getDefault(), "%,d", ((Number) value).longValue());
@@ -130,5 +148,25 @@ public abstract class AbstractBiReportConverter<V, T> {
         THOUSAND_SEPARATOR,
         PERCENT_SIGN,
         DEFAULT
+    }
+
+
+    /**
+     * 获取统计配置
+     *
+     * @param dictKey 字典键
+     * @param apiCode apiCode
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2024/09/05
+     */
+    protected String getDictByKey(String dictKey, String apiCode) {
+        List<SourceStatisticDict> dits = sourceStatisticDictMapper.selectListbI_(dictKey, apiCode);
+        if (CollectionUtil.isEmpty(dits)) {
+            return null;
+        } else {
+            SourceStatisticDict dict = dits.get(0);
+            return dict.getDictValue();
+        }
     }
 }
