@@ -12,4 +12,10 @@
         from dws_xc_collding_distrubute_day_d
         where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
     </select>
+
+    <select id="selectXcCollidingWeeklybI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO">
+        select dataPacket,sum(lock_num) as lockNum from dws_xc_collding_distrubute_day_d
+        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
+        group by dataPacket order by dataPacket;
+    </select>
 </mapper>
