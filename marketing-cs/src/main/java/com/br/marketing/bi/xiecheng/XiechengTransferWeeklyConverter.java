@@ -5,20 +5,24 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import com.br.marketing.proxy.XiechengBiReportService;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.annotation.Resource;
+
 import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.proxy.XiechengBiReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -32,10 +36,10 @@ import lombok.extern.slf4j.Slf4j;
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_TRANSFER_WEEKLY_REPORT)
 public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengTransferWeeklyReportDTO> {
 
-    @Autowired
+    @Resource
     XiechengBiReportService xiechengBiReportService;
 
-    @Autowired
+    @Resource
     MarketingCommonConfig marketingCommonConfig;
 
     /**

@@ -8,22 +8,26 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import com.br.marketing.proxy.XiechengBiReportService;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.proxy.XiechengBiReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.common.base.Splitter;
+
 import cn.hutool.poi.excel.ExcelWriter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,11 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_COLLIDING_DAILY_REPORT)
 public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<BiReportVO, XiechengCollidingDailyReportDTO> {
 
-    @Autowired
-    XiechengBiReportService xiechengBiReportService;
+    @Resource
+    private XiechengBiReportService xiechengBiReportService;
 
-    @Autowired
-    MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 获取数据

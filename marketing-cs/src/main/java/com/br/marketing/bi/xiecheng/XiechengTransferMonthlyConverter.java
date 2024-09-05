@@ -1,14 +1,10 @@
 package com.br.marketing.bi.xiecheng;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
-import com.br.marketing.proxy.XiechengBiReportService;
+import javax.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,12 +14,12 @@ import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.xiecheng.XiechengTransferMonthlyReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.proxy.XiechengBiReportService;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
 
-import cn.hutool.core.date.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -37,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_TRANSFER_MONTHLY_REPORT)
 public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<BiReportVO, XiechengTransferMonthlyReportDTO> {
 
-    @Autowired
+    @Resource
     XiechengBiReportService xiechengBiReportService;
 
     /**
