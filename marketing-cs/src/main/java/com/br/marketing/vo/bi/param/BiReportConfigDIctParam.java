@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.util.Date;
+
 /**
  * BI报表查询参数
  *
@@ -27,6 +29,12 @@ public class BiReportConfigDIctParam {
     @ApiModelProperty(value = "字典描述")
     @JsonProperty(value = "dictDesc")
     private String dictDesc;
+
+    @ApiModelProperty(value = "配置开始时间")
+    private Date startDate;
+
+    @ApiModelProperty(value = "配置结束时间")
+    private Date endDate;
 
     @ApiModelProperty("1-有效；9-无效")
     private Integer isDel;

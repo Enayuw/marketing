@@ -23,4 +23,16 @@
         where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
         group by dataPacket order by dataPacket;
     </select>
+
+    <select id="selectXcTransferDailybI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferDailyReportDTO">
+        select * from dws_xc_transfer_day_d
+        where is_delete = 0
+        <if test="reportDateStart !=null and reportDateStart!=''">
+            <![CDATA[ and report_date >= #{reportDateStart}]]>
+        </if>
+        <if test="reportDateEnd !=null and reportDateEnd!=''">
+            <![CDATA[ and report_date <= #{reportDateEnd}]]>
+        </if>
+        order by report_date desc;
+    </select>
 </mapper>

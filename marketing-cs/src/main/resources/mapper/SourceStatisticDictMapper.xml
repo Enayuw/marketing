@@ -3,11 +3,17 @@
 <mapper namespace="com.br.marketing.mapper.SourceStatisticDictMapper">
     <select id="selectListbI_" resultType="com.br.marketing.entity.SourceStatisticDict">
         select * from source_statistic_dict where is_del = 1
-        <if test="dictKey !=null and dictKey!=''">
-            and dict_key = #{dictKey}
+        <if test="configDIctParam.dictKey !=null and configDIctParam.dictKey!=''">
+            and dict_key = #{configDIctParam.dictKey}
         </if>
-        <if test="apiCode !=null and apiCode!=''">
-            and api_code = #{apiCode}
+        <if test="configDIctParam.apiCode !=null and configDIctParam.apiCode!=''">
+            and api_code = #{configDIctParam.apiCode}
+        </if>
+        <if test="configDIctParam.startDate !=null">
+            <![CDATA[  and start_date <= #{configDIctParam.startDate}]]>
+        </if>
+        <if test="configDIctParam.endDate !=null">
+            <![CDATA[  and end_date >= #{configDIctParam.endDate}]]>
         </if>
     </select>
 

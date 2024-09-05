@@ -110,7 +110,7 @@ public class BiReportServiceImpl implements BiReportService {
 
     @Override
     public List<BiReportConfigDictVO> getBiReportConfigDict(BiReportConfigDIctParam param) {
-        List<SourceStatisticDict> sourceStatisticDicts = statisticDictMapper.selectListbI_(param.getDictKey(), param.getApiCode());
+        List<SourceStatisticDict> sourceStatisticDicts = statisticDictMapper.selectListbI_(param);
         return sourceStatisticDicts.stream().map((SourceStatisticDict t) -> {
             BiReportConfigDictVO vo = new BiReportConfigDictVO();
             BeanUtils.copyProperties(t, vo);

@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.mapper.SourceStatisticDictMapper;
 import com.br.marketing.vo.bi.WrapDataVO;
+import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import org.apache.commons.lang3.StringUtils;
@@ -161,7 +162,10 @@ public abstract class AbstractBiReportConverter<V, T> {
      * @date 2024/09/05
      */
     protected String getDictByKeyAndApiCode(String dictKey, String apiCode) {
-        List<SourceStatisticDict> dits = sourceStatisticDictMapper.selectListbI_(dictKey, apiCode);
+        BiReportConfigDIctParam configDictVO = new BiReportConfigDIctParam();
+        configDictVO.setDictKey(dictKey);
+        configDictVO.setApiCode(apiCode);
+        List<SourceStatisticDict> dits = sourceStatisticDictMapper.selectListbI_(configDictVO);
         if (CollectionUtil.isEmpty(dits)) {
             return null;
         } else {
