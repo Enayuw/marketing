@@ -1,34 +1,28 @@
 package com.br.marketing.bi.xiecheng;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.stream.Collectors;
-
-import com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO;
-import com.br.marketing.mapper.XieChengBiReportMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.mapper.XieChengBiReportMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-import groovy.util.logging.Slf4j;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 携程7日滚动转化报表实现
@@ -100,7 +94,7 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
     @Override
     public BiReportVO process(List<XiechengTransferWeeklyReportDTO> dtos, JSONObject extend) {
         BiReportVO biReportVO = new BiReportVO();
-        biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_MONTHLY_REPORT.getTypeName());
+        biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_WEEKLY_REPORT.getTypeName());
         biReportVO.setReportName("7日滚动转化报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据时间排序

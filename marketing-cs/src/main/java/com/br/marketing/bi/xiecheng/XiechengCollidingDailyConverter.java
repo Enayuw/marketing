@@ -1,5 +1,24 @@
 package com.br.marketing.bi.xiecheng;
 
+import cn.hutool.poi.excel.ExcelWriter;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.aspect.BiReportType;
+import com.br.marketing.bi.AbstractBiReportConverter;
+import com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO;
+import com.br.marketing.enums.report.BiReportChartTypeEnum;
+import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.mapper.XieChengBiReportMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.vo.bi.BiReportVO;
+import com.br.marketing.vo.bi.WrapDataVO;
+import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
+import com.br.marketing.vo.bi.param.BiReportParam;
+import com.google.common.base.Splitter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -8,24 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import com.br.marketing.mapper.XieChengBiReportMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.aspect.BiReportType;
-import com.br.marketing.bi.AbstractBiReportConverter;
-import com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO;
-import com.br.marketing.enums.report.BiReportChartTypeEnum;
-import com.br.marketing.enums.report.BiReportTypeEnum;
-import com.br.marketing.vo.bi.BiReportVO;
-import com.br.marketing.vo.bi.WrapDataVO;
-import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
-import com.br.marketing.vo.bi.param.BiReportParam;
-import com.google.common.base.Splitter;
-import cn.hutool.poi.excel.ExcelWriter;
-import groovy.util.logging.Slf4j;
+
 
 /**
  * 携程单日撞库结果分布报表适配实现
@@ -58,8 +60,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         Integer distrubuteDayCount = xiechengBiReportShowNumMap.getOrDefault("distrubuteDayCount", 8);
         String reportDateStart = LocalDate.now().minusDays(distrubuteDayCount).toString();
         String reportDateEnd = LocalDate.now().minusDays(1).toString();
-        List<XiechengCollidingDailyReportDTO> dtos = xieChengBiReportMapper.selectXcColldingDistrubuteDayListbI_(reportDateStart, reportDateEnd);
-        return dtos;
+        return xieChengBiReportMapper.selectXcColldingDistrubuteDayListbI_(reportDateStart, reportDateEnd);
     }
 
     /**
