@@ -1,5 +1,6 @@
 package com.br.marketing.dto.report.xiecheng;
 
+import com.br.marketing.common.annoation.DecimalFieldConvertor;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -25,7 +26,9 @@ public class XiechengDataRatioDailyReportDTO {
     @ApiModelProperty(value = "可外呼量")
     private Long callableNum;
     @ApiModelProperty(value = "析出率")
+    @DecimalFieldConvertor
     private BigDecimal extractionRatio;
     @ApiModelProperty(value = "可外呼率")
+    @DecimalFieldConvertor
     private BigDecimal callableRatio;
 }

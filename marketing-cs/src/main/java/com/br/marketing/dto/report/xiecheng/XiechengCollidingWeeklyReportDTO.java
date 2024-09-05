@@ -1,5 +1,6 @@
 package com.br.marketing.dto.report.xiecheng;
 
+import com.br.marketing.common.annoation.DecimalFieldConvertor;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -26,5 +27,6 @@ public class XiechengCollidingWeeklyReportDTO implements Serializable {
     @ApiModelProperty(value = "锁定量级")
     private Long lockNum;
     @ApiModelProperty(value = "撞回率")
+    @DecimalFieldConvertor
     private BigDecimal collidingBackRatio;
 }

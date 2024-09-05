@@ -1,5 +1,6 @@
 package com.br.marketing.dto.report.xiecheng;
 
+import com.br.marketing.common.annoation.DecimalFieldConvertor;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -52,30 +53,39 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     private Long creditAvgNum;
 
     @ApiModelProperty("身份认证率")
+    @DecimalFieldConvertor
     private BigDecimal certifyRatio;
 
     @ApiModelProperty("申请率")
+    @DecimalFieldConvertor
     private BigDecimal applyRatio;
 
     @ApiModelProperty("授信率")
+    @DecimalFieldConvertor
     private BigDecimal creditRatio;
 
     @ApiModelProperty("申请提现率")
+    @DecimalFieldConvertor
     private BigDecimal applyWithdrawRatio;
 
     @ApiModelProperty("提现率")
+    @DecimalFieldConvertor
     private BigDecimal withdrawRatio;
 
     @ApiModelProperty("身份认证完成率")
+    @DecimalFieldConvertor
     private BigDecimal certifyCompleteRatio;
 
     @ApiModelProperty("过件率")
+    @DecimalFieldConvertor
     private BigDecimal overPieceRatio;
 
     @ApiModelProperty("授信后提现发起率")
+    @DecimalFieldConvertor
     private BigDecimal creditWithdrawLaunchRatio;
 
     @ApiModelProperty("授信后提现成功率")
+    @DecimalFieldConvertor
     private BigDecimal creditWithdrawSucRatio;
 
     @ApiModelProperty("申请授信量级2")
@@ -85,15 +95,19 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     private Long withdrawSucNum2;
 
     @ApiModelProperty("申请提现率2")
+    @DecimalFieldConvertor
     private BigDecimal applyWithdrawRatio2;
 
     @ApiModelProperty("提现率2")
+    @DecimalFieldConvertor
     private BigDecimal withdrawRatio2;
 
     @ApiModelProperty("提现发起率")
+    @DecimalFieldConvertor
     private BigDecimal withdrawLaunchRatio;
 
     @ApiModelProperty("提现成功率")
+    @DecimalFieldConvertor
     private BigDecimal withdrawSucRatio;
 
     @ApiModelProperty("总收入")
@@ -103,8 +117,10 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     private BigDecimal cost;
 
     @ApiModelProperty("ROI")
+    @DecimalFieldConvertor
     private BigDecimal roi;
 
     @ApiModelProperty("授信目标完成率")
+    @DecimalFieldConvertor
     private BigDecimal creditCompleteRatio;
 }
