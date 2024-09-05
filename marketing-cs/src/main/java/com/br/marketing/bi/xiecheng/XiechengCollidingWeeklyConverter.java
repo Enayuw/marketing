@@ -64,10 +64,10 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         List<XiechengCollidingWeeklyReportDTO> dtos = Lists.newArrayList();
         String lockPeriodStartDate = getDictByKeyAndApiCode("xc_lock_period_start_date", "3710058");
         DateTime startDate = DateUtil.parse(lockPeriodStartDate, "yyyy-MM-dd");
-        DateTime currentDate = DateUtil.date(); // 当前时间
-        long daysBetween = DateUtil.betweenDay(startDate, currentDate, false); // 计算当前滚动周期的天数
-        int currentCycleOffset = (int) (daysBetween / 7); // 计算偏移量
-        DateTime currentPeriodStart = DateUtil.offsetDay(startDate, currentCycleOffset * 7); // 当前周期的开始日期
+        DateTime currentDate = DateUtil.date();
+        long daysBetween = DateUtil.betweenDay(startDate, currentDate, false);
+        int currentCycleOffset = (int) (daysBetween / 7);
+        DateTime currentPeriodStart = DateUtil.offsetDay(startDate, currentCycleOffset * 7);
 
         for (int i = 0; i < 5; i++) {
             DateTime periodStart = DateUtil.offsetDay(currentPeriodStart, -(i + 1) * 7);
@@ -114,7 +114,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
                                        List<SourceStatisticDict> sourceStatisticDicts, List<XiechengCollidingWeeklyReportDTO> dtos) {
         weeklyReportDTOS.stream()
                 .filter(t -> !Objects.equals(t.getDataPacket(), "1400wdx") && !Objects.equals(t.getDataPacket(), "1400wlt"))
-                .forEach(weeklyReportDTO -> {
+                .forEach((XiechengCollidingWeeklyReportDTO weeklyReportDTO) -> {
                     XiechengCollidingWeeklyReportDTO genDto = createDto(weeklyReportDTO.getDataPacket(), weeklyReportDTO.getLockNum(), periodStart,
                             periodEnd);
                     assembleAndAddToList(genDto, sourceStatisticDicts, dtos);

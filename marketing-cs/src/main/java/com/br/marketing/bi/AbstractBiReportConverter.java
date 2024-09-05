@@ -108,8 +108,6 @@ public abstract class AbstractBiReportConverter<V, T> {
                 writer.writeCellValue(i + 1, j + 1, value);
             }
         }
-        // 自适应宽度
-        writer.autoSizeColumnAll();
     }
 
     /**
