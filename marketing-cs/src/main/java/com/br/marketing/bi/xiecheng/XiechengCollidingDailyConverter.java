@@ -2,15 +2,12 @@ package com.br.marketing.bi.xiecheng;
 
 import java.time.LocalDate;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Random;
 import java.util.stream.Collectors;
-
 import com.br.marketing.mapper.XieChengBiReportMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -26,9 +23,7 @@ import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
-import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import groovy.util.logging.Slf4j;
 
@@ -60,8 +55,8 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
     @Override
     public List<XiechengCollidingDailyReportDTO> fetchData(BiReportParam param) {
         Map<String, Integer> xiechengBiReportShowNumMap = marketingCommonConfig.getXiechengBiReportShowNumMap();
-        Integer distrubuteDay = xiechengBiReportShowNumMap.getOrDefault("distrubuteDay", 7);
-        String reportDateStart = LocalDate.now().minusDays(distrubuteDay).toString();
+        Integer distrubuteDayCount = xiechengBiReportShowNumMap.getOrDefault("distrubuteDayCount", 8);
+        String reportDateStart = LocalDate.now().minusDays(distrubuteDayCount).toString();
         String reportDateEnd = LocalDate.now().minusDays(1).toString();
         List<XiechengCollidingDailyReportDTO> dtos = xieChengBiReportMapper.selectXcColldingDistrubuteDayListbI_(reportDateStart, reportDateEnd);
         return dtos;

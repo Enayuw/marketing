@@ -2,11 +2,17 @@ package com.br.marketing.bi.xiecheng;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO;
+import com.br.marketing.mapper.XieChengBiReportMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -34,6 +40,13 @@ import groovy.util.logging.Slf4j;
 @Service
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_TRANSFER_WEEKLY_REPORT)
 public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengTransferWeeklyReportDTO> {
+
+    @Autowired
+    private XieChengBiReportMapper xieChengBiReportMapper;
+
+    @Autowired
+    MarketingCommonConfig marketingCommonConfig;
+
     /**
      * 获取数据
      *
@@ -44,38 +57,34 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
      */
     @Override
     public List<XiechengTransferWeeklyReportDTO> fetchData(BiReportParam param) {
-        List<XiechengTransferWeeklyReportDTO> dtos = Lists.newArrayList();
-        DateTime startDate = DateUtil.parse("2024-08-31", "yyyy-MM-dd");
-        // 创建Random实例
-        Random random = new Random();
-        for (int i = 0; i < 30; i++) {
-            DateTime weekEnd = DateUtil.offsetWeek(startDate, -i);
-            DateTime weekStart = DateUtil.offsetDay(weekEnd, -6);
-            XiechengTransferWeeklyReportDTO report = new XiechengTransferWeeklyReportDTO();
-            report.setRollPeriod(DateUtil.format(weekStart, "yyyy-MM-dd") + " ~ " + DateUtil.format(weekEnd, "yyyy-MM-dd"));
-            report.setOutboundNum((long)random.nextInt(5000000));
-            report.setCertifyNum((long)random.nextInt(5000000));
-            report.setApplyNum((long)random.nextInt(5000000));
-            report.setCreditNum((long)random.nextInt(5000000));
-            report.setApplyWithdrawNum((long)random.nextInt(5000000));
-            report.setWithdrawNum((long)random.nextInt(5000000));
-            report.setCreditAvgNum((long)random.nextInt(5000000));
-            report.setCertifyRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
-                .multiply(new BigDecimal(100)));
-            report.setApplyRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
-                .multiply(new BigDecimal(100)));
-            report.setCreditRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
-                .multiply(new BigDecimal(100)));
-            report.setWithdrawRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
-                .multiply(new BigDecimal(100)));
-            report.setCertifyCompleteRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
-                .multiply(new BigDecimal(100)));
-            report.setOverPieceRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
-                .multiply(new BigDecimal(100)));
-            report.setWithdrawSucRatio(new BigDecimal(random.nextInt(100)).divide(new BigDecimal(random.nextInt(100) + 1), 2, RoundingMode.FLOOR)
-                .multiply(new BigDecimal(100)));
-            dtos.add(report);
-        }
+        Map<String, Integer> xiechengBiReportShowNumMap = marketingCommonConfig.getXiechengBiReportShowNumMap();
+        Integer sevenRollCount = xiechengBiReportShowNumMap.getOrDefault("sevenRollCount", 8);
+        String reportDateStart = LocalDate.now().minusDays(sevenRollCount).toString();
+        String reportDateEnd = LocalDate.now().minusDays(1).toString();
+        List<XiechengTransferWeeklyReportDTO> dtos = xieChengBiReportMapper.selectXcTransferSevenRollListbI_(reportDateStart, reportDateEnd);
+        dtos.forEach(dto -> {
+            BigDecimal certifyRatio = dto.getCertifyRatio();
+            BigDecimal applyRatio = dto.getApplyRatio();
+            BigDecimal creditRatio = dto.getCreditRatio();
+            BigDecimal withdrawRatio = dto.getWithdrawRatio();
+            BigDecimal certifyCompleteRatio = dto.getCertifyCompleteRatio();
+            BigDecimal overPieceRatio = dto.getOverPieceRatio();
+            BigDecimal withdrawSucRatio = dto.getWithdrawSucRatio();
+            certifyRatio = certifyRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
+            applyRatio = applyRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
+            creditRatio = creditRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
+            withdrawRatio = withdrawRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
+            certifyCompleteRatio = certifyCompleteRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
+            overPieceRatio = overPieceRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
+            withdrawSucRatio = withdrawSucRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
+            dto.setCertifyRatio(certifyRatio);
+            dto.setApplyRatio(applyRatio);
+            dto.setCreditRatio(creditRatio);
+            dto.setWithdrawRatio(withdrawRatio);
+            dto.setCertifyCompleteRatio(certifyCompleteRatio);
+            dto.setOverPieceRatio(overPieceRatio);
+            dto.setWithdrawSucRatio(withdrawSucRatio);
+        });
         return dtos;
     }
 

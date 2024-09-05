@@ -12,4 +12,9 @@
         from dws_xc_collding_distrubute_day_d
         where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
     </select>
+    <select id="selectXcTransferSevenRollListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO">
+        select *
+        from dws_xc_transfer_seven_roll_d
+        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
+    </select>
 </mapper>
