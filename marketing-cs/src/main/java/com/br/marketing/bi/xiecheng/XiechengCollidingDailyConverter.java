@@ -220,6 +220,6 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
             writer.writeCellValue(i + 3, yData.size() + 1, String.format(Locale.getDefault(), "%,d", total));
         }
         // 自适应宽度
-        writer.autoSizeColumnAll();
+        autoSizeColumnAll(writer);
     }
 }

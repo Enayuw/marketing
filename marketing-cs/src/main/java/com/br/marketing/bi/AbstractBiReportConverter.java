@@ -11,6 +11,7 @@ import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -110,10 +111,26 @@ public abstract class AbstractBiReportConverter<V, T> {
                 writer.writeCellValue(i + 1, j + 1, value);
             }
         }
+        autoSizeColumnAll(writer);
+    }
+
+    /**
+     * 自动调整所有列大小
+     *
+     * @param writer writer
+     * @author senyang.zheng
+     * @date 2024/09/06
+     */
+    protected void autoSizeColumnAll(ExcelWriter writer) {
         // 自适应宽度
+        XSSFSheet sheet = (XSSFSheet)writer.getSheet();
         int columnCount = writer.getColumnCount();
-        log.warn("reportTypeName：{},columnCount:{}", param.getReportName(), columnCount);
-        writer.autoSizeColumnAll();
+        for (int i = 0; i < columnCount; i++) {
+            // 调整每一列宽度
+            sheet.autoSizeColumn(i);
+            // 解决自动设置列宽中文失效的问题
+            sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 13 / 10);
+        }
     }
 
     /**

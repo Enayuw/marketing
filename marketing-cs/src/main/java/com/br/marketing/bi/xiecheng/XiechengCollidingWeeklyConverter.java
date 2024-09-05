@@ -291,6 +291,6 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             }
         }
         // 自适应宽度
-        writer.autoSizeColumnAll();
+        autoSizeColumnAll(writer);
     }
 }
