@@ -1,29 +1,24 @@
 package com.br.marketing.bi.xiecheng;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
+import com.br.marketing.proxy.XiechengBiReportService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
-import com.br.marketing.mapper.XieChengBiReportMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -38,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengTransferWeeklyReportDTO> {
 
     @Autowired
-    private XieChengBiReportMapper xieChengBiReportMapper;
+    XiechengBiReportService xiechengBiReportService;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -57,31 +52,7 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
         Integer sevenRollCount = xiechengBiReportShowNumMap.getOrDefault("sevenRollCount", 8);
         String reportDateStart = LocalDate.now().minusDays(sevenRollCount).toString();
         String reportDateEnd = LocalDate.now().minusDays(1).toString();
-        List<XiechengTransferWeeklyReportDTO> dtos = xieChengBiReportMapper.selectXcTransferSevenRollListbI_(reportDateStart, reportDateEnd);
-        dtos.forEach(dto -> {
-            BigDecimal certifyRatio = dto.getCertifyRatio();
-            BigDecimal applyRatio = dto.getApplyRatio();
-            BigDecimal creditRatio = dto.getCreditRatio();
-            BigDecimal withdrawRatio = dto.getWithdrawRatio();
-            BigDecimal certifyCompleteRatio = dto.getCertifyCompleteRatio();
-            BigDecimal overPieceRatio = dto.getOverPieceRatio();
-            BigDecimal withdrawSucRatio = dto.getWithdrawSucRatio();
-            certifyRatio = certifyRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            applyRatio = applyRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            creditRatio = creditRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            withdrawRatio = withdrawRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            certifyCompleteRatio = certifyCompleteRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            overPieceRatio = overPieceRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            withdrawSucRatio = withdrawSucRatio.multiply(new BigDecimal(100)).setScale(3, RoundingMode.FLOOR);
-            dto.setCertifyRatio(certifyRatio);
-            dto.setApplyRatio(applyRatio);
-            dto.setCreditRatio(creditRatio);
-            dto.setWithdrawRatio(withdrawRatio);
-            dto.setCertifyCompleteRatio(certifyCompleteRatio);
-            dto.setOverPieceRatio(overPieceRatio);
-            dto.setWithdrawSucRatio(withdrawSucRatio);
-        });
-        return dtos;
+        return xiechengBiReportService.selectXcTransferSevenRollList(reportDateStart, reportDateEnd);
     }
 
     /**

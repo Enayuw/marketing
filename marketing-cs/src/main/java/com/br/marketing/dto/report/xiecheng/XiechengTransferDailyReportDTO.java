@@ -1,5 +1,6 @@
 package com.br.marketing.dto.report.xiecheng;
 
+import com.br.marketing.common.annoation.DecimalFieldConvertor;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -40,30 +41,39 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private Long withdrawNum;
 
     @ApiModelProperty("当日身份认证率")
+    @DecimalFieldConvertor
     private BigDecimal certifyRatio;
 
     @ApiModelProperty("当日申请率")
+    @DecimalFieldConvertor
     private BigDecimal applyRatio;
 
     @ApiModelProperty("当日授信率")
+    @DecimalFieldConvertor
     private BigDecimal creditRatio;
 
     @ApiModelProperty("当日申请提现率")
+    @DecimalFieldConvertor
     private BigDecimal applyWithdrawRatio;
 
     @ApiModelProperty("当日提现率")
+    @DecimalFieldConvertor
     private BigDecimal withdrawRatio;
 
     @ApiModelProperty("当日身份认证完成率")
+    @DecimalFieldConvertor
     private BigDecimal certifyCompleteRatio;
 
     @ApiModelProperty("当日过件率")
+    @DecimalFieldConvertor
     private BigDecimal overPieceRatio;
 
     @ApiModelProperty("当日提现发起率")
+    @DecimalFieldConvertor
     private BigDecimal withdrawLaunchRatio;
 
     @ApiModelProperty("当日提现成功率")
+    @DecimalFieldConvertor
     private BigDecimal withdrawSucRatio;
 
     @ApiModelProperty("当日收入")
@@ -73,6 +83,7 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private BigDecimal cost;
 
     @ApiModelProperty("ROI")
+    @DecimalFieldConvertor
     private BigDecimal roi;
 
     @ApiModelProperty("当日授信后提现发起")
@@ -82,9 +93,11 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private Long creditWithdrawSucNum;
 
     @ApiModelProperty("当日授信后提现发起率")
+    @DecimalFieldConvertor
     private BigDecimal creditWithdrawLaunchRatio;
 
     @ApiModelProperty("授信后提现成功率")
+    @DecimalFieldConvertor
     private BigDecimal creditWithdrawSucRatio;
 
     @ApiModelProperty("上报数据百万转化")

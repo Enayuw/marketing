@@ -1,5 +1,6 @@
 package com.br.marketing.dto.report.xiecheng;
 
+import com.br.marketing.common.annoation.DecimalFieldConvertor;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -44,23 +45,30 @@ public class XiechengTransferWeeklyReportDTO implements Serializable {
     private Long creditAvgNum;
 
     @ApiModelProperty("身份认证率")
+    @DecimalFieldConvertor
     private BigDecimal certifyRatio;
 
     @ApiModelProperty("申请率")
+    @DecimalFieldConvertor
     private BigDecimal applyRatio;
 
     @ApiModelProperty("授信率")
+    @DecimalFieldConvertor
     private BigDecimal creditRatio;
 
     @ApiModelProperty("提现率")
+    @DecimalFieldConvertor
     private BigDecimal withdrawRatio;
 
     @ApiModelProperty("身份认证完成率")
+    @DecimalFieldConvertor
     private BigDecimal certifyCompleteRatio;
 
     @ApiModelProperty("过件率")
+    @DecimalFieldConvertor
     private BigDecimal overPieceRatio;
 
     @ApiModelProperty("提现成功率（授信后提现）")
+    @DecimalFieldConvertor
     private BigDecimal withdrawSucRatio;
 }

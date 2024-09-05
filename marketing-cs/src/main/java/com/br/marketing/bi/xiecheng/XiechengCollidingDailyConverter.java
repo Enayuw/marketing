@@ -8,25 +8,22 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
+import com.br.marketing.proxy.XiechengBiReportService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
-import com.br.marketing.mapper.XieChengBiReportMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.common.base.Splitter;
-
 import cn.hutool.poi.excel.ExcelWriter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<BiReportVO, XiechengCollidingDailyReportDTO> {
 
     @Autowired
-    private XieChengBiReportMapper xieChengBiReportMapper;
+    XiechengBiReportService xiechengBiReportService;
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -61,7 +58,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         Integer distrubuteDayCount = xiechengBiReportShowNumMap.getOrDefault("distrubuteDayCount", 8);
         String reportDateStart = LocalDate.now().minusDays(distrubuteDayCount).toString();
         String reportDateEnd = LocalDate.now().minusDays(1).toString();
-        return xieChengBiReportMapper.selectXcColldingDistrubuteDayListbI_(reportDateStart, reportDateEnd);
+        return xiechengBiReportService.selectXcColldingDistrubuteDayList(reportDateStart, reportDateEnd);
     }
 
     /**

@@ -1,27 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengBiReportMapper">
-    <select id="selectXcDataRatioListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengDataRatioDailyReportDTO">
-        select * from dws_xc_data_ratio_d where
-          <![CDATA[ report_date >= #{reportDateStart} ]]>
+    <select id="selectXcTrabsferMonthlyListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferMonthlyReportDTO">
+        select *
+        from dws_xc_transfer_accrue_natural_mouth_d
+        where
+          report_date like concat("%", #{month},"%") and is_delete = 0
         order by report_date desc
-    </select>
-
-    <select id="selectXcColldingDistrubuteDayListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO">
-        select *
-        from dws_xc_collding_distrubute_day_d
-        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
-    </select>
-    <select id="selectXcTransferSevenRollListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO">
-        select *
-        from dws_xc_transfer_seven_roll_d
-        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
-    </select>
-
-    <select id="selectXcCollidingWeeklybI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO">
-        select dataPacket,sum(lock_num) as lockNum from dws_xc_collding_distrubute_day_d
-        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
-        group by dataPacket order by dataPacket;
     </select>
 
     <select id="selectXcTransferDailybI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferDailyReportDTO">
@@ -35,4 +20,30 @@
         </if>
         order by report_date desc;
     </select>
+
+    <select id="selectXcTransferSevenRollListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO">
+        select *
+        from dws_xc_transfer_seven_roll_d
+        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]> and is_delete = 0
+    </select>
+
+    <select id="selectXcColldingDistrubuteDayListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO">
+        select *
+        from dws_xc_collding_distrubute_day_d
+        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]> and is_delete = 0
+    </select>
+
+    <select id="selectXcCollidingWeeklybI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO">
+        select dataPacket,sum(lock_num) as lockNum from dws_xc_collding_distrubute_day_d
+        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
+        group by dataPacket order by dataPacket;
+    </select>
+
+    <select id="selectXcDataRatioListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengDataRatioDailyReportDTO">
+        select * from dws_xc_data_ratio_d where
+          <![CDATA[ report_date >= #{reportDateStart} ]]>
+        order by report_date desc
+    </select>
+
+
 </mapper>
