@@ -14,8 +14,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * 58新客通话明细入库-3710155
@@ -38,8 +36,6 @@ public class WuBaCallRecordAddToDbFilter implements AssembleData<WuBaSubmitConve
         String apiCode = bo.getApiCode();
         String cell = bo.getCaseNum();
 
-        Set<String> cellSet = new HashSet<>();
-        cellSet.add(cell);
         MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.findSyncUserByCustNumsAndAppletTime(apiCode, cell);
         if(marketingSyncUser == null){
             return null;
