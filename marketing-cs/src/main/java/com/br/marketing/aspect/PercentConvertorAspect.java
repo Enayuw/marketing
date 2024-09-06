@@ -1,17 +1,13 @@
 package com.br.marketing.aspect;
 
 import com.br.marketing.common.annoation.DecimalFieldConvertor;
-import com.br.marketing.common.annoation.PercentConvertor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
 import java.util.List;
 
 @Aspect
@@ -32,6 +28,7 @@ public class PercentConvertorAspect {
                 }
                 int scale = convertor.scale();
                 RoundingMode roundingMode = convertor.roundingMode();
+                boolean isPercent = convertor.isPercent();
                 field.setAccessible(true);
                 Class<?> type = field.getType();
                 if (type == BigDecimal.class) {
@@ -39,8 +36,11 @@ public class PercentConvertorAspect {
                         BigDecimal value = (BigDecimal)field.get(dto);
                         if (null == value) {
                             value = BigDecimal.ZERO;
-                        } else {
+                        }
+                        if (isPercent) {
                             value = value.multiply(new BigDecimal(100)).setScale(scale, roundingMode);
+                        }else{
+                            value = value.setScale(scale, roundingMode);
                         }
                         field.set(dto, value);
                     } catch (IllegalAccessException e) {

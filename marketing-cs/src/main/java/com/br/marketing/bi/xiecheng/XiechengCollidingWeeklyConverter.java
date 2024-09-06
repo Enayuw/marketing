@@ -10,12 +10,9 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -32,7 +29,6 @@ import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
-
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.poi.excel.ExcelWriter;
@@ -157,7 +153,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         dto.setIntersectionNum(intersectionNum);
 
         if (intersectionNum != 0) {
-            dto.setCollidingBackRatio(new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 2, RoundingMode.FLOOR)
+            dto.setCollidingBackRatio(new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 0, RoundingMode.HALF_UP)
                     .multiply(new BigDecimal(100)));
         } else {
             dto.setCollidingBackRatio(BigDecimal.ZERO);

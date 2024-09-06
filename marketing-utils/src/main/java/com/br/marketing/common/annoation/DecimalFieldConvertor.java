@@ -15,5 +15,7 @@ public @interface DecimalFieldConvertor {
     /**
      * 小数保留方式
      */
-    RoundingMode roundingMode() default RoundingMode.FLOOR;
+    RoundingMode roundingMode() default RoundingMode.HALF_UP;
+
+    boolean isPercent() default true;
 }

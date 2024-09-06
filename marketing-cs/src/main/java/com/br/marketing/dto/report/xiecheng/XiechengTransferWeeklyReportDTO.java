@@ -45,30 +45,30 @@ public class XiechengTransferWeeklyReportDTO implements Serializable {
     private Long creditAvgNum;
 
     @ApiModelProperty("身份认证率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal certifyRatio;
 
     @ApiModelProperty("申请率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal applyRatio;
 
     @ApiModelProperty("授信率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditRatio;
 
     @ApiModelProperty("提现率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal withdrawRatio;
 
     @ApiModelProperty("身份认证完成率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal certifyCompleteRatio;
 
     @ApiModelProperty("过件率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal overPieceRatio;
 
     @ApiModelProperty("提现成功率（授信后提现）")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal withdrawSucRatio;
 }

@@ -4,7 +4,6 @@ import com.br.marketing.common.annoation.DecimalFieldConvertor;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 
@@ -53,7 +52,7 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private BigDecimal creditRatio;
 
     @ApiModelProperty("当日申请提现率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal applyWithdrawRatio;
 
     @ApiModelProperty("当日提现率")
@@ -61,11 +60,11 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private BigDecimal withdrawRatio;
 
     @ApiModelProperty("当日身份认证完成率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal certifyCompleteRatio;
 
     @ApiModelProperty("当日过件率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal overPieceRatio;
 
     @ApiModelProperty("当日提现发起率")
@@ -73,17 +72,19 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private BigDecimal withdrawLaunchRatio;
 
     @ApiModelProperty("当日提现成功率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal withdrawSucRatio;
 
     @ApiModelProperty("当日收入")
+    @DecimalFieldConvertor(isPercent = false)
     private BigDecimal income;
 
     @ApiModelProperty("当日成本")
+    @DecimalFieldConvertor(isPercent = false)
     private BigDecimal cost;
 
     @ApiModelProperty("ROI")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(isPercent = false)
     private BigDecimal roi;
 
     @ApiModelProperty("当日授信后提现发起")
@@ -93,11 +94,11 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private Long creditWithdrawSucNum;
 
     @ApiModelProperty("当日授信后提现发起率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawLaunchRatio;
 
     @ApiModelProperty("授信后提现成功率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawSucRatio;
 
     @ApiModelProperty("上报数据百万转化")

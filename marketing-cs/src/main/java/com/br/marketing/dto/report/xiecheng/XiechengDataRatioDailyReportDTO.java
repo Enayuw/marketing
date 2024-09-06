@@ -26,9 +26,9 @@ public class XiechengDataRatioDailyReportDTO {
     @ApiModelProperty(value = "可外呼量")
     private Long callableNum;
     @ApiModelProperty(value = "析出率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 0)
     private BigDecimal extractionRatio;
     @ApiModelProperty(value = "可外呼率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 0)
     private BigDecimal callableRatio;
 }

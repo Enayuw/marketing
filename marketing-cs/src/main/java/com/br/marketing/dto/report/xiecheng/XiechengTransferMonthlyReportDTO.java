@@ -73,19 +73,19 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     private BigDecimal withdrawRatio;
 
     @ApiModelProperty("身份认证完成率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal certifyCompleteRatio;
 
     @ApiModelProperty("过件率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal overPieceRatio;
 
     @ApiModelProperty("授信后提现发起率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawLaunchRatio;
 
     @ApiModelProperty("授信后提现成功率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawSucRatio;
 
     @ApiModelProperty("申请授信量级2")
@@ -103,24 +103,26 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     private BigDecimal withdrawRatio2;
 
     @ApiModelProperty("提现发起率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal withdrawLaunchRatio;
 
     @ApiModelProperty("提现成功率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal withdrawSucRatio;
 
     @ApiModelProperty("总收入")
+    @DecimalFieldConvertor(isPercent = false)
     private BigDecimal income;
 
     @ApiModelProperty("总成本")
+    @DecimalFieldConvertor(isPercent = false)
     private BigDecimal cost;
 
     @ApiModelProperty("ROI")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(isPercent = false)
     private BigDecimal roi;
 
     @ApiModelProperty("授信目标完成率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditCompleteRatio;
 }
