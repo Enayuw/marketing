@@ -8,12 +8,11 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.apis.message.MessageView;
+import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Function;
 
@@ -35,14 +34,15 @@ public class RocketMqConsumerService {
     public static Boolean consumerDownStatus = Boolean.FALSE;
     /**
      * rabbitMQ消费端
-     * @param messageView 消费消息
+     * @param messageExt 消费消息
      * @param method 消费业务
      * @param t 消费信息
      * @param retryTag Tag（消息重试使用）
      * @param delayTopic 消息延时对应的延时队列
      * @param delayTime 消息延时时间（单位：秒）
      */
-    public <T> Boolean consumerRun(MessageView messageView, Function<T, Result<Boolean>> method, T t, String retryTag, String delayTopic, int delayTime) {
+    public <T> Boolean consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
+            , String retryTag, String delayTopic, int delayTime) {
         String message = null;
         try {
             /**
@@ -53,8 +53,7 @@ public class RocketMqConsumerService {
                 Thread.sleep(10000L);
                 log.warn("服务下线，消费者休眠时间到");
             }
-            Charset charset = StandardCharsets.UTF_8;
-            message = charset.decode(messageView.getBody()).toString();
+            message = new String(messageExt.getBody(),StandardCharsets.UTF_8);
             Result<Boolean> apply = method.apply(t);
             /**
              * code 为SUCCESS 认为消费成功
@@ -66,13 +65,13 @@ public class RocketMqConsumerService {
                 if (apply.getData()) {
                     if (StringUtils.isNotBlank(retryTag)) {
                         if(MarketingDelayedConstants.TOPIC.equalsIgnoreCase(delayTopic)){
-                            template.syncSendDelay(messageView.getTopic(), retryTag, message, delayTime);
+                            template.syncSendDelaySecond(messageExt.getTopic(), retryTag, message, delayTime);
                         }else{
-                            template.syncSend(messageView.getTopic(), retryTag, message);
+                            template.syncSend(messageExt.getTopic(), retryTag, message);
                         }
 //                        producter.send(retryRouteKey, new String(message.getBody(), StandardCharsets.UTF_8));
                     } else {
-                        template.syncSend(messageView.getTopic(), messageView.getTag().get(), message);
+                        template.syncSend(messageExt.getTopic(), messageExt.getTags(), message);
 //                        producter.send(message.getMessageProperties().getReceivedRoutingKey(), new String(message.getBody(), StandardCharsets.UTF_8));
                     }
                 }
@@ -83,11 +82,12 @@ public class RocketMqConsumerService {
         } catch (Exception e) {
 //            template.syncSend(messageView.getTopic(), messageView.getTag().get(), message);
             String error = String.format("路由键：%s,\r\n消息内容：%s,\r\n错误信息：%s"
-                    , messageView.getTag()
+                    , messageExt.getTags()
                     , message
                     , e.getMessage());
             log.error(error,e);
             alarmClient.sendAlarm(error,"消费异常", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
+            throw new RuntimeException();
 //            try {
 //                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
 //            } catch (IOException ioException) {
@@ -99,14 +99,14 @@ public class RocketMqConsumerService {
 
     /**
      * rabbitMQ消费端
-     * @param messageView 消费消息
+     * @param messageExt 消费消息
      * @param method 消费业务
      * @param t 消费信息
      * @param retryRouteKey 重试路由key
      * @param <T> 消费消息类型
      */
-    public <T> Boolean consumerRun(MessageView messageView, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
-        return consumerRun(messageView, method, t, retryRouteKey, null, 0);
+    public <T> Boolean consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
+        return consumerRun(messageExt, method, t, retryRouteKey, null, 0);
     }
 
     /**

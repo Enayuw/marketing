@@ -103,9 +103,9 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
         mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
         String message = JSON.toJSONString(mqFact);
         if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
-            template.syncSendDelay(MarketingDelayedConstants.TOPIC
+            template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                     , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
-                    ,Integer.valueOf(expireTime)/1000);
+                    , Integer.valueOf(expireTime)/1000);
         }else{
             producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,expireTime);
         }

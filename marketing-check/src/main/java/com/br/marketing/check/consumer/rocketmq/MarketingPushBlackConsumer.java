@@ -3,19 +3,16 @@ package com.br.marketing.check.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
-import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
-import org.apache.rocketmq.client.apis.consumer.ConsumeResult;
-import org.apache.rocketmq.client.apis.message.MessageView;
-import org.apache.rocketmq.client.core.RocketMQListener;
+import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -25,11 +22,11 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
+@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
         topic = MarketingOutsideInterfaceConstants.TOPIC,
         consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_PUSH_BLACK,
-        tag = MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_BLACK,consumptionThreadCount = 20)
-public class MarketingPushBlackConsumer extends BaseMqMessageListener implements RocketMQListener {
+        selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_BLACK)
+public class MarketingPushBlackConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -38,18 +35,32 @@ public class MarketingPushBlackConsumer extends BaseMqMessageListener implements
     PushRuleService pushRuleService;
 
     @Override
-    protected ConsumeResult handleMessage(MessageView messageView) throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String bodyString = charset.decode(messageView.getBody()).toString();
-        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
-        }.getType());
-        log.warn("Marketing_Push_Black：获取消息成功:{}",o);
-        consumerService.consumerRun(messageView, pushRuleService::consumerCommonBlack, o, null);
-        return ConsumeResult.SUCCESS;
+    protected String consumerName() {
+        return null;
     }
 
     @Override
-    public ConsumeResult consume(MessageView messageView) {
-        return super.dispatchMessage(messageView);
+    protected void handleMessage(MessageExt messageExt) throws Exception {
+        String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
+        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
+        }.getType());
+        log.warn("Marketing_Push_Black：获取消息成功:{}",o);
+        consumerService.consumerRun(messageExt, pushRuleService::consumerCommonBlack, o, null);
     }
+
+    @Override
+    protected void overMaxRetryTimesMessage(MessageExt messageExt) {
+
+    }
+
+    @Override
+    protected boolean isThrowException() {
+        return false;
+    }
+
+    @Override
+    public void onMessage(MessageExt messageExt) {
+        super.dispatchMessage(messageExt);
+    }
+
 }

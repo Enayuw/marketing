@@ -44,7 +44,7 @@
         </dependency>
         <dependency>
             <groupId>com.br.rocketmq</groupId>
-            <artifactId>br-rocketmq5x-starter-1.x</artifactId>
+            <artifactId>br-rocketmq-starter-1.x</artifactId>
             <version>${rocketmq5x.version}</version>
         </dependency>
         <dependency>

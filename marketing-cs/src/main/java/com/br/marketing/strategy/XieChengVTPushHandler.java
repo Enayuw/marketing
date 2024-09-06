@@ -91,9 +91,9 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                 mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                 String message = JSON.toJSONString(mqFact);
                 if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
-                    template.syncSendDelay(MarketingDelayedConstants.TOPIC
+                    template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                             , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
-                            ,Integer.valueOf(expireTime)/1000);
+                            , Integer.valueOf(expireTime)/1000);
                 }else{
                     producter.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY, message, expireTime);
                 }

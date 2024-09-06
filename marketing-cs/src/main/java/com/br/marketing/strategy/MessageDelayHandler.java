@@ -68,7 +68,7 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
             if (!StringUtils.isEmpty(mqFact.getDelayTime()) && mqFact.getDelayTime() > 0) {
                 float v = mqFact.getDelayTime() * Integer.parseInt(expireTime);
                 if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
-                    template.syncSendDelay(MarketingDelayedConstants.TOPIC
+                    template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                             , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
                             , (int)v);
                 }else{
@@ -76,9 +76,9 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
                 }
             }else{
                 if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
-                    template.syncSendDelay(MarketingDelayedConstants.TOPIC
+                    template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                             , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
-                            ,Integer.valueOf(expireTime)/1000);
+                            , Integer.valueOf(expireTime)/1000);
                 }else{
                     producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,expireTime);
                 }

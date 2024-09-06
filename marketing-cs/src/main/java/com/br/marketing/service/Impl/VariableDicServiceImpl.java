@@ -384,26 +384,29 @@ public class VariableDicServiceImpl implements VariableDicService {
             if (endParse.isBefore(startParse)) {
                 String key;
                 long ttl;
+                int delayLevel;
                 if (localTime.isBefore(startParse) || localTime.equals(startParse)) {
                     // T日定时发送消息
                     key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:today:").concat(startParse.toString())
                             .concat(":").concat(localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().atTime(startParse)
                             .atZone(ZoneId.systemDefault()));
+//                    delayLevel = ;
                 } else {
                     // T+1日延时定时发送消息
                     key = RedisKeyConstant.USERTYPE_DICT.concat("delay:mgs:tomorrow:").concat(endParse.toString())
                             .concat(":").concat(localDateTime.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE));
                     ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate().plusDays(1)
                             .atTime(endParse).atZone(ZoneId.systemDefault()));
+//                    delayLevel = ;
                 }
                 redisChgService.lock(key.concat(":lock"), id);
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
                     if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
-                        template.syncSendDelay(MarketingDelayedConstants.TOPIC
-                                , MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key, (int)ttl/1000);
+                        template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
+                                , MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key,(int)ttl/1000);
                     }else{
                         producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key
                                 , String.valueOf(ttl), priority);
@@ -437,8 +440,8 @@ public class VariableDicServiceImpl implements VariableDicService {
                             .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()));
                     // 不存在添加延迟队列
                     if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
-                        template.syncSendDelay(MarketingDelayedConstants.TOPIC
-                                , MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key, (int)ttl/1000);
+                        template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
+                                , MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key,(int)ttl/1000);
                     }else{
                         producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
                                 key, String.valueOf(ttl), priority);

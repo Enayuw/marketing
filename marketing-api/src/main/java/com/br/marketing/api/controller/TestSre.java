@@ -9,7 +9,7 @@ import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.apis.producer.SendReceipt;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,7 +79,7 @@ public class TestSre {
     }
 
     @RequestMapping("/testSend")
-    public SendReceipt testSend(@RequestParam("topic") String topic
+    public SendResult testSend(@RequestParam("topic") String topic
             , @RequestParam("tag") String tag
             , @RequestParam("msg") Object msg
             , @RequestParam("type") String type) {
@@ -88,7 +88,7 @@ public class TestSre {
 //        }else if("sendAsync".equalsIgnoreCase(type)){
 //            return template.sendAsync("gate_test", "test",);
         }else if("syncSendDelay".equalsIgnoreCase(type)){
-            return template.syncSendDelay(topic, tag, msg,10);
+            return template.syncSendDelaySecond(topic, tag, msg.toString(), 100);
         }else if("sendSyncOrderly".equalsIgnoreCase(type)){
             return template.sendSyncOrderly(topic, tag, msg,"orderly");
         }

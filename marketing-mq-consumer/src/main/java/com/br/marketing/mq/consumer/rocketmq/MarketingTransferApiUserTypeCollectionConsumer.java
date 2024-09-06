@@ -5,14 +5,12 @@ import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.VariableDicService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.annotation.RocketMQMessageListener;
-import org.apache.rocketmq.client.apis.consumer.ConsumeResult;
-import org.apache.rocketmq.client.apis.message.MessageView;
-import org.apache.rocketmq.client.core.RocketMQListener;
+import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
+import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -22,11 +20,11 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(endpoints = "${rocketmq.consumer.endpoints:}",
+@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
         topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_TRANSFER_API_USERTYPE_COLLECTION,
-        tag = MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION,consumptionThreadCount = 20)
-public class MarketingTransferApiUserTypeCollectionConsumer extends BaseMqMessageListener implements RocketMQListener {
+        selectorExpression = MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION)
+public class MarketingTransferApiUserTypeCollectionConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -35,16 +33,30 @@ public class MarketingTransferApiUserTypeCollectionConsumer extends BaseMqMessag
     VariableDicService variableDicService;
 
     @Override
-    protected ConsumeResult handleMessage(MessageView messageView) throws Exception {
-        Charset charset = StandardCharsets.UTF_8;
-        String bodyString = charset.decode(messageView.getBody()).toString();
-        log.warn("MARKETING_TRANSFER_API_USERTYPE_COLLECTION：获取消息成功:{}",bodyString);
-        consumerService.consumerRun(messageView, variableDicService::batchAddUserTypeVariableDicTry, bodyString, null);
-        return ConsumeResult.SUCCESS;
+    protected String consumerName() {
+        return null;
     }
 
     @Override
-    public ConsumeResult consume(MessageView messageView) {
-        return super.dispatchMessage(messageView);
+    protected void handleMessage(MessageExt messageExt) throws Exception {
+        String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
+        log.warn("MARKETING_TRANSFER_API_USERTYPE_COLLECTION：获取消息成功:{}",bodyString);
+        consumerService.consumerRun(messageExt, variableDicService::batchAddUserTypeVariableDicTry, bodyString, null);
     }
+
+    @Override
+    protected void overMaxRetryTimesMessage(MessageExt messageExt) {
+
+    }
+
+    @Override
+    protected boolean isThrowException() {
+        return false;
+    }
+
+    @Override
+    public void onMessage(MessageExt messageExt) {
+        super.dispatchMessage(messageExt);
+    }
+
 }
