@@ -8,12 +8,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -27,7 +24,6 @@ import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.common.base.Splitter;
-
 import cn.hutool.poi.excel.ExcelWriter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -81,7 +77,8 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         biReportVO.setReportName("单日撞库结果分布");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据标签排序，添加空值处理
-        dtos.sort(((Comparator<XiechengCollidingDailyReportDTO>)(o1, o2) -> getOrderScore(o1.getDataPacket()) - getOrderScore(o2.getDataPacket()))
+        Map<String, Integer> dataPacketorderMap = marketingCommonConfig.getXiechengBiReportDistrubuteDayDataPacketOrderMap();
+        dtos.sort(Comparator.comparingInt((XiechengCollidingDailyReportDTO dto) -> dataPacketorderMap.getOrDefault(dto.getDataPacket(), 99))
             .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标

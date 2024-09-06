@@ -2096,5 +2096,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, Integer> xiechengBiReportShowNumMap;
 
+    /**
+     * 携程Bi单日撞库报表dataPacket排序
+     */
+    private Map<String, Integer> xiechengBiReportDistrubuteDayDataPacketOrderMap;
+
 }
 
