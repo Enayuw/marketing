@@ -26,6 +26,10 @@ import java.util.HashMap;
 /**
  * https://c.100credit.cn/pages/viewpage.action?pageId=178192841
  * 【紧急】D20240906榕树自动化转决策v3-4004643  情况2处理
+ * <p>
+ * 情况1 为调度任务  RongShuPushDecisionServiceImpl
+ * <p>
+ * 手机号去重时 情况1与情况2 使用同一把分布式锁
  *
  * @author Hua Qiang
  * @date 2024-09-06 21:18
@@ -42,6 +46,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        // 情况2
         String status = "2";
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
         Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
