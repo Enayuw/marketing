@@ -185,7 +185,10 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
                 .thenComparing(XiechengCollidingWeeklyReportDTO::getIntersectionNum, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
         List<String> xAxis =
-                dtos.stream().map(report -> report.getDataPacket() + "_" + report.getIntersectionNum()).distinct().collect(Collectors.toList());
+            dtos.stream()
+                .map(report -> report.getDataPacket() + "_"
+                    + (report.getIntersectionNum() == null ? "0" : String.format(Locale.getDefault(), "%,d", report.getIntersectionNum())))
+                .distinct().collect(Collectors.toList());
         biReportVO.setXAxisName("dataPacket_intersectionNum");
         biReportVO.setXAxis(xAxis);
 
