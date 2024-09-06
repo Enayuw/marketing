@@ -185,7 +185,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
                 .map(report -> report.getDataPacket() + "_"
                     + (report.getIntersectionNum() == null ? "0" : String.format(Locale.getDefault(), "%,d", report.getIntersectionNum())))
                 .distinct().collect(Collectors.toList());
-        biReportVO.setXAxisName("dataPacket_intersectionNum");
+        biReportVO.setXAxisName("dataPacket_交集量级");
         biReportVO.setXAxis(xAxis);
 
         // 初始化Y轴数据
