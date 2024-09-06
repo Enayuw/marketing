@@ -129,7 +129,8 @@ public abstract class AbstractBiReportConverter<V, T> {
             // 调整每一列宽度
             sheet.autoSizeColumn(i);
             // 解决自动设置列宽中文失效的问题
-            sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 13 / 10);
+            String coefficient = getDictByKeyAndApiCode("xc_report_auto_size_coefficient","3710058");
+            sheet.setColumnWidth(i, sheet.getColumnWidth(i) * Integer.parseInt(coefficient) / 10);
         }
     }
 
