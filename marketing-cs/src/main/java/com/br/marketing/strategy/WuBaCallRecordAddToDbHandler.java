@@ -37,11 +37,10 @@ public class WuBaCallRecordAddToDbHandler extends AbstractExternalInterfaceHandl
             }
         }
 
-        if(CollectionUtils.isEmpty(dataList)){
-            return null;
+        if(!CollectionUtils.isEmpty(dataList)){
+            dataMapper.batchAdd(dataList);
+            log.warn(TITLE + "批量入库成功");
         }
-        dataMapper.batchAdd(dataList);
-        log.warn(TITLE + "批量入库成功");
         return null;
     }
 

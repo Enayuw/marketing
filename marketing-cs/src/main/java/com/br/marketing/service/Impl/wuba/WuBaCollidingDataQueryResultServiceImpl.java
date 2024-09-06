@@ -159,8 +159,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         if (Objects.equals(result.getCode(), ResultCode.SUCCESS.getValue())) {
             updateQueryStatus(wubaCollidingBatchNo, 1);
             JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(result.getData()));
-            List<JSONObject> trueList =
-                    jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t))).filter((JSONObject t) -> Objects.equals(t.getInteger("status"),
+            List<JSONObject> trueList = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                    .filter((JSONObject t) -> Objects.equals(t.getInteger("status"),
                             1)).collect(Collectors.toList());
 
             List<WubaCollidingDataSyncClean> trueDatas = trueList.stream().map((JSONObject t) -> {
@@ -170,8 +170,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 return data;
             }).collect(Collectors.toList());
 
-            List<JSONObject> falseList =
-                    jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t))).filter((JSONObject t) -> !Objects.equals(t.getInteger("status"),
+            List<JSONObject> falseList = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                    .filter((JSONObject t) -> !Objects.equals(t.getInteger("status"),
                             1)).collect(Collectors.toList());
 
             List<WubaCollidingDataSyncClean> falseDatas = falseList.stream().map((JSONObject t) -> {
