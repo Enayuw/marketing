@@ -377,4 +377,8 @@ public interface MarketingSyncUserMapper {
                                                                       @Param("appletDateSet") Set<String> appletDateSet);
 
     int updateReserveFieldByPrimaryKey(MarketingSyncUser record);
+
+    MarketingSyncUser findSyncUserByCustNumsAndAppletTime(
+            @Param("apiCode") String apiCode,
+            @Param("custNum") String custNum);
 }

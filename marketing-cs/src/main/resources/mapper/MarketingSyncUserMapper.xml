@@ -969,4 +969,12 @@
         set reserve_field1 = #{reserveField1,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
     </update>
+
+    <select id="findSyncUserByCustNumsAndAppletTime" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cell, cust_num, user_type
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        and status =1
+        order by applet_time desc limit 1
+    </select>
 </mapper>

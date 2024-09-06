@@ -111,6 +111,7 @@ public class WuBaSubmitConversionSoleProcessor {
         }
         String apiCode = param.getApiCode();
         Integer createDate = param.getCreateDate();
+        String userType = param.getUserType();
         Integer distributeType = DistributeTypeEnum.WUBA_SUBMIT_CONVERSION.getValue();
         String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -121,7 +122,7 @@ public class WuBaSubmitConversionSoleProcessor {
         // distributeCellSet
         String marketingDate = String.valueOf(createDate);
         Set<String> distributeCellSet = distributeLogMapper.findDistributeLogCellSet(apiCode, distributeType, distributeDate,
-                allCells, marketingDate);
+                allCells, marketingDate, userType);
         // iterator pushList
         Iterator<WubaSubmitConversionData> iterator = pushList.iterator();
         while (iterator.hasNext()){
@@ -145,6 +146,7 @@ public class WuBaSubmitConversionSoleProcessor {
             return;
         }
         Integer marketingDate = condition.getParam().getCreateDate();
+        String userType = condition.getParam().getUserType();
         List<DataDistributeDetailLog> distributeLogList = pushList.stream().map((WubaSubmitConversionData data) -> {
             DataDistributeDetailLog distributeLog = new DataDistributeDetailLog();
             distributeLog.setApiCode(data.getApiCode());
@@ -159,7 +161,7 @@ public class WuBaSubmitConversionSoleProcessor {
             distributeLog.setUpdateTime(new Date());
             distributeLog.setSourceId(data.getId());
             distributeLog.setSourceType(DistributeSourceTypeEnum.TRANSFER.getValue());
-            distributeLog.setExtend("{\"marketingDate\":\""+ marketingDate+"\"}");
+            distributeLog.setExtend("{\"marketingDate\":\""+ marketingDate+"\",\"userType\":\""+userType+"\"}");
             return distributeLog;
         }).collect(Collectors.toList());
 
