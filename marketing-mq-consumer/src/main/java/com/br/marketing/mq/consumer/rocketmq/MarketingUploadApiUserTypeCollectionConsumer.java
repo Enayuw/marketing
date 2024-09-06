@@ -51,7 +51,8 @@ public class MarketingUploadApiUserTypeCollectionConsumer extends BaseMqMessageL
 
     @Override
     protected boolean isThrowException() {
-        return false;
+        // true会重新消费消息
+        return true;
     }
 
     @Override
@@ -59,17 +60,4 @@ public class MarketingUploadApiUserTypeCollectionConsumer extends BaseMqMessageL
         super.dispatchMessage(messageExt);
     }
 
-//    @Override
-//    protected ConsumeResult handleMessage(MessageView messageView) throws Exception {
-//        Charset charset = StandardCharsets.UTF_8;
-//        String bodyString = charset.decode(messageView.getBody()).toString();
-//        log.warn("MARKETING_TRANSFER_RECEIVE：获取消息成功:{}",bodyString);
-//        consumerService.consumerRun(messageView, variableDicService::batchAddUserTypeVariableDicTry, bodyString, null);
-//        return ConsumeResult.SUCCESS;
-//    }
-//
-//    @Override
-//    public ConsumeResult consume(MessageView messageView) {
-//        return super.dispatchMessage(messageView);
-//    }
 }

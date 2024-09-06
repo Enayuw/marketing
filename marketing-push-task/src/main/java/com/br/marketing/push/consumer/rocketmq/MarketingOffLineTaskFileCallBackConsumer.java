@@ -58,7 +58,8 @@ public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListe
 
     @Override
     protected boolean isThrowException() {
-        return false;
+        // true会重新消费消息
+        return true;
     }
 
     @Override
