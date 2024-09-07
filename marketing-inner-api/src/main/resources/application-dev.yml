@@ -97,6 +97,11 @@ api:
     batchHermesUserData: ${api.dass.ibuBaseUrl}/ibu-daas/api/batchHermesUserData
     ibuAk: d87a6e0ab4dc2903
     ibuSk: fbd1478a51d88954
+  biocloo:
+    baseUrl: http://58.33.156.202:57436
+    blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
+    aesKey: 213Dz2k650N1vf9w
+    isProxy: false
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
 NAMESPACE: marketing-job

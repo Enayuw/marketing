@@ -2091,5 +2091,10 @@ public class MarketingCommonConfig {
      */
     private String wuBaDingDingSecret;
 
+    /**
+     * 数禾推送百可录apiCode路由配置
+     */
+    private JSONObject shuHeProxyToBioclooApiCode;
+
 }
 
