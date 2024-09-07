@@ -2,6 +2,7 @@ package com.br.marketing.client.biocloo;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.biocloo.input.BlackDataDTO;
 import com.br.marketing.client.biocloo.input.BlackDataRequestDTO;
 import com.br.marketing.client.biocloo.utils.AESUtil;
 import com.br.marketing.common.annoation.RetryMethod;
@@ -45,15 +46,15 @@ public class BioclooClient {
     private final static String TITLE = "【推送百可录数据】";
 
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
-    public Result pushBlackDataToBiocloo(BlackDataRequestDTO dto, Integer retry) {
+    public Result pushBlackDataToBiocloo(BlackDataDTO dto, Integer retry) {
         log.warn(TITLE + "加密前请求参数, dto{}", JSONObject.toJSONString(dto));
         String encryptData = AESUtil.encryptToBase64(JSONObject.toJSONString(dto), aesKey);
-        JSONObject param = new JSONObject();
-        param.put("apiCode", dto.getApiCode());
-        param.put("encryptData", encryptData);
+        BlackDataRequestDTO requestDTO = new BlackDataRequestDTO();
+        requestDTO.setApiCode(dto.getApiCode());
+        requestDTO.setJsonData(encryptData);
         long start = System.currentTimeMillis();
         log.warn(TITLE + "调度开始, requestParam{}", JSONObject.toJSONString(dto));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(param, blackListUrl, isProxy, MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(requestDTO, blackListUrl, isProxy, MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             JSONObject.toJSONString(dto), true, true);
         long end = System.currentTimeMillis();
         log.warn(TITLE + "调度结束, result:{}, 耗时:{}", resMap, end - start);

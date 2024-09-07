@@ -1,6 +1,5 @@
 package com.br.marketing.strategy;
 
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -11,17 +10,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.biocloo.BioclooClient;
 import com.br.marketing.client.biocloo.input.BlackDataDTO;
-import com.br.marketing.client.biocloo.input.BlackDataRequestDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class BioclooBlackListHandler extends AbstractExternalInterfaceHandler<BlackDataDTO> {
+public class BioclooBlackListHandler extends AbstractExternalInterfaceHandler<BlackDataDTO.DataDTO> {
 
     @Resource
     private BioclooClient bioclooClient;
@@ -29,18 +28,18 @@ public class BioclooBlackListHandler extends AbstractExternalInterfaceHandler<Bl
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public JSONObject call(List<BlackDataDTO> blackDataDTOList, ProcessHandlerContext context) {
+    public JSONObject call(List<BlackDataDTO.DataDTO> blackDataDTOList, ProcessHandlerContext context) {
         int pageSize = 500;
         int totalCount = blackDataDTOList.size();
         int pageCount = totalCount % pageSize == 0 ? totalCount / pageSize : totalCount / pageSize + 1;
         for (int i = 1; i <= pageCount; i++) {
-            List<BlackDataDTO> subList;
+            List<BlackDataDTO.DataDTO> subList;
             if (i == pageCount) {
                 subList = blackDataDTOList.subList((i - 1) * pageSize, totalCount);
             } else {
                 subList = blackDataDTOList.subList((i - 1) * pageSize, pageSize * (i));
             }
-            BlackDataRequestDTO dto = new BlackDataRequestDTO();
+            BlackDataDTO dto = new BlackDataDTO();
             dto.setMethod("blackData");
             dto.setData(subList);
             JSONObject proxyJson = marketingCommonConfig.getShuHeProxyToBioclooApiCode();
