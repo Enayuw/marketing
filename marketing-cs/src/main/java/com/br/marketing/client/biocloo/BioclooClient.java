@@ -1,24 +1,28 @@
 package com.br.marketing.client.biocloo;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.biocloo.input.BlackDataDTO;
-import com.br.marketing.client.biocloo.input.BlackDataRequestDTO;
-import com.br.marketing.client.biocloo.utils.AESUtil;
-import com.br.marketing.common.annoation.RetryMethod;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.util.HashMap;
+
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.biocloo.input.BlackDataDTO;
+import com.br.marketing.client.biocloo.input.BlackDataRequestDTO;
+import com.br.marketing.client.biocloo.input.BlackDataSoleDTO;
+import com.br.marketing.client.biocloo.utils.AESUtil;
+import com.br.marketing.common.annoation.DistributeLog;
+import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 
+import cn.hutool.core.collection.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -44,8 +48,17 @@ public class BioclooClient {
 
     private final static String TITLE = "【推送百可录数据】";
 
-    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
-    public Result pushBlackDataToBiocloo(BlackDataDTO dto, Integer retry) {
+    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = false)
+    @DistributeLog
+    public Result pushBlackDataToBiocloo(BlackDataSoleDTO soleDTO, Integer retry) {
+        BlackDataDTO dto = new BlackDataDTO();
+        dto.setMethod("blackData");
+        if (CollectionUtil.isEmpty(soleDTO.getData())) {
+            log.warn("推送百可录去重后推送数据为0");
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        dto.setData(soleDTO.getData());
+        dto.setApiCode(soleDTO.getApiCode());
         log.warn(TITLE + "加密前请求参数, dto{}", JSONObject.toJSONString(dto));
         JSONObject shuHeToBioclooAesKeyConfig = marketingCommonConfig.getShuHeToBioclooAesKeyConfig();
         String encryptData = AESUtil.encryptToBase64(JSONObject.toJSONString(dto), shuHeToBioclooAesKeyConfig.getString(dto.getApiCode()));
@@ -54,8 +67,8 @@ public class BioclooClient {
         requestDTO.setJsonData(encryptData);
         long start = System.currentTimeMillis();
         log.warn(TITLE + "调度开始, requestParam{}", JSONObject.toJSONString(dto));
-        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(requestDTO, blackListUrl, isProxy, MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            JSONObject.toJSONString(dto), true, true);
+        HashMap<String, String> resMap = httpProxyClient.sendByCodeWithLog(requestDTO, blackListUrl, isProxy,
+            MediaType.APPLICATION_FORM_URLENCODED_VALUE, JSONObject.toJSONString(dto), true, true);
         long end = System.currentTimeMillis();
         log.warn(TITLE + "调度结束, result:{}, 耗时:{}", resMap, end - start);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
@@ -73,4 +86,5 @@ public class BioclooClient {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
+
 }

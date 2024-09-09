@@ -12,7 +12,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.StringUtils;
-import com.br.marketing.client.biocloo.input.BlackDataDTO;
+import com.br.marketing.client.biocloo.input.DataSoleDTO;
+import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
@@ -35,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
-public class ShuHeBlackListToBioclooImpl implements AssembleData<BlackDataDTO.DataDTO> {
+public class ShuHeBlackListToBioclooImpl implements AssembleData<DataSoleDTO> {
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
@@ -43,23 +44,30 @@ public class ShuHeBlackListToBioclooImpl implements AssembleData<BlackDataDTO.Da
     private MarketingCommonConfig marketingCommonConfig;
 
     @Override
-    public BlackDataDTO.DataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public DataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         String reserveField1 = transfer.getReserveField1();
         JSONObject json = JSON.parseObject(reserveField1);
         String expireDate = ShuHeBlackListUtil.getBlackDataExpireDate(transfer, marketingCommonConfig.getShuhePushBlackDay());
         if (StringUtils.isNotEmpty(expireDate)) {
-            BlackDataDTO.DataDTO dataDTO = new BlackDataDTO.DataDTO();
+            DataSoleDTO dataSoleDTO = new DataSoleDTO();
+            dataSoleDTO.setStatus("0");
             JSONObject proxyJson = marketingCommonConfig.getShuHeProxyToBioclooApiCode();
-            dataDTO.setApiCode(proxyJson.getString(context.getApiCode()));
-            dataDTO.setCaseNum(transfer.getCustNum());
+            dataSoleDTO.setApiCode(proxyJson.getString(context.getApiCode()));
+            dataSoleDTO.setCaseNum(transfer.getCustNum());
+            dataSoleDTO.setDataId(String.valueOf(transfer.getId()));
             String decode = BrCipherMaker.getInstance().decode(json.getString("cell"));
-            dataDTO.setPhone(Md5Utils.cell32(decode));
+            dataSoleDTO.setPhone(Md5Utils.cell32(decode));
+            dataSoleDTO.setPhone(Md5Utils.cell32(decode));
+            // 去重参数设置
+            dataSoleDTO.setInitId(transfer.getId());
+            dataSoleDTO.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
+            dataSoleDTO.setSoleType(1);
             if (!StringUtils.isEmpty(expireDate)) {
-                dataDTO.setExpireDate(expireDate);
+                dataSoleDTO.setExpireDate(expireDate);
             }
             log.warn("数禾促首借推送百可录黑名单,apiCode={},custNum={}", proxyJson.getString(context.getApiCode()), transfer.getCustNum());
-            return dataDTO;
+            return dataSoleDTO;
         }
         return null;
     }
