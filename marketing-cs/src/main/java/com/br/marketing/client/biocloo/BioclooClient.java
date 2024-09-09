@@ -1,5 +1,7 @@
 package com.br.marketing.client.biocloo;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import java.util.HashMap;
 
 import javax.annotation.Resource;
@@ -72,7 +74,8 @@ public class BioclooClient {
         long end = System.currentTimeMillis();
         log.warn(TITLE + "调度结束, result:{}, 耗时:{}", resMap, end - start);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.error("调用百可录【黑名单】接口异常-请求参数:{};返回:{}", JSON.toJSONString(dto), JSON.toJSONString(resMap));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_INTERFACEERROR.getCode(),
+                String.format("请求参数:%s,返回:%s", JSON.toJSONString(dto), JSON.toJSONString(resMap)), "调用百可录【黑名单】接口异常"));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
         String content = resMap.get("content");
