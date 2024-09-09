@@ -115,48 +115,6 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         return biReportVO;
     }
 
-    private int getOrderScore(String dataPacket) {
-        int orderScore;
-        switch (dataPacket) {
-            case "1400wdx":
-                orderScore = 1;
-                break;
-            case "1400wlt":
-                orderScore = 2;
-                break;
-            case "1200w":
-                orderScore = 3;
-                break;
-            case "2800w":
-                orderScore = 4;
-                break;
-            case "300w":
-                orderScore = 5;
-                break;
-            case "800w":
-                orderScore = 6;
-                break;
-            case "900w":
-                orderScore = 7;
-                break;
-            case "3300w":
-                orderScore = 8;
-                break;
-            case "3500w":
-                orderScore = 9;
-                break;
-            case "360w":
-                orderScore = 10;
-                break;
-            case "830w":
-                orderScore = 11;
-                break;
-            default:
-                orderScore = 12;
-        }
-        return orderScore;
-    }
-
     /**
      * 导出数据
      *
