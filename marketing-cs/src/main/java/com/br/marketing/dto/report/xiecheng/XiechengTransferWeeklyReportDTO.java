@@ -57,7 +57,7 @@ public class XiechengTransferWeeklyReportDTO implements Serializable {
     private BigDecimal creditRatio;
 
     @ApiModelProperty("提现率")
-    @DecimalFieldConvertor(scale = 2)
+    @DecimalFieldConvertor
     private BigDecimal withdrawRatio;
 
     @ApiModelProperty("身份认证完成率")
