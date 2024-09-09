@@ -79,7 +79,7 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
-        yAxis.add(buildWrapDataVO("实际外呼量级", sortedData, XiechengTransferWeeklyReportDTO::getOutboundNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("实际外呼量", sortedData, XiechengTransferWeeklyReportDTO::getOutboundNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("身份认证量", sortedData, XiechengTransferWeeklyReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("申请量", sortedData, XiechengTransferWeeklyReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("授信量", sortedData, XiechengTransferWeeklyReportDTO::getCreditNum, FormatType.THOUSAND_SEPARATOR));

@@ -21,13 +21,13 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     @ApiModelProperty("日期")
     private String reportDate;
 
-    @ApiModelProperty("当日运营量级")
+    @ApiModelProperty("当日运营量")
     private Long operateNum;
 
-    @ApiModelProperty("当日身份认证量级")
+    @ApiModelProperty("当日身份认证量")
     private Long certifyNum;
 
-    @ApiModelProperty("当日申请量级")
+    @ApiModelProperty("当日申请量")
     private Long applyNum;
 
     @ApiModelProperty("当日授信量")

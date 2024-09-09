@@ -71,11 +71,11 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
-        yAxis.add(buildWrapDataVO("锁定名单量级", sortedData, XiechengTransferMonthlyReportDTO::getLockNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("上报名单量级", sortedData, XiechengTransferMonthlyReportDTO::getSubmitNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("实际外呼量级", sortedData, XiechengTransferMonthlyReportDTO::getOutboundNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("累计运营量级", sortedData, XiechengTransferMonthlyReportDTO::getOperateNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("身份认证量级", sortedData, XiechengTransferMonthlyReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("锁定名单量", sortedData, XiechengTransferMonthlyReportDTO::getLockNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("上报名单量", sortedData, XiechengTransferMonthlyReportDTO::getSubmitNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("实际外呼量", sortedData, XiechengTransferMonthlyReportDTO::getOutboundNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("累计运营量", sortedData, XiechengTransferMonthlyReportDTO::getOperateNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("身份认证量", sortedData, XiechengTransferMonthlyReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("申请量", sortedData, XiechengTransferMonthlyReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("授信量", sortedData, XiechengTransferMonthlyReportDTO::getCreditNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("申请提现量", sortedData, XiechengTransferMonthlyReportDTO::getApplyWithdrawNum, FormatType.THOUSAND_SEPARATOR));
@@ -90,8 +90,8 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
         yAxis.add(buildWrapDataVO("过件率", sortedData, XiechengTransferMonthlyReportDTO::getOverPieceRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("授信后提现发起率", sortedData, XiechengTransferMonthlyReportDTO::getCreditWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("授信后提现成功率", sortedData, XiechengTransferMonthlyReportDTO::getCreditWithdrawSucRatio, FormatType.PERCENT_SIGN));
-        yAxis.add(buildWrapDataVO("申请授信量级2", sortedData, XiechengTransferMonthlyReportDTO::getApplyCreditNum2, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("提现成功量级2", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawSucNum2, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("申请授信量2", sortedData, XiechengTransferMonthlyReportDTO::getApplyCreditNum2, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("提现成功量2", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawSucNum2, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("申请提现率2", sortedData, XiechengTransferMonthlyReportDTO::getApplyWithdrawRatio2, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("提现率2", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawRatio2, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("提现发起率", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
