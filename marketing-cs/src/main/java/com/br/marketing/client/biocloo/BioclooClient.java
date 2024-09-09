@@ -85,7 +85,8 @@ public class BioclooClient {
             log.warn("调用百可录【黑名单】接口，返回code为000000，请求正常");
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage(content);
         } else {
-            log.error("调用百可录【黑名单】接口异常，返回code非000000，最多重试三次");
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_INTERFACEERROR.getCode(), "返回code非000000，最多重试三次",
+                    "调用百可录【黑名单】接口异常"));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
