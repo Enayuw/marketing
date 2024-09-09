@@ -93,11 +93,11 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     @ApiModelProperty("当日授信后提现成功")
     private Long creditWithdrawSucNum;
 
-    @ApiModelProperty("当日授信后提现发起率")
+    @ApiModelProperty("当日授信后发起提现率")
     @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawLaunchRatio;
 
-    @ApiModelProperty("授信后提现成功率")
+    @ApiModelProperty("当日授信后提现成功率")
     @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawSucRatio;
 

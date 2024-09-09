@@ -91,8 +91,8 @@ public class XiechengTransferDailyConverter extends AbstractBiReportConverter<Bi
         yAxis
             .add(buildWrapDataVO("当日授信后提现发起", sortedData, XiechengTransferDailyReportDTO::getCreditWithdrawLaunchNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日授信后提现成功", sortedData, XiechengTransferDailyReportDTO::getCreditWithdrawSucNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("当日授信后提现发起率", sortedData, XiechengTransferDailyReportDTO::getCreditWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
-        yAxis.add(buildWrapDataVO("授信后提现成功率", sortedData, XiechengTransferDailyReportDTO::getCreditWithdrawSucRatio, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("当日授信后发起提现率", sortedData, XiechengTransferDailyReportDTO::getCreditWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("当日授信后提现成功率", sortedData, XiechengTransferDailyReportDTO::getCreditWithdrawSucRatio, FormatType.PERCENT_SIGN));
         yAxis
             .add(buildWrapDataVO("上报数据百万转化", sortedData, XiechengTransferDailyReportDTO::getSubmitMillionTransferNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(
