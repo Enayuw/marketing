@@ -1,18 +1,8 @@
 package com.br.marketing.bi.xiecheng;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.annotation.Resource;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -29,10 +19,21 @@ import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.poi.excel.ExcelWriter;
 import groovy.util.logging.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 携程7日撞库结果分布报表适配实现
@@ -62,7 +63,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
     @Override
     public List<XiechengCollidingWeeklyReportDTO> fetchData(BiReportParam param) {
         List<XiechengCollidingWeeklyReportDTO> dtos = Lists.newArrayList();
-        String lockPeriodStartDate = getDictByKeyAndApiCode("xc_lock_period_start_date", "3710058");
+        String lockPeriodStartDate = getDictByKeyAndApiCode("xc_lock_period_start_date", null);
         DateTime startDate = DateUtil.parse(lockPeriodStartDate, "yyyy-MM-dd");
         DateTime currentDate = DateUtil.date();
         long daysBetween = DateUtil.betweenDay(startDate, currentDate, false);
@@ -76,7 +77,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             // 查询交集量级
             List<SourceStatisticDict> sourceStatisticDicts = getSourceStatisticDicts(periodStart, periodEnd);
 
-            // 根据datapackact分组，对锁定量级求和
+            // 根据datapackact分组
             List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xieChengBiReportMapper.selectXcCollidingWeeklybI_(periodStart.toDateStr(),
                     periodEnd.toDateStr());
 
@@ -125,6 +126,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();
         dto.setDataPacket(dataPacket);
         dto.setLockPeriod(formatPeriod(periodStart, periodEnd));
+        // 对锁定量级求和
         dto.setLockNum(reportList.stream().mapToLong(XiechengCollidingWeeklyReportDTO::getLockNum).sum());
         return dto;
     }
