@@ -9,6 +9,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.util.HashMap;
 import javax.annotation.Resource;
 
@@ -29,26 +30,25 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class BioclooClient {
-
-    @Value(value = "${api.biocloo.blackList}")
+    @Value(value = "${api.biocloo.blackList:'https://callcenter.biocloo.com.cn/api/middle/robotai/v1/process_data'}")
     private String blackListUrl;
 
-    @Value(value = "${api.biocloo.aesKey}")
-    private String aesKey;
-
-
-    @Value("${api.biocloo.isProxy}")
+    @Value("${api.biocloo.isProxy:true}")
     private Boolean isProxy;
 
     @Resource
     private HttpProxyClient httpProxyClient;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     private final static String TITLE = "【推送百可录数据】";
 
     @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     public Result pushBlackDataToBiocloo(BlackDataDTO dto, Integer retry) {
         log.warn(TITLE + "加密前请求参数, dto{}", JSONObject.toJSONString(dto));
-        String encryptData = AESUtil.encryptToBase64(JSONObject.toJSONString(dto), aesKey);
+        JSONObject shuHeToBioclooAesKeyConfig = marketingCommonConfig.getShuHeToBioclooAesKeyConfig();
+        String encryptData = AESUtil.encryptToBase64(JSONObject.toJSONString(dto), shuHeToBioclooAesKeyConfig.getString(dto.getApiCode()));
         BlackDataRequestDTO requestDTO = new BlackDataRequestDTO();
         requestDTO.setApiCode(dto.getApiCode());
         requestDTO.setJsonData(encryptData);

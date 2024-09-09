@@ -2096,5 +2096,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject shuHeProxyToBioclooApiCode;
 
+    /**
+     * 数禾推送百可录AES加密key配置
+     */
+    private JSONObject shuHeToBioclooAesKeyConfig;
+
 }
 
