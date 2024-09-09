@@ -58,7 +58,7 @@ public class BioclooBlackListHandler extends AbstractExternalInterfaceHandler<Da
             sendList.add(dataDTO);
             // 把封装的日志插入到数组中
             logList.add(methodRetryHandlerService.dataJoinLogFix(dataDTO, DistributeTypeEnum.CUSTOMERTRANSFER, apiCode,
-                dataDTO.getCaseNum(), BrCipherMaker.getInstance().encode(dataDTO.getPhone()), Long.valueOf(soleDTO.getDataId()),
+                dataDTO.getCaseNum(), dataDTO.getPhone(), Long.valueOf(soleDTO.getDataId()),
                 soleDTO.getDistributeSourceTypeEnum() == null ? DistributeSourceTypeEnum.TRANSFER : soleDTO.getDistributeSourceTypeEnum(),
                 soleDTO.getStatus(), soleDTO.getExpireEndDate()));
             if (sendList.size() == pageSize || sum == totalCount) {
