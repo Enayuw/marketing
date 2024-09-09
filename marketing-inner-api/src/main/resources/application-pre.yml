@@ -190,7 +190,6 @@ api:
   biocloo:
     baseUrl: http://58.33.156.202:57436
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
-    aesKey: Q64l2a7A77r27ybK
     isProxy: false
 #elastic-job配置
 SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
