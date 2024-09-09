@@ -78,7 +78,7 @@ public class BioclooBlackListHandler extends AbstractExternalInterfaceHandler<Da
                 if (dataDTO.getSoleField() != null) {
                     dto.setSoleField(dataDTO.getSoleField());
                 } else {
-                    dto.setSoleField(SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue());
+                    dto.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
                 }
                 // 去重范围,根据传入值赋值，默认当天去重
                 if (dataDTO.getSoleType() != null) {
