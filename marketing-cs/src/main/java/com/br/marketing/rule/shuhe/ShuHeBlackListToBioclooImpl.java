@@ -58,7 +58,6 @@ public class ShuHeBlackListToBioclooImpl implements AssembleData<DataSoleDTO> {
             dataSoleDTO.setDataId(String.valueOf(transfer.getId()));
             String decode = BrCipherMaker.getInstance().decode(json.getString("cell"));
             dataSoleDTO.setPhone(Md5Utils.cell32(decode));
-            dataSoleDTO.setPhone(Md5Utils.cell32(decode));
             // 去重参数设置
             dataSoleDTO.setInitId(transfer.getId());
             dataSoleDTO.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
