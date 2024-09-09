@@ -23,7 +23,7 @@ public class XiechengTransferWeeklyReportDTO implements Serializable {
     @ApiModelProperty("日期")
     private String rollPeriod;
 
-    @ApiModelProperty("实际外呼量级")
+    @ApiModelProperty("实际外呼量")
     private Long outboundNum;
 
     @ApiModelProperty("身份认证量")

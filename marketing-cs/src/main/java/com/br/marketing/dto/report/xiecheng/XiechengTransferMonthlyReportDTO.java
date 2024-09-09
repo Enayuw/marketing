@@ -22,19 +22,19 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     @ApiModelProperty("日期")
     private String reportDate;
 
-    @ApiModelProperty("锁定名单量级")
+    @ApiModelProperty("锁定名单量")
     private Long lockNum;
 
-    @ApiModelProperty("上报名单量级")
+    @ApiModelProperty("上报名单量")
     private Long submitNum;
 
-    @ApiModelProperty("实际外呼量级")
+    @ApiModelProperty("实际外呼量")
     private Long outboundNum;
 
-    @ApiModelProperty("累计运营量级")
+    @ApiModelProperty("累计运营量")
     private Long operateNum;
 
-    @ApiModelProperty("身份认证量级")
+    @ApiModelProperty("身份认证量")
     private Long certifyNum;
 
     @ApiModelProperty("申请量")
@@ -88,10 +88,10 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawSucRatio;
 
-    @ApiModelProperty("申请授信量级2")
+    @ApiModelProperty("申请授信量2")
     private Long applyCreditNum2;
 
-    @ApiModelProperty("提现成功量级2")
+    @ApiModelProperty("提现成功量2")
     private Long withdrawSucNum2;
 
     @ApiModelProperty("申请提现率2")

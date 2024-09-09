@@ -70,9 +70,9 @@ public class XiechengTransferDailyConverter extends AbstractBiReportConverter<Bi
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
-        yAxis.add(buildWrapDataVO("当日运营量级", sortedData, XiechengTransferDailyReportDTO::getOperateNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("当日身份认证量级", sortedData, XiechengTransferDailyReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("当日申请量级", sortedData, XiechengTransferDailyReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日运营量", sortedData, XiechengTransferDailyReportDTO::getOperateNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日身份认证量", sortedData, XiechengTransferDailyReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日申请量", sortedData, XiechengTransferDailyReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日授信量", sortedData, XiechengTransferDailyReportDTO::getCreditNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日申请提现", sortedData, XiechengTransferDailyReportDTO::getApplyWithdrawNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日提现量", sortedData, XiechengTransferDailyReportDTO::getWithdrawNum, FormatType.THOUSAND_SEPARATOR));
