@@ -37,6 +37,19 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
     @Resource
     private MarketingCustomerMapper marketingCustomerService;
 
+    /**
+     * 解密jsonData
+     *
+     * @param jsonData json数据
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2024/09/11
+     */
+    @Override
+    public String decryptJsonData(String jsonData) {
+        return jsonData;
+    }
+
     @Override
     public CustomerUploadHandlerEnum customer() {
         return CustomerUploadHandlerEnum.U_ALIEN_DEFAULT;

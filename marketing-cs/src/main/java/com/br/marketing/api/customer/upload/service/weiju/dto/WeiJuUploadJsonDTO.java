@@ -1,7 +1,6 @@
 package com.br.marketing.api.customer.upload.service.weiju.dto;
 
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.dto.MarketingPreUserDTO;
 
@@ -23,26 +22,39 @@ public class WeiJuUploadJsonDTO extends BaseUploadDataAdaptee {
     private static final long serialVersionUID = 8769826064634577808L;
 
     /**
-     * 流水号
+     * 请求ID
      */
     private String traceId;
 
     /**
-     * 机构编码
+     * 执行批次号
      */
-    private String institutionCode;
+    private String executeBatchNo;
 
     /**
-     * 自定义参数
+     * ⽤户类型：silence: 沉默⽤户；littleSilence: 较沉默⽤户；
+     *
      */
-    private JSONObject properties;
+    private String userType;
+
+    /**
+     * 场景：registedNoCredit:注册未授信； creditedNoWithdrawal:授信未提现； clearedNoReloan:结清未复贷；
+     *
+     */
+    private String scene;
+
+    /**
+     * 沉默天数分组
+     *
+     */
+    private String silenceDaysGroup;
 
     /**
      * 业务数据，必填 初始已知字段： userId 用户id 必填 userType 分组 非必填 customName 客群分类 非必填 firstName 姓氏 非必填 gender 性别 非必填 age 年龄 非必填 cell 手机号-md5 必填 registerTime 注册日期
      * 必填 auditTime 历史授信时间 yyyy-mm-dd 非必填 auditAmount 历史授信金额 非必填 lastboot 最近一次启动时间 非必填 lastloan 最近一次放款时间 非必填 lastamount 最近一次放款金额 非必填 lastsettle 最近结清时间
      * 非必填
      */
-    private JSONArray userList;
+    private JSONArray userInfoList;
 
     @Override
     protected MarketingPreUserDTO adapteeRequest(String apiCode, MarketingPreUserDTO marketingPreUserDTO) {

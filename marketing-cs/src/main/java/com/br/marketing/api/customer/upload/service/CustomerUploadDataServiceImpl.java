@@ -64,6 +64,9 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
         CustomerUploadDataHandler customerUploadDataHandler =
             customerUploadDataHandleSingleton.getCustomerDataHandleImpl(apiCode, CustomerUploadHandlerEnum.U_ALIEN_DEFAULT);
         try {
+
+            jsonData = customerUploadDataHandler.decryptJsonData(jsonData);
+
             CustomizeUploadData uploadData = new CustomizeUploadData();
             uploadData.setRequestJsonData(jsonData);
             uploadData.setReceiveDate(LocalDate.now().toString());
@@ -94,7 +97,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                     "该apiCode:" + apiCode + "定制上传接口传参jsonData非json格式！！！"));
             }
             if (respCustomer == null) {
-                String requestId = customerUploadDataHandler.getRequestId(apiCode,adapter);
+                String requestId = customerUploadDataHandler.getRequestId(apiCode, adapter);
                 uploadData.setRequestId(requestId);
                 try {
                     customerUploadDataHandler.setSourceParam(apiCode, jsonData, adapter);
