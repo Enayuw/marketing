@@ -180,7 +180,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             .thenComparing(XiechengCollidingWeeklyReportDTO::getIntersectionNum, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
         List<String> xAxis = dtos.stream()
-            .map(report -> report.getDataPacket() + "_"
+            .map(report -> report.getDataPacket() + SEPARATOR
                 + (report.getIntersectionNum() == null ? "0" : String.format(Locale.getDefault(), "%,d", report.getIntersectionNum())))
             .distinct().collect(Collectors.toList());
         // 计算交集量级总计
@@ -271,13 +271,13 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         List<String> xAxis = param.getXAxis();
         List<WrapDataVO> yAxis = param.getYAxis();
         // 写入X轴名称
-        List<String> tagNames = Splitter.on("_").splitToList(param.getXAxisName());
+        List<String> tagNames = Splitter.on(SEPARATOR).splitToList(param.getXAxisName());
         for (int i = 0; i < tagNames.size(); i++) {
             writer.writeCellValue(i, 0, tagNames.get(i));
         }
         // 写X轴数据
         for (int i = 0; i < xAxis.size(); i++) {
-            List<String> tags = Splitter.on("_").splitToList(xAxis.get(i));
+            List<String> tags = Splitter.on(SEPARATOR).splitToList(xAxis.get(i));
             for (int j = 0; j < tags.size(); j++) {
                 writer.writeCellValue(j, i + 1, Objects.equals("null", tags.get(j)) ? "空" : tags.get(j));
             }

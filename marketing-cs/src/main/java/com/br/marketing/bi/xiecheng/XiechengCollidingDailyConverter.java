@@ -87,7 +87,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
             .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
         List<String> xAxis =
-            dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel()).distinct().collect(Collectors.toList());
+            dtos.stream().map(report -> report.getDataPacket() + SEPARATOR + report.getOrgChannel()).distinct().collect(Collectors.toList());
         xAxis.add("总计_");
         biReportVO.setXAxisName("dataPacket_orgChannel");
         biReportVO.setXAxis(xAxis);
@@ -99,7 +99,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         Map<String,
             Map<String, Long>> reportDateDataMap = dtos.stream()
                 .collect(Collectors.groupingBy(XiechengCollidingDailyReportDTO::getReportDate,
-                    Collectors.toMap(dto -> dto.getDataPacket() + "_" + dto.getOrgChannel(), XiechengCollidingDailyReportDTO::getLockNum,
+                    Collectors.toMap(dto -> dto.getDataPacket() + SEPARATOR + dto.getOrgChannel(), XiechengCollidingDailyReportDTO::getLockNum,
                         (oldValue, newValue) -> newValue, LinkedHashMap::new)));
         /*
          * 构造Y轴数据
@@ -156,13 +156,13 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         List<String> xAxis = param.getXAxis();
         List<WrapDataVO> yAxis = param.getYAxis();
         // 写入X轴名称
-        List<String> tagNames = Splitter.on("_").splitToList(param.getXAxisName());
+        List<String> tagNames = Splitter.on(SEPARATOR).splitToList(param.getXAxisName());
         for (int i = 0; i < tagNames.size(); i++) {
             writer.writeCellValue(i, 0, tagNames.get(i));
         }
         // 写X轴数据
         for (int i = 0; i < xAxis.size(); i++) {
-            List<String> tags = Splitter.on("_").splitToList(xAxis.get(i));
+            List<String> tags = Splitter.on(SEPARATOR).splitToList(xAxis.get(i));
             for (int j = 0; j < tags.size(); j++) {
                 writer.writeCellValue(j, i + 1, Objects.equals("null", tags.get(j)) ? "NULL" : tags.get(j));
             }

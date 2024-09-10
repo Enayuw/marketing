@@ -31,6 +31,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class AbstractBiReportConverter<V, T> {
 
+    protected static final String SEPARATOR = "|&|";
+
     @Resource
     private SourceStatisticDictMapper sourceStatisticDictMapper;
 
