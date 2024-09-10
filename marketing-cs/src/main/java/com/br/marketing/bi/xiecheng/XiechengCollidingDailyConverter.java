@@ -83,7 +83,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
             .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
-        List<String> xAxis = dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo())
+        List<String> xAxis = dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo()).distinct()
             .collect(Collectors.toList());
         biReportVO.setXAxisName("dataPacket_orgChannel_info");
         biReportVO.setXAxis(xAxis);

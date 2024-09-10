@@ -64,8 +64,9 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
         biReportVO.setReportName("月转化报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据时间排序
-        List<XiechengTransferMonthlyReportDTO> sortedData = dtos.stream()
-            .sorted(Comparator.comparing(XiechengTransferMonthlyReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
+        List<XiechengTransferMonthlyReportDTO> sortedData =
+            dtos.stream().sorted(Comparator.comparing(XiechengTransferMonthlyReportDTO::getReportDate, Comparator.naturalOrder())).distinct()
+                .collect(Collectors.toList());
         // 构造横坐标数据
         List<String> xAxis = sortedData.stream().map(XiechengTransferMonthlyReportDTO::getReportDate).collect(Collectors.toList());
         biReportVO.setXAxisName("日期");

@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 /**
  * 携程7日撞库结果分布报表适配实现
+ * 
  * @author senyang.zheng
  * @date 2024/09/04
  */
@@ -55,6 +56,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
 
     /**
      * 获取数据
+     * 
      * @param param 参数
      * @return {@link List }<{@link XiechengCollidingWeeklyReportDTO }>
      * @author senyang.zheng
@@ -67,7 +69,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         DateTime startDate = DateUtil.parse(lockPeriodStartDate, "yyyy-MM-dd");
         DateTime currentDate = DateUtil.date();
         long daysBetween = DateUtil.betweenDay(startDate, currentDate, false);
-        int currentCycleOffset = (int) (daysBetween / 7);
+        int currentCycleOffset = (int)(daysBetween / 7);
         DateTime currentPeriodStart = DateUtil.offsetDay(startDate, currentCycleOffset * 7);
 
         for (int i = 0; i < 5; i++) {
@@ -78,8 +80,8 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             List<SourceStatisticDict> sourceStatisticDicts = getSourceStatisticDicts(periodStart, periodEnd);
 
             // 根据datapackact分组
-            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS = xieChengBiReportMapper.selectXcCollidingWeeklybI_(periodStart.toDateStr(),
-                    periodEnd.toDateStr());
+            List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS =
+                xieChengBiReportMapper.selectXcCollidingWeeklybI_(periodStart.toDateStr(), periodEnd.toDateStr());
 
             // 处理"1400wdx"和"1400wlt"数据包
             processSpecialPackets(weeklyReportDTOS, periodStart, periodEnd, sourceStatisticDicts, dtos);
@@ -98,11 +100,11 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
     }
 
     private void processSpecialPackets(List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS, DateTime periodStart, DateTime periodEnd,
-                                       List<SourceStatisticDict> sourceStatisticDicts, List<XiechengCollidingWeeklyReportDTO> dtos) {
+        List<SourceStatisticDict> sourceStatisticDicts, List<XiechengCollidingWeeklyReportDTO> dtos) {
         List<XiechengCollidingWeeklyReportDTO> wdxAndWltReport = weeklyReportDTOS.stream()
-                .filter((XiechengCollidingWeeklyReportDTO t) -> Objects.equals(t.getDataPacket(), "1400wdx") || Objects.equals(t.getDataPacket(),
-                        "1400wlt"))
-                .collect(Collectors.toList());
+            .filter(
+                (XiechengCollidingWeeklyReportDTO t) -> Objects.equals(t.getDataPacket(), "1400wdx") || Objects.equals(t.getDataPacket(), "1400wlt"))
+            .collect(Collectors.toList());
 
         if (!wdxAndWltReport.isEmpty()) {
             XiechengCollidingWeeklyReportDTO dto = createDto("1400wdx&1400wlt", wdxAndWltReport, periodStart, periodEnd);
@@ -111,18 +113,17 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
     }
 
     private void processGeneralPackets(List<XiechengCollidingWeeklyReportDTO> weeklyReportDTOS, DateTime periodStart, DateTime periodEnd,
-                                       List<SourceStatisticDict> sourceStatisticDicts, List<XiechengCollidingWeeklyReportDTO> dtos) {
-        weeklyReportDTOS.stream()
-                .filter(t -> !Objects.equals(t.getDataPacket(), "1400wdx") && !Objects.equals(t.getDataPacket(), "1400wlt"))
-                .forEach((XiechengCollidingWeeklyReportDTO weeklyReportDTO) -> {
-                    XiechengCollidingWeeklyReportDTO genDto = createDto(weeklyReportDTO.getDataPacket(), weeklyReportDTO.getLockNum(), periodStart,
-                            periodEnd);
-                    assembleAndAddToList(genDto, sourceStatisticDicts, dtos);
-                });
+        List<SourceStatisticDict> sourceStatisticDicts, List<XiechengCollidingWeeklyReportDTO> dtos) {
+        weeklyReportDTOS.stream().filter(t -> !Objects.equals(t.getDataPacket(), "1400wdx") && !Objects.equals(t.getDataPacket(), "1400wlt"))
+            .forEach((XiechengCollidingWeeklyReportDTO weeklyReportDTO) -> {
+                XiechengCollidingWeeklyReportDTO genDto =
+                    createDto(weeklyReportDTO.getDataPacket(), weeklyReportDTO.getLockNum(), periodStart, periodEnd);
+                assembleAndAddToList(genDto, sourceStatisticDicts, dtos);
+            });
     }
 
-    private XiechengCollidingWeeklyReportDTO createDto(String dataPacket, List<XiechengCollidingWeeklyReportDTO> reportList,
-                                                       DateTime periodStart, DateTime periodEnd) {
+    private XiechengCollidingWeeklyReportDTO createDto(String dataPacket, List<XiechengCollidingWeeklyReportDTO> reportList, DateTime periodStart,
+        DateTime periodEnd) {
         XiechengCollidingWeeklyReportDTO dto = new XiechengCollidingWeeklyReportDTO();
         dto.setDataPacket(dataPacket);
         dto.setLockPeriod(formatPeriod(periodStart, periodEnd));
@@ -144,19 +145,15 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
     }
 
     private void assembleAndAddToList(XiechengCollidingWeeklyReportDTO dto, List<SourceStatisticDict> sourceStatisticDicts,
-                                      List<XiechengCollidingWeeklyReportDTO> dtos) {
+        List<XiechengCollidingWeeklyReportDTO> dtos) {
         String dictKey = "xc_dataPacket_intersection_" + dto.getDataPacket();
-        Long intersectionNum = sourceStatisticDicts.stream()
-                .filter((SourceStatisticDict t) -> Objects.equals(dictKey, t.getDictKey()))
-                .map(SourceStatisticDict::getDictValue)
-                .map(Long::parseLong)
-                .findFirst()
-                .orElse(0L);
+        Long intersectionNum = sourceStatisticDicts.stream().filter((SourceStatisticDict t) -> Objects.equals(dictKey, t.getDictKey()))
+            .map(SourceStatisticDict::getDictValue).map(Long::parseLong).findFirst().orElse(0L);
         dto.setIntersectionNum(intersectionNum);
 
         if (intersectionNum != 0) {
-            dto.setCollidingBackRatio(new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 0, RoundingMode.HALF_UP)
-                    .multiply(new BigDecimal(100)));
+            dto.setCollidingBackRatio(
+                new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 0, RoundingMode.HALF_UP).multiply(new BigDecimal(100)));
         } else {
             dto.setCollidingBackRatio(BigDecimal.ZERO);
         }
@@ -165,7 +162,8 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
 
     /**
      * 数据处理
-     * @param dtos   数据
+     * 
+     * @param dtos 数据
      * @param extend 扩展参数
      * @return {@link BiReportVO }
      * @author senyang.zheng
@@ -180,13 +178,12 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据标签排序，添加空值处理
         dtos.sort(Comparator.comparing(XiechengCollidingWeeklyReportDTO::getDataPacket, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(XiechengCollidingWeeklyReportDTO::getIntersectionNum, Comparator.nullsLast(Comparator.naturalOrder())));
+            .thenComparing(XiechengCollidingWeeklyReportDTO::getIntersectionNum, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
-        List<String> xAxis =
-            dtos.stream()
-                .map(report -> report.getDataPacket() + "_"
-                    + (report.getIntersectionNum() == null ? "0" : String.format(Locale.getDefault(), "%,d", report.getIntersectionNum())))
-                .collect(Collectors.toList());
+        List<String> xAxis = dtos.stream()
+            .map(report -> report.getDataPacket() + "_"
+                + (report.getIntersectionNum() == null ? "0" : String.format(Locale.getDefault(), "%,d", report.getIntersectionNum())))
+            .distinct().collect(Collectors.toList());
         biReportVO.setXAxisName("dataPacket_交集量级");
         biReportVO.setXAxis(xAxis);
 
@@ -194,7 +191,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         List<WrapDataVO> yAxis = Lists.newArrayList();
         // 1. 根据 lockPeriod 分组获取 Map<String, List<XiechengCollidingWeeklyReportDTO>> lockPeriodDataMap
         Map<String, List<XiechengCollidingWeeklyReportDTO>> lockPeriodDataMap =
-                dtos.stream().collect(Collectors.groupingBy(XiechengCollidingWeeklyReportDTO::getLockPeriod));
+            dtos.stream().collect(Collectors.groupingBy(XiechengCollidingWeeklyReportDTO::getLockPeriod));
         // 1.1 对lockPeriodDataMap的key和value进行排序
         Map<String, List<XiechengCollidingWeeklyReportDTO>> sortedLockPeriodDataMap = getSortedLockPeriodDataMap(lockPeriodDataMap);
         // 2. 遍历 lockPeriodDataMap
@@ -204,7 +201,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             // 计算当前滚动周期的开始和设定日期间隔天数
             long daysBetween = DateUtil.betweenDay(lockPeriodStartDate, currentLockPeriodStart, false);
             // 计算当前滚动周期的偏移量
-            int offset = (int) (daysBetween / 7);
+            int offset = (int)(daysBetween / 7);
             List<XiechengCollidingWeeklyReportDTO> group = entry.getValue();
             yAxis.add(buildWrapDataVO("第" + offset + "次锁定周期", group, XiechengCollidingWeeklyReportDTO::getLockPeriod, FormatType.DEFAULT));
             yAxis.add(buildWrapDataVO("锁定量级", group, XiechengCollidingWeeklyReportDTO::getLockNum, FormatType.THOUSAND_SEPARATOR));
@@ -215,18 +212,19 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
     }
 
     private Map<String, List<XiechengCollidingWeeklyReportDTO>>
-    getSortedLockPeriodDataMap(Map<String, List<XiechengCollidingWeeklyReportDTO>> lockPeriodDataMap) {
+        getSortedLockPeriodDataMap(Map<String, List<XiechengCollidingWeeklyReportDTO>> lockPeriodDataMap) {
         Map<String, List<XiechengCollidingWeeklyReportDTO>> sortedLockPeriodDataMap = new TreeMap<>(lockPeriodDataMap);
         sortedLockPeriodDataMap.forEach((key, valueList) -> valueList
-                .sort(Comparator.comparing(XiechengCollidingWeeklyReportDTO::getDataPacket, Comparator.nullsLast(Comparator.naturalOrder()))
-                        .thenComparing(XiechengCollidingWeeklyReportDTO::getIntersectionNum, Comparator.nullsLast(Comparator.naturalOrder()))));
+            .sort(Comparator.comparing(XiechengCollidingWeeklyReportDTO::getDataPacket, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(XiechengCollidingWeeklyReportDTO::getIntersectionNum, Comparator.nullsLast(Comparator.naturalOrder()))));
         return sortedLockPeriodDataMap;
     }
 
     /**
      * 导出数据
+     * 
      * @param excelWriter excelWriter
-     * @param param       参数
+     * @param param 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
@@ -243,8 +241,9 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
 
     /**
      * 写入数据
+     * 
      * @param writer writer
-     * @param param  参数
+     * @param param 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */

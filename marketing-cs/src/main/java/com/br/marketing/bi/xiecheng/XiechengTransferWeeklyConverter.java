@@ -72,8 +72,9 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
         biReportVO.setReportName("7日滚动转化报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据时间排序
-        List<XiechengTransferWeeklyReportDTO> sortedData = dtos.stream()
-            .sorted(Comparator.comparing(XiechengTransferWeeklyReportDTO::getRollPeriod, Comparator.naturalOrder())).collect(Collectors.toList());
+        List<XiechengTransferWeeklyReportDTO> sortedData =
+            dtos.stream().sorted(Comparator.comparing(XiechengTransferWeeklyReportDTO::getRollPeriod, Comparator.naturalOrder())).distinct()
+                .collect(Collectors.toList());
         // 构造横坐标数据
         List<String> xAxis = sortedData.stream().map(XiechengTransferWeeklyReportDTO::getRollPeriod).collect(Collectors.toList());
         biReportVO.setXAxisName("日期");

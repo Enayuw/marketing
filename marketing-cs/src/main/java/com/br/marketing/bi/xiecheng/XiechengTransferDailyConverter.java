@@ -66,7 +66,7 @@ public class XiechengTransferDailyConverter extends AbstractBiReportConverter<Bi
         List<XiechengTransferDailyReportDTO> sortedData = dtos.stream()
             .sorted(Comparator.comparing(XiechengTransferDailyReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
         // 构造横坐标数据
-        List<String> xAxis = sortedData.stream().map(XiechengTransferDailyReportDTO::getReportDate).collect(Collectors.toList());
+        List<String> xAxis = sortedData.stream().map(XiechengTransferDailyReportDTO::getReportDate).distinct().collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据
