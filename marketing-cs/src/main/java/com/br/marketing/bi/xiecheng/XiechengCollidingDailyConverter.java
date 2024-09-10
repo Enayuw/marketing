@@ -80,12 +80,12 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         // 根据标签排序，添加空值处理
         Map<String, Integer> dataPacketorderMap = marketingCommonConfig.getXiechengBiReportDistrubuteDayDataPacketOrderMap();
         dtos.sort(Comparator.comparingInt((XiechengCollidingDailyReportDTO dto) -> dataPacketorderMap.getOrDefault(dto.getDataPacket(), 99))
-            .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
-            .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
+            .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
-        List<String> xAxis = dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo()).distinct()
-            .collect(Collectors.toList());
-        biReportVO.setXAxisName("dataPacket_orgChannel_info");
+        List<String> xAxis =
+            dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel()).distinct().collect(Collectors.toList());
+        xAxis.add("总计_");
+        biReportVO.setXAxisName("dataPacket_orgChannel");
         biReportVO.setXAxis(xAxis);
         /*
          * 组装数据
@@ -95,8 +95,8 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         Map<String,
             Map<String, Long>> reportDateDataMap = dtos.stream()
                 .collect(Collectors.groupingBy(XiechengCollidingDailyReportDTO::getReportDate,
-                    Collectors.toMap(dto -> dto.getDataPacket() + "_" + dto.getOrgChannel() + "_" + dto.getInfo(),
-                        XiechengCollidingDailyReportDTO::getLockNum, (oldValue, newValue) -> newValue, LinkedHashMap::new)));
+                    Collectors.toMap(dto -> dto.getDataPacket() + "_" + dto.getOrgChannel(), XiechengCollidingDailyReportDTO::getLockNum,
+                        (oldValue, newValue) -> newValue, LinkedHashMap::new)));
         /*
          * 构造Y轴数据
          * 1.Map<日期, Map<dataPacket_orgChannel_info, 量级>> reportDateToDataMap先根据日期排序
@@ -110,6 +110,10 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 // 依据X轴顺序构造List<String> data,若根据X轴未匹配到数据写入默认值0
                 List<String> data = xAxis.stream().map(axis -> String.format(Locale.getDefault(), "%,d", dataMap.getOrDefault(axis, 0L)))
                     .collect(Collectors.toList());
+                // 计算总和
+                long totalSum = dataMap.values().stream().mapToLong(Long::longValue).sum();
+                // 将总和添加到data的最后
+                data.add(String.format(Locale.getDefault(), "%,d", totalSum));
                 return new WrapDataVO(reportDate, data);
             }).collect(Collectors.toList());
         biReportVO.setYAxis(yAxis);
@@ -155,25 +159,22 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         for (int i = 0; i < xAxis.size(); i++) {
             List<String> tags = Splitter.on("_").splitToList(xAxis.get(i));
             for (int j = 0; j < tags.size(); j++) {
-                writer.writeCellValue(j, i + 1, Objects.equals("null", tags.get(j)) ? "空" : tags.get(j));
+                writer.writeCellValue(j, i + 1, Objects.equals("null", tags.get(j)) ? "NULL" : tags.get(j));
             }
         }
-        writer.merge(xAxis.size() + 1, xAxis.size() + 1, 0, 2, "总计", false);
+        writer.merge(xAxis.size(), xAxis.size(), 0, 1, null, false);
         // 写入Y轴数据
         for (int i = 0; i < yAxis.size(); i++) {
             WrapDataVO yAxi = yAxis.get(i);
             List<String> yData = yAxi.getData();
-            long total = 0L;
             // 写入Y轴名称
-            writer.writeCellValue(i + 3, 0, yAxi.getName());
+            writer.writeCellValue(i + 2, 0, yAxi.getName());
             // 写入Y轴数据
             for (int j = 0; j < xAxis.size(); j++) {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
                 // 求和时处理千分位
-                total += Long.parseLong(yData.get(j).replaceAll(",", ""));
-                writer.writeCellValue(i + 3, j + 1, value);
+                writer.writeCellValue(i + 2, j + 1, value);
             }
-            writer.writeCellValue(i + 3, yData.size() + 1, String.format(Locale.getDefault(), "%,d", total));
         }
         // 自适应宽度
         autoSizeColumnAll(writer);

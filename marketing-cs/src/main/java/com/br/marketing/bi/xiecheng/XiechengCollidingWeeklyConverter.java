@@ -46,8 +46,6 @@ import java.util.stream.Collectors;
 @BiReportType(reportType = BiReportTypeEnum.XIECHENG_COLLIDING_WEEKLY_REPORT)
 public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<BiReportVO, XiechengCollidingWeeklyReportDTO> {
 
-    private static final Pattern COMMA_PATTERN = Pattern.compile(",");
-
     @Resource
     private XieChengBiReportMapper xieChengBiReportMapper;
 
@@ -150,10 +148,9 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         Long intersectionNum = sourceStatisticDicts.stream().filter((SourceStatisticDict t) -> Objects.equals(dictKey, t.getDictKey()))
             .map(SourceStatisticDict::getDictValue).map(Long::parseLong).findFirst().orElse(0L);
         dto.setIntersectionNum(intersectionNum);
-
         if (intersectionNum != 0) {
             dto.setCollidingBackRatio(
-                new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 0, RoundingMode.HALF_UP).multiply(new BigDecimal(100)));
+                new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 5, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).setScale(3, RoundingMode.HALF_UP));
         } else {
             dto.setCollidingBackRatio(BigDecimal.ZERO);
         }
@@ -184,6 +181,10 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             .map(report -> report.getDataPacket() + "_"
                 + (report.getIntersectionNum() == null ? "0" : String.format(Locale.getDefault(), "%,d", report.getIntersectionNum())))
             .distinct().collect(Collectors.toList());
+        // 计算交集量级总计
+        long totalIntersectionNum =
+            dtos.stream().filter(dto -> dto.getIntersectionNum() != null).mapToLong(XiechengCollidingWeeklyReportDTO::getIntersectionNum).sum();
+        xAxis.add("总计_" + String.format(Locale.getDefault(), "%,d", totalIntersectionNum));
         biReportVO.setXAxisName("dataPacket_交集量级");
         biReportVO.setXAxis(xAxis);
 
@@ -203,12 +204,29 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             // 计算当前滚动周期的偏移量
             int offset = (int)(daysBetween / 7);
             List<XiechengCollidingWeeklyReportDTO> group = entry.getValue();
-            yAxis.add(buildWrapDataVO("第" + offset + "次锁定周期", group, XiechengCollidingWeeklyReportDTO::getLockPeriod, FormatType.DEFAULT));
-            yAxis.add(buildWrapDataVO("锁定量级", group, XiechengCollidingWeeklyReportDTO::getLockNum, FormatType.THOUSAND_SEPARATOR));
-            yAxis.add(buildWrapDataVO("撞回率", group, XiechengCollidingWeeklyReportDTO::getCollidingBackRatio, FormatType.PERCENT_SIGN));
+            WrapDataVO lockPeriodWrapDataVO =
+                buildWrapDataVO("第" + offset + "次锁定周期", group, XiechengCollidingWeeklyReportDTO::getLockPeriod, FormatType.DEFAULT);
+            lockPeriodWrapDataVO.getData().add("");
+            yAxis.add(lockPeriodWrapDataVO);
+            WrapDataVO lockNumWrapDataVO =
+                buildWrapDataVO("锁定量级", group, XiechengCollidingWeeklyReportDTO::getLockNum, FormatType.THOUSAND_SEPARATOR);
+            // 锁定量级总计
+            long lockNumSum =
+                group.stream().mapToLong((XiechengCollidingWeeklyReportDTO dto) -> dto.getLockNum() == null ? 0 : dto.getLockNum()).sum();
+            lockNumWrapDataVO.getData().add(String.format(Locale.getDefault(), "%,d", lockNumSum));
+            yAxis.add(lockNumWrapDataVO);
+
+            //总计撞回率
+            WrapDataVO collidingBackRatioWrapDataVO =
+                buildWrapDataVO("撞回率", group, XiechengCollidingWeeklyReportDTO::getCollidingBackRatio, FormatType.PERCENT_SIGN);
+            BigDecimal collidingBackRatioTotal =
+                new BigDecimal(lockNumSum).divide(new BigDecimal(totalIntersectionNum),5,BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(3, RoundingMode.HALF_UP);
+            collidingBackRatioWrapDataVO.getData().add(collidingBackRatioTotal + "%");
+            yAxis.add(collidingBackRatioWrapDataVO);
         }
         biReportVO.setYAxis(yAxis);
         return biReportVO;
+
     }
 
     private Map<String, List<XiechengCollidingWeeklyReportDTO>>
@@ -256,38 +274,22 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             writer.writeCellValue(i, 0, tagNames.get(i));
         }
         // 写X轴数据
-        long totalIntersectionNum = 0L;
         for (int i = 0; i < xAxis.size(); i++) {
             List<String> tags = Splitter.on("_").splitToList(xAxis.get(i));
             for (int j = 0; j < tags.size(); j++) {
                 writer.writeCellValue(j, i + 1, Objects.equals("null", tags.get(j)) ? "空" : tags.get(j));
-                if (j == 1) {
-                    totalIntersectionNum += Long.parseLong(COMMA_PATTERN.matcher(tags.get(j)).replaceAll(""));
-                }
             }
         }
-        writer.writeCellValue(0, xAxis.size() + 1, "总计");
-        writer.writeCellValue(1, xAxis.size() + 1, String.format(Locale.getDefault(), "%,d", totalIntersectionNum));
         // 写入Y轴数据
         for (int i = 0; i < yAxis.size(); i++) {
             WrapDataVO yAxi = yAxis.get(i);
             List<String> yData = yAxi.getData();
-            long totalLockNum = 0L;
             // 写入Y轴名称
             writer.writeCellValue(i + 2, 0, yAxi.getName());
             // 写入Y轴数据
             for (int j = 0; j < xAxis.size(); j++) {
-                String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
-                if (i % 3 == 1) {
-                    // 求和时处理千分位
-                    totalLockNum += Long.parseLong(yData.get(j).replaceAll(",", ""));
-                }
+                String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
                 writer.writeCellValue(i + 2, j + 1, value);
-            }
-            if (i % 3 == 1) {
-                writer.writeCellValue(i + 2, yData.size() + 1, String.format(Locale.getDefault(), "%,d", totalLockNum));
-            } else {
-                writer.writeCellValue(i + 2, yData.size() + 1, "");
             }
         }
         // 自适应宽度

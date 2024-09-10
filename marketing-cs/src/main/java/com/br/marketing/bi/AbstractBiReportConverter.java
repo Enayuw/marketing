@@ -107,7 +107,7 @@ public abstract class AbstractBiReportConverter<V, T> {
             writer.writeCellValue(i + 1, 0, yAxi.getName());
             // 写入Y轴数据
             for (int j = 0; j < xAxis.size(); j++) {
-                String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
+                String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
                 writer.writeCellValue(i + 1, j + 1, value);
             }
         }
@@ -154,9 +154,9 @@ public abstract class AbstractBiReportConverter<V, T> {
                 case THOUSAND_SEPARATOR:
                     return value == null ? "0" : String.format(Locale.getDefault(), "%,d", ((Number)value).longValue());
                 case PERCENT_SIGN:
-                    return value + "%";
+                    return value == null ? "0%" : value + "%";
                 default:
-                    return String.valueOf(value);
+                    return value == null ? "" : String.valueOf(value);
             }
         }).collect(Collectors.toList()));
 
