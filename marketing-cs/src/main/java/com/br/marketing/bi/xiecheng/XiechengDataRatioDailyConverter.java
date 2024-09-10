@@ -1,11 +1,5 @@
 package com.br.marketing.bi.xiecheng;
 
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-import javax.annotation.Resource;
-import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -18,6 +12,13 @@ import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 携程数据使用率报表适配实现
@@ -63,7 +64,7 @@ public class XiechengDataRatioDailyConverter extends AbstractBiReportConverter<B
         List<XiechengDataRatioDailyReportDTO> sortedData = dtos.stream()
                 .sorted(Comparator.comparing(XiechengDataRatioDailyReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
         // 构造横坐标数据
-        List<String> xAxis = sortedData.stream().map(XiechengDataRatioDailyReportDTO::getReportDate).distinct().collect(Collectors.toList());
+        List<String> xAxis = sortedData.stream().map(XiechengDataRatioDailyReportDTO::getReportDate).collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据

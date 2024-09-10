@@ -1,16 +1,6 @@
 package com.br.marketing.bi.xiecheng;
 
-import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import javax.annotation.Resource;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
+import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -24,8 +14,19 @@ import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.common.base.Splitter;
-import cn.hutool.poi.excel.ExcelWriter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 携程单日撞库结果分布报表适配实现
@@ -82,7 +83,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
             .thenComparing(XiechengCollidingDailyReportDTO::getOrgChannel, Comparator.nullsLast(Comparator.naturalOrder()))
             .thenComparing(XiechengCollidingDailyReportDTO::getInfo, Comparator.nullsLast(Comparator.naturalOrder())));
         // 按照标签维度做横坐标
-        List<String> xAxis = dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo()).distinct()
+        List<String> xAxis = dtos.stream().map(report -> report.getDataPacket() + "_" + report.getOrgChannel() + "_" + report.getInfo())
             .collect(Collectors.toList());
         biReportVO.setXAxisName("dataPacket_orgChannel_info");
         biReportVO.setXAxis(xAxis);
