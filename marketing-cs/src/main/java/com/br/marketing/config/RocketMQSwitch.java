@@ -76,8 +76,8 @@ public class RocketMQSwitch {
                 if(flagBoolean){
                     JSONObject tagJSONObject = object.getJSONObject(TAG);
                     String tagUseApiCodes = tagJSONObject.getString(tag);
-                    if(null != tagUseApiCodes && StringUtils.isBlank(apiCode)){
-                        return Boolean.TRUE;
+                    if(StringUtils.isBlank(apiCode)){
+                        return Boolean.FALSE;
                     }
                     if(StringUtils.isNotBlank(tagUseApiCodes) && tagUseApiCodes.contains(apiCode)){
                         return Boolean.TRUE;
@@ -104,6 +104,9 @@ public class RocketMQSwitch {
                 if(flagBoolean){
                     JSONObject tagJSONObject = object.getJSONObject(TAG);
                     String tagUseApiCodes = tagJSONObject.getString(tag);
+                    if(StringUtils.isBlank(apiCode)){
+                        System.out.println(false);
+                    }
                     if(StringUtils.isNotBlank(tagUseApiCodes) && tagUseApiCodes.contains(apiCode)){
                         System.out.println(true);
                     }
