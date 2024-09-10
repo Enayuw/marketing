@@ -24,8 +24,6 @@ public class XiechengCollidingDailyReportDTO implements Serializable {
     private String dataPacket;
     @ApiModelProperty(value = "orgChannel")
     private String orgChannel;
-    @ApiModelProperty(value = "info")
-    private String info;
     @ApiModelProperty(value = "锁定量级")
     private Long lockNum;
 

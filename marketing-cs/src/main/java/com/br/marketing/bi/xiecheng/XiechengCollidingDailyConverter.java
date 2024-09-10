@@ -8,12 +8,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.annotation.Resource;
-
+import com.br.marketing.mapper.XieChengBiReportMapper;
+import com.br.marketing.util.TimeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -27,7 +26,6 @@ import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.common.base.Splitter;
-
 import cn.hutool.poi.excel.ExcelWriter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +45,9 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private XieChengBiReportMapper xieChengBiReportMapper;
 
     /**
      * 获取数据
@@ -109,12 +110,13 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         List<WrapDataVO> yAxis =
             reportDateDataMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((Map.Entry<String, Map<String, Long>> entry) -> {
                 String reportDate = entry.getKey();
+                String reportDateEnd = TimeUtils.nDaysAfterOneDateString(reportDate, 1);
                 Map<String, Long> dataMap = entry.getValue();
                 // 依据X轴顺序构造List<String> data,若根据X轴未匹配到数据写入默认值0（剔除手动添加的总计行）
                 List<String> data = xAxis.stream().filter(axis -> !axis.startsWith("总计_"))
                     .map(axis -> String.format(Locale.getDefault(), "%,d", dataMap.getOrDefault(axis, 0L))).collect(Collectors.toList());
                 // 计算总和
-                long totalSum = dataMap.values().stream().mapToLong(Long::longValue).sum();
+                long totalSum = xieChengBiReportMapper.selectXcColldingSucCountbI_(reportDate, reportDateEnd);
                 // 将总和添加到data的最后
                 data.add(String.format(Locale.getDefault(), "%,d", totalSum));
                 return new WrapDataVO(reportDate, data);

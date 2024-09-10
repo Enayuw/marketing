@@ -23,4 +23,6 @@ public interface XieChengBiReportMapper {
 
     List<XiechengDataRatioDailyReportDTO> selectXcDataRatioListbI_(@Param("reportDateStart") String reportDateStart);
 
+    int selectXcColldingSucCountbI_(@Param("reportDate") String reportDate, @Param("reportDateEnd") String reportDateEnd);
+
 }
