@@ -1,4 +1,4 @@
-package com.br.marketing.api.customer.upload.service.impl;
+package com.br.marketing.api.customer.upload.service;
 
 import java.time.LocalDate;
 import java.util.Date;
@@ -19,7 +19,6 @@ import com.br.marketing.api.customer.upload.adapter.CustomerUploadDataAdapter;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadDataHandleSingleton;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadDataHandler;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
-import com.br.marketing.api.customer.upload.service.CustomerUploadDataService;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadResponseDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
