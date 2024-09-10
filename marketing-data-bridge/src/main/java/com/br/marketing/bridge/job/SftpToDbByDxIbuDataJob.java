@@ -1,14 +1,17 @@
 package com.br.marketing.bridge.job;
 
-import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.enums.DataTypeEnum;
-import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.entity.*;
+import com.br.marketing.bridge.common.utils.SftpToDbUtils;
 import com.br.marketing.bridge.model.dto.FileContext;
 import com.br.marketing.bridge.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.bridge.service.todb.impl.SftpToDbByDXService;
-import com.br.marketing.bridge.common.utils.SftpToDbUtils;
+import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.DataTypeEnum;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
@@ -28,7 +31,12 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -169,7 +177,6 @@ public class SftpToDbByDxIbuDataJob extends AbstractSimpleElasticJob {
                             sftpToDbByCommonService.actionTxtFile(context
                                     , localFile
                                     , baseHeads
-                                    , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_IBU
                                     , iTxtToDbService::phoneTodbByIbu);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
