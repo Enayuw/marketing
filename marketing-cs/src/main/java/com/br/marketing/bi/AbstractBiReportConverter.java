@@ -1,7 +1,15 @@
 package com.br.marketing.bi;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.poi.excel.ExcelWriter;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.mapper.SourceStatisticDictMapper;
@@ -9,15 +17,10 @@ import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
 
-import javax.annotation.Resource;
-import java.util.List;
-import java.util.Locale;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.poi.excel.ExcelWriter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * BI报表数据转换
