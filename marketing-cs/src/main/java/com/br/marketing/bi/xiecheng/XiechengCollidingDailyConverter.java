@@ -88,8 +88,8 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
         // 按照标签维度做横坐标
         List<String> xAxis =
             dtos.stream().map(report -> report.getDataPacket() + SEPARATOR + report.getOrgChannel()).distinct().collect(Collectors.toList());
-        xAxis.add("总计_");
-        biReportVO.setXAxisName("dataPacket_orgChannel");
+        xAxis.add("总计" + SEPARATOR);
+        biReportVO.setXAxisName("dataPacket" + SEPARATOR + "orgChannel");
         biReportVO.setXAxis(xAxis);
         /*
          * 组装数据

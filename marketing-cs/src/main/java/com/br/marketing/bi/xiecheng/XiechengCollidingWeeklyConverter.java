@@ -186,8 +186,8 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         // 计算交集量级总计
         long totalIntersectionNum =
             dtos.stream().filter(dto -> dto.getIntersectionNum() != null).mapToLong(XiechengCollidingWeeklyReportDTO::getIntersectionNum).sum();
-        xAxis.add("总计_" + String.format(Locale.getDefault(), "%,d", totalIntersectionNum));
-        biReportVO.setXAxisName("dataPacket_交集量级");
+        xAxis.add("总计" + SEPARATOR + String.format(Locale.getDefault(), "%,d", totalIntersectionNum));
+        biReportVO.setXAxisName("dataPacket" + SEPARATOR + "交集量级");
         biReportVO.setXAxis(xAxis);
 
         // 初始化Y轴数据
