@@ -183,13 +183,15 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             .map(report -> report.getDataPacket() + SEPARATOR
                 + (report.getIntersectionNum() == null ? "0" : String.format(Locale.getDefault(), "%,d", report.getIntersectionNum())))
             .distinct().collect(Collectors.toList());
-        // 计算交集量级总计
-        long totalIntersectionNum =
-            dtos.stream().filter(dto -> dto.getIntersectionNum() != null).mapToLong(XiechengCollidingWeeklyReportDTO::getIntersectionNum).sum();
+        // 计算交集量级总计 现根据dataPacket获取去重后的量级再求和
+        Map<String, Long> totalIntersectionByDataPacket = dtos.stream().collect(Collectors.toMap(XiechengCollidingWeeklyReportDTO::getDataPacket,
+            XiechengCollidingWeeklyReportDTO::getIntersectionNum, (existing, replacement) -> existing));
+        long totalIntersectionNum = totalIntersectionByDataPacket.values().stream()
+                .mapToLong(Long::longValue)
+                .sum();
         xAxis.add("总计" + SEPARATOR + String.format(Locale.getDefault(), "%,d", totalIntersectionNum));
         biReportVO.setXAxisName("dataPacket" + SEPARATOR + "交集量级");
         biReportVO.setXAxis(xAxis);
-
         // 初始化Y轴数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
         // 1. 根据 lockPeriod 分组获取 Map<String, List<XiechengCollidingWeeklyReportDTO>> lockPeriodDataMap
@@ -222,7 +224,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             WrapDataVO collidingBackRatioWrapDataVO =
                 buildWrapDataVO("撞回率", group, XiechengCollidingWeeklyReportDTO::getCollidingBackRatio, FormatType.PERCENT_SIGN);
             BigDecimal collidingBackRatioTotal =
-                new BigDecimal(lockNumSum).divide(new BigDecimal(totalIntersectionNum),2,BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(0, RoundingMode.HALF_UP);
+                new BigDecimal(lockNumSum).divide(new BigDecimal(totalIntersectionNum),2, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).setScale(0, RoundingMode.HALF_UP);
             collidingBackRatioWrapDataVO.getData().add(collidingBackRatioTotal + "%");
             yAxis.add(collidingBackRatioWrapDataVO);
         }
