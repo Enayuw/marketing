@@ -152,7 +152,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         dto.setIntersectionNum(intersectionNum);
         if (intersectionNum != 0) {
             dto.setCollidingBackRatio(
-                new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 5, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).setScale(3, RoundingMode.HALF_UP));
+                new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).setScale(0, RoundingMode.HALF_UP));
         } else {
             dto.setCollidingBackRatio(BigDecimal.ZERO);
         }
@@ -222,7 +222,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             WrapDataVO collidingBackRatioWrapDataVO =
                 buildWrapDataVO("撞回率", group, XiechengCollidingWeeklyReportDTO::getCollidingBackRatio, FormatType.PERCENT_SIGN);
             BigDecimal collidingBackRatioTotal =
-                new BigDecimal(lockNumSum).divide(new BigDecimal(totalIntersectionNum),5,BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(3, RoundingMode.HALF_UP);
+                new BigDecimal(lockNumSum).divide(new BigDecimal(totalIntersectionNum),2,BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100)).setScale(0, RoundingMode.HALF_UP);
             collidingBackRatioWrapDataVO.getData().add(collidingBackRatioTotal + "%");
             yAxis.add(collidingBackRatioWrapDataVO);
         }
