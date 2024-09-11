@@ -73,7 +73,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         DateTime currentPeriodStart = DateUtil.offsetDay(startDate, currentCycleOffset * 7);
 
         for (int i = 0; i < 5; i++) {
-            DateTime periodStart = DateUtil.offsetDay(currentPeriodStart, -(i + 1) * 7);
+            DateTime periodStart = DateUtil.offsetDay(currentPeriodStart, -i * 7);
             DateTime periodEnd = DateUtil.offsetDay(periodStart, 6);
 
             // 查询交集量级

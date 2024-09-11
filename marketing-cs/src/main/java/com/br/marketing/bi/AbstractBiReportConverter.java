@@ -1,5 +1,7 @@
 package com.br.marketing.bi;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
@@ -158,6 +160,8 @@ public abstract class AbstractBiReportConverter<V, T> {
             switch (formatType) {
                 case THOUSAND_SEPARATOR:
                     return value == null ? "0" : String.format(Locale.getDefault(), "%,d", ((Number)value).longValue());
+                case THOUSAND_SEPARATOR_DECIMAL:
+                    return value == null ? "0" : String.format(Locale.getDefault(), "%,.2f", ((BigDecimal)value).setScale(2, RoundingMode.HALF_UP));
                 case PERCENT_SIGN:
                     return value == null ? "0%" : value + "%";
                 default:
@@ -169,7 +173,7 @@ public abstract class AbstractBiReportConverter<V, T> {
     }
 
     protected enum FormatType {
-        THOUSAND_SEPARATOR, PERCENT_SIGN, DEFAULT
+        THOUSAND_SEPARATOR, THOUSAND_SEPARATOR_DECIMAL, PERCENT_SIGN, DEFAULT
     }
 
     /**
