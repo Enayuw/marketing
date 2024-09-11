@@ -113,7 +113,7 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 String reportDateEnd = TimeUtils.nDaysAfterOneDateString(reportDate, 1);
                 Map<String, Long> dataMap = entry.getValue();
                 // 依据X轴顺序构造List<String> data,若根据X轴未匹配到数据写入默认值0（剔除手动添加的总计行）
-                List<String> data = xAxis.stream().filter(axis -> !axis.startsWith("总计_"))
+                List<String> data = xAxis.stream().filter(axis -> !axis.startsWith("总计" + SEPARATOR))
                     .map(axis -> String.format(Locale.getDefault(), "%,d", dataMap.getOrDefault(axis, 0L))).collect(Collectors.toList());
                 // 计算总和
                 long totalSum = xieChengBiReportMapper.selectXcColldingSucCountbI_(reportDate, reportDateEnd);
