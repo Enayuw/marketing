@@ -20,6 +20,12 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 微聚自定义上传策略实现
+ *
+ * @author senyang.zheng
+ * @date 2024/09/11
+ */
 @Service
 @Slf4j
 public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUploadDataService {
