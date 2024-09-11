@@ -48,9 +48,6 @@ public class PhoneSaleDataPushDassJob extends AbstractSimpleElasticJob {
         }
 
         HashMap<String, List<String>> dxFileCustomize = marketingCommonConfig.getDxFileCustomize();
-        List xwList = dxFileCustomize.get("xw");
-        List juziList = dxFileCustomize.get("juzi");
-        List yixinList = dxFileCustomize.get("yixin");
         List zhongYuanList = dxFileCustomize.get("zhongYuan");
 
         for (LocalFile localFile : localFiles) {

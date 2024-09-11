@@ -369,6 +369,7 @@ public class PushDataServiceImpl implements PushDataService {
         if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
             threadNum = Integer.valueOf(redisChgService.get(key));
         }
+        modifyThreadPool(pushDassThreadPool, threadNum);
 
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
@@ -376,7 +377,6 @@ public class PushDataServiceImpl implements PushDataService {
         }
 
         localFile.setPushStartTime(new Date());
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         AtomicInteger success = new AtomicInteger(0);
         AtomicInteger fail = new AtomicInteger(0);
@@ -394,7 +394,7 @@ public class PushDataServiceImpl implements PushDataService {
                 DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
                 dto.setDassTransferDataDTOList(transferDataDTOS);
                 minId = transferDataDTO.getId();
-                threadPool.submit(() -> {
+                pushDassThreadPool.submit(() -> {
                     Result result = methodRetryHandlerService.dassTransferWithFile(dto, null);
                     int size = dto.getDassTransferDataDTOList().size();
                     if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -409,9 +409,9 @@ public class PushDataServiceImpl implements PushDataService {
                 actionMark = false;
             }
         }
-        threadPool.shutdown();
+        pushDassThreadPool.shutdown();
         while (true) {
-            if (threadPool.isTerminated()) {
+            if (pushDassThreadPool.isTerminated()) {
                 break;
             }
             try {
