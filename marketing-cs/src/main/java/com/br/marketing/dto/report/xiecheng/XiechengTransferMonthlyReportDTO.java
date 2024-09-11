@@ -111,15 +111,15 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     private BigDecimal withdrawSucRatio;
 
     @ApiModelProperty("总收入")
-    @DecimalFieldConvertor(isPercent = false)
+    @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal income;
 
     @ApiModelProperty("总成本")
-    @DecimalFieldConvertor(isPercent = false)
+    @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal cost;
 
     @ApiModelProperty("ROI")
-    @DecimalFieldConvertor(isPercent = false)
+    @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal roi;
 
     @ApiModelProperty("授信目标完成率")

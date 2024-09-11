@@ -98,9 +98,9 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
         yAxis.add(buildWrapDataVO("提现率2", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawRatio2, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("提现发起率", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("提现成功率", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawSucRatio, FormatType.PERCENT_SIGN));
-        yAxis.add(buildWrapDataVO("总收入", sortedData, XiechengTransferMonthlyReportDTO::getIncome, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("总成本", sortedData, XiechengTransferMonthlyReportDTO::getCost, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("ROI", sortedData, XiechengTransferMonthlyReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("总收入", sortedData, XiechengTransferMonthlyReportDTO::getIncome, FormatType.THOUSAND_SEPARATOR_DECIMAL));
+        yAxis.add(buildWrapDataVO("总成本", sortedData, XiechengTransferMonthlyReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
+        yAxis.add(buildWrapDataVO("ROI", sortedData, XiechengTransferMonthlyReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("授信目标完成率", sortedData, XiechengTransferMonthlyReportDTO::getCreditCompleteRatio, FormatType.PERCENT_SIGN));
         biReportVO.setYAxis(yAxis);
         return biReportVO;

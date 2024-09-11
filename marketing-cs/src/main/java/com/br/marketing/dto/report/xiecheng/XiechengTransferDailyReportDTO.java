@@ -52,7 +52,7 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private BigDecimal creditRatio;
 
     @ApiModelProperty("当日申请提现率")
-    @DecimalFieldConvertor(scale = 2)
+    @DecimalFieldConvertor
     private BigDecimal applyWithdrawRatio;
 
     @ApiModelProperty("当日提现率")
@@ -68,7 +68,7 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private BigDecimal overPieceRatio;
 
     @ApiModelProperty("当日提现发起率")
-    @DecimalFieldConvertor
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal withdrawLaunchRatio;
 
     @ApiModelProperty("当日提现成功率")
@@ -76,15 +76,15 @@ public class XiechengTransferDailyReportDTO implements Serializable {
     private BigDecimal withdrawSucRatio;
 
     @ApiModelProperty("当日收入")
-    @DecimalFieldConvertor(isPercent = false)
+    @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal income;
 
     @ApiModelProperty("当日成本")
-    @DecimalFieldConvertor(isPercent = false)
+    @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal cost;
 
     @ApiModelProperty("ROI")
-    @DecimalFieldConvertor(isPercent = false)
+    @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal roi;
 
     @ApiModelProperty("当日授信后提现发起")
