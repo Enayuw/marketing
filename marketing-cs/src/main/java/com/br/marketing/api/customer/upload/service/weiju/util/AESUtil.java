@@ -26,4 +26,19 @@ public class AESUtil {
             return null;
         }
     }
+
+    public static String encryptBase64Content(String plainText, String key, String iv) {
+        try {
+            byte[] secretKeyBytes = key.getBytes();
+            SecretKeySpec skeySpec = new SecretKeySpec(secretKeyBytes, "AES");
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes());
+            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivParameterSpec);
+            byte[] encryptedContent = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+            return Base64.encodeBase64String(encryptedContent);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 }

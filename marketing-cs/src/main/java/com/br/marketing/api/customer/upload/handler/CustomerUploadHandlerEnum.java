@@ -33,7 +33,7 @@ public enum CustomerUploadHandlerEnum {
     /**
      * 微聚定制上传
      */
-    U_WEIJU("微聚定制上传", "7430432"),;
+    U_WEIJU("微聚定制上传", "7492770"),;
 
     /**
      * 2023-10-18 17:25 名称
