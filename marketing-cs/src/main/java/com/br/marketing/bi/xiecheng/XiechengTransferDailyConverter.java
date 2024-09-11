@@ -86,9 +86,9 @@ public class XiechengTransferDailyConverter extends AbstractBiReportConverter<Bi
         yAxis.add(buildWrapDataVO("当日过件率", sortedData, XiechengTransferDailyReportDTO::getOverPieceRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日提现发起率", sortedData, XiechengTransferDailyReportDTO::getWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日提现成功率", sortedData, XiechengTransferDailyReportDTO::getWithdrawSucRatio, FormatType.PERCENT_SIGN));
-        yAxis.add(buildWrapDataVO("当日收入", sortedData, XiechengTransferDailyReportDTO::getIncome, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("当日成本", sortedData, XiechengTransferDailyReportDTO::getCost, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("ROI", sortedData, XiechengTransferDailyReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日收入", sortedData, XiechengTransferDailyReportDTO::getIncome, FormatType.THOUSAND_SEPARATOR_DECIMAL));
+        yAxis.add(buildWrapDataVO("当日成本", sortedData, XiechengTransferDailyReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
+        yAxis.add(buildWrapDataVO("ROI", sortedData, XiechengTransferDailyReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis
             .add(buildWrapDataVO("当日授信后提现发起", sortedData, XiechengTransferDailyReportDTO::getCreditWithdrawLaunchNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日授信后提现成功", sortedData, XiechengTransferDailyReportDTO::getCreditWithdrawSucNum, FormatType.THOUSAND_SEPARATOR));
