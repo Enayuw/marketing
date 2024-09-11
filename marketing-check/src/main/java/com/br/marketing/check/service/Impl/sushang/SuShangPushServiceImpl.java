@@ -93,7 +93,8 @@ public class SuShangPushServiceImpl implements SuShangPushService {
         String beginDate = LocalDate.now().minusDays(179).toString();
         String endDate = LocalDate.now().minusDays(1).toString();
         while (true) {
-            List<SushangCallRecordData> callRecordDataList = sushangCallRecordDataMapper.getHalfYearCallRecord(callRecordLocalId,
+            //获取180天内最早的custNum
+            List<SushangCallRecordData> callRecordDataList = sushangCallRecordDataMapper.getHalfYearCallRecordtikv_(callRecordLocalId,
                     indexId, pageSize, beginDate, endDate);
             if (CollectionUtils.isEmpty(callRecordDataList)) {
                 break;
@@ -162,22 +163,18 @@ public class SuShangPushServiceImpl implements SuShangPushService {
                 //查询最接近该日期的外呼时间
                 SushangCallRecordData callRecordData = sushangCallRecordDataMapper.getLastedCallData(callRecordLocalId, minDealTime, custNum);
                 if (ObjectUtils.isEmpty(callRecordData)) {
-                    log.warn( "custNum={} 苏商银行规则一未查询到通话明细！",custNum);
+                    log.warn("custNum={} 苏商银行规则一未查询到通话明细！", custNum);
                     continue;
                 }
-                //日期后的所有外呼明细
-                List<SushangCallRecordData> callRecordDataList = sushangCallRecordDataMapper.getCallRecordList(callRecordLocalId,
-                        callRecordData.getCallTime(), callRecordData.getCustNum());
-                for (SushangCallRecordData callRecord : callRecordDataList) {
-                    SushangPushResultData pushResultData = new SushangPushResultData();
-                    BeanUtils.copyProperties(callRecord, pushResultData);
-                    pushResultData.setCreateTime(new Date());
-                    pushResultData.setUpdateTime(new Date());
-                    pushResultData.setUploadDate(LocalDate.now().toString());
-                    pushResultData.setRule(1);
-                    pushResultData.setStatus(1);
-                    resultDataList.add(pushResultData);
-                }
+                SushangPushResultData pushResultData = new SushangPushResultData();
+                BeanUtils.copyProperties(callRecordData, pushResultData);
+                pushResultData.setCreateTime(new Date());
+                pushResultData.setUpdateTime(new Date());
+                pushResultData.setUploadDate(LocalDate.now().toString());
+                pushResultData.setRule(1);
+                pushResultData.setStatus(1);
+                resultDataList.add(pushResultData);
+
             }
             if (CollectionUtils.isEmpty(resultDataList)) {
                 return;
