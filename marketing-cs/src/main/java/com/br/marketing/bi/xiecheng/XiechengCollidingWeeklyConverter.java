@@ -204,7 +204,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             // 计算当前滚动周期的开始和设定日期间隔天数
             long daysBetween = DateUtil.betweenDay(lockPeriodStartDate, currentLockPeriodStart, false);
             // 计算当前滚动周期的偏移量
-            int offset = (int)(daysBetween / 7);
+            int offset = (int)(daysBetween / 7) + 1;
             List<XiechengCollidingWeeklyReportDTO> group = entry.getValue();
             WrapDataVO lockPeriodWrapDataVO =
                 buildWrapDataVO("第" + offset + "次锁定周期", group, XiechengCollidingWeeklyReportDTO::getLockPeriod, FormatType.DEFAULT);
