@@ -29,13 +29,14 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
     /**
      * 解密jsonData
      *
-     * @param jsonData json数据
+     * @param apiCode  apiCode
+     * @param jsonData jsonData
      * @return {@link String }
      * @author senyang.zheng
      * @date 2024/09/11
      */
     @Override
-    public String decryptJsonData(String jsonData) {
+    public String decryptJsonData(String apiCode, String jsonData) {
         return jsonData;
     }
 

@@ -3,6 +3,8 @@ package com.br.marketing.api.customer.upload.service.weiju.impl;
 import java.util.Collections;
 import java.util.Set;
 
+import javax.annotation.Resource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,7 @@ import com.br.marketing.api.customer.upload.service.weiju.dto.WeiJuUploadJsonDTO
 import com.br.marketing.api.customer.upload.service.weiju.dto.WeiJuUploadResponseDTO;
 import com.br.marketing.api.customer.upload.service.weiju.util.AESUtil;
 import com.br.marketing.dto.CustomerResponseDTO;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,20 +24,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUploadDataService {
 
-    public static final String AES_KEY = "7H6j39W6W6b90077";
-    public static final String AES_IV = "sd0S94rU1009P43B";
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 解密JsonData
      *
-     * @param jsonData json数据
+     * @param apiCode  apiCode
+     * @param jsonData jsonData
      * @return {@link String }
      * @author senyang.zheng
      * @date 2024/09/11
      */
     @Override
-    public String decryptJsonData(String jsonData) {
-        return AESUtil.decryptBase64Content(jsonData, AES_KEY, AES_IV);
+    public String decryptJsonData(String apiCode, String jsonData) {
+        JSONObject weiJuAESKeyConfig = marketingCommonConfig.getCryptoConfig();
+        JSONObject keyConfig = weiJuAESKeyConfig.getJSONObject(apiCode);
+        return AESUtil.decryptBase64Content(jsonData, keyConfig.getString("aesKey"), keyConfig.getString("aesIv"));
     }
 
     /**

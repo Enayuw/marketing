@@ -26,12 +26,13 @@ public interface CustomerUploadDataHandler {
     /**
      * 解密jsonData
      *
-     * @param jsonData json数据
+     * @param apiCode  apiCode
+     * @param jsonData jsonData
      * @return {@link String }
      * @author senyang.zheng
      * @date 2024/09/11
      */
-    String decryptJsonData(String jsonData);
+    String decryptJsonData(String apiCode, String jsonData);
 
     /**
      * 2023-10-18 16:45 客户
