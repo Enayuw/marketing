@@ -174,6 +174,8 @@ public enum AlarmSendCodeEnum {
     RONGSHU_SERVICEERROR("6019001", "榕树业务异常"),
     //榕树接口调用失败,阶梯推送
     RONGSHU_INTERFACEERROR("6019002", "榕树接口调用失败"),
+    //榕树业务处理阶梯告警
+    RONGSHU_PROCESS_WARNING("6019003", "榕树业务处理问题阶梯告警"),
 
     //亿联业务异常,立即推送
     YILIAN_SERVICEERROR("6020001", "亿联业务异常"),

@@ -2,9 +2,11 @@ package com.br.marketing.rule.rongshu;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.StringUtils;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -16,6 +18,7 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -34,6 +37,7 @@ import java.util.HashMap;
  * @author Hua Qiang
  * @date 2024-09-06 21:18
  */
+@Slf4j
 @Service
 public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
@@ -64,7 +68,23 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         pushMarketingUserDetailByRuleDTO.setBatchNumber(
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + context.getApiCode());
         pushMarketingUserDetailByRuleDTO.setVariables((JSONObject) JSON.toJSON(transfer));
-        pushMarketingUserDetailByRuleDTO.setStrategyCode("");
+        String reserveField1 = transfer.getReserveField1();
+        if (JSON.isValidObject(reserveField1)) {
+            JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+            String finalState = jsonObject.getString("finalState");
+            if(StringUtils.isNotBlank(finalState)){
+                HashMap<String, String> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
+                String strategyCode = strategyCodeMap.get(finalState);
+                if(null == strategyCode){
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RONGSHU_PROCESS_WARNING.getCode()
+                            , "4004643榕树自动化转决策出现非预期的finalState"
+                            ,"4004643榕树自动化转决策出现非预期的finalState:["+finalState+"]"));
+                    return null;
+                }else{
+                    pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
+                }
+            }
+        }
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         pushMarketingUserDetailByRuleDTO.setStatus(status);
