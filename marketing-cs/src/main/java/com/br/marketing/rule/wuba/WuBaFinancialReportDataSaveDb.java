@@ -23,7 +23,7 @@ import java.util.Objects;
  */
 @Service
 @Slf4j
-public class WuBaFinancialReportDataSaveDB implements AssembleData<InterfaceParams> {
+public class WuBaFinancialReportDataSaveDb implements AssembleData<InterfaceParams> {
     @Resource
     private WubaSubmitConversionDataMapper wubaSubmitConversionDataMapper;
 
@@ -37,7 +37,7 @@ public class WuBaFinancialReportDataSaveDB implements AssembleData<InterfacePara
         if (transmitFact instanceof MarketingSyncUser) {
             MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
             if (Objects.equals(syncUser.getUserType(), "2")) {
-                saveDB(syncUser);
+                saveDb(syncUser);
                 return true;
             }
         }
@@ -60,7 +60,7 @@ public class WuBaFinancialReportDataSaveDB implements AssembleData<InterfacePara
         return null;
     }
 
-    private void saveDB(MarketingSyncUser syncUser) {
+    private void saveDb(MarketingSyncUser syncUser) {
         WubaSubmitConversionData data = new WubaSubmitConversionData();
         data.setApiCode(syncUser.getApiCode());
         data.setLocalId(0L);
