@@ -12,10 +12,26 @@
     </select>
 
     <update id="batchUpdatePushTimeById">
-        update b_wuba_colliding_data_loop_cycle set push_time = now()
+        update b_wuba_colliding_data_second_loop_cycle set push_time = now()
         where id in
         <foreach collection="datas" item="data" open="(" close=")" separator=",">
             #{data.id}
+        </foreach>
+    </update>
+
+    <insert id="batchSaveData">
+        INSERT INTO b_wuba_colliding_data_second_loop_cycle (cell,push_time,api_code,data_source_type)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item}, now(), #{apiCode}, #{dataSourceType})
+        </foreach>
+    </insert>
+
+    <update id="batchDeleteByCell">
+        update b_wuba_colliding_data_second_loop_cycle set is_deleted = 1
+        where api_code = #{apiCode} and cell in
+        <foreach collection="cells" item="cell" open="(" close=")" separator=",">
+            #{cell}
         </foreach>
     </update>
 </mapper>

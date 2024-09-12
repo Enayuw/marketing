@@ -5,7 +5,7 @@
         INSERT INTO b_wuba_colliding_data_loop_cycle (cell,push_time,api_code,data_source_type)
         VALUES
         <foreach collection="list" item="item" separator=",">
-            (#{item}, now(), #{apiCode}, "F")
+            (#{item}, now(), #{apiCode}, #{dataSourceType})
         </foreach>
     </insert>
 
