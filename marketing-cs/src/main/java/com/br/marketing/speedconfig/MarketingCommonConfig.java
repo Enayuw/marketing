@@ -2111,5 +2111,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, Integer> xiechengBiReportDistrubuteDayDataPacketOrderMap;
 
+    /**
+     * 加解密秘钥配置 格式 {"7492770":{"aesKey":"7H6j39W6W6b90077","aesIv":"sd0S94rU1009P43B"}}
+     */
+    private JSONObject cryptoConfig;
+
 }
 

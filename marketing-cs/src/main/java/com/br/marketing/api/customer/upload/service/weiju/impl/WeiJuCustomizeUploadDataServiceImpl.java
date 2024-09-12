@@ -1,7 +1,9 @@
-package com.br.marketing.api.customer.upload.service.guomei.impl;
+package com.br.marketing.api.customer.upload.service.weiju.impl;
 
 import java.util.Collections;
 import java.util.Set;
+
+import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -9,25 +11,30 @@ import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
-import com.br.marketing.api.customer.upload.service.guomei.GuoMeiCustomizeUploadDataService;
-import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadJsonDTO;
-import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadResponseDTO;
+import com.br.marketing.api.customer.upload.service.weiju.WeiJuCustomizeUploadDataService;
+import com.br.marketing.api.customer.upload.service.weiju.dto.WeiJuUploadJsonDTO;
+import com.br.marketing.api.customer.upload.service.weiju.dto.WeiJuUploadResponseDTO;
+import com.br.marketing.api.customer.upload.service.weiju.util.AESUtil;
 import com.br.marketing.dto.CustomerResponseDTO;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 国美自定义上传策略实现
+ * 微聚自定义上传策略实现
  *
  * @author senyang.zheng
- * @date 2024/08/07
+ * @date 2024/09/11
  */
 @Service
 @Slf4j
-public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUploadDataService {
+public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUploadDataService {
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
-     * 解密jsonData
+     * 解密JsonData
      *
      * @param apiCode  apiCode
      * @param jsonData jsonData
@@ -37,7 +44,9 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public String decryptJsonData(String apiCode, String jsonData) {
-        return jsonData;
+        JSONObject weiJuAESKeyConfig = marketingCommonConfig.getCryptoConfig();
+        JSONObject keyConfig = weiJuAESKeyConfig.getJSONObject(apiCode);
+        return AESUtil.decryptBase64Content(jsonData, keyConfig.getString("aesKey"), keyConfig.getString("aesIv"));
     }
 
     /**
@@ -47,7 +56,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public CustomerUploadHandlerEnum customer() {
-        return CustomerUploadHandlerEnum.U_GUME;
+        return CustomerUploadHandlerEnum.U_WEIJU;
     }
 
     /**
@@ -58,7 +67,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public BaseUploadDataAdaptee parseObject(String jsonData) {
-        return JSONObject.parseObject(jsonData, GuMeUploadJsonDTO.class);
+        return JSONObject.parseObject(jsonData, WeiJuUploadJsonDTO.class);
     }
 
     /**
@@ -69,25 +78,21 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee) {
-        GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
-        GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
+        WeiJuUploadJsonDTO uploadJsonDTO = (WeiJuUploadJsonDTO)adaptee;
+        WeiJuUploadResponseDTO weiJuUploadResponseDTO = new WeiJuUploadResponseDTO();
         StringBuilder errorMessage = new StringBuilder();
-        if (StringUtils.isBlank(uploadJsonDTO.getRequestId())) {
-            errorMessage.append(",requestId不可为空");
-        } else if (StringUtils.isBlank(uploadJsonDTO.getInstitutionCode())) {
-            errorMessage.append(",institutionCode不可为空");
-        } else if (uploadJsonDTO.getProperties() == null || uploadJsonDTO.getProperties().isEmpty()) {
-            errorMessage.append(",properties不可为空");
-        } else if (uploadJsonDTO.getUserList() == null || uploadJsonDTO.getUserList().isEmpty()) {
+        if (StringUtils.isBlank(uploadJsonDTO.getExecuteBatchNo())) {
+            errorMessage.append(",executeBatchNo不可为空");
+        } else if (uploadJsonDTO.getUserInfoList() == null || uploadJsonDTO.getUserInfoList().isEmpty()) {
             errorMessage.append(",userList不可为空");
         }
         if (errorMessage.length() > 0) {
-            guMeUploadResponseDTO.failed(GuMeUploadResponseDTO.ResultEnum.FAILED_FIELD_CHECK_ERROR, errorMessage.toString());
-            return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
+            weiJuUploadResponseDTO.failed(WeiJuUploadResponseDTO.ResultEnum.FAILED_FIELD_CHECK_ERROR, errorMessage.toString());
+            return new CustomerResponseDTO(weiJuUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, weiJuUploadResponseDTO.getCode());
         } else {
-            guMeUploadResponseDTO.success();
+            weiJuUploadResponseDTO.success();
         }
-        return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.VALID, guMeUploadResponseDTO.getCode());
+        return new CustomerResponseDTO(weiJuUploadResponseDTO, CustomerResponseDTO.StatusEnum.VALID, weiJuUploadResponseDTO.getCode());
     }
 
     /**
@@ -101,8 +106,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public String getRequestId(String apiCode, BaseUploadDataAdaptee adaptee) {
-        GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
-        return uploadJsonDTO.getRequestId();
+        WeiJuUploadJsonDTO uploadJsonDTO = (WeiJuUploadJsonDTO)adaptee;
+        return uploadJsonDTO.getExecuteBatchNo();
     }
 
     /**
@@ -113,8 +118,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public int countBizDataNumber(BaseUploadDataAdaptee adaptee) {
-        GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
-        return uploadJsonDTO.getUserList() != null ? uploadJsonDTO.getUserList().size() : 0;
+        WeiJuUploadJsonDTO uploadJsonDTO = (WeiJuUploadJsonDTO)adaptee;
+        return uploadJsonDTO.getUserInfoList() != null ? uploadJsonDTO.getUserInfoList().size() : 0;
     }
 
     /**
@@ -137,9 +142,9 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public CustomerResponseDTO jsonErrorResponse(Exception e) {
-        GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
-        guMeUploadResponseDTO.failed(GuMeUploadResponseDTO.ResultEnum.FAILED_JSON_ERROR);
-        return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
+        WeiJuUploadResponseDTO weiJuUploadResponseDTO = new WeiJuUploadResponseDTO();
+        weiJuUploadResponseDTO.failed(WeiJuUploadResponseDTO.ResultEnum.FAILED_JSON_ERROR);
+        return new CustomerResponseDTO(weiJuUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, weiJuUploadResponseDTO.getCode());
     }
 
     /**
@@ -161,8 +166,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public CustomerResponseDTO fallbackResponse(Exception e) {
-        GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
-        guMeUploadResponseDTO.failed();
-        return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
+        WeiJuUploadResponseDTO weiJuUploadResponseDTO = new WeiJuUploadResponseDTO();
+        weiJuUploadResponseDTO.failed();
+        return new CustomerResponseDTO(weiJuUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, weiJuUploadResponseDTO.getCode());
     }
 }
