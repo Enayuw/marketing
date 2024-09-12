@@ -171,7 +171,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 resultCells.add(mobileEncrypt);
             }
 
-            // status为1的返回结果
+            // 撞得数据
             Stream<JSONObject> trueDataStream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
                     .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), 1));
             List<WubaCollidingData> trueDatas = trueDataStream.map((JSONObject t) -> {
@@ -181,45 +181,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 return data;
             }).collect(Collectors.toList());
 
-            trueDatas.parallelStream().forEach((WubaCollidingData t) -> {
-                WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
-                logExample.createCriteria().andBatchNoEqualTo(batchNo).andCellEqualTo(t.getCell());
-                WubaCollidingDataLog log = new WubaCollidingDataLog();
-                log.setResult(true);
-                log.setExtend(t.getExtend());
-                wubaCollidingDataLogMapper.updateByExampleSelective(log, logExample);
-            });
-
-            // status非1的返回结果
-            List<WubaCollidingData> lostDatas = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
-                    .filter((JSONObject t) -> !Objects.equals(t.getInteger("status"), 1)).map((JSONObject t) -> {
-                        WubaCollidingData data = new WubaCollidingData();
-                        data.setCell(t.getString(MOBILE_ENCRYPT));
-                        data.setExtend(JSON.toJSONString(t));
-                        return data;
-                    }).collect(Collectors.toList());
-
-            lostDatas.parallelStream().forEach((WubaCollidingData t) -> {
-                WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
-                logExample.createCriteria().andBatchNoEqualTo(batchNo).andCellEqualTo(t.getCell());
-                WubaCollidingDataLog log = new WubaCollidingDataLog();
-                log.setResult(false);
-                log.setExtend(t.getExtend());
-                wubaCollidingDataLogMapper.updateByExampleSelective(log, logExample);
-            });
-
-
-            List<WubaCollidingDataLog> logs = getLogs(batchNo, apiCode);
-
-            List<WubaCollidingDataLog> noReturnLogs =
-                    logs.stream().filter((WubaCollidingDataLog t) -> !resultCells.contains(t.getCell())).collect(Collectors.toList());
-            updateNoReturnResult(noReturnLogs, Boolean.FALSE);
-
-            List<String> lostCells = lostDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
-            List<String> noReturnCells = noReturnLogs.stream().map(WubaCollidingDataLog::getCell).collect(Collectors.toList());
-
-            lostCells.addAll(noReturnCells);
-
+            // 撞得的非金融场景数据
             List<WubaCollidingData> nonFinancialDatas =
                     trueDataStream.filter(t -> Objects.equals(t.getString("userType"), "1")).map((JSONObject t) -> {
                         WubaCollidingData data = new WubaCollidingData();
@@ -228,6 +190,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                         return data;
                     }).collect(Collectors.toList());
 
+            // 撞得的金融场景数据
             List<WubaCollidingData> financialDatas =
                     trueDataStream.filter(t -> Objects.equals(t.getString("userType"), "2")).map((JSONObject t) -> {
                         WubaCollidingData data = new WubaCollidingData();
@@ -236,10 +199,59 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                         return data;
                     }).collect(Collectors.toList());
 
+            // 更新log表撞库结果，并返回不可营销数据
+            List<String> lostCells = updateLogResultAndGetLostCells(trueDatas, batchNo, jsonArray, apiCode, resultCells);
+
             List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatas, financialDatas, lostCells, apiCode,
                     batchNo, taskId);
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
+    }
+
+    private List<String> updateLogResultAndGetLostCells(List<WubaCollidingData> trueDatas, String batchNo, JSONArray jsonArray, String apiCode,
+                                                        ArrayList<String> resultCells) {
+        // 更新撞得log
+        trueDatas.parallelStream().forEach((WubaCollidingData t) -> {
+            WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
+            logExample.createCriteria().andBatchNoEqualTo(batchNo).andCellEqualTo(t.getCell());
+            WubaCollidingDataLog log = new WubaCollidingDataLog();
+            log.setResult(true);
+            log.setExtend(t.getExtend());
+            wubaCollidingDataLogMapper.updateByExampleSelective(log, logExample);
+        });
+
+        // status非1数据
+        List<WubaCollidingData> lostDatas = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                .filter((JSONObject t) -> !Objects.equals(t.getInteger("status"), 1)).map((JSONObject t) -> {
+                    WubaCollidingData data = new WubaCollidingData();
+                    data.setCell(t.getString(MOBILE_ENCRYPT));
+                    data.setExtend(JSON.toJSONString(t));
+                    return data;
+                }).collect(Collectors.toList());
+
+        // 更新被抢占数据log
+        lostDatas.parallelStream().forEach((WubaCollidingData t) -> {
+            WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
+            logExample.createCriteria().andBatchNoEqualTo(batchNo).andCellEqualTo(t.getCell());
+            WubaCollidingDataLog log = new WubaCollidingDataLog();
+            log.setResult(false);
+            log.setExtend(t.getExtend());
+            wubaCollidingDataLogMapper.updateByExampleSelective(log, logExample);
+        });
+
+        List<WubaCollidingDataLog> logs = getLogs(batchNo, apiCode);
+
+        // 更新未返回结果数据log
+        List<WubaCollidingDataLog> noReturnLogs =
+                logs.stream().filter((WubaCollidingDataLog t) -> !resultCells.contains(t.getCell())).collect(Collectors.toList());
+        updateNoReturnResult(noReturnLogs, Boolean.FALSE);
+
+        List<String> lostCells = lostDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
+        List<String> noReturnCells = noReturnLogs.stream().map(WubaCollidingDataLog::getCell).collect(Collectors.toList());
+
+        // 被抢占和未返回数据视为未撞得
+        lostCells.addAll(noReturnCells);
+        return lostCells;
     }
 
     private void falseToNonFinancialBusiness(List<WubaCollidingData> nonFinancialDatas, String apiCode, String batchNo, Long taskId) {
@@ -283,24 +295,6 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         cleanDataTask.setId(taskId);
         cleanDataTask.setCleanStatus(0);
         marketingCleanDataTaskMapper.updateByPrimaryKeySelective(cleanDataTask);
-    }
-
-    /**
-     * 根据批次号更新log表撞库结果，并返回不可营销数据
-     * @param trueDatas
-     * @param batchNo
-     * @param apiCode
-     * @return 不可营销数据
-     */
-    private void updateLogResultByBatchNo(ArrayList<String> trueDatas, String batchNo, String apiCode) {
-        List<WubaCollidingDataLog> logs = getLogs(batchNo, apiCode);
-        List<WubaCollidingDataLog> trueDataLogs =
-                logs.stream().filter((WubaCollidingDataLog t) -> trueDatas.contains(t.getCell())).collect(Collectors.toList());
-        updateNoReturnResult(trueDataLogs, Boolean.TRUE);
-
-        List<WubaCollidingDataLog> falseDataLogs =
-                logs.stream().filter((WubaCollidingDataLog t) -> !trueDatas.contains(t.getCell())).collect(Collectors.toList());
-        updateNoReturnResult(falseDataLogs, Boolean.FALSE);
     }
 
     private void updateNoReturnResult(List<WubaCollidingDataLog> logs, Boolean result) {
