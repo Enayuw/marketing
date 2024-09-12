@@ -163,44 +163,20 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             updateQueryStatus(wubaCollidingBatchNo, 1);
 
             JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(result.getData()));
-            // 返回全部cell
-            ArrayList<String> resultCells = Lists.newArrayList();
-            for (Object o : jsonArray) {
-                JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(o));
-                String mobileEncrypt = jsonObject.getString("mobileEncrypt");
-                resultCells.add(mobileEncrypt);
-            }
 
             // 撞得数据
             Stream<JSONObject> trueDataStream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
                     .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), 1));
-            List<WubaCollidingData> trueDatas = trueDataStream.map((JSONObject t) -> {
-                WubaCollidingData data = new WubaCollidingData();
-                data.setCell(t.getString(MOBILE_ENCRYPT));
-                data.setExtend(JSON.toJSONString(t));
-                return data;
-            }).collect(Collectors.toList());
+            List<WubaCollidingData> trueDatas = getTrueDatas(trueDataStream);
 
             // 撞得的非金融场景数据
-            List<WubaCollidingData> nonFinancialDatas =
-                    trueDataStream.filter(t -> Objects.equals(t.getString("userType"), "1")).map((JSONObject t) -> {
-                        WubaCollidingData data = new WubaCollidingData();
-                        data.setCell(t.getString(MOBILE_ENCRYPT));
-                        data.setExtend(JSON.toJSONString(t));
-                        return data;
-                    }).collect(Collectors.toList());
+            List<WubaCollidingData> nonFinancialDatas = filterByUserType(trueDataStream, "1");
 
             // 撞得的金融场景数据
-            List<WubaCollidingData> financialDatas =
-                    trueDataStream.filter(t -> Objects.equals(t.getString("userType"), "2")).map((JSONObject t) -> {
-                        WubaCollidingData data = new WubaCollidingData();
-                        data.setCell(t.getString(MOBILE_ENCRYPT));
-                        data.setExtend(JSON.toJSONString(t));
-                        return data;
-                    }).collect(Collectors.toList());
+            List<WubaCollidingData> financialDatas = filterByUserType(trueDataStream, "2");
 
             // 更新log表撞库结果，并返回不可营销数据
-            List<String> lostCells = updateLogResultAndGetLostCells(trueDatas, batchNo, jsonArray, apiCode, resultCells);
+            List<String> lostCells = updateLogResultAndGetLostCells(trueDatas, batchNo, jsonArray, apiCode);
 
             List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatas, financialDatas, lostCells, apiCode,
                     batchNo, taskId);
@@ -208,8 +184,28 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         }
     }
 
-    private List<String> updateLogResultAndGetLostCells(List<WubaCollidingData> trueDatas, String batchNo, JSONArray jsonArray, String apiCode,
-                                                        ArrayList<String> resultCells) {
+    private List<WubaCollidingData> getTrueDatas(Stream<JSONObject> trueDataStream) {
+        List<WubaCollidingData> trueDatas = trueDataStream.map((JSONObject t) -> {
+            WubaCollidingData data = new WubaCollidingData();
+            data.setCell(t.getString(MOBILE_ENCRYPT));
+            data.setExtend(JSON.toJSONString(t));
+            return data;
+        }).collect(Collectors.toList());
+        return trueDatas;
+    }
+
+    private List<WubaCollidingData> filterByUserType(Stream<JSONObject> trueDataStream, String userType) {
+        List<WubaCollidingData> financialDatas =
+                trueDataStream.filter(t -> Objects.equals(t.getString("userType"), userType)).map((JSONObject t) -> {
+                    WubaCollidingData data = new WubaCollidingData();
+                    data.setCell(t.getString(MOBILE_ENCRYPT));
+                    data.setExtend(JSON.toJSONString(t));
+                    return data;
+                }).collect(Collectors.toList());
+        return financialDatas;
+    }
+
+    private List<String> updateLogResultAndGetLostCells(List<WubaCollidingData> trueDatas, String batchNo, JSONArray jsonArray, String apiCode) {
         // 更新撞得log
         trueDatas.parallelStream().forEach((WubaCollidingData t) -> {
             WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
@@ -240,6 +236,14 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         });
 
         List<WubaCollidingDataLog> logs = getLogs(batchNo, apiCode);
+
+        // 返回全部cell
+        ArrayList<String> resultCells = Lists.newArrayList();
+        for (Object o : jsonArray) {
+            JSONObject jsonObject = JSONObject.parseObject(JSON.toJSONString(o));
+            String mobileEncrypt = jsonObject.getString("mobileEncrypt");
+            resultCells.add(mobileEncrypt);
+        }
 
         // 更新未返回结果数据log
         List<WubaCollidingDataLog> noReturnLogs =
