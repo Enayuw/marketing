@@ -1,6 +1,9 @@
 package com.br.marketing.api.customer.upload.service.weiju.impl;
 
+import com.br.marketing.api.customer.upload.service.weiju.util.RSAEncryptUtil;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -36,7 +39,7 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
     /**
      * 解密JsonData
      *
-     * @param apiCode  apiCode
+     * @param apiCode apiCode
      * @param jsonData jsonData
      * @return {@link String }
      * @author senyang.zheng
@@ -44,9 +47,22 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
      */
     @Override
     public String decryptJsonData(String apiCode, String jsonData) {
-        JSONObject weiJuAESKeyConfig = marketingCommonConfig.getCryptoConfig();
-        JSONObject keyConfig = weiJuAESKeyConfig.getJSONObject(apiCode);
-        return AESUtil.decryptBase64Content(jsonData, keyConfig.getString("aesKey"), keyConfig.getString("aesIv"));
+        JSONObject cryptoConfig = marketingCommonConfig.getCryptoConfig();
+        JSONObject weiJuConfig = cryptoConfig.getJSONObject(apiCode);
+        JSONObject jsonObject = JSONObject.parseObject(jsonData);
+        String sign = jsonObject.getString("sign");
+        String timestamp = jsonObject.getString("timestamp");
+        String data = jsonObject.getString("data");
+        // 检查签名
+        Map<String, String> signParams = new HashMap<>();
+        signParams.put("timestamp", timestamp);
+        signParams.put("data", data);
+        boolean flag = RSAEncryptUtil.checkSignSHA1(signParams, sign, weiJuConfig.getString("rsaPublicKey"));
+        if (!flag) {
+            return null;
+        }
+        jsonData = AESUtil.decryptAES(weiJuConfig.getString("aesKey"),data );
+        return jsonData;
     }
 
     /**
