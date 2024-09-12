@@ -9,6 +9,7 @@
     <result column="marketing_time" property="marketingTime" jdbcType="VARCHAR" />
     <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
     <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="user_type" property="userType" jdbcType="VARCHAR" />
     <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="create_date" property="createDate" jdbcType="INTEGER" />
@@ -76,7 +77,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, local_id, cell, marketing_time, push_status, `status`, data_message, 
+    id, api_code, local_id, cell, marketing_time, push_status, `status`, user_type, data_message, 
     extend, create_date, push_time, is_deleted, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.WubaSubmitConversionDataExample" >
@@ -115,14 +116,14 @@
     </selectKey>
     insert into b_wuba_submit_conversion_data (api_code, local_id, cell, 
       marketing_time, push_status, `status`, 
-      data_message, extend, create_date, 
-      push_time, is_deleted, create_time, 
-      update_time)
+      user_type, data_message, extend, 
+      create_date, push_time, is_deleted, 
+      create_time, update_time)
     values (#{apiCode,jdbcType=VARCHAR}, #{localId,jdbcType=BIGINT}, #{cell,jdbcType=VARCHAR}, 
       #{marketingTime,jdbcType=VARCHAR}, #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
-      #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, 
-      #{pushTime,jdbcType=TIMESTAMP}, #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+      #{userType,jdbcType=VARCHAR}, #{dataMessage,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, 
+      #{createDate,jdbcType=INTEGER}, #{pushTime,jdbcType=TIMESTAMP}, #{isDeleted,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.WubaSubmitConversionData" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -147,6 +148,9 @@
       </if>
       <if test="status != null" >
         `status`,
+      </if>
+      <if test="userType != null" >
+        user_type,
       </if>
       <if test="dataMessage != null" >
         data_message,
@@ -188,6 +192,9 @@
       </if>
       <if test="status != null" >
         #{status,jdbcType=INTEGER},
+      </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=VARCHAR},
       </if>
       <if test="dataMessage != null" >
         #{dataMessage,jdbcType=VARCHAR},
@@ -242,6 +249,9 @@
       <if test="record.status != null" >
         `status` = #{record.status,jdbcType=INTEGER},
       </if>
+      <if test="record.userType != null" >
+        user_type = #{record.userType,jdbcType=VARCHAR},
+      </if>
       <if test="record.dataMessage != null" >
         data_message = #{record.dataMessage,jdbcType=VARCHAR},
       </if>
@@ -277,6 +287,7 @@
       marketing_time = #{record.marketingTime,jdbcType=VARCHAR},
       push_status = #{record.pushStatus,jdbcType=INTEGER},
       `status` = #{record.status,jdbcType=INTEGER},
+      user_type = #{record.userType,jdbcType=VARCHAR},
       data_message = #{record.dataMessage,jdbcType=VARCHAR},
       extend = #{record.extend,jdbcType=VARCHAR},
       create_date = #{record.createDate,jdbcType=INTEGER},
@@ -308,6 +319,9 @@
       </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="userType != null" >
+        user_type = #{userType,jdbcType=VARCHAR},
       </if>
       <if test="dataMessage != null" >
         data_message = #{dataMessage,jdbcType=VARCHAR},
@@ -341,6 +355,7 @@
       marketing_time = #{marketingTime,jdbcType=VARCHAR},
       push_status = #{pushStatus,jdbcType=INTEGER},
       `status` = #{status,jdbcType=INTEGER},
+      user_type = #{userType,jdbcType=VARCHAR},
       data_message = #{dataMessage,jdbcType=VARCHAR},
       extend = #{extend,jdbcType=VARCHAR},
       create_date = #{createDate,jdbcType=INTEGER},

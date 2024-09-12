@@ -252,7 +252,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
         PageHelper.startPage(page, pageSize);
         try {
             List<DataCleanTaskVO> list = marketingCleanDataTaskMapper.getTaskList(apiCode, fileType, status);
-            list.stream().map((DataCleanTaskVO dataCleanTaskVO) -> {
+            List<DataCleanTaskVO> taskList = list.stream().map((DataCleanTaskVO dataCleanTaskVO) -> {
                 MarketingCleanDataFileExample cleanDataFileExample = new MarketingCleanDataFileExample();
                 MarketingCleanDataFileExample.Criteria criteria = cleanDataFileExample.createCriteria();
                 List<String> fieldIds = Arrays.asList(dataCleanTaskVO.getFileId().split(","));
@@ -261,8 +261,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
                         map(MarketingCleanDataFile::getFileName).collect(Collectors.joining(",")));
                 return dataCleanTaskVO;
             }).collect(Collectors.toList());
-
-            return PageResultReturn.setPageResult(list, page, pageSize);
+            return PageResultReturn.setPageResult(taskList, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

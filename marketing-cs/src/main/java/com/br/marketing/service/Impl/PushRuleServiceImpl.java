@@ -6,6 +6,7 @@ import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.AlarmApiClient;
@@ -472,6 +473,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             pushNum = totalRes.getData().getTotal();
         }
+        //endregion
+
         //region insert db
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(dto.getFileIdList());
@@ -1710,6 +1713,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
+        if (errorSize > 0) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INITDATA_MUST_ERROR.getCode()
+                    , String.format("apiCode【%s】,代运营数据原始表id【%d】", apiCode, infoId)
+                    , AlarmSendCodeEnum.INITDATA_MUST_ERROR.getMessage()));
+        }
         List<String> initDataPushApiCode = marketingCommonConfig.getInitDataPushRule() == null ? new ArrayList<String>() : marketingCommonConfig.getInitDataPushRule();
         if (status && initDataPushApiCode.contains(apiCode)) {
             MqFact mqFact = new MqFact();
@@ -2148,6 +2156,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
+
+        if (errorSize > 0) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getCode()
+                    , String.format("apiCode【%s】,转化数据原始表id【%d】", transferInfo.getApiCode(), id)
+                    , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
+        }
+
         if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
