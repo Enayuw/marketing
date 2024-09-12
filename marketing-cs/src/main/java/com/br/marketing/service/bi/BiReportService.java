@@ -3,7 +3,7 @@ package com.br.marketing.service.bi;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
 import com.br.marketing.vo.bi.BiReportVO;
-import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
+import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 
@@ -45,11 +45,11 @@ public interface BiReportService {
      * 查看BI配置字典表
      * @param param
      */
-    List<BiReportConfigDictVO>  getBiReportConfigDict(BiReportConfigDIctParam param);
+    List<BiReportConfigDictVO>  getBiReportConfigDict(BiReportConfigDictParam param);
 
     /**
      * 修改BI配置字典表
      * @param param
      */
-    ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDIctParam param);
+    ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDictParam param);
 }

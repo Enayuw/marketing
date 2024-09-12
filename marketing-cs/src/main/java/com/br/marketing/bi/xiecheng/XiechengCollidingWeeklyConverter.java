@@ -26,7 +26,7 @@ import com.br.marketing.mapper.SourceStatisticDictMapper;
 import com.br.marketing.mapper.XieChengBiReportMapper;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
-import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
+import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.google.api.client.util.Lists;
@@ -93,7 +93,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
     }
 
     private List<SourceStatisticDict> getSourceStatisticDicts(DateTime periodStart, DateTime periodEnd) {
-        BiReportConfigDIctParam configDIctParam = new BiReportConfigDIctParam();
+        BiReportConfigDictParam configDIctParam = new BiReportConfigDictParam();
         configDIctParam.setStartDate(periodStart);
         configDIctParam.setEndDate(periodEnd);
         return statisticDictMapper.selectListbI_(configDIctParam);
@@ -151,8 +151,8 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             .map(SourceStatisticDict::getDictValue).map(Long::parseLong).findFirst().orElse(0L);
         dto.setIntersectionNum(intersectionNum);
         if (intersectionNum != 0) {
-            dto.setCollidingBackRatio(
-                new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 2, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).setScale(0, RoundingMode.HALF_UP));
+            dto.setCollidingBackRatio(new BigDecimal(dto.getLockNum()).divide(new BigDecimal(intersectionNum), 2, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal(100)).setScale(0, RoundingMode.HALF_UP));
         } else {
             dto.setCollidingBackRatio(BigDecimal.ZERO);
         }
@@ -186,9 +186,7 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
         // 计算交集量级总计 现根据dataPacket获取去重后的量级再求和
         Map<String, Long> totalIntersectionByDataPacket = dtos.stream().collect(Collectors.toMap(XiechengCollidingWeeklyReportDTO::getDataPacket,
             XiechengCollidingWeeklyReportDTO::getIntersectionNum, (existing, replacement) -> existing));
-        long totalIntersectionNum = totalIntersectionByDataPacket.values().stream()
-                .mapToLong(Long::longValue)
-                .sum();
+        long totalIntersectionNum = totalIntersectionByDataPacket.values().stream().mapToLong(Long::longValue).sum();
         xAxis.add("总计" + SEPARATOR + String.format(Locale.getDefault(), "%,d", totalIntersectionNum));
         biReportVO.setXAxisName("dataPacket" + SEPARATOR + "交集量级");
         biReportVO.setXAxis(xAxis);
@@ -220,11 +218,11 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             lockNumWrapDataVO.getData().add(String.format(Locale.getDefault(), "%,d", lockNumSum));
             yAxis.add(lockNumWrapDataVO);
 
-            //总计撞回率
+            // 总计撞回率
             WrapDataVO collidingBackRatioWrapDataVO =
                 buildWrapDataVO("撞回率", group, XiechengCollidingWeeklyReportDTO::getCollidingBackRatio, FormatType.PERCENT_SIGN);
-            BigDecimal collidingBackRatioTotal =
-                new BigDecimal(lockNumSum).divide(new BigDecimal(totalIntersectionNum),2, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).setScale(0, RoundingMode.HALF_UP);
+            BigDecimal collidingBackRatioTotal = new BigDecimal(lockNumSum).divide(new BigDecimal(totalIntersectionNum), 2, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal(100)).setScale(0, RoundingMode.HALF_UP);
             collidingBackRatioWrapDataVO.getData().add(collidingBackRatioTotal + "%");
             yAxis.add(collidingBackRatioWrapDataVO);
         }

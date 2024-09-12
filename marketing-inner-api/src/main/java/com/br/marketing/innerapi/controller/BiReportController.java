@@ -9,7 +9,7 @@ import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.service.bi.BiReportService;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
 import com.br.marketing.vo.bi.BiReportVO;
-import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
+import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import io.swagger.annotations.Api;
@@ -86,7 +86,7 @@ public class BiReportController {
 
     @ApiOperation(value = "查看BI报表配置字典")
     @PostMapping(value = "/report/getBiReportConfigDict")
-    public ApiResult<List<BiReportConfigDictVO>> getBiReportConfigDict(@RequestBody BiReportConfigDIctParam param) {
+    public ApiResult<List<BiReportConfigDictVO>> getBiReportConfigDict(@RequestBody BiReportConfigDictParam param) {
         log.warn("查看BI报表配置字典,请求参数{}", param);
         List<BiReportConfigDictVO> biReportConfigDictVO = biReportService.getBiReportConfigDict(param);
         return new ApiResult<List<BiReportConfigDictVO>>().success(biReportConfigDictVO);
@@ -94,7 +94,7 @@ public class BiReportController {
 
     @ApiOperation(value = "新增修改BI报表配置字典")
     @PostMapping(value = "/report/saveBiReportConfigDict")
-    public ApiResult<Boolean> saveBiReportConfigDict(@RequestBody BiReportConfigDIctParam param) {
+    public ApiResult<Boolean> saveBiReportConfigDict(@RequestBody BiReportConfigDictParam param) {
         log.warn("新增修改BI报表配置字典,请求参数{}", param);
         return biReportService.saveBiReportConfigDict(param);
     }
