@@ -16,7 +16,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.mapper.SourceStatisticDictMapper;
 import com.br.marketing.vo.bi.WrapDataVO;
-import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
+import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 
@@ -155,7 +155,7 @@ public abstract class AbstractBiReportConverter<V, T> {
     protected WrapDataVO buildWrapDataVO(String name, List<T> sortedData, Function<T, Object> function, FormatType formatType) {
         WrapDataVO wrapDataVO = new WrapDataVO();
         wrapDataVO.setName(name);
-        wrapDataVO.setData(sortedData.stream().map(dto -> {
+        wrapDataVO.setData(sortedData.stream().map((T dto) -> {
             Object value = function.apply(dto);
             switch (formatType) {
                 case THOUSAND_SEPARATOR:
@@ -163,7 +163,7 @@ public abstract class AbstractBiReportConverter<V, T> {
                 case THOUSAND_SEPARATOR_DECIMAL:
                     return value == null ? "0" : String.format(Locale.getDefault(), "%,.2f", ((BigDecimal)value).setScale(2, RoundingMode.HALF_UP));
                 case PERCENT_SIGN:
-                    return value == null ? "0%" : value + "%";
+                    return value == null ? "0%" : (value + "%");
                 default:
                     return value == null ? "" : String.valueOf(value);
             }
@@ -186,7 +186,7 @@ public abstract class AbstractBiReportConverter<V, T> {
      * @date 2024/09/05
      */
     protected String getDictByKeyAndApiCode(String dictKey, String apiCode) {
-        BiReportConfigDIctParam configDictVO = new BiReportConfigDIctParam();
+        BiReportConfigDictParam configDictVO = new BiReportConfigDictParam();
         configDictVO.setDictKey(dictKey);
         configDictVO.setApiCode(apiCode);
         List<SourceStatisticDict> dits = sourceStatisticDictMapper.selectListbI_(configDictVO);

@@ -15,7 +15,7 @@ import java.util.Date;
  */
 @Data
 @ApiModel(value = "BI报表配置字典请求参数")
-public class BiReportConfigDIctParam {
+public class BiReportConfigDictParam {
 
     @ApiModelProperty(value = "字典key")
     private String dictKey;

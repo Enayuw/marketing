@@ -12,7 +12,7 @@ import com.br.marketing.mapper.SourceStatisticDictMapper;
 import com.br.marketing.service.bi.BiReportService;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
 import com.br.marketing.vo.bi.BiReportVO;
-import com.br.marketing.vo.bi.param.BiReportConfigDIctParam;
+import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import groovy.util.logging.Slf4j;
@@ -111,7 +111,7 @@ public class BiReportServiceImpl implements BiReportService {
     }
 
     @Override
-    public List<BiReportConfigDictVO> getBiReportConfigDict(BiReportConfigDIctParam param) {
+    public List<BiReportConfigDictVO> getBiReportConfigDict(BiReportConfigDictParam param) {
         List<SourceStatisticDict> sourceStatisticDicts = statisticDictMapper.selectListbI_(param);
         return sourceStatisticDicts.stream().map((SourceStatisticDict t) -> {
             BiReportConfigDictVO vo = new BiReportConfigDictVO();
@@ -121,7 +121,7 @@ public class BiReportServiceImpl implements BiReportService {
     }
 
     @Override
-    public ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDIctParam param) {
+    public ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDictParam param) {
         SourceStatisticDict sourceStatisticDict = new SourceStatisticDict();
         sourceStatisticDict.setDictKey(param.getDictKey());
         sourceStatisticDict.setDictDesc(param.getDictDesc());
