@@ -240,15 +240,18 @@ public class WuBaServiceClient {
 
             JSONArray array = new JSONArray();
             for (WubaCollidingDataLog collidingDataLog : logs) {
-                JSONObject jsonObject = new JSONObject();
-                String randomNumber = RANDOM.ints(1, 10)
-                        .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
-                jsonObject.put("id", randomNumber);
-                jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
-                int i = new Random().nextInt(2) + 1;
-                jsonObject.put("status", i);
-                jsonObject.put("userType", String.valueOf(i));
-                array.add(jsonObject);
+                if (collidingDataLog.getId().intValue() % 3 == 1) {
+                    JSONObject jsonObject = new JSONObject();
+                    String randomNumber = RANDOM.ints(1, 10)
+                            .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
+                    jsonObject.put("id", randomNumber);
+                    jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
+                    int i = RANDOM.nextInt(2) + 1;
+                    int j = RANDOM.nextInt(2) + 1;
+                    jsonObject.put("status", i);
+                    jsonObject.put("userType", String.valueOf(j));
+                    array.add(jsonObject);
+                }
             }
 
             HashMap<String, Object> contentMock = new HashMap<>();
