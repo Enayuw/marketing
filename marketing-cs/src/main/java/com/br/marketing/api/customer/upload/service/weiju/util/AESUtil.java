@@ -14,57 +14,68 @@ import java.nio.charset.StandardCharsets;
  * @date 2024/09/11
  */
 public class AESUtil {
-
     /**
-     * 解密方法
+     * aes加密
      *
-     * @param base64Content 待解密内容
-     * @param key key
-     * @param iv iv
-     * @return {@link String }
-     * @author senyang.zheng
-     * @date 2024/09/11
+     * @param base64Key
+     * @param text
+     * @return
      */
-    public static String decryptBase64Content(String base64Content, String key, String iv) {
+    public static String encryptAES(String base64Key, String text) {
         try {
-            // 密钥转成⼆进制流
-            byte[] secretKeyBytes = key.getBytes();
-            SecretKeySpec skeySpec = new SecretKeySpec(secretKeyBytes, "AES");
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes());
-            cipher.init(Cipher.DECRYPT_MODE, skeySpec, ivParameterSpec);
-            // base64解码
-            byte[] content = Base64.decodeBase64(base64Content);
-            // aes解密
-            byte[] decryptContent = cipher.doFinal(content);
-            return new String(decryptContent, StandardCharsets.UTF_8);
-        } catch (Exception e) {
+            byte[] key = parseHexStr2Byte(base64Key);
+            SecretKeySpec sKeySpec = new SecretKeySpec(key, "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(1, sKeySpec);
+            byte[] encryptBytes = cipher.doFinal(text.getBytes("utf-8"));
+            return parseByte2HexStr(encryptBytes);
+        } catch (Exception var6) {
             return null;
         }
     }
 
     /**
-     * 加密方法
+     * aes解密
      *
-     * @param content 待加密内容
-     * @param key key
-     * @param iv iv
-     * @return {@link String }
-     * @author senyang.zheng
-     * @date 2024/09/11
+     * @param base64Key
+     * @param text
      */
-    public static String encryptBase64Content(String content, String key, String iv) {
+    public static String decryptAES(String base64Key, String text) {
         try {
-            byte[] secretKeyBytes = key.getBytes();
-            SecretKeySpec skeySpec = new SecretKeySpec(secretKeyBytes, "AES");
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(iv.getBytes());
-            cipher.init(Cipher.ENCRYPT_MODE, skeySpec, ivParameterSpec);
-            byte[] encryptedContent = cipher.doFinal(content.getBytes(StandardCharsets.UTF_8));
-            return Base64.encodeBase64String(encryptedContent);
-        } catch (Exception e) {
+            byte[] key = parseHexStr2Byte(base64Key);
+            SecretKeySpec sKeySpec = new SecretKeySpec(key, "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(2, sKeySpec);
+            byte[] decryptBytes = cipher.doFinal(parseHexStr2Byte(text));
+            return new String(decryptBytes, "UTF-8");
+        } catch (Exception var6) {
             return null;
         }
     }
 
+    private static byte[] parseHexStr2Byte(String hexStr) {
+        if (hexStr.length() < 1) {
+            return null;
+        } else {
+            byte[] result = new byte[hexStr.length() / 2];
+            for (int i = 0; i < hexStr.length() / 2; ++i) {
+                int high = Integer.parseInt(hexStr.substring(i * 2, i * 2 + 1), 16);
+                int low = Integer.parseInt(hexStr.substring(i * 2 + 1, i * 2 + 2), 16);
+                result[i] = (byte)(high * 16 + low);
+            }
+            return result;
+        }
+    }
+
+    public static String parseByte2HexStr(byte[] buf) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < buf.length; ++i) {
+            String hex = Integer.toHexString(buf[i] & 255);
+            if (hex.length() == 1) {
+                hex = '0' + hex;
+            }
+            sb.append(hex.toUpperCase());
+        }
+        return sb.toString();
+    }
 }
