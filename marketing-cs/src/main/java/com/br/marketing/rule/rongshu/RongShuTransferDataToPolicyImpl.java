@@ -51,7 +51,8 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         // 情况2
-        String status = "2";
+        String status = null;
+//        String status = "2";
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
         Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
         if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
@@ -65,8 +66,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         String cell = marketingSyncUser.getCell();
         pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
-        pushMarketingUserDetailByRuleDTO.setBatchNumber(
-                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + context.getApiCode());
+
         pushMarketingUserDetailByRuleDTO.setVariables((JSONObject) JSON.toJSON(transfer));
         String reserveField1 = transfer.getReserveField1();
         if (JSON.isValidObject(reserveField1)) {
@@ -81,10 +81,17 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
                             ,"4004643榕树自动化转决策出现非预期的finalState:["+finalState+"]"));
                     return null;
                 }else{
+                    status = finalState;
                     pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
                 }
+            }else{
+                return null;
             }
+        }else{
+            return null;
         }
+        pushMarketingUserDetailByRuleDTO.setBatchNumber(
+                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + context.getApiCode());
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         pushMarketingUserDetailByRuleDTO.setStatus(status);
