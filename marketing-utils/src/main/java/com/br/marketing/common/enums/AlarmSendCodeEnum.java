@@ -255,6 +255,9 @@ public enum AlarmSendCodeEnum {
     //度小满接口调用失败,阶梯推送
     DUXIAOMAN_INTERFACEERROR("6036002", "度小满接口调用失败"),
 
+    //度小满业务异常,立即推送
+    BIREPORT_SERVICEERROR("6037001", "BI报表业务异常"),
+
     ;
 
     /**
