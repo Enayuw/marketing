@@ -176,6 +176,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             // 更新log表撞库结果，并返回不可营销数据
             List<String> lostCells = updateLogResultAndGetLostCells(trueDatas, batchNo, jsonArray, apiCode);
 
+            // 根据sourceType处理数据
             List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatas, financialDatas, lostCells, apiCode,
                     batchNo, taskId);
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
