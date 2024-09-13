@@ -387,7 +387,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         switch (sourceType) {
             case "T":
                 futures.addAll(batchHandleBusinessAsync(financialDatas,
-                        (List<WubaCollidingData> data) -> nonFinancialToFinancialBusiness(data, batchNo, apiCode, taskId),
+                        (List<WubaCollidingData> data) -> nonFinancialToFinancialBusiness(data, apiCode, batchNo, taskId),
                         "非金融场景撞得数据转为金融场景，并保存到清洗表"));
                 futures.addAll(batchHandleFalseBusinessAsync(lostCells,
                         (List<String> data) -> wuBaCollidingDataBusinessService.deleteLoopAndSaveRob(data, apiCode), "非金融场景未撞得业务"));
@@ -397,7 +397,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 break;
             case "S":
                 futures.addAll(batchHandleBusinessAsync(nonFinancialDatas,
-                        (List<WubaCollidingData> data) -> financialToNonFinancialBusiness(data, batchNo, apiCode, taskId),
+                        (List<WubaCollidingData> data) -> financialToNonFinancialBusiness(data, apiCode, batchNo, taskId),
                         "金融场景撞得数据转为非金融场景，并保存到清洗表"));
                 futures.addAll(batchHandleFalseBusinessAsync(lostCells,
                         (List<String> data) -> wuBaCollidingDataBusinessService.deleteSecondLoopAndSaveRob(data, apiCode), "金融场景未撞得业务"));
