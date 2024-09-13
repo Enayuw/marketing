@@ -250,7 +250,7 @@ public class WuBaServiceClient {
                     jsonObject.put("id", randomNumber);
                     jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
 
-                    ArrayList<Integer> radomStatus = Lists.newArrayList(1, 2);
+                    ArrayList<Integer> radomStatus = Lists.newArrayList(1, -2);
                     jsonObject.put("status", RandomUtil.randomEle(radomStatus));
                     ArrayList<String> randomUserType = Lists.newArrayList("1", "2");
                     jsonObject.put("userType", RandomUtil.randomEle(randomUserType));
@@ -288,20 +288,5 @@ public class WuBaServiceClient {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
                     , subject), e);
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(    RandomUtil.randomEle());
-        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("1","2")));
-        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("1","2")));
-        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("1","2")));
-        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("1","2")));
-
-
-        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("-2","1")));
-        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("-2","1")));
-        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("-2","1")));
-        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("-2","1")));
-
     }
 }
