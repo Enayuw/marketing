@@ -1,5 +1,6 @@
 package com.br.marketing.client.wuba;
 
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -23,6 +24,7 @@ import com.br.marketing.mock.custom.wuba.WuBaMockService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -240,16 +243,18 @@ public class WuBaServiceClient {
 
             JSONArray array = new JSONArray();
             for (WubaCollidingDataLog collidingDataLog : logs) {
-                if (collidingDataLog.getId().intValue() % 3 == 1) {
+                if (collidingDataLog.getId().intValue() % 2 == 1) {
                     JSONObject jsonObject = new JSONObject();
                     String randomNumber = RANDOM.ints(1, 10)
                             .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
                     jsonObject.put("id", randomNumber);
                     jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
-                    int i = RANDOM.nextInt(2) + 1;
-                    int j = RANDOM.nextInt(2) + 1;
-                    jsonObject.put("status", i);
-                    jsonObject.put("userType", String.valueOf(j));
+
+                    ArrayList<Integer> radomStatus = Lists.newArrayList(1, 2);
+                    jsonObject.put("status", RandomUtil.randomEle(radomStatus));
+                    ArrayList<String> randomUserType = Lists.newArrayList("1", "2");
+                    jsonObject.put("userType", RandomUtil.randomEle(randomUserType));
+
                     array.add(jsonObject);
                 }
             }
@@ -283,5 +288,20 @@ public class WuBaServiceClient {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
                     , subject), e);
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(    RandomUtil.randomEle());
+        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("1","2")));
+        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("1","2")));
+        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("1","2")));
+        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("1","2")));
+
+
+        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("-2","1")));
+        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("-2","1")));
+        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("-2","1")));
+        System.out.println(    RandomUtil.randomEle(Lists.newArrayList("-2","1")));
+
     }
 }
