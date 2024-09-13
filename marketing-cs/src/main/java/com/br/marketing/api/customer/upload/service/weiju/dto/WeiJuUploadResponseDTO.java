@@ -1,5 +1,6 @@
 package com.br.marketing.api.customer.upload.service.weiju.dto;
 
+import cn.hutool.core.lang.UUID;
 import com.br.marketing.dto.ResponseCustomDTO;
 
 import lombok.AllArgsConstructor;
@@ -22,14 +23,21 @@ public class WeiJuUploadResponseDTO extends ResponseCustomDTO {
 
     private static final long serialVersionUID = -7690813151831346825L;
     /**
-     * 2023-10-16 17:14 状态码
+     * 状态码
      */
     private Integer code;
 
     /**
-     * 2023-10-16 17:14 描述
+     * 描述
      */
     private String msg;
+
+    /**
+     * traceId
+     */
+    private String traceId = UUID.fastUUID().toString(true);
+
+    private String data = "";
 
     public WeiJuUploadResponseDTO success() {
         this.code = ResultEnum.SUCCESS.getCode();

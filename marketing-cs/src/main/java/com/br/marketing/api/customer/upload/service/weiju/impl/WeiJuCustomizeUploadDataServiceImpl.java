@@ -33,9 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUploadDataService {
 
-    @Resource
-    private MarketingCommonConfig marketingCommonConfig;
-
     /**
      * 解密JsonData
      *
@@ -47,21 +44,6 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
      */
     @Override
     public String decryptJsonData(String apiCode, String jsonData) {
-        JSONObject cryptoConfig = marketingCommonConfig.getCryptoConfig();
-        JSONObject weiJuConfig = cryptoConfig.getJSONObject(apiCode);
-        JSONObject jsonObject = JSONObject.parseObject(jsonData);
-        String sign = jsonObject.getString("sign");
-        String timestamp = jsonObject.getString("timestamp");
-        String data = jsonObject.getString("data");
-        // 检查签名
-        Map<String, String> signParams = new HashMap<>();
-        signParams.put("timestamp", timestamp);
-        signParams.put("data", data);
-        boolean flag = RSAEncryptUtil.checkSignSHA1(signParams, sign, weiJuConfig.getString("rsaPublicKey"));
-        if (!flag) {
-            return null;
-        }
-        jsonData = AESUtil.decryptAES(weiJuConfig.getString("aesKey"),data );
         return jsonData;
     }
 

@@ -66,11 +66,13 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
         try {
             BaseUploadDataAdaptee adapter = null;
             CustomerResponseDTO respCustomer = null;
-            //先做一次解密处理，若不需解密 默认实现返回原文
-            String decryptData = customerUploadDataHandler.decryptJsonData(apiCode, jsonData);
             CustomizeUploadData uploadData = new CustomizeUploadData();
+            String decryptData = jsonData;
+            if (customerUploadDataHandler.customer().getIsNeedDecrypt()) {
+                decryptData = customerUploadDataHandler.decryptJsonData(apiCode, jsonData);
+                uploadData.setExtend(jsonData);
+            }
             uploadData.setRequestJsonData(decryptData);
-            uploadData.setExtend(jsonData);
             uploadData.setReceiveDate(LocalDate.now().toString());
             uploadData.setApiCode(apiCode);
             uploadData.setCreateTime(new Date());
@@ -137,7 +139,8 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             // 8. 返回响应
             return respCustomer.getResponseCustomDTO();
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "定制上传数据接入异常"), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                "该apiCode:" + apiCode + "定制上传数据接入异常，jsonData:" + jsonData), e);
             return customerUploadDataHandler.fallbackResponse(e).getResponseCustomDTO();
         }
     }
@@ -146,8 +149,8 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
      * 发送容灾消息，若存在加密情况jsonData需是原文
      *
      * @param customerUploadDataHandler 适配器
-     * @param apiCode                   API代码
-     * @param jsonData                  json数据
+     * @param apiCode API代码
+     * @param jsonData json数据
      * @return {@link CustomerResponseDTO }
      * @author senyang.zheng
      * @date 2024/09/11
