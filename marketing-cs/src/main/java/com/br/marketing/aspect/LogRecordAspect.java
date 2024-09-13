@@ -22,15 +22,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
-import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -143,7 +141,10 @@ public class LogRecordAspect {
             requestOperationLog.setOperator(userDetail.getUserName());
         }
         requestOperationLog.setBizNo(code);
-        requestOperationLog.setRequestParam(JSONObject.toJSONString(args));
+        List<Object> filteredArgs = Arrays.stream(args)
+                .filter(arg -> !(arg instanceof HttpServletRequest || arg instanceof HttpServletResponse))
+                .collect(Collectors.toList());
+        requestOperationLog.setRequestParam(JSONObject.toJSONString(filteredArgs));
         requestOperationLog.setUrl(attributes.getRequest().getRequestURI());
         requestOperationLog.setExtendInfo(process.get(annotation.extendInfo()));
         requestOperationLog.setOriginalValue(process.get(annotation.originalValue()));

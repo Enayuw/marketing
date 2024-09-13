@@ -2101,5 +2101,20 @@ public class MarketingCommonConfig {
      */
     private JSONObject shuHeToBioclooAesKeyConfig;
 
+    /**
+     * 携程Bi报表展示数量
+     */
+    private Map<String, Integer> xiechengBiReportShowNumMap;
+
+    /**
+     * 携程Bi单日撞库报表dataPacket排序
+     */
+    private Map<String, Integer> xiechengBiReportDistrubuteDayDataPacketOrderMap;
+
+    /**
+     * 加解密秘钥配置 格式 {"7492770":{"aesKey":"7H6j39W6W6b90077","aesIv":"sd0S94rU1009P43B"}}
+     */
+    private JSONObject cryptoConfig;
+
 }
 

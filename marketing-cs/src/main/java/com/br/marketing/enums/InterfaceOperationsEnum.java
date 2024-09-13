@@ -21,7 +21,8 @@ public enum InterfaceOperationsEnum {
     XIECHENG_UPDATE_ROUND("100007","修改数据包轮次"),
 
     BI_ADD_DISTRIBUTED_REPORT("200000","新增跑分分布报表"),
-    BI_DOWNLOAD_DISTRIBUTED_REPORT("200001","下载BI评分分布报表"),
+    BI_DOWNLOAD_DISTRIBUTED_REPORT("200001","下载评分分布报表"),
+    BI_DOWNLOAD_REPORT("200002","下载BI报表"),
     ;
     /**
      * 接口状态码

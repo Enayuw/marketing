@@ -37,6 +37,20 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
     @Resource
     private MarketingCustomerMapper marketingCustomerService;
 
+    /**
+     * 解密jsonData
+     *
+     * @param apiCode  apiCode
+     * @param jsonData jsonData
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2024/09/11
+     */
+    @Override
+    public String decryptJsonData(String apiCode, String jsonData) {
+        return jsonData;
+    }
+
     @Override
     public CustomerUploadHandlerEnum customer() {
         return CustomerUploadHandlerEnum.U_ALIEN_DEFAULT;
@@ -45,6 +59,8 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
     @Override
     public BaseUploadDataAdaptee parseObject(String jsonData) {
         return new BaseUploadDataAdaptee() {
+            private static final long serialVersionUID = 3258873088320758294L;
+
             @Override
             protected MarketingPreUserDTO adapteeRequest(String apiCode, MarketingPreUserDTO marketingPreUserDTO) {
                 return null;
