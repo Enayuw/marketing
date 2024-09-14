@@ -27,7 +27,7 @@
         From b_sushang_call_record_data
         where local_id =#{local_id}
         and  <![CDATA[call_time >= #{beginDate} and call_time <= #{endDate}]]>
-        order by call_time asc limit #{limitStart},#{pageSize};
+        order by call_time asc ,id asc limit #{limitStart},#{pageSize};
     </select>
 
 
