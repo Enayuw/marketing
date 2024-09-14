@@ -211,12 +211,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     private List<String> updateLogResultAndGetLostCells(List<WubaCollidingData> trueDatas, String batchNo, JSONArray jsonArray, String apiCode) {
         // 更新撞得log
         trueDatas.parallelStream().forEach((WubaCollidingData t) -> {
-            WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
-            logExample.createCriteria().andBatchNoEqualTo(batchNo).andCellEqualTo(t.getCell());
-            WubaCollidingDataLog log = new WubaCollidingDataLog();
-            log.setResult(true);
-            log.setExtend(t.getExtend());
-            wubaCollidingDataLogMapper.updateByExampleSelective(log, logExample);
+            wubaCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), true, t.getExtend());
         });
 
         // status非1数据
@@ -230,12 +225,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
         // 更新被抢占数据log
         lostDatas.parallelStream().forEach((WubaCollidingData t) -> {
-            WubaCollidingDataLogExample logExample = new WubaCollidingDataLogExample();
-            logExample.createCriteria().andBatchNoEqualTo(batchNo).andCellEqualTo(t.getCell());
-            WubaCollidingDataLog log = new WubaCollidingDataLog();
-            log.setResult(false);
-            log.setExtend(t.getExtend());
-            wubaCollidingDataLogMapper.updateByExampleSelective(log, logExample);
+            wubaCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), false, t.getExtend());
         });
 
         List<WubaCollidingDataLog> logs = getLogs(batchNo, apiCode);
