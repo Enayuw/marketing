@@ -19,10 +19,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -89,19 +86,32 @@ public class SuShangPushServiceImpl implements SuShangPushService {
         log.warn("苏商推送规则一(已成交)运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
         //插入180天通话明细数据
         long startTwo = System.currentTimeMillis();
-        indexId = null;
+        Integer page = 0;
         String beginDate = LocalDate.now().minusDays(179).toString();
         String endDate = LocalDate.now().minusDays(1).toString();
+        //全局去重custNum集合
+        HashSet custNumALL = new HashSet();
         while (true) {
-            //获取180天内最早的custNum
+            //获取180天的custNum,按call_time排序
+            Integer limitStart = page * pageSize;
             List<SushangCallRecordData> callRecordDataList = sushangCallRecordDataMapper.getHalfYearCallRecordtikv_(callRecordLocalId,
-                    indexId, pageSize, beginDate, endDate);
+                    beginDate, endDate, limitStart, pageSize);
             if (CollectionUtils.isEmpty(callRecordDataList)) {
                 break;
             }
-            indexId = callRecordDataList.get(callRecordDataList.size() - 1).getId();
+            page++;
+            List<SushangCallRecordData> callRecordDataNewList = new ArrayList<>();
+            callRecordDataList.forEach((SushangCallRecordData callData) -> {
+                //添加set集合去重
+                if (custNumALL.add(callData.getCustNum())) {
+                    callRecordDataNewList.add(callData);
+                }
+            });
+            if (CollectionUtils.isEmpty(callRecordDataNewList)) {
+                continue;
+            }
             modifyCorePoolSize(callRecordPool);
-            List<List<SushangCallRecordData>> partition = Lists.partition(callRecordDataList, 500);
+            List<List<SushangCallRecordData>> partition = Lists.partition(callRecordDataNewList, 500);
             partition.forEach((List<SushangCallRecordData> callRecordData) -> {
                 List<SushangCallRecordData> list = new ArrayList<>();
                 list.addAll(callRecordData);
@@ -119,6 +129,7 @@ public class SuShangPushServiceImpl implements SuShangPushService {
             Thread.currentThread().interrupt();
         }
         log.warn("苏商推送规则二(非成交)运行耗时：{}s", (System.currentTimeMillis() - startTwo) / 1000);
+        custNumALL.clear();
         //更新为推送成功状态
         localFile.setPushStatus("2");
         localFile.setId(localFile.getId());
