@@ -168,10 +168,10 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             List<WubaCollidingData> trueDatas = getTrueDatas(jsonArray);
 
             // 撞得的非金融场景数据
-            List<WubaCollidingData> nonFinancialDatas = filterByUserType(jsonArray, "1");
+            List<WubaCollidingData> nonFinancialDatas = filterNonFinancialByUserType(jsonArray);
 
             // 撞得的金融场景数据
-            List<WubaCollidingData> financialDatas = filterByUserType(jsonArray, "2");
+            List<WubaCollidingData> financialDatas = filterFinancialByUserType(jsonArray);
 
             // 更新log表撞库结果，并返回不可营销数据
             List<String> lostCells = updateLogResultAndGetLostCells(trueDatas, batchNo, jsonArray, apiCode);
@@ -195,11 +195,24 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         return trueDatas;
     }
 
-    private List<WubaCollidingData> filterByUserType(JSONArray jsonArray, String userType) {
+    private List<WubaCollidingData> filterNonFinancialByUserType(JSONArray jsonArray) {
         Stream<JSONObject> trueDataStream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
                 .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), 1));
         List<WubaCollidingData> financialDatas =
-                trueDataStream.filter(t -> Objects.equals(t.getString("userType"), userType)).map((JSONObject t) -> {
+                trueDataStream.filter(t -> Objects.equals(t.getString("userType"), "1") || Objects.isNull(t.getString("userType"))).map((JSONObject t) -> {
+                    WubaCollidingData data = new WubaCollidingData();
+                    data.setCell(t.getString(MOBILE_ENCRYPT));
+                    data.setExtend(JSON.toJSONString(t));
+                    return data;
+                }).collect(Collectors.toList());
+        return financialDatas;
+    }
+
+    private List<WubaCollidingData> filterFinancialByUserType(JSONArray jsonArray) {
+        Stream<JSONObject> trueDataStream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), 1));
+        List<WubaCollidingData> financialDatas =
+                trueDataStream.filter(t -> Objects.equals(t.getString("userType"), "2")).map((JSONObject t) -> {
                     WubaCollidingData data = new WubaCollidingData();
                     data.setCell(t.getString(MOBILE_ENCRYPT));
                     data.setExtend(JSON.toJSONString(t));
