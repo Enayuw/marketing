@@ -13,7 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 /**
@@ -64,14 +67,16 @@ public class WuBaFinancialReportDataSaveDb implements AssembleData<InterfacePara
         WubaSubmitConversionData data = new WubaSubmitConversionData();
         data.setApiCode(syncUser.getApiCode());
         data.setLocalId(0L);
-        data.setCell(syncUser.getCell());
+        data.setCell(syncUser.getCellMd5());
         data.setStatus(1);
         data.setUserType("2");
         data.setExtend("金融场景撞库后自动上报");
 
         LocalTime start = LocalTime.of(9, 0);
         LocalTime mockTime = start.plusSeconds(RandomUtil.randomLong(3600));
-        data.setMarketingTime(mockTime.toString());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedTime = LocalDateTime.of(LocalDate.now(), mockTime).format(formatter);
+        data.setMarketingTime(formattedTime);
 
         data.setCreateDate(Integer.valueOf(DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN)));
         wubaSubmitConversionDataMapper.insertSelective(data);
