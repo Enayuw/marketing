@@ -1883,8 +1883,15 @@ public class MarketingCommonConfig {
 
     /**
      * 58提交周期撞库开关(true:开启，false关闭)
+     * {"T":true,"S":true}
      */
-    private Boolean wuBaCollidingDataSwitch;
+    private HashMap<String, Boolean> wuBaCollidingDataSwitch;
+
+    /**
+     * 58提交撞库周期天数配置
+     * {"T":8,"S":15}
+     */
+    private HashMap<String, Integer> wuBaCollidingCycleDayConfig;
 
     /**
      * 58提交撞库数据分页条数

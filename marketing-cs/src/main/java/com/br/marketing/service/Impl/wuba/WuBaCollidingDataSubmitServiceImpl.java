@@ -20,6 +20,7 @@ import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
+import com.br.marketing.mapper.WubaCollidingDataSecondLoopCycleMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.collect.Lists;
@@ -47,6 +48,9 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubmitService {
+    public static final String T = "T";
+    public static final String S = "S";
+    public static final String F = "F";
     @Resource
     WuBaServiceClient wuBaServiceClient;
     @Autowired
@@ -55,6 +59,8 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     WubaCollidingDataRobMapper wubaCollidingDataRobMapper;
     @Resource
     WubaCollidingDataLoopCycleMapper wubaCollidingDataLoopCycleMapper;
+    @Resource
+    WubaCollidingDataSecondLoopCycleMapper wubaCollidingDataSecondLoopCycleMapper;
     @Resource
     WubaCollidingBatchNoMapper wubaCollidingBatchNoMapper;
     @Resource
@@ -131,11 +137,15 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             wubaCollidingBatchNoMapper.saveDataByBatchNo(batchNo, 1, apiCode, sourceType);
 
             switch (sourceType) {
-                case "T":
-                    // 更新周期表pushTime
+                case T:
+                    // 更新周期场景1表pushTime
                     wubaCollidingDataLoopCycleMapper.batchUpdatePushTimeById(collidingData);
                     break;
-                case "F":
+                case S:
+                    // 更新周期场景2表pushTime
+                    wubaCollidingDataSecondLoopCycleMapper.batchUpdatePushTimeById(collidingData);
+                    break;
+                case F:
                     // 更新非周期表pushTime
                     wubaCollidingDataRobMapper.batchUpdatePushTimeById(collidingData);
                     break;
@@ -195,7 +205,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                 log.setDataSourceType(dataSourceType);
 
                 // 周期数据不保存packageId
-                if (Objects.equals(dataSourceType, "F")) {
+                if (Objects.equals(dataSourceType, F)) {
                     log.setPackageId(data.getPackageId());
                 }
 
@@ -210,20 +220,33 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     }
 
     /**
-     * 查询待撞数据，顺序为：周期 → 高价值 → 手动上传
+     * 查询待撞数据，顺序为：周期场景1 → 周期场景2 → 高价值 → 手动上传
      * @param apiCode
      * @param limit
      * @return
      */
     private Pair<String, List<WubaCollidingData>> getCollidingDatas(String apiCode, Integer limit) {
-        // 周期数据
-        if (marketingCommonConfig.getWuBaCollidingDataSwitch()) {
-            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(8).toString(), DatePattern.NORM_DATE_PATTERN);
-            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(7).toString(), DatePattern.NORM_DATE_PATTERN);
+        // 周期场景1的数据
+        if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(T)) {
+            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
+            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
+            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
             List<WubaCollidingData> loopCycles = wubaCollidingDataLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
                     limit);
             if (!CollectionUtils.isEmpty(loopCycles)) {
-                return new Pair<>("T", loopCycles);
+                return new Pair<>(T, loopCycles);
+            }
+        }
+
+        // 周期场景2的数据
+        if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
+            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
+            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
+            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
+            List<WubaCollidingData> loopCycles = wubaCollidingDataSecondLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
+                    limit);
+            if (!CollectionUtils.isEmpty(loopCycles)) {
+                return new Pair<>(S, loopCycles);
             }
         }
 
@@ -233,14 +256,14 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             DateTime nowDate = DateUtil.parse(LocalDate.now().toString(), DatePattern.NORM_DATE_PATTERN);
             List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectHighValueCollidingData(limit, apiCode, nowDate, highValueFiles);
             if (!CollectionUtils.isEmpty(robs)) {
-                return new Pair<>("F", robs);
+                return new Pair<>(F, robs);
             }
         }
 
         // 手动上传数据
         List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectCollidingData(limit, apiCode);
         if (!CollectionUtils.isEmpty(robs)) {
-            return new Pair<>("F", robs);
+            return new Pair<>(F, robs);
         }
 
         return new Pair<>(null, null);

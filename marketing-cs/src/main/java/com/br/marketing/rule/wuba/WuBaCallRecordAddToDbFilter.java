@@ -73,7 +73,11 @@ public class WuBaCallRecordAddToDbFilter implements AssembleData<WuBaSubmitConve
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        return true;
+        if (transmitFact instanceof CallRecordBO) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override

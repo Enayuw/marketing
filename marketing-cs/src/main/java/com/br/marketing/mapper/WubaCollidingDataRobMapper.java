@@ -18,5 +18,7 @@ public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBa
 
     List<WubaCollidingData> selectHighValueCollidingData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode,
                                                          @Param("nowDate") Date nowDate, @Param("fileNames") List<String> fileNames);
-    void batchSaveTrueToFalseData(@Param("cells") List<String> cells, @Param("apiCode") String apiCode);
+
+    void batchSaveTrueToFalseData(@Param("cells") List<String> cells, @Param("apiCode") String apiCode,
+                                  @Param("dataSourceType") String dataSourceType);
 }
