@@ -252,8 +252,11 @@ public class WuBaServiceClient {
 
                     ArrayList<Integer> radomStatus = Lists.newArrayList(1, -2);
                     jsonObject.put("status", RandomUtil.randomEle(radomStatus));
-                    ArrayList<String> randomUserType = Lists.newArrayList("1", "2");
-                    jsonObject.put("userType", RandomUtil.randomEle(randomUserType));
+                    ArrayList<String> randomUserType = Lists.newArrayList("1", "2", null);
+                    String userType = RandomUtil.randomEle(randomUserType);
+                    if (Objects.nonNull(userType)) {
+                        jsonObject.put("userType", userType);
+                    }
 
                     array.add(jsonObject);
                 }
