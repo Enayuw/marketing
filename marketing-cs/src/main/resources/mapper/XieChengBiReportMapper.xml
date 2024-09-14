@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.XieChengBiReportMapper">
+    <select id="selectXcTrabsferMonthlyListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferMonthlyReportDTO">
+        select *
+        from dws_xc_transfer_accrue_natural_mouth_d
+        where
+          report_date like concat("%", #{month},"%") and is_delete = 0
+        order by report_date desc
+    </select>
+
+    <select id="selectXcTransferDailybI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferDailyReportDTO">
+        select * from dws_xc_transfer_day_d
+        where is_delete = 0
+        <if test="reportDateStart !=null and reportDateStart!=''">
+            <![CDATA[ and report_date >= #{reportDateStart}]]>
+        </if>
+        <if test="reportDateEnd !=null and reportDateEnd!=''">
+            <![CDATA[ and report_date <= #{reportDateEnd}]]>
+        </if>
+        order by report_date desc;
+    </select>
+
+    <select id="selectXcTransferSevenRollListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO">
+        select *
+        from dws_xc_transfer_seven_roll_d
+        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]> and is_delete = 0
+    </select>
+
+    <select id="selectXcColldingDistrubuteDayListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO">
+        select *
+        from dws_xc_collding_distrubute_day_d
+        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]> and is_delete = 0
+    </select>
+
+    <select id="selectXcCollidingWeeklybI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO">
+        select dataPacket,sum(lock_num) as lockNum from dws_xc_collding_distrubute_day_d
+        where <![CDATA[ report_date >= #{reportDateStart} and report_date <= #{reportDateEnd} ]]>
+        group by dataPacket order by dataPacket;
+    </select>
+
+    <select id="selectXcDataRatioListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengDataRatioDailyReportDTO">
+        select * from dws_xc_data_ratio_d where
+          <![CDATA[ report_date >= #{reportDateStart} ]]>
+        order by report_date desc
+    </select>
+    <select id="selectXcColldingSucCountbI_" resultType="java.lang.Integer">
+        select
+        count(DISTINCT datalog.cell_sha256_code_list) as count
+        from
+        ods_xc_colliding_log_half_hourly datalog
+        inner join ods_upload_half_hourly upload on
+        datalog.cell_sha256_code_list = upload.cell_sha256
+        where
+        datalog.create_time >= #{reportDate}
+        <![CDATA[ and datalog.create_time < #{reportDateEnd} ]]>
+        and datalog.result = 1
+        and datalog.is_delete = 0
+        and upload.applet_date in ('2024-07-26', '2024-07-09', '2024-04-30', '2024-02-01', '2023-01-18', '2023-02-23', '2023-02-24', '2023-03-08', '2023-03-10', '2023-06-19', '2023-08-14')
+        and upload.status = 1
+        and upload.is_repeat in (1, 2)
+        and get_json_string(upload.reserve_field1,
+        '$.dataPacket') in ('1400wdx', '1400wlt', '1200w', '2800w', '300w', '800w', '900w', '3300w', '3500w', '360w', '830w')
+        and datalog.org_channel in ('CTRIP', 'QUNAR')
+    </select>
+
+
+</mapper>

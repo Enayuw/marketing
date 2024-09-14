@@ -39,6 +39,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/role/**")
                 .addPathPatterns("/pushDecisions/**")
                 .addPathPatterns("/reportScoreRule/**")
+                .addPathPatterns("/bi/report/**")
                 .addPathPatterns("/xiecheng/**");
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/rule/**")
@@ -49,6 +50,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/role/**")
                 .addPathPatterns("/pushDecisions/**")
                 .addPathPatterns("/reportScoreRule/**")
+                .addPathPatterns("/bi/report/**")
                 .addPathPatterns("/xiecheng/**");
         super.addInterceptors(registry);
     }

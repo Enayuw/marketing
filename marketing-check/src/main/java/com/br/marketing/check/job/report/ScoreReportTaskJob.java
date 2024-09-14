@@ -8,6 +8,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.ReportTaskStatusEnum;
+import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.ReportStatisticsScoreMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
@@ -58,6 +59,7 @@ public class ScoreReportTaskJob extends AbstractSimpleElasticJob {
         ReportTaskExample taskExample = new ReportTaskExample();
         taskExample.createCriteria()
                 .andStatusEqualTo(ReportTaskStatusEnum.READY.getValue())
+                .andReportTypeEqualTo(ReportTaskTypeEnum.SCORE_MODEL_TYPE.getValue())
                 .andIsDelEqualTo(Constants.DATA_VALID);
         taskExample.setOrderByClause(" create_time");
         List<ReportTask> reportTaskList = reportTaskMapper.selectByExample(taskExample);

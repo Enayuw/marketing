@@ -22,16 +22,18 @@
     </select>
 
 
-    <select id="getHalfYearCallRecord" resultType="com.br.marketing.entity.SushangCallRecordData">
-
-        Select *
-        From b_sushang_call_record_data
+    <select id="getHalfYearCallRecordtikv_" resultType="com.br.marketing.entity.SushangCallRecordData">
+        Select b.*
+        From (select a.*, row_number() over(partition by cust_num order by call_time asc) as rn
+        From b_sushang_call_record_data a
         where local_id =#{local_id}
         and  <![CDATA[call_time >= #{beginDate} and call_time <= #{endDate}]]>
+        ) b
+        Where b.rn = 1
         <if test="indexId != null and indexId!=''">
-            and id > #{indexId}
+            and b.id > #{indexId}
         </if>
-        order by id asc limit #{pageSize};
+        order by b.id asc limit #{pageSize};
     </select>
 
 
