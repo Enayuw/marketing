@@ -169,7 +169,8 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
      * @date 2024/08/28
      */
     @Override
-    public BiReportVO process(List<XiechengCollidingWeeklyReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<XiechengCollidingWeeklyReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
         DateTime lockPeriodStartDate = DateUtil.parse(getDictByKeyAndApiCode("xc_lock_period_start_date", "3710058"), "yyyy-MM-dd");
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_COLLIDING_WEEKLY_REPORT.getTypeName());
@@ -227,8 +228,8 @@ public class XiechengCollidingWeeklyConverter extends AbstractBiReportConverter<
             yAxis.add(collidingBackRatioWrapDataVO);
         }
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
-
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 
     private Map<String, List<XiechengCollidingWeeklyReportDTO>>

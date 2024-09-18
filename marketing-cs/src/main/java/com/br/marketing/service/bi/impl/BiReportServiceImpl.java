@@ -2,22 +2,28 @@ package com.br.marketing.service.bi.impl;
 
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bi.BiReportConverterSelector;
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.mapper.BiReportMapper;
 import com.br.marketing.mapper.SourceStatisticDictMapper;
 import com.br.marketing.service.bi.BiReportService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
+import com.br.marketing.vo.bi.BiReportTimeRangeVO;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
+import com.br.marketing.vo.bi.param.BiReportConfigParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -29,6 +35,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,6 +57,12 @@ public class BiReportServiceImpl implements BiReportService {
     @Resource
     private SourceStatisticDictMapper statisticDictMapper;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private BiReportMapper biReportMapper;
+
     /**
      * 获取BI报表
      * 
@@ -59,7 +72,7 @@ public class BiReportServiceImpl implements BiReportService {
      * @date 2024/08/28
      */
     @Override
-    public BiReportVO getBiReport(BiReportParam param) {
+    public List<BiReportVO> getBiReport(BiReportParam param) {
         BiReportTypeEnum reportType = BiReportTypeEnum.getEnumByTypeName(param.getReportTypeName());
         // 根据报告名称未匹配到对应报告类型
         if (reportType == null) {
@@ -134,5 +147,42 @@ public class BiReportServiceImpl implements BiReportService {
 
         statisticDictMapper.insertbI_(sourceStatisticDict);
         return new ApiResult<Boolean>().success();
+    }
+
+    /**
+     * @description 获取报表分组维度
+     * @param param
+     * @return java.util.List<java.lang.String>
+     * @author hedongshuo
+     * @date 2024/9/18 10:24
+     **/
+    @Override
+    public List<String> getReportGroupList(BiReportConfigParam param) {
+        String apiCode = param.getApiCode();
+        String reportTypeName = param.getReportTypeName();
+        String userType = param.getUserType();
+        Assert.notNull(userType, "缺少必输字段-场景userType");
+        HashMap<String, JSONObject> biReportGroupConfig = marketingCommonConfig.getBiReportGroupConfig();
+        JSONObject groupConfig = biReportGroupConfig.get(apiCode);
+        JSONObject userTypeConfig = groupConfig.getJSONObject(userType);
+        JSONArray groups = userTypeConfig.getJSONArray(reportTypeName);
+        List<String> groupList = groups.toJavaList(String.class);
+        return groupList;
+    }
+
+    /**
+     * @description 获取数据时间范围
+     * @param param
+     * @return com.br.marketing.vo.bi.BiReportTimeRangeVO
+     * @author hedongshuo
+     * @date 2024/9/18 19:47
+     **/
+    @Override
+    public BiReportTimeRangeVO getReportTimeRange(BiReportConfigParam param) {
+        String apiCode = param.getApiCode();
+        String userType = param.getUserType();
+        String statisticDate = param.getStatisticDate();
+        Assert.notNull(userType, "缺少必输字段-统计日期");
+        return biReportMapper.getReportTimeRange(apiCode, userType, statisticDate);
     }
 }

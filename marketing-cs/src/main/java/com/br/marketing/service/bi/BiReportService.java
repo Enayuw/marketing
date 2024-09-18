@@ -2,8 +2,10 @@ package com.br.marketing.service.bi;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
+import com.br.marketing.vo.bi.BiReportTimeRangeVO;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
+import com.br.marketing.vo.bi.param.BiReportConfigParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 
@@ -26,7 +28,7 @@ public interface BiReportService {
      * @author senyang.zheng
      * @date 2024/08/28
      */
-    BiReportVO getBiReport(BiReportParam param);
+    List<BiReportVO> getBiReport(BiReportParam param);
 
     /**
      * 下载报表
@@ -43,13 +45,38 @@ public interface BiReportService {
 
     /**
      * 查看BI配置字典表
-     * @param param
+     *
+     * @param param 参数
+     * @return {@link List }<{@link BiReportConfigDictVO }>
+     * @author senyang.zheng
+     * @date 2024/09/18
      */
     List<BiReportConfigDictVO>  getBiReportConfigDict(BiReportConfigDictParam param);
 
     /**
      * 修改BI配置字典表
-     * @param param
+     *
+     * @param param 参数
+     * @return {@link ApiResult }<{@link Boolean }>
+     * @author senyang.zheng
+     * @date 2024/09/18
      */
     ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDictParam param);
+
+    /**
+     * @description 获取报表分组维度
+     * @return java.util.List<java.lang.String>
+     * @author hedongshuo
+     * @date 2024/9/18 10:23
+     **/
+    List<String> getReportGroupList(BiReportConfigParam param);
+
+    /**
+     * @description 获取数据时间范围
+     * @param param
+     * @return com.br.marketing.vo.bi.BiReportTimeRangeVO
+     * @author hedongshuo
+     * @date 2024/9/18 19:47
+     **/
+    BiReportTimeRangeVO getReportTimeRange(BiReportConfigParam param);
 }

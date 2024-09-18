@@ -2123,5 +2123,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject cryptoConfig;
 
+    /**
+     * Bi报表分组维度配置
+     */
+    private HashMap<String, JSONObject> biReportGroupConfig;
+
 }
 

@@ -69,7 +69,7 @@ public abstract class AbstractBiReportConverter<V, T> {
      * @author senyang.zheng
      * @date 2024/08/28
      */
-    public abstract V process(List<T> dtos, JSONObject extend);
+    public abstract List<V> process(List<T> dtos, JSONObject extend);
 
     /**
      * 导出数据
