@@ -43,21 +43,31 @@ public interface BiReportService {
 
     /**
      * 查看BI配置字典表
-     * @param param
+     *
+     * @param param 参数
+     * @return {@link List }<{@link BiReportConfigDictVO }>
+     * @author senyang.zheng
+     * @date 2024/09/18
      */
     List<BiReportConfigDictVO>  getBiReportConfigDict(BiReportConfigDictParam param);
 
     /**
      * 修改BI配置字典表
-     * @param param
+     *
+     * @param param 参数
+     * @return {@link ApiResult }<{@link Boolean }>
+     * @author senyang.zheng
+     * @date 2024/09/18
      */
     ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDictParam param);
 
     /**
-     * @description 获取报表分组维度
+     * 获取报告组列表
+     *
+     * @param param 参数
      * @return java.util.List<java.lang.String>
      * @author hedongshuo
      * @date 2024/9/18 10:23
-     **/
+     */
     List<String> getReportGroupList(BiReportParam param);
 }

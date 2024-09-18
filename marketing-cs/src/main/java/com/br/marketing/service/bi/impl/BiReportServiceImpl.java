@@ -144,12 +144,13 @@ public class BiReportServiceImpl implements BiReportService {
     }
 
     /**
-     * @description 获取报表分组维度
-     * @param param
+     * 获取报告组列表
+     *
+     * @param param 参数
      * @return java.util.List<java.lang.String>
      * @author hedongshuo
      * @date 2024/9/18 10:24
-     **/
+     */
     @Override
     public List<String> getReportGroupList(BiReportParam param) {
         String apiCode = param.getApiCode();
@@ -161,7 +162,6 @@ public class BiReportServiceImpl implements BiReportService {
         JSONObject groupConfig = biReportGroupConfig.get(apiCode);
         JSONObject userTypeConfig = groupConfig.getJSONObject(userType);
         JSONArray groups = userTypeConfig.getJSONArray(reportTypeName);
-        List<String> groupList = groups.toJavaList(String.class);
-        return groupList;
+        return groups.toJavaList(String.class);
     }
 }
