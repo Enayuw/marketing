@@ -276,7 +276,14 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         }
 
         // 自适应宽度
-        writer.autoSizeColumnAll();
+        XSSFSheet sheet = (XSSFSheet)writer.getSheet();
+        int columnCount = writer.getColumnCount();
+        for (int i = 0; i < columnCount; i++) {
+            // 调整每一列宽度
+            sheet.autoSizeColumn(i);
+            // 解决自动设置列宽中文失效的问题
+            sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 15 / 10);
+        }
     }
 
     private void writeSingleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
