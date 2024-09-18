@@ -41,6 +41,30 @@ public enum BiReportTypeEnum {
      * 携程数据使用率报表
      */
     XIECHENG_DATARATIO_DAILY_REPORT(105, "xiechengDataRatioDailyReport"),
+    /**
+     * 多头分布报表
+     */
+    MULTPOINT_REPORT(106, "multPointReport"),
+    /**
+     * 转化分析报表
+     */
+    TRANSFER_ANALYSIS_REPORT(107, "transferAnalysisReport"),
+    /**
+     * 分组评分分布报表
+     */
+    GROUP_SCORE_REPORT(108, "groupScoreReport"),
+    /**
+     * 回溯分析报表
+     */
+    TRACE_ANALYSIS_REPORT(109, "traceAnalysisReport"),
+    /**
+     * 外呼统计报表
+     */
+    OUTBOUND_STAT_REPORT(110, "outboundStatReport"),
+    /**
+     * 经营分析报表
+     */
+    BUSINESS_ANALYSIS_REPORT(111, "businessAnalysisReport"),
     ;
 
     /** code */
