@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhongAnControlGroupMapper">
+
+    <insert id="saveCustomInfobI_" parameterType="list">
+        insert into dws_za_control_group_config (report_date, user_type,constituencies,
+        total_num, incoming_num,approvers_num,approval_available, login_rate,apply_pay_num,
+        pay_pass_rate,lenders_suc_amount,lenders_suc_num,create_time,update_time,is_delete)values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.reportDate,jdbcType=VARCHAR}, #{data.userType,jdbcType=INTEGER},#{data.constituencies,jdbcType=INTEGER},
+            #{data.totalNum,jdbcType=INTEGER}, #{data.incomingNum,jdbcType=INTEGER},#{data.approversNum,jdbcType=INTEGER},#{data.approvalAvailable,jdbcType=INTEGER},
+            #{data.loginRate,jdbcType=DECIMAL},#{data.applyPayNum,jdbcType=INTEGER},#{data.payPassRate,jdbcType=DECIMAL},
+            #{data.lendersSucAmount,jdbcType=DECIMAL},#{data.lendersSucNum,jdbcType=INTEGER}, now(),now(),0
+            )
+        </foreach>
+    </insert>
+
+    <select id="getCustomInfoListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO">
+        select * from
+        dws_za_control_group_config
+        where
+        <if test="reportDate != null">
+            report_date = #{reportDate,jdbcType=VARCHAR} and
+        </if>
+        is_delete =0
+        order by report_date asc;
+    </select>
+
+
+</mapper>
