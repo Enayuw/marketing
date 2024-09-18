@@ -33,7 +33,7 @@ public interface BiReportService {
     /**
      * 下载报表
      *
-     * @param param    参数
+     * @param params    参数
      * @param request  request
      * @param response response
      * @return {@link String }
@@ -41,7 +41,7 @@ public interface BiReportService {
      * @author senyang.zheng
      * @date 2024/08/28
      */
-    String downloadReport(BiReportDownLoadParam param, HttpServletRequest request, HttpServletResponse response) throws Exception;
+    String downloadReport(List<BiReportDownLoadParam> params, HttpServletRequest request, HttpServletResponse response) throws Exception;
 
     /**
      * 查看BI配置字典表
@@ -64,19 +64,22 @@ public interface BiReportService {
     ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDictParam param);
 
     /**
-     * @description 获取报表分组维度
+     * 获取报告组列表
+     *
+     * @param param 参数
      * @return java.util.List<java.lang.String>
      * @author hedongshuo
      * @date 2024/9/18 10:23
-     **/
+     */
     List<String> getReportGroupList(BiReportConfigParam param);
 
     /**
-     * @description 获取数据时间范围
-     * @param param
+     * 获取报告时间范围
+     *
+     * @param param 参数
      * @return com.br.marketing.vo.bi.BiReportTimeRangeVO
      * @author hedongshuo
      * @date 2024/9/18 19:47
-     **/
+     */
     BiReportTimeRangeVO getReportTimeRange(BiReportConfigParam param);
 }
