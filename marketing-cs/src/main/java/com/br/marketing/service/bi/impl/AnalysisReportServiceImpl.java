@@ -2,11 +2,11 @@ package com.br.marketing.service.bi.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,14 +18,24 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.ConditionalFormattingRule;
+import org.apache.poi.ss.usermodel.ConditionalFormattingThreshold;
+import org.apache.poi.ss.usermodel.DataBarFormatting;
+import org.apache.poi.ss.usermodel.ExtendedColor;
+import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.XSSFConditionalFormattingRule;
+import org.apache.poi.xssf.usermodel.XSSFDataBarFormatting;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.FastDfsClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.ReportStatisticsScore;
 import com.br.marketing.entity.ReportStatisticsScoreExample;
@@ -37,12 +47,14 @@ import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ScoreStatisticsDetailBaseMapper;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.DataBarUtil;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.poi.excel.ExcelUtil;
@@ -54,6 +66,8 @@ import lombok.extern.slf4j.Slf4j;
 public class AnalysisReportServiceImpl implements AnalysisReportService {
 
     public static final String BI_FILE_EXTENSION = ".xlsx";
+
+    public static final String DATA_BAR_COLOR = "FF80C279";
 
     @Resource
     private FastDfsClient fastDfsClient;
@@ -219,7 +233,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         fiveStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"));
         List<String> fiftyStepLength = Lists.newArrayList();
         fiftyStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"));
-        //剔除 [-1,0) 区间做交集
+        // 剔除 [-1,0) 区间做交集
         keys.remove("[-1,0)");
         fiveStepLength.remove("[-1,0)");
         fiftyStepLength.remove("[-1,0)");
@@ -249,6 +263,95 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         for (int i = 0; i < xAxis.size(); i++) {
             writer.writeCellValue(0, i + 1, xAxis.get(i));
         }
+
+        switch (data.getReportScoreType()) {
+            case 1:
+                writeSingleDataBar(writer, yAxis, xAxis);
+                break;
+            case 2:
+                writeMultipleDataBar(writer, yAxis, xAxis);
+                break;
+            default:
+                break;
+        }
+
+        // 自适应宽度
+        writer.autoSizeColumnAll();
+    }
+
+    private void writeSingleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
+        try {
+            SheetConditionalFormatting sheetCF = writer.getSheet().getSheetConditionalFormatting();
+            ExtendedColor color = writer.getWorkbook().getCreationHelper().createExtendedColor();
+            color.setARGBHex(DATA_BAR_COLOR);
+            ConditionalFormattingRule rule = sheetCF.createConditionalFormattingRule(color);
+            DataBarFormatting dbf = rule.getDataBarFormatting();
+            // 设置数据条类型
+            dbf.getMinThreshold().setRangeType(ConditionalFormattingThreshold.RangeType.MIN);
+            dbf.getMaxThreshold().setRangeType(ConditionalFormattingThreshold.RangeType.MAX);
+            // 仅展示数据栏设置
+            dbf.setIconOnly(false);
+            if (dbf instanceof XSSFDataBarFormatting) {
+                Field _databar = XSSFDataBarFormatting.class.getDeclaredField("_databar");
+                _databar.setAccessible(true);
+                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar ctDataBar =
+                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar)_databar.get(dbf);
+                ctDataBar.setMinLength(0);
+                ctDataBar.setMaxLength(100);
+            }
+            if (rule instanceof XSSFConditionalFormattingRule) {
+                Field _cfRule = XSSFConditionalFormattingRule.class.getDeclaredField("_cfRule");
+                _cfRule.setAccessible(true);
+                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule ctRule =
+                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule)_cfRule.get(rule);
+                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtensionList extList = ctRule.addNewExtLst();
+                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtension ext = extList.addNewExt();
+                String extXML = "<x14:id" + " xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\">"
+                    + "{00000000-000E-0000-0000-000001000000}" + "</x14:id>";
+                org.apache.xmlbeans.XmlObject xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXML);
+                ext.set(xlmObject);
+                ext.setUri("{" + UUID.fastUUID() + "}");
+                Field _sh = XSSFConditionalFormattingRule.class.getDeclaredField("_sh");
+                _sh.setAccessible(true);
+                XSSFSheet ruleSheet = (XSSFSheet)_sh.get(rule);
+                extList = ruleSheet.getCTWorksheet().addNewExtLst();
+                ext = extList.addNewExt();
+
+                StringBuilder extXMLBuilder = new StringBuilder();
+                extXMLBuilder.append("<x14:conditionalFormattings xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\"\n"
+                    + "xmlns:xm=\"http://schemas.microsoft.com/office/excel/2006/main\">");
+                // 写入Y轴数据
+                for (int i = 0; i < yAxis.size(); i++) {
+                    WrapDataVO yAxi = yAxis.get(i);
+                    List<String> yData = yAxi.getData();
+                    // 按列写入
+                    writer.writeCellValue(i + 1, 0, yAxi.getName());
+                    // Write the Y-axis data
+                    for (int j = 0; j < xAxis.size(); j++) {
+                        String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
+                        writer.writeCellValue(i + 1, j + 1, Long.parseLong(value));
+                    }
+                    String startCell = CellReference.convertNumToColString(i + 1) + (2);
+                    String endCell = CellReference.convertNumToColString(i + 1) + (xAxis.size() + 1);
+                    String region = startCell + ":" + endCell;
+                    CellRangeAddress[] regions = {CellRangeAddress.valueOf(region)};
+                    extXMLBuilder.append(DataBarUtil.buildMinAndMaxTypeConditionalFormatting(region));
+                    sheetCF.addConditionalFormatting(regions, rule);
+                }
+                extXMLBuilder.append("</x14:conditionalFormattings>");
+                xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXMLBuilder.toString());
+                ext.set(xlmObject);
+                ext.setUri("{" + UUID.fastUUID() + "}");
+            }
+
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BIREPORT_SERVICEERROR.getCode(), e.getMessage(), "评分分布excel添加进度条异常"), e);
+        }
+    }
+
+    private static void writeMultipleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
+        Double sum = yAxis.stream().flatMap(wrapDataVO -> wrapDataVO.getData().stream()) // Flatten all data lists
+            .mapToDouble(Double::parseDouble).sum();
         // 写入Y轴数据
         for (int i = 0; i < yAxis.size(); i++) {
             WrapDataVO yAxi = yAxis.get(i);
@@ -258,11 +361,65 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             // Write the Y-axis data
             for (int j = 0; j < xAxis.size(); j++) {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
-                writer.writeCellValue(i + 1, j + 1, value);
+                writer.writeCellValue(i + 1, j + 1, Long.parseLong(value));
             }
         }
-        // 自适应宽度
-        writer.autoSizeColumnAll();
+        try {
+            String endCell = CellReference.convertNumToColString(yAxis.size() + 1) + (xAxis.size() + 1);
+            String region = "A2:" + endCell;
+            SheetConditionalFormatting sheetCF = writer.getSheet().getSheetConditionalFormatting();
+            ExtendedColor color = writer.getWorkbook().getCreationHelper().createExtendedColor();
+            color.setARGBHex(DATA_BAR_COLOR);
+            CellRangeAddress[] regions = {CellRangeAddress.valueOf(region)};
+            ConditionalFormattingRule rule = sheetCF.createConditionalFormattingRule(color);
+            DataBarFormatting dbf = rule.getDataBarFormatting();
+            // 设置数据条
+            dbf.getMinThreshold().setRangeType(ConditionalFormattingThreshold.RangeType.NUMBER);
+            dbf.getMinThreshold().setValue(0.0);
+            dbf.getMaxThreshold().setRangeType(ConditionalFormattingThreshold.RangeType.NUMBER);
+            dbf.getMaxThreshold().setValue(sum);
+            // 仅展示数据栏设置
+            dbf.setIconOnly(false);
+
+            if (dbf instanceof XSSFDataBarFormatting) {
+                Field _databar = XSSFDataBarFormatting.class.getDeclaredField("_databar");
+                _databar.setAccessible(true);
+                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar ctDataBar =
+                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar)_databar.get(dbf);
+                ctDataBar.setMinLength(0);
+                ctDataBar.setMaxLength(100);
+            }
+            if (rule instanceof XSSFConditionalFormattingRule) {
+                Field _cfRule = XSSFConditionalFormattingRule.class.getDeclaredField("_cfRule");
+                _cfRule.setAccessible(true);
+                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule ctRule =
+                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule)_cfRule.get(rule);
+                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtensionList extList = ctRule.addNewExtLst();
+                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtension ext = extList.addNewExt();
+                String extXML = "<x14:id" + " xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\">"
+                    + "{00000000-000E-0000-0000-000001000000}" + "</x14:id>";
+                org.apache.xmlbeans.XmlObject xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXML);
+                ext.set(xlmObject);
+                ext.setUri("{" + UUID.fastUUID() + "}");
+                Field _sh = XSSFConditionalFormattingRule.class.getDeclaredField("_sh");
+                _sh.setAccessible(true);
+                XSSFSheet ruleSheet = (XSSFSheet)_sh.get(rule);
+                extList = ruleSheet.getCTWorksheet().addNewExtLst();
+                ext = extList.addNewExt();
+
+                StringBuilder extXMLBuilder = new StringBuilder();
+                extXMLBuilder.append("<x14:conditionalFormattings xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\"\n"
+                    + "xmlns:xm=\"http://schemas.microsoft.com/office/excel/2006/main\">");
+                extXMLBuilder.append(DataBarUtil.buildNumTypeConditionalFormatting("0", String.valueOf(sum), region));
+                sheetCF.addConditionalFormatting(regions, rule);
+                extXMLBuilder.append("</x14:conditionalFormattings>");
+                xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXMLBuilder.toString());
+                ext.set(xlmObject);
+                ext.setUri("{" + UUID.fastUUID() + "}");
+            }
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BIREPORT_SERVICEERROR.getCode(), e.getMessage(), "评分分布excel添加进度条异常"), e);
+        }
     }
 
     public void deleteTempFile(String tmpPath) {
