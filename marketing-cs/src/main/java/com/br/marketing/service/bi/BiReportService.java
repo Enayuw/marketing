@@ -52,4 +52,12 @@ public interface BiReportService {
      * @param param
      */
     ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDictParam param);
+
+    /**
+     * @description 获取报表分组维度
+     * @return java.util.List<java.lang.String>
+     * @author hedongshuo
+     * @date 2024/9/18 10:23
+     **/
+    List<String> getReportGroupList(BiReportParam param);
 }

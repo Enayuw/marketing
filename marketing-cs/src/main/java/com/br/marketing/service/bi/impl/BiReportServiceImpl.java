@@ -2,6 +2,7 @@ package com.br.marketing.service.bi.impl;
 
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bi.BiReportConverterSelector;
 import com.br.marketing.client.FastDfsClient;
@@ -10,6 +11,7 @@ import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.mapper.SourceStatisticDictMapper;
 import com.br.marketing.service.bi.BiReportService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
@@ -18,6 +20,7 @@ import com.br.marketing.vo.bi.param.BiReportParam;
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -29,6 +32,7 @@ import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +53,9 @@ public class BiReportServiceImpl implements BiReportService {
 
     @Resource
     private SourceStatisticDictMapper statisticDictMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
      * 获取BI报表
@@ -134,5 +141,27 @@ public class BiReportServiceImpl implements BiReportService {
 
         statisticDictMapper.insertbI_(sourceStatisticDict);
         return new ApiResult<Boolean>().success();
+    }
+
+    /**
+     * @description 获取报表分组维度
+     * @param param
+     * @return java.util.List<java.lang.String>
+     * @author hedongshuo
+     * @date 2024/9/18 10:24
+     **/
+    @Override
+    public List<String> getReportGroupList(BiReportParam param) {
+        String apiCode = param.getApiCode();
+        String reportTypeName = param.getReportTypeName();
+        JSONObject condition = param.getCondition();
+        String userType = condition.getString("userType");
+        Assert.notNull(userType, "缺少必输字段-场景userType");
+        HashMap<String, JSONObject> biReportGroupConfig = marketingCommonConfig.getBiReportGroupConfig();
+        JSONObject groupConfig = biReportGroupConfig.get(apiCode);
+        JSONObject userTypeConfig = groupConfig.getJSONObject(userType);
+        JSONArray groups = userTypeConfig.getJSONArray(reportTypeName);
+        List<String> groupList = groups.toJavaList(String.class);
+        return groupList;
     }
 }

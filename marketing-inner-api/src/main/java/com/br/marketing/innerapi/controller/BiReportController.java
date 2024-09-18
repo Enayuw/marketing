@@ -98,4 +98,15 @@ public class BiReportController {
         log.warn("新增修改BI报表配置字典,请求参数{}", param);
         return biReportService.saveBiReportConfigDict(param);
     }
+
+    @ApiOperation(value = "获取报表分组维度")
+    @PostMapping("/getReportGroupList")
+    public ApiResult<List<String>> getReportGroupList(@RequestBody BiReportParam param) {
+        try {
+            return new ApiResult<List<String>>().success().setData(biReportService.getReportGroupList(param));
+        } catch (Exception e) {
+            log.warn("获取报表分组维度,入参:{}--", param, e);
+            return new ApiResult<List<String>>().fail(null, ServiceResultEnum.FAILED);
+        }
+    }
 }
