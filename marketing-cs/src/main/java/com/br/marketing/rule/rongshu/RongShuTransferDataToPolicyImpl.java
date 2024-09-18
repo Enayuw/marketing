@@ -52,11 +52,11 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         // 情况2
         String status = null;
-//        String status = "2";
+        String apiCode = context.getApiCode();
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
         Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
-        if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
-            encType = pushCellEncPolicy.get(context.getApiCode());
+        if (pushCellEncPolicy != null && pushCellEncPolicy.get(apiCode) != null) {
+            encType = pushCellEncPolicy.get(apiCode);
         }
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(transfer.getId());
@@ -73,8 +73,9 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
             JSONObject jsonObject = JSONObject.parseObject(reserveField1);
             String finalState = jsonObject.getString("finalState");
             if(StringUtils.isNotBlank(finalState)){
-                HashMap<String, String> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
-                String strategyCode = strategyCodeMap.get(finalState);
+                HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
+                JSONObject strategyCodeObject = strategyCodeMap.get(apiCode);
+                String strategyCode = strategyCodeObject.getString(finalState);
                 if(null == strategyCode){
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RONGSHU_PROCESS_WARNING.getCode()
                             , "4004643榕树自动化转决策出现非预期的finalState"
@@ -91,7 +92,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
             return null;
         }
         pushMarketingUserDetailByRuleDTO.setBatchNumber(
-                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + context.getApiCode());
+                LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + apiCode);
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         pushMarketingUserDetailByRuleDTO.setStatus(status);

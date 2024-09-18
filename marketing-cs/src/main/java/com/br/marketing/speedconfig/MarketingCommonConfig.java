@@ -615,9 +615,23 @@ public class MarketingCommonConfig {
     private List<Integer> rongShuCyclePushDays;
     /**
      * 榕树自动化规则调用决策，根据情况配置对应的决策参数 strategyCode
-     * {"1":"CASTR0320877","2":"CASTR0320877","3":"","4":"","5":"","6":"","7":"","8":""}
+     * {
+     * 	"7492800": {
+     * 		"2": "CASTR0142044",
+     * 		"3": "CASTR0142043",
+     * 		"4": "CASTR0142042",
+     * 		"5": "CASTR0142041",
+     * 		"6": "CASTR0142040",
+     * 		"7": "CASTR0142039",
+     * 		"8": "CASTR0142039"
+     *  },
+     * 	"4004643": {
+     * 		"c": "CASTR0000864",
+     * 		"d": "CASTR0000865"
+     *  }
+     * }
      */
-    private HashMap<String, String> rongShuPushPolicyStrategyCode;
+    private HashMap<String, JSONObject> rongShuPushPolicyStrategyCode;
 
     /**
      * 榕树推送人工Ibu接口开关，true为可推送，false不能推送
@@ -651,6 +665,10 @@ public class MarketingCommonConfig {
 
     /**
      * 榕树推送决策策略集
+     * {
+     * "7492800":{"c":"CASTR0000846","d":"CASTR0000847","1":"CASTR0000846"},
+     * "4004643":{"c":"CASTR0000864","d":"CASTR0000865"}
+     * }
      */
     private HashMap<String, JSONObject> rsStrategyCodes;
 
