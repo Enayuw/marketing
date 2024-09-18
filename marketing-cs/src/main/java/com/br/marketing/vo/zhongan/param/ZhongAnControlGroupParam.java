@@ -19,8 +19,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ZhongAnControlGroupParam implements Serializable {
 
-    private static final long serialVersionUID = 733176891423773795L;
-
     @ApiModelProperty(value = "数据日期")
     private String reportDate;
     @ApiModelProperty(value = "场景1")
