@@ -82,7 +82,11 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
                             ,"4004643榕树自动化转决策出现非预期的finalState:["+finalState+"]"));
                     return null;
                 }else{
-                    status = finalState;
+                    if("1".equals(finalState) || "2".equals(finalState)){
+                        status = "2";
+                    }else{
+                        status = finalState;
+                    }
                     pushMarketingUserDetailByRuleDTO.setStrategyCode(strategyCode);
                 }
             }else{

@@ -615,6 +615,13 @@ public class MarketingCommonConfig {
     private List<Integer> rongShuCyclePushDays;
     /**
      * 榕树自动化规则调用决策，根据情况配置对应的决策参数 strategyCode
+     * 说明：
+     * {
+     *   "apiCode":{
+     *     "finalState":"策略编号"
+     *   }
+     * }
+     * 样例：
      * {
      * 	"7492800": {
      * 		"2": "CASTR0142044",
@@ -626,8 +633,8 @@ public class MarketingCommonConfig {
      * 		"8": "CASTR0142039"
      *  },
      * 	"4004643": {
-     * 		"c": "CASTR0000864",
-     * 		"d": "CASTR0000865"
+     * 		"2": "CASTR0000864",
+     * 		"3": "CASTR0000865"
      *  }
      * }
      */
