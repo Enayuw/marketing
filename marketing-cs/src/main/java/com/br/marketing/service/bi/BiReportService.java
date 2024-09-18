@@ -2,8 +2,10 @@ package com.br.marketing.service.bi;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
+import com.br.marketing.vo.bi.BiReportTimeRangeVO;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
+import com.br.marketing.vo.bi.param.BiReportConfigParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 
@@ -62,12 +64,19 @@ public interface BiReportService {
     ApiResult<Boolean> saveBiReportConfigDict(BiReportConfigDictParam param);
 
     /**
-     * 获取报告组列表
-     *
-     * @param param 参数
+     * @description 获取报表分组维度
      * @return java.util.List<java.lang.String>
      * @author hedongshuo
      * @date 2024/9/18 10:23
-     */
-    List<String> getReportGroupList(BiReportParam param);
+     **/
+    List<String> getReportGroupList(BiReportConfigParam param);
+
+    /**
+     * @description 获取数据时间范围
+     * @param param
+     * @return com.br.marketing.vo.bi.BiReportTimeRangeVO
+     * @author hedongshuo
+     * @date 2024/9/18 19:47
+     **/
+    BiReportTimeRangeVO getReportTimeRange(BiReportConfigParam param);
 }

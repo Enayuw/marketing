@@ -9,8 +9,10 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.service.bi.BiReportService;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
+import com.br.marketing.vo.bi.BiReportTimeRangeVO;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
+import com.br.marketing.vo.bi.param.BiReportConfigParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import io.swagger.annotations.Api;
@@ -101,13 +103,24 @@ public class BiReportController {
     }
 
     @ApiOperation(value = "获取报表分组维度")
-    @PostMapping("/getReportGroupList")
-    public ApiResult<List<String>> getReportGroupList(@RequestBody BiReportParam param) {
+    @PostMapping("/config/getReportGroupList")
+    public ApiResult<List<String>> getReportGroupList(@RequestBody BiReportConfigParam param) {
         try {
             return new ApiResult<List<String>>().success().setData(biReportService.getReportGroupList(param));
         } catch (Exception e) {
             log.warn("获取报表分组维度,入参:{}--", param, e);
             return new ApiResult<List<String>>().fail(null, ServiceResultEnum.FAILED);
+        }
+    }
+
+    @ApiOperation(value = "获取数据时间范围")
+    @PostMapping("/config/getReportTimeRange")
+    public ApiResult<BiReportTimeRangeVO> getReportTimeRange(@RequestBody BiReportConfigParam param) {
+        try {
+            return new ApiResult<BiReportTimeRangeVO>().success().setData(biReportService.getReportTimeRange(param));
+        } catch (Exception e) {
+            log.warn("获取报表分组维度,入参:{}--", param, e);
+            return new ApiResult<BiReportTimeRangeVO>().fail(null, ServiceResultEnum.FAILED);
         }
     }
 }
