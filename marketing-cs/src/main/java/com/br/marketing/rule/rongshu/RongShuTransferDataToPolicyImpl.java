@@ -77,9 +77,9 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
                 JSONObject strategyCodeObject = strategyCodeMap.get(apiCode);
                 String strategyCode = strategyCodeObject.getString(finalState);
                 if(null == strategyCode){
+                    String message = String.format("[%s]榕树自动化转决策出现非预期的finalState:[%s]", apiCode, finalState);
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RONGSHU_PROCESS_WARNING.getCode()
-                            , "4004643榕树自动化转决策出现非预期的finalState"
-                            ,"4004643榕树自动化转决策出现非预期的finalState:["+finalState+"]"));
+                            , message , message));
                     return null;
                 }else{
                     if("1".equals(finalState) || "2".equals(finalState)){
