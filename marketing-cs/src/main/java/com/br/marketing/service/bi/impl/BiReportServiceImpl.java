@@ -66,7 +66,7 @@ public class BiReportServiceImpl implements BiReportService {
      * @date 2024/08/28
      */
     @Override
-    public BiReportVO getBiReport(BiReportParam param) {
+    public List<BiReportVO> getBiReport(BiReportParam param) {
         BiReportTypeEnum reportType = BiReportTypeEnum.getEnumByTypeName(param.getReportTypeName());
         // 根据报告名称未匹配到对应报告类型
         if (reportType == null) {

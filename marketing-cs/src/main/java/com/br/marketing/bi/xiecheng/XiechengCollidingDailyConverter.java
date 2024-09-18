@@ -1,5 +1,6 @@
 package com.br.marketing.bi.xiecheng;
 
+import com.google.api.client.util.Lists;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -76,7 +77,8 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
      * @date 2024/08/28
      */
     @Override
-    public BiReportVO process(List<XiechengCollidingDailyReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<XiechengCollidingDailyReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_COLLIDING_DAILY_REPORT.getTypeName());
         biReportVO.setReportName("单日撞库结果分布");
@@ -122,7 +124,8 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 return new WrapDataVO(reportDate, data);
             }).collect(Collectors.toList());
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 
     /**

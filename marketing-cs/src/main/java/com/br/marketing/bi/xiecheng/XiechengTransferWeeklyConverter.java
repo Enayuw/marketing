@@ -66,7 +66,8 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
      * @date 2024/08/28
      */
     @Override
-    public BiReportVO process(List<XiechengTransferWeeklyReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<XiechengTransferWeeklyReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_WEEKLY_REPORT.getTypeName());
         biReportVO.setReportName("7日滚动转化报表");
@@ -96,6 +97,7 @@ public class XiechengTransferWeeklyConverter extends AbstractBiReportConverter<B
         yAxis.add(buildWrapDataVO("过件率", sortedData, XiechengTransferWeeklyReportDTO::getOverPieceRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("提现成功率（授信后提现）", sortedData, XiechengTransferWeeklyReportDTO::getWithdrawSucRatio, FormatType.PERCENT_SIGN));
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 }

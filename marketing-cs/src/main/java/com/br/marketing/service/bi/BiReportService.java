@@ -26,7 +26,7 @@ public interface BiReportService {
      * @author senyang.zheng
      * @date 2024/08/28
      */
-    BiReportVO getBiReport(BiReportParam param);
+    List<BiReportVO> getBiReport(BiReportParam param);
 
     /**
      * 下载报表

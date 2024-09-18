@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.br.marketing.aspect.AuthDataControllerPermission;
 import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.client.FastDfsClient;
@@ -50,13 +51,13 @@ public class BiReportController {
     @ApiOperation(value = "查看BI报表")
     @PostMapping(value = "/report/getBiReport")
     @AuthDataControllerPermission
-    public ApiResult<BiReportVO> getBiReport(@RequestBody BiReportParam param) {
+    public ApiResult<List<BiReportVO>> getBiReport(@RequestBody BiReportParam param) {
         log.warn("查看BI报表,请求参数{}", param);
-        BiReportVO biReportVO = biReportService.getBiReport(param);
-        if (biReportVO != null) {
-            return new ApiResult<BiReportVO>().success(biReportVO);
+        List<BiReportVO> biReportVOList = biReportService.getBiReport(param);
+        if (CollectionUtil.isNotEmpty(biReportVOList)) {
+            return new ApiResult<List<BiReportVO>>().success(biReportVOList);
         }
-        return new ApiResult<BiReportVO>().fail(ServiceResultEnum.FAILED);
+        return new ApiResult<List<BiReportVO>>().fail(ServiceResultEnum.FAILED);
     }
 
     @ApiOperation(value = "下载BI报表")

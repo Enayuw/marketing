@@ -78,7 +78,7 @@ public class BiReportConverterSelector {
      * @author senyang.zheng
      * @date 2024/08/28
      */
-    public <V, T> V process(List<T> data, JSONObject extendJson, BiReportTypeEnum reportType) {
+    public <V, T> List<V> process(List<T> data, JSONObject extendJson, BiReportTypeEnum reportType) {
         // 根据数据类型选择对应的策略
         @SuppressWarnings("unchecked")
         AbstractBiReportConverter<V, T> strategy = (AbstractBiReportConverter<V, T>) this.strategyMap.get(reportType);
