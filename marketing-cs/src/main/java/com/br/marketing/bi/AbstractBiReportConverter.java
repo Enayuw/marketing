@@ -75,16 +75,17 @@ public abstract class AbstractBiReportConverter<V, T> {
      * 导出数据
      *
      * @param excelWriter excelWriter
-     * @param param 参数
+     * @param params 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
-    public void exportData(ExcelWriter excelWriter, BiReportDownLoadParam param) {
+    public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
         // excel sheet名称最大长度31，超出31截取前31位
-        String sheetName = param.getReportName().length() > 31 ? param.getReportName().substring(0, 31) : param.getReportName();
+        String sheetName =
+            params.get(0).getReportName().length() > 31 ? params.get(0).getReportName().substring(0, 31) : params.get(0).getReportName();
         excelWriter.setSheet(sheetName);
         // 数据写入
-        writeData(excelWriter, param);
+        writeData(excelWriter, params);
         // 剔除默认生成的第一个sheet
         excelWriter.getWorkbook().removeSheetAt(0);
     }
@@ -93,30 +94,35 @@ public abstract class AbstractBiReportConverter<V, T> {
      * 写入数据
      *
      * @param writer writer
-     * @param param 参数
+     * @param params 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
-    private void writeData(ExcelWriter writer, BiReportDownLoadParam param) {
-        List<String> xAxis = param.getXAxis();
-        List<WrapDataVO> yAxis = param.getYAxis();
-        // 写入X轴名称
-        writer.writeCellValue(0, 0, param.getXAxisName());
-        // 写X轴数据
-        for (int i = 0; i < xAxis.size(); i++) {
-            writer.writeCellValue(0, i + 1, xAxis.get(i));
-        }
-        // 写入Y轴数据
-        for (int i = 0; i < yAxis.size(); i++) {
-            WrapDataVO yAxi = yAxis.get(i);
-            List<String> yData = yAxi.getData();
-            // 写入Y轴名称
-            writer.writeCellValue(i + 1, 0, yAxi.getName());
-            // 写入Y轴数据
-            for (int j = 0; j < xAxis.size(); j++) {
-                String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
-                writer.writeCellValue(i + 1, j + 1, value);
+    private void writeData(ExcelWriter writer, List<BiReportDownLoadParam> params) {
+        int rowIndex = 0;
+        for (BiReportDownLoadParam param : params) {
+            List<String> xAxis = param.getXAxis();
+            List<WrapDataVO> yAxis = param.getYAxis();
+            // 写入X轴名称
+            writer.writeCellValue(0, rowIndex, param.getXAxisName());
+            // 写X轴数据
+            for (int i = 0; i < xAxis.size(); i++) {
+                writer.writeCellValue(0, rowIndex + i + 1, xAxis.get(i));
             }
+            // 写入Y轴数据
+            for (int i = 0; i < yAxis.size(); i++) {
+                WrapDataVO yAxi = yAxis.get(i);
+                List<String> yData = yAxi.getData();
+                // 写入Y轴名称
+                writer.writeCellValue(i + 1, rowIndex, yAxi.getName());
+                // 写入Y轴数据
+                for (int j = 0; j < xAxis.size(); j++) {
+                    String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
+                    writer.writeCellValue(i + 1, rowIndex + j + 1, value);
+                }
+            }
+            // 添加空行 xAxis.size() + 1 为当前表格所占行数，再+1添加空行
+            rowIndex += xAxis.size() + 2;
         }
         autoSizeColumnAll(writer);
     }
@@ -136,7 +142,7 @@ public abstract class AbstractBiReportConverter<V, T> {
             // 调整每一列宽度
             sheet.autoSizeColumn(i);
             // 解决自动设置列宽中文失效的问题
-            String coefficient = getDictByKeyAndApiCode("xc_report_auto_size_coefficient","3710058");
+            String coefficient = getDictByKeyAndApiCode("xc_report_auto_size_coefficient", "3710058");
             sheet.setColumnWidth(i, sheet.getColumnWidth(i) * Integer.parseInt(coefficient) / 10);
         }
     }
