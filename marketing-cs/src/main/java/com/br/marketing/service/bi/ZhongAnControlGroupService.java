@@ -2,6 +2,7 @@ package com.br.marketing.service.bi;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
+import com.br.marketing.vo.zhongan.param.ControlGroupDTO;
 import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
 
 import java.util.List;
@@ -14,7 +15,7 @@ import java.util.List;
  */
 public interface ZhongAnControlGroupService {
 
-    Result<List<ZhongAnCustomInfoVO>> getCustomInfoList(String reportDate);
+    Result<List<ZhongAnCustomInfoVO>> getCustomInfoList(ControlGroupDTO controlGroupDTO);
 
     Result<Long> saveCustomInfo(ZhongAnControlGroupParam param);
 }

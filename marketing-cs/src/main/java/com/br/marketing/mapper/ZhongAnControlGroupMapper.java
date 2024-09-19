@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
+import com.br.marketing.vo.zhongan.param.ControlGroupDTO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
 
 public interface ZhongAnControlGroupMapper {
 
-    List<ZhongAnCustomInfoVO> getCustomInfoListbI_(@Param("reportDate") String reportDate);
+    List<ZhongAnCustomInfoVO> getCustomInfoListbI_(ControlGroupDTO dto);
 
     int saveCustomInfobI_(@Param("list") List<ZhongAnControlGroupDTO> list);
 

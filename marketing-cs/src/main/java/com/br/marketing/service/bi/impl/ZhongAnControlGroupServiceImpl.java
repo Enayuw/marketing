@@ -2,12 +2,16 @@ package com.br.marketing.service.bi.impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO;
 import com.br.marketing.mapper.ZhongAnControlGroupMapper;
 import com.br.marketing.service.bi.ZhongAnControlGroupService;
+import com.br.marketing.vo.PushDecisionsDetailVO;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
+import com.br.marketing.vo.zhongan.param.ControlGroupDTO;
 import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
 import com.br.marketing.vo.zhongan.param.ZhongAnCustomInfo;
+import com.github.pagehelper.PageHelper;
 import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,9 +34,14 @@ public class ZhongAnControlGroupServiceImpl implements ZhongAnControlGroupServic
     private ZhongAnControlGroupMapper zhongAnControlGroupMapper;
 
     @Override
-    public Result<List<ZhongAnCustomInfoVO>> getCustomInfoList(String reportDate) {
-        List<ZhongAnCustomInfoVO> customInfoList = zhongAnControlGroupMapper.getCustomInfoListbI_(reportDate);
-        return new Result<List<ZhongAnCustomInfoVO>>().setCode(ResultCode.SUCCESS.getValue()).setDate(customInfoList);
+    public Result<List<ZhongAnCustomInfoVO>> getCustomInfoList(ControlGroupDTO dto) {
+        if (dto.getSize() == null) {
+            dto.setSize(10);
+        }
+        PageHelper.startPage(dto.getCurrent(), dto.getSize());
+        List<ZhongAnCustomInfoVO> customInfoList = zhongAnControlGroupMapper.getCustomInfoListbI_(dto);
+        PageResultReturn pageResultReturn = PageResultReturn.setPageResult(customInfoList, dto.getCurrent(), dto.getSize());
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pageResultReturn);
     }
 
     @Override

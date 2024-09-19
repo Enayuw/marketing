@@ -3,6 +3,7 @@ package com.br.marketing.innerapi.controller;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.service.bi.ZhongAnControlGroupService;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
+import com.br.marketing.vo.zhongan.param.ControlGroupDTO;
 import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,10 +30,9 @@ public class ZhongAnControlGroupController {
     private ZhongAnControlGroupService zhongAnControlGroupService;
 
     @ApiOperation(value = "获取众安对照组列表")
-    @GetMapping("/getCustomInfoList")
-    public ApiResult<List<ZhongAnCustomInfoVO>> getCustomInfoList(@RequestParam String reportDate) {
-        log.warn("获取众安对照组列表,请求参数{}", reportDate);
-        return new ApiResult<List<ZhongAnCustomInfoVO>>().fromResult(zhongAnControlGroupService.getCustomInfoList(reportDate), CODE_1);
+    @PostMapping("/getCustomInfoList")
+    public ApiResult<List<ZhongAnCustomInfoVO>> getCustomInfoList(@RequestBody ControlGroupDTO controlGroupDTO) {
+        return new ApiResult<List<ZhongAnCustomInfoVO>>().fromResult(zhongAnControlGroupService.getCustomInfoList(controlGroupDTO), CODE_1);
     }
 
     @ApiOperation(value = "保存众安对照组配置")

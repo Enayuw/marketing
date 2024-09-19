@@ -15,15 +15,15 @@
         </foreach>
     </insert>
 
-    <select id="getCustomInfoListbI_" resultType="com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO">
+    <select id="getCustomInfoListbI_" resultType="com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO" parameterType="com.br.marketing.vo.zhongan.param.ControlGroupDTO">
         select * from
         dws_za_control_group_config
         where
         <if test="reportDate != null">
-            report_date = #{reportDate,jdbcType=VARCHAR} and
+            report_date = #{reportDate} and
         </if>
         is_delete =0
-        order by report_date asc;
+        order by user_type asc
     </select>
 
 
