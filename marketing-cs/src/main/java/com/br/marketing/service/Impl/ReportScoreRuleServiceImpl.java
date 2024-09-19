@@ -206,6 +206,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     public ApiResult<Boolean> addReportTask(ReportTaskParam reportTaskParam) {
         String ids = reportTaskParam.getIds();
         String cid = reportTaskParam.getCid();
+        Integer reportType = reportTaskParam.getReportType();
         String reportName = reportTaskParam.getReportName();
         String rules = reportTaskParam.getRules();
         String productAndBatchNumber = reportTaskParam.getProductAndBatchNumber();
@@ -225,7 +226,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         reportTask.setReportName(reportName);
         reportTask.setReportRules(json.toJSONString());
         reportTask.setStatus(0);
-        reportTask.setReportType(1);
+        reportTask.setReportType(reportType == null ? 1 : reportType);
         reportTask.setIsDel(1);
         reportTask.setCreateTime(new Date());
         reportTask.setUpdateTime(new Date());
