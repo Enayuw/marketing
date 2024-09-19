@@ -31,19 +31,8 @@ public class ZhongAnControlGroupServiceImpl implements ZhongAnControlGroupServic
 
     @Override
     public Result<List<ZhongAnCustomInfoVO>> getCustomInfoList(String reportDate) {
-        List<ZhongAnControlGroupDTO> customInfoList = zhongAnControlGroupMapper.getCustomInfoListbI_(reportDate);
-        List<ZhongAnCustomInfoVO> list = new ArrayList<>();
-        for(ZhongAnControlGroupDTO zhongAnControlGroupDTO : customInfoList){
-            ZhongAnCustomInfoVO zhongAnCustomInfoVO = new ZhongAnCustomInfoVO();
-            zhongAnCustomInfoVO.setReportDate(zhongAnControlGroupDTO.getReportDate());
-            zhongAnCustomInfoVO.setUserType(zhongAnControlGroupDTO.getUserType());
-            zhongAnCustomInfoVO.setConstituencies(zhongAnControlGroupDTO.getConstituencies());
-            zhongAnCustomInfoVO.setTotalNum(zhongAnControlGroupDTO.getTotalNum());
-            zhongAnCustomInfoVO.setIncomingNum(zhongAnControlGroupDTO.getIncomingNum());
-            zhongAnCustomInfoVO.setApproversNum(zhongAnControlGroupDTO.getApproversNum());
-            list.add(zhongAnCustomInfoVO);
-        }
-        return new Result<List<ZhongAnCustomInfoVO>>().setCode(ResultCode.SUCCESS.getValue()).setDate(list);
+        List<ZhongAnCustomInfoVO> customInfoList = zhongAnControlGroupMapper.getCustomInfoListbI_(reportDate);
+        return new Result<List<ZhongAnCustomInfoVO>>().setCode(ResultCode.SUCCESS.getValue()).setDate(customInfoList);
     }
 
     @Override

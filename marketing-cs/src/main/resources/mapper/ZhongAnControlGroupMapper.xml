@@ -15,7 +15,7 @@
         </foreach>
     </insert>
 
-    <select id="getCustomInfoListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO">
+    <select id="getCustomInfoListbI_" resultType="com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO">
         select * from
         dws_za_control_group_config
         where

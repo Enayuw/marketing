@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 
 /**
  * @ClassName ZhongAnCustomInfoVO
@@ -29,5 +31,16 @@ public class ZhongAnCustomInfoVO {
     private Integer incomingNum;
     @ApiModelProperty("批核人数")
     private Integer approversNum;
-
+    @ApiModelProperty("批核件均")
+    private Integer approvalAvailable;
+    @ApiModelProperty("登录率")
+    private BigDecimal loginRate;
+    @ApiModelProperty("发起提现人数")
+    private Integer applyPayNum;
+    @ApiModelProperty("提现通过通过率")
+    private BigDecimal payPassRate;
+    @ApiModelProperty("放款成功金额")
+    private BigDecimal lendersSucAmount;
+    @ApiModelProperty("放款成功人数")
+    private Integer lendersSucNum;
 }
