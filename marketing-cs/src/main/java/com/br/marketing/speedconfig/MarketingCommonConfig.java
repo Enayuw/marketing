@@ -2153,5 +2153,15 @@ public class MarketingCommonConfig {
      */
     private JSONObject cryptoConfig;
 
+    /**
+     * 国美转化数据提取apiCode集合
+     */
+    private List<String> GuoMeiTransferApiCodes;
+
+    /**
+     * 国美转化数据提取执行时间
+     */
+    private String GuoMeiTransferFileExecuteTime;
+
 }
 
