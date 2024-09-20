@@ -1294,7 +1294,7 @@
             <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
                 api_code=#{transferSyncUser.apiCode}
             </if>
-        <![CDATA[ request_data >= #{startDate} and request_data <= #{endDate} ]]>
+        <![CDATA[ and request_data >= #{startDate} and request_data <= #{endDate} ]]>
         <![CDATA[ and id >= #{beginId} and id < #{endId} ]]>
         order by id
     </select>

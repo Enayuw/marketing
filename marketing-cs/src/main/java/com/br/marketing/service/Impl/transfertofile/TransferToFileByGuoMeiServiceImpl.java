@@ -67,8 +67,8 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
     @Resource
     private TransferDataValidityPeriodService validityPeriodService;
 
-    public final static String TABLE_HEAD_TRANSFER = "group,userId,registrationDate,isLogin,loginTime,isApplyCredit,applyCreditTime,isCreditPass" +
-            ",creditPassTime,creditAmount,isApplyWithdrawals,withdrawalsTime,isRiskPass,riskPassAmount,lendersDate,lendersAmount,customName";
+    public final static String TABLE_HEAD_TRANSFER = "userType,custNum,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult" +
+            ",auditTime,auditAmount,applyLoan,applyLoanTime,ifLent,lentAmount,lentTime,unlentAmount,customName";
 
     final static String EXECUTE_TIME = "09:00:00";
 
@@ -238,65 +238,52 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
                         continue;
                     }
                     MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
-                    String group = "";
-                    String userId = "";
-                    String registrationDate = "";
-                    String isLogin = "";
+                    String userType = emptyDefault(transferFilterData.getUserType());
+                    String registerTime = removeMillisecond(emptyDefault(transferFilterData.getRegisterTime()));
+                    String ifLogin = emptyDefault(transferFilterData.getIfLogin());
                     String loginTime = removeMillisecond(emptyDefault(transferFilterData.getLoginTime()));
-                    String isApplyCredit = "";
-                    String applyCreditTime = "";
-                    String isCreditPass = "";
-                    String creditPassTime = "";
-                    String creditAmount = "";
-                    String isApplyWithdrawals = "";
-                    String withdrawalsTime = "";
-                    String isRiskPass = "";
-                    String riskPassAmount = "";
-                    String lendersDate = "";
-                    String lendersAmount = "";
+                    String ifApply = emptyDefault(transferFilterData.getIfApply());
+                    String applyDt = removeMillisecond(emptyDefault(transferFilterData.getApplyDt()));
+                    String applyResult = emptyDefault(transferFilterData.getApplyResult());
+                    String auditTime = removeMillisecond(emptyDefault(transferFilterData.getAuditTime()));
+                    String auditAmount = emptyDefault(transferFilterData.getAuditAmount());
+                    String applyLoan = "";
+                    String applyLoanTime = "";
+                    String ifLent = emptyDefault(transferFilterData.getIfLent());
+                    String lentAmount = emptyDefault(transferFilterData.getLentAmount());
+                    String lentTime = removeMillisecond(emptyDefault(transferFilterData.getLentTime()));
+                    String unlentAmount = emptyDefault(transferFilterData.getUnlentAmount());
                     String customName = "";
                     if (ObjectUtil.isNotEmpty(marketingSyncUser)){
                         JSONObject jsonObject = ObjectUtil.isNotEmpty(marketingSyncUser.getReserveField1())
                                 ? JSON.parseObject(marketingSyncUser.getReserveField1())
                                 : null;
-                        customName = ObjectUtil.isNotEmpty(jsonObject) ? jsonObject.getString("group") : "";
+                        customName = ObjectUtil.isNotEmpty(jsonObject) ? jsonObject.getString("customName") : "";
                     }
                     String reserveField1 = transferFilterData.getReserveField1();
                     if (StringUtils.isNotBlank(reserveField1)) {
                         JSONObject jsonObject = JSON.parseObject(reserveField1);
-                        group = jsonObject.getString("group");
-                        userId = jsonObject.getString("userId");
-                        registrationDate = jsonObject.getString("registrationDate");
-                        isLogin = jsonObject.getString("isLogin");
-                        isApplyCredit = jsonObject.getString("isApplyCredit");
-                        applyCreditTime = jsonObject.getString("applyCreditTime");
-                        isCreditPass = jsonObject.getString("isCreditPass");
-                        creditPassTime = jsonObject.getString("creditPassTime");
-                        creditAmount = jsonObject.getString("creditAmount");
-                        isApplyWithdrawals = jsonObject.getString("isApplyWithdrawals");
-                        isRiskPass = jsonObject.getString("isRiskPass");
-                        riskPassAmount = jsonObject.getString("riskPassAmount");
-                        lendersDate = jsonObject.getString("lendersDate");
-                        lendersAmount = jsonObject.getString("lendersAmount");
+                        applyLoan = jsonObject.getString("applyLoan");
+                        applyLoanTime = jsonObject.getString("applyLoanTime");
                     }
                     StringBuilder sb = new StringBuilder();
                     try {
-                        sb.append(emptyDefault(group).concat(","))
-                                .append(emptyDefault(userId).concat(","))
-                                .append(removeMillisecond(emptyDefault(registrationDate)).concat(","))
-                                .append(emptyDefault(isLogin).concat(","))
+                        sb.append(userType.concat(","))
+                                .append(custNum.concat(","))
+                                .append(registerTime.concat(","))
+                                .append(ifLogin.concat(","))
                                 .append(loginTime.concat(","))
-                                .append(emptyDefault(isApplyCredit).concat(","))
-                                .append(removeMillisecond(emptyDefault(applyCreditTime)).concat(","))
-                                .append(emptyDefault(isCreditPass).concat(","))
-                                .append(removeMillisecond(emptyDefault(creditPassTime)).concat(","))
-                                .append(emptyDefault(creditAmount).concat(","))
-                                .append(emptyDefault(isApplyWithdrawals).concat(","))
-                                .append(removeMillisecond(emptyDefault(withdrawalsTime)).concat(","))
-                                .append(emptyDefault(isRiskPass).concat(","))
-                                .append(emptyDefault(riskPassAmount).concat(","))
-                                .append(removeMillisecond(emptyDefault(lendersDate)).concat(","))
-                                .append(emptyDefault(lendersAmount).concat(","))
+                                .append(ifApply.concat(","))
+                                .append(applyDt.concat(","))
+                                .append(applyResult.concat(","))
+                                .append(auditTime.concat(","))
+                                .append(auditAmount.concat(","))
+                                .append(emptyDefault(applyLoan).concat(","))
+                                .append(removeMillisecond(emptyDefault(applyLoanTime)).concat(","))
+                                .append(ifLent.concat(","))
+                                .append(lentAmount.concat(","))
+                                .append(lentTime.concat(","))
+                                .append(unlentAmount.concat(","))
                                 .append(emptyDefault(customName))
                                 .append("\r\n");
                         fw.append(sb.toString());
