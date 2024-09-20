@@ -107,7 +107,7 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
             String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(date)
-                    .andFileTypeEqualTo(1);
+                    .andFileTypeEqualTo(1).andFileNameLike("transform_guomei_%");
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("国美转化数据提取-开始执行,apiCode ={}", apiCode);
@@ -117,7 +117,7 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
                 transferFileTask.setApiCode(apiCode);
                 transferFileTask.setFileType(1);
                 transferFileTask.setBatchNumber(batchNumber);
-                transferFileTask.setFileName(String.format("transform_qifujuxin_%s.txt", dateyyyymmddStr));
+                transferFileTask.setFileName(String.format("transform_guomei_%s.txt", dateyyyymmddStr));
                 transferFileTask.setTaskNumber(0);
                 transferFileTask.setStartDate(date);
                 transferFileTask.setContextId(transferFileContextId);
