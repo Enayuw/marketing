@@ -4,7 +4,9 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Map;
@@ -56,4 +58,13 @@ public interface ReportScoreRuleService {
      * @return List<ScoreDetailVo>
      */
     PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO);
+
+    /**
+     * Bi报表列表查看（众安）
+     * @param page
+     * @param pageSize
+     * @param reportTaskParam
+     * @return
+     */
+    PageResultReturn getBiReportTaskList(int page, int pageSize, BiReportTaskParam reportTaskParam);
 }

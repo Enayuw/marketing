@@ -10,6 +10,7 @@ import javax.annotation.Resource;
 
 import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.enums.InterfaceOperationsEnum;
+import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -115,5 +116,17 @@ public class ReportScoreRuleController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @ApiOperation(value = "获取Bi报表列表")
+    @PostMapping("/getBiReportTaskList")
+    @AuthDataControllerPermission
+    public ApiResult<PageResultReturn> getBiReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
+                                                           @RequestBody(required=false) BiReportTaskParam reportTaskParam) {
+        PageResultReturn listPage = reportScoreRuleService.getBiReportTaskList(current, size, reportTaskParam);
+        if (listPage != null) {
+            return new ApiResult<PageResultReturn>().success(listPage);
+        }
+        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 }

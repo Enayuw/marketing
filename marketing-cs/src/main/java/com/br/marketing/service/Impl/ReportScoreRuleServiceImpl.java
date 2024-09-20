@@ -13,7 +13,9 @@ import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.br.marketing.vo.TaskInfoVO;
+import com.br.marketing.vo.bi.BiReportTaskVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
+import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -289,5 +291,24 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             t.setUserType(String.join(",", batchNumberList));
         });
         return (PageResultReturn<List<ScoreDetailVo>>)PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent(), batchNumVO.getSize());
+    }
+
+    /**
+     * Bi报表列表查看（众安）
+     * @param page
+     * @param pageSize
+     * @param reportTaskParam
+     * @return
+     */
+    @Override
+    public PageResultReturn getBiReportTaskList(int page, int pageSize, BiReportTaskParam reportTaskParam) {
+        PageHelper.startPage(page, pageSize);
+        try {
+            List<BiReportTaskVO> list = reportTaskMapper.queryBiReportTaskListtikv_(reportTaskParam);
+            return PageResultReturn.setPageResult(list, page, pageSize);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
     }
 }
