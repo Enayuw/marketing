@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -203,4 +205,33 @@ public abstract class AbstractBiReportConverter<V, T> {
             return dict.getDictValue();
         }
     }
+
+    /**
+     * 填充占比字段
+     *
+     * @param dtos dtos
+     * @param numberFunction 求和字段
+     * @param proportionSetter 占比赋值字段
+     * @author senyang.zheng
+     * @date 2024/09/20
+     */
+    protected void fillProportion(List<T> dtos, Function<T, Long> numberFunction, BiConsumer<T, BigDecimal> proportionSetter) {
+        // 1. 计算总和
+        long total = dtos.stream().map(numberFunction).filter(Objects::nonNull).reduce(0L, Long::sum);
+        // 2. 遍历 dataList，计算比例并设置 proportion 字段
+        for (T item : dtos) {
+            Long numberValue = numberFunction.apply(item);
+            if (numberValue != null && total != 0) {
+                // 计算占比: Number值 / 总和
+                BigDecimal proportion = BigDecimal.valueOf(numberValue).divide(BigDecimal.valueOf(total), 4, RoundingMode.HALF_UP);
+                // 赋值给 proportion 字段
+                proportionSetter.accept(item, proportion);
+            } else {
+                // 如果 numberValue 或 total 是 0，比例设为 0
+                proportionSetter.accept(item, BigDecimal.ZERO);
+            }
+        }
+    }
+
+
 }
