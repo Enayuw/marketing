@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhongAnBiReportMapper">
+    <select id="selectZaOutboundCallListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhonganOutboundCallReportDTO">
+        select * from dws_za_outbound_call_statistics
+        where is_delete = 0
+        <if test="reportDateStart !=null and reportDateStart!=''">
+            <![CDATA[ and report_date >= #{reportDateStart}]]>
+        </if>
+        <if test="reportDateEnd !=null and reportDateEnd!=''">
+            <![CDATA[ and report_date <= #{reportDateEnd}]]>
+        </if>
+        <if test="userType !=null and userType!=''">
+            <![CDATA[ and user_type = #{userType}]]>
+        </if>
+        order by report_date desc;
+    </select>
+</mapper>
+
+
