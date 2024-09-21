@@ -97,8 +97,8 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
     @Override
     public Result<List<TransferFileTask>> buildTransferTask(String apiCode,String myParam) {
         List<TransferFileTask> resultList = new ArrayList<>();
-        String extractTime = StringUtils.isBlank(marketingCommonConfig.getGuoMeiTransferFileExecuteTime())
-                ? EXECUTE_TIME : marketingCommonConfig.getGuoMeiTransferFileExecuteTime();
+        String extractTime = StringUtils.isBlank(marketingCommonConfig.getGomeFileExecTime())
+                ? EXECUTE_TIME : marketingCommonConfig.getGomeFileExecTime();
         LocalTime localTime = LocalTime.parse(extractTime);
         boolean isParam = StringUtils.isNotBlank(myParam);
         if (LocalTime.now().isAfter(localTime) || isParam) {
@@ -107,7 +107,7 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
             String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
             TransferFileTaskExample taskExample = new TransferFileTaskExample();
             taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(date)
-                    .andFileTypeEqualTo(1).andFileNameLike("transform_guomei_%");
+                    .andFileTypeEqualTo(1);
             List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
             if (CollectionUtils.isEmpty(transferFileTasks)) {
                 log.warn("国美转化数据提取-开始执行,apiCode ={}", apiCode);

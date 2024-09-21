@@ -2,7 +2,9 @@ import com.br.marketing.bridge.DataBridgeApplication;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.TransferFileTask;
+import com.br.marketing.entity.TransferFileTaskExample;
 import com.br.marketing.mapper.SyncConfigMapper;
+import com.br.marketing.mapper.TransferFileTaskMapper;
 import com.br.marketing.service.Impl.transfertofile.*;
 import com.br.marketing.service.SyncConfigService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,11 +18,14 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.List;
 
 /**
  * TransferFileTest
@@ -212,6 +217,9 @@ public class TransferFileTest implements ApplicationContextAware {
     @Resource
     TransferToFileByGuoMeiServiceImpl transferToFileByGuoMeiService;
 
+    @Autowired
+    private TransferFileTaskMapper transferFileTaskMapper;
+
     @Test
     public void GuoMeiWriteTransferToFile() {
         TransferFileTask transferFileTask = new TransferFileTask();
@@ -223,9 +231,16 @@ public class TransferFileTest implements ApplicationContextAware {
         String recordDate = transferFileTask.getStartDate();
         boolean isParam = StringUtils.isNotBlank(dd);
         String dateyyyymmddStr = isParam ? myParam.replace("-", "") : LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        TransferFileTaskExample taskExample = new TransferFileTaskExample();
+        taskExample.createCriteria().andApiCodeEqualTo(apiCode).andStartDateEqualTo(date)
+                .andFileTypeEqualTo(1).andFileNameLike("transform_guomei_%");
+        List<TransferFileTask> transferFileTasks = transferFileTaskMapper.selectByExample(taskExample);
+        if (CollectionUtils.isEmpty(transferFileTasks)) {
+            System.err.println("国美转化数据提取-开始执行,");
+        }
         transferFileTask.setFileName(String.format("transform_qifujuxin_%s.txt", dateyyyymmddStr));
         log.warn("国美转化数据提取-开始写入文件,apiCode ={}", transferFileTask.getApiCode());
-        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         String descPath = syncConfigService.getPath().concat("transferToFile/").concat(apiCode).concat("/").concat(date).concat("/");
         File writeDic = new File(descPath);
         if (!writeDic.exists()) {
