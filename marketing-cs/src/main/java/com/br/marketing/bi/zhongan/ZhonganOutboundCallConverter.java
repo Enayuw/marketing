@@ -7,7 +7,7 @@ import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.zhongan.ZhonganOutboundCallReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
-import com.br.marketing.proxy.ZhonganBiReportService;
+import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
@@ -16,9 +16,9 @@ import com.google.api.client.util.Lists;
 import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 @BiReportType(reportType = BiReportTypeEnum.OUTBOUND_STAT_REPORT)
 public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiReportVO, ZhonganOutboundCallReportDTO> {
 
-    @Resource
-    private ZhonganBiReportService zhonganBiReportService;
+    @Autowired
+    ZhongAnBiReportMapper zhongAnBiReportMapper;
 
     /**
      * 获取数据
@@ -48,10 +48,10 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
     @Override
     public List<ZhonganOutboundCallReportDTO> fetchData(BiReportParam param) {
         JSONObject condition = param.getCondition();
-        String startDate = param.getCondition().getString("startDate");
-        String endDate = param.getCondition().getString("endDate");
+        String reportDateStart = param.getCondition().getString("startDate");
+        String reportDateEnd = param.getCondition().getString("endDate");
         String userType = condition.getString("userType");
-        return zhonganBiReportService.selectZaOutboundCallList(startDate, endDate, userType);
+        return zhongAnBiReportMapper.selectZaOutboundCallListbI_(reportDateStart, reportDateEnd, userType);
     }
 
     @Override
