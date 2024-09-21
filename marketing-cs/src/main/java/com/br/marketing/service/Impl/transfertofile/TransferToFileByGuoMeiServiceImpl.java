@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.io.*;
@@ -68,7 +70,7 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
     private TransferDataValidityPeriodService validityPeriodService;
 
     public final static String TABLE_HEAD_TRANSFER = "userType,custNum,registerTime,ifLogin,loginTime,ifApply,applyDt,applyResult" +
-            ",auditTime,auditAmount,applyLoan,applyLoanTime,ifLent,lentAmount,lentTime,unlentAmount,customName";
+            ",auditTime,auditAmount,applyLoan,applyLoanTime,ifLent,lentAmount,lentTime,unlentAmount,cell,customName";
 
     final static String EXECUTE_TIME = "09:00:00";
 
@@ -253,8 +255,10 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
                     String lentAmount = emptyDefault(transferFilterData.getLentAmount());
                     String lentTime = removeMillisecond(emptyDefault(transferFilterData.getLentTime()));
                     String unlentAmount = emptyDefault(transferFilterData.getUnlentAmount());
+                    String cell = "";
                     String customName = "";
                     if (ObjectUtil.isNotEmpty(marketingSyncUser)){
+                        cell = ObjectUtil.isNotEmpty(marketingSyncUser.getCellMd5()) ? marketingSyncUser.getCellMd5() : "";
                         JSONObject jsonObject = ObjectUtil.isNotEmpty(marketingSyncUser.getReserveField1())
                                 ? JSON.parseObject(marketingSyncUser.getReserveField1())
                                 : null;
@@ -284,6 +288,7 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
                                 .append(lentAmount.concat(","))
                                 .append(lentTime.concat(","))
                                 .append(unlentAmount.concat(","))
+                                .append(emptyDefault(cell).concat(","))
                                 .append(emptyDefault(customName))
                                 .append("\r\n");
                         fw.append(sb.toString());
