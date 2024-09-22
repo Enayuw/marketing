@@ -62,9 +62,17 @@ public enum BiReportTypeEnum {
      */
     OUTBOUND_STAT_REPORT(110, "outboundStatReport"),
     /**
-     * 经营分析报表
+     * 经营分析1场景报表
      */
-    BUSINESS_ANALYSIS_REPORT(111, "businessAnalysisReport"),
+    BUSINESS_ANALYSIS_ONE_REPORT(111, "businessAnalysisOneReport"),
+    /**
+     * 经营分析7场景报表
+     */
+    BUSINESS_ANALYSIS_SEVEN_REPORT(112, "businessAnalysisSevenReport"),
+    /**
+     * 经营分析8场景报表
+     */
+    BUSINESS_ANALYSIS_EIGHT_REPORT(113, "businessAnalysisEightReport"),
     ;
 
     /** code */

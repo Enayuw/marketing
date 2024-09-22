@@ -1,7 +1,6 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.dto.report.zhongan.ZhongAnDistributionStatisticDTO;
-import com.br.marketing.dto.report.zhongan.ZhonganOutboundCallReportDTO;
+import com.br.marketing.dto.report.zhongan.*;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -19,5 +18,11 @@ public interface ZhongAnBiReportMapper {
     List<ZhongAnDistributionStatisticDTO> selectZaMultiHeadGroupListbI_(@Param("reportId") String reportId,
                                                                         @Param("field") String field,
                                                                         @Param("itemName") String itemName);
+
+    List<ZhongAnBusAnalyOneReportDTO> selectZaBusAnalyOneListbI_(@Param("reportId") String reportId);
+
+    List<ZhongAnBusAnalySevenReportDTO> selectZaBusAnalySevenListbI_(@Param("reportId") String reportId);
+
+    List<ZhongAnBusAnalyEightReportDTO> selectZaBusAnalyEightListbI_(@Param("reportId") String reportId);
 
 }
