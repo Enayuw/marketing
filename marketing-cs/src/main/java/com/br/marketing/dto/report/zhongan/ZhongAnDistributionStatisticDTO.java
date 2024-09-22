@@ -23,12 +23,12 @@ public class ZhongAnDistributionStatisticDTO {
     @ApiModelProperty("模型值")
     private String scoreValue;
     @ApiModelProperty("维度")
-    private Long dimensionField;
+    private String dimensionField;
     @ApiModelProperty("维度值")
-    private BigDecimal dimensionValue;
+    private String dimensionValue;
     @ApiModelProperty("指标名称")
     private String itemName;
     @ApiModelProperty("指标值")
-    private Long itemValue;
+    private String itemValue;
 
 }
