@@ -235,73 +235,73 @@ public class ReportFieldMappingExample {
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyIsNull() {
-            addCriterion("item_key is null");
+        public Criteria andItemShowIsNull() {
+            addCriterion("item_show is null");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyIsNotNull() {
-            addCriterion("item_key is not null");
+        public Criteria andItemShowIsNotNull() {
+            addCriterion("item_show is not null");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyEqualTo(String value) {
-            addCriterion("item_key =", value, "itemKey");
+        public Criteria andItemShowEqualTo(String value) {
+            addCriterion("item_show =", value, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyNotEqualTo(String value) {
-            addCriterion("item_key <>", value, "itemKey");
+        public Criteria andItemShowNotEqualTo(String value) {
+            addCriterion("item_show <>", value, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyGreaterThan(String value) {
-            addCriterion("item_key >", value, "itemKey");
+        public Criteria andItemShowGreaterThan(String value) {
+            addCriterion("item_show >", value, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyGreaterThanOrEqualTo(String value) {
-            addCriterion("item_key >=", value, "itemKey");
+        public Criteria andItemShowGreaterThanOrEqualTo(String value) {
+            addCriterion("item_show >=", value, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyLessThan(String value) {
-            addCriterion("item_key <", value, "itemKey");
+        public Criteria andItemShowLessThan(String value) {
+            addCriterion("item_show <", value, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyLessThanOrEqualTo(String value) {
-            addCriterion("item_key <=", value, "itemKey");
+        public Criteria andItemShowLessThanOrEqualTo(String value) {
+            addCriterion("item_show <=", value, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyLike(String value) {
-            addCriterion("item_key like", value, "itemKey");
+        public Criteria andItemShowLike(String value) {
+            addCriterion("item_show like", value, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyNotLike(String value) {
-            addCriterion("item_key not like", value, "itemKey");
+        public Criteria andItemShowNotLike(String value) {
+            addCriterion("item_show not like", value, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyIn(List<String> values) {
-            addCriterion("item_key in", values, "itemKey");
+        public Criteria andItemShowIn(List<String> values) {
+            addCriterion("item_show in", values, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyNotIn(List<String> values) {
-            addCriterion("item_key not in", values, "itemKey");
+        public Criteria andItemShowNotIn(List<String> values) {
+            addCriterion("item_show not in", values, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyBetween(String value1, String value2) {
-            addCriterion("item_key between", value1, value2, "itemKey");
+        public Criteria andItemShowBetween(String value1, String value2) {
+            addCriterion("item_show between", value1, value2, "itemShow");
             return (Criteria) this;
         }
 
-        public Criteria andItemKeyNotBetween(String value1, String value2) {
-            addCriterion("item_key not between", value1, value2, "itemKey");
+        public Criteria andItemShowNotBetween(String value1, String value2) {
+            addCriterion("item_show not between", value1, value2, "itemShow");
             return (Criteria) this;
         }
 

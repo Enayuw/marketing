@@ -6,7 +6,7 @@
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="report_type" property="reportType" jdbcType="VARCHAR" />
     <result column="user_type" property="userType" jdbcType="VARCHAR" />
-    <result column="item_key" property="itemKey" jdbcType="VARCHAR" />
+    <result column="item_show" property="itemShow" jdbcType="VARCHAR" />
     <result column="item_name" property="itemName" jdbcType="VARCHAR" />
     <result column="item_order" property="itemOrder" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
@@ -72,7 +72,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, report_type, user_type, item_key, item_name, item_order, is_del, create_time, 
+    id, api_code, report_type, user_type, item_show, item_name, item_order, is_del, create_time, 
     update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ReportFieldDictExample" >
@@ -110,11 +110,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_report_field_dict (api_code, report_type, user_type, 
-      item_key, item_name, item_order, 
+      item_show, item_name, item_order, 
       is_del, create_time, update_time
       )
     values (#{apiCode,jdbcType=VARCHAR}, #{reportType,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, 
-      #{itemKey,jdbcType=VARCHAR}, #{itemName,jdbcType=VARCHAR}, #{itemOrder,jdbcType=VARCHAR}, 
+      #{itemShow,jdbcType=VARCHAR}, #{itemName,jdbcType=VARCHAR}, #{itemOrder,jdbcType=VARCHAR}, 
       #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
       )
   </insert>
@@ -133,8 +133,8 @@
       <if test="userType != null" >
         user_type,
       </if>
-      <if test="itemKey != null" >
-        item_key,
+      <if test="itemShow != null" >
+        item_show,
       </if>
       <if test="itemName != null" >
         item_name,
@@ -162,8 +162,8 @@
       <if test="userType != null" >
         #{userType,jdbcType=VARCHAR},
       </if>
-      <if test="itemKey != null" >
-        #{itemKey,jdbcType=VARCHAR},
+      <if test="itemShow != null" >
+        #{itemShow,jdbcType=VARCHAR},
       </if>
       <if test="itemName != null" >
         #{itemName,jdbcType=VARCHAR},
@@ -203,8 +203,8 @@
       <if test="record.userType != null" >
         user_type = #{record.userType,jdbcType=VARCHAR},
       </if>
-      <if test="record.itemKey != null" >
-        item_key = #{record.itemKey,jdbcType=VARCHAR},
+      <if test="record.itemShow != null" >
+        item_show = #{record.itemShow,jdbcType=VARCHAR},
       </if>
       <if test="record.itemName != null" >
         item_name = #{record.itemName,jdbcType=VARCHAR},
@@ -232,7 +232,7 @@
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       report_type = #{record.reportType,jdbcType=VARCHAR},
       user_type = #{record.userType,jdbcType=VARCHAR},
-      item_key = #{record.itemKey,jdbcType=VARCHAR},
+      item_show = #{record.itemShow,jdbcType=VARCHAR},
       item_name = #{record.itemName,jdbcType=VARCHAR},
       item_order = #{record.itemOrder,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
@@ -254,8 +254,8 @@
       <if test="userType != null" >
         user_type = #{userType,jdbcType=VARCHAR},
       </if>
-      <if test="itemKey != null" >
-        item_key = #{itemKey,jdbcType=VARCHAR},
+      <if test="itemShow != null" >
+        item_show = #{itemShow,jdbcType=VARCHAR},
       </if>
       <if test="itemName != null" >
         item_name = #{itemName,jdbcType=VARCHAR},
@@ -280,7 +280,7 @@
     set api_code = #{apiCode,jdbcType=VARCHAR},
       report_type = #{reportType,jdbcType=VARCHAR},
       user_type = #{userType,jdbcType=VARCHAR},
-      item_key = #{itemKey,jdbcType=VARCHAR},
+      item_show = #{itemShow,jdbcType=VARCHAR},
       item_name = #{itemName,jdbcType=VARCHAR},
       item_order = #{itemOrder,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},

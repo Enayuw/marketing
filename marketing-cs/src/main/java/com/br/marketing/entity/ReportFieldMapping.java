@@ -14,12 +14,12 @@ public class ReportFieldMapping {
     private String reportTaskId;
 
     /**
-     * 指标列
+     * 展示列名
      */
-    private String itemKey;
+    private String itemShow;
 
     /**
-     * 展示列名
+     * 指标列
      */
     private String itemName;
 
@@ -59,12 +59,12 @@ public class ReportFieldMapping {
         this.reportTaskId = reportTaskId == null ? null : reportTaskId.trim();
     }
 
-    public String getItemKey() {
-        return itemKey;
+    public String getItemShow() {
+        return itemShow;
     }
 
-    public void setItemKey(String itemKey) {
-        this.itemKey = itemKey == null ? null : itemKey.trim();
+    public void setItemShow(String itemShow) {
+        this.itemShow = itemShow == null ? null : itemShow.trim();
     }
 
     public String getItemName() {

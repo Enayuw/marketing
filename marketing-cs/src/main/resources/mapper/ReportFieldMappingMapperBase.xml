@@ -4,7 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.ReportFieldMapping" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="report_task_id" property="reportTaskId" jdbcType="VARCHAR" />
-    <result column="item_key" property="itemKey" jdbcType="VARCHAR" />
+    <result column="item_show" property="itemShow" jdbcType="VARCHAR" />
     <result column="item_name" property="itemName" jdbcType="VARCHAR" />
     <result column="item_order" property="itemOrder" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
@@ -70,7 +70,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, report_task_id, item_key, item_name, item_order, is_del, create_time, update_time
+    id, report_task_id, item_show, item_name, item_order, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ReportFieldMappingExample" >
     select
@@ -106,10 +106,10 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_report_field_mapping (report_task_id, item_key, item_name, 
+    insert into b_report_field_mapping (report_task_id, item_show, item_name, 
       item_order, is_del, create_time, 
       update_time)
-    values (#{reportTaskId,jdbcType=VARCHAR}, #{itemKey,jdbcType=VARCHAR}, #{itemName,jdbcType=VARCHAR}, 
+    values (#{reportTaskId,jdbcType=VARCHAR}, #{itemShow,jdbcType=VARCHAR}, #{itemName,jdbcType=VARCHAR}, 
       #{itemOrder,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
       #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -122,8 +122,8 @@
       <if test="reportTaskId != null" >
         report_task_id,
       </if>
-      <if test="itemKey != null" >
-        item_key,
+      <if test="itemShow != null" >
+        item_show,
       </if>
       <if test="itemName != null" >
         item_name,
@@ -145,8 +145,8 @@
       <if test="reportTaskId != null" >
         #{reportTaskId,jdbcType=VARCHAR},
       </if>
-      <if test="itemKey != null" >
-        #{itemKey,jdbcType=VARCHAR},
+      <if test="itemShow != null" >
+        #{itemShow,jdbcType=VARCHAR},
       </if>
       <if test="itemName != null" >
         #{itemName,jdbcType=VARCHAR},
@@ -180,8 +180,8 @@
       <if test="record.reportTaskId != null" >
         report_task_id = #{record.reportTaskId,jdbcType=VARCHAR},
       </if>
-      <if test="record.itemKey != null" >
-        item_key = #{record.itemKey,jdbcType=VARCHAR},
+      <if test="record.itemShow != null" >
+        item_show = #{record.itemShow,jdbcType=VARCHAR},
       </if>
       <if test="record.itemName != null" >
         item_name = #{record.itemName,jdbcType=VARCHAR},
@@ -207,7 +207,7 @@
     update b_report_field_mapping
     set id = #{record.id,jdbcType=BIGINT},
       report_task_id = #{record.reportTaskId,jdbcType=VARCHAR},
-      item_key = #{record.itemKey,jdbcType=VARCHAR},
+      item_show = #{record.itemShow,jdbcType=VARCHAR},
       item_name = #{record.itemName,jdbcType=VARCHAR},
       item_order = #{record.itemOrder,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
@@ -223,8 +223,8 @@
       <if test="reportTaskId != null" >
         report_task_id = #{reportTaskId,jdbcType=VARCHAR},
       </if>
-      <if test="itemKey != null" >
-        item_key = #{itemKey,jdbcType=VARCHAR},
+      <if test="itemShow != null" >
+        item_show = #{itemShow,jdbcType=VARCHAR},
       </if>
       <if test="itemName != null" >
         item_name = #{itemName,jdbcType=VARCHAR},
@@ -247,7 +247,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ReportFieldMapping" >
     update b_report_field_mapping
     set report_task_id = #{reportTaskId,jdbcType=VARCHAR},
-      item_key = #{itemKey,jdbcType=VARCHAR},
+      item_show = #{itemShow,jdbcType=VARCHAR},
       item_name = #{itemName,jdbcType=VARCHAR},
       item_order = #{itemOrder,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
