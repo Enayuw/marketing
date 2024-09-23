@@ -10,14 +10,11 @@ public interface ZhongAnBiReportMapper {
                                                                    @Param("reportDateEnd") String reportDateEnd,
                                                                    @Param("userType") String userType);
 
-    List<ZhongAnDistributionStatisticDTO> selectZaGroupListbI_(@Param("reportId") String reportId,
+    List<ZhongAnDistributionStatisticDTO> selectZaMultiHeadGroupListbI_(@Param("reportId") String reportId,
                                                                @Param("field") String field,
                                                                @Param("dimensionField") String dimensionField,
-                                                               @Param("dimensionValue") String dimensionValue);
-
-    List<ZhongAnDistributionStatisticDTO> selectZaMultiHeadGroupListbI_(@Param("reportId") String reportId,
-                                                                        @Param("field") String field,
-                                                                        @Param("itemName") String itemName);
+                                                               @Param("dimensionValue") String dimensionValue,
+                                                               @Param("itemName") String itemName);
 
     List<ZhongAnBusAnalyOneReportDTO> selectZaBusAnalyOneListbI_(@Param("reportId") String reportId);
 

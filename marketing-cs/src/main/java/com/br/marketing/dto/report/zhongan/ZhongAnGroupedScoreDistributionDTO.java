@@ -24,5 +24,7 @@ public class ZhongAnGroupedScoreDistributionDTO {
     private Long num;
     @ApiModelProperty("占比")
     private BigDecimal proportion;
+    @ApiModelProperty("步长")
+    private Integer step;
 
 }
