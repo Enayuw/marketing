@@ -53,8 +53,8 @@ public class ReportScoreRuleController {
     private FastDfsClient fastDfsClient;
 
     @GetMapping("/getTaskScoreProducts")
-    public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids) {
-        return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids));
+    public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids, @RequestParam(defaultValue = "all")String fieldType) {
+        return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids, fieldType));
     }
 
     @ApiOperation(value = "获取报告任务列表")

@@ -20,59 +20,63 @@ public enum BiReportTypeEnum {
     /**
      * 携程月转化报表
      */
-    XIECHENG_TRANSFER_MONTHLY_REPORT(100, 2, "xiechengTransferMonthlyReport"),
+    XIECHENG_TRANSFER_MONTHLY_REPORT(100, 2, "xiechengTransferMonthlyReport", "携程月转化报表"),
     /**
      * 携程日转化报表
      */
-    XIECHENG_TRANSFER_DAILY_REPORT(101, 3, "xiechengTransferDailyReport"),
+    XIECHENG_TRANSFER_DAILY_REPORT(101, 3, "xiechengTransferDailyReport", "携程日转化报表"),
     /**
      * 携程7日滚动转化报表
      */
-    XIECHENG_TRANSFER_WEEKLY_REPORT(102, 4, "xiechengTransferWeeklyReport"),
+    XIECHENG_TRANSFER_WEEKLY_REPORT(102, 4, "xiechengTransferWeeklyReport", "携程7日滚动转化报表"),
     /**
      * 携程单日撞库结果分布报表
      */
-    XIECHENG_COLLIDING_DAILY_REPORT(103, 5, "xiechengCollidingDailyReport"),
+    XIECHENG_COLLIDING_DAILY_REPORT(103, 5, "xiechengCollidingDailyReport", "携程单日撞库结果分布报表"),
     /**
      * 携程7日撞库结果分布报表
      */
-    XIECHENG_COLLIDING_WEEKLY_REPORT(104, null, "xiechengCollidingWeeklyReport"),
+    XIECHENG_COLLIDING_WEEKLY_REPORT(104, null, "xiechengCollidingWeeklyReport", null),
     /**
      * 携程数据使用率报表
      */
-    XIECHENG_DATARATIO_DAILY_REPORT(105, 6, "xiechengDataRatioDailyReport"),
+    XIECHENG_DATARATIO_DAILY_REPORT(105, 6, "xiechengDataRatioDailyReport", "携程数据使用率报表"),
     /**
      * 多头分布报表
      */
-    MULTPOINT_REPORT(106, 7, "multPointReport"),
+    MULTPOINT_REPORT(106, 7, "multPointReport", "多头分布报表"),
     /**
      * 转化分析报表
      */
-    TRANSFER_ANALYSIS_REPORT(107, 8, "transferAnalysisReport"),
+    TRANSFER_ANALYSIS_REPORT(107, 8, "transferAnalysisReport", "转化分析报表"),
     /**
      * 分组评分分布报表
      */
-    GROUP_SCORE_REPORT(108, 9, "groupScoreReport"),
+    GROUP_SCORE_REPORT(108, 9, "groupScoreReport", "分组统计报表"),
     /**
      * 回溯分析报表
      */
-    TRACE_ANALYSIS_REPORT(109, 10, "traceAnalysisReport"),
+    TRACE_ANALYSIS_REPORT(109, 10, "traceAnalysisReport", "回溯分析报表"),
     /**
      * 外呼统计报表
      */
-    OUTBOUND_STAT_REPORT(110, 11, "outboundStatReport"),
+    OUTBOUND_STAT_REPORT(110, 11, "outboundStatReport", "外呼统计报表"),
     /**
      * 经营分析1场景报表
      */
-    BUSINESS_ANALYSIS_ONE_REPORT(111, 12, "businessAnalysisOneReport"),
+    BUSINESS_ANALYSIS_ONE_REPORT(111, 12, "businessAnalysisOneReport", null),
     /**
      * 经营分析7场景报表
      */
-    BUSINESS_ANALYSIS_SEVEN_REPORT(112, 12, "businessAnalysisSevenReport"),
+    BUSINESS_ANALYSIS_SEVEN_REPORT(112, 12, "businessAnalysisSevenReport", null),
     /**
      * 经营分析8场景报表
      */
-    BUSINESS_ANALYSIS_EIGHT_REPORT(113, 12, "businessAnalysisEightReport"),
+    BUSINESS_ANALYSIS_EIGHT_REPORT(113, 12, "businessAnalysisEightReport", null),
+    /**
+     * 经营分析报表
+     */
+    BUSINESS_ANALYSIS_REPORT(114, 12, "businessAnalysisEightReport", "经营分析报表"),
     ;
 
     /** code */
@@ -83,10 +87,13 @@ public enum BiReportTypeEnum {
     /** 名称 */
     private final String typeName;
 
-    BiReportTypeEnum(Integer code, Integer type, String typeName) {
+    private final String statName;
+
+    BiReportTypeEnum(Integer code, Integer type, String typeName, String staticName) {
         this.code = code;
         this.type = type;
         this.typeName = typeName;
+        this.statName = staticName;
     }
 
     /**
