@@ -14,6 +14,11 @@ public class ReportFieldMapping {
     private String reportTaskId;
 
     /**
+     * 场景
+     */
+    private String userType;
+
+    /**
      * 展示列名
      */
     private String itemShow;
@@ -57,6 +62,14 @@ public class ReportFieldMapping {
 
     public void setReportTaskId(String reportTaskId) {
         this.reportTaskId = reportTaskId == null ? null : reportTaskId.trim();
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType == null ? null : userType.trim();
     }
 
     public String getItemShow() {
