@@ -104,12 +104,10 @@ public class ShuHeChongShenTransferToBioclooImpl implements AssembleData<DataSol
             if (!"重申".equals(userType)) {
                 return false;
             }
-            JSONObject userTypeJson = marketingCommonConfig.getShuHeToBioclooUserTypeAndApiCodeMapping();
-            JSONObject proxyJson = userTypeJson.getJSONObject("重申");
             Set<String> custNumSet = Sets.newHashSet();
             custNumSet.add(transfer.getCustNum());
             List<MarketingSyncUser> syncUserList =
-                    marketingSyncUserMapper.getCellLastByCustNums(proxyJson.getString(context.getApiCode()), custNumSet);
+                    marketingSyncUserMapper.getCellLastByCustNums(context.getApiCode(), custNumSet);
             if (CollectionUtil.isEmpty(syncUserList)) {
                 return false;
             }
