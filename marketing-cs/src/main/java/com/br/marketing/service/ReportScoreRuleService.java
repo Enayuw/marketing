@@ -6,7 +6,6 @@ import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Map;
@@ -21,11 +20,12 @@ public interface ReportScoreRuleService {
 
     /**
      * 产品集合列表
-     * 
-     * @param ids 跑分文件对应的主键id
+     *
+     * @param ids       跑分文件对应的主键id
+     * @param fieldType
      * @return
      */
-    Map getProducts(String ids);
+    Map getProducts(String ids, String fieldType);
 
     /**
      * 新增 跑分模型报表任务 方法

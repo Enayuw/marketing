@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
@@ -22,6 +24,7 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -56,8 +59,14 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private ReportFieldDictMapper reportFieldDictMapper;
+
+    @Resource
+    private ReportFieldMappingMapper reportFieldMappingMapper;
+
     @Override
-    public Map getProducts(String ids) {
+    public Map getProducts(String ids, String fieldType) {
         Map map = new HashMap();
         Map<String, String> fieldsMap = new HashMap();
         // 给前端提示产品在不同跑分文件中差异结果<产品,跑分文件>
@@ -65,7 +74,14 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         // 给前端提示产品在不同跑分文件中差异结果<跑分文件,产品Set>
         List<Map<String, Set>> batchSwiftAndScoreSetList = new ArrayList<>();
         // 需要的跑分产品前缀集合
-        Set<String> reportScorePrefixSet = marketingCommonConfig.getReportScorePrefixSet();
+        Set<String> reportScorePrefixSet = null;
+        if ("all".equals(fieldType)) {
+            reportScorePrefixSet = marketingCommonConfig.getReportScorePrefixSet();
+        } else if ("score".equals(fieldType)) {
+            reportScorePrefixSet = marketingCommonConfig.getReportScoreOnlyPrefixSet();
+        } else if ("multPoint".equals(fieldType)) {
+            reportScorePrefixSet = marketingCommonConfig.getReportmultPointPrefixSet();
+        }
         List<Long> fileIds = Arrays.stream(ids.split(",")).map(t -> Long.valueOf(t)).collect(Collectors.toList());
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
@@ -210,7 +226,10 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         String ids = reportTaskParam.getIds();
         String cid = reportTaskParam.getCid();
         String reportTypeName = reportTaskParam.getReportTypeName();
-        Integer reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
+        Integer reportType = null;
+        if (reportTypeName != null) {
+            reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
+        }
         String reportName = reportTaskParam.getReportName();
         String rules = reportTaskParam.getRules();
         String productAndBatchNumber = reportTaskParam.getProductAndBatchNumber();
@@ -222,20 +241,29 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         if(reportTasks.size() > 0){
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.SUCCESS_6);
         }
-        JSONObject json = new JSONObject();
-        json.put("rules", rules);
-        json.put("productAndBatchNumber", productAndBatchNumber);
         // 给写入b_report_task表拼装数据
         ReportTask reportTask = new ReportTask();
         reportTask.setReportName(reportName);
+        reportTask.setReportType(reportType == null ? 1 : reportType);
+        List<ReportFieldDict> reportFieldDicts = null;
+        JSONObject json = new JSONObject();
+        if (reportType == null) {
+            json.put("rules", rules);
+            json.put("productAndBatchNumber", productAndBatchNumber);
+        } else {
+            json = JSON.parseObject(rules);
+            reportFieldDicts = processReportRules(json, reportTypeName);
+        }
         reportTask.setReportRules(json.toJSONString());
         reportTask.setStatus(0);
-        reportTask.setReportType(reportType == null ? 1 : reportType);
         reportTask.setIsDel(1);
         reportTask.setCreateTime(new Date());
         reportTask.setUpdateTime(new Date());
         reportTaskMapper.insertSelective(reportTask);
         Long reportId = reportTask.getId();
+        if (!CollectionUtils.isEmpty(reportFieldDicts)) {
+            addReportFieldMapping(reportFieldDicts, reportId);
+        }
         List<Long> fileIds = Arrays.stream(ids.split(",")).map(t -> Long.valueOf(t)).collect(Collectors.toList());
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
@@ -257,6 +285,61 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             reportTaskScoreSourceMapper.insertBatch(list);
         }
         return new ApiResult<Boolean>().success(true);
+    }
+
+    private void addReportFieldMapping(List<ReportFieldDict> reportFieldDicts, Long reportId) {
+        for (ReportFieldDict reportFieldDict : reportFieldDicts) {
+            ReportFieldMapping reportFieldMapping = new ReportFieldMapping();
+            reportFieldMapping.setReportTaskId(reportId.toString());
+            reportFieldMapping.setUserType(reportFieldDict.getUserType());
+            reportFieldMapping.setItemShow(reportFieldDict.getItemShow());
+            reportFieldMapping.setItemName(reportFieldDict.getItemName());
+            reportFieldMapping.setItemOrder(reportFieldDict.getItemOrder());
+            reportFieldMapping.setCreateTime(new Date());
+            reportFieldMapping.setUpdateTime(new Date());
+            reportFieldMappingMapper.insertSelective(reportFieldMapping);
+        }
+    }
+
+    /**
+     * @param rulesJson
+     * @param reportTypeName
+     * @return List<ReportFieldDict>
+     * @description 处理rules，并新增【b_report_field_mapping】
+     * @author hedongshuo
+     * @date 2024/9/23 17:22
+     **/
+    private List<ReportFieldDict> processReportRules(JSONObject rulesJson, String reportTypeName) {
+        String apiCode = rulesJson.getString("apiCode");
+        JSONObject upload = rulesJson.getJSONObject("upload");
+        String dimensionsField = upload.getString("dimensionsField");
+        String userType = upload.getString("userType");
+        //1.补充dimensions_value
+        HashMap<String, JSONObject> groupDictConfig = marketingCommonConfig.getBiReportGroupDictConfig();
+        JSONObject apiCodeDictConfig = groupDictConfig.get(apiCode);
+        JSONObject userTypeDictConfig = apiCodeDictConfig.getJSONObject(userType);
+        if (userTypeDictConfig != null) {
+            JSONArray dictConfig = userTypeDictConfig.getJSONArray(dimensionsField);
+            upload.put("dimensionsValue", dictConfig);
+        }
+        BiReportTypeEnum biReportTypeEnum = BiReportTypeEnum.getEnumByTypeName(reportTypeName);
+        //2.补充statistics_scene
+        String scene = "";
+        if (biReportTypeEnum.getType() == 12) {
+            scene = apiCode + "_" + userType + "场景" + biReportTypeEnum.getStatName();
+        } else {
+            scene = apiCode + "_" + biReportTypeEnum.getStatName();
+        }
+        rulesJson.put("upload", upload);
+        rulesJson.put("statisticsScene", scene);
+        //3.增加【b_report_field_mapping】
+        ReportFieldDictExample dictExample = new ReportFieldDictExample();
+        dictExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andReportTypeEqualTo(biReportTypeEnum.getType().toString())
+                .andUserTypeEqualTo(userType)
+                .andIsDelEqualTo(1);
+        return reportFieldDictMapper.selectByExample(dictExample);
     }
 
     /**
