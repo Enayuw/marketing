@@ -25,10 +25,11 @@ public interface ZhongAnBiReportMapper {
 
     List<ZhongAnBusAnalyEightReportDTO> selectZaBusAnalyEightListbI_(@Param("reportId") String reportId);
 
-    List<ZhongAnTransferAnalysisReportDTO> selectZaItemListbI_(
+    List<ReportStatisticTransferDetail> queryReportStatisticTransferDetailbI_(
             @Param("reportId") String reportId,
             @Param("scoreField") String scoreField,
             @Param("dimensionField") String dimensionField,
-            @Param("dimensionValue") String dimensionValue);
+            @Param("dimensionValue") String dimensionValue,
+            @Param("itemName") String itemName);
 
 }
