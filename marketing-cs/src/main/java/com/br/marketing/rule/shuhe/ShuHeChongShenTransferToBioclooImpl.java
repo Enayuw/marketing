@@ -1,11 +1,5 @@
 package com.br.marketing.rule.shuhe;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.date.DateUtil;
-import com.br.marketing.dto.shuhe.strategy.BaseUserType;
-import com.br.marketing.entity.CaseShuheUser;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -29,13 +23,16 @@ import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.biocloo.input.DataSoleDTO;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.google.api.client.util.Sets;
 
+import cn.hutool.core.collection.CollectionUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
