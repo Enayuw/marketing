@@ -13,7 +13,7 @@ public class BiReportTaskParam {
      * 报表类型
      */
     @ApiModelProperty(value = "报表类型")
-    private Integer reportType;
+    private String reportTypeName;
 
     /**
      * 报告名称
@@ -32,6 +32,11 @@ public class BiReportTaskParam {
      */
     @ApiModelProperty(value = "分组维度")
     private String dimensionsField;
+
+    /**
+     * 报表类型,将reportTypeName转为reportType,进行mapper查询字段
+     */
+    private Integer reportType;
 
 
 }

@@ -6,6 +6,7 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -208,7 +209,8 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     public ApiResult<Boolean> addReportTask(ReportTaskParam reportTaskParam) {
         String ids = reportTaskParam.getIds();
         String cid = reportTaskParam.getCid();
-        Integer reportType = reportTaskParam.getReportType();
+        String reportTypeName = reportTaskParam.getReportTypeName();
+        Integer reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
         String reportName = reportTaskParam.getReportName();
         String rules = reportTaskParam.getRules();
         String productAndBatchNumber = reportTaskParam.getProductAndBatchNumber();
@@ -304,11 +306,25 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     public PageResultReturn getBiReportTaskList(int page, int pageSize, BiReportTaskParam reportTaskParam) {
         PageHelper.startPage(page, pageSize);
         try {
+            convertReportType(reportTaskParam);
             List<BiReportTaskVO> list = reportTaskMapper.queryBiReportTaskListtikv_(reportTaskParam);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * @description 将reportTypeName转为reportType
+     * @return void
+     * @author hedongshuo
+     * @date 2024/9/23 14:03
+     **/
+    private void convertReportType(BiReportTaskParam reportTaskParam) {
+        if (reportTaskParam == null || StringUtils.isEmpty(reportTaskParam.getReportTypeName())) {
+            return;
+        }
+        reportTaskParam.setReportType(BiReportTypeEnum.getEnumByTypeName(reportTaskParam.getReportTypeName()).getType());
     }
 }
