@@ -223,7 +223,7 @@ public abstract class AbstractBiReportConverter<V, T> {
             Long numberValue = numberFunction.apply(item);
             if (numberValue != null && total != 0) {
                 // 计算占比: Number值 / 总和
-                BigDecimal proportion = BigDecimal.valueOf(numberValue).divide(BigDecimal.valueOf(total), 4, RoundingMode.HALF_UP);
+                BigDecimal proportion = BigDecimal.valueOf(numberValue).divide(BigDecimal.valueOf(total), 5, RoundingMode.HALF_UP);
                 // 赋值给 proportion 字段
                 proportionSetter.accept(item, proportion);
             } else {

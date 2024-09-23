@@ -18,6 +18,8 @@ public class ZhongAnGroupedScoreDistributionDTO {
     private String product;
     @ApiModelProperty("区间")
     private String interval;
+    @ApiModelProperty("分组")
+    private String group;
     @ApiModelProperty("名称")
     private String name;
     @ApiModelProperty("量级")
