@@ -49,6 +49,21 @@
         select * from dws_za_eight_business_analysis where report_id = #{reportId} order by report_date asc
     </select>
 
+    <select id="selectZaItemListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnTransferAnalysisReportDTO">
+        select * from dws_report_statistic_transfer_detail
+        where report_id = #{reportId}
+        <if test="scoreField !=null and scoreField !=''">
+            <![CDATA[ and score_field = #{scoreField}]]>
+        </if>
+        <if test="dimensionField !=null and dimensionField!=''">
+            <![CDATA[ and dimension_field = #{dimensionField}]]>
+        </if>
+        <if test="dimensionValue !=null and dimensionValue!=''">
+            <![CDATA[ and dimension_value = #{dimensionValue}]]>
+        </if>
+        order by score_value desc
+    </select>
+
 </mapper>
 
 
