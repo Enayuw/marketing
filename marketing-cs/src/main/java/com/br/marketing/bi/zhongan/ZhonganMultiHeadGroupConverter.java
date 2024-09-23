@@ -68,25 +68,21 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
             String dimensionValue = reportStatisticTransfer.getDimensionValue();
             String multiHeadField = reportStatisticTransfer.getMultiHeadField();
             String field = scoreFieldDTO.getField();
+            Integer step = scoreFieldDTO.getStep();
 
             if(StringUtils.isNotEmpty(dimensionValue) && StringUtils.isNotEmpty(dimensionField)){
-                // 分组查询
+                // 分组多头查询
                 for (String value : formatField(dimensionValue)) {
-                    List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.selectZaGroupListbI_(reportId, field, dimensionField, value);
-                    bulidMultiHead(dtoList,field,0,dtos);
-                    // 多头查询
-                    if(StringUtils.isNotEmpty(multiHeadField)){
-                        for (String itemName : formatField(multiHeadField)) {
-                            List<ZhongAnDistributionStatisticDTO> dtoList1 = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, scoreFieldDTO.getField(), itemName);
-                            bulidMultiHead(dtoList1,field,1,dtos);
-                        }
+                    for (String itemName : formatField(multiHeadField)) {
+                        List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, dimensionField, value, itemName);
+                        bulidMultiHead(dtoList,field,step,dtos);
                     }
                 }
             }else if(StringUtils.isNotEmpty(multiHeadField)){
                 // 多头查询
                 for (String itemName : formatField(multiHeadField)) {
-                    List<ZhongAnDistributionStatisticDTO> dtoList1 = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, scoreFieldDTO.getField(), itemName);
-                    bulidMultiHead(dtoList1,field,1,dtos);
+                    List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, null, null, itemName);
+                    bulidMultiHead(dtoList,field,step,dtos);
                 }
             }
         }
@@ -130,19 +126,14 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
     }
 
     public void bulidMultiHead(List<ZhongAnDistributionStatisticDTO> dtoList, String field,
-                               Integer sign, List<ZhongAnGroupedScoreDistributionDTO> dtos) {
+                               Integer step, List<ZhongAnGroupedScoreDistributionDTO> dtos) {
         for (ZhongAnDistributionStatisticDTO zhongAnDistributionStatisticDTO : dtoList) {
             ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
             zhongAnGroupedScoreDistributionDTO.setProduct(field);
             zhongAnGroupedScoreDistributionDTO.setInterval(zhongAnDistributionStatisticDTO.getScoreValue());
-            if(sign == 0){
-                // 分组名称
-                zhongAnGroupedScoreDistributionDTO.setName(zhongAnDistributionStatisticDTO.getScoreField());
-            }else {
-                // 多头名称
-                zhongAnGroupedScoreDistributionDTO.setName(zhongAnDistributionStatisticDTO.getItemName());
-            }
+            zhongAnGroupedScoreDistributionDTO.setName(zhongAnDistributionStatisticDTO.getItemName());
             zhongAnGroupedScoreDistributionDTO.setNum(Long.valueOf(zhongAnDistributionStatisticDTO.getItemValue()));
+            zhongAnGroupedScoreDistributionDTO.setStep(step);
             dtos.add(zhongAnGroupedScoreDistributionDTO);
         }
         fillProportion(dtos,ZhongAnGroupedScoreDistributionDTO::getNum,ZhongAnGroupedScoreDistributionDTO::setProportion);

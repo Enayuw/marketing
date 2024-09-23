@@ -16,7 +16,7 @@
         order by report_date desc;
     </select>
 
-    <select id="selectZaGroupListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnDistributionStatisticDTO">
+    <select id="selectZaMultiHeadGroupListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnDistributionStatisticDTO">
         select * from dws_report_statistic_transfer_detail
         where report_id = #{reportId} and score_field = #{field}
         <if test="dimensionField !=null and dimensionField!=''">
@@ -25,12 +25,6 @@
         <if test="dimensionValue !=null and dimensionValue!=''">
             <![CDATA[ and dimension_value = #{dimensionValue}]]>
         </if>
-        order by score_value desc;
-    </select>
-
-    <select id="selectZaMultiHeadGroupListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnDistributionStatisticDTO">
-        select * from dws_report_statistic_transfer_detail
-        where report_id = #{reportId} and score_field = #{field}
         <if test="itemName !=null and itemName!=''">
             <![CDATA[ and item_name = #{itemName}]]>
         </if>
