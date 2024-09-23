@@ -58,19 +58,20 @@ public class MarketingAssistConstants {
 
 //    consumerGroup 开始
     /**
-     * 的 consumerGroup
+     * 转化数据场景统计使用的 consumerGroup
      */
     public static final String MARKETING_TRANSFER_API_USERTYPE_COLLECTION = "Marketing_Transfer_Api_UserType_Collection";
     /**
-     * 的 consumerGroup
+     * 要删除
+     * 转化数据数量统计使用的 consumerGroup
      */
     public static final String MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS = "Marketing_Transfer_Api_Data_Count_Fragments";
     /**
-     * 的 consumerGroup
+     * 上传数据场景统计使用的 consumerGroup
      */
     public static final String MARKETING_UPLOAD_API_USERTYPE_COLLECTION = "Marketing_Upload_Api_UserType_Collection";
     /**
-     * 的 consumerGroup
+     * 上传数据数量统计使用的 consumerGroup
      */
     public static final String MARKETING_UPLOAD_API_DATA_COUNT_FRAGMENTS = "Marketing_Upload_Api_Data_Count_Fragments";
     /**
