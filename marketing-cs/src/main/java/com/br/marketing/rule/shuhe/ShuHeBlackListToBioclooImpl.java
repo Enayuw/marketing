@@ -81,7 +81,7 @@ public class ShuHeBlackListToBioclooImpl implements AssembleData<DataSoleDTO> {
             if (!userTypeJson.containsKey(userType)) {
                 return false;
             }
-            JSONObject proxyJson = userTypeJson.getJSONObject("百可录黑名单");
+            JSONObject proxyJson = userTypeJson.getJSONObject("百可录");
             Set<String> custNumSet = Sets.newHashSet();
             custNumSet.add(transfer.getCustNum());
             List<MarketingSyncUser> syncUserList =
