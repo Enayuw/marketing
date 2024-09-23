@@ -277,6 +277,8 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
                     reqBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBlacklistDTO.setData(finalList);
                     byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+                    // 紧急需求，增加了推送百可录逻辑（后续逻辑变更请注意）
+                    byApiServiceClient.pushBioclooSole(reqBlacklistDTO,0);
                 });
                 pushList = new ArrayList<>();
             }
