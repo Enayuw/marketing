@@ -34,6 +34,11 @@ public class ReportFieldDict {
     private String itemName;
 
     /**
+     * 展示格式
+     */
+    private String itemFormatType;
+
+    /**
      * 报表列顺序
      */
     private String itemOrder;
@@ -99,6 +104,14 @@ public class ReportFieldDict {
 
     public void setItemName(String itemName) {
         this.itemName = itemName == null ? null : itemName.trim();
+    }
+
+    public String getItemFormatType() {
+        return itemFormatType;
+    }
+
+    public void setItemFormatType(String itemFormatType) {
+        this.itemFormatType = itemFormatType == null ? null : itemFormatType.trim();
     }
 
     public String getItemOrder() {
