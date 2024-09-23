@@ -66,20 +66,23 @@ public class RocketMQSwitch {
         RocketMQSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMQSwitchEntity>() {
         }.getType());
         String global = entity.getGlobal();
-        if("false".equalsIgnoreCase(global)){
-            return Boolean.FALSE;
+        if("true".equalsIgnoreCase(global)){
+            return Boolean.TRUE;
         }else{
-            JSONArray group = entity.getGroup();
-            for (int i = 0; i < group.size(); i++) {
-                JSONObject object = group.getJSONObject(i);
-                Boolean flagBoolean = object.getBoolean(FLAG);
+            JSONObject group = entity.getGroup();
+            JSONObject tagObjet = group.getJSONObject(tag);
+            if(null == tagObjet || tagObjet.isEmpty()){
+                return Boolean.FALSE;
+            }else{
+                Boolean flagBoolean = tagObjet.getBoolean(FLAG);
                 if(flagBoolean){
-                    JSONObject tagJSONObject = object.getJSONObject(TAG);
-                    String tagUseApiCodes = tagJSONObject.getString(tag);
+                    return Boolean.TRUE;
+                }else{
                     if(StringUtils.isBlank(apiCode)){
                         return Boolean.FALSE;
                     }
-                    if(StringUtils.isNotBlank(tagUseApiCodes) && tagUseApiCodes.contains(apiCode)){
+                    String apiCodes = tagObjet.getString(APICODES_SPEED);
+                    if(StringUtils.isNotBlank(apiCodes) && apiCodes.contains(apiCode)){
                         return Boolean.TRUE;
                     }
                 }
@@ -89,32 +92,71 @@ public class RocketMQSwitch {
     }
 
     public static void main(String[] args) {
-        String rocketMqSwitchString = "{\"global\":\"true\",\"group\":[{\"flag\":true,\"tag\":{\"Marketing.PreUser.Receive\":\"7410950,7410951\"}},{\"flag\":true,\"tag\":{\"Marketing.PreUser.Receive.Small\":\"7411950,7412950\"}}]}";
+        String rocketMqSwitchString = "{\"global\":\"false\",\"group\":{\"Marketing.PreUser.Receive\":" +
+                "{\"flag\":false,\"apiCodes\":\"7410950,7410951\"},\"Marketing.PreUser.Receive.Small\":" +
+                "{\"flag\":true,\"apiCodes\":\"7410950,7410951\"}}}";
         String apiCode = "74109501";
         String tag = "Marketing.PreUser.Receive";
-        RocketMQSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMQSwitchEntity>() { }.getType());
+        RocketMQSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMQSwitchEntity>() {
+        }.getType());
         String global = entity.getGlobal();
-        if("false".equalsIgnoreCase(global)){
-            System.out.println(false);
+        if("true".equalsIgnoreCase(global)){
+            System.out.println(true);
+            return;
         }else{
-            JSONArray group = entity.getGroup();
-            for (int i = 0; i < group.size(); i++) {
-                JSONObject object = group.getJSONObject(i);
-                Boolean flagBoolean = object.getBoolean(FLAG);
+            JSONObject group = entity.getGroup();
+            JSONObject tagObjet = group.getJSONObject(tag);
+            if(null == tagObjet || tagObjet.isEmpty()){
+                System.out.println(false);
+                return;
+            }else{
+                Boolean flagBoolean = tagObjet.getBoolean(FLAG);
                 if(flagBoolean){
-                    JSONObject tagJSONObject = object.getJSONObject(TAG);
-                    String tagUseApiCodes = tagJSONObject.getString(tag);
+                    System.out.println(true);
+                    return;
+                }else{
                     if(StringUtils.isBlank(apiCode)){
                         System.out.println(false);
+                        return;
                     }
-                    if(StringUtils.isNotBlank(tagUseApiCodes) && tagUseApiCodes.contains(apiCode)){
+                    String apiCodes = tagObjet.getString(APICODES_SPEED);
+                    if(StringUtils.isNotBlank(apiCodes) && apiCodes.contains(apiCode)){
                         System.out.println(true);
+                        return;
                     }
                 }
             }
             System.out.println(false);
         }
     }
+
+//    public static void main(String[] args) {
+//        String rocketMqSwitchString = "{\"global\":\"true\",\"group\":[{\"flag\":true,\"tag\":{\"Marketing.PreUser.Receive\":\"7410950,7410951\"}},{\"flag\":true,\"tag\":{\"Marketing.PreUser.Receive.Small\":\"7411950,7412950\"}}]}";
+//        String apiCode = "74109501";
+//        String tag = "Marketing.PreUser.Receive";
+//        RocketMQSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMQSwitchEntity>() { }.getType());
+//        String global = entity.getGlobal();
+//        if("false".equalsIgnoreCase(global)){
+//            System.out.println(false);
+//        }else{
+//            JSONArray group = entity.getGroup();
+//            for (int i = 0; i < group.size(); i++) {
+//                JSONObject object = group.getJSONObject(i);
+//                Boolean flagBoolean = object.getBoolean(FLAG);
+//                if(flagBoolean){
+//                    JSONObject tagJSONObject = object.getJSONObject(TAG);
+//                    String tagUseApiCodes = tagJSONObject.getString(tag);
+//                    if(StringUtils.isBlank(apiCode)){
+//                        System.out.println(false);
+//                    }
+//                    if(StringUtils.isNotBlank(tagUseApiCodes) && tagUseApiCodes.contains(apiCode)){
+//                        System.out.println(true);
+//                    }
+//                }
+//            }
+//            System.out.println(false);
+//        }
+//    }
 
 //    /**
 //     * 判断是否使用RocketMQ发送消息的开关

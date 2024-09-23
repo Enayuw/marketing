@@ -77,6 +77,7 @@ public class RocketMqConsumerService {
                 }
                 return Boolean.TRUE;
             } else {
+                throw new Exception();
 //                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
             }
         } catch (Exception e) {
@@ -94,7 +95,6 @@ public class RocketMqConsumerService {
 //                ioException.printStackTrace();
 //            }
         }
-        return Boolean.FALSE;
     }
 
     /**

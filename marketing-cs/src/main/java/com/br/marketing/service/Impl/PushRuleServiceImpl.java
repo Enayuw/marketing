@@ -2293,19 +2293,19 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private void transferSendUserTypeCollectionMsg(String cid, MarketingTransferInfo transferInfo
             , Map<String, UserTypeCollectionDTO> localUserTypeCache) {
-        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
-            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
-                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
-                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
-                dataInfoDTO.setArgList(collections);
-                dataInfoDTO.setCid(cid);
-                dataInfoDTO.setApiCode(transferInfo.getApiCode());
-                dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-                dataInfoDTO.setRequestId(transferInfo.getRequestId());
-                return dataInfoDTO.addTransferMsgSource();
-            }, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION);
-        }else{
+//        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+//            sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
+//                ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
+//                List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
+//                dataInfoDTO.setArgList(collections);
+//                dataInfoDTO.setCid(cid);
+//                dataInfoDTO.setApiCode(transferInfo.getApiCode());
+//                dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
+//                        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+//                dataInfoDTO.setRequestId(transferInfo.getRequestId());
+//                return dataInfoDTO.addTransferMsgSource();
+//            }, MarketingAssistConstants.TOPIC, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION);
+//        }else{
             sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
@@ -2317,7 +2317,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 dataInfoDTO.setRequestId(transferInfo.getRequestId());
                 return dataInfoDTO.addTransferMsgSource();
             }, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_API_USERTYPE_COLLECTION_COUNT_FRAGMENTS);
-        }
+//        }
     }
 
 
