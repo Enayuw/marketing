@@ -25,7 +25,7 @@ public class ReportTaskParam {
      * 报表类型
      */
     @ApiModelProperty(value = "报表类型")
-    private Integer reportType;
+    private String reportTypeName;
     /**
      * 报告名称
      */
