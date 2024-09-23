@@ -515,6 +515,76 @@ public class ReportFieldDictExample {
             return (Criteria) this;
         }
 
+        public Criteria andItemFormatTypeIsNull() {
+            addCriterion("item_format_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeIsNotNull() {
+            addCriterion("item_format_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeEqualTo(String value) {
+            addCriterion("item_format_type =", value, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeNotEqualTo(String value) {
+            addCriterion("item_format_type <>", value, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeGreaterThan(String value) {
+            addCriterion("item_format_type >", value, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("item_format_type >=", value, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeLessThan(String value) {
+            addCriterion("item_format_type <", value, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeLessThanOrEqualTo(String value) {
+            addCriterion("item_format_type <=", value, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeLike(String value) {
+            addCriterion("item_format_type like", value, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeNotLike(String value) {
+            addCriterion("item_format_type not like", value, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeIn(List<String> values) {
+            addCriterion("item_format_type in", values, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeNotIn(List<String> values) {
+            addCriterion("item_format_type not in", values, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeBetween(String value1, String value2) {
+            addCriterion("item_format_type between", value1, value2, "itemFormatType");
+            return (Criteria) this;
+        }
+
+        public Criteria andItemFormatTypeNotBetween(String value1, String value2) {
+            addCriterion("item_format_type not between", value1, value2, "itemFormatType");
+            return (Criteria) this;
+        }
+
         public Criteria andItemOrderIsNull() {
             addCriterion("item_order is null");
             return (Criteria) this;
