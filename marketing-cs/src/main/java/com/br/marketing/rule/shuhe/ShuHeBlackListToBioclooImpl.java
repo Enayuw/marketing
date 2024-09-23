@@ -53,7 +53,7 @@ public class ShuHeBlackListToBioclooImpl implements AssembleData<DataSoleDTO> {
             DataSoleDTO dataSoleDTO = new DataSoleDTO();
             dataSoleDTO.setStatus("0");
             JSONObject userTypeJson = marketingCommonConfig.getShuHeToBioclooUserTypeAndApiCodeMapping();
-            JSONObject proxyJson = userTypeJson.getJSONObject("百可录黑名单");
+            JSONObject proxyJson = userTypeJson.getJSONObject("百可录");
             dataSoleDTO.setApiCode(proxyJson.getString(context.getApiCode()));
             dataSoleDTO.setCaseNum(transfer.getCustNum());
             dataSoleDTO.setDataId(String.valueOf(transfer.getId()));
