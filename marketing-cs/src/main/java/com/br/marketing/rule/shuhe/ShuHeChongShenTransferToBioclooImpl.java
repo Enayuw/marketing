@@ -1,8 +1,18 @@
 package com.br.marketing.rule.shuhe;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.date.DateUtil;
+import com.br.marketing.dto.shuhe.strategy.BaseUserType;
+import com.br.marketing.entity.CaseShuheUser;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -30,14 +40,14 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  *
- * <a href="https://c.100credit.cn/pages/viewpage.action?pageId=178192891">【紧急】D20240906数禾促首借自动化转黑名单（营销→bkl）-3710166</a>
+ * <a href="https://c.100credit.cn/pages/viewpage.action?pageId=178192891">【紧急】D20240906数禾自动化转黑名单（营销→bkl）-3710166</a>
  *
  * @author senyang.zheng
  * @date 2024/09/07
  */
 @Service
 @Slf4j
-public class ShuHeTransferToBioclooImpl implements AssembleData<DataSoleDTO> {
+public class ShuHeChongShenTransferToBioclooImpl implements AssembleData<DataSoleDTO> {
 
     public final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -45,6 +55,9 @@ public class ShuHeTransferToBioclooImpl implements AssembleData<DataSoleDTO> {
     private TransferDataValidityPeriodService validityPeriodService;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
+
 
     @Override
     public DataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -54,7 +67,8 @@ public class ShuHeTransferToBioclooImpl implements AssembleData<DataSoleDTO> {
         Set<String> custNumSet = Sets.newHashSet();
         String custNum = transfer.getCustNum();
         custNumSet.add(custNum);
-        JSONObject proxyJson = marketingCommonConfig.getShuHeProxyToBioclooApiCode();
+        JSONObject userTypeJson = marketingCommonConfig.getShuHeToBioclooUserTypeAndApiCodeMapping();
+        JSONObject proxyJson = userTypeJson.getJSONObject("重申");
         Map<String, SyncUserValidityPeriodsBO> boMap =
             validityPeriodService.getValidityPeriodsByCustNum(custNumSet, proxyJson.getString(context.getApiCode()), new Date());
         SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = boMap.get(transfer.getCustNum());
@@ -76,7 +90,7 @@ public class ShuHeTransferToBioclooImpl implements AssembleData<DataSoleDTO> {
         dataSoleDTO.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         dataSoleDTO.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         dataSoleDTO.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
-        log.warn("数禾促首借推送百可录黑名单,apiCode={},custNum={}", proxyJson.getString(context.getApiCode()), transfer.getCustNum());
+        log.warn("数禾重申推送百可录黑名单,apiCode={},custNum={}", proxyJson.getString(context.getApiCode()), transfer.getCustNum());
         return dataSoleDTO;
 
     }
@@ -87,14 +101,31 @@ public class ShuHeTransferToBioclooImpl implements AssembleData<DataSoleDTO> {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
             String userType = transfer.getUserType();
-            if (!"促首借".equals(userType)) {
+            if (!"重申".equals(userType)) {
                 return false;
             }
+            JSONObject userTypeJson = marketingCommonConfig.getShuHeToBioclooUserTypeAndApiCodeMapping();
+            JSONObject proxyJson = userTypeJson.getJSONObject("重申");
+            Set<String> custNumSet = Sets.newHashSet();
+            custNumSet.add(transfer.getCustNum());
+            List<MarketingSyncUser> syncUserList =
+                    marketingSyncUserMapper.getCellLastByCustNums(proxyJson.getString(context.getApiCode()), custNumSet);
+            if (CollectionUtil.isEmpty(syncUserList)) {
+                return false;
+            }
+            MarketingSyncUser marketingSyncUser = syncUserList.get(0);
             String reserveField1 = transfer.getReserveField1();
             if (StringUtils.isNotEmpty(reserveField1) && JSON.isValid(reserveField1)) {
                 JSONObject reserveFieldObject = JSONObject.parseObject(reserveField1);
-                String usrLoanSucBtcashLimt1st = reserveFieldObject.getString("usr_loan_suc_btcash_limt_1st");
-                return StringUtils.isNotEmpty(usrLoanSucBtcashLimt1st);
+                Date reauditTime = reserveFieldObject.getDate("clc_usr_lst_reaudit_apply_time");
+                Date appletTime = marketingSyncUser.getAppletTime();
+                if (Objects.isNull(reauditTime) || Objects.isNull(appletTime)) {
+                    return false;
+                }
+                LocalDate reauditDate = reauditTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                LocalDate creatDate = appletTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                //重申时间>=上传接口该案件编号创建时间
+                return reauditDate.isAfter(creatDate) || reauditDate.isEqual(creatDate);
             }
         }
         return false;
@@ -102,7 +133,7 @@ public class ShuHeTransferToBioclooImpl implements AssembleData<DataSoleDTO> {
 
     @Override
     public String label() {
-        return "ShuHe_TransferData_To_Biocloo";
+        return "ShuHe_ChongShen_TransferData_To_Biocloo";
     }
 
     @Override

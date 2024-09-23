@@ -52,7 +52,8 @@ public class ShuHeBlackListToBioclooImpl implements AssembleData<DataSoleDTO> {
         if (StringUtils.isNotEmpty(expireDate)) {
             DataSoleDTO dataSoleDTO = new DataSoleDTO();
             dataSoleDTO.setStatus("0");
-            JSONObject proxyJson = marketingCommonConfig.getShuHeProxyToBioclooApiCode();
+            JSONObject userTypeJson = marketingCommonConfig.getShuHeToBioclooUserTypeAndApiCodeMapping();
+            JSONObject proxyJson = userTypeJson.getJSONObject("百可录黑名单");
             dataSoleDTO.setApiCode(proxyJson.getString(context.getApiCode()));
             dataSoleDTO.setCaseNum(transfer.getCustNum());
             dataSoleDTO.setDataId(String.valueOf(transfer.getId()));
@@ -76,10 +77,11 @@ public class ShuHeBlackListToBioclooImpl implements AssembleData<DataSoleDTO> {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
             String userType = transfer.getUserType();
-            if (!"促首借".equals(userType)) {
+            JSONObject userTypeJson = marketingCommonConfig.getShuHeToBioclooUserTypeAndApiCodeMapping();
+            if (!userTypeJson.containsKey(userType)) {
                 return false;
             }
-            JSONObject proxyJson = marketingCommonConfig.getShuHeProxyToBioclooApiCode();
+            JSONObject proxyJson = userTypeJson.getJSONObject("促首借");
             Set<String> custNumSet = Sets.newHashSet();
             custNumSet.add(transfer.getCustNum());
             List<MarketingSyncUser> syncUserList =
