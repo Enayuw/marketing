@@ -1,5 +1,19 @@
 package com.br.marketing.bi;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.poi.excel.ExcelWriter;
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.entity.SourceStatisticDict;
+import com.br.marketing.mapper.SourceStatisticDictMapper;
+import com.br.marketing.vo.bi.WrapDataVO;
+import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
+import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
+import com.br.marketing.vo.bi.param.BiReportParam;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -8,23 +22,6 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.entity.SourceStatisticDict;
-import com.br.marketing.mapper.SourceStatisticDictMapper;
-import com.br.marketing.vo.bi.WrapDataVO;
-import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
-import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
-import com.br.marketing.vo.bi.param.BiReportParam;
-
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.poi.excel.ExcelWriter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * BI报表数据转换
@@ -181,7 +178,30 @@ public abstract class AbstractBiReportConverter<V, T> {
     }
 
     protected enum FormatType {
-        THOUSAND_SEPARATOR, THOUSAND_SEPARATOR_DECIMAL, PERCENT_SIGN, DEFAULT
+
+        THOUSAND_SEPARATOR("THOUSAND_SEPARATOR"),
+        THOUSAND_SEPARATOR_DECIMAL("THOUSAND_SEPARATOR_DECIMAL"),
+        PERCENT_SIGN("PERCENT_SIGN"),
+        DEFAULT("DEFAULT");
+
+        private String name;
+
+        FormatType(String name) {
+            this.name = name;
+        }
+
+        public static FormatType getByName(String name){
+            for (FormatType e: FormatType.values()) {
+                if (name.equals(e.getName())) {
+                    return e;
+                }
+            }
+            return null;
+        }
+
+        private String getName() {
+            return this.name;
+        }
     }
 
     /**

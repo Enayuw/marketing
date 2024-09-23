@@ -5,10 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.zhongan.ReportStatisticTransferDetail;
+import com.br.marketing.entity.ReportFieldMapping;
+import com.br.marketing.entity.ReportFieldMappingExample;
 import com.br.marketing.entity.ReportStatisticTransfer;
 import com.br.marketing.entity.ReportStatisticTransferExample;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.mapper.ReportFieldMappingMapper;
 import com.br.marketing.mapper.ReportStatisticTransferMapper;
 import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.vo.bi.BiReportVO;
@@ -40,6 +43,9 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
     @Resource
     private ReportStatisticTransferMapper reportStatisticTransferMapper;
 
+    @Resource
+    private ReportFieldMappingMapper reportFieldMappingMapper;
+
     @Override
     public List<ReportStatisticTransferDetail> fetchData(BiReportParam param) {
         String taskId = param.getCondition().getString("taskId");
@@ -69,10 +75,16 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
     public List<BiReportVO> process(List<ReportStatisticTransferDetail> dataList, JSONObject extend) {
         List<BiReportVO> biReportVOList = Lists.newArrayList();
 
+        String taskId = extend.getString("taskId");
         String reportId = extend.getString("reportId");
         String scoreFieldStr = extend.getString("scoreField");
         String dimensionField = extend.getString("dimensionField");
         String dimensionValueStr = extend.getString("dimensionValue");
+
+        ReportFieldMappingExample reportFieldDictExample = new ReportFieldMappingExample();
+        reportFieldDictExample.createCriteria().andReportTaskIdEqualTo(taskId);
+        reportFieldDictExample.setOrderByClause("item_order asc");
+        List<ReportFieldMapping> reportFieldMappingList = reportFieldMappingMapper.selectByExample(reportFieldDictExample);
 
         JSONArray scoreFieldJa = JSONObject.parseArray(scoreFieldStr);
         JSONArray dimensionValueJa = JSONObject.parseArray(dimensionValueStr);
@@ -88,35 +100,25 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                 biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
 
                 List<ReportStatisticTransferDetail> reportDataList = zhongAnBiReportMapper.queryReportStatisticTransferDetailbI_(reportId, "", "", "", "");
+
                 List<ReportStatisticTransferDetail> caseList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "案件量");
-                List<ReportStatisticTransferDetail> caseRateList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "评分分布");
-                List<ReportStatisticTransferDetail> loginList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "登录量");
-                List<ReportStatisticTransferDetail> loginRateList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "登录率");
-                List<ReportStatisticTransferDetail> applyList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "申请授信量");
-                List<ReportStatisticTransferDetail> applyRateList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "申请授信穿透率");
-                List<ReportStatisticTransferDetail> creditList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "授信成功量");
-                List<ReportStatisticTransferDetail> creditRateList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "授信成功率");
-                List<ReportStatisticTransferDetail> creditDistributeRateList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "授信成功穿透率");
-                List<ReportStatisticTransferDetail> piheRateResultList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "批核穿透率");
-                List<ReportStatisticTransferDetail> piheDistributeRateList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "批核转化占比");
 
                 // 构造横坐标数据
                 List<String> xAxis = caseList.stream().map(ReportStatisticTransferDetail::getScoreValue).distinct().collect(Collectors.toList());
                 biReportVO.setXAxisName("分值区间");
                 biReportVO.setXAxis(xAxis);
+
                 // 构造纵坐标数据
                 List<WrapDataVO> yAxis = Lists.newArrayList();
-                yAxis.add(buildWrapDataVO("案件量", caseList, ReportStatisticTransferDetail::getItemValue, FormatType.DEFAULT));
-                yAxis.add(buildWrapDataVO("评分分布", caseRateList, ReportStatisticTransferDetail::getItemValue, FormatType.THOUSAND_SEPARATOR));
-                yAxis.add(buildWrapDataVO("登录量", loginList, ReportStatisticTransferDetail::getItemValue, FormatType.THOUSAND_SEPARATOR));
-                yAxis.add(buildWrapDataVO("登录率", loginRateList, ReportStatisticTransferDetail::getItemValue, FormatType.PERCENT_SIGN));
-                yAxis.add(buildWrapDataVO("申请授信量", applyList, ReportStatisticTransferDetail::getItemValue, FormatType.PERCENT_SIGN));
-                yAxis.add(buildWrapDataVO("申请授信穿透率", applyRateList, ReportStatisticTransferDetail::getItemValue, FormatType.THOUSAND_SEPARATOR));
-                yAxis.add(buildWrapDataVO("授信成功量", creditList, ReportStatisticTransferDetail::getItemValue, FormatType.PERCENT_SIGN));
-                yAxis.add(buildWrapDataVO("授信成功率", creditRateList, ReportStatisticTransferDetail::getItemValue, FormatType.PERCENT_SIGN));
-                yAxis.add(buildWrapDataVO("授信成功穿透率", creditDistributeRateList, ReportStatisticTransferDetail::getItemValue, FormatType.PERCENT_SIGN));
-                yAxis.add(buildWrapDataVO("批核穿透率", piheRateResultList, ReportStatisticTransferDetail::getItemValue, FormatType.THOUSAND_SEPARATOR));
-                yAxis.add(buildWrapDataVO("批核转化占比", piheDistributeRateList, ReportStatisticTransferDetail::getItemValue, FormatType.THOUSAND_SEPARATOR_DECIMAL));
+
+                for(ReportFieldMapping reportFieldMapping: reportFieldMappingList){
+                    String itemName = reportFieldMapping.getItemName();
+                    String itemShow = reportFieldMapping.getItemShow();
+                    String formatTypeName = reportFieldMapping.getItemFormatType();
+                    FormatType formatType = FormatType.getByName(formatTypeName);
+                    List<ReportStatisticTransferDetail> detailList = filter(reportDataList, scoreField, dimensionField, dimensionValue, itemName);
+                    yAxis.add(buildWrapDataVO(itemShow, detailList, ReportStatisticTransferDetail::getItemValue, formatType));
+                }
 
                 biReportVO.setYAxis(yAxis);
                 biReportVOList.add(biReportVO);
