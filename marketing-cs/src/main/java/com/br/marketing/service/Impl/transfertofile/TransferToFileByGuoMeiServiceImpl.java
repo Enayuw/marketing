@@ -200,9 +200,8 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
                 .max(Comparator.comparing(MarketingDataValidConfig::getValidEndDate));
         if (maxDateConfig.isPresent()) {
             endDate = LocalDate.parse(maxDateConfig.get().getValidEndDate(), YYYYMMDDSHORTLINE);
-            LocalDate yesterday = localDate.minusDays(1);
-            if (endDate.isBefore(yesterday) || endDate.isEqual(yesterday)){
-                endDate = yesterday;
+            if (endDate.isBefore(localDate) || endDate.isEqual(localDate)){
+                endDate = localDate;
             }
         } else {
             log.warn("列表为空，无法获取最大的ValidEndDate");
