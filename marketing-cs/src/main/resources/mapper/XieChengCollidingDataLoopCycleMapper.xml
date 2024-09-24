@@ -164,4 +164,44 @@
         WHERE is_delete = 0
         <![CDATA[ and retry_count < 3 and release_time > #{startDate} and release_time < #{endDate}]]>
     </select>
+
+    <update id="updateByTrueData" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycle" >
+        update b_xiecheng_colliding_data_loop_cycle
+        <set >
+            <if test="packageId != null" >
+                package_id = #{packageId,jdbcType=BIGINT},
+            </if>
+            <if test="dataSourceType != null" >
+                data_source_type = #{dataSourceType,jdbcType=VARCHAR},
+            </if>
+            <if test="cellSha256CodeList != null" >
+                cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+            </if>
+            <if test="releaseTime != null" >
+                release_time = #{releaseTime,jdbcType=TIMESTAMP},
+            </if>
+            market_coupon_list = #{marketCouponList,jdbcType=VARCHAR},
+            coupon_code = #{couponCode,jdbcType=VARCHAR},
+            coupon_desc = #{couponDesc,jdbcType=VARCHAR},
+            <if test="pushTime != null">
+                push_time = #{pushTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="isDelete != null" >
+                is_delete = #{isDelete,jdbcType=INTEGER},
+            </if>
+            <if test="extend != null" >
+                extend = #{extend,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null" >
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null" >
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="retryCount != null" >
+                retry_count = #{retryCount,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
 </mapper>
