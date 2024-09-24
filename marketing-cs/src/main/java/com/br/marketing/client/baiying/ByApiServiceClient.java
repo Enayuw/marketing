@@ -117,14 +117,18 @@ public class ByApiServiceClient {
     public Result pushDataToBiocloo(ReqBlacklistDTO dto, Integer retry){
 
         Integer retry1 = retry;
-        HashMap<String, String> resMap = new HashMap<>();
         if (CollectionUtil.isEmpty(dto.getData())) {
             log.warn("推送百可录去重后推送数据为0");
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
+        JSONObject shuHeToBioclooAesKeyConfig = marketingCommonConfig.getShuHeToBioclooAesKeyConfig();
+        String encryptData = AESUtil.encryptToBase64(JSONObject.toJSONString(dto), shuHeToBioclooAesKeyConfig.getString(dto.getApiCode()));
+        BlackDataRequestDTO requestDTO = new BlackDataRequestDTO();
+        requestDTO.setApiCode(dto.getApiCode());
+        requestDTO.setJsonData(encryptData);
         long start = System.currentTimeMillis();
         log.warn(TITLE_BAIKELU + "调度开始, requestParam{}", JSONObject.toJSONString(dto));
-        resMap = httpProxyClient.sendByCodeWithLog(dto, blackListUrl, isBioclooProxy,
+        HashMap<String, String> resMap  = httpProxyClient.sendByCodeWithLog(requestDTO, blackListUrl, isBioclooProxy,
                 MediaType.APPLICATION_FORM_URLENCODED_VALUE, JSONObject.toJSONString(dto), true, true);
         long end = System.currentTimeMillis();
         log.warn(TITLE_BAIKELU + "调度结束, result:{}, 耗时:{}", resMap, end - start);
