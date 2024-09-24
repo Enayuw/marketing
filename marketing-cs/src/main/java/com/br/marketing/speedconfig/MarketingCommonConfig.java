@@ -2129,11 +2129,6 @@ public class MarketingCommonConfig {
     private String wuBaDingDingSecret;
 
     /**
-     * 数禾推送百可录apiCode路由配置
-     */
-    private JSONObject shuHeProxyToBioclooApiCode;
-
-    /**
      * 数禾推送百可录AES加密key配置
      */
     private JSONObject shuHeToBioclooAesKeyConfig;
@@ -2153,6 +2148,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject cryptoConfig;
 
+    /**
+     * 数禾推送百可录场景及apiCode路由配置
+     */
+    private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
 
 }
 

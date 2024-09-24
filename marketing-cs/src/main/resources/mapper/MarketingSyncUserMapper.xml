@@ -614,7 +614,7 @@
     </select>
 
     <select id="getCellLastByCustNums" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select b.cell,b.cust_num from
+        select b.cell,b.cust_num,b.applet_time from
         (
         select cust_num,max(applet_time) as applet_time
         from b_marketing_sync_${apiCode} a
