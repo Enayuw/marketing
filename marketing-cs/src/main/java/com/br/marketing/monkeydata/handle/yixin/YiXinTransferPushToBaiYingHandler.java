@@ -1,5 +1,7 @@
 package com.br.marketing.monkeydata.handle.yixin;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.baiying.ByApiServiceClient;
@@ -9,6 +11,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
@@ -194,6 +197,8 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 if (custNumToSyncUserBoMap.get(custNum) == null) {
                     return false;
                 }
+                MarketingSyncUser marketingSyncUser = custNumToSyncUserBoMap.get(custNum).getSyncUsers().get(0);
+                data.setReserveField2(marketingSyncUser.getCellMd5());
                 return true;
             }).collect(Collectors.toList());
 
@@ -240,6 +245,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         int size = outputDataList.size();
         int count = 0;
         List<BlacklistDataDTO> pushList = new ArrayList<>();
+        List<BlacklistDataDTO> pushBlkList = new ArrayList<>();
 
         for (MarketingTransferSyncUser transferSyncUser : outputDataList) {
             BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
@@ -248,18 +254,37 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                     .concat(" 23:59:59"));
             pushList.add(blacklistDataDTO);
+
+            BlacklistDataDTO blackBlklistDataDTO = new BlacklistDataDTO();
+            blackBlklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
+            blackBlklistDataDTO.setExpireDate(LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    .concat(" 23:59:59"));
+            blackBlklistDataDTO.setPhone(transferSyncUser.getReserveField2());
+            pushBlkList.add(blackBlklistDataDTO);
+
             count++;
 
             if (pushList.size() == pushSize || size == count) {
                 List<BlacklistDataDTO> finalList = pushList;
+                List<BlacklistDataDTO> finalBklList = pushBlkList;
+
+
                 pushPool.execute(() -> {
                     ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
                     reqBlacklistDTO.setMethod(pushMethod);
                     reqBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBlacklistDTO.setData(finalList);
                     byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+                    // 紧急需求，增加了推送百可录逻辑（后续逻辑变更请注意）
+                    ReqBlacklistDTO reqBklBlacklistDTO = new ReqBlacklistDTO();
+                    reqBklBlacklistDTO.setMethod(pushMethod);
+                    reqBklBlacklistDTO.setApiCode(condition.getSynApiCode());
+                    reqBklBlacklistDTO.setData(finalBklList);
+                    byApiServiceClient.pushDataToBiocloo(reqBklBlacklistDTO,0);
                 });
                 pushList = new ArrayList<>();
+                pushBlkList = new ArrayList<>();
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());
