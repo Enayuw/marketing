@@ -135,11 +135,13 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                     }
                     group = comparisonData.get(0).getGroup();
                     List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
+                    Long sum = 0L;
                     for (String interval : intervals){
                         int size = comparisonData.size();
                         int num = 1;
                         for (ZhongAnGroupedScoreDistributionDTO dto : comparisonData) {
                             if(interval.equals(dto.getInterval())){
+                                sum += dto.getNum();
                                 list.add(dto);
                                 break;
                             }else if(size == num){
@@ -164,6 +166,12 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                                 return dto;
                             })
                             .collect(Collectors.toList());
+
+                    // 增加总计
+                    ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
+                    zhongAnGroupedScoreDistributionDTO.setNum(sum);
+                    transformedList.add(zhongAnGroupedScoreDistributionDTO);
+
                     yAxisData.add(buildWrapDataVO(comparisonName + "量级", transformedList, ZhongAnGroupedScoreDistributionDTO::getNum, FormatType.THOUSAND_SEPARATOR));
                     yAxisData.add(buildWrapDataVO(comparisonName + "占比", transformedList, ZhongAnGroupedScoreDistributionDTO::getProportion, FormatType.PERCENT_SIGN));
                 }
@@ -173,6 +181,9 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                 biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
                 biReportVO.setXAxisName("区间");
                 biReportVO.setGroup(group);
+                if(!intervals.contains("总计")){
+                    intervals.add("总计");
+                }
                 biReportVO.setXAxis(intervals);
                 biReportVO.setYAxis(yAxisData);
                 biReportVOS.add(biReportVO);
