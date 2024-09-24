@@ -1,8 +1,10 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.br.marketing.util.TimeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -45,6 +47,19 @@ public class WuBaSubmitConversionValidityProcessor {
             WubaSubmitConversionData next = iterator.next();
             String cell = next.getCell();
             if (validityPeriodsMap.get(cell) == null) {
+                notValidIds.add(next.getId());
+                iterator.remove();
+                continue;
+            }
+            SyncUserValidityPeriodsBO bo = validityPeriodsMap.get(cell);
+            PeriodOfValidityBO builder = bo.getBuilders().get(0).builder();
+            Date beginDate = builder.getBeginDate();
+            Date endDate = builder.getEnDate();
+            String marketingTime = next.getMarketingTime();
+            Date marketingTimeDate = TimeUtils.parseStringToTime(marketingTime);
+            if (marketingTimeDate == null ||
+                    marketingTimeDate.getTime() < beginDate.getTime() ||
+                    marketingTimeDate.getTime() > endDate.getTime()) {
                 notValidIds.add(next.getId());
                 iterator.remove();
             }

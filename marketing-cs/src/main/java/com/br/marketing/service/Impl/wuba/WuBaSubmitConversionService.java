@@ -65,7 +65,7 @@ public class WuBaSubmitConversionService {
     private WuBaSubmitConversionSoleProcessor soleProcessor;
 
     @Resource
-    private WuBaSubmitConversionValidityProcessor ValidityProcessor;
+    private WuBaSubmitConversionValidityProcessor validityProcessor;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -114,7 +114,7 @@ public class WuBaSubmitConversionService {
             log.warn(TITLE + "scanData, 去重条数{}, 推送条数{}", noPushIds.size(), pageList.size());
 
             // 判断有效期
-            List<Long> noValidIds = ValidityProcessor.validate(pageList, param);
+            List<Long> noValidIds = validityProcessor.validate(pageList, param);
             if(!CollectionUtils.isEmpty(noValidIds)){
                 WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
                 dataUpdate.setStatus(4);
