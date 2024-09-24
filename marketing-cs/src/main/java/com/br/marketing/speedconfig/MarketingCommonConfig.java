@@ -2152,5 +2152,6 @@ public class MarketingCommonConfig {
      * 数禾推送百可录场景及apiCode路由配置
      */
     private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
+
 }
 
