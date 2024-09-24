@@ -200,8 +200,9 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
                 .max(Comparator.comparing(MarketingDataValidConfig::getValidEndDate));
         if (maxDateConfig.isPresent()) {
             endDate = LocalDate.parse(maxDateConfig.get().getValidEndDate(), YYYYMMDDSHORTLINE);
-            if (endDate.isBefore(localDate) || endDate.isEqual(localDate)){
-                endDate = localDate.plusDays(1);
+            LocalDate yesterday = localDate.minusDays(1);
+            if (endDate.isBefore(yesterday) || endDate.isEqual(yesterday)){
+                endDate = yesterday;
             }
         } else {
             log.warn("列表为空，无法获取最大的ValidEndDate");
@@ -231,7 +232,7 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
             threadPool.submit(() -> {
                 //判断转化数据是否在有效期内
                 Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                        .getValidityPeriodsByCustNum(set, apiCode, localDate);
+                        .getValidityPeriodsByCustNum(set, apiCode, appletDate);
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = emptyDefault(transferFilterData.getCustNum());
                     SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
