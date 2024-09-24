@@ -76,7 +76,7 @@ public enum BiReportTypeEnum {
     /**
      * 经营分析报表
      */
-    BUSINESS_ANALYSIS_REPORT(114, 12, "businessAnalysisEightReport", "经营分析报表"),
+    BUSINESS_ANALYSIS_REPORT(114, 12, "businessAnalysisReport", "经营分析报表"),
     ;
 
     /** code */
