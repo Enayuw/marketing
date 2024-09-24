@@ -281,7 +281,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                     reqBklBlacklistDTO.setMethod(pushMethod);
                     reqBklBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBklBlacklistDTO.setData(finalBklList);
-                    byApiServiceClient.pushDataToBiocloo(reqBlacklistDTO,0);
+                    byApiServiceClient.pushDataToBiocloo(reqBklBlacklistDTO,0);
                 });
                 pushList = new ArrayList<>();
                 pushBlkList = new ArrayList<>();
