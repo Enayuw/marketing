@@ -315,14 +315,12 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         String dimensionsField = upload.getString("dimensionsField");
         String userType = upload.getString("userType");
         //1.补充dimensions_value
-        if (!"defaultNone".equals(dimensionsField)) {
-            HashMap<String, JSONObject> groupDictConfig = marketingCommonConfig.getBiReportGroupDictConfig();
-            JSONObject apiCodeDictConfig = groupDictConfig.get(apiCode);
-            JSONObject userTypeDictConfig = apiCodeDictConfig.getJSONObject(userType);
-            if (userTypeDictConfig != null) {
-                JSONArray dictConfig = userTypeDictConfig.getJSONArray(dimensionsField);
-                upload.put("dimensionsValue", dictConfig);
-            }
+        HashMap<String, JSONObject> groupDictConfig = marketingCommonConfig.getBiReportGroupDictConfig();
+        JSONObject apiCodeDictConfig = groupDictConfig.get(apiCode);
+        JSONObject userTypeDictConfig = apiCodeDictConfig.getJSONObject(userType);
+        if (userTypeDictConfig != null) {
+            JSONArray dictConfig = userTypeDictConfig.getJSONArray(dimensionsField);
+            upload.put("dimensionsValue", dictConfig);
         }
         BiReportTypeEnum biReportTypeEnum = BiReportTypeEnum.getEnumByTypeName(reportTypeName);
         //2.补充statistics_scene
