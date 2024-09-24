@@ -22,10 +22,6 @@ import lombok.EqualsAndHashCode;
 public class BiReportParam extends BaseAuthPermissionData {
 
     private static final long serialVersionUID = 2749250551270549133L;
-
-    @ApiModelProperty(value = "apiCode")
-    private String apiCode;
-
     @NotNull(message = "报表类型不能为空")
     @ApiModelProperty(value = "报表类型，必填字段")
     private String reportTypeName;
