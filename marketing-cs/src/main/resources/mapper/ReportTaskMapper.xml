@@ -46,8 +46,8 @@
                is_del,
                create_time,
                update_time,
-               JSON_EXTRACT(report_rules,'$.upload.user_type') as userType,
-               JSON_EXTRACT(report_rules,'$.upload.dimensions_field') as dimensionsField
+               JSON_EXTRACT(report_rules,'$.upload.userType') as userType,
+               JSON_EXTRACT(report_rules,'$.upload.dimensionsField') as dimensionsField
         from b_report_task
         where
             is_del = 1
@@ -63,10 +63,10 @@
                 and report_name like CONCAT('%', #{reportName}, '%')
             </if>
             <if test="userType != null and userType !=''">
-                and JSON_EXTRACT(report_rules,'$.upload.user_type') = #{userType}
+                and JSON_EXTRACT(report_rules,'$.upload.userType') = #{userType}
             </if>
             <if test="dimensionsField != null and dimensionsField !=''">
-                and JSON_EXTRACT(report_rules,'$.upload.dimensions_field') = #{dimensionsField}
+                and JSON_EXTRACT(report_rules,'$.upload.dimensionsField') = #{dimensionsField}
             </if>
         GROUP BY create_time, id
         ORDER BY create_time DESC, id DESC
