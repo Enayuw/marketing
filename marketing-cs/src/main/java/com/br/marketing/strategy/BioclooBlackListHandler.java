@@ -21,7 +21,6 @@ import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.DataJoinLogDTO;
-import com.br.marketing.es.util.BrCipherMaker;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -44,7 +43,8 @@ public class BioclooBlackListHandler extends AbstractExternalInterfaceHandler<Da
         
         int totalCount = dataSoles.size();
         String last = context.getLast();
-        JSONObject proxyJson = marketingCommonConfig.getShuHeProxyToBioclooApiCode();
+        JSONObject userTypeJson = marketingCommonConfig.getShuHeToBioclooUserTypeAndApiCodeMapping();
+        JSONObject proxyJson = userTypeJson.getJSONObject("百可录");
         String apiCode = proxyJson.getString(context.getApiCode());
         // 数据数组
         ArrayList<DataDTO> sendList = new ArrayList<>();
