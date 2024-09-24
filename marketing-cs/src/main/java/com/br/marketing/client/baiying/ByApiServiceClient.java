@@ -109,40 +109,27 @@ public class ByApiServiceClient {
         }
     }
 
-    public Map<String, String> pushDataToBiocloo(ReqBlacklistDTO dto, Integer retry){
+    @RetryMethod(retryNowNum = 3,isOrNoDbRetry = true)
+    public Result pushDataToBiocloo(ReqBlacklistDTO dto, Integer retry){
 
-        try {
-            Integer retry1 = retry;
-            HashMap<String, String> resMap = new HashMap<>();
-            // 获取挡板开关
-            JSONObject mock = marketingCommonConfig.getShuHeToBioclooAesKeyConfig();
-            if (mock.get("switch") == Boolean.TRUE) {
-                JSONObject mockJson = new JSONObject();
-                mockJson.put("code", mock.get("code"));
-                mockJson.put("message", "处理成功");
-                resMap.put("content", JSON.toJSONString(mockJson));
-                resMap.put("httpcode", mock.get("httpcode").toString());
-            } else {
-                long start = System.currentTimeMillis();
-                log.warn(TITLE_BAIKELU+"调度开始, requestParam{}", JSONObject.toJSONString(dto));
-                resMap = httpProxyClient.sendByCodeWithLog(dto, blackListUrl, isBioclooProxy,
-                        MediaType.APPLICATION_FORM_URLENCODED_VALUE, JSONObject.toJSONString(dto), true, true);
-                long end = System.currentTimeMillis();
-                log.warn(TITLE_BAIKELU+"调度结束, result:{}, 耗时:{}", resMap, end - start);
-            }
-            return resMap;
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YIXIN_INTERFACEERROR.getCode(), "宜信调用百可录接口异常"), e);
-            HashMap<String, String> resMap = new HashMap<>();
-            resMap.put("httpcode", "9999");
-            return resMap;
+        Integer retry1 = retry;
+        HashMap<String, String> resMap = new HashMap<>();
+        // 获取挡板开关
+        JSONObject mock = marketingCommonConfig.getShuHeToBioclooAesKeyConfig();
+        if (mock.get("switch") == Boolean.TRUE) {
+            JSONObject mockJson = new JSONObject();
+            mockJson.put("code", mock.get("code"));
+            mockJson.put("message", "处理成功");
+            resMap.put("content", JSON.toJSONString(mockJson));
+            resMap.put("httpcode", mock.get("httpcode").toString());
+        } else {
+            long start = System.currentTimeMillis();
+            log.warn(TITLE_BAIKELU+"调度开始, requestParam{}", JSONObject.toJSONString(dto));
+            resMap = httpProxyClient.sendByCodeWithLog(dto, blackListUrl, isBioclooProxy,
+                    MediaType.APPLICATION_FORM_URLENCODED_VALUE, JSONObject.toJSONString(dto), true, true);
+            long end = System.currentTimeMillis();
+            log.warn(TITLE_BAIKELU+"调度结束, result:{}, 耗时:{}", resMap, end - start);
         }
-    }
-
-    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
-    public Result pushBioclooSole(ReqBlacklistDTO dto, Integer retry){
-
-        Map<String, String> resMap = pushDataToBiocloo(dto, retry);
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YIXIN_INTERFACEERROR.getCode(),
                     String.format("请求参数:%s,返回:%s", JSON.toJSONString(dto), JSON.toJSONString(resMap)), "调用百可录【黑名单】接口异常"));
