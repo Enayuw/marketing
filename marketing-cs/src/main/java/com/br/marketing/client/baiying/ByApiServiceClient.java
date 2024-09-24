@@ -1,10 +1,14 @@
 package com.br.marketing.client.baiying;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
+import com.br.marketing.client.biocloo.input.BlackDataDTO;
+import com.br.marketing.client.biocloo.input.BlackDataRequestDTO;
+import com.br.marketing.client.biocloo.utils.AESUtil;
 import com.br.marketing.client.robotaiapi.input.TransferJsonDataDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundSoleDTO;
@@ -114,22 +118,17 @@ public class ByApiServiceClient {
 
         Integer retry1 = retry;
         HashMap<String, String> resMap = new HashMap<>();
-        // 获取挡板开关
-        JSONObject mock = marketingCommonConfig.getShuHeToBioclooAesKeyConfig();
-        if (mock.get("switch") == Boolean.TRUE) {
-            JSONObject mockJson = new JSONObject();
-            mockJson.put("code", mock.get("code"));
-            mockJson.put("message", "处理成功");
-            resMap.put("content", JSON.toJSONString(mockJson));
-            resMap.put("httpcode", mock.get("httpcode").toString());
-        } else {
-            long start = System.currentTimeMillis();
-            log.warn(TITLE_BAIKELU+"调度开始, requestParam{}", JSONObject.toJSONString(dto));
-            resMap = httpProxyClient.sendByCodeWithLog(dto, blackListUrl, isBioclooProxy,
-                    MediaType.APPLICATION_FORM_URLENCODED_VALUE, JSONObject.toJSONString(dto), true, true);
-            long end = System.currentTimeMillis();
-            log.warn(TITLE_BAIKELU+"调度结束, result:{}, 耗时:{}", resMap, end - start);
+        if (CollectionUtil.isEmpty(dto.getData())) {
+            log.warn("推送百可录去重后推送数据为0");
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
+        long start = System.currentTimeMillis();
+        log.warn(TITLE_BAIKELU + "调度开始, requestParam{}", JSONObject.toJSONString(dto));
+        resMap = httpProxyClient.sendByCodeWithLog(dto, blackListUrl, isBioclooProxy,
+                MediaType.APPLICATION_FORM_URLENCODED_VALUE, JSONObject.toJSONString(dto), true, true);
+        long end = System.currentTimeMillis();
+        log.warn(TITLE_BAIKELU + "调度结束, result:{}, 耗时:{}", resMap, end - start);
+
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YIXIN_INTERFACEERROR.getCode(),
                     String.format("请求参数:%s,返回:%s", JSON.toJSONString(dto), JSON.toJSONString(resMap)), "调用百可录【黑名单】接口异常"));
