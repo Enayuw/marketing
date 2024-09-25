@@ -46,8 +46,11 @@
                is_del,
                create_time,
                update_time,
-               JSON_EXTRACT(report_rules,'$.upload.userType') as userType,
-               JSON_EXTRACT(report_rules,'$.upload.dimensionsField') as dimensionsField
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.upload.userType')) as userType,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.upload.dimensionsField')) as dimensionsField,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.score.batchNumber')) as batchNumber,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.transfer.requestStartDate')) as requestStartDate,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.transfer.requestEndDate')) as requestEndDate
         from b_report_task
         where
             is_del = 1

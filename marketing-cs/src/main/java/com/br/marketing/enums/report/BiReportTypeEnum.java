@@ -112,4 +112,20 @@ public enum BiReportTypeEnum {
         }
         return null;
     }
+
+    /**
+     * 按类型获取枚举
+     * @param type 报表类型
+     * @return {@link BiReportTypeEnum }
+     * @author dongshuo.he
+     * @date 2024/09/25
+     */
+    public static BiReportTypeEnum getEnumByType(Integer type) {
+        for (BiReportTypeEnum enumValue : BiReportTypeEnum.values()) {
+            if (enumValue.getType() == type) {
+                return enumValue;
+            }
+        }
+        return null;
+    }
 }

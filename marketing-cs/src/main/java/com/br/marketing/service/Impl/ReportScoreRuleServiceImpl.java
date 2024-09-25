@@ -391,11 +391,28 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         try {
             convertReportType(reportTaskParam);
             List<BiReportTaskVO> list = reportTaskMapper.queryBiReportTaskListtikv_(reportTaskParam);
+            processBiReportTaskVO(list);
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * 转化报表类型名称，解析reportRules
+     * @param list
+     */
+    private void processBiReportTaskVO(List<BiReportTaskVO> list) {
+        for (BiReportTaskVO biReportTaskVO : list) {
+            biReportTaskVO.setReportTypeName(BiReportTypeEnum.getEnumByType(biReportTaskVO.getReportType()).getTypeName());
+            String requestStartDate = biReportTaskVO.getRequestStartDate();
+            String requestEndDate = biReportTaskVO.getRequestEndDate();
+            if (!StringUtils.isEmpty(requestStartDate) && !StringUtils.isEmpty(requestEndDate)) {
+                String transferDateTimeRange = requestStartDate + "~" + requestEndDate;
+                biReportTaskVO.setTransferDateTimeRange(transferDateTimeRange);
+            }
+        }
     }
 
     /**
