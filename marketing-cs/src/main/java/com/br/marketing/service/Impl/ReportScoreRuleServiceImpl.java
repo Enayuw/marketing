@@ -324,11 +324,13 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
         BiReportTypeEnum biReportTypeEnum = BiReportTypeEnum.getEnumByTypeName(reportTypeName);
         //2.补充statistics_scene
+        HashMap<String, String> biReportScenePrefixConfig = marketingCommonConfig.getBiReportScenePrefixConfig();
+        String scenePrefix = biReportScenePrefixConfig.get(apiCode);
         String scene = "";
-        if (biReportTypeEnum.getType() == 12) {
-            scene = apiCode + "_" + userType + "场景" + biReportTypeEnum.getStatName();
+        if (biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_REPORT.getType()) {
+            scene = String.format("%s(%s)_%s场景%s", scenePrefix, apiCode, userType, biReportTypeEnum.getStatName());
         } else {
-            scene = apiCode + "_" + biReportTypeEnum.getStatName();
+            scene = String.format("%s(%s)_%s", scenePrefix, apiCode, biReportTypeEnum.getStatName());
         }
         rulesJson.put("upload", upload);
         rulesJson.put("statisticsScene", scene);
