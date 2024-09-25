@@ -10,8 +10,11 @@
         <if test="reportDateEnd !=null and reportDateEnd!=''">
             <![CDATA[ and report_date <= #{reportDateEnd}]]>
         </if>
-        <if test="userType !=null and userType!=''">
-            <![CDATA[ and user_type = #{userType}]]>
+        <if test="userTypes !=null">
+            and user_type in
+            <foreach collection="userTypes" item="userType" open="(" separator="," close=")">
+                #{userType}
+            </foreach>
         </if>
         order by report_date desc;
     </select>

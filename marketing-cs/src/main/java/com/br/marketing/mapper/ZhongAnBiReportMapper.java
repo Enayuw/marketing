@@ -8,7 +8,7 @@ import java.util.List;
 public interface ZhongAnBiReportMapper {
     List<ZhonganOutboundCallReportDTO> selectZaOutboundCallListbI_(@Param("reportDateStart") String reportDateStart,
                                                                    @Param("reportDateEnd") String reportDateEnd,
-                                                                   @Param("userType") String userType);
+                                                                   @Param("userTypes") List<Integer> userTypes);
 
     List<ZhongAnDistributionStatisticDTO> selectZaMultiHeadGroupListbI_(@Param("reportId") String reportId,
                                                                @Param("field") String field,
