@@ -136,7 +136,7 @@ api:
   biocloo:
     baseUrl: http://58.33.156.202:57436
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
-    isProxy: true
+    isProxy: false
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置
