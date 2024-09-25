@@ -89,6 +89,10 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
             // 当天剩余可撞量级
             int remainCount = marketingCommonConfig.getWubaCollidingDataMaxCountLimit() - logCount;
             if (remainCount <= 0) {
+                String title = "58提交撞库名单，量级达到设定阈值，撞库暂停";
+                String msg = title + "，设定阈值：" + marketingCommonConfig.getWubaCollidingDataMaxCountLimit() + "。需要判断是否调整设定阈值！";
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                        , title));
                 return;
             }
 
