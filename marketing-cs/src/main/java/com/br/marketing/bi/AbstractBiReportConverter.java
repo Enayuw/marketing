@@ -1,6 +1,7 @@
 package com.br.marketing.bi;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.SourceStatisticDict;
@@ -169,6 +170,12 @@ public abstract class AbstractBiReportConverter<V, T> {
                     return value == null ? "0" : String.format(Locale.getDefault(), "%,.2f", ((BigDecimal)value).setScale(2, RoundingMode.HALF_UP));
                 case PERCENT_SIGN:
                     return value == null ? "0%" : (value + "%");
+                case THOUSAND_INTEGER:
+                    return value == null ? "0" :NumberUtil.decimalFormat(",###", new BigDecimal(String.valueOf(value)).doubleValue());
+                case THOUSAND_SCALE2:
+                    return value == null ? "0" :NumberUtil.decimalFormat(",###.00", new BigDecimal(String.valueOf(value)).doubleValue());
+                case PERCENT_SCALE2:
+                    return value == null ? "0%" :NumberUtil.formatPercent(new BigDecimal(String.valueOf(value)).doubleValue(), 2);
                 default:
                     return value == null ? "" : String.valueOf(value);
             }
@@ -182,6 +189,9 @@ public abstract class AbstractBiReportConverter<V, T> {
         THOUSAND_SEPARATOR("THOUSAND_SEPARATOR"),
         THOUSAND_SEPARATOR_DECIMAL("THOUSAND_SEPARATOR_DECIMAL"),
         PERCENT_SIGN("PERCENT_SIGN"),
+        THOUSAND_INTEGER("THOUSAND_INTEGER"),
+        THOUSAND_SCALE2("THOUSAND_SCALE2"),
+        PERCENT_SCALE2("PERCENT_SCALE2"),
         DEFAULT("DEFAULT");
 
         private String name;
