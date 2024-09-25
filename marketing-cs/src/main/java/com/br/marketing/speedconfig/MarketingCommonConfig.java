@@ -2143,5 +2143,10 @@ public class MarketingCommonConfig {
      */
     private Set<String> reportmultPointPrefixSet;
 
+    /**
+     * bi报表场景名称前缀配置
+     */
+    private HashMap<String, String> biReportScenePrefixConfig;
+
 }
 
