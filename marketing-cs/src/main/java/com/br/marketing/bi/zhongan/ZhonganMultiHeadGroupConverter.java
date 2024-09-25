@@ -114,6 +114,9 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                                 Collectors.groupingBy(ZhongAnGroupedScoreDistributionDTO::getGroup)
                         ));
 
+        List<String> fiftyStepLengthList = marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
+        List<String> fiveStepLengthList = marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+
         for (Map.Entry<String, Map<String, List<ZhongAnGroupedScoreDistributionDTO>>> entry1 : groupedByProductAndGroupName.entrySet()) {
             for (Map.Entry<String, List<ZhongAnGroupedScoreDistributionDTO>> entry : entry1.getValue().entrySet()) {
                 // Y轴数据
@@ -129,10 +132,11 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                 for (String comparisonName : comparisonMap.keySet()) {
                     List<ZhongAnGroupedScoreDistributionDTO> comparisonData = comparisonMap.get(comparisonName);
                     step = comparisonData.get(0).getStep();
+                    intervals.clear();
                     if(step == 50){
-                        intervals = marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
+                        intervals.addAll(fiftyStepLengthList);
                     }else {
-                        intervals = marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+                        intervals.addAll(fiveStepLengthList);
                     }
                     group = comparisonData.get(0).getGroup();
                     List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
