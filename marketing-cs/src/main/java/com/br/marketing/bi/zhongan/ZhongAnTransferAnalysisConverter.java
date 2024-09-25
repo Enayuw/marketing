@@ -1,5 +1,6 @@
 package com.br.marketing.bi.zhongan;
 
+import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
@@ -22,7 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +55,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
 
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
         reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
+        reportStatisticTransferExample.setOrderByClause("create_time desc");
         List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
         if (reportStatisticTransfers.isEmpty()) {
             return new ArrayList<>();
@@ -102,6 +106,11 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                 List<ReportStatisticTransferDetail> reportDataList = zhongAnBiReportMapper.queryReportStatisticTransferDetailbI_(reportId, "", "", "", "");
 
                 List<ReportStatisticTransferDetail> caseList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "案件量");
+                caseList = caseList.stream().sorted(Comparator.comparing((data) -> {
+                    String scoreValue = data.getScoreValue();
+                    String value = scoreValue.split(",")[0].substring(1);
+                    return Integer.parseInt(value);
+                })).collect(Collectors.toList());
 
                 // 构造横坐标数据
                 List<String> xAxis = caseList.stream().map(ReportStatisticTransferDetail::getScoreValue).distinct().collect(Collectors.toList());
@@ -117,6 +126,11 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                     String formatTypeName = reportFieldMapping.getItemFormatType();
                     FormatType formatType = FormatType.getByName(formatTypeName);
                     List<ReportStatisticTransferDetail> detailList = filter(reportDataList, scoreField, dimensionField, dimensionValue, itemName);
+                    detailList = detailList.stream().sorted(Comparator.comparing((data) -> {
+                        String scoreValue = data.getScoreValue();
+                        String value = scoreValue.split(",")[0].substring(1);
+                        return Integer.parseInt(value);
+                    })).collect(Collectors.toList());
                     yAxis.add(buildWrapDataVO(itemShow, detailList, ReportStatisticTransferDetail::getItemValue, formatType));
                 }
 
@@ -144,5 +158,12 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
             return false;
         }).collect(Collectors.toList());
         return dataList;
+    }
+
+    public static void main(String[] args) {
+        String s1 = NumberUtil.formatPercent(new BigDecimal("123456.123456").doubleValue(), 1);
+        System.out.println(s1);
+        String s2 = NumberUtil.decimalFormat(",###.00", new BigDecimal("123456.123456").doubleValue());
+        System.out.println(s2);
     }
 }
