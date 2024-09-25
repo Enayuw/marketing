@@ -66,6 +66,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
 
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
         reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
+        reportStatisticTransferExample.setOrderByClause("create_time desc");
         List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
         if(reportStatisticTransfers.isEmpty()){
             return new ArrayList<>();
@@ -84,7 +85,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
             String field = scoreFieldDTO.getField();
             Integer step = scoreFieldDTO.getStep();
 
-            if(StringUtils.isNotEmpty(dimensionValue) && StringUtils.isNotEmpty(dimensionField)){
+            if(!"defaultNone".equals(dimensionField)){
                 // 分组多头查询
                 for (String value : formatField(dimensionValue)) {
                     String groupName = groupNameMap.get(value);
