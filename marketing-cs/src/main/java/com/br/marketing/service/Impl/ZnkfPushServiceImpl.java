@@ -252,7 +252,8 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     public String smsCallBack(SmsRecordDTO dto) {
         try {
             if(StringUtils.isEmpty(dto.getApi_code()) || StringUtils.isEmpty(dto.getCid()) ||
-            StringUtils.isEmpty(dto.getThirdCallNo()) || StringUtils.isEmpty(dto.getCaseNum())){
+            StringUtils.isEmpty(dto.getThirdCallNo()) || StringUtils.isEmpty(dto.getCaseNum())
+                    || dto.getSmsSendStatus() == null){
                 return "必填字段为空：" + JSONObject.toJSONString(dto);
             }
             String thirdCallNo = dto.getThirdCallNo();
