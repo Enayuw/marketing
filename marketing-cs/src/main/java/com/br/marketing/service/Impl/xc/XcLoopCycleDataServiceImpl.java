@@ -16,6 +16,8 @@ import javax.annotation.Resource;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
+import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -335,5 +337,36 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         }
 
         return false;
+    }
+
+    /**
+     * 促活数据接入后续处理
+     * @param xieChengActivateDTO
+     * @return
+     */
+    @Override
+    public Result<Boolean> activateDataHandle(XieChengActivateDTO xieChengActivateDTO) {
+        CustomizeUploadData data = dataLoopCycleMapper.selectActivateData(xieChengActivateDTO);
+        if (Objects.isNull(data)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程促活，查询前置表数据为空"));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+
+
+        JSONArray jsonArray = JSON.parseArray(data.getRequestJsonData());
+        List<JSONObject> jsonList = jsonArray.stream().map((Object t) -> (JSONObject) t).collect(Collectors.toList());
+        for (JSONObject jsonObject : jsonList) {
+            String releaseTime = jsonObject.getString("releaseTime");
+            if (Objects.isNull(releaseTime)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                        , "携程促活，客户未传releaseTime，前置表id:" + data.getId()));
+                continue;
+            }
+
+            // todo
+        }
+
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 }

@@ -1,5 +1,7 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
+import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
@@ -94,4 +96,6 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     int selectCycleCountOfStack(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
     int updateByTrueData(XieChengCollidingDataLoopCycle record);
+
+    CustomizeUploadData selectActivateData(@Param("xieChengActivateDTO") XieChengActivateDTO xieChengActivateDTO);
 }

@@ -1,5 +1,8 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
+import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 
 import java.util.List;
@@ -12,7 +15,6 @@ public interface XcLoopCycleDataService extends DataCollidingService<XieChengCol
 
     /**
      * 是否开启撞库
-     * @return
      */
     boolean canStart();
 
@@ -20,4 +22,9 @@ public interface XcLoopCycleDataService extends DataCollidingService<XieChengCol
      * 剔除转化数据convType=107或105
      */
     List<String> excludeData(List<String> cells, String dataSourceType);
+
+    /**
+     * 促活数据接入后续处理
+     */
+    Result<Boolean> activateDataHandle(XieChengActivateDTO xieChengActivateDTO);
 }

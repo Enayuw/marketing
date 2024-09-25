@@ -207,4 +207,8 @@
         </set>
         where id = #{id,jdbcType=BIGINT}
     </update>
+
+    <select id="selectActivateData" resultType="com.br.marketing.entity.CustomizeUploadData">
+        select id, request_json_data, sync_status from b_customize_upload_data_${cId} where id = ${dataId}
+    </select>
 </mapper>
