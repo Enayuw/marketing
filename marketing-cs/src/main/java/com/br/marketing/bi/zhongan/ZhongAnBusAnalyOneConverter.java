@@ -68,7 +68,7 @@ public class ZhongAnBusAnalyOneConverter extends AbstractBiReportConverter<BiRep
         List<ZhongAnBusAnalyOneReportDTO> sortedData = dtos.stream()
                 .sorted(Comparator.comparing(ZhongAnBusAnalyOneReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
         // 构造横坐标数据
-        List<String> xAxis = sortedData.stream().map(ZhongAnBusAnalyOneReportDTO::getReportDate).distinct().collect(Collectors.toList());
+        List<String> xAxis = sortedData.stream().map(ZhongAnBusAnalyOneReportDTO::getReportDate).collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据
