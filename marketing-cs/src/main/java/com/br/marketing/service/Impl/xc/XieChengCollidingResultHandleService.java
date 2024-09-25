@@ -134,6 +134,7 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataLoopCycle.setRetryCount(0);
         xieChengCollidingDataLoopCycle.setCreateTime(new Date());
         xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
+        xieChengCollidingDataLoopCycle.setCustomerGroup(1);
         xieChengCollidingDataLoopCycleMapper.insertSelective(xieChengCollidingDataLoopCycle);
         // 非周期表中做剔除
         robData.setIsDelete(1);

@@ -635,6 +635,66 @@ public class XieChengCollidingDataLoopCycleExample {
             return (Criteria) this;
         }
 
+        public Criteria andCustomerGroupIsNull() {
+            addCriterion("customer_group is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupIsNotNull() {
+            addCriterion("customer_group is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupEqualTo(Integer value) {
+            addCriterion("customer_group =", value, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupNotEqualTo(Integer value) {
+            addCriterion("customer_group <>", value, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupGreaterThan(Integer value) {
+            addCriterion("customer_group >", value, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupGreaterThanOrEqualTo(Integer value) {
+            addCriterion("customer_group >=", value, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupLessThan(Integer value) {
+            addCriterion("customer_group <", value, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupLessThanOrEqualTo(Integer value) {
+            addCriterion("customer_group <=", value, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupIn(List<Integer> values) {
+            addCriterion("customer_group in", values, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupNotIn(List<Integer> values) {
+            addCriterion("customer_group not in", values, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupBetween(Integer value1, Integer value2) {
+            addCriterion("customer_group between", value1, value2, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andCustomerGroupNotBetween(Integer value1, Integer value2) {
+            addCriterion("customer_group not between", value1, value2, "customerGroup");
+            return (Criteria) this;
+        }
+
         public Criteria andPushTimeIsNull() {
             addCriterion("push_time is null");
             return (Criteria) this;

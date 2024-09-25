@@ -233,6 +233,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         dto.setRetryCount(0);
         // 更新releaseTime
         dto.setReleaseTime(DateUtil.parse(t.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
+        // 更新客群标志
+        dto.setCustomerGroup(1);
         try {
             JSONArray jsonArray = t.getJSONArray("marketCouponList");
             if (jsonArray != null && !jsonArray.isEmpty()) {
