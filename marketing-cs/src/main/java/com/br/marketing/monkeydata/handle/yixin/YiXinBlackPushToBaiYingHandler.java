@@ -273,7 +273,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             blackBlklistDataDTO.setCaseNum(syncUser.getCustNum());
             blackBlklistDataDTO.setExpireDate(LocalDate.now()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                    .concat(" 23:59:59"));
+                    .concat(" 11:20:00"));
             blackBlklistDataDTO.setPhone(syncUser.getCellMd5());
             pushBlkList.add(blackBlklistDataDTO);
 
@@ -287,7 +287,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
                     reqBlacklistDTO.setMethod(pushMethod);
                     reqBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBlacklistDTO.setData(finalList);
-                    byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+//                    byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
                     // 紧急需求，增加了推送百可录逻辑（后续逻辑变更请注意）
                     ReqBlacklistDTO reqBklBlacklistDTO = new ReqBlacklistDTO();
                     reqBklBlacklistDTO.setMethod(pushMethod);
