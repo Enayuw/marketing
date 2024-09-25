@@ -71,7 +71,6 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
             varDto.put(customNameType, parseObject.getOrDefault(value, "").toString());
         }
         varDto.put("orderId", syncUser.getCustNum());
-        varDto.putAll(JSON.parseObject(JSON.toJSONString(JSON.toJSON(syncUser))));
         varDto.putAll(parseObject);
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
