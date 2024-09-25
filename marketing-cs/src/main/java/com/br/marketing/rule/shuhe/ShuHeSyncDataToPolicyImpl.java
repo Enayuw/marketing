@@ -15,7 +15,6 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -66,13 +65,14 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
 
         HashMap<String, String> dataCleanMappingMap = marketingCommonConfig.getDataCleanMappingMap();
         String value = dataCleanMappingMap.get(apiCode);
-        if(value != null){
+        if (value != null) {
             List<String> dataCleanValue = marketingCommonConfig.getDataCleanValue();
             String customNameType = dataCleanValue != null ? dataCleanValue.get(0) : "customNameType";
-            varDto.put(customNameType,parseObject.getOrDefault(value, "").toString());
+            varDto.put(customNameType, parseObject.getOrDefault(value, "").toString());
         }
-
         varDto.put("orderId", syncUser.getCustNum());
+        varDto.putAll(JSON.parseObject(JSON.toJSONString(JSON.toJSON(syncUser))));
+        varDto.putAll(parseObject);
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
         log.warn("数禾上传数据推送决策,apicode={}", apiCode);
