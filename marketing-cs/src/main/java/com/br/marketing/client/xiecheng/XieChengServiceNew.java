@@ -166,7 +166,6 @@ public class XieChengServiceNew {
 
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
-
     }
 
     /**
@@ -217,7 +216,6 @@ public class XieChengServiceNew {
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
-
     }
 
     /**
