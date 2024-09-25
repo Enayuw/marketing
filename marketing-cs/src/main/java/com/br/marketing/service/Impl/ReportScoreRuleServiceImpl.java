@@ -27,6 +27,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import shaded.com.google.common.collect.Lists;
+
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -264,6 +266,13 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         reportTask.setCreateTime(new Date());
         reportTask.setUpdateTime(new Date());
         reportTaskMapper.insertSelective(reportTask);
+        List<String> businessList = Lists.newArrayList(BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getTypeName(),
+                BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getTypeName(),
+                BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName());
+        if (businessList.contains(reportTypeName)) {
+            return new ApiResult<Boolean>().success(true);
+        }
+
         Long reportId = reportTask.getId();
         if (!CollectionUtils.isEmpty(reportFieldDicts)) {
             addReportFieldMapping(reportFieldDicts, reportId);
