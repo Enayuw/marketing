@@ -255,7 +255,7 @@ public class YiXinTransferPushToBioclooHandler extends IMonkeyDataHandle<Marketi
         for (MarketingTransferSyncUser transferSyncUser : outputDataList) {
             BlacklistDataDTO blackBlklistDataDTO = new BlacklistDataDTO();
             blackBlklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
-            blackBlklistDataDTO.setExpireDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).concat(" 11:20:00"));
+            blackBlklistDataDTO.setExpireDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).concat(" 23:59:59"));
             blackBlklistDataDTO.setPhone(transferSyncUser.getReserveField2());
             pushBioclooList.add(blackBlklistDataDTO);
             count++;
