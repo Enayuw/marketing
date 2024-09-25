@@ -103,7 +103,7 @@ public class XieChengCollidingHitRequestNoInitJob extends AbstractSimpleElasticJ
                 return;
             }
 
-            Result resultInfo = xieChengServiceNew.pushXieChengSmsCollidingDataNew(cells);
+            Result resultInfo = xieChengServiceNew.pushXieChengForInitHitRequestNo(cells);
             JSONObject resMap = JSONObject.parseObject((String) resultInfo.getData());
 
             // httpcode非200或code非0
