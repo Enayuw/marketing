@@ -55,7 +55,7 @@ public interface CustomerUploadDataHandler {
      * @param adaptee 客户定制数据
      * @return 封装了响应结果与标记客户数据的状况
      */
-    CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee);
+   <T>  CustomerResponseDTO verifyFields(BaseUploadDataAdaptee<T> adaptee);
 
     /**
      * 获取requestId
