@@ -15,7 +15,6 @@ import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
-import com.br.marketing.api.customer.upload.adapter.CustomerUploadDataAdapter;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadDataHandleSingleton;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadDataHandler;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
@@ -25,7 +24,6 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
-import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.mapper.CustomizeUploadDataMapper;
@@ -49,9 +47,6 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
 
     @Resource
     private PushRuleService pushRuleService;
-
-    @Resource
-    private CustomerUploadDataAdapter customerUploadDataAdapter;
 
     @Resource
     private CustomizeUploadDataMapper customizeUploadDataMapper;
@@ -109,8 +104,6 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                         // 3. 计算业务数据量
                         int number = customerUploadDataHandler.countBizDataNumber(adapter);
                         uploadData.setBizDataNumber(number);
-                        // 4. 适配清洗逻辑
-                        MarketingPreUserDTO marketingPreUserDTO = customerUploadDataAdapter.adapteeCustomerUploadData(adapter);
                     }
                 } catch (Exception e) {
                     respCustomer = customerUploadDataHandler.bizErrorResponse(e);
@@ -130,6 +123,8 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                     throw new RuntimeException(
                         "定制化客户".concat(customerUploadDataHandler.customer().getName()).concat("(").concat(apiCode).concat(")保存失败,入库数据量:") + i);
                 }
+                // 7.数据存储前置完成后进行数据下发（按需实现，默认不处理），
+                customerUploadDataHandler.dataDirection(tCid, uploadData.getId());
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "定制上传数据写入客户定制上传前置表异常"),
                     e);

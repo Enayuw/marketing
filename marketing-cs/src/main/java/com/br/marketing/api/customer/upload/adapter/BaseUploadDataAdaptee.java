@@ -2,8 +2,6 @@ package com.br.marketing.api.customer.upload.adapter;
 
 import java.io.Serializable;
 
-import com.br.marketing.dto.MarketingPreUserDTO;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,13 +14,13 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public abstract class BaseUploadDataAdaptee implements Serializable {
+public abstract class BaseUploadDataAdaptee<T> implements Serializable {
 
 
     private static final long serialVersionUID = 2295254868340373170L;
     private String apiCode;
     private String jsonData;
 
-    protected abstract MarketingPreUserDTO adapteeRequest(String apiCode, MarketingPreUserDTO marketingPreUserDTO);
+    protected abstract T adapteeRequest(String apiCode, String jsonData);
 
 }

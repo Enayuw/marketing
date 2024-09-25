@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-public class WeiJuUploadJsonDTO extends BaseUploadDataAdaptee {
+public class WeiJuUploadJsonDTO extends BaseUploadDataAdaptee<MarketingPreUserDTO> {
 
     private static final long serialVersionUID = 8769826064634577808L;
 
@@ -56,8 +56,13 @@ public class WeiJuUploadJsonDTO extends BaseUploadDataAdaptee {
      */
     private JSONArray userInfoList;
 
+    /**
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
     @Override
-    protected MarketingPreUserDTO adapteeRequest(String apiCode, MarketingPreUserDTO marketingPreUserDTO) {
-        return marketingPreUserDTO;
+    protected MarketingPreUserDTO adapteeRequest(String apiCode, String jsonData) {
+        return new MarketingPreUserDTO();
     }
 }
