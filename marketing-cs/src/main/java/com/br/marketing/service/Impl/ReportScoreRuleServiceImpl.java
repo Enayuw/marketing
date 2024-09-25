@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.BusinessException;
+import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
@@ -25,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -64,6 +65,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Resource
     private ReportFieldMappingMapper reportFieldMappingMapper;
+
+    @Resource
+    private BiReportMapper biReportMapper;
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -222,7 +226,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     @Override
-    public ApiResult<Boolean> addReportTask(ReportTaskParam reportTaskParam) {
+    public ApiResult<Boolean> addReportTask(ReportTaskParam reportTaskParam){
         String ids = reportTaskParam.getIds();
         String cid = reportTaskParam.getCid();
         String reportTypeName = reportTaskParam.getReportTypeName();
@@ -309,7 +313,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
      * @author hedongshuo
      * @date 2024/9/23 17:22
      **/
-    private List<ReportFieldDict> processReportRules(JSONObject rulesJson, String reportTypeName) {
+    private List<ReportFieldDict> processReportRules(JSONObject rulesJson, String reportTypeName){
         String apiCode = rulesJson.getString("apiCode");
         JSONObject upload = rulesJson.getJSONObject("upload");
         String dimensionsField = upload.getString("dimensionsField");
@@ -323,18 +327,33 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             upload.put("dimensionsValue", dictConfig);
         }
         BiReportTypeEnum biReportTypeEnum = BiReportTypeEnum.getEnumByTypeName(reportTypeName);
-        //2.补充statistics_scene
+        //2.分组校验
+        if (!"defaultNone".equals(dimensionsField)
+                && (biReportTypeEnum == BiReportTypeEnum.MULTPOINT_REPORT
+                    || biReportTypeEnum == BiReportTypeEnum.GROUP_SCORE_REPORT
+                    || biReportTypeEnum == BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT)) {
+            JSONObject score = rulesJson.getJSONObject("score");
+            String batchNumber = score.getString("batchNumber");
+            Integer scoreDataCountBydimension = biReportMapper
+                    .getScoreDataCountBydimensionbI_("b_score_" + batchNumber, apiCode, userType, dimensionsField);
+            if (scoreDataCountBydimension == 0) {
+                throw new KnowException("跑分批次" + batchNumber +"无法以该分组生成报表");
+            }
+        }
+        //3.补充statistics_scene
         HashMap<String, String> biReportScenePrefixConfig = marketingCommonConfig.getBiReportScenePrefixConfig();
         String scenePrefix = biReportScenePrefixConfig.get(apiCode);
         String scene = "";
-        if (biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_REPORT.getType()) {
+        if (biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getType()
+                || biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getType()
+                || biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getType()) {
             scene = String.format("%s(%s)_%s场景%s", scenePrefix, apiCode, userType, biReportTypeEnum.getStatName());
         } else {
             scene = String.format("%s(%s)_%s", scenePrefix, apiCode, biReportTypeEnum.getStatName());
         }
         rulesJson.put("upload", upload);
         rulesJson.put("statisticsScene", scene);
-        //3.增加【b_report_field_mapping】
+        //4.增加【b_report_field_mapping】
         ReportFieldDictExample dictExample = new ReportFieldDictExample();
         dictExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)

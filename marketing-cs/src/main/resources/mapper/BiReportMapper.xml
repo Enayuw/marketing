@@ -13,4 +13,16 @@
           and <![CDATA[ valid_start_date <= #{statisticDate} and valid_end_date >= #{statisticDate} ]]>
 	      and is_del = 1
     </select>
+    <select id="getScoreDataCountBydimensionbI_" resultType="java.lang.Integer">
+        select
+            count(0)
+        from
+            ${scoreTableName} score
+                inner join ods_upload_half_hourly upload
+            on score.cus_num = upload.cust_num
+        where
+          upload.api_code = #{apiCode}
+          and upload.user_type = #{userType}
+          and get_json_string(upload.reserve_field1,CONCAT('$.', #{dimensionsField})) is not null;
+    </select>
 </mapper>
