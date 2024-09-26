@@ -2,6 +2,8 @@ package com.br.marketing.bi.zhongan;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+
+import cn.hutool.poi.excel.ExcelWriter;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -22,6 +24,7 @@ import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
+import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -245,6 +248,68 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
             }
         }
         return resultMap;
+    }
+
+    /**
+     * 导出数据
+     *
+     * @param excelWriter excelWriter
+     * @param params 参数
+     * @author senyang.zheng
+     * @date 2024/08/29
+     */
+    @Override
+    public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
+        for (BiReportDownLoadParam param : params) {
+            String name = "场景" + param.getGroup() + param.getReportName();
+            // excel sheet名称最大长度31，超出31截取前31位
+            String sheetName =
+                    name.length() > 31 ? name.substring(0, 31) : name;
+            excelWriter.setSheet(sheetName);
+            // 数据写入
+            List<BiReportDownLoadParam> list = Lists.newArrayList();
+            list.add(param);
+            writeData(excelWriter, list);
+            // 剔除默认生成的第一个sheet
+            excelWriter.getWorkbook().removeSheetAt(0);
+        }
+    }
+
+    /**
+     * 写入数据
+     *
+     * @param writer writer
+     * @param params 参数
+     * @author senyang.zheng
+     * @date 2024/08/29
+     */
+    private void writeData(ExcelWriter writer, List<BiReportDownLoadParam> params) {
+        int rowIndex = 0;
+        for (BiReportDownLoadParam param : params) {
+            List<String> xAxis = param.getXAxis();
+            List<WrapDataVO> yAxis = param.getYAxis();
+            // 写入X轴名称
+            writer.writeCellValue(0, rowIndex, param.getXAxisName());
+            // 写X轴数据
+            for (int i = 0; i < xAxis.size(); i++) {
+                writer.writeCellValue(0, rowIndex + i + 1, xAxis.get(i));
+            }
+            // 写入Y轴数据
+            for (int i = 0; i < yAxis.size(); i++) {
+                WrapDataVO yAxi = yAxis.get(i);
+                List<String> yData = yAxi.getData();
+                // 写入Y轴名称
+                writer.writeCellValue(i + 1, rowIndex, yAxi.getName());
+                // 写入Y轴数据
+                for (int j = 0; j < xAxis.size(); j++) {
+                    String value = (j < yData.size() && org.apache.commons.lang3.StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
+                    writer.writeCellValue(i + 1, rowIndex + j + 1, value);
+                }
+            }
+            // 添加空行 xAxis.size() + 1 为当前表格所占行数，再+1添加空行
+            rowIndex += xAxis.size() + 2;
+        }
+        autoSizeColumnAll(writer);
     }
 
 }
