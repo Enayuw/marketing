@@ -144,4 +144,26 @@ public class XieChengCollidingResultHandleService {
         xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
     }
 
+    @Transactional(rollbackFor = Exception.class)
+    public void activateDataByFalseToTrue(XieChengCollidingDataRob robData) {
+        // 周期表中新增
+        XieChengCollidingDataLoopCycle xieChengCollidingDataLoopCycle = new XieChengCollidingDataLoopCycle();
+        xieChengCollidingDataLoopCycle.setReleaseTime(robData.getReleaseTime());
+        xieChengCollidingDataLoopCycle.setCustomerGroup(2);
+        xieChengCollidingDataLoopCycle.setPackageId(robData.getPackageId());
+        xieChengCollidingDataLoopCycle.setDataSourceType("F");
+        xieChengCollidingDataLoopCycle.setCellSha256CodeList(robData.getCellSha256CodeList());
+        xieChengCollidingDataLoopCycle.setPushTime(robData.getPushTime());
+        xieChengCollidingDataLoopCycle.setRetryCount(0);
+        xieChengCollidingDataLoopCycle.setCreateTime(new Date());
+        xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
+        xieChengCollidingDataLoopCycleMapper.insertSelective(xieChengCollidingDataLoopCycle);
+
+        // 非周期表剔除
+        robData.setIsDelete(1);
+        robData.setRetryCount(0);
+        robData.setUpdateTime(new Date());
+        xieChengCollidingDataRobMapper.updateByPrimaryKeySelective(robData);
+    }
+
 }

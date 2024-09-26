@@ -13,11 +13,18 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import cn.hutool.core.date.DateTime;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.entity.CustomizeUploadData;
+import com.br.marketing.entity.XieChengCollidingDataHitRequestNoMapping;
+import com.br.marketing.entity.XieChengCollidingDataHitRequestNoMappingExample;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycleExample;
+import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.entity.XieChengCollidingDataRobExample;
+import com.br.marketing.mapper.XieChengCollidingDataHitRequestNoMappingMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -71,8 +78,12 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private XiechengCollidingDataEliminationMapper eliminationMapper;
     @Resource
     private XieChengCollidingDataRobMapper robMapper;
+    @Resource
+    private XieChengCollidingDataHitRequestNoMappingMapper mappingMapper;
 
     private final static int PARTATION_SIZE = 50;
+
+    public static final ThreadPoolExecutor XIECHENG_ACTIVATE_THREAD_POOL = BrExecutors.getThreadPool(10,10);
 
     /**
      * 50条数据一个批次，推送撞库手机号并处理返回结果
@@ -349,24 +360,70 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         CustomizeUploadData data = dataLoopCycleMapper.selectActivateData(xieChengActivateDTO);
         if (Objects.isNull(data)) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程促活，查询前置表数据为空"));
+                    , "携程促活，根据id查询前置表数据为空"));
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
-
-
         JSONArray jsonArray = JSON.parseArray(data.getRequestJsonData());
-        List<JSONObject> jsonList = jsonArray.stream().map((Object t) -> (JSONObject) t).collect(Collectors.toList());
-        for (JSONObject jsonObject : jsonList) {
-            String releaseTime = jsonObject.getString("releaseTime");
-            if (Objects.isNull(releaseTime)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                        , "携程促活，客户未传releaseTime，前置表id:" + data.getId()));
-                continue;
-            }
+        List<JSONObject> jsonDataList = jsonArray.stream().map((Object t) -> (JSONObject) t).collect(Collectors.toList());
 
-            // todo
-        }
+        XIECHENG_ACTIVATE_THREAD_POOL.setCorePoolSize(marketingCommonConfig.getXiechengCollidingActivateThread());
+        XIECHENG_ACTIVATE_THREAD_POOL.setMaximumPoolSize(marketingCommonConfig.getXiechengCollidingActivateThread());
+        jsonDataList.forEach((JSONObject jsonData) -> {
+            XIECHENG_ACTIVATE_THREAD_POOL.submit(() -> singleHandle(jsonData, data));
+        });
 
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private void singleHandle(JSONObject jsonData, CustomizeUploadData data) {
+        String releaseTime = jsonData.getString("releaseTime");
+        if (Objects.isNull(releaseTime)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程促活，客户未传releaseTime，前置表id:" + data.getId()));
+            return;
+        }
+
+        String hitRequestNo = jsonData.getString("hitRequestNo");
+        if (Objects.isNull(hitRequestNo)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程促活，客户未传hitRequestNo，前置表id:" + data.getId()));
+            return;
+        }
+
+        // 根据hitRequestNo查询cell
+        XieChengCollidingDataHitRequestNoMappingExample mappingExample = new XieChengCollidingDataHitRequestNoMappingExample();
+        mappingExample.createCriteria().andIsDeleteEqualTo(0).andHitRequestNoEqualTo(hitRequestNo);
+        List<XieChengCollidingDataHitRequestNoMapping> hitRequestNoMappings = mappingMapper.selectByExample(mappingExample);
+        if (CollectionUtils.isEmpty(hitRequestNoMappings)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程促活，根据hitRequestNo查询映射表数据为空，前置表id:" + data.getId()));
+            return;
+        }
+        String cellSha256CodeList = hitRequestNoMappings.get(0).getCellSha256CodeList();
+
+        // 根据cell查询周期表
+        DateTime releaseDateTime = DateUtil.parse(releaseTime, DatePattern.NORM_DATETIME_PATTERN);
+        XieChengCollidingDataLoopCycleExample loopCycleExample = new XieChengCollidingDataLoopCycleExample();
+        loopCycleExample.createCriteria().andIsDeleteEqualTo(0).andCellSha256CodeListEqualTo(cellSha256CodeList);
+        List<XieChengCollidingDataLoopCycle> loopCycles = dataLoopCycleMapper.selectByExample(loopCycleExample);
+        if (!CollectionUtils.isEmpty(loopCycles)) {
+            XieChengCollidingDataLoopCycle loopCycle = loopCycles.get(0);
+            loopCycle.setCustomerGroup(2);
+            loopCycle.setReleaseTime(releaseDateTime);
+            dataLoopCycleMapper.updateByPrimaryKeySelective(loopCycle);
+            return;
+        }
+
+        // 根据cell查询非周期表
+        XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
+        robExample.createCriteria().andIsDeleteEqualTo(0).andCellSha256CodeListEqualTo(cellSha256CodeList);
+        List<XieChengCollidingDataRob> robs = robMapper.selectByExample(robExample);
+        if (!CollectionUtils.isEmpty(robs)) {
+            XieChengCollidingDataRob rob = robs.get(0);
+            rob.setReleaseTime(releaseDateTime);
+            handleService.activateDataByFalseToTrue(rob);
+        } else {
+            log.warn("携程促活，未匹配到撞库数据，前置表id:" + data.getId());
+        }
     }
 }

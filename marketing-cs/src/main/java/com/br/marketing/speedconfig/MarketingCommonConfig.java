@@ -2158,5 +2158,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject cryptoConfig;
 
+    /**
+     * 携程促活数据处理线程数
+     */
+    private Integer xiechengCollidingActivateThread;
+
 }
 
