@@ -176,39 +176,14 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
         AtomicInteger totalSize = new AtomicInteger(0);
         long timeout = 5L;
         String tcId = tableCreateService.getTcId(apiCode);
-        LocalDate localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE);
-        String appletDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE).minusDays(1).toString();
-        LocalDate startDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE).minusDays(31);
-        LocalDate endDate = localDate;
+        String localDate = LocalDate.parse(requestDate, YYYYMMDDSHORTLINE).toString();
         Boolean continueFlag = Boolean.TRUE;
         // 创建线程池
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20, 100);
         Integer pageSize = null;
-        List<MarketingDataValidConfig> validityDataByApiCode = marketingDataValidConfigMapper.getValidityDataByApiCode(apiCode, appletDate);
-        if (validityDataByApiCode.size() <= 0){
-            log.warn("国美有效期列表可能为空");
-            continueFlag = Boolean.FALSE;
-        }
-        Optional<MarketingDataValidConfig> minDateConfig = validityDataByApiCode.stream()
-                .min(Comparator.comparing(MarketingDataValidConfig::getValidStartDate));
-        if (minDateConfig.isPresent()) {
-            startDate = LocalDate.parse(minDateConfig.get().getValidStartDate(), YYYYMMDDSHORTLINE);
-        } else {
-            log.warn("列表为空，无法获取最小的startDate");
-        }
-        Optional<MarketingDataValidConfig> maxDateConfig = validityDataByApiCode.stream()
-                .max(Comparator.comparing(MarketingDataValidConfig::getValidEndDate));
-        if (maxDateConfig.isPresent()) {
-            endDate = LocalDate.parse(maxDateConfig.get().getValidEndDate(), YYYYMMDDSHORTLINE);
-            if (endDate.isBefore(localDate) || endDate.isEqual(localDate)){
-                endDate = localDate;
-            }
-        } else {
-            log.warn("列表为空，无法获取最大的ValidEndDate");
-        }
 
-        Long beginId = marketingTransferSyncUserMapper.getMinIdByTime(apiCode, startDate, endDate, tcId);
-        Long endId = marketingTransferSyncUserMapper.getMaxIdByTime(apiCode, startDate, endDate, tcId);
+        Long beginId = marketingTransferSyncUserMapper.minId(apiCode, localDate, tcId);
+        Long endId = marketingTransferSyncUserMapper.maxId(apiCode, localDate, tcId);
         Long middleId;
         if (endId == null || endId == 0 || beginId == null || beginId == 0){
             continueFlag = Boolean.FALSE;
@@ -216,7 +191,7 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
         MarketingTransferSyncUser syncUser = new MarketingTransferSyncUser();
         syncUser.settCid(tcId);
         syncUser.setApiCode(apiCode);
-        syncUser.setRequestData(localDate.toString());
+        syncUser.setRequestData(localDate);
         while (continueFlag) {
             pageSize = dynamicParameterService.getPageSize(null);
             middleId = beginId + pageSize;
@@ -224,14 +199,13 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
                 middleId = endId+1;
                 continueFlag = Boolean.FALSE;
             }
-            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferBySyncUserAndTime(syncUser,
-                    startDate, endDate, beginId, middleId);
+            List<MarketingTransferSyncUser> transferData = marketingTransferSyncUserMapper.getTransferBySyncUser(syncUser, beginId, middleId);
             Set<String> set = transferData.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
             beginId = middleId;
             threadPool.submit(() -> {
                 //判断转化数据是否在有效期内
                 Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum = validityPeriodService
-                        .getValidityPeriodsByCustNum(set, apiCode, appletDate);
+                        .getValidityPeriodsByCustNum(set, apiCode, localDate);
                 for (MarketingTransferSyncUser transferFilterData : transferData) {
                     String custNum = emptyDefault(transferFilterData.getCustNum());
                     SyncUserValidityPeriodsBO boMap = validityPeriodsByCustNum.get(custNum);
