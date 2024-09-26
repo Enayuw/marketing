@@ -2,7 +2,8 @@ package com.br.marketing.service.bi.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,15 +21,9 @@ import javax.annotation.Resource;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.ConditionalFormattingRule;
-import org.apache.poi.ss.usermodel.ConditionalFormattingThreshold;
-import org.apache.poi.ss.usermodel.DataBarFormatting;
-import org.apache.poi.ss.usermodel.ExtendedColor;
-import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
-import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.usermodel.XSSFConditionalFormattingRule;
-import org.apache.poi.xssf.usermodel.XSSFDataBarFormatting;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,7 +49,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.poi.excel.ExcelUtil;
@@ -214,13 +208,20 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
         // 构建 yAxis 列表
         List<String> keys = Splitter.on(",").splitToList(axisWrapVo.getXAxisProduct());
-        List<WrapDataVO> yAxis = keys.stream().map((String yName) -> {
+        List<WrapDataVO> yAxis = Lists.newArrayList();
+        for (String yName : keys) {
             // 根据 X轴步长 填充Y轴数据
             List<String> data =
                 xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yName, Collections.emptyMap()).getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
-            return new WrapDataVO(yName, data);
-        }).collect(Collectors.toList());
+            WrapDataVO numWrapDataVo = new WrapDataVO(yName, data);
+            yAxis.add(numWrapDataVo);
+            BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
+            List<String> proportion = data.stream().map(BigDecimal::new).map(num -> num.divide(total, 5, RoundingMode.HALF_UP))
+                .map(BigDecimal::toPlainString).collect(Collectors.toList());
+            WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
+            yAxis.add(proportionWrapDataVo);
+        }
         // 设置横纵坐标轴的内容
         axisWrapVo.setXAxis(xAxis);
         axisWrapVo.setYAxis(yAxis);
@@ -287,79 +288,37 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     }
 
     private void writeSingleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
-        try {
-            SheetConditionalFormatting sheetCF = writer.getSheet().getSheetConditionalFormatting();
-            ExtendedColor color = writer.getWorkbook().getCreationHelper().createExtendedColor();
-            color.setARGBHex(DATA_BAR_COLOR);
-            ConditionalFormattingRule rule = sheetCF.createConditionalFormattingRule(color);
-            DataBarFormatting dbf = rule.getDataBarFormatting();
-            // 设置数据条类型
-            dbf.getMinThreshold().setRangeType(ConditionalFormattingThreshold.RangeType.MIN);
-            dbf.getMaxThreshold().setRangeType(ConditionalFormattingThreshold.RangeType.MAX);
-            // 仅展示数据栏设置
-            dbf.setIconOnly(false);
-            if (dbf instanceof XSSFDataBarFormatting) {
-                Field _databar = XSSFDataBarFormatting.class.getDeclaredField("_databar");
-                _databar.setAccessible(true);
-                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar ctDataBar =
-                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar)_databar.get(dbf);
-                ctDataBar.setMinLength(0);
-                ctDataBar.setMaxLength(100);
-            }
-            if (rule instanceof XSSFConditionalFormattingRule) {
-                Field _cfRule = XSSFConditionalFormattingRule.class.getDeclaredField("_cfRule");
-                _cfRule.setAccessible(true);
-                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule ctRule =
-                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule)_cfRule.get(rule);
-                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtensionList extList = ctRule.addNewExtLst();
-                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtension ext = extList.addNewExt();
-                String extXML = "<x14:id" + " xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\">"
-                    + "{00000000-000E-0000-0000-000001000000}" + "</x14:id>";
-                org.apache.xmlbeans.XmlObject xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXML);
-                ext.set(xlmObject);
-                ext.setUri("{" + UUID.fastUUID() + "}");
-                Field _sh = XSSFConditionalFormattingRule.class.getDeclaredField("_sh");
-                _sh.setAccessible(true);
-                XSSFSheet ruleSheet = (XSSFSheet)_sh.get(rule);
-                extList = ruleSheet.getCTWorksheet().addNewExtLst();
-                ext = extList.addNewExt();
+        DataFormat format = writer.getWorkbook().createDataFormat();
+        short formatIndex = format.getFormat("0.000%");
+        List<String> regions = Lists.newArrayList();
+        // 写入Y轴数据
+        for (int i = 0; i < yAxis.size(); i++) {
+            WrapDataVO yAxi = yAxis.get(i);
+            List<String> yData = yAxi.getData();
+            // 按列写入
+            writer.writeCellValue(i + 1, 0, yAxi.getName());
 
-                StringBuilder extXMLBuilder = new StringBuilder();
-                extXMLBuilder.append("<x14:conditionalFormattings xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\"\n"
-                    + "xmlns:xm=\"http://schemas.microsoft.com/office/excel/2006/main\">");
-                // 写入Y轴数据
-                for (int i = 0; i < yAxis.size(); i++) {
-                    WrapDataVO yAxi = yAxis.get(i);
-                    List<String> yData = yAxi.getData();
-                    // 按列写入
-                    writer.writeCellValue(i + 1, 0, yAxi.getName());
-                    // Write the Y-axis data
-                    for (int j = 0; j < xAxis.size(); j++) {
-                        String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
-                        writer.writeCellValue(i + 1, j + 1, Long.parseLong(value));
-                    }
-                    String startCell = CellReference.convertNumToColString(i + 1) + (2);
-                    String endCell = CellReference.convertNumToColString(i + 1) + (xAxis.size() + 1);
-                    String region = startCell + ":" + endCell;
-                    CellRangeAddress[] regions = {CellRangeAddress.valueOf(region)};
-                    extXMLBuilder.append(DataBarUtil.buildMinAndMaxTypeConditionalFormatting(region));
-                    sheetCF.addConditionalFormatting(regions, rule);
+            // Write the Y-axis data
+            for (int j = 0; j < xAxis.size(); j++) {
+                String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
+                writer.writeCellValue(i + 1, j + 1, new BigDecimal(value));
+                if (i % 2 == 1) {
+                    CellStyle cellStyle = writer.createCellStyle();
+                    cellStyle.setDataFormat(formatIndex);
+                    writer.getCell(i + 1, j + 1).setCellStyle(cellStyle);
                 }
-                extXMLBuilder.append("</x14:conditionalFormattings>");
-                xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXMLBuilder.toString());
-                ext.set(xlmObject);
-                ext.setUri("{" + UUID.fastUUID() + "}");
             }
-
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BIREPORT_SERVICEERROR.getCode(), e.getMessage(), "评分分布excel添加进度条异常"), e);
+            if (i % 2 == 1) {
+                String startCell = CellReference.convertNumToColString(i + 1) + (2);
+                String endCell = CellReference.convertNumToColString(i + 1) + (xAxis.size() + 1);
+                String region = startCell + ":" + endCell;
+                regions.add(region);
+            }
         }
+        DataBarUtil.addMinMaxDataBar(writer, regions);
     }
 
-    private static void writeMultipleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
-        Double sum = yAxis.stream().flatMap(wrapDataVO -> wrapDataVO.getData().stream()) // Flatten all data lists
-            .mapToDouble(Double::parseDouble).sum();
-        // 写入Y轴数据
+    private static void writeMultipleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {// 写入Y轴数据
         for (int i = 0; i < yAxis.size(); i++) {
             WrapDataVO yAxi = yAxis.get(i);
             List<String> yData = yAxi.getData();
@@ -370,62 +329,6 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
                 writer.writeCellValue(i + 1, j + 1, Long.parseLong(value));
             }
-        }
-        try {
-            String endCell = CellReference.convertNumToColString(yAxis.size() + 1) + (xAxis.size() + 1);
-            String region = "A2:" + endCell;
-            SheetConditionalFormatting sheetCF = writer.getSheet().getSheetConditionalFormatting();
-            ExtendedColor color = writer.getWorkbook().getCreationHelper().createExtendedColor();
-            color.setARGBHex(DATA_BAR_COLOR);
-            CellRangeAddress[] regions = {CellRangeAddress.valueOf(region)};
-            ConditionalFormattingRule rule = sheetCF.createConditionalFormattingRule(color);
-            DataBarFormatting dbf = rule.getDataBarFormatting();
-            // 设置数据条
-            dbf.getMinThreshold().setRangeType(ConditionalFormattingThreshold.RangeType.NUMBER);
-            dbf.getMinThreshold().setValue(0.0);
-            dbf.getMaxThreshold().setRangeType(ConditionalFormattingThreshold.RangeType.NUMBER);
-            dbf.getMaxThreshold().setValue(sum);
-            // 仅展示数据栏设置
-            dbf.setIconOnly(false);
-
-            if (dbf instanceof XSSFDataBarFormatting) {
-                Field _databar = XSSFDataBarFormatting.class.getDeclaredField("_databar");
-                _databar.setAccessible(true);
-                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar ctDataBar =
-                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar)_databar.get(dbf);
-                ctDataBar.setMinLength(0);
-                ctDataBar.setMaxLength(100);
-            }
-            if (rule instanceof XSSFConditionalFormattingRule) {
-                Field _cfRule = XSSFConditionalFormattingRule.class.getDeclaredField("_cfRule");
-                _cfRule.setAccessible(true);
-                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule ctRule =
-                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule)_cfRule.get(rule);
-                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtensionList extList = ctRule.addNewExtLst();
-                org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtension ext = extList.addNewExt();
-                String extXML = "<x14:id" + " xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\">"
-                    + "{00000000-000E-0000-0000-000001000000}" + "</x14:id>";
-                org.apache.xmlbeans.XmlObject xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXML);
-                ext.set(xlmObject);
-                ext.setUri("{" + UUID.fastUUID() + "}");
-                Field _sh = XSSFConditionalFormattingRule.class.getDeclaredField("_sh");
-                _sh.setAccessible(true);
-                XSSFSheet ruleSheet = (XSSFSheet)_sh.get(rule);
-                extList = ruleSheet.getCTWorksheet().addNewExtLst();
-                ext = extList.addNewExt();
-
-                StringBuilder extXMLBuilder = new StringBuilder();
-                extXMLBuilder.append("<x14:conditionalFormattings xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\"\n"
-                    + "xmlns:xm=\"http://schemas.microsoft.com/office/excel/2006/main\">");
-                extXMLBuilder.append(DataBarUtil.buildNumTypeConditionalFormatting("0", String.valueOf(sum), region));
-                sheetCF.addConditionalFormatting(regions, rule);
-                extXMLBuilder.append("</x14:conditionalFormattings>");
-                xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXMLBuilder.toString());
-                ext.set(xlmObject);
-                ext.setUri("{" + UUID.fastUUID() + "}");
-            }
-        } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.BIREPORT_SERVICEERROR.getCode(), e.getMessage(), "评分分布excel添加进度条异常"), e);
         }
     }
 
