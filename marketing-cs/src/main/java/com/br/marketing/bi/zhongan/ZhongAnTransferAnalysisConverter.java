@@ -100,7 +100,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
 
                 BiReportVO biReportVO = new BiReportVO();
                 biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT.getTypeName());
-                biReportVO.setReportName("转化分析报表");
+                biReportVO.setReportName("转化分析报表-"+scoreField+"-"+dimensionValue);
                 biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
 
                 List<ReportStatisticTransferDetail> reportDataList = zhongAnBiReportMapper.queryReportStatisticTransferDetailbI_(reportId, "", "", "", "");
@@ -114,6 +114,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
 
                 // 构造横坐标数据
                 List<String> xAxis = caseList.stream().map(ReportStatisticTransferDetail::getScoreValue).distinct().collect(Collectors.toList());
+                xAxis.add("总计");
                 biReportVO.setXAxisName("分值区间");
                 biReportVO.setXAxis(xAxis);
 
@@ -126,11 +127,20 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                     String formatTypeName = reportFieldMapping.getItemFormatType();
                     FormatType formatType = FormatType.getByName(formatTypeName);
                     List<ReportStatisticTransferDetail> detailList = filter(reportDataList, scoreField, dimensionField, dimensionValue, itemName);
+                    // sort
                     detailList = detailList.stream().sorted(Comparator.comparing((data) -> {
                         String scoreValue = data.getScoreValue();
                         String value = scoreValue.split(",")[0].substring(1);
                         return Integer.parseInt(value);
                     })).collect(Collectors.toList());
+                    // sum
+                    BigDecimal sumValue = detailList.stream().map(data-> {
+                        BigDecimal itemValueDecimal = new BigDecimal(String.valueOf(data.getItemValue()));
+                        return itemValueDecimal;
+                    }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    ReportStatisticTransferDetail sumDetail = new ReportStatisticTransferDetail();
+                    sumDetail.setItemValue(sumValue.toString());
+                    detailList.add(sumDetail);
                     yAxis.add(buildWrapDataVO(itemShow, detailList, ReportStatisticTransferDetail::getItemValue, formatType));
                 }
 
@@ -140,7 +150,6 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
             }
         }
         return biReportVOList;
-
     }
 
     @Override
