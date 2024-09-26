@@ -45,6 +45,7 @@ public class ZhongAnBusAnalyEightConverter extends AbstractBiReportConverter<BiR
 
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
         reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
+        reportStatisticTransferExample.setOrderByClause("create_time desc");
         List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
         if (reportStatisticTransfers.isEmpty()) {
             return new ArrayList<>();
@@ -67,7 +68,7 @@ public class ZhongAnBusAnalyEightConverter extends AbstractBiReportConverter<BiR
         List<ZhongAnBusAnalyEightReportDTO> sortedData = dtos.stream()
                 .sorted(Comparator.comparing(ZhongAnBusAnalyEightReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
         // 构造横坐标数据
-        List<String> xAxis = sortedData.stream().map(ZhongAnBusAnalyEightReportDTO::getReportDate).distinct().collect(Collectors.toList());
+        List<String> xAxis = sortedData.stream().map(ZhongAnBusAnalyEightReportDTO::getReportDate).collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据

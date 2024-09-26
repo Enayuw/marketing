@@ -46,6 +46,7 @@ public class ZhongAnBusAnalyOneConverter extends AbstractBiReportConverter<BiRep
 
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
         reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
+        reportStatisticTransferExample.setOrderByClause("create_time desc");
         List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
         if (reportStatisticTransfers.isEmpty()) {
             return new ArrayList<>();
