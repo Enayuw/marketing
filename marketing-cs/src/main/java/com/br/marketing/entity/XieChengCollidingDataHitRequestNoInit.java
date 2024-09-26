@@ -44,6 +44,36 @@ public class XieChengCollidingDataHitRequestNoInit {
     private String extend;
 
     /**
+     * 
+     */
+    private String apiCode;
+
+    /**
+     * 本地文件记录id
+     */
+    private Long localId;
+
+    /**
+     * 同步状态 1:未同步、2:已同步
+     */
+    private Integer pushStatus;
+
+    /**
+     * 数据状态 1:正常、2:非正常
+     */
+    private Integer status;
+
+    /**
+     * 数据描述
+     */
+    private String dataMessage;
+
+    /**
+     * 日期
+     */
+    private Integer createDate;
+
+    /**
      * 创建时间
      */
     private Date createTime;
@@ -115,6 +145,54 @@ public class XieChengCollidingDataHitRequestNoInit {
 
     public void setExtend(String extend) {
         this.extend = extend == null ? null : extend.trim();
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public Long getLocalId() {
+        return localId;
+    }
+
+    public void setLocalId(Long localId) {
+        this.localId = localId;
+    }
+
+    public Integer getPushStatus() {
+        return pushStatus;
+    }
+
+    public void setPushStatus(Integer pushStatus) {
+        this.pushStatus = pushStatus;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public String getDataMessage() {
+        return dataMessage;
+    }
+
+    public void setDataMessage(String dataMessage) {
+        this.dataMessage = dataMessage == null ? null : dataMessage.trim();
+    }
+
+    public Integer getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Integer createDate) {
+        this.createDate = createDate;
     }
 
     public Date getCreateTime() {

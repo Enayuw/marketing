@@ -10,6 +10,12 @@
     <result column="retry_count" property="retryCount" jdbcType="INTEGER" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="local_id" property="localId" jdbcType="BIGINT" />
+    <result column="push_status" property="pushStatus" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="create_date" property="createDate" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -72,8 +78,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cell_sha256_code_list, hit_request_no, push_time, query_status, retry_count, 
-    is_delete, extend, create_time, update_time
+    id, cell_sha256_code_list, hit_request_no, push_time, query_status, retry_count,
+    is_delete, extend, api_code, local_id, push_status, `status`, data_message, create_date,
+    create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengCollidingDataHitRequestNoInitExample" >
     select
@@ -90,7 +97,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_xiecheng_colliding_data_hit_request_no_init
     where id = #{id,jdbcType=BIGINT}
@@ -109,14 +116,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_colliding_data_hit_request_no_init (cell_sha256_code_list, hit_request_no, 
-      push_time, query_status, retry_count, 
-      is_delete, extend, create_time, 
-      update_time)
-    values (#{cellSha256CodeList,jdbcType=VARCHAR}, #{hitRequestNo,jdbcType=VARCHAR}, 
-      #{pushTime,jdbcType=TIMESTAMP}, #{queryStatus,jdbcType=INTEGER}, #{retryCount,jdbcType=INTEGER}, 
-      #{isDelete,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_xiecheng_colliding_data_hit_request_no_init (cell_sha256_code_list, hit_request_no,
+    push_time, query_status, retry_count,
+    is_delete, extend, api_code,
+    local_id, push_status, `status`,
+    data_message, create_date, create_time,
+    update_time)
+    values (#{cellSha256CodeList,jdbcType=VARCHAR}, #{hitRequestNo,jdbcType=VARCHAR},
+    #{pushTime,jdbcType=TIMESTAMP}, #{queryStatus,jdbcType=INTEGER}, #{retryCount,jdbcType=INTEGER},
+    #{isDelete,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR},
+    #{localId,jdbcType=BIGINT}, #{pushStatus,jdbcType=INTEGER}, #{status,jdbcType=INTEGER},
+    #{dataMessage,jdbcType=VARCHAR}, #{createDate,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataHitRequestNoInit" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -144,6 +155,24 @@
       </if>
       <if test="extend != null" >
         extend,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="localId != null" >
+        local_id,
+      </if>
+      <if test="pushStatus != null" >
+        push_status,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+      <if test="dataMessage != null" >
+        data_message,
+      </if>
+      <if test="createDate != null" >
+        create_date,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -173,6 +202,24 @@
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null" >
+        #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="pushStatus != null" >
+        #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=INTEGER},
       </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
@@ -215,6 +262,24 @@
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.localId != null" >
+        local_id = #{record.localId,jdbcType=BIGINT},
+      </if>
+      <if test="record.pushStatus != null" >
+        push_status = #{record.pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataMessage != null" >
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createDate != null" >
+        create_date = #{record.createDate,jdbcType=INTEGER},
+      </if>
       <if test="record.createTime != null" >
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
@@ -229,15 +294,21 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_data_hit_request_no_init
     set id = #{record.id,jdbcType=BIGINT},
-      cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
-      hit_request_no = #{record.hitRequestNo,jdbcType=VARCHAR},
-      push_time = #{record.pushTime,jdbcType=TIMESTAMP},
-      query_status = #{record.queryStatus,jdbcType=INTEGER},
-      retry_count = #{record.retryCount,jdbcType=INTEGER},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+    hit_request_no = #{record.hitRequestNo,jdbcType=VARCHAR},
+    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    query_status = #{record.queryStatus,jdbcType=INTEGER},
+    retry_count = #{record.retryCount,jdbcType=INTEGER},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    local_id = #{record.localId,jdbcType=BIGINT},
+    push_status = #{record.pushStatus,jdbcType=INTEGER},
+    `status` = #{record.status,jdbcType=INTEGER},
+    data_message = #{record.dataMessage,jdbcType=VARCHAR},
+    create_date = #{record.createDate,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -266,6 +337,24 @@
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="localId != null" >
+        local_id = #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="pushStatus != null" >
+        push_status = #{pushStatus,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=INTEGER},
+      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -278,14 +367,20 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataHitRequestNoInit" >
     update b_xiecheng_colliding_data_hit_request_no_init
     set cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
-      hit_request_no = #{hitRequestNo,jdbcType=VARCHAR},
-      push_time = #{pushTime,jdbcType=TIMESTAMP},
-      query_status = #{queryStatus,jdbcType=INTEGER},
-      retry_count = #{retryCount,jdbcType=INTEGER},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        hit_request_no = #{hitRequestNo,jdbcType=VARCHAR},
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        query_status = #{queryStatus,jdbcType=INTEGER},
+        retry_count = #{retryCount,jdbcType=INTEGER},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        api_code = #{apiCode,jdbcType=VARCHAR},
+        local_id = #{localId,jdbcType=BIGINT},
+        push_status = #{pushStatus,jdbcType=INTEGER},
+        `status` = #{status,jdbcType=INTEGER},
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+        create_date = #{createDate,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
