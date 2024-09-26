@@ -10,7 +10,9 @@ import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.github.pagehelper.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.pulsar.shade.org.apache.commons.codec.binary.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -40,9 +42,15 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        String suShangFileDate = marketingCommonConfig.getSuShangFileDate();
         String dateToday = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        //T-2
-        String dateTodayReduceTwo = LocalDate.now().minusDays(2).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String dateTodayReduceTwo = "";
+        // 原有T-2的逻辑改为了T日
+        dateTodayReduceTwo = LocalDate.now().minusDays(2).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        if (StringUtil.isNotEmpty(suShangFileDate)){
+            dateTodayReduceTwo = suShangFileDate;
+        }
+
         //查询待推送文件
         LocalFileExample example = new LocalFileExample();
         example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_TRANSFER.getValue())
@@ -58,7 +66,7 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
                 .andPushStatusIsNull()
                 .andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
         List<LocalFile> callRecordFiles = localFileMapper.selectByExample(exampleCallRecord);
-        //T日通话明细和T-2日转化数据
+        //T日通话明细和T日转化数据(原逻辑：T-2日转化数据)
         if (CollectionUtils.isEmpty(transferFiles) || CollectionUtils.isEmpty(callRecordFiles)) {
             log.warn("苏商自动化回传，通话明细或转化文件为空");
             return;
