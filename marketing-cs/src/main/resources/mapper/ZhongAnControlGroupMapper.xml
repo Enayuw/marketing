@@ -26,5 +26,20 @@
         order by user_type asc
     </select>
 
+    <select id="selectConfigStatusbI_" resultType="java.lang.String">
+        select report_date from
+        dws_za_control_group_config
+        where
+        <if test="startDate !=null and startDate !=''">
+            <![CDATA[ report_date >=#{startDate} and ]]>
+        </if>
+        <if test="endDate !=null and endDate !=''">
+            <![CDATA[ report_date <=#{endDate} and ]]>
+        </if>
+        is_delete =0
+        group by report_date
+        order by report_date asc
+    </select>
+
 
 </mapper>

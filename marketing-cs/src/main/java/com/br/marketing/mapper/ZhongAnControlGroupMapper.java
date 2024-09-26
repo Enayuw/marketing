@@ -14,4 +14,5 @@ public interface ZhongAnControlGroupMapper {
 
     int saveCustomInfobI_(@Param("list") List<ZhongAnControlGroupDTO> list);
 
+    List<String> selectConfigStatusbI_(@Param("startDate") String startDate, @Param("endDate") String endDate);
 }

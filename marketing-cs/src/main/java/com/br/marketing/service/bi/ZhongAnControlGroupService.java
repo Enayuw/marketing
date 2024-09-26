@@ -18,4 +18,6 @@ public interface ZhongAnControlGroupService {
     Result<List<ZhongAnCustomInfoVO>> getCustomInfoList(ControlGroupDTO controlGroupDTO);
 
     Result<Long> saveCustomInfo(ZhongAnControlGroupParam param);
+
+    Result<List<String>> getConfigStatus(String startDate, String endDate);
 }

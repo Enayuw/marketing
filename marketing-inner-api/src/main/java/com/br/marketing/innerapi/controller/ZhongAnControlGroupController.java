@@ -42,5 +42,10 @@ public class ZhongAnControlGroupController {
         return new ApiResult().fromResult(zhongAnControlGroupService.saveCustomInfo(param), CODE_1);
     }
 
+    @ApiOperation(value = "查询近一个月配置状态")
+    @GetMapping("/getConfigStatus")
+    public ApiResult<List<String>> getConfigStatus(@RequestParam String startDate, @RequestParam String endDate) {
+        return new ApiResult<List<String>>().fromResult(zhongAnControlGroupService.getConfigStatus(startDate,endDate), CODE_1);
+    }
 
 }

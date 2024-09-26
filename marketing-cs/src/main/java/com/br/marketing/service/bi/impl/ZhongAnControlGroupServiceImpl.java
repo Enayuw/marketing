@@ -2,6 +2,7 @@ package com.br.marketing.service.bi.impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO;
 import com.br.marketing.mapper.ZhongAnControlGroupMapper;
@@ -51,6 +52,15 @@ public class ZhongAnControlGroupServiceImpl implements ZhongAnControlGroupServic
         }
         zhongAnControlGroupMapper.saveCustomInfobI_(buildCustomInfo(param));
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(param.getReportDate());
+    }
+
+    @Override
+    public Result<List<String>> getConfigStatus(String startDate, String endDate) {
+        if(StringUtils.isEmpty(startDate) || StringUtils.isEmpty(endDate)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("查询日期为空！");
+        }
+        List<String> strings = zhongAnControlGroupMapper.selectConfigStatusbI_(startDate, endDate);
+        return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(strings);
     }
 
     private List<ZhongAnControlGroupDTO> buildCustomInfo(ZhongAnControlGroupParam param) {
