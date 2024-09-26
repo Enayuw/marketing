@@ -217,8 +217,9 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             WrapDataVO numWrapDataVo = new WrapDataVO(yName, data);
             yAxis.add(numWrapDataVo);
             BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
-            List<String> proportion = data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
-                .map(BigDecimal::toPlainString).map(percent -> percent + "%").collect(Collectors.toList());
+            List<String> proportion =
+                data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
+                    .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : percent + "%").collect(Collectors.toList());
             WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
             yAxis.add(proportionWrapDataVo);
         }
@@ -290,7 +291,6 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     private void writeSingleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
         Workbook workbook = writer.getWorkbook();
         DataFormat format = workbook.createDataFormat();
-        short formatIndex = format.getFormat("0.000%");
         List<String> regions = Lists.newArrayList();
         // 写入Y轴数据
         for (int i = 0; i < yAxis.size(); i++) {
@@ -303,9 +303,16 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             for (int j = 0; j < xAxis.size(); j++) {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
                 if (value.contains("%")) {
-                    writer.writeCellValue(i + 1, j + 1, new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP));
+                    BigDecimal decimal = new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+                    writer.writeCellValue(i + 1, j + 1, decimal);
                     CellStyle cellStyle = StyleUtil.cloneCellStyle(workbook, writer.getCellStyle());
-                    cellStyle.setDataFormat(formatIndex);
+                    if (decimal.compareTo(BigDecimal.ZERO) == 0) {
+                        short formatIndex = format.getFormat("0%");
+                        cellStyle.setDataFormat(formatIndex);
+                    } else {
+                        short formatIndex = format.getFormat("0.000%");
+                        cellStyle.setDataFormat(formatIndex);
+                    }
                     writer.getCell(i + 1, j + 1).setCellStyle(cellStyle);
                 } else {
                     writer.writeCellValue(i + 1, j + 1, value);
