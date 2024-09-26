@@ -2,8 +2,18 @@ package com.br.marketing.bi.zhongan;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import cn.hutool.poi.excel.ExcelWriter;
+import javax.annotation.Resource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -29,14 +39,9 @@ import com.br.marketing.vo.bi.param.BiReportParam;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.math.RoundingMode;
-import java.util.*;
-import java.util.stream.Collectors;
+import cn.hutool.poi.excel.ExcelWriter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @ClassName ZhonganMultiHeadGroupConverter
@@ -302,7 +307,14 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                 writer.writeCellValue(i + 1, rowIndex, yAxi.getName());
                 // 写入Y轴数据
                 for (int j = 0; j < xAxis.size(); j++) {
-                    String value = (j < yData.size() && org.apache.commons.lang3.StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
+                    String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
+                    if (value.contains("%")) {
+                        BigDecimal decimal = new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+                        writer.writeCellValue(i + 1, j + 1, decimal);
+                        writer.getCell(i + 1, j + 1).setCellStyle(getDataBarCellStyle(writer,decimal));
+                    } else {
+                        writer.writeCellValue(i + 1, j + 1, value);
+                    }
                     writer.writeCellValue(i + 1, rowIndex + j + 1, value);
                 }
             }
@@ -311,5 +323,4 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
         }
         autoSizeColumnAll(writer);
     }
-
 }

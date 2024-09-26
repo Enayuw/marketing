@@ -3,6 +3,7 @@ package com.br.marketing.bi;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.poi.excel.ExcelWriter;
+import cn.hutool.poi.excel.style.StyleUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.mapper.SourceStatisticDictMapper;
@@ -12,6 +13,9 @@ import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 
 import javax.annotation.Resource;
@@ -118,6 +122,13 @@ public abstract class AbstractBiReportConverter<V, T> {
                 // 写入Y轴数据
                 for (int j = 0; j < xAxis.size(); j++) {
                     String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
+                    if (value.contains("%")) {
+                        BigDecimal decimal = new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+                        writer.writeCellValue(i + 1, j + 1, decimal);
+                        writer.getCell(i + 1, j + 1).setCellStyle(getDataBarCellStyle(writer,decimal));
+                    } else {
+                        writer.writeCellValue(i + 1, j + 1, value);
+                    }
                     writer.writeCellValue(i + 1, rowIndex + j + 1, value);
                 }
             }
@@ -263,5 +274,34 @@ public abstract class AbstractBiReportConverter<V, T> {
         }
     }
 
+
+    /**
+     * 获取条件格式指定单元格格式
+     *
+     * @param writer  writer
+     * @param decimal decimal
+     * @return {@link CellStyle }
+     * @author senyang.zheng
+     * @date 2024/09/27
+     */
+    protected CellStyle getDataBarCellStyle(ExcelWriter writer, BigDecimal decimal){
+        Workbook workbook = writer.getWorkbook();
+        DataFormat format = workbook.createDataFormat();
+        CellStyle cellStyle = StyleUtil.cloneCellStyle(workbook, writer.getCellStyle());
+        short formatIndex;
+        if (decimal.compareTo(BigDecimal.ZERO) == 0) {
+            formatIndex = format.getFormat("0%");
+        } else {
+            int scale = decimal.scale();
+            StringBuilder pattern = new StringBuilder("0.");
+            for (int i = 0; i < scale; i++) {
+                pattern.append("0");
+            }
+            pattern.append("%");
+            formatIndex = format.getFormat(pattern.toString());
+        }
+        cellStyle.setDataFormat(formatIndex);
+        return cellStyle;
+    }
 
 }
