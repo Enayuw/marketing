@@ -134,7 +134,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                         return Integer.parseInt(value);
                     })).collect(Collectors.toList());
                     // sum
-                    BigDecimal sumValue = detailList.stream().map(data-> {
+                    BigDecimal sumValue = detailList.stream().map((ReportStatisticTransferDetail data)-> {
                         BigDecimal itemValueDecimal = new BigDecimal(String.valueOf(data.getItemValue()));
                         return itemValueDecimal;
                     }).reduce(BigDecimal.ZERO, BigDecimal::add);
