@@ -2153,5 +2153,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
 
+    /**
+     * 苏商文件时间
+     */
+    private String suShangFileDate;
+
 }
 

@@ -176,7 +176,7 @@ api:
   biocloo:
     baseUrl: https://callcenter.biocloo.com.cn
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
-    isProxy: true
+    isProxy: false
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

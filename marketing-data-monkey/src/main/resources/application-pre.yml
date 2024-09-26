@@ -234,7 +234,7 @@ api:
   biocloo:
     baseUrl: http://58.33.156.202:57436
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
-    isProxy: true
+    isProxy: false
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672

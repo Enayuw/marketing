@@ -2,33 +2,9 @@ package com.br.marketing.monkeydata.handle.yixin;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
-import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.client.baiying.ByApiServiceClient;
-import com.br.marketing.client.baiying.input.BlacklistDataDTO;
-import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
-import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.monkeydata.entity.IterationResult;
-import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
-import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
 import com.br.marketing.monkeydata.handle.yixin.sole.YiXinTransferPushRedisSoleProcessor;
-import com.br.marketing.service.Impl.TableCreateServiceImpl;
-import com.br.marketing.service.TransferDataValidityPeriodService;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
-
-import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -41,13 +17,39 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
+
+import com.br.common.log.AlertLog;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
+import com.br.marketing.client.baiying.ByApiServiceClient;
+import com.br.marketing.client.baiying.input.BlacklistDataDTO;
+import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.monkeydata.entity.IterationResult;
+import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
+import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
+import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 宜信转化过滤推送百应
  */
 @Service
 @Slf4j
-public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<MarketingTransferSyncUser
-        , MarketingTransferSyncUser, YiXinCondition> {
+public class YiXinTransferPushToBioclooHandler extends IMonkeyDataHandle<MarketingTransferSyncUser, MarketingTransferSyncUser, YiXinCondition> {
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
@@ -70,8 +72,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
     private final static String TITLE = "【宜信转化过滤推送百应】";
 
     @Override
-    public Result<IterationResult<MarketingTransferSyncUser, YiXinCondition>> getInputData(
-            YiXinCondition condition) {
+    public Result<IterationResult<MarketingTransferSyncUser, YiXinCondition>> getInputData(YiXinCondition condition) {
         return null;
     }
 
@@ -93,10 +94,10 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         String tCid = tableCreateService.getTcId(apiCode);
 
         Long indexId = null;
-        while(true) {
+        while (true) {
             // 循环获取条件数据，每次pageSize条
-            final List<MarketingTransferSyncUser> pageList = marketingTransferSyncUserMapper.getYxCustNumsByRequestDate(
-                    tCid, apiCode, requestData, extendSql, indexId, pageSize);
+            final List<MarketingTransferSyncUser> pageList =
+                marketingTransferSyncUserMapper.getYxCustNumsByRequestDate(tCid, apiCode, requestData, extendSql, indexId, pageSize);
 
             if (CollectionUtils.isEmpty(pageList)) {
                 break;
@@ -106,7 +107,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
 
             setThreadPoolParam(processPool, pushPool);
 
-            log.warn(TITLE+"action, 加入processPool");
+            log.warn(TITLE + "action, 加入processPool");
             futureList.add(processPool.submit(() -> processData(pageList, condition, pushPool)));
 
         }
@@ -115,9 +116,8 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             try {
                 future.get(1, TimeUnit.MINUTES);
             } catch (Exception e) {
-                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                        , TITLE), e);
-//                future.cancel(true);
+                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage(), TITLE), e);
+                // future.cancel(true);
                 result.setCode(ResultCode.FAIL.getValue());
             }
         }
@@ -129,14 +129,13 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 long completedTask2Count = processPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
                     result.setCode(ResultCode.FAIL.getValue());
-                    log.warn(TITLE+"业务线程等待超时, {}, {}", apiCode, requestData);
+                    log.warn(TITLE + "业务线程等待超时, {}, {}", apiCode, requestData);
                     break;
                 }
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                    , TITLE), e);
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage(), TITLE), e);
             result.setCode(ResultCode.FAIL.getValue());
             Thread.currentThread().interrupt();
         }
@@ -148,14 +147,13 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 long completedTask2Count = pushPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
                     result.setCode(ResultCode.FAIL.getValue());
-                    log.warn(TITLE+"推送线程等待超时, {}, {}", apiCode, requestData);
+                    log.warn(TITLE + "推送线程等待超时, {}, {}", apiCode, requestData);
                     break;
                 }
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                    , TITLE), e);
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage(), TITLE), e);
             result.setCode(ResultCode.FAIL.getValue());
             Thread.currentThread().interrupt();
         }
@@ -167,11 +165,11 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         return null;
     }
 
-    public Result<List<MarketingTransferSyncUser>> processData(List<MarketingTransferSyncUser> pageList,
-                YiXinCondition condition, ThreadPoolExecutor pushPool) {
+    public Result<List<MarketingTransferSyncUser>> processData(List<MarketingTransferSyncUser> pageList, YiXinCondition condition,
+        ThreadPoolExecutor pushPool) {
         Result<List<MarketingTransferSyncUser>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
-        log.warn(TITLE+"processData开始");
+        log.warn(TITLE + "processData开始");
 
         int processSize = pageList.size();
         long startTime = System.currentTimeMillis();
@@ -193,12 +191,12 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                 return result;
             }
 
-            // 过滤掉非百应标识的上传数据
+            // 过滤掉非百可录标识的上传数据
             custNumToSyncUserBoMap.forEach((key, periodsBO) -> {
                 List<MarketingSyncUser> filtered = periodsBO.getSyncUsers().stream().filter((MarketingSyncUser syncUser) -> {
                     String reserveField1 = syncUser.getReserveField1();
                     return StringUtils.isNotEmpty(reserveField1) && JSONObject.isValid(reserveField1)
-                            && "1".equals(JSONObject.parseObject(reserveField1).getString("resourceChannel"));
+                        && "2".equals(JSONObject.parseObject(reserveField1).getString("resourceChannel"));
                 }).collect(Collectors.toList());
                 periodsBO.setSyncUsers(filtered);
             });
@@ -219,7 +217,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             }
 
             // distribute去重 custNum + distribute_date
-            transferPushRedisSoleProcessor.process(pushList, condition,DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getValue());
+            transferPushRedisSoleProcessor.process(pushList, condition, DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BIOCLOO.getValue());
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
@@ -228,7 +226,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         }
 
         long endTime = System.currentTimeMillis();
-        log.warn(TITLE+"processData结束, 量级{}, 耗时{}", processSize, (endTime-startTime));
+        log.warn(TITLE + "processData结束, 量级{}, 耗时{}", processSize, (endTime - startTime));
         return result;
     }
 
@@ -248,35 +246,36 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         long startTime = System.currentTimeMillis();
 
         Map<String, Object> pushConfigMap = marketingCommonConfig.getYiXinTransferPushBaiYingPush();
-        int pushSize = pushConfigMap.get("pushPartSize") != null ?
-                Integer.parseInt(String.valueOf(pushConfigMap.get("pushPartSize"))) : 500;
-        String pushMethod = pushConfigMap.get("pushMethod") != null ?
-                String.valueOf(pushConfigMap.get("pushMethod")) : "blackData";
+        int pushSize = pushConfigMap.get("pushPartSize") != null ? Integer.parseInt(String.valueOf(pushConfigMap.get("pushPartSize"))) : 500;
+        String pushMethod = pushConfigMap.get("pushMethod") != null ? String.valueOf(pushConfigMap.get("pushMethod")) : "blackData";
 
         int size = outputDataList.size();
         int count = 0;
-        List<BlacklistDataDTO> pushList = new ArrayList<>();
+        List<BlacklistDataDTO> pushBioclooList = new ArrayList<>();
         for (MarketingTransferSyncUser transferSyncUser : outputDataList) {
-            BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
-            blacklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
-            blacklistDataDTO.setExpireDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).concat(" 23:59:59"));
-            pushList.add(blacklistDataDTO);
+            BlacklistDataDTO blackBlklistDataDTO = new BlacklistDataDTO();
+            blackBlklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
+            blackBlklistDataDTO.setExpireDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).concat(" 23:59:59"));
+            blackBlklistDataDTO.setPhone(transferSyncUser.getReserveField2());
+            pushBioclooList.add(blackBlklistDataDTO);
             count++;
-            if (pushList.size() == pushSize || size == count) {
-                List<BlacklistDataDTO> finalList = pushList;
+            if (pushBioclooList.size() == pushSize || size == count) {
+                List<BlacklistDataDTO> finalList = pushBioclooList;
                 pushPool.execute(() -> {
-                    ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
-                    reqBlacklistDTO.setMethod(pushMethod);
-                    reqBlacklistDTO.setApiCode(condition.getSynApiCode());
-                    reqBlacklistDTO.setData(finalList);
-                    byApiServiceClient.pushBaiying(reqBlacklistDTO, 0);
+
+                    // 紧急需求，增加了推送百可录逻辑（后续逻辑变更请注意）
+                    ReqBlacklistDTO reqBklBlacklistDTO = new ReqBlacklistDTO();
+                    reqBklBlacklistDTO.setMethod(pushMethod);
+                    reqBklBlacklistDTO.setApiCode(condition.getSynApiCode());
+                    reqBklBlacklistDTO.setData(finalList);
+                    byApiServiceClient.pushDataToBiocloo(reqBklBlacklistDTO, 0);
                 });
-                pushList = new ArrayList<>();
+                pushBioclooList = new ArrayList<>();
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());
         long endTime = System.currentTimeMillis();
-        log.warn(TITLE+"resultAction, 量级{}, 耗时{}", processSize, (endTime-startTime));
+        log.warn(TITLE + "resultAction, 量级{}, 耗时{}", processSize, (endTime - startTime));
         return result;
     }
 
@@ -298,35 +297,38 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         int curProcessPoolSize = processPool.getCorePoolSize();
         int curPushPoolSize = pushPool.getCorePoolSize();
 
-        if(processPoolSize != curProcessPoolSize){
+        if (processPoolSize != curProcessPoolSize) {
             processPool.setCorePoolSize(processPoolSize);
             processPool.setMaximumPoolSize(processPoolSize);
         }
 
-        if(pushPoolSize != curPushPoolSize) {
+        if (pushPoolSize != curPushPoolSize) {
             pushPool.setCorePoolSize(pushPoolSize);
             pushPool.setMaximumPoolSize(pushPoolSize);
         }
     }
 
-    private String assembleExtendSql(String priority){
+    private String assembleExtendSql(String priority) {
         String extendSql = "";
-        switch (priority){
-            case "1": extendSql = "and if_apply ='1' and apply_result ='0' " +
-                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL)";
+        switch (priority) {
+            case "1":
+                extendSql = "and if_apply ='1' and apply_result ='0' "
+                    + "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL)";
                 break;
-            case "2": extendSql = "and if_apply ='1' and apply_result ='2' " +
-                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL)";
+            case "2":
+                extendSql = "and if_apply ='1' and apply_result ='2' "
+                    + "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL)";
                 break;
-            case "3": extendSql = "and if_lent ='0' " +
-                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) " +
-                    "AND reserve_field1->'$.applyLoan' = '1'";
+            case "3":
+                extendSql = "and if_lent ='0' " + "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) "
+                    + "AND reserve_field1->'$.applyLoan' = '1'";
                 break;
-            case "4": extendSql = "and if_lent ='1' " +
-                    "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) " +
-                    "AND reserve_field1->'$.applyLoan' = '1' and reserve_field1 ->> '$.availableAmount' < 2000.00";
+            case "4":
+                extendSql = "and if_lent ='1' " + "AND (reserve_field1 -> '$.transformType' != '1' or reserve_field1 -> '$.transformType' IS NULL) "
+                    + "AND reserve_field1->'$.applyLoan' = '1' and reserve_field1 ->> '$.availableAmount' < 2000.00";
                 break;
-            default:  extendSql = "and id < 0";
+            default:
+                extendSql = "and id < 0";
         }
         return extendSql;
     }
