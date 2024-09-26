@@ -23,6 +23,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.springframework.stereotype.Service;
@@ -53,6 +54,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
+import cn.hutool.poi.excel.style.StyleUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -288,7 +290,8 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
     }
 
     private void writeSingleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
-        DataFormat format = writer.getWorkbook().createDataFormat();
+        Workbook workbook = writer.getWorkbook();
+        DataFormat format = workbook.createDataFormat();
         short formatIndex = format.getFormat("0.000%");
         List<String> regions = Lists.newArrayList();
         // 写入Y轴数据
@@ -301,11 +304,13 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             // Write the Y-axis data
             for (int j = 0; j < xAxis.size(); j++) {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
-                writer.writeCellValue(i + 1, j + 1, new BigDecimal(value));
                 if (i % 2 == 1) {
-                    CellStyle cellStyle = writer.createCellStyle();
+                    writer.writeCellValue(i + 1, j + 1, new BigDecimal(value));
+                    CellStyle cellStyle = StyleUtil.cloneCellStyle(workbook, writer.getCellStyle());;
                     cellStyle.setDataFormat(formatIndex);
                     writer.getCell(i + 1, j + 1).setCellStyle(cellStyle);
+                } else {
+                    writer.writeCellValue(i + 1, j + 1, value);
                 }
             }
             if (i % 2 == 1) {
@@ -318,7 +323,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         DataBarUtil.addMinMaxDataBar(writer, regions);
     }
 
-    private static void writeMultipleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {// 写入Y轴数据
+    private static void writeMultipleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
         for (int i = 0; i < yAxis.size(); i++) {
             WrapDataVO yAxi = yAxis.get(i);
             List<String> yData = yAxi.getData();
