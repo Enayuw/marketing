@@ -50,8 +50,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
-public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingSyncUser
-        , MarketingSyncUser, YiXinCondition> {
+public class YiXinBlackPushToBioclooHandler extends IMonkeyDataHandle<MarketingSyncUser, MarketingSyncUser, YiXinCondition> {
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
@@ -61,7 +60,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
-    
+
     @Resource
     private YiXinBlackPushRedisSoleProcessor blackPushRedisSoleProcessor;
 
@@ -77,8 +76,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
     private final static String TITLE = "【宜信转化过滤推送百应】";
 
     @Override
-    public Result<IterationResult<MarketingSyncUser, YiXinCondition>> getInputData(
-            YiXinCondition condition) {
+    public Result<IterationResult<MarketingSyncUser, YiXinCondition>> getInputData(YiXinCondition condition) {
         return null;
     }
 
@@ -105,18 +103,16 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         for (MarketingDataValidConfig config : configList) {
             String userType = config.getUserType();
             String appletDate = config.getAppletDate();
-            log.warn(TITLE+"当前有效期, {}, {}", userType, appletDate);
+            log.warn(TITLE + "当前有效期, {}, {}", userType, appletDate);
 
             Long indexId = null;
             while (true) {
                 // 循环获取条件数据，每次pageSize条
-                final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getYiXinNewSyncUserByDateAndResourceChannel(
-                        synApiCode, appletDate,"1", userType, pageSize, indexId);
-
+                final List<MarketingSyncUser> pageList =
+                    marketingSyncUserMapper.getYiXinNewSyncUserByDateAndResourceChannel(synApiCode, appletDate, "2", userType, pageSize, indexId);
                 if (CollectionUtils.isEmpty(pageList)) {
                     break;
                 }
-
                 indexId = pageList.get(pageList.size() - 1).getId();
 
                 setThreadPoolParam(processPool, pushPool);
@@ -130,9 +126,8 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             try {
                 future.get(1, TimeUnit.MINUTES);
             } catch (Exception e) {
-                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                        , TITLE), e);
-//                future.cancel(true);
+                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage(), TITLE), e);
+                // future.cancel(true);
                 result.setCode(ResultCode.FAIL.getValue());
             }
         }
@@ -144,14 +139,13 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
                 long completedTask2Count = processPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
                     result.setCode(ResultCode.FAIL.getValue());
-                    log.warn(TITLE+"业务线程等待超时, {}, {}", apiCode, requestData);
+                    log.warn(TITLE + "业务线程等待超时, {}, {}", apiCode, requestData);
                     break;
                 }
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                    , TITLE), e);
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage(), TITLE), e);
             result.setCode(ResultCode.FAIL.getValue());
             Thread.currentThread().interrupt();
         }
@@ -163,14 +157,13 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
                 long completedTask2Count = pushPool.getCompletedTaskCount();
                 if (taskCount == completedTask2Count) {
                     result.setCode(ResultCode.FAIL.getValue());
-                    log.warn(TITLE+"推送线程等待超时, {}, {}", apiCode, requestData);
+                    log.warn(TITLE + "推送线程等待超时, {}, {}", apiCode, requestData);
                     break;
                 }
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
-                    , TITLE), e);
+            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage(), TITLE), e);
             result.setCode(ResultCode.FAIL.getValue());
             Thread.currentThread().interrupt();
         }
@@ -182,8 +175,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         return null;
     }
 
-    public Result<List<MarketingSyncUser>> processData(List<MarketingSyncUser> pageList,
-                YiXinCondition condition, ThreadPoolExecutor pushPool) {
+    public Result<List<MarketingSyncUser>> processData(List<MarketingSyncUser> pageList, YiXinCondition condition, ThreadPoolExecutor pushPool) {
         Result<List<MarketingSyncUser>> result = new Result<>();
         result.setCode(ResultCode.FAIL.getValue());
         try {
@@ -199,10 +191,8 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
                 blackData.putAll(queryBlackResult.getData());
             }
 
-            List<MarketingSyncUser> blackList = pageList.stream()
-                    .filter(syncUser -> !StringUtils.isBlank(blackData.get(syncUser.getId().toString()))
-                            && blackData.get(syncUser.getId().toString()).equals("Y"))
-                    .collect(Collectors.toList());
+            List<MarketingSyncUser> blackList = pageList.stream().filter(syncUser -> !StringUtils.isBlank(blackData.get(syncUser.getId().toString()))
+                && blackData.get(syncUser.getId().toString()).equals("Y")).collect(Collectors.toList());
 
             if (CollectionUtils.isEmpty(blackList)) {
                 return result;
@@ -210,7 +200,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             pushList = blackList;
 
             // distribute去重 custNum + distribute_date
-            blackPushRedisSoleProcessor.process(pushList, condition, DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getValue());
+            blackPushRedisSoleProcessor.process(pushList, condition, DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BIOCLOO.getValue());
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
@@ -233,32 +223,29 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         }
 
         Map<String, Object> pushConfigMap = marketingCommonConfig.getYiXinTransferPushBaiYingPush();
-        int pushSize = pushConfigMap.get("pushPartSize") != null ?
-                Integer.parseInt(String.valueOf(pushConfigMap.get("pushPartSize"))) : 500;
-        String pushMethod = pushConfigMap.get("pushMethod") != null ?
-                String.valueOf(pushConfigMap.get("pushMethod")) : "blackData";
-
+        int pushSize = pushConfigMap.get("pushPartSize") != null ? Integer.parseInt(String.valueOf(pushConfigMap.get("pushPartSize"))) : 500;
+        String pushMethod = pushConfigMap.get("pushMethod") != null ? String.valueOf(pushConfigMap.get("pushMethod")) : "blackData";
         int size = outputDataList.size();
         int count = 0;
-        List<BlacklistDataDTO> pushList = new ArrayList<>();
+        List<BlacklistDataDTO> pushBioclooList = new ArrayList<>();
         for (MarketingSyncUser syncUser : outputDataList) {
-            BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
-            blacklistDataDTO.setCaseNum(syncUser.getCustNum());
-            blacklistDataDTO.setExpireDate(LocalDate.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                    .concat(" 23:59:59"));
-            pushList.add(blacklistDataDTO);
+            BlacklistDataDTO bioclooBlackDataList = new BlacklistDataDTO();
+            bioclooBlackDataList.setCaseNum(syncUser.getCustNum());
+            bioclooBlackDataList.setExpireDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).concat(" 23:59:59"));
+            bioclooBlackDataList.setPhone(syncUser.getCellMd5());
+            pushBioclooList.add(bioclooBlackDataList);
             count++;
-            if (pushList.size() == pushSize || size == count) {
-                List<BlacklistDataDTO> finalList = pushList;
+            if (pushBioclooList.size() == pushSize || size == count) {
+                List<BlacklistDataDTO> finalList = pushBioclooList;
                 pushPool.execute(() -> {
-                    ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
-                    reqBlacklistDTO.setMethod(pushMethod);
-                    reqBlacklistDTO.setApiCode(condition.getSynApiCode());
-                    reqBlacklistDTO.setData(finalList);
-                    byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+                    // 紧急需求，增加了推送百可录逻辑（后续逻辑变更请注意）
+                    ReqBlacklistDTO reqBklBlacklistDTO = new ReqBlacklistDTO();
+                    reqBklBlacklistDTO.setMethod(pushMethod);
+                    reqBklBlacklistDTO.setApiCode(condition.getSynApiCode());
+                    reqBklBlacklistDTO.setData(finalList);
+                    byApiServiceClient.pushDataToBiocloo(reqBklBlacklistDTO, 0);
                 });
-                pushList = new ArrayList<>();
+                pushBioclooList = new ArrayList<>();
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());
@@ -304,8 +291,8 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
     private List<MarketingDataValidConfig> findConfigByBetweenDate(String synApiCode, String date) {
         MarketingDataValidConfigExample example = new MarketingDataValidConfigExample();
-        example.createCriteria().andApiCodeEqualTo(synApiCode).andValidStartDateLessThanOrEqualTo(date)
-                .andValidEndDateGreaterThanOrEqualTo(date).andIsDelEqualTo(1);
+        example.createCriteria().andApiCodeEqualTo(synApiCode).andValidStartDateLessThanOrEqualTo(date).andValidEndDateGreaterThanOrEqualTo(date)
+            .andIsDelEqualTo(1);
         example.setOrderByClause("create_time desc, update_time desc");
         return marketingDataValidConfigMapper.selectByExample(example);
     }
