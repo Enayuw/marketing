@@ -8,7 +8,7 @@
     <result column="item_show" property="itemShow" jdbcType="VARCHAR" />
     <result column="item_name" property="itemName" jdbcType="VARCHAR" />
     <result column="item_format_type" property="itemFormatType" jdbcType="VARCHAR" />
-    <result column="item_order" property="itemOrder" jdbcType="VARCHAR" />
+    <result column="item_order" property="itemOrder" jdbcType="INTEGER" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -114,7 +114,7 @@
       is_del, create_time, update_time
       )
     values (#{reportTaskId,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{itemShow,jdbcType=VARCHAR}, 
-      #{itemName,jdbcType=VARCHAR}, #{itemFormatType,jdbcType=VARCHAR}, #{itemOrder,jdbcType=VARCHAR}, 
+      #{itemName,jdbcType=VARCHAR}, #{itemFormatType,jdbcType=VARCHAR}, #{itemOrder,jdbcType=INTEGER}, 
       #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
       )
   </insert>
@@ -169,7 +169,7 @@
         #{itemFormatType,jdbcType=VARCHAR},
       </if>
       <if test="itemOrder != null" >
-        #{itemOrder,jdbcType=VARCHAR},
+        #{itemOrder,jdbcType=INTEGER},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -210,7 +210,7 @@
         item_format_type = #{record.itemFormatType,jdbcType=VARCHAR},
       </if>
       <if test="record.itemOrder != null" >
-        item_order = #{record.itemOrder,jdbcType=VARCHAR},
+        item_order = #{record.itemOrder,jdbcType=INTEGER},
       </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
@@ -234,7 +234,7 @@
       item_show = #{record.itemShow,jdbcType=VARCHAR},
       item_name = #{record.itemName,jdbcType=VARCHAR},
       item_format_type = #{record.itemFormatType,jdbcType=VARCHAR},
-      item_order = #{record.itemOrder,jdbcType=VARCHAR},
+      item_order = #{record.itemOrder,jdbcType=INTEGER},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -261,7 +261,7 @@
         item_format_type = #{itemFormatType,jdbcType=VARCHAR},
       </if>
       <if test="itemOrder != null" >
-        item_order = #{itemOrder,jdbcType=VARCHAR},
+        item_order = #{itemOrder,jdbcType=INTEGER},
       </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
@@ -282,7 +282,7 @@
       item_show = #{itemShow,jdbcType=VARCHAR},
       item_name = #{itemName,jdbcType=VARCHAR},
       item_format_type = #{itemFormatType,jdbcType=VARCHAR},
-      item_order = #{itemOrder,jdbcType=VARCHAR},
+      item_order = #{itemOrder,jdbcType=INTEGER},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

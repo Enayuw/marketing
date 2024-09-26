@@ -36,7 +36,7 @@ public class ReportFieldMapping {
     /**
      * 报表列顺序
      */
-    private String itemOrder;
+    private Integer itemOrder;
 
     /**
      * 是否有效 1-有效；9-失效
@@ -101,12 +101,12 @@ public class ReportFieldMapping {
         this.itemFormatType = itemFormatType == null ? null : itemFormatType.trim();
     }
 
-    public String getItemOrder() {
+    public Integer getItemOrder() {
         return itemOrder;
     }
 
-    public void setItemOrder(String itemOrder) {
-        this.itemOrder = itemOrder == null ? null : itemOrder.trim();
+    public void setItemOrder(Integer itemOrder) {
+        this.itemOrder = itemOrder;
     }
 
     public Integer getIsDel() {

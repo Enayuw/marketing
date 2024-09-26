@@ -525,62 +525,52 @@ public class ReportFieldMappingExample {
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderEqualTo(String value) {
+        public Criteria andItemOrderEqualTo(Integer value) {
             addCriterion("item_order =", value, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderNotEqualTo(String value) {
+        public Criteria andItemOrderNotEqualTo(Integer value) {
             addCriterion("item_order <>", value, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderGreaterThan(String value) {
+        public Criteria andItemOrderGreaterThan(Integer value) {
             addCriterion("item_order >", value, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderGreaterThanOrEqualTo(String value) {
+        public Criteria andItemOrderGreaterThanOrEqualTo(Integer value) {
             addCriterion("item_order >=", value, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderLessThan(String value) {
+        public Criteria andItemOrderLessThan(Integer value) {
             addCriterion("item_order <", value, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderLessThanOrEqualTo(String value) {
+        public Criteria andItemOrderLessThanOrEqualTo(Integer value) {
             addCriterion("item_order <=", value, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderLike(String value) {
-            addCriterion("item_order like", value, "itemOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andItemOrderNotLike(String value) {
-            addCriterion("item_order not like", value, "itemOrder");
-            return (Criteria) this;
-        }
-
-        public Criteria andItemOrderIn(List<String> values) {
+        public Criteria andItemOrderIn(List<Integer> values) {
             addCriterion("item_order in", values, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderNotIn(List<String> values) {
+        public Criteria andItemOrderNotIn(List<Integer> values) {
             addCriterion("item_order not in", values, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderBetween(String value1, String value2) {
+        public Criteria andItemOrderBetween(Integer value1, Integer value2) {
             addCriterion("item_order between", value1, value2, "itemOrder");
             return (Criteria) this;
         }
 
-        public Criteria andItemOrderNotBetween(String value1, String value2) {
+        public Criteria andItemOrderNotBetween(Integer value1, Integer value2) {
             addCriterion("item_order not between", value1, value2, "itemOrder");
             return (Criteria) this;
         }
