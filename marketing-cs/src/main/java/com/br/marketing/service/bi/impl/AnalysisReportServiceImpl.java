@@ -217,8 +217,8 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             WrapDataVO numWrapDataVo = new WrapDataVO(yName, data);
             yAxis.add(numWrapDataVo);
             BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
-            List<String> proportion = data.stream().map(BigDecimal::new).map(num -> num.divide(total, 5, RoundingMode.HALF_UP))
-                .map(BigDecimal::toPlainString).collect(Collectors.toList());
+            List<String> proportion = data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
+                .map(BigDecimal::toPlainString).map(percent -> percent + "%").collect(Collectors.toList());
             WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
             yAxis.add(proportionWrapDataVo);
         }
@@ -302,9 +302,9 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             // Write the Y-axis data
             for (int j = 0; j < xAxis.size(); j++) {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
-                if (i % 2 == 1) {
-                    writer.writeCellValue(i + 1, j + 1, new BigDecimal(value));
-                    CellStyle cellStyle = StyleUtil.cloneCellStyle(workbook, writer.getCellStyle());;
+                if (value.contains("%")) {
+                    writer.writeCellValue(i + 1, j + 1, new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP));
+                    CellStyle cellStyle = StyleUtil.cloneCellStyle(workbook, writer.getCellStyle());
                     cellStyle.setDataFormat(formatIndex);
                     writer.getCell(i + 1, j + 1).setCellStyle(cellStyle);
                 } else {
