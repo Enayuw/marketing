@@ -64,15 +64,15 @@ public enum BiReportTypeEnum {
     /**
      * 经营分析1场景报表
      */
-    BUSINESS_ANALYSIS_ONE_REPORT(111, 12, "businessAnalysisOneReport", "经营分析1场景报表"),
+    BUSINESS_ANALYSIS_ONE_REPORT(111, 12, "businessAnalysisOneReport", "经营分析报表"),
     /**
      * 经营分析7场景报表
      */
-    BUSINESS_ANALYSIS_SEVEN_REPORT(112, 13, "businessAnalysisSevenReport", "经营分析7场景报表"),
+    BUSINESS_ANALYSIS_SEVEN_REPORT(112, 13, "businessAnalysisSevenReport", "经营分析报表"),
     /**
      * 经营分析8场景报表
      */
-    BUSINESS_ANALYSIS_EIGHT_REPORT(113, 14, "businessAnalysisEightReport", "经营分析8场景报表"),
+    BUSINESS_ANALYSIS_EIGHT_REPORT(113, 14, "businessAnalysisEightReport", "经营分析报表"),
     ;
 
     /** code */
