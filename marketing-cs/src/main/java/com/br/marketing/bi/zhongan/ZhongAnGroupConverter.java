@@ -90,17 +90,19 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
     }
 
     private void bulidGroupHead(List<ZhongAnDistributionStatisticDTO> dtoList, String field, String groupName, Integer step, List<ZhongAnGroupedScoreDistributionDTO> dtos) {
+        List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
         for (ZhongAnDistributionStatisticDTO zhongAnDistributionStatisticDTO : dtoList) {
             ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
             zhongAnGroupedScoreDistributionDTO.setProduct(field);
             zhongAnGroupedScoreDistributionDTO.setInterval(zhongAnDistributionStatisticDTO.getScoreValue());
-            zhongAnGroupedScoreDistributionDTO.setGroup(groupName == null ? "0" : groupName);
+            zhongAnGroupedScoreDistributionDTO.setGroup(groupName == null ? "0":groupName);
             zhongAnGroupedScoreDistributionDTO.setName(zhongAnDistributionStatisticDTO.getItemName());
             zhongAnGroupedScoreDistributionDTO.setNum(Long.valueOf(zhongAnDistributionStatisticDTO.getItemValue()));
             zhongAnGroupedScoreDistributionDTO.setStep(step);
-            dtos.add(zhongAnGroupedScoreDistributionDTO);
+            list.add(zhongAnGroupedScoreDistributionDTO);
         }
-        fillProportion(dtos, ZhongAnGroupedScoreDistributionDTO::getNum, ZhongAnGroupedScoreDistributionDTO::setProportion);
+        fillProportion(list,ZhongAnGroupedScoreDistributionDTO::getNum,ZhongAnGroupedScoreDistributionDTO::setProportion);
+        dtos.addAll(list);
     }
 
     @Override
@@ -173,6 +175,7 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                     // 增加总计
                     ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
                     zhongAnGroupedScoreDistributionDTO.setNum(sum);
+                    zhongAnGroupedScoreDistributionDTO.setProportion(BigDecimal.valueOf(100));
                     transformedList.add(zhongAnGroupedScoreDistributionDTO);
 
                     yAxisData.add(buildWrapDataVO(comparisonName + "量级", transformedList, ZhongAnGroupedScoreDistributionDTO::getNum, FormatType.THOUSAND_SEPARATOR));
