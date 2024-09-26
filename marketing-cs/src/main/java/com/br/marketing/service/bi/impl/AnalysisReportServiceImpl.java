@@ -63,8 +63,6 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
 
     public static final String BI_FILE_EXTENSION = ".xlsx";
 
-    public static final String DATA_BAR_COLOR = "FF80C279";
-
     @Resource
     private FastDfsClient fastDfsClient;
     @Resource
