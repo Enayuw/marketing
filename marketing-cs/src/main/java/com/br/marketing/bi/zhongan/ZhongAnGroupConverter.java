@@ -112,6 +112,9 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                         Collectors.groupingBy(ZhongAnGroupedScoreDistributionDTO::getGroup)
                 ));
 
+        List<String> fiftyStepLengthList = marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
+        List<String> fiveStepLengthList = marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+
         for (Map.Entry<String, Map<String, List<ZhongAnGroupedScoreDistributionDTO>>> entry1 : groupedByProductAndGroupName.entrySet()) {
             for (Map.Entry<String, List<ZhongAnGroupedScoreDistributionDTO>> entry : entry1.getValue().entrySet()) {
                 // Y轴数据
@@ -127,23 +130,24 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                 for (String comparisonName : comparisonMap.keySet()) {
                     List<ZhongAnGroupedScoreDistributionDTO> comparisonData = comparisonMap.get(comparisonName);
                     step = comparisonData.get(0).getStep();
-                    if (step == 50) {
-                        intervals = marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
-                    } else {
-                        intervals = marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
+                    intervals.clear();
+                    if(step == 50){
+                        intervals.addAll(fiftyStepLengthList);
+                    }else {
+                        intervals.addAll(fiveStepLengthList);
                     }
                     group = comparisonData.get(0).getGroup();
                     List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
                     Long sum = 0L;
-                    for (String interval : intervals) {
+                    for (String interval : intervals){
                         int size = comparisonData.size();
                         int num = 1;
                         for (ZhongAnGroupedScoreDistributionDTO dto : comparisonData) {
-                            if (interval.equals(dto.getInterval())) {
+                            if(interval.equals(dto.getInterval())){
                                 sum += dto.getNum();
                                 list.add(dto);
                                 break;
-                            } else if (size == num) {
+                            }else if(size == num){
                                 ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
                                 zhongAnGroupedScoreDistributionDTO.setProduct(dto.getProduct());
                                 zhongAnGroupedScoreDistributionDTO.setInterval(interval);
@@ -152,8 +156,8 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                                 zhongAnGroupedScoreDistributionDTO.setProportion(new BigDecimal("0"));
                                 zhongAnGroupedScoreDistributionDTO.setStep(dto.getStep());
                                 list.add(zhongAnGroupedScoreDistributionDTO);
-                            } else {
-                                num++;
+                            }else {
+                                num ++;
                             }
                         }
                     }
@@ -180,7 +184,7 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                 biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
                 biReportVO.setXAxisName("区间");
                 biReportVO.setGroup(group);
-                if (!intervals.contains("总计")) {
+                if(!intervals.contains("总计")){
                     intervals.add("总计");
                 }
                 biReportVO.setXAxis(intervals);
