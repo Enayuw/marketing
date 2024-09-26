@@ -270,9 +270,9 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
             List<BiReportDownLoadParam> list = Lists.newArrayList();
             list.add(param);
             writeData(excelWriter, list);
-            // 剔除默认生成的第一个sheet
-            excelWriter.getWorkbook().removeSheetAt(0);
         }
+        // 剔除默认生成的第一个sheet
+        excelWriter.getWorkbook().removeSheetAt(0);
     }
 
     /**

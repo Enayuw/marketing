@@ -64,7 +64,7 @@ public class BiReportController {
 
     @ApiOperation(value = "下载BI报表")
     @PostMapping("/report/downloadReport")
-    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_DOWNLOAD_REPORT, extendInfo = "下载BI报表类型：{#param.reportTypeName}，BI报表名称：{#param" +
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_DOWNLOAD_REPORT, extendInfo = "下载BI报表类型：{#params[0].reportTypeName}，BI报表名称：{#params[0]" +
             ".reportName}")
     public String downloadReport(@RequestBody List<BiReportDownLoadParam> params, HttpServletRequest request, HttpServletResponse response) throws Exception {
         return biReportService.downloadReport(params, request, response);
