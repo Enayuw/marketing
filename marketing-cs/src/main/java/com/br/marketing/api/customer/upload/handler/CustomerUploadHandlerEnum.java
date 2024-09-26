@@ -35,7 +35,9 @@ public enum CustomerUploadHandlerEnum {
      */
     U_WEIJU("微聚定制上传", Boolean.FALSE ,"7492770"),
 
-
+    /**
+     * 携程促活
+     */
     B_XIECHENG_ACTIVATE("携程促活", Boolean.FALSE ,"7410950"),;
 
     /**

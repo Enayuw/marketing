@@ -2,6 +2,12 @@ package com.br.marketing.api.customer.upload.service.xiecheng.impl;
 
 import java.util.Set;
 
+import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -14,9 +20,13 @@ import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+
 @Service
 @Slf4j
 public class XieChengActivateDataServiceImpl implements XieChengActivateDataService {
+    @Resource
+    private RabbitMqProducter rabbitMqProducter;
     /**
      * 解密jsonData
      *
@@ -147,7 +157,6 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
 
     /**
      * 数据下发
-     *
      * @param tCid     tCid
      * @param sourceId 数据源主键id
      * @author senyang.zheng
@@ -155,7 +164,15 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
      */
     @Override
     public void dataDirection(String tCid, Long sourceId) {
-        //TODO 数据下发
-        log.warn("携程促活数据下发 tCid:{},sourceId:{}",tCid,sourceId);
+        try {
+            XieChengActivateDTO xieChengActivateDTO = new XieChengActivateDTO();
+            xieChengActivateDTO.setCId(tCid);
+            xieChengActivateDTO.setDataId(sourceId);
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE, JSONObject.toJSONString(xieChengActivateDTO));
+            log.warn("携程促活数据下发 tCid:{},sourceId:{}", tCid, sourceId);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "推送携程促活数据消息异常！"), e);
+        }
     }
 }

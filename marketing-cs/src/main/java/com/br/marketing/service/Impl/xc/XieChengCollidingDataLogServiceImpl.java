@@ -182,12 +182,12 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
      */
     private void saveLogAndMapping(XieChengCollidingDataLog collidingLog) {
         try {
-            Long logId = xieChengCollidingDataLogMapper.insertSelective(collidingLog);
+            xieChengCollidingDataLogMapper.insertSelective(collidingLog);
             XieChengCollidingDataHitRequestNoMapping requestNoMapping = new XieChengCollidingDataHitRequestNoMapping();
             String returnContent = collidingLog.getReturnContent();
             JSONObject jsonReturnContent = JSONObject.parseObject(returnContent);
             String hitRequestNo = jsonReturnContent.getString("hitRequestNo");
-            requestNoMapping.setLogId(logId);
+            requestNoMapping.setLogId(collidingLog.getId());
             requestNoMapping.setHitRequestNo(hitRequestNo);
             requestNoMapping.setCellSha256CodeList(collidingLog.getCellSha256CodeList());
             requestNoMapping.setCreateDate(Integer.valueOf(DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN)));
