@@ -414,13 +414,17 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     /**
      * Bi报表列表查看（众安）
-     * @param page
-     * @param pageSize
      * @param reportTaskParam
      * @return
      */
     @Override
-    public PageResultReturn getBiReportTaskList(int page, int pageSize, BiReportTaskParam reportTaskParam) {
+    public PageResultReturn getBiReportTaskList(BiReportTaskParam reportTaskParam) {
+        int page = 1;
+        int pageSize = 10;
+        if (reportTaskParam != null) {
+            page = reportTaskParam.getCurrent() == null ? page : reportTaskParam.getCurrent();
+            pageSize = reportTaskParam.getSize() == null ? pageSize : reportTaskParam.getSize();
+        }
         PageHelper.startPage(page, pageSize);
         try {
             convertReportType(reportTaskParam);

@@ -125,9 +125,8 @@ public class ReportScoreRuleController {
     @ApiOperation(value = "获取Bi报表列表")
     @PostMapping("/getBiReportTaskList")
     @AuthDataControllerPermission
-    public ApiResult<PageResultReturn> getBiReportTaskList(@RequestParam(defaultValue = "1") int current, @RequestParam(defaultValue = "10") int size,
-                                                           @RequestBody(required=false) BiReportTaskParam reportTaskParam) {
-        PageResultReturn listPage = reportScoreRuleService.getBiReportTaskList(current, size, reportTaskParam);
+    public ApiResult<PageResultReturn> getBiReportTaskList(@RequestBody(required=false) BiReportTaskParam reportTaskParam) {
+        PageResultReturn listPage = reportScoreRuleService.getBiReportTaskList(reportTaskParam);
         if (listPage != null) {
             return new ApiResult<PageResultReturn>().success(listPage);
         }

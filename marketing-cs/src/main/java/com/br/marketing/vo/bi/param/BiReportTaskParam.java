@@ -6,6 +6,12 @@ import lombok.Data;
 @Data
 public class BiReportTaskParam {
 
+    @ApiModelProperty(value = "current")
+    private Integer current;
+
+    @ApiModelProperty(value = "size")
+    private Integer size;
+
     @ApiModelProperty(value = "apiCode")
     private String apiCode;
 

@@ -61,10 +61,8 @@ public interface ReportScoreRuleService {
 
     /**
      * Bi报表列表查看（众安）
-     * @param page
-     * @param pageSize
      * @param reportTaskParam
      * @return
      */
-    PageResultReturn getBiReportTaskList(int page, int pageSize, BiReportTaskParam reportTaskParam);
+    PageResultReturn getBiReportTaskList(BiReportTaskParam reportTaskParam);
 }
