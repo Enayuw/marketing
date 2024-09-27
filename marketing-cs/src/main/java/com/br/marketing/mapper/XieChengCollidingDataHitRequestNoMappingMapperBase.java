@@ -21,9 +21,11 @@ public interface XieChengCollidingDataHitRequestNoMappingMapperBase {
 
     XieChengCollidingDataHitRequestNoMapping selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") XieChengCollidingDataHitRequestNoMapping record, @Param("example") XieChengCollidingDataHitRequestNoMappingExample example);
+    int updateByExampleSelective(@Param("record") XieChengCollidingDataHitRequestNoMapping record,
+                                 @Param("example") XieChengCollidingDataHitRequestNoMappingExample example);
 
-    int updateByExample(@Param("record") XieChengCollidingDataHitRequestNoMapping record, @Param("example") XieChengCollidingDataHitRequestNoMappingExample example);
+    int updateByExample(@Param("record") XieChengCollidingDataHitRequestNoMapping record,
+                        @Param("example") XieChengCollidingDataHitRequestNoMappingExample example);
 
     int updateByPrimaryKeySelective(XieChengCollidingDataHitRequestNoMapping record);
 
