@@ -34,7 +34,7 @@ public class DataBarUtil {
     public static final String DATA_BAR_COLOR = "FF80C279";
 
     /**
-     * 添加最小最大条件格式
+     * 添加最小最大条件格式 Tips：一个Sheet只能调用一次这个方法，否则excel用office工具打开会提示损坏，wps正常
      *
      * @param writer 作家
      * @param regions 条件格式影响范围，示例：B2:B12

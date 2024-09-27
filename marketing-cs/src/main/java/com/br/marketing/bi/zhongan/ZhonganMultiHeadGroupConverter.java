@@ -68,7 +68,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
     @Override
     public List<ZhongAnGroupedScoreDistributionDTO> fetchData(BiReportParam param) {
         String taskId = param.getCondition().getString("taskId");
-        if(StringUtils.isEmpty(taskId)){
+        if (StringUtils.isEmpty(taskId)) {
             return new ArrayList<>();
         }
         // 查询规则分组名称
@@ -78,7 +78,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
         reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
         reportStatisticTransferExample.setOrderByClause("create_time desc");
         List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
-        if(reportStatisticTransfers.isEmpty()){
+        if (reportStatisticTransfers.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -88,27 +88,29 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
         List<ScoreFieldDTO> scoreFieldDTOS = JSON.parseObject(scoreField, new TypeReference<List<ScoreFieldDTO>>() {}.getType());
 
         List<ZhongAnGroupedScoreDistributionDTO> dtos = new ArrayList<>();
-        for (ScoreFieldDTO scoreFieldDTO : scoreFieldDTOS){
+        for (ScoreFieldDTO scoreFieldDTO : scoreFieldDTOS) {
             String dimensionField = reportStatisticTransfer.getDimensionField();
             String dimensionValue = reportStatisticTransfer.getDimensionValue();
             String multiHeadField = reportStatisticTransfer.getMultiHeadField();
             String field = scoreFieldDTO.getField();
             Integer step = scoreFieldDTO.getStep();
 
-            if(!"defaultNone".equals(dimensionField)){
+            if (!"defaultNone".equals(dimensionField)) {
                 // 分组多头查询
                 for (String value : formatField(dimensionValue)) {
                     String groupName = groupNameMap.get(value);
                     for (String itemName : formatField(multiHeadField)) {
-                        List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, dimensionField, value, itemName);
-                        bulidMultiHead(dtoList,field,groupName,step,dtos);
+                        List<ZhongAnDistributionStatisticDTO> dtoList =
+                            zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, dimensionField, value, itemName);
+                        bulidMultiHead(dtoList, field, groupName, step, dtos);
                     }
                 }
-            }else if(!"[]".equals(multiHeadField)){
+            } else if (!"[]".equals(multiHeadField)) {
                 // 多头查询
                 for (String itemName : formatField(multiHeadField)) {
-                    List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, null, null, itemName);
-                    bulidMultiHead(dtoList,field,null,step,dtos);
+                    List<ZhongAnDistributionStatisticDTO> dtoList =
+                        zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, null, null, itemName);
+                    bulidMultiHead(dtoList, field, null, step, dtos);
                 }
             }
         }
@@ -119,14 +121,12 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
     public List<BiReportVO> process(List<ZhongAnGroupedScoreDistributionDTO> dtos, JSONObject extend) {
         List<BiReportVO> biReportVOS = Lists.newArrayList();
 
-        if(dtos.isEmpty()){
+        if (dtos.isEmpty()) {
             return biReportVOS;
         }
 
-        Map<String, Map<String, List<ZhongAnGroupedScoreDistributionDTO>>> groupedByProductAndGroupName =
-                dtos.stream().collect(Collectors.groupingBy(ZhongAnGroupedScoreDistributionDTO::getProduct,
-                                Collectors.groupingBy(ZhongAnGroupedScoreDistributionDTO::getGroup)
-                        ));
+        Map<String, Map<String, List<ZhongAnGroupedScoreDistributionDTO>>> groupedByProductAndGroupName = dtos.stream().collect(Collectors
+            .groupingBy(ZhongAnGroupedScoreDistributionDTO::getProduct, Collectors.groupingBy(ZhongAnGroupedScoreDistributionDTO::getGroup)));
 
         List<String> fiftyStepLengthList = marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength");
         List<String> fiveStepLengthList = marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength");
@@ -135,8 +135,8 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
             for (Map.Entry<String, List<ZhongAnGroupedScoreDistributionDTO>> entry : entry1.getValue().entrySet()) {
                 // Y轴数据
                 List<WrapDataVO> yAxisData = Lists.newArrayList();
-                Map<String, List<ZhongAnGroupedScoreDistributionDTO>> comparisonMap = entry.getValue().stream()
-                        .collect(Collectors.groupingBy(ZhongAnGroupedScoreDistributionDTO::getName));
+                Map<String, List<ZhongAnGroupedScoreDistributionDTO>> comparisonMap =
+                    entry.getValue().stream().collect(Collectors.groupingBy(ZhongAnGroupedScoreDistributionDTO::getName));
 
                 // X轴数据
                 List<String> intervals = new ArrayList<>();
@@ -147,23 +147,23 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                     List<ZhongAnGroupedScoreDistributionDTO> comparisonData = comparisonMap.get(comparisonName);
                     step = comparisonData.get(0).getStep();
                     intervals.clear();
-                    if(step == 50){
+                    if (step == 50) {
                         intervals.addAll(fiftyStepLengthList);
-                    }else {
+                    } else {
                         intervals.addAll(fiveStepLengthList);
                     }
                     group = comparisonData.get(0).getGroup();
                     List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
                     Long sum = 0L;
-                    for (String interval : intervals){
+                    for (String interval : intervals) {
                         int size = comparisonData.size();
                         int num = 1;
                         for (ZhongAnGroupedScoreDistributionDTO dto : comparisonData) {
-                            if(interval.equals(dto.getInterval())){
+                            if (interval.equals(dto.getInterval())) {
                                 sum += dto.getNum();
                                 list.add(dto);
                                 break;
-                            }else if(size == num){
+                            } else if (size == num) {
                                 ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
                                 zhongAnGroupedScoreDistributionDTO.setProduct(dto.getProduct());
                                 zhongAnGroupedScoreDistributionDTO.setInterval(interval);
@@ -172,19 +172,17 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                                 zhongAnGroupedScoreDistributionDTO.setProportion(new BigDecimal("0"));
                                 zhongAnGroupedScoreDistributionDTO.setStep(dto.getStep());
                                 list.add(zhongAnGroupedScoreDistributionDTO);
-                            }else {
-                                num ++;
+                            } else {
+                                num++;
                             }
                         }
                     }
                     // 占比字段格式化
-                    List<ZhongAnGroupedScoreDistributionDTO> transformedList = list.stream()
-                            .map(dto -> {
-                                BigDecimal newProportion = dto.getProportion().multiply(new BigDecimal("100"));
-                                dto.setProportion(newProportion.setScale(3, RoundingMode.HALF_UP).stripTrailingZeros());
-                                return dto;
-                            })
-                            .collect(Collectors.toList());
+                    List<ZhongAnGroupedScoreDistributionDTO> transformedList = list.stream().map(dto -> {
+                        BigDecimal newProportion = dto.getProportion().multiply(new BigDecimal("100"));
+                        dto.setProportion(newProportion.setScale(3, RoundingMode.HALF_UP).stripTrailingZeros());
+                        return dto;
+                    }).collect(Collectors.toList());
 
                     // 增加总计
                     ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
@@ -192,8 +190,10 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                     zhongAnGroupedScoreDistributionDTO.setProportion(BigDecimal.valueOf(100));
                     transformedList.add(zhongAnGroupedScoreDistributionDTO);
 
-                    yAxisData.add(buildWrapDataVO(comparisonName + "量级", transformedList, ZhongAnGroupedScoreDistributionDTO::getNum, FormatType.THOUSAND_SEPARATOR));
-                    yAxisData.add(buildWrapDataVO(comparisonName + "占比", transformedList, ZhongAnGroupedScoreDistributionDTO::getProportion, FormatType.PERCENT_SIGN));
+                    yAxisData.add(buildWrapDataVO(comparisonName + "量级", transformedList, ZhongAnGroupedScoreDistributionDTO::getNum,
+                        FormatType.THOUSAND_SEPARATOR));
+                    yAxisData.add(buildWrapDataVO(comparisonName + "占比", transformedList, ZhongAnGroupedScoreDistributionDTO::getProportion,
+                        FormatType.PERCENT_SIGN));
                 }
                 BiReportVO biReportVO = new BiReportVO();
                 biReportVO.setReportName(entry1.getKey());
@@ -201,7 +201,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                 biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
                 biReportVO.setXAxisName("区间");
                 biReportVO.setGroup(group);
-                if(!intervals.contains("总计")){
+                if (!intervals.contains("总计")) {
                     intervals.add("总计");
                 }
                 biReportVO.setXAxis(intervals);
@@ -212,33 +212,33 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
         return biReportVOS;
     }
 
-    public List<String> formatField(String str){
+    public List<String> formatField(String str) {
         return JSON.parseObject(str, new TypeReference<List<String>>() {}.getType());
     }
 
-    public void bulidMultiHead(List<ZhongAnDistributionStatisticDTO> dtoList, String field,
-                               String groupName, Integer step, List<ZhongAnGroupedScoreDistributionDTO> dtos) {
+    public void bulidMultiHead(List<ZhongAnDistributionStatisticDTO> dtoList, String field, String groupName, Integer step,
+        List<ZhongAnGroupedScoreDistributionDTO> dtos) {
         List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
         for (ZhongAnDistributionStatisticDTO zhongAnDistributionStatisticDTO : dtoList) {
             ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
             zhongAnGroupedScoreDistributionDTO.setProduct(field);
             zhongAnGroupedScoreDistributionDTO.setInterval(zhongAnDistributionStatisticDTO.getScoreValue());
-            zhongAnGroupedScoreDistributionDTO.setGroup(groupName == null ? "0":groupName);
+            zhongAnGroupedScoreDistributionDTO.setGroup(groupName == null ? "0" : groupName);
             zhongAnGroupedScoreDistributionDTO.setName(zhongAnDistributionStatisticDTO.getItemName());
             zhongAnGroupedScoreDistributionDTO.setNum(Long.valueOf(zhongAnDistributionStatisticDTO.getItemValue()));
             zhongAnGroupedScoreDistributionDTO.setStep(step);
             list.add(zhongAnGroupedScoreDistributionDTO);
         }
-        fillProportion(list,ZhongAnGroupedScoreDistributionDTO::getNum,ZhongAnGroupedScoreDistributionDTO::setProportion);
+        fillProportion(list, ZhongAnGroupedScoreDistributionDTO::getNum, ZhongAnGroupedScoreDistributionDTO::setProportion);
         dtos.addAll(list);
     }
 
-    public Map<String, String> formatReportRules(String taskId){
+    public Map<String, String> formatReportRules(String taskId) {
         ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(Long.valueOf(taskId));
         String reportRules = reportTask.getReportRules();
 
         Map<String, String> resultMap = new HashMap<>();
-        if(reportRules.contains("upload")){
+        if (reportRules.contains("upload")) {
             JSONObject param = JSONObject.parseObject(reportRules);
             String upload = param.getString("upload");
             JSONObject uploadJson = JSONObject.parseObject(upload);
@@ -271,17 +271,12 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
      */
     @Override
     public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
-        for (BiReportDownLoadParam param : params) {
-            String name = "场景" + param.getGroup() + param.getReportName();
-            // excel sheet名称最大长度31，超出31截取前31位
-            String sheetName =
-                    name.length() > 31 ? name.substring(0, 31) : name;
-            excelWriter.setSheet(sheetName);
-            // 数据写入
-            List<BiReportDownLoadParam> list = Lists.newArrayList();
-            list.add(param);
-            writeData(excelWriter, list);
-        }
+        // excel sheet名称最大长度31，超出31截取前31位
+        String sheetName =
+            params.get(0).getReportName().length() > 31 ? params.get(0).getReportName().substring(0, 31) : params.get(0).getReportName();
+        excelWriter.setSheet(sheetName);
+        // 数据写入
+        writeData(excelWriter, params);
         // 剔除默认生成的第一个sheet
         excelWriter.getWorkbook().removeSheetAt(0);
     }
@@ -296,8 +291,9 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
      */
     private void writeData(ExcelWriter writer, List<BiReportDownLoadParam> params) {
         int rowIndex = 0;
+        int startRow = 0;
+        List<String> regions = Lists.newArrayList();
         for (BiReportDownLoadParam param : params) {
-            List<String> regions = Lists.newArrayList();
             List<String> xAxis = param.getXAxis();
             List<WrapDataVO> yAxis = param.getYAxis();
             // 写入X轴名称
@@ -317,23 +313,24 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                     String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
                     if (value.contains("%")) {
                         BigDecimal decimal = new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
-                        writer.writeCellValue(i + 1, j + 1, decimal);
-                        writer.getCell(i + 1, j + 1).setCellStyle(getDataBarCellStyle(writer,decimal));
+                        writer.writeCellValue(i + 1, rowIndex + j + 1, decimal);
+                        writer.getCell(i + 1, rowIndex + j + 1).setCellStyle(getDataBarCellStyle(writer, decimal));
                     } else {
-                        writer.writeCellValue(i + 1, j + 1, value);
+                        writer.writeCellValue(i + 1, rowIndex + j + 1, value);
                     }
                 }
                 if (i % 2 == 1) {
-                    String startCell = CellReference.convertNumToColString(i + 1) + (2);
-                    String endCell = CellReference.convertNumToColString(i + 1) + (xAxis.size() + 1);
+                    String startCell = CellReference.convertNumToColString(i + 1) + (startRow + 2);
+                    String endCell = CellReference.convertNumToColString(i + 1) + (startRow + xAxis.size());
                     String region = startCell + ":" + endCell;
                     regions.add(region);
                 }
             }
-            DataBarUtil.addMinMaxDataBar(writer, regions);
             // 添加空行 xAxis.size() + 1 为当前表格所占行数，再+1添加空行
             rowIndex += xAxis.size() + 2;
+            startRow = rowIndex;
         }
+        DataBarUtil.addMinMaxDataBar(writer, regions);
         autoSizeColumnAll(writer);
     }
 }

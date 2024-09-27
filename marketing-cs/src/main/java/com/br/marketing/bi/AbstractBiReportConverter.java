@@ -1,24 +1,5 @@
 package com.br.marketing.bi;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.poi.excel.ExcelWriter;
-import cn.hutool.poi.excel.style.StyleUtil;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.entity.SourceStatisticDict;
-import com.br.marketing.mapper.SourceStatisticDictMapper;
-import com.br.marketing.vo.bi.WrapDataVO;
-import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
-import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
-import com.br.marketing.vo.bi.param.BiReportParam;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.DataFormat;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
@@ -27,6 +8,28 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.entity.SourceStatisticDict;
+import com.br.marketing.mapper.SourceStatisticDictMapper;
+import com.br.marketing.vo.bi.WrapDataVO;
+import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
+import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
+import com.br.marketing.vo.bi.param.BiReportParam;
+
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.poi.excel.ExcelWriter;
+import cn.hutool.poi.excel.style.StyleUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * BI报表数据转换
@@ -122,13 +125,6 @@ public abstract class AbstractBiReportConverter<V, T> {
                 // 写入Y轴数据
                 for (int j = 0; j < xAxis.size(); j++) {
                     String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
-                    if (value.contains("%")) {
-                        BigDecimal decimal = new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
-                        writer.writeCellValue(i + 1, j + 1, decimal);
-                        writer.getCell(i + 1, j + 1).setCellStyle(getDataBarCellStyle(writer,decimal));
-                    } else {
-                        writer.writeCellValue(i + 1, j + 1, value);
-                    }
                     writer.writeCellValue(i + 1, rowIndex + j + 1, value);
                 }
             }
