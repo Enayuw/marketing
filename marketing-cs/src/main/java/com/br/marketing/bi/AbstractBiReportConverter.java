@@ -285,15 +285,17 @@ public abstract class AbstractBiReportConverter<V, T> {
         DataFormat format = workbook.createDataFormat();
         CellStyle cellStyle = StyleUtil.cloneCellStyle(workbook, writer.getCellStyle());
         short formatIndex;
-        if (decimal.compareTo(BigDecimal.ZERO) == 0) {
+        if (decimal.compareTo(BigDecimal.ZERO) == 0 || decimal.compareTo(BigDecimal.ONE) == 0) {
             formatIndex = format.getFormat("0%");
         } else {
             int scale = decimal.scale();
-            StringBuilder pattern = new StringBuilder("0.");
-            for (int i = 0; i < scale; i++) {
-                pattern.append("0");
+            StringBuilder pattern = new StringBuilder("0");
+            if (scale > 0) {
+                pattern.append(".");
+                for (int i = 0; i < scale; i++) {
+                    pattern.append("0");
+                }
             }
-            pattern.append("%");
             formatIndex = format.getFormat(pattern.toString());
         }
         cellStyle.setDataFormat(formatIndex);
