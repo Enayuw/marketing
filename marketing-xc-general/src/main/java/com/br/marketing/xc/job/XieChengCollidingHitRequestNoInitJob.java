@@ -67,6 +67,7 @@ public class XieChengCollidingHitRequestNoInitJob extends AbstractSimpleElasticJ
         Integer pageSize = marketingCommonConfig.getXiechengCollidingPageSize();
 
         Long minId = null;
+        // todo 加开关
         while (true) {
             List<XieChengCollidingDataHitRequestNoInit> list = initMapper.selectData(minId, pageSize);
             if (CollectionUtils.isEmpty(list)) {

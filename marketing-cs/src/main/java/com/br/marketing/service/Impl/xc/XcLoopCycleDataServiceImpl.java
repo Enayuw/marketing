@@ -400,6 +400,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             return;
         }
         String cellSha256CodeList = hitRequestNoMappings.get(0).getCellSha256CodeList();
+        // todo
+
 
         // 根据cell查询周期表
         DateTime releaseDateTime = DateUtil.parse(releaseTime, DatePattern.NORM_DATETIME_PATTERN);
