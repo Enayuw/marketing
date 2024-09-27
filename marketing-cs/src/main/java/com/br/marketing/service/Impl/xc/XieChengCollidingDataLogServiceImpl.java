@@ -186,12 +186,15 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
             XieChengCollidingDataHitRequestNoMapping requestNoMapping = new XieChengCollidingDataHitRequestNoMapping();
             String returnContent = collidingLog.getReturnContent();
             JSONObject jsonReturnContent = JSONObject.parseObject(returnContent);
-            String hitRequestNo = jsonReturnContent.getString("hitRequestNo");
-            requestNoMapping.setLogId(collidingLog.getId());
-            requestNoMapping.setHitRequestNo(hitRequestNo);
-            requestNoMapping.setCellSha256CodeList(collidingLog.getCellSha256CodeList());
-            requestNoMapping.setCreateDate(Integer.valueOf(DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN)));
-            xieChengCollidingDataHitRequestNoMappingMapper.insertSelective(requestNoMapping);
+
+            if (collidingLog.getResult()){
+                String hitRequestNo = jsonReturnContent.getString("hitRequestNo");
+                requestNoMapping.setLogId(collidingLog.getId());
+                requestNoMapping.setHitRequestNo(hitRequestNo);
+                requestNoMapping.setCellSha256CodeList(collidingLog.getCellSha256CodeList());
+                requestNoMapping.setCreateDate(Integer.valueOf(DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN)));
+                xieChengCollidingDataHitRequestNoMappingMapper.insertSelective(requestNoMapping);
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "携程撞库保存日志和映射表异常！"), e);
