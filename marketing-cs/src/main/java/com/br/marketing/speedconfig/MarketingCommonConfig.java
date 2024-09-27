@@ -2163,5 +2163,11 @@ public class MarketingCommonConfig {
      */
     private Integer xiechengCollidingActivateThread;
 
+    /**
+     * 携程一次性初始化流水号撞库开关
+     * true 打开，false 关闭
+     */
+    private Boolean xieChengCollidingHitRequestNoSwitch;
+
 }
 

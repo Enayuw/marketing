@@ -4,10 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.zhongyou.ZhongYouDataService;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
-import com.br.marketing.service.Impl.xc.XcLoopCycleDataService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +51,6 @@ public class ConsumerApp {
 
     @Resource
     private ZhongYouDataService zhongYouDataService;
-
-    @Resource
-    private XcLoopCycleDataService xcLoopCycleDataService;
 
     /**
      * 消费 原始上传数据消费端（大队列）
@@ -267,21 +262,6 @@ public class ConsumerApp {
     public void transferDataCountFragments(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, transferSyncReportService::nearRealtimeDataCountFragmentsStatis
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
-    }
-
-    /**
-     * 消费 携程促活数据接入消费端
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_XIECHENG_COLLIDING_ACTIVATE_QUEUE, durable = "true")
-            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE)}, containerFactory = "concurrentContainerFactory")
-    public void consumerXieChengActivate(Channel channel, Message message) {
-        log.warn("MARKETING_XIECHENG_COLLIDING_ACTIVATE_QUEUE：获取消息成功");
-        XieChengActivateDTO xieChengActivateDTO = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<XieChengActivateDTO>() {
-        }.getType());
-        consumerService.consumerRun(channel, message, xcLoopCycleDataService::activateDataHandle, xieChengActivateDTO, null);
     }
 
 }
