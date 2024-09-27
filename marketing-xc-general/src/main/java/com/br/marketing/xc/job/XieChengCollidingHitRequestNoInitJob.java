@@ -136,7 +136,8 @@ public class XieChengCollidingHitRequestNoInitJob extends AbstractSimpleElasticJ
                 mappingMapper.insertSelective(buildMappingDataDto(t));
             });
         } catch (Exception e) {
-
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程撞库一次性初始化撞库流水号作业：子线程异常！"), e);
         }
     }
 

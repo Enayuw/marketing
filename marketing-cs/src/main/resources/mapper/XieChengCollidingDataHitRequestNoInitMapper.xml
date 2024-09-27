@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.XieChengCollidingDataHitRequestNoInitMapper">
-    <select id="selectData" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
+    <select id="selectData" resultType="com.br.marketing.entity.XieChengCollidingDataHitRequestNoInit">
         select id, cell_sha256_code_list
         from b_xiecheng_colliding_data_hit_request_no_init
         where is_delete = 0 and retry_count = 0 and query_status = 0
