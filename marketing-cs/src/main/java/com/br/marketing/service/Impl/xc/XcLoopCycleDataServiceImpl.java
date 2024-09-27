@@ -400,24 +400,20 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             return;
         }
         String cellSha256CodeList = hitRequestNoMappings.get(0).getCellSha256CodeList();
-        // todo
 
-
-        // 根据cell查询周期表
         DateTime releaseDateTime = DateUtil.parse(releaseTime, DatePattern.NORM_DATETIME_PATTERN);
+        // cell在周期表：更新release_time并打标cpa促活
+        XieChengCollidingDataLoopCycle loopCycle = new XieChengCollidingDataLoopCycle();
+        loopCycle.setCustomerGroup(2);
+        loopCycle.setReleaseTime(releaseDateTime);
+        loopCycle.setUpdateTime(new Date());
         XieChengCollidingDataLoopCycleExample loopCycleExample = new XieChengCollidingDataLoopCycleExample();
         loopCycleExample.createCriteria().andIsDeleteEqualTo(0).andCellSha256CodeListEqualTo(cellSha256CodeList);
-        List<XieChengCollidingDataLoopCycle> loopCycles = dataLoopCycleMapper.selectByExample(loopCycleExample);
-        if (!CollectionUtils.isEmpty(loopCycles)) {
-            XieChengCollidingDataLoopCycle loopCycle = loopCycles.get(0);
-            loopCycle.setCustomerGroup(2);
-            loopCycle.setReleaseTime(releaseDateTime);
-            loopCycle.setUpdateTime(new Date());
-            dataLoopCycleMapper.updateByPrimaryKeySelective(loopCycle);
+        int i = dataLoopCycleMapper.updateByExampleSelective(loopCycle, loopCycleExample);
+        if (i > 0) {
             return;
         }
-
-        // 根据cell查询非周期表
+        // cell在非周期表：从非周期表删除，写入周期表，更新release_time并打标cpa促活
         XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
         robExample.createCriteria().andIsDeleteEqualTo(0).andCellSha256CodeListEqualTo(cellSha256CodeList);
         List<XieChengCollidingDataRob> robs = robMapper.selectByExample(robExample);
@@ -425,8 +421,25 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             XieChengCollidingDataRob rob = robs.get(0);
             rob.setReleaseTime(releaseDateTime);
             handleService.activateDataByFalseToTrue(rob);
-        } else {
-            log.warn("携程促活，未匹配到撞库数据，前置表id:" + data.getId());
+            return;
         }
+        // cell不在撞库表：撞库包=cpa促活数据包，data_source_type='A'，写入周期表，更新release_time并打标cpa促活
+        XieChengCollidingDataLoopCycle xieChengCollidingDataLoopCycle = new XieChengCollidingDataLoopCycle();
+        xieChengCollidingDataLoopCycle.setReleaseTime(releaseDateTime);
+        xieChengCollidingDataLoopCycle.setCustomerGroup(2);
+        xieChengCollidingDataLoopCycle.setPackageId(getActivatePackageId());
+        xieChengCollidingDataLoopCycle.setDataSourceType("A");
+        xieChengCollidingDataLoopCycle.setCellSha256CodeList(cellSha256CodeList);
+        xieChengCollidingDataLoopCycle.setRetryCount(0);
+        xieChengCollidingDataLoopCycle.setCreateTime(new Date());
+        xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
+        dataLoopCycleMapper.insertSelective(xieChengCollidingDataLoopCycle);
+    }
+
+    private Long getActivatePackageId() {
+        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
+        packageExample.createCriteria().andPackageNameEqualTo("cpa促活数据包");
+        List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
+        return CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
     }
 }

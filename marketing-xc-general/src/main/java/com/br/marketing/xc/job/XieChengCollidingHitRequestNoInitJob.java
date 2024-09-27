@@ -108,6 +108,8 @@ public class XieChengCollidingHitRequestNoInitJob extends AbstractSimpleElasticJ
 
             // httpcode非200或code非0
             if (ResultCode.FAIL.getValue().equals(resultInfo.getCode())) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_INTERFACEERROR.getCode(), JSON.toJSONString(resMap)
+                        , "携程撞库初始化撞库流水号，接口返回httpcode非200或code非0"));
                 // 更新数据表retry_count=retry_count+1,query_status = 2
                 // 若该部分数据重新请求，该如何操作：query_status置为0，retry_count置为0
                 List<Long> ids = list.stream().map(XieChengCollidingDataHitRequestNoInit::getId).collect(Collectors.toList());
