@@ -102,7 +102,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                         bulidMultiHead(dtoList,field,groupName,step,dtos);
                     }
                 }
-            }else if(StringUtils.isNotEmpty(multiHeadField)){
+            }else if(!"[]".equals(multiHeadField)){
                 // 多头查询
                 for (String itemName : formatField(multiHeadField)) {
                     List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, null, null, itemName);
@@ -116,6 +116,10 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
     @Override
     public List<BiReportVO> process(List<ZhongAnGroupedScoreDistributionDTO> dtos, JSONObject extend) {
         List<BiReportVO> biReportVOS = Lists.newArrayList();
+
+        if(dtos.isEmpty()){
+            return biReportVOS;
+        }
 
         Map<String, Map<String, List<ZhongAnGroupedScoreDistributionDTO>>> groupedByProductAndGroupName =
                 dtos.stream().collect(Collectors.groupingBy(ZhongAnGroupedScoreDistributionDTO::getProduct,
