@@ -1,14 +1,15 @@
 package com.br.marketing.xc.consumer;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import javax.annotation.Resource;
-
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
+import com.br.marketing.entity.XieChengCollidingDataLog;
+import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.Impl.xc.XcLoopCycleDataService;
+import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
+import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -16,12 +17,9 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import com.alibaba.fastjson.JSONArray;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.entity.XieChengCollidingDataLog;
-import com.br.marketing.service.Impl.ConsumerService;
-import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
-import com.rabbitmq.client.Channel;
+import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * rabbitmq 消费端
@@ -66,7 +64,7 @@ public class ConsumerApp {
      */
     @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_XIECHENG_COLLIDING_ACTIVATE_QUEUE, durable = "true")
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE)}, containerFactory = "concurrentContainerFactory")
+            , key = MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE)}, containerFactory = "containerFactory")
     public void consumerXieChengActivate(Channel channel, Message message) {
         XieChengActivateDTO xieChengActivateDTO = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8),
                 new TypeReference<XieChengActivateDTO>() {
