@@ -1,5 +1,6 @@
 package com.br.marketing.bi.zhongan;
 
+import com.br.marketing.util.DataBarUtil;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.apache.poi.ss.util.CellReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -295,6 +297,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
     private void writeData(ExcelWriter writer, List<BiReportDownLoadParam> params) {
         int rowIndex = 0;
         for (BiReportDownLoadParam param : params) {
+            List<String> regions = Lists.newArrayList();
             List<String> xAxis = param.getXAxis();
             List<WrapDataVO> yAxis = param.getYAxis();
             // 写入X轴名称
@@ -319,9 +322,15 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                     } else {
                         writer.writeCellValue(i + 1, j + 1, value);
                     }
-                    writer.writeCellValue(i + 1, rowIndex + j + 1, value);
+                }
+                if (i % 2 == 1) {
+                    String startCell = CellReference.convertNumToColString(i + 1) + (2);
+                    String endCell = CellReference.convertNumToColString(i + 1) + (xAxis.size() + 1);
+                    String region = startCell + ":" + endCell;
+                    regions.add(region);
                 }
             }
+            DataBarUtil.addMinMaxDataBar(writer, regions);
             // 添加空行 xAxis.size() + 1 为当前表格所占行数，再+1添加空行
             rowIndex += xAxis.size() + 2;
         }
