@@ -22,6 +22,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
+/**
+ * XieChengActivateDataServiceImpl
+ */
 @Service
 @Slf4j
 public class XieChengActivateDataServiceImpl implements XieChengActivateDataService {

@@ -8,7 +8,7 @@ import lombok.Setter;
 
 /**
  * 上传数据适配器
- *
+ * @param <T> the parameter of the class
  * @author senyang.zheng
  * @date 2024/08/07
  */

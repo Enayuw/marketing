@@ -8,6 +8,9 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * XieChengActivateDataResponseDTO
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
