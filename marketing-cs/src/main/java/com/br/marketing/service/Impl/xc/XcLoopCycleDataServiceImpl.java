@@ -410,6 +410,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
             XieChengCollidingDataLoopCycle loopCycle = loopCycles.get(0);
             loopCycle.setCustomerGroup(2);
             loopCycle.setReleaseTime(releaseDateTime);
+            loopCycle.setUpdateTime(new Date());
             dataLoopCycleMapper.updateByPrimaryKeySelective(loopCycle);
             return;
         }

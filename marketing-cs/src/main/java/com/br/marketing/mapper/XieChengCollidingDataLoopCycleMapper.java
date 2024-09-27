@@ -97,5 +97,5 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     int updateByTrueData(XieChengCollidingDataLoopCycle record);
 
-    CustomizeUploadData selectActivateData(@Param("xieChengActivateDTO") XieChengActivateDTO xieChengActivateDTO);
+    CustomizeUploadData selectActivateData(XieChengActivateDTO xieChengActivateDTO);
 }
