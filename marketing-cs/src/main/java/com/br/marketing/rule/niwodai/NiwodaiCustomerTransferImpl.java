@@ -156,6 +156,7 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
                 }
                 //3.匹配通过后，赋值inversionStatus
                 inversionStatus = (String) map.get("inversionStatus");
+                break;
             }
         }
         return inversionStatus;
