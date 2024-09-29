@@ -1,26 +1,24 @@
 package com.br.marketing.api.customer.upload.service.xiecheng.impl;
 
-import java.util.Set;
-
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-
 import com.br.common.encryption.Md5Utils;
+import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.xiecheng.XieChengActivateDataService;
 import com.br.marketing.api.customer.upload.service.xiecheng.dto.XieChengActivateDataResponseDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
+import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Set;
 
 /**
  * XieChengActivateDataServiceImpl
@@ -80,8 +78,16 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
     @Override
     public CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee) {
         XieChengActivateDataResponseDTO activateDataResponseDTO = new XieChengActivateDataResponseDTO();
-        activateDataResponseDTO.success();
-        return new CustomerResponseDTO(activateDataResponseDTO, CustomerResponseDTO.StatusEnum.VALID, activateDataResponseDTO.getCode());
+        boolean isValidArray = JSONObject.isValidArray(adaptee.getJsonData());
+
+        // 校验数组格式
+        if (isValidArray) {
+            activateDataResponseDTO.success();
+            return new CustomerResponseDTO(activateDataResponseDTO, CustomerResponseDTO.StatusEnum.VALID, activateDataResponseDTO.getCode());
+        }
+
+        activateDataResponseDTO.failed(XieChengActivateDataResponseDTO.ResultEnum.FAILED_JSON_ARRAY_ERROR);
+        return new CustomerResponseDTO(activateDataResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, activateDataResponseDTO.getCode());
     }
 
     /**

@@ -82,6 +82,7 @@ public class XieChengActivateDataResponseDTO extends ResponseCustomDTO {
          */
         FAILED("5000", "失败,未知异常"),
         FAILED_JSON_ERROR("5001", "失败,jsonData解析失败"),
+        FAILED_JSON_ARRAY_ERROR("5002", "失败,jsonData非数组格式"),
         ;
 
         private String code;

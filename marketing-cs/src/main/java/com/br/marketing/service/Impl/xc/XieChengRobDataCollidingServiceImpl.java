@@ -317,13 +317,13 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
      */
     @Override
     public Result<Boolean> activateDataHandle(XieChengActivateDTO xieChengActivateDTO) {
+        CustomizeUploadData data = loopCycleMapper.selectActivateData(xieChengActivateDTO);
+        if (Objects.isNull(data)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程促活，根据id查询前置表数据为空"));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
         try {
-            CustomizeUploadData data = loopCycleMapper.selectActivateData(xieChengActivateDTO);
-            if (Objects.isNull(data)) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                        , "携程促活，根据id查询前置表数据为空"));
-                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-            }
             JSONArray jsonArray = JSON.parseArray(data.getRequestJsonData());
             List<JSONObject> jsonDataList = jsonArray.stream().map((Object t) -> (JSONObject) t).collect(Collectors.toList());
 
@@ -334,7 +334,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             });
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程促活，主线程处理异常"), e);
+                    , "携程促活，主线程处理异常，前置表id：" + data.getId()), e);
         }
 
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);

@@ -1,14 +1,5 @@
 package com.br.marketing.api.customer.upload.service;
 
-import java.time.LocalDate;
-import java.util.Date;
-
-import javax.annotation.Resource;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.pulsar.client.api.PulsarClientException;
-import org.springframework.stereotype.Service;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
@@ -27,10 +18,17 @@ import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
 import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.mapper.CustomizeUploadDataMapper;
-import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
-
+import com.br.marketing.service.PushRuleService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pulsar.client.api.PulsarClientException;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * 定制客户上传数据处理
@@ -123,8 +121,10 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
                     throw new RuntimeException(
                         "定制化客户".concat(customerUploadDataHandler.customer().getName()).concat("(").concat(apiCode).concat(")保存失败,入库数据量:") + i);
                 }
-                // 7.数据存储前置完成后进行数据下发（按需实现，默认不处理），
-                customerUploadDataHandler.dataDirection(tCid, uploadData.getId());
+                // 7.数据有效，且存储前置完成后进行数据下发（按需实现，默认不处理），
+                if (Objects.equals(uploadData.getStatus(), CustomerResponseDTO.StatusEnum.VALID.getValue())) {
+                    customerUploadDataHandler.dataDirection(tCid, uploadData.getId());
+                }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "定制上传数据写入客户定制上传前置表异常"),
                     e);
