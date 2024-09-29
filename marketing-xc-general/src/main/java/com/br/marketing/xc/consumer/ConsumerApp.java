@@ -7,8 +7,8 @@ import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.service.Impl.ConsumerService;
-import com.br.marketing.service.Impl.xc.XcLoopCycleDataService;
 import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
+import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -37,7 +37,7 @@ public class ConsumerApp {
     private XieChengCollidingDataLogService xieChengCollidingDataLogService;
 
     @Resource
-    private XcLoopCycleDataService xcLoopCycleDataService;
+    private XieChengRobDataCollidingService robDataCollidingService;
 
     /**
      * 营销携程撞库日志消息消费端
@@ -69,6 +69,6 @@ public class ConsumerApp {
         XieChengActivateDTO xieChengActivateDTO = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8),
                 new TypeReference<XieChengActivateDTO>() {
         }.getType());
-        consumerService.consumerRun(channel, message, xcLoopCycleDataService::activateDataHandle, xieChengActivateDTO, null);
+        consumerService.consumerRun(channel, message, robDataCollidingService::activateDataHandle, xieChengActivateDTO, null);
     }
 }
