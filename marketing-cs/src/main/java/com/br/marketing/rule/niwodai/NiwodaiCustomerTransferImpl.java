@@ -48,17 +48,9 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(
             DateHelper.LINE_DATE_COLON_TIME_FORMAT);
-    private final static Map<String, String> TAG_MAP = new ConcurrentHashMap<>();
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
-
-    static {
-        TAG_MAP.put("F", "0");
-        TAG_MAP.put("B", "0");
-        TAG_MAP.put("C", "0");
-        TAG_MAP.put("H", "2");
-    }
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -126,7 +118,7 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
     }
 
     /**
-     * 获得inversionStatus
+     * 过滤规则，获得inversionStatus
      * @param apiCode
      * @param userType
      * @param reserveField1
