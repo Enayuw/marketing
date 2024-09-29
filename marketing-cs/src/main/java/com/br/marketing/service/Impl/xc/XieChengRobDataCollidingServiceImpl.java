@@ -334,7 +334,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             });
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程促活，主线程处理异常"));
+                    , "携程促活，主线程处理异常"), e);
         }
 
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
@@ -402,7 +402,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
             loopCycleMapper.insertSelective(xieChengCollidingDataLoopCycle);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
-                    , "携程促活，子线程处理异常"));
+                    , "携程促活，子线程处理异常"), e);
         }
     }
 
