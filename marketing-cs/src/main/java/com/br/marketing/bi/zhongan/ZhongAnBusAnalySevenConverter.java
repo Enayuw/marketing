@@ -59,15 +59,15 @@ public class ZhongAnBusAnalySevenConverter extends AbstractBiReportConverter<BiR
     }
 
     @Override
-    public List<BiReportVO> process(List<ZhongAnBusAnalySevenReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<ZhongAnBusAnalySevenReportDTO> sortedData, JSONObject extend) {
         List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName());
         biReportVO.setReportName("场景七经营分析报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据时间排序
-        List<ZhongAnBusAnalySevenReportDTO> sortedData = dtos.stream()
-                .sorted(Comparator.comparing(ZhongAnBusAnalySevenReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
+        /*List<ZhongAnBusAnalySevenReportDTO> sortedData = dtos.stream()
+                .sorted(Comparator.comparing(ZhongAnBusAnalySevenReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());*/
         // 构造横坐标数据
         List<String> xAxis = sortedData.stream().map(ZhongAnBusAnalySevenReportDTO::getReportDate).collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
