@@ -1250,6 +1250,31 @@
         request_data = #{requestDate}
     </select>
 
+    <select id="getMaxIdByTime" resultType="java.lang.Long">
+        SELECT
+        max(id) as id
+        FROM
+        b_marketing_transfer_sync_${tCid}
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        <![CDATA[ request_data >= #{startDate} and request_data <= #{endDate} ]]>
+
+    </select>
+
+    <select id="getMinIdByTime" resultType="java.lang.Long">
+        SELECT
+        min(id) as id
+        FROM
+        b_marketing_transfer_sync_${tCid}
+        where
+        <if test="apiCode != null and apiCode.trim() neq ''">
+            api_code=#{apiCode} and
+        </if>
+        <![CDATA[ request_data >= #{startDate} and request_data <= #{endDate} ]]>
+    </select>
+
     <select id="getTransferBySyncUser" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
         select * from b_marketing_transfer_sync_${transferSyncUser.tCid}
         where
@@ -1259,6 +1284,17 @@
             <if test="transferSyncUser.requestData != null and transferSyncUser.requestData.trim() neq ''">
                 AND request_data=#{transferSyncUser.requestData}
             </if>
+        <![CDATA[ and id >= #{beginId} and id < #{endId} ]]>
+        order by id
+    </select>
+
+    <select id="getTransferBySyncUserAndTime" resultType="com.br.marketing.entity.MarketingTransferSyncUser">
+        select * from b_marketing_transfer_sync_${transferSyncUser.tCid}
+        where
+            <if test="transferSyncUser.apiCode != null and transferSyncUser.apiCode.trim() neq ''">
+                api_code=#{transferSyncUser.apiCode}
+            </if>
+        <![CDATA[ and request_data >= #{startDate} and request_data <= #{endDate} ]]>
         <![CDATA[ and id >= #{beginId} and id < #{endId} ]]>
         order by id
     </select>

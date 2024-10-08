@@ -173,6 +173,10 @@ api:
     address: ${api.tongchengAgentMkt.baseUrl}/api/cep/agent/mkt/baiRong
     secretKey: 3VMUkXxpauLzA7kzHdq7uCNMFjDUMCgyUzgSe83hdb64QcU2KJT5Rcb7enVtYzR9
     isProxy: true
+  biocloo:
+    baseUrl: https://callcenter.biocloo.com.cn
+    blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
+    isProxy: true
 innerSftp:
   uploadpath: /UploadFiles/marketing/
 #elastic-job配置

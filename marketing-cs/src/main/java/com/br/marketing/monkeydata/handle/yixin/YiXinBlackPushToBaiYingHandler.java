@@ -258,7 +258,8 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
         int size = outputDataList.size();
         int count = 0;
-        List<BlacklistDataDTO> pushList = new ArrayList<>();
+        List<BlacklistDataDTO> pushByList = new ArrayList<>();
+        List<BlacklistDataDTO> pushBlkList = new ArrayList<>();
 
         for (MarketingSyncUser syncUser : outputDataList) {
             BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
@@ -266,19 +267,36 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             blacklistDataDTO.setExpireDate(LocalDate.now()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                     .concat(" 23:59:59"));
-            pushList.add(blacklistDataDTO);
+            pushByList.add(blacklistDataDTO);
+
+            BlacklistDataDTO blackBlklistDataDTO = new BlacklistDataDTO();
+            blackBlklistDataDTO.setCaseNum(syncUser.getCustNum());
+            blackBlklistDataDTO.setExpireDate(LocalDate.now()
+                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    .concat(" 23:59:59"));
+            blackBlklistDataDTO.setPhone(syncUser.getCellMd5());
+            pushBlkList.add(blackBlklistDataDTO);
+
             count++;
 
-            if (pushList.size() == pushSize || size == count) {
-                List<BlacklistDataDTO> finalList = pushList;
+            if (pushByList.size() == pushSize || size == count) {
+                List<BlacklistDataDTO> finalList = pushByList;
+                List<BlacklistDataDTO> finalBklList = pushBlkList;
                 pushPool.execute(() -> {
                     ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
                     reqBlacklistDTO.setMethod(pushMethod);
                     reqBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBlacklistDTO.setData(finalList);
                     byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+                    // 紧急需求，增加了推送百可录逻辑（后续逻辑变更请注意）
+                    ReqBlacklistDTO reqBklBlacklistDTO = new ReqBlacklistDTO();
+                    reqBklBlacklistDTO.setMethod(pushMethod);
+                    reqBklBlacklistDTO.setApiCode(condition.getSynApiCode());
+                    reqBklBlacklistDTO.setData(finalBklList);
+                    byApiServiceClient.pushDataToBiocloo(reqBklBlacklistDTO,0);
                 });
-                pushList = new ArrayList<>();
+                pushByList = new ArrayList<>();
+                pushBlkList = new ArrayList<>();
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());
