@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 
+
 /**
  * @ClassName SmsRecordDTO
  * @Description 短信回调
@@ -19,6 +20,9 @@ public class SmsRecordDTO {
 
     @ApiModelProperty(value = "公司标识")
     private String cid;
+
+    @ApiModelProperty(value = "场景")
+    private String userType;
 
     @ApiModelProperty(value = "短信流水号")
     private String thirdCallNo;

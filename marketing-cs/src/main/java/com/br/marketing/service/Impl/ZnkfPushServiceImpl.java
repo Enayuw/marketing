@@ -51,7 +51,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     private CallRecordMapper callRecordMapper;
 
     @Autowired
-    private SmsRecordMapper smsRecordMapper;
+    private SmsCallbackMapper smsCallbackMapper;
 
     @Autowired
     private PushDataService pushDataService;
@@ -253,24 +253,24 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         try {
             if(StringUtils.isEmpty(dto.getApi_code()) || StringUtils.isEmpty(dto.getCid()) ||
             StringUtils.isEmpty(dto.getThirdCallNo()) || StringUtils.isEmpty(dto.getCaseNum())
-                    || dto.getSmsSendStatus() == null){
+                    || dto.getSmsSendStatus() == null || StringUtils.isEmpty(dto.getUserType())) {
                 return "必填字段为空：" + JSONObject.toJSONString(dto);
             }
             String thirdCallNo = dto.getThirdCallNo();
             //校验是否已经落库
-            SmsRecordExample smsRecordExample = new SmsRecordExample();
-            smsRecordExample.createCriteria().andThirdCallNoEqualTo(thirdCallNo);
-            int i = smsRecordMapper.countByExample(smsRecordExample);
+            SmsCallbackExample smsCallbackExample = new SmsCallbackExample();
+            smsCallbackExample.createCriteria().andThirdCallNoEqualTo(thirdCallNo);
+            int i = smsCallbackMapper.countByExample(smsCallbackExample);
             if (i > 0) {
                 log.warn("短信流水号重复：" + thirdCallNo);
                 return "短信流水号重复：" + thirdCallNo;
             }
-            SmsRecord smsRecord = new SmsRecord();
-            smsRecord.setCreateDate(String.valueOf(LocalDate.now()));
-            smsRecord.setCreateTime(new Date());
-            BeanUtils.copyProperties(dto, smsRecord);
-            smsRecord.setApiCode(dto.getApi_code());
-            smsRecordMapper.insert(smsRecord);
+            SmsCallback smsCallback = new SmsCallback();
+            smsCallback.setCreateDate(String.valueOf(LocalDate.now()));
+            smsCallback.setCreateTime(new Date());
+            BeanUtils.copyProperties(dto, smsCallback);
+            smsCallback.setApiCode(dto.getApi_code());
+            smsCallbackMapper.insert(smsCallback);
         }catch (Exception ex){
             log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
             return "外呼短信记录落库失败(insert b_sms_callback fail)!";

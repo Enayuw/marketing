@@ -2,7 +2,7 @@ package com.br.marketing.entity;
 
 import java.util.Date;
 
-public class SmsRecord {
+public class SmsCallback {
     /**
      * 
      */
@@ -17,6 +17,11 @@ public class SmsRecord {
      * api接入唯一标识
      */
     private String apiCode;
+
+    /**
+     * 场景
+     */
+    private String userType;
 
     /**
      * 短信流水号
@@ -75,6 +80,14 @@ public class SmsRecord {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType == null ? null : userType.trim();
     }
 
     public String getThirdCallNo() {

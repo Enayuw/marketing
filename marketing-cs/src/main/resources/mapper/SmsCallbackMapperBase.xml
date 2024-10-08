@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.SmsRecordMapper" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.SmsRecord" >
+<mapper namespace="com.br.marketing.mapper.SmsCallbackMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.SmsCallback" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="cid" property="cid" jdbcType="VARCHAR" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="user_type" property="userType" jdbcType="VARCHAR" />
     <result column="third_call_no" property="thirdCallNo" jdbcType="VARCHAR" />
     <result column="sms_send_status" property="smsSendStatus" jdbcType="INTEGER" />
     <result column="case_num" property="caseNum" jdbcType="VARCHAR" />
@@ -72,10 +73,10 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cid, api_code, third_call_no, sms_send_status, case_num, reserve_field1, create_date, 
-    create_time, update_time
+    id, cid, api_code, user_type, third_call_no, sms_send_status, case_num, reserve_field1, 
+    create_date, create_time, update_time
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SmsRecordExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.SmsCallbackExample" >
     select
     <if test="distinct" >
       distinct
@@ -99,26 +100,26 @@
     delete from b_sms_callback
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.SmsRecordExample" >
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.SmsCallbackExample" >
     delete from b_sms_callback
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.SmsRecord" >
+  <insert id="insert" parameterType="com.br.marketing.entity.SmsCallback" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_sms_callback (cid, api_code, third_call_no, 
-      sms_send_status, case_num, reserve_field1, 
-      create_date, create_time, update_time
-      )
-    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{thirdCallNo,jdbcType=VARCHAR}, 
-      #{smsSendStatus,jdbcType=INTEGER}, #{caseNum,jdbcType=VARCHAR}, #{reserveField1,jdbcType=VARCHAR}, 
-      #{createDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    insert into b_sms_callback (cid, api_code, user_type, 
+      third_call_no, sms_send_status, case_num, 
+      reserve_field1, create_date, create_time, 
+      update_time)
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, 
+      #{thirdCallNo,jdbcType=VARCHAR}, #{smsSendStatus,jdbcType=INTEGER}, #{caseNum,jdbcType=VARCHAR}, 
+      #{reserveField1,jdbcType=VARCHAR}, #{createDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.SmsRecord" >
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.SmsCallback" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
@@ -129,6 +130,9 @@
       </if>
       <if test="apiCode != null" >
         api_code,
+      </if>
+      <if test="userType != null" >
+        user_type,
       </if>
       <if test="thirdCallNo != null" >
         third_call_no,
@@ -159,6 +163,9 @@
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
+      <if test="userType != null" >
+        #{userType,jdbcType=VARCHAR},
+      </if>
       <if test="thirdCallNo != null" >
         #{thirdCallNo,jdbcType=VARCHAR},
       </if>
@@ -182,7 +189,7 @@
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.SmsRecordExample" resultType="java.lang.Integer" >
+  <select id="countByExample" parameterType="com.br.marketing.entity.SmsCallbackExample" resultType="java.lang.Integer" >
     select count(*) from b_sms_callback
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
@@ -199,6 +206,9 @@
       </if>
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.userType != null" >
+        user_type = #{record.userType,jdbcType=VARCHAR},
       </if>
       <if test="record.thirdCallNo != null" >
         third_call_no = #{record.thirdCallNo,jdbcType=VARCHAR},
@@ -231,6 +241,7 @@
     set id = #{record.id,jdbcType=BIGINT},
       cid = #{record.cid,jdbcType=VARCHAR},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
+      user_type = #{record.userType,jdbcType=VARCHAR},
       third_call_no = #{record.thirdCallNo,jdbcType=VARCHAR},
       sms_send_status = #{record.smsSendStatus,jdbcType=INTEGER},
       case_num = #{record.caseNum,jdbcType=VARCHAR},
@@ -242,7 +253,7 @@
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.SmsRecord" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.SmsCallback" >
     update b_sms_callback
     <set >
       <if test="cid != null" >
@@ -250,6 +261,9 @@
       </if>
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="userType != null" >
+        user_type = #{userType,jdbcType=VARCHAR},
       </if>
       <if test="thirdCallNo != null" >
         third_call_no = #{thirdCallNo,jdbcType=VARCHAR},
@@ -275,10 +289,11 @@
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.SmsRecord" >
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.SmsCallback" >
     update b_sms_callback
     set cid = #{cid,jdbcType=VARCHAR},
       api_code = #{apiCode,jdbcType=VARCHAR},
+      user_type = #{userType,jdbcType=VARCHAR},
       third_call_no = #{thirdCallNo,jdbcType=VARCHAR},
       sms_send_status = #{smsSendStatus,jdbcType=INTEGER},
       case_num = #{caseNum,jdbcType=VARCHAR},
