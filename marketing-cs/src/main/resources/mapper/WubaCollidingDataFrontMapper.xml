@@ -40,8 +40,4 @@
           and status = 1 and push_status >1
           and local_id in ${highValueIds} limit 100000;
     </update>
-
-    <update id="updatePushStatusByLocalId">
-        update b_local_file set push_status = null where id in ${highValueIds};
-    </update>
 </mapper>
