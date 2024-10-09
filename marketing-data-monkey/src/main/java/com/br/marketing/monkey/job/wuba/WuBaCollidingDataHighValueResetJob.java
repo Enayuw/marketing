@@ -39,11 +39,19 @@ public class WuBaCollidingDataHighValueResetJob extends AbstractSimpleElasticJob
                 return;
             }
 
-            int updateCount = Integer.MAX_VALUE;
-            while (updateCount > 0) {
+            int updateCount;
+            boolean updateFlag = false;
+            while (true) {
                 updateCount = wubaCollidingDataFrontMapper.updatePushStatusByHighValueFileIds(highValueFileIds);
+                if (updateCount == 0) {
+                    break;
+                }
+                updateFlag = true;
             }
-            localFileMapper.updatePushStatusByLocalId(highValueFileIds);
+
+            if (updateFlag) {
+                localFileMapper.updatePushStatusByLocalId(highValueFileIds);
+            }
         });
 
         log.warn("58重置高价值文件同步状态作业，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
