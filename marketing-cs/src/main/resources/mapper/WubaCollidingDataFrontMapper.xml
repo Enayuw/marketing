@@ -32,4 +32,16 @@
             #{front.cell}
         </foreach>
     </update>
+
+    <update id="updatePushStatusByHighValueFileIds">
+        update b_wuba_colliding_data_front
+        set push_status = 1
+        where is_deleted = 0
+          and status = 1 and push_status >1
+          and local_id in ${highValueIds} limit 100000;
+    </update>
+
+    <update id="updatePushStatusByLocalId">
+        update b_local_file set push_status = null where id in ${highValueIds};
+    </update>
 </mapper>
