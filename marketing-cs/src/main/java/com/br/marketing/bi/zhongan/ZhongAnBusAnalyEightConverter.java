@@ -58,15 +58,15 @@ public class ZhongAnBusAnalyEightConverter extends AbstractBiReportConverter<BiR
     }
 
     @Override
-    public List<BiReportVO> process(List<ZhongAnBusAnalyEightReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<ZhongAnBusAnalyEightReportDTO> sortedData, JSONObject extend) {
         List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getTypeName());
         biReportVO.setReportName("场景八经营分析报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据时间排序
-        List<ZhongAnBusAnalyEightReportDTO> sortedData = dtos.stream()
-                .sorted(Comparator.comparing(ZhongAnBusAnalyEightReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
+       /* List<ZhongAnBusAnalyEightReportDTO> sortedData = dtos.stream()
+                .sorted(Comparator.comparing(ZhongAnBusAnalyEightReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());*/
         // 构造横坐标数据
         List<String> xAxis = sortedData.stream().map(ZhongAnBusAnalyEightReportDTO::getReportDate).collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
@@ -85,7 +85,7 @@ public class ZhongAnBusAnalyEightConverter extends AbstractBiReportConverter<BiR
         yAxis.add(buildWrapDataVO("综合增量件数", sortedData, ZhongAnBusAnalyEightReportDTO::getCompositeIncrNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("成本", sortedData, ZhongAnBusAnalyEightReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("收入", sortedData, ZhongAnBusAnalyEightReportDTO::getIncome, FormatType.THOUSAND_SEPARATOR_DECIMAL));
-        yAxis.add(buildWrapDataVO("收入总计", sortedData, ZhongAnBusAnalyEightReportDTO::getIncomeTotal, FormatType.THOUSAND_SEPARATOR_DECIMAL));
+        //yAxis.add(buildWrapDataVO("收入总计", sortedData, ZhongAnBusAnalyEightReportDTO::getIncomeTotal, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("ROI", sortedData, ZhongAnBusAnalyEightReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR_DECIMAL));
 
         biReportVO.setYAxis(yAxis);

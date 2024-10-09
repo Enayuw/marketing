@@ -50,9 +50,9 @@ public class ZhongAnBusAnalyEightReportDTO {
     @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal income;
 
-    @ApiModelProperty(value = "收入总计")
+/*    @ApiModelProperty(value = "收入总计")
     @DecimalFieldConvertor(scale = 2, isPercent = false)
-    private BigDecimal incomeTotal;
+    private BigDecimal incomeTotal;*/
 
     @ApiModelProperty(value = "ROI")
     @DecimalFieldConvertor(scale = 2, isPercent = false)

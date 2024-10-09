@@ -167,7 +167,7 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                     List<ZhongAnGroupedScoreDistributionDTO> transformedList = list.stream()
                             .map(dto -> {
                                 BigDecimal newProportion = dto.getProportion().multiply(new BigDecimal("100"));
-                                dto.setProportion(newProportion.setScale(3, RoundingMode.HALF_UP).stripTrailingZeros());
+                                dto.setProportion(newProportion.setScale(2, RoundingMode.HALF_UP).stripTrailingZeros());
                                 return dto;
                             })
                             .collect(Collectors.toList());
