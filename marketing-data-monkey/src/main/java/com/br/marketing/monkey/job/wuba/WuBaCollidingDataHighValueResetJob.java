@@ -1,5 +1,6 @@
 package com.br.marketing.monkey.job.wuba;
 
+import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
 import com.br.marketing.service.Impl.wuba.WuBaCollidingDataSynchronismService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -14,13 +15,14 @@ import java.util.Objects;
 
 /**
  * 58重置高价值文件同步状态作业
- *
  * @Author chenh
  * @Date 2024-10-09
  */
 @Component
 @Slf4j
 public class WuBaCollidingDataHighValueResetJob extends AbstractSimpleElasticJob {
+    @Resource
+    LocalFileMapper localFileMapper;
     @Resource
     WubaCollidingDataFrontMapper wubaCollidingDataFrontMapper;
     @Resource
@@ -37,8 +39,11 @@ public class WuBaCollidingDataHighValueResetJob extends AbstractSimpleElasticJob
                 return;
             }
 
-            wubaCollidingDataFrontMapper.updatePushStatusByHighValueFileIds(highValueFileIds);
-            wubaCollidingDataFrontMapper.updatePushStatusByLocalId(highValueFileIds);
+            int updateCount = Integer.MAX_VALUE;
+            while (updateCount > 0) {
+                updateCount = wubaCollidingDataFrontMapper.updatePushStatusByHighValueFileIds(highValueFileIds);
+            }
+            localFileMapper.updatePushStatusByLocalId(highValueFileIds);
         });
 
         log.warn("58重置高价值文件同步状态作业，运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);

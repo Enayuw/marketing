@@ -15,7 +15,5 @@ public interface WubaCollidingDataFrontMapper extends WubaCollidingDataFrontMapp
     void batchUpdatePushStatusByCell(@Param("list") List<WubaCollidingDataFront> wubaCollidingDataFronts,
                                      @Param("localId") Long localId, @Param("apiCode") String apiCode);
 
-    void updatePushStatusByHighValueFileIds(@Param("highValueIds") String highValueIds);
-
-    void updatePushStatusByLocalId(@Param("highValueIds") String highValueIds);
+    int updatePushStatusByHighValueFileIds(@Param("highValueIds") String highValueIds);
 }
