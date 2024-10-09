@@ -279,7 +279,7 @@ public class YiXinBlackPushToBioclooHandler extends IMonkeyDataHandle<MarketingS
         ReqBlackPhoneQueryDTO dto = new ReqBlackPhoneQueryDTO();
         dto.setApiCode(apiCode);
         dto.setDetailBlackPhoneDTO(blackQueryDetailDTOS);
-        syncUserList.forEach(syncUser -> {
+        syncUserList.forEach((MarketingSyncUser syncUser) -> {
             BlackQueryDetailDTO blackQueryDetailDTO = new BlackQueryDetailDTO();
             blackQueryDetailDTO.setDataId(syncUser.getId().toString());
             blackQueryDetailDTO.setApiCode(apiCode);
