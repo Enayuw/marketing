@@ -35,15 +35,15 @@
     </select>
 
     <select id="selectZaBusAnalyOneListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO">
-        select * from dws_za_one_business_analysis where report_id = #{reportId} order by report_date asc
+        select * from dws_za_one_business_analysis where report_id = #{reportId} order by report_date asc,group_order asc
     </select>
 
     <select id="selectZaBusAnalySevenListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnBusAnalySevenReportDTO">
-        select * from dws_za_seven_business_analysis where report_id = #{reportId} order by report_date asc
+        select * from dws_za_seven_business_analysis where report_id = #{reportId} order by report_date asc,group_order asc
     </select>
 
     <select id="selectZaBusAnalyEightListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyEightReportDTO">
-        select * from dws_za_eight_business_analysis where report_id = #{reportId} order by report_date asc
+        select * from dws_za_eight_business_analysis where report_id = #{reportId} order by report_date asc,group_order asc
     </select>
 
     <select id="queryReportStatisticTransferDetailbI_" resultType="com.br.marketing.dto.report.zhongan.ReportStatisticTransferDetail">
