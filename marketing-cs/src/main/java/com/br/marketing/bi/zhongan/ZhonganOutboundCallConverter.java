@@ -1,13 +1,16 @@
 package com.br.marketing.bi.zhongan;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import cn.hutool.poi.excel.ExcelWriter;
+import com.br.marketing.util.DataBarUtil;
+import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
+import com.google.common.base.Splitter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.util.CellReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -92,13 +95,83 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
             yAxis.add(buildWrapDataVO("通话总时长(分钟)", sortedData, ZhonganOutboundCallReportDTO::getDurationTotal, FormatType.THOUSAND_SEPARATOR));
             yAxis.add(buildWrapDataVO("短信触发量", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggersNum, FormatType.THOUSAND_SEPARATOR));
             yAxis.add(buildWrapDataVO("短信成功发送量", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendNum, FormatType.THOUSAND_SEPARATOR));
-            yAxis.add(buildWrapDataVO("接通率", sortedData, ZhonganOutboundCallReportDTO::getContinuityRatio, FormatType.PERCENT_SIGN));
-            yAxis.add(buildWrapDataVO("接通短信触发率", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggerRatio, FormatType.PERCENT_SIGN));
-            yAxis.add(buildWrapDataVO("短信成功发送率", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendRatio, FormatType.PERCENT_SIGN));
+            yAxis.add(buildWrapDataVO("接通率", sortedData, ZhonganOutboundCallReportDTO::getContinuityRatio, FormatType.PERCENT_SCALE2));
+            yAxis.add(buildWrapDataVO("接通短信触发率", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggerRatio, FormatType.PERCENT_SCALE2));
+            yAxis.add(buildWrapDataVO("短信成功发送率", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendRatio, FormatType.PERCENT_SCALE2));
             yAxis.add(buildWrapDataVO("成本", sortedData, ZhonganOutboundCallReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
             biReportVO.setYAxis(yAxis);
             biReportVOList.add(biReportVO);
         }
         return biReportVOList;
     }
+
+    /**
+     * 导出数据
+     *
+     * @param excelWriter excelWriter
+     * @param params 参数
+     * @author senyang.zheng
+     * @date 2024/08/29
+     */
+    @Override
+    public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
+        for (BiReportDownLoadParam param : params) {
+            String name = "场景" + param.getGroup() + param.getReportName();
+            // excel sheet名称最大长度31，超出31截取前31位
+            String sheetName =
+                    name.length() > 31 ? name.substring(0, 31) : name;
+            excelWriter.setSheet(sheetName);
+            // 数据写入
+            List<BiReportDownLoadParam> list = Lists.newArrayList();
+            list.add(param);
+            writeData(excelWriter, list);
+        }
+        // 剔除默认生成的第一个sheet
+        excelWriter.getWorkbook().removeSheetAt(0);
+    }
+
+    /**
+     * 写入数据
+     *
+     * @param writer writer
+     * @param params 参数
+     * @author senyang.zheng
+     * @date 2024/08/29
+     */
+    private void writeData(ExcelWriter writer, List<BiReportDownLoadParam> params) {
+        int rowIndex = 0;
+        for (BiReportDownLoadParam param : params) {
+            List<String> xAxis = param.getXAxis();
+            List<WrapDataVO> yAxis = param.getYAxis();
+            // 写入X轴名称
+            writer.writeCellValue(0, rowIndex, param.getXAxisName());
+            // 写X轴数据
+            for (int i = 0; i < xAxis.size(); i++) {
+                writer.writeCellValue(0, rowIndex + i + 1, xAxis.get(i));
+            }
+            // 写入Y轴数据
+            for (int i = 0; i < yAxis.size(); i++) {
+                WrapDataVO yAxi = yAxis.get(i);
+                List<String> yData = yAxi.getData();
+                // 写入Y轴名称
+                writer.writeCellValue(i + 1, rowIndex, yAxi.getName());
+                // 写入Y轴数据
+                for (int j = 0; j < xAxis.size(); j++) {
+                    String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
+                    if (value.contains("%")) {
+                        BigDecimal decimal = new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
+                        writer.writeCellValue(i + 1, j + 1, decimal);
+                        writer.getCell(i + 1, j + 1).setCellStyle(getDataBarCellStyle(writer,decimal));
+                    } else {
+                        writer.writeCellValue(i + 1, j + 1, value);
+                    }
+                    writer.writeCellValue(i + 1, rowIndex + j + 1, value);
+                }
+            }
+            // 添加空行 xAxis.size() + 1 为当前表格所占行数，再+1添加空行
+            rowIndex += xAxis.size() + 2;
+        }
+        autoSizeColumnAll(writer);
+    }
+
 }

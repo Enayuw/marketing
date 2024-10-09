@@ -1,6 +1,5 @@
 package com.br.marketing.dto.report.zhongan;
 
-import com.br.marketing.common.annoation.DecimalFieldConvertor;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -18,8 +17,6 @@ import java.math.BigDecimal;
 @ApiModel(value = "携程单日撞库结果分布报表dto")
 public class ZhonganOutboundCallReportDTO implements Serializable {
 
-    private static final long serialVersionUID = -6616583716934011016L;
-
     @ApiModelProperty(value = "触达日期")
     private String reportDate;
     @ApiModelProperty(value = "场景")
@@ -35,13 +32,12 @@ public class ZhonganOutboundCallReportDTO implements Serializable {
     @ApiModelProperty(value = "短信成功发送量")
     private Long smsSucSendNum;
     @ApiModelProperty(value = "接通率")
-    private Long continuityRatio;
+    private BigDecimal continuityRatio;
     @ApiModelProperty(value = "接通短信触发率")
-    private Long smsTriggerRatio;
+    private BigDecimal smsTriggerRatio;
     @ApiModelProperty(value = "短信成功发送率")
-    private Long smsSucSendRatio;
+    private BigDecimal smsSucSendRatio;
     @ApiModelProperty("成本")
-    @DecimalFieldConvertor(scale = 2)
     private BigDecimal cost;
 
 }
