@@ -1,6 +1,5 @@
 package com.br.marketing.bi.zhongan;
 
-import com.br.marketing.util.DataBarUtil;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,6 +33,7 @@ import com.br.marketing.mapper.ReportStatisticTransferMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.DataBarUtil;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
@@ -312,8 +312,8 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                 for (int j = 0; j < xAxis.size(); j++) {
                     String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
                     if (value.contains("%")) {
-                        BigDecimal decimal = new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
-                        writer.writeCellValue(i + 1, rowIndex + j + 1, decimal);
+                        BigDecimal decimal = new BigDecimal(value.replace("%", ""));
+                        writer.writeCellValue(i + 1, rowIndex + j + 1, decimal.divide(BigDecimal.valueOf(100), decimal.scale() + 2, RoundingMode.HALF_UP));
                         writer.getCell(i + 1, rowIndex + j + 1).setCellStyle(getDataBarCellStyle(writer, decimal));
                     } else {
                         writer.writeCellValue(i + 1, rowIndex + j + 1, value);

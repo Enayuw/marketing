@@ -296,6 +296,7 @@ public abstract class AbstractBiReportConverter<V, T> {
                     pattern.append("0");
                 }
             }
+            pattern.append("%");
             formatIndex = format.getFormat(pattern.toString());
         }
         cellStyle.setDataFormat(formatIndex);
