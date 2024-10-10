@@ -273,7 +273,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
     @Override
     public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
         // excel sheet名称最大长度31，超出31截取前31位
-        String name = params.get(0).getGroup() + "_" + params.get(0).getReportName();
+        String name = params.get(0).getReportName() + "_" + params.get(0).getGroup();
         String sheetName = name.length() > 31 ? name.substring(0, 31) : name;
         excelWriter.setSheet(sheetName);
         // 数据写入

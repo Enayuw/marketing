@@ -116,7 +116,7 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
     @Override
     public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
         for (BiReportDownLoadParam param : params) {
-            String name = "场景" + param.getGroup() +"_"+ param.getReportName();
+            String name = param.getReportName() +"_"+ "场景" + param.getGroup();
             // excel sheet名称最大长度31，超出31截取前31位
             String sheetName =
                     name.length() > 31 ? name.substring(0, 31) : name;

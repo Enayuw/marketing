@@ -25,6 +25,7 @@ import groovy.util.logging.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
@@ -107,7 +108,8 @@ public class BiReportServiceImpl implements BiReportService {
             return null;
         }
         String encodeFileName;
-        if(params.get(0).getReportTaskName().isEmpty()){
+        String reportTaskName = params.get(0).getReportTaskName();
+        if(StringUtils.isEmpty(reportTaskName)){
             // 报告名称
             encodeFileName = URLEncoder.encode(params.get(0).getReportName() + ".xlsx", StandardCharsets.UTF_8.toString());
         }else {
