@@ -26,23 +26,23 @@ public class ZhongAnBusAnalyOneReportDTO implements Serializable {
     private Long totalNum;
     @ApiModelProperty(value = "进件人数")
     private Long incomingNum;
-    @DecimalFieldConvertor(scale = 2)
+    @DecimalFieldConvertor(scale = 0)
     @ApiModelProperty(value = "进件增量提升率")
     private BigDecimal incomingIncreaseRate;
-    @DecimalFieldConvertor(scale = 5)
+    @DecimalFieldConvertor(scale = 3)
     @ApiModelProperty(value = "进件穿透率")
     private BigDecimal incomingTotalRate;
     @ApiModelProperty(value = "批核人数")
     private Long approversNum;
     @ApiModelProperty(value = "批核通过率")
-    @DecimalFieldConvertor(scale = 4)
+    @DecimalFieldConvertor(scale = 2)
     private BigDecimal approversRate;
     @ApiModelProperty(value = "批核增量提升率")
-    @DecimalFieldConvertor(scale = 2)
+    @DecimalFieldConvertor(scale = 0)
     private BigDecimal approversIncreaseRate;
 
     @ApiModelProperty(value = "批核通过穿透率")
-    @DecimalFieldConvertor(scale = 6)
+    @DecimalFieldConvertor(scale = 4)
     private BigDecimal approversTotalRate;
 
 
