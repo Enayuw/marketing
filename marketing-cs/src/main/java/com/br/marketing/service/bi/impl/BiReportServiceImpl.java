@@ -107,12 +107,12 @@ public class BiReportServiceImpl implements BiReportService {
             return null;
         }
         String encodeFileName;
-        if(!params.get(0).getReportTaskName().isEmpty()){
-            // 设置下载协议头，防止中文乱码做URLEncoder处理
-            encodeFileName = URLEncoder.encode(params.get(0).getReportTaskName() + ".xlsx", StandardCharsets.UTF_8.toString());
-        }else {
-            // 设置下载协议头，防止中文乱码做URLEncoder处理
+        if(params.get(0).getReportTaskName().isEmpty()){
+            // 报告名称
             encodeFileName = URLEncoder.encode(params.get(0).getReportName() + ".xlsx", StandardCharsets.UTF_8.toString());
+        }else {
+            // 任务名称
+            encodeFileName = URLEncoder.encode(params.get(0).getReportTaskName() + ".xlsx", StandardCharsets.UTF_8.toString());
         }
         // try-with-resource 的方式关闭流
         try (ExcelWriter excelWriter = ExcelUtil.getWriter(true); ServletOutputStream out = response.getOutputStream()) {

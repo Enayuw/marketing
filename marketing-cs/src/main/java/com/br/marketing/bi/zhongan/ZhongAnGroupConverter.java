@@ -61,7 +61,6 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
         // 查询规则分组名称
         ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(Long.valueOf(taskId));
         Map<String, String> groupNameMap = formatReportRules(reportTask);
-        String reportName = reportTask.getReportName();
 
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
         reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
@@ -85,21 +84,20 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
             // 分组查询
             for (String value : formatField(dimensionValue)) {
                 List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, dimensionField, value, "案件量");
-                bulidGroupHead(dtoList, field, groupNameMap.get(value), reportName, step, dtos);
+                bulidGroupHead(dtoList, field, groupNameMap.get(value), step, dtos);
             }
         }
         return dtos;
     }
 
     private void bulidGroupHead(List<ZhongAnDistributionStatisticDTO> dtoList, String field, String groupName,
-                                String reportTaskName, Integer step, List<ZhongAnGroupedScoreDistributionDTO> dtos) {
+                                Integer step, List<ZhongAnGroupedScoreDistributionDTO> dtos) {
         List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
         for (ZhongAnDistributionStatisticDTO zhongAnDistributionStatisticDTO : dtoList) {
             ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
             zhongAnGroupedScoreDistributionDTO.setProduct(field);
             zhongAnGroupedScoreDistributionDTO.setInterval(zhongAnDistributionStatisticDTO.getScoreValue());
             zhongAnGroupedScoreDistributionDTO.setGroup(groupName == null ? "0":groupName);
-            zhongAnGroupedScoreDistributionDTO.setReportTaskName(reportTaskName);
             zhongAnGroupedScoreDistributionDTO.setName(zhongAnDistributionStatisticDTO.getItemName());
             zhongAnGroupedScoreDistributionDTO.setNum(Long.valueOf(zhongAnDistributionStatisticDTO.getItemValue()));
             zhongAnGroupedScoreDistributionDTO.setStep(step);
@@ -144,7 +142,6 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                         intervals.addAll(fiveStepLengthList);
                     }
                     group = comparisonData.get(0).getGroup();
-                    reportTaskName = comparisonData.get(0).getReportTaskName();
                     List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
                     Long sum = 0L;
                     for (String interval : intervals){
@@ -193,7 +190,6 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                 biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
                 biReportVO.setXAxisName("区间");
                 biReportVO.setGroup(group);
-                biReportVO.setReportTaskName(reportTaskName);
                 if(!intervals.contains("总计")){
                     intervals.add("总计");
                 }
