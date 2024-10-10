@@ -1,32 +1,31 @@
 package com.br.marketing.bi.zhongan;
 
-import cn.hutool.core.util.NumberUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.report.zhongan.ReportStatisticTransferDetail;
-import com.br.marketing.entity.ReportFieldMapping;
-import com.br.marketing.entity.ReportFieldMappingExample;
-import com.br.marketing.entity.ReportStatisticTransfer;
-import com.br.marketing.entity.ReportStatisticTransferExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.mapper.ReportFieldMappingMapper;
 import com.br.marketing.mapper.ReportStatisticTransferMapper;
+import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.br.marketing.vo.bi.param.BiReportParam;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +47,9 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
 
     @Resource
     private ReportFieldMappingMapper reportFieldMappingMapper;
+
+    @Resource
+    private ReportTaskMapper reportTaskMapper;
 
     @Override
     public List<ReportStatisticTransferDetail> fetchData(BiReportParam param) {
@@ -100,7 +102,8 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
 
                 BiReportVO biReportVO = new BiReportVO();
                 biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT.getTypeName());
-                biReportVO.setReportName("转化分析报表-"+scoreField+"-"+dimensionValue);
+                String groupName = getGroupName(taskId, dimensionValue);
+                biReportVO.setReportName(BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT.getStatName()+"-"+scoreField+"-"+groupName);
                 biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
 
                 List<ReportStatisticTransferDetail> reportDataList = zhongAnBiReportMapper.queryReportStatisticTransferDetailbI_(reportId, "", "", "", "");
@@ -169,10 +172,40 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
         return dataList;
     }
 
-    public static void main(String[] args) {
-        String s1 = NumberUtil.formatPercent(new BigDecimal("123456.123456").doubleValue(), 1);
-        System.out.println(s1);
-        String s2 = NumberUtil.decimalFormat(",###.00", new BigDecimal("123456.123456").doubleValue());
-        System.out.println(s2);
+    public Map<String, String> formatReportRules(String taskId) {
+        ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(Long.valueOf(taskId));
+        String reportRules = reportTask.getReportRules();
+
+        Map<String, String> resultMap = new HashMap<>();
+        if (reportRules.contains("upload")) {
+            JSONObject param = JSONObject.parseObject(reportRules);
+            String upload = param.getString("upload");
+            JSONObject uploadJson = JSONObject.parseObject(upload);
+            String dimensions = uploadJson.getString("dimensionsValue");
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                // 解析JSON数组为JsonNode
+                JsonNode jsonNode = objectMapper.readTree(dimensions);
+                resultMap = new HashMap<>();
+                for (JsonNode item : jsonNode) {
+                    String code = item.get("code").asText();
+                    String desc = item.get("desc").asText();
+                    resultMap.put(code, desc);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return resultMap;
+    }
+
+    public String getGroupName(String taskId, String groupCode) {
+        Map<String, String> groupMap = formatReportRules(taskId);
+        String groupName = groupMap.get(groupCode);
+        if(StringUtils.isEmpty(groupName)){
+            return "";
+        }
+        return groupName;
     }
 }

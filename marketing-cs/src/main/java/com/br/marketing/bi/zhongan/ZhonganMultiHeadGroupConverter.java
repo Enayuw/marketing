@@ -179,8 +179,8 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                     }
                     // 占比字段格式化
                     List<ZhongAnGroupedScoreDistributionDTO> transformedList = list.stream().map(dto -> {
-                        BigDecimal newProportion = dto.getProportion().multiply(new BigDecimal("100"));
-                        dto.setProportion(newProportion.setScale(2, RoundingMode.HALF_UP).stripTrailingZeros());
+                        BigDecimal newProportion = dto.getProportion().multiply(BigDecimal.valueOf(100));
+                        dto.setProportion(newProportion.setScale(2, RoundingMode.HALF_UP));
                         return dto;
                     }).collect(Collectors.toList());
 

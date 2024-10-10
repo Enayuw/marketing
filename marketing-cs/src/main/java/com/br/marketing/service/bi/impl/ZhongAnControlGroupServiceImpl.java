@@ -7,7 +7,6 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO;
 import com.br.marketing.mapper.ZhongAnControlGroupMapper;
 import com.br.marketing.service.bi.ZhongAnControlGroupService;
-import com.br.marketing.vo.PushDecisionsDetailVO;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
 import com.br.marketing.vo.zhongan.param.ControlGroupDTO;
 import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
@@ -41,6 +40,14 @@ public class ZhongAnControlGroupServiceImpl implements ZhongAnControlGroupServic
         }
         PageHelper.startPage(dto.getCurrent(), dto.getSize());
         List<ZhongAnCustomInfoVO> customInfoList = zhongAnControlGroupMapper.getCustomInfoListbI_(dto);
+        for (ZhongAnCustomInfoVO zhongAnCustomInfoVO : customInfoList){
+            if(zhongAnCustomInfoVO.getLoginRate() != null){
+                zhongAnCustomInfoVO.setLoginRate(zhongAnCustomInfoVO.getLoginRate().movePointRight(2));
+            }
+            if(zhongAnCustomInfoVO.getPayPassRate() != null){
+                zhongAnCustomInfoVO.setPayPassRate(zhongAnCustomInfoVO.getPayPassRate().movePointRight(2));
+            }
+        }
         PageResultReturn pageResultReturn = PageResultReturn.setPageResult(customInfoList, dto.getCurrent(), dto.getSize());
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pageResultReturn);
     }
@@ -90,13 +97,13 @@ public class ZhongAnControlGroupServiceImpl implements ZhongAnControlGroupServic
             zhongAnControlGroupDTO.setApproversNum(zhongAnCustomInfo.getApproversNum());
             zhongAnControlGroupDTO.setApprovalAvailable(zhongAnCustomInfo.getApprovalAvailable());
             if(zhongAnCustomInfo.getLoginRate() != null){
-                zhongAnControlGroupDTO.setLoginRate(new BigDecimal(zhongAnCustomInfo.getLoginRate()));
+                zhongAnControlGroupDTO.setLoginRate(new BigDecimal(zhongAnCustomInfo.getLoginRate()).movePointLeft(2));
             }
             if(zhongAnCustomInfo.getPayPassRate() != null){
-                zhongAnControlGroupDTO.setPayPassRate(new BigDecimal(zhongAnCustomInfo.getPayPassRate()));
+                zhongAnControlGroupDTO.setPayPassRate(new BigDecimal(zhongAnCustomInfo.getPayPassRate()).movePointLeft(2));
             }
             if(zhongAnCustomInfo.getLendersSucAmount() != null){
-                zhongAnControlGroupDTO.setLendersSucAmount(new BigDecimal(zhongAnCustomInfo.getLendersSucAmount()));
+                zhongAnControlGroupDTO.setLendersSucAmount(new BigDecimal(zhongAnCustomInfo.getLendersSucAmount()).movePointLeft(2));
             }
             zhongAnControlGroupDTO.setApplyPayNum(zhongAnCustomInfo.getApplyPayNum());
             zhongAnControlGroupDTO.setLendersSucNum(zhongAnCustomInfo.getLendersSucNum());
