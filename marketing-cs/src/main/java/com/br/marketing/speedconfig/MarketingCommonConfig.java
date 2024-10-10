@@ -2158,5 +2158,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
 
+    /**
+     * 苏商文件时间
+     */
+    private String suShangFileDate;
+
 }
 

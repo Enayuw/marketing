@@ -1,43 +1,50 @@
 package com.br.marketing.monkey.job.yixin;
 
+import com.br.marketing.monkeydata.handle.yixin.YiXinBlackPushToBioclooHandler;
+import com.br.marketing.monkeydata.handle.yixin.YiXinTransferPushToBioclooHandler;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
-import com.br.marketing.monkeydata.handle.yixin.YiXinBlackPushToBaiYingHandler;
-import com.br.marketing.monkeydata.handle.yixin.YiXinTransferPushToBaiYingHandler;
 import com.br.marketing.service.IYiXinTransferService;
-import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.Impl.JobManager;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 宜信转化过滤推送百应
  */
 @Component
 @Slf4j
-public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
+public class YiXinTransferPushToBioClooJob extends AbstractSimpleElasticJob {
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private YiXinTransferPushToBaiYingHandler yiXinTransferPushToBaiYingHandler;
+    private YiXinBlackPushToBioclooHandler yiXinBlackPushToBioClooHandler;
 
     @Resource
-    private YiXinBlackPushToBaiYingHandler yiXinBlackPushToBaiYingHandler;
+    private YiXinTransferPushToBioclooHandler yiXinTransferPushToBioClooHandler;
 
     @Resource
     private JobManager jobManager;
@@ -48,10 +55,9 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     @Resource
     private IYiXinTransferService yiXinTransferService;
 
-
     private final static String EXECUTE_TIME = "06:00:00";
 
-    private final static String TITLE = "【宜信转化过滤推送百应】";
+    private final static String TITLE = "【宜信转化过滤推送百可录】";
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
@@ -69,7 +75,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     }
 
     public void processTransfer(List<Map<String, String>> paramList) {
-        int actionTypeTransfer = JobManager.ActionTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getActionType();
+        int actionTypeTransfer = JobManager.ActionTypeEnum.YIXIN_TRANSFER_PUSH_BIOCLOO.getActionType();
 
         for (Map<String, String> param: paramList) {
             String apiCode = param.get("apiCode");
@@ -128,7 +134,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         condition.setRequestData(bizDate);
         condition.setSynApiCode(synApiCode);
         condition.setPriority(priority);
-        Result actionResult = yiXinTransferPushToBaiYingHandler.action(condition);
+        Result actionResult = yiXinTransferPushToBioClooHandler.action(condition);
         log.warn(TITLE+"转化数据任务, action结束, apiCode:{}, bizDate:{}, priority:{}", apiCode, bizDate, priority);
         return actionResult;
     }
@@ -142,7 +148,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
         condition.setApiCode(apiCode);
         condition.setRequestData(bizDate);
         condition.setSynApiCode(synApiCode);
-        Result actionResult = yiXinBlackPushToBaiYingHandler.action(condition);
+        Result actionResult = yiXinBlackPushToBioClooHandler.action(condition);
         return actionResult;
     }
 
@@ -193,7 +199,7 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
     }
 
     public void processBlackPush(List<Map<String, String>> paramList) {
-        int actionTypeBlack = JobManager.ActionTypeEnum.YIXIN_BLACK_PUSH_BAIYING.getActionType();
+        int actionTypeBlack = JobManager.ActionTypeEnum.YIXIN_BLACK_PUSH_BIOCLOO.getActionType();
 
         for (Map<String, String> param: paramList) {
             String apiCode = param.get("apiCode");
