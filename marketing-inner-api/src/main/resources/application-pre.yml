@@ -198,12 +198,8 @@ NESTED_DATA_DIR: target/test_zk_data/
 corn:
   taskJob: 0 0/30 * * * ?
 rocketmq:
+  name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876  #预发rocketmq代理地址
   producer:
-    endpoints: 10.100.123.171:8081;10.100.123.172:8081;10.100.123.173:8081  #预发rocketmq代理地址
-    topic: gate
+    group: springboot_producer_group
   consumer:
-    endpoints: 10.100.123.171:8081;10.100.123.172:8081;10.100.123.173:8081 #预发rocketmq代理地址
-    topic: gate
-    consumer-group: Marketing_PreUser_Receive
-    filter-expression-type: tag
-    tag: "*"
+    group: springboot_producer_group
