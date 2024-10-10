@@ -2158,5 +2158,10 @@ public class MarketingCommonConfig {
      */
     private String suShangFileDate;
 
+    /**
+     * 苏商自动回传转化状态时间
+     */
+    private String suShangFileExecTime;
+
 }
 
