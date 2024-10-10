@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
+import com.br.marketing.bo.PeriodOfValidityBO;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -12,8 +14,8 @@ import com.br.marketing.context.impl.RsCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
-import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -39,29 +41,53 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
 
 
     private final static String INVERSIONSTATUS="0";
+    private final static String INVERSION_STATUS_2="2";
+    private final static String CASE_EFFECTIVE_0="0";
 
     private final MarketingCommonConfig marketingCommonConfig;
 
-    private final IPeriodOfValidityService iPeriodOfValidityService;
-
     private final TableCreateServiceImpl tableCreateService;
+
+    private final TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
-        conversionData.setCid(tableCreateService.getCId(context.getApiCode()));
-        conversionData.setCaseNum(transfer.getCustNum());
+        String apiCode = context.getApiCode();
+        conversionData.setCid(tableCreateService.getCId(apiCode));
+        String custNum = transfer.getCustNum();
+        conversionData.setCaseNum(custNum);
         conversionData.setDataId(transfer.getId().toString());
+        // 新版本有效期判断
+        Set<String> custNumSet = new HashSet<>();
+        custNumSet.add(custNum);
+        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
+        if (syncUserValidityPeriodsBO == null || null == syncUserValidityPeriodsBO.getSyncUsers()) {
+            log.warn("apiCode[{}]custNum[{}]不满足rs案件编号[有效期内]条件", apiCode, custNum);
+            return null;
+        }
+        PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateTimeString().builder();
+        String enDateTimeString = periodOfValidityBO.getEnDateTimeStr();
         if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
-        conversionData.setExpireDate(marketingCommonConfig.getRsTransferDataToCustomerExpireDate());
-        conversionData.setInversionStatus(INVERSIONSTATUS);
+        conversionData.setExpireDate(enDateTimeString);
+        if(transfer.getUserType().equals("4")
+                || transfer.getUserType().equals("5")
+                || getUnlentAmount(transfer)){
+            conversionData.setInversionStatus(INVERSIONSTATUS);
+        }else if(getCaseEffective0(transfer)){
+            conversionData.setInversionStatus(INVERSION_STATUS_2);
+        }else{
+            log.warn("apiCode[{}]custNum[{}]出现rs运营自动化过滤未预期的结果", apiCode, custNum);
+        }
         RsCollectDataImpl.RsRuleNecessaryData ruleNecessaryData =
                 (RsCollectDataImpl.RsRuleNecessaryData) context.getRuleNecessaryData();
         Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
-        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, transfer.getCustNum());
+        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, custNum);
         if (marketingSyncUser != null) {
             conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         }
@@ -80,20 +106,24 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             if (marketingSyncUser == null) {
                 return false;
             }
-            // 有效期判断
-            String appletDate = marketingSyncUser.getAppletDate();
-            if (iPeriodOfValidityService.isExpire(appletDate,marketingCommonConfig.getRsValidityDay(),null)) {
-                return false;
-            }
             //userType =4 || userType =5 || unlentAmount < 10000
             return transfer.getUserType().equals("4")
                     || transfer.getUserType().equals("5")
-                    || getUnlentAmount(transfer);
+                    || getUnlentAmount(transfer)
+                    || getCaseEffective0(transfer);
         }
         return false;
     }
 
-    private boolean getUnlentAmount( MarketingTransferSyncUser transfer){
+    private boolean getCaseEffective0(MarketingTransferSyncUser transfer){
+        String caseEffective = transfer.getCaseEffective();
+        if(StringUtils.isNotBlank(caseEffective) && CASE_EFFECTIVE_0.equalsIgnoreCase(caseEffective)){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean getUnlentAmount(MarketingTransferSyncUser transfer){
         if(StringUtils.isNotBlank(transfer.getReserveField1())){
             Double unlentAmount  = null;
             int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
