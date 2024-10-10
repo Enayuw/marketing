@@ -2154,6 +2154,11 @@ public class MarketingCommonConfig {
     private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
 
     /**
+     * 你我贷转化规则过滤配置
+     */
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+
+    /**
      * 苏商文件时间
      */
     private String suShangFileDate;
