@@ -38,6 +38,6 @@
         set push_status = 1
         where is_deleted = 0
           and status = 1 and push_status >1
-          and local_id in ${highValueIds} limit 100000;
+          and local_id in ${highValueIds} limit 200000;
     </update>
 </mapper>
