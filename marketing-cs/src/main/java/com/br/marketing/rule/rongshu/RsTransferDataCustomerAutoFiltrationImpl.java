@@ -28,7 +28,7 @@ import java.util.*;
 
 /**
  * 榕树转化数据自动过滤推客服
- *
+ * 需求地址：https://c.100credit.cn/pages/viewpage.action?pageId=98026532
  * @author GuangChao.Zhang
  * @version 1.0
  * @Date 2023/2/13 17:52
@@ -75,11 +75,11 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         conversionData.setExpireDate(enDateTimeString);
-        if(transfer.getUserType().equals("4")
-                || transfer.getUserType().equals("5")
+        if("4".equals(transfer.getUserType())
+                || "5".equals(transfer.getUserType())
                 || getUnlentAmount(transfer)){
             conversionData.setInversionStatus(INVERSIONSTATUS);
-        }else if(getCaseEffective0(transfer)){
+        }else if(isCaseEffective0(transfer)){
             conversionData.setInversionStatus(INVERSION_STATUS_2);
         }else{
             log.warn("apiCode[{}]custNum[{}]出现rs运营自动化过滤未预期的结果", apiCode, custNum);
@@ -107,15 +107,15 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
                 return false;
             }
             //userType =4 || userType =5 || unlentAmount < 10000
-            return transfer.getUserType().equals("4")
-                    || transfer.getUserType().equals("5")
+            return "4".equals(transfer.getUserType())
+                    || "5".equals(transfer.getUserType())
                     || getUnlentAmount(transfer)
-                    || getCaseEffective0(transfer);
+                    || isCaseEffective0(transfer);
         }
         return false;
     }
 
-    private boolean getCaseEffective0(MarketingTransferSyncUser transfer){
+    private boolean isCaseEffective0(MarketingTransferSyncUser transfer){
         String caseEffective = transfer.getCaseEffective();
         if(StringUtils.isNotBlank(caseEffective) && CASE_EFFECTIVE_0.equalsIgnoreCase(caseEffective)){
             return true;
