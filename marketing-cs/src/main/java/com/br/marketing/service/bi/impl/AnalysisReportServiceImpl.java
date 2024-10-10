@@ -303,8 +303,9 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             for (int j = 0; j < xAxis.size(); j++) {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
                 if (value.contains("%")) {
-                    BigDecimal decimal = new BigDecimal(value.replace("%", "")).divide(BigDecimal.valueOf(100), RoundingMode.HALF_UP);
-                    writer.writeCellValue(i + 1, j + 1, decimal);
+                    BigDecimal decimal = new BigDecimal(value.replace("%", ""));
+                    writer.writeCellValue(i + 1, j + 1, decimal.divide(BigDecimal.valueOf(100), decimal.scale() + 2, RoundingMode.HALF_UP));
+
                     CellStyle cellStyle = StyleUtil.cloneCellStyle(workbook, writer.getCellStyle());
                     if (decimal.compareTo(BigDecimal.ZERO) == 0) {
                         short formatIndex = format.getFormat("0%");
