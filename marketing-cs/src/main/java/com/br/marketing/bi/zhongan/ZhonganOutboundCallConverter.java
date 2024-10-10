@@ -78,7 +78,7 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
         for (Map.Entry<String, List<ZhonganOutboundCallReportDTO>> entry : scoreMap.entrySet()) {
             BiReportVO biReportVO = new BiReportVO();
             biReportVO.setReportTypeName(BiReportTypeEnum.OUTBOUND_STAT_REPORT.getTypeName());
-            biReportVO.setReportName("外呼统计报表报表");
+            biReportVO.setReportName("外呼统计报表");
             biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
             biReportVO.setGroup(entry.getValue().get(0).getUserType());
             // 根据时间排序
@@ -116,7 +116,7 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
     @Override
     public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
         for (BiReportDownLoadParam param : params) {
-            String name = "场景" + param.getGroup() + param.getReportName();
+            String name = "场景" + param.getGroup() +"_"+ param.getReportName();
             // excel sheet名称最大长度31，超出31截取前31位
             String sheetName =
                     name.length() > 31 ? name.substring(0, 31) : name;

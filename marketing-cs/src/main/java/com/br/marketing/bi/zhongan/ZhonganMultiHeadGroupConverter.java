@@ -72,7 +72,9 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
             return new ArrayList<>();
         }
         // 查询规则分组名称
-        Map<String, String> groupNameMap = formatReportRules(taskId);
+        ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(Long.valueOf(taskId));
+        Map<String, String> groupNameMap = formatReportRules(reportTask);
+        String reportName = reportTask.getReportName();
 
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
         reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
@@ -102,7 +104,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                     for (String itemName : formatField(multiHeadField)) {
                         List<ZhongAnDistributionStatisticDTO> dtoList =
                             zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, dimensionField, value, itemName);
-                        bulidMultiHead(dtoList, field, groupName, step, dtos);
+                        bulidMultiHead(dtoList, field, groupName, reportName, step, dtos);
                     }
                 }
             } else if (!"[]".equals(multiHeadField)) {
@@ -110,7 +112,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                 for (String itemName : formatField(multiHeadField)) {
                     List<ZhongAnDistributionStatisticDTO> dtoList =
                         zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, null, null, itemName);
-                    bulidMultiHead(dtoList, field, null, step, dtos);
+                    bulidMultiHead(dtoList, field, null, reportName, step, dtos);
                 }
             }
         }
@@ -142,6 +144,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                 List<String> intervals = new ArrayList<>();
                 Integer step;
                 String group = "";
+                String reportTaskName = "";
                 // 处理数据
                 for (String comparisonName : comparisonMap.keySet()) {
                     List<ZhongAnGroupedScoreDistributionDTO> comparisonData = comparisonMap.get(comparisonName);
@@ -153,6 +156,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                         intervals.addAll(fiveStepLengthList);
                     }
                     group = comparisonData.get(0).getGroup();
+                    reportTaskName = comparisonData.get(0).getReportTaskName();
                     List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
                     Long sum = 0L;
                     for (String interval : intervals) {
@@ -200,6 +204,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                 biReportVO.setReportTypeName(BiReportTypeEnum.MULTPOINT_REPORT.getTypeName());
                 biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
                 biReportVO.setXAxisName("区间");
+                biReportVO.setReportTaskName(reportTaskName);
                 biReportVO.setGroup(group);
                 if (!intervals.contains("总计")) {
                     intervals.add("总计");
@@ -216,13 +221,15 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
         return JSON.parseObject(str, new TypeReference<List<String>>() {}.getType());
     }
 
-    public void bulidMultiHead(List<ZhongAnDistributionStatisticDTO> dtoList, String field, String groupName, Integer step,
+    public void bulidMultiHead(List<ZhongAnDistributionStatisticDTO> dtoList, String field,
+                               String groupName, String reportTaskName,Integer step,
         List<ZhongAnGroupedScoreDistributionDTO> dtos) {
         List<ZhongAnGroupedScoreDistributionDTO> list = new ArrayList<>();
         for (ZhongAnDistributionStatisticDTO zhongAnDistributionStatisticDTO : dtoList) {
             ZhongAnGroupedScoreDistributionDTO zhongAnGroupedScoreDistributionDTO = new ZhongAnGroupedScoreDistributionDTO();
             zhongAnGroupedScoreDistributionDTO.setProduct(field);
             zhongAnGroupedScoreDistributionDTO.setInterval(zhongAnDistributionStatisticDTO.getScoreValue());
+            zhongAnGroupedScoreDistributionDTO.setReportTaskName(reportTaskName);
             zhongAnGroupedScoreDistributionDTO.setGroup(groupName == null ? "0" : groupName);
             zhongAnGroupedScoreDistributionDTO.setName(zhongAnDistributionStatisticDTO.getItemName());
             zhongAnGroupedScoreDistributionDTO.setNum(Long.valueOf(zhongAnDistributionStatisticDTO.getItemValue()));
@@ -233,8 +240,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
         dtos.addAll(list);
     }
 
-    public Map<String, String> formatReportRules(String taskId) {
-        ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(Long.valueOf(taskId));
+    public Map<String, String> formatReportRules(ReportTask reportTask) {
         String reportRules = reportTask.getReportRules();
 
         Map<String, String> resultMap = new HashMap<>();
@@ -272,8 +278,8 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
     @Override
     public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
         // excel sheet名称最大长度31，超出31截取前31位
-        String sheetName =
-            params.get(0).getReportName().length() > 31 ? params.get(0).getReportName().substring(0, 31) : params.get(0).getReportName();
+        String name = params.get(0).getGroup() + "_" + params.get(0).getReportName();
+        String sheetName = name.length() > 31 ? name.substring(0, 31) : name;
         excelWriter.setSheet(sheetName);
         // 数据写入
         writeData(excelWriter, params);

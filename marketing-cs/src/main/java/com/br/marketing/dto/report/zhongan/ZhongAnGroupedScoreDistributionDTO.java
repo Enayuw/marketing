@@ -22,6 +22,8 @@ public class ZhongAnGroupedScoreDistributionDTO {
     private String group;
     @ApiModelProperty("名称")
     private String name;
+    @ApiModelProperty("任务名称")
+    private String reportTaskName;
     @ApiModelProperty("量级")
     private Long num;
     @ApiModelProperty("占比")
