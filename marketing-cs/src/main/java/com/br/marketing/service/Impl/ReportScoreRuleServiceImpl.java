@@ -21,13 +21,17 @@ import com.br.marketing.vo.bi.BiReportTaskVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
+import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,6 +72,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Resource
     private BiReportMapper biReportMapper;
+
+    @Autowired
+    private ZhongAnControlGroupMapper zhongAnControlGroupMapper;
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -230,6 +237,13 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         String ids = reportTaskParam.getIds();
         String cid = reportTaskParam.getCid();
         String reportTypeName = reportTaskParam.getReportTypeName();
+        List<String> businessList = Lists.newArrayList(BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getTypeName(),
+                BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getTypeName(),
+                BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName());
+
+        if (businessList.contains(reportTypeName) && (!checkBusinessReportConfig(reportTaskParam))) {
+            return new ApiResult<Boolean>().fail(false, "经营分析报表未配置报表配置，请检查");
+        }
         Integer reportType = null;
         if (reportTypeName != null) {
             reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
@@ -264,9 +278,6 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         reportTask.setCreateTime(new Date());
         reportTask.setUpdateTime(new Date());
         reportTaskMapper.insertSelective(reportTask);
-        List<String> businessList = Lists.newArrayList(BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getTypeName(),
-                BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getTypeName(),
-                BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName());
         if (businessList.contains(reportTypeName)) {
             return new ApiResult<Boolean>().success(true);
         }
@@ -296,6 +307,41 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             reportTaskScoreSourceMapper.insertBatch(list);
         }
         return new ApiResult<Boolean>().success(true);
+    }
+
+    private Boolean checkBusinessReportConfig(ReportTaskParam reportTaskParam) {
+        JSONObject rulesJson = JSON.parseObject(reportTaskParam.getRules());
+        JSONObject transferConfig = rulesJson.getJSONObject("transfer");
+        LocalDate startDate = LocalDate.parse(transferConfig.getString("requestStartDate"));
+        LocalDate endDate = LocalDate.parse(transferConfig.getString("requestEndDate"));
+        List<String> dateList = getDatesBetween(startDate, endDate).stream().map(LocalDate::toString).collect(Collectors.toList());
+        long dateBetween = (endDate.toEpochDay() - startDate.toEpochDay()) + 1;
+        String reportTypeName = reportTaskParam.getReportTypeName();
+        if (BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getTypeName().equals(reportTypeName)) {
+            List<ZhongAnCustomInfoVO> oneGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "1", "1");
+            List<ZhongAnCustomInfoVO> twoGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "1", "2");
+            return (oneGroupList.size() == dateBetween) && (twoGroupList.size() == dateBetween);
+        }
+        if (BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName().equals(reportTypeName)) {
+            List<ZhongAnCustomInfoVO> threeGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "7", "3");
+            List<ZhongAnCustomInfoVO> fourGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "7", "4");
+            return (threeGroupList.size() == dateBetween) && (fourGroupList.size() == dateBetween);
+        }
+        if (BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getTypeName().equals(reportTypeName)) {
+            List<ZhongAnCustomInfoVO> fiveGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "8", "5");
+            return fiveGroupList.size() == dateBetween;
+        }
+        return Boolean.FALSE;
+    }
+
+    private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
+        List<LocalDate> localDateList = new ArrayList<>();
+        long length = endDate.toEpochDay() - startDate.toEpochDay();
+        for (long i = length; i >= 0; i--) {
+            LocalDate localDate = endDate.minusDays(i);
+            localDateList.add(localDate);
+        }
+        return localDateList;
     }
 
     private void addReportFieldMapping(List<ReportFieldDict> reportFieldDicts, Long reportId) {

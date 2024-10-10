@@ -15,4 +15,9 @@ public interface ZhongAnControlGroupMapper {
     int saveCustomInfobI_(@Param("list") List<ZhongAnControlGroupDTO> list);
 
     List<String> selectConfigStatusbI_(@Param("startDate") String startDate, @Param("endDate") String endDate);
+
+
+    List<ZhongAnCustomInfoVO> selectConfigByGroupbI_(@Param("list") List<String> reportDateList,
+                                                   @Param("userType") String userType,@Param("constituencies") String constituencies);
+
 }

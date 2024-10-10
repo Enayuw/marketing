@@ -8,14 +8,16 @@
         pay_pass_rate,lenders_suc_amount,lenders_suc_num,create_time,update_time,is_delete)values
         <foreach collection="list" item="data" separator=",">
             (#{data.reportDate,jdbcType=VARCHAR}, #{data.userType,jdbcType=INTEGER},#{data.constituencies,jdbcType=INTEGER},
-            #{data.totalNum,jdbcType=INTEGER}, #{data.incomingNum,jdbcType=INTEGER},#{data.approversNum,jdbcType=INTEGER},#{data.approvalAvailable,jdbcType=INTEGER},
+            #{data.totalNum,jdbcType=INTEGER},
+            #{data.incomingNum,jdbcType=INTEGER},#{data.approversNum,jdbcType=INTEGER},#{data.approvalAvailable,jdbcType=INTEGER},
             #{data.loginRate,jdbcType=DECIMAL},#{data.applyPayNum,jdbcType=INTEGER},#{data.payPassRate,jdbcType=DECIMAL},
             #{data.lendersSucAmount,jdbcType=DECIMAL},#{data.lendersSucNum,jdbcType=INTEGER}, now(),now(),0
             )
         </foreach>
     </insert>
 
-    <select id="getCustomInfoListbI_" resultType="com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO" parameterType="com.br.marketing.vo.zhongan.param.ControlGroupDTO">
+    <select id="getCustomInfoListbI_" resultType="com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO"
+            parameterType="com.br.marketing.vo.zhongan.param.ControlGroupDTO">
         select * from
         dws_za_control_group_config
         where
@@ -39,6 +41,16 @@
         is_delete =0
         group by report_date
         order by report_date asc
+    </select>
+
+    <select id="selectConfigByGroupbI_" resultType="com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO">
+        select * from dws_za_control_group_config
+        where user_type = #{userType} and
+        constituencies = #{constituencies} and
+        report_date in
+        <foreach collection="list" item="reportDate" open="(" separator="," close=")">
+            #{reportDate}
+        </foreach>
     </select>
 
 
