@@ -32,6 +32,11 @@ public class XiechengBiReportServiceImpl implements XiechengBiReportService{
     }
 
     @Override
+    public List<XiechengTransferDailySwitchOnReportDTO> selectXcTransferDailySwitchOn(String reportDateStart, String reportDateEnd) {
+        return xieChengBiReportMapper.selectXcTransferDailySwitchOnbI_(reportDateStart, reportDateEnd);
+    }
+
+    @Override
     public List<XiechengTransferWeeklyReportDTO> selectXcTransferSevenRollList(String reportDateStart, String reportDateEnd) {
         return xieChengBiReportMapper.selectXcTransferSevenRollListbI_(reportDateStart, reportDateEnd);
     }

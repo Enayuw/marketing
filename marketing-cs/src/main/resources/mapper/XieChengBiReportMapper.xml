@@ -29,6 +29,18 @@
         order by report_date desc;
     </select>
 
+    <select id="selectXcTransferDailySwitchOnbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferDailySwitchOnReportDTO">
+        select * from dws_xc_transfer_day_call_d
+        where is_delete = 0
+        <if test="reportDateStart !=null and reportDateStart!=''">
+            <![CDATA[ and report_date >= #{reportDateStart}]]>
+        </if>
+        <if test="reportDateEnd !=null and reportDateEnd!=''">
+            <![CDATA[ and report_date <= #{reportDateEnd}]]>
+        </if>
+        order by report_date desc;
+    </select>
+
     <select id="selectXcTransferSevenRollListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO">
         select *
         from dws_xc_transfer_seven_roll_d

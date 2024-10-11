@@ -14,6 +14,9 @@ public interface XieChengBiReportMapper {
     List<XiechengTransferDailyReportDTO> selectXcTransferDailybI_(@Param("reportDateStart") String reportDateStart,
                                                                   @Param("reportDateEnd") String reportDateEnd);
 
+    List<XiechengTransferDailySwitchOnReportDTO> selectXcTransferDailySwitchOnbI_(@Param("reportDateStart") String reportDateStart,
+                                                                  @Param("reportDateEnd") String reportDateEnd);
+
     List<XiechengTransferWeeklyReportDTO> selectXcTransferSevenRollListbI_(@Param("reportDateStart") String reportDateStart,
                                                                            @Param("reportDateEnd") String reportDateEnd);
 

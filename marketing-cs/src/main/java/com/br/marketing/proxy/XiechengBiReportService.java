@@ -13,6 +13,8 @@ public interface XiechengBiReportService {
 
     List<XiechengTransferDailyReportDTO> selectXcTransferDaily(String reportDateStart, String reportDateEnd);
 
+    List<XiechengTransferDailySwitchOnReportDTO> selectXcTransferDailySwitchOn(String reportDateStart, String reportDateEnd);
+
     List<XiechengTransferWeeklyReportDTO> selectXcTransferSevenRollList(String reportDateStart, String reportDateEnd);
 
     List<XiechengCollidingDailyReportDTO> selectXcColldingDistrubuteDayList(String reportDateStart, String reportDateEnd);
