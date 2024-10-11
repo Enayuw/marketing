@@ -74,17 +74,18 @@ public class ZhongAnBusAnalySevenConverter extends AbstractBiReportConverter<BiR
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
+        yAxis.add(buildWrapDataVO("观测日", sortedData, ZhongAnBusAnalySevenReportDTO::getQueryDate, FormatType.DEFAULT));
         yAxis.add(buildWrapDataVO("客群组别", sortedData, ZhongAnBusAnalySevenReportDTO::getConstituencies, FormatType.DEFAULT));
         yAxis.add(buildWrapDataVO("数据量", sortedData, ZhongAnBusAnalySevenReportDTO::getTotalNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("登录率", sortedData, ZhongAnBusAnalySevenReportDTO::getLoginRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("登录量", sortedData, ZhongAnBusAnalySevenReportDTO::getLoginNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("进件人数", sortedData, ZhongAnBusAnalySevenReportDTO::getIncomingNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("进件增量提升率", sortedData, ZhongAnBusAnalySevenReportDTO::getIncomingIncreaseRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("进件穿透率", sortedData, ZhongAnBusAnalySevenReportDTO::getIncomingTotalRate, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("进件增量提升率", sortedData, ZhongAnBusAnalySevenReportDTO::getIncomingIncreaseRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("批核人数", sortedData, ZhongAnBusAnalySevenReportDTO::getApproversNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("批核通过率", sortedData, ZhongAnBusAnalySevenReportDTO::getApproversRate, FormatType.PERCENT_SIGN));
-        yAxis.add(buildWrapDataVO("批核通过穿透率提升比", sortedData, ZhongAnBusAnalySevenReportDTO::getApproversIncreaseRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("批核通过穿透率", sortedData, ZhongAnBusAnalySevenReportDTO::getApproversTotalRate, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("批核通过穿透率提升比", sortedData, ZhongAnBusAnalySevenReportDTO::getApproversIncreaseRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("增量批核人数", sortedData, ZhongAnBusAnalySevenReportDTO::getApproversIncrNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("批核件均", sortedData, ZhongAnBusAnalySevenReportDTO::getApprovalsAvgNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("发起提现人数", sortedData, ZhongAnBusAnalySevenReportDTO::getApplyPayNum, FormatType.THOUSAND_SEPARATOR));
@@ -94,15 +95,15 @@ public class ZhongAnBusAnalySevenConverter extends AbstractBiReportConverter<BiR
         yAxis.add(buildWrapDataVO("放款成功人数", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersSucNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("提现通过通过率", sortedData, ZhongAnBusAnalySevenReportDTO::getApplyPaySuccessRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("放款成功率", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersSucRate, FormatType.PERCENT_SIGN));
-        yAxis.add(buildWrapDataVO("批核放款穿透", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersApproversRate, FormatType.PERCENT_SIGN));
+        yAxis.add(buildWrapDataVO("批核放款穿透率", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersApproversRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("放款成功金额", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersSucAmount, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("增量放款金额", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersSucIncrAmount, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("放款成功穿透率", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersSucTotalRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("放款成功穿透率提升比", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersSucIncrRate, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("放款人均", sortedData, ZhongAnBusAnalySevenReportDTO::getLendersSucAvgAmount, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("名单产能", sortedData, ZhongAnBusAnalySevenReportDTO::getProductCapacity, FormatType.THOUSAND_SEPARATOR_DECIMAL));
-        yAxis.add(buildWrapDataVO("成本", sortedData, ZhongAnBusAnalySevenReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("收入", sortedData, ZhongAnBusAnalySevenReportDTO::getIncome, FormatType.THOUSAND_SEPARATOR_DECIMAL));
+        yAxis.add(buildWrapDataVO("成本", sortedData, ZhongAnBusAnalySevenReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("ROI", sortedData, ZhongAnBusAnalySevenReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR_DECIMAL));
 
         biReportVO.setYAxis(yAxis);
