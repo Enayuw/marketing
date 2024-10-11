@@ -192,8 +192,6 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             cells.forEach((String cell) -> {
                 logCells.add(EncAndDecUtil.digestToLog(cell, ThreeKeyTypeEnum.CELL, ThreeKeyEncryptEnum.sha256).getData());
             });
-            String uuid = UUID.randomUUID().toString();
-            List<String> newLogCells = logCells.stream().filter(log -> StringUtils.isNotEmpty(log)).collect(Collectors.toList());
             log.warn("【携程撞库推决策解密】，耗时：{}", System.currentTimeMillis() - encstart);
             JSONObject jsonRule = JSON.parseObject(customerInfoPushMain.getmRuleCondition());
             //去除result，release_time
@@ -216,7 +214,6 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             //根据跑分条件查询ES，符合条件的数据即为要推送数据
             Long queryStart = System.currentTimeMillis();
             List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-            log.warn("【customer解密】，{},cell数量解密前：{},解密后：{}，es查询回数量：{}", uuid, logCells.size(), newLogCells.size(), marketingHistories.size());
             log.warn("【携程撞库推决策查询es】，耗时：{}，量级={}", System.currentTimeMillis() - queryStart, marketingHistories.size());
             if (CollectionUtils.isEmpty(marketingHistories)) {
                 return result.setCode(ResultCode.SUCCESS.getValue()).setDate(0);
