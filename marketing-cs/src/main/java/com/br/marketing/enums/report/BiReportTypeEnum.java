@@ -41,6 +41,14 @@ public enum BiReportTypeEnum {
      * 携程数据使用率报表
      */
     XIECHENG_DATARATIO_DAILY_REPORT(105, "xiechengDataRatioDailyReport"),
+    /**
+     * 携程月接通转化报表
+     */
+    XIECHENG_TRANSFER_MONTHLYSWITCHON_REPORT(106, "xiechengTransferMonthlySwitchOnReport"),
+    /**
+     * 携程日接通转化报表
+     */
+    XIECHENG_TRANSFER_DAILYSWITCHON_REPORT(107, "xiechengTransferDailySwitchOnReport"),
     ;
 
     /** code */
