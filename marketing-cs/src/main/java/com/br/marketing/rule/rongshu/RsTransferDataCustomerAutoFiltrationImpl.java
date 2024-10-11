@@ -84,10 +84,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
         }else{
             log.warn("apiCode[{}]custNum[{}]出现rs运营自动化过滤未预期的结果", apiCode, custNum);
         }
-        RsCollectDataImpl.RsRuleNecessaryData ruleNecessaryData =
-                (RsCollectDataImpl.RsRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
-        MarketingSyncUser marketingSyncUser = getSyncUser(customerMap, custNum);
+        MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
         if (marketingSyncUser != null) {
             conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         }
