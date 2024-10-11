@@ -33,7 +33,7 @@ public class PhoneSaleDataPushDassIbuJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         LocalFileExample localFileExample = new LocalFileExample();
         localFileExample.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.DXIBU.getValue()).andPushStatusEqualTo("0")
-                .andStatusEqualTo("1").andCompleteEqualTo("1").andCompleteIn(Lists.newArrayList("1", "3"));
+                .andStatusEqualTo("1").andCompleteIn(Lists.newArrayList("1", "3"));
         List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
         if (CollectionUtils.isEmpty(localFiles)) {
             return;
