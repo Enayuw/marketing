@@ -26,7 +26,7 @@ public class MQConsumerShutdown {
      * 2024-10-12 11:16
      * rocketMQ 消费者停机
      * <p>
-     * 如果使用spring容器的钩子函数，可不使用该方法或自已监听器
+     * 如果使用spring容器的钩子函数，可不使用该方法或自已实现监听器
      */
     public void rocketmqDestroy(@NotNull ApplicationContext context) {
         if (context == null) {
