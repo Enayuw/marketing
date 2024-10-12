@@ -106,15 +106,15 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         threadPoolShutDown(pool);
     }
 
-    private String getHighValueFileIds(String apiCode) {
+    @Override
+    public String getHighValueFileIds(String apiCode) {
         List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
         if (CollectionUtils.isEmpty(highValueFiles)) {
             return "(\"\")";
         }
 
         LocalFileExample localFileExample = new LocalFileExample();
-        localFileExample.createCriteria().andApiCodeEqualTo(apiCode).andStatusEqualTo("2")
-                .andCompleteEqualTo("1").andPushStatusEqualTo("2").andFileNameIn(highValueFiles);
+        localFileExample.createCriteria().andApiCodeEqualTo(apiCode).andFileNameIn(highValueFiles);
         List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
         List<Long> highValueIds = localFiles.stream().map(LocalFile::getId).collect(Collectors.toList());
 

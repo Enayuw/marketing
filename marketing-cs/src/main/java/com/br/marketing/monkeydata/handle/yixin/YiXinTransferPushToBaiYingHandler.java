@@ -1,5 +1,7 @@
 package com.br.marketing.monkeydata.handle.yixin;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.baiying.ByApiServiceClient;
@@ -8,7 +10,10 @@ import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
@@ -25,7 +30,6 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -180,20 +184,32 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
 
             // valid period
             Set<String> custNumSets = pageList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
-                    .getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
+            Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap =
+                transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
 
             // 未获取到上传数据
             if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
-                log.warn(TITLE+"未获取到上传数据或未配置有效期, apiCode: {}, requestData: {}", apiCode, requestData);
+                log.warn(TITLE + "未获取到上传数据或未配置有效期, apiCode: {}, requestData: {}", apiCode, requestData);
                 return result;
             }
 
-            List<MarketingTransferSyncUser> periodList = pageList.stream().filter((MarketingTransferSyncUser data)-> {
+            // 过滤掉非百应标识的上传数据
+            custNumToSyncUserBoMap.forEach((key, periodsBO) -> {
+                List<MarketingSyncUser> filtered = periodsBO.getSyncUsers().stream().filter((MarketingSyncUser syncUser) -> {
+                    String reserveField1 = syncUser.getReserveField1();
+                    return StringUtils.isNotEmpty(reserveField1) && JSONObject.isValid(reserveField1)
+                            && "1".equals(JSONObject.parseObject(reserveField1).getString("resourceChannel"));
+                }).collect(Collectors.toList());
+                periodsBO.setSyncUsers(filtered);
+            });
+
+            List<MarketingTransferSyncUser> periodList = pageList.stream().filter((MarketingTransferSyncUser data) -> {
                 String custNum = data.getCustNum();
-                if (custNumToSyncUserBoMap.get(custNum) == null) {
+                if (custNumToSyncUserBoMap.get(custNum) == null || CollectionUtil.isEmpty(custNumToSyncUserBoMap.get(custNum).getSyncUsers())) {
                     return false;
                 }
+                MarketingSyncUser marketingSyncUser = custNumToSyncUserBoMap.get(custNum).getSyncUsers().get(0);
+                data.setReserveField2(marketingSyncUser.getCellMd5());
                 return true;
             }).collect(Collectors.toList());
 
@@ -203,7 +219,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
             }
 
             // distribute去重 custNum + distribute_date
-            transferPushRedisSoleProcessor.process(pushList, condition);
+            transferPushRedisSoleProcessor.process(pushList, condition,DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getValue());
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
@@ -240,16 +256,12 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
         int size = outputDataList.size();
         int count = 0;
         List<BlacklistDataDTO> pushList = new ArrayList<>();
-
         for (MarketingTransferSyncUser transferSyncUser : outputDataList) {
             BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
             blacklistDataDTO.setCaseNum(transferSyncUser.getCustNum());
-            blacklistDataDTO.setExpireDate(LocalDate.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                    .concat(" 23:59:59"));
+            blacklistDataDTO.setExpireDate(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")).concat(" 23:59:59"));
             pushList.add(blacklistDataDTO);
             count++;
-
             if (pushList.size() == pushSize || size == count) {
                 List<BlacklistDataDTO> finalList = pushList;
                 pushPool.execute(() -> {
@@ -257,7 +269,7 @@ public class YiXinTransferPushToBaiYingHandler extends IMonkeyDataHandle<Marketi
                     reqBlacklistDTO.setMethod(pushMethod);
                     reqBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBlacklistDTO.setData(finalList);
-                    byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
+                    byApiServiceClient.pushBaiying(reqBlacklistDTO, 0);
                 });
                 pushList = new ArrayList<>();
             }

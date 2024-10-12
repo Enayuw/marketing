@@ -9,6 +9,8 @@ public class WubaCollidingData {
     private Long id;
     private String cell;
     private Long packageId;
+    private Boolean result;
+    private String extend;
 
     public Long getId() {
         return id;
@@ -32,5 +34,21 @@ public class WubaCollidingData {
 
     public void setPackageId(Long packageId) {
         this.packageId = packageId;
+    }
+
+    public Boolean getResult() {
+        return result;
+    }
+
+    public void setResult(Boolean result) {
+        this.result = result;
+    }
+
+    public String getExtend() {
+        return extend;
+    }
+
+    public void setExtend(String extend) {
+        this.extend = extend;
     }
 }

@@ -12,7 +12,7 @@ public class ReportTaskExample {
     protected List<Criteria> oredCriteria;
 
     public ReportTaskExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class ReportTaskExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -794,10 +794,141 @@ public class ReportTaskExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andStatisticsTypeIsNull() {
+            addCriterion("statistics_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeIsNotNull() {
+            addCriterion("statistics_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeEqualTo(Integer value) {
+            addCriterion("statistics_type =", value, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeNotEqualTo(Integer value) {
+            addCriterion("statistics_type <>", value, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeGreaterThan(Integer value) {
+            addCriterion("statistics_type >", value, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("statistics_type >=", value, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeLessThan(Integer value) {
+            addCriterion("statistics_type <", value, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("statistics_type <=", value, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeIn(List<Integer> values) {
+            addCriterion("statistics_type in", values, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeNotIn(List<Integer> values) {
+            addCriterion("statistics_type not in", values, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeBetween(Integer value1, Integer value2) {
+            addCriterion("statistics_type between", value1, value2, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("statistics_type not between", value1, value2, "statisticsType");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeIsNull() {
+            addCriterion("statistics_time is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeIsNotNull() {
+            addCriterion("statistics_time is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeEqualTo(String value) {
+            addCriterion("statistics_time =", value, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeNotEqualTo(String value) {
+            addCriterion("statistics_time <>", value, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeGreaterThan(String value) {
+            addCriterion("statistics_time >", value, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeGreaterThanOrEqualTo(String value) {
+            addCriterion("statistics_time >=", value, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeLessThan(String value) {
+            addCriterion("statistics_time <", value, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeLessThanOrEqualTo(String value) {
+            addCriterion("statistics_time <=", value, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeLike(String value) {
+            addCriterion("statistics_time like", value, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeNotLike(String value) {
+            addCriterion("statistics_time not like", value, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeIn(List<String> values) {
+            addCriterion("statistics_time in", values, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeNotIn(List<String> values) {
+            addCriterion("statistics_time not in", values, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeBetween(String value1, String value2) {
+            addCriterion("statistics_time between", value1, value2, "statisticsTime");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatisticsTimeNotBetween(String value1, String value2) {
+            addCriterion("statistics_time not between", value1, value2, "statisticsTime");
+            return (Criteria) this;
+        }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

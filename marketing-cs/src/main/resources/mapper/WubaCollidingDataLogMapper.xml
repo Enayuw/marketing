@@ -16,4 +16,9 @@
             #{log.id}
         </foreach>
     </update>
+
+    <update id="updateByBatchNoAndCell">
+        update b_wuba_colliding_data_log set result = #{result}, extend = #{extend}
+        where batch_no = #{batchNo} and cell = #{cell}
+    </update>
 </mapper>

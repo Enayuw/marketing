@@ -21,14 +21,19 @@ import lombok.Getter;
 public enum CustomerUploadHandlerEnum {
 
     /**
-     * 2023-10-20 14:22 陌生的客户 上传接口
+     *  陌生的客户 上传接口
      */
-    U_ALIEN_DEFAULT("外星人上传"),
+    U_ALIEN_DEFAULT("外星人上传",Boolean.FALSE),
 
     /**
-     * 2024-08-06 11:23 国美上传
+     * 国美定制上传
      */
-    U_GUME("国美定制上传", "7492805"),;
+    U_GUME("国美定制上传",Boolean.FALSE ,"7492805"),
+
+    /**
+     * 微聚定制上传
+     */
+    U_WEIJU("微聚定制上传", Boolean.FALSE ,"7492770"),;
 
     /**
      * 2023-10-18 17:25 名称
@@ -40,9 +45,12 @@ public enum CustomerUploadHandlerEnum {
      */
     private String[] apiCodes;
 
-    CustomerUploadHandlerEnum(String name, String... apiCodes) {
+    private Boolean isNeedDecrypt;
+
+    CustomerUploadHandlerEnum(String name,Boolean isNeedDecrypt, String... apiCodes) {
         this.name = name;
         this.apiCodes = apiCodes;
+        this.isNeedDecrypt = isNeedDecrypt;
     }
 
     /**
