@@ -100,7 +100,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
             }
             brReportDTO.setCompositeIncrNum(0L);
             if (zhongAnReportDTO.getTotalNum() != 0L) {
-                brReportDTO.setCompositeIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() * (zhongAnReportDTO.getTotalNum()
+                brReportDTO.setCompositeIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() * (brReportDTO.getTotalNum()
                         / (double) zhongAnReportDTO.getTotalNum())));
             }
             zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
@@ -124,7 +124,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
             brNoLoginReportDTO.setCompositeIncrNum(0L);
             if (zhongAnNoLoginReportDTO.getTotalNum() != 0L) {
                 brNoLoginReportDTO.setCompositeIncrNum(Math.round(brNoLoginReportDTO.getApproversNum() - zhongAnNoLoginReportDTO.getApproversNum() *
-                        (zhongAnNoLoginReportDTO.getTotalNum() / (double) zhongAnNoLoginReportDTO.getTotalNum())));
+                        (brNoLoginReportDTO.getTotalNum() / (double) zhongAnNoLoginReportDTO.getTotalNum())));
             }
             zhongAnNoLoginReportDTO.setIncomingIncreaseRate(brNoLoginReportDTO.getIncomingIncreaseRate());
             zhongAnNoLoginReportDTO.setApproversIncreaseRate(brNoLoginReportDTO.getApproversIncreaseRate());
@@ -195,7 +195,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
             }
             brReportDTO.setCompositeIncrNum(0L);
             if (zhongAnReportDTO.getTotalNum() != 0L) {
-                brReportDTO.setCompositeIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() * ((double) zhongAnReportDTO.getTotalNum()
+                brReportDTO.setCompositeIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() * ((double) brReportDTO.getTotalNum()
                         / zhongAnReportDTO.getTotalNum())));
             }
             zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
@@ -301,7 +301,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
             brReportDTO.setApproversIncrNum(0L);
             brReportDTO.setLendersSucIncrAmount(0L);
             if (zhongAnReportDTO.getTotalNum() != 0L) {
-                brReportDTO.setApproversIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() * (zhongAnReportDTO.getTotalNum()
+                brReportDTO.setApproversIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() * (brReportDTO.getTotalNum()
                         / (double) zhongAnReportDTO.getTotalNum())));
                 brReportDTO.setLendersSucIncrAmount(Math.round(brReportDTO.getLendersSucAmount() - zhongAnReportDTO.getLendersSucAmount() * (brReportDTO.getTotalNum()
                         / (double) zhongAnReportDTO.getTotalNum())));
