@@ -137,6 +137,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -282,8 +283,6 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Override
     public Result pushDassData(Long id) {
-
-
         Boolean isContiue = false;
         Boolean actionMark = true;
         Long minId = null;
@@ -302,6 +301,7 @@ public class PushDataServiceImpl implements PushDataService {
         localFile.setPushStartTime(new Date());
 
         Integer number = 0;
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
         while (actionMark) {
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
             number += phoneSales.size();
@@ -312,7 +312,8 @@ public class PushDataServiceImpl implements PushDataService {
                 List<DassImportDataDTO> collect = phoneSales.stream().map(t -> (DassImportDataDTO) t).collect(Collectors.toList());
                 dto.setList(collect);
                 minId = phoneSale.getId();
-                pushDassThreadPool.submit(() -> {
+
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     Result result = dassServiceClient.postHermesUserData(dto);
                     if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         RetryMainLog mainLog = new RetryMainLog();
@@ -328,21 +329,13 @@ public class PushDataServiceImpl implements PushDataService {
                         mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
                         retryMainLogMapper.insertSelective(mainLog);
                     }
-                });
+                }, pushDassThreadPool);
+                futures.add(future);
             } else {
                 actionMark = false;
             }
         }
-        pushDassThreadPool.shutdown();
-        while (true) {
-            if (pushDassThreadPool.isTerminated()) {
-                break;
-            }
-            try {
-                Thread.sleep(3000);
-            } catch (Exception e) {
-            }
-        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(number);
@@ -381,6 +374,7 @@ public class PushDataServiceImpl implements PushDataService {
         AtomicInteger success = new AtomicInteger(0);
         AtomicInteger fail = new AtomicInteger(0);
         AtomicInteger retry = new AtomicInteger(0);
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
         while (actionMark) {
             List<DassTransferDataDTO> transferDataDTOS = phoneSaleTransferMapper.getPushDassTransferData(id, minId);
             number += transferDataDTOS.size();
@@ -394,7 +388,8 @@ public class PushDataServiceImpl implements PushDataService {
                 DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
                 dto.setDassTransferDataDTOList(transferDataDTOS);
                 minId = transferDataDTO.getId();
-                pushDassThreadPool.submit(() -> {
+
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     Result result = methodRetryHandlerService.dassTransferWithFile(dto, null);
                     int size = dto.getDassTransferDataDTOList().size();
                     if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -404,21 +399,13 @@ public class PushDataServiceImpl implements PushDataService {
                     } else {
                         retry.addAndGet(size);
                     }
-                });
+                }, pushDassThreadPool);
+                futures.add(future);
             } else {
                 actionMark = false;
             }
         }
-        pushDassThreadPool.shutdown();
-        while (true) {
-            if (pushDassThreadPool.isTerminated()) {
-                break;
-            }
-            try {
-                Thread.sleep(3000);
-            } catch (Exception e) {
-            }
-        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(success.get());
