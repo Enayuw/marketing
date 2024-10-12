@@ -30,8 +30,6 @@ public class RocketMqConsumerService {
 
     @Autowired
     private RocketMqTemplate template;
-
-    public static Boolean consumerDownStatus = Boolean.FALSE;
     /**
      * rabbitMQ消费端
      * @param messageExt 消费消息
@@ -45,14 +43,6 @@ public class RocketMqConsumerService {
             , String retryTag, String delayTopic, int delayTime) {
         String message = null;
         try {
-            /**
-             * 下线标识，不在消费消息
-             */
-            if(consumerDownStatus){
-                log.warn("服务下线，消费者不在接收新的流量");
-                Thread.sleep(10000L);
-                log.warn("服务下线，消费者休眠时间到");
-            }
             message = new String(messageExt.getBody(),StandardCharsets.UTF_8);
             Result<Boolean> apply = method.apply(t);
             /**
