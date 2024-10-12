@@ -16,7 +16,7 @@ import javax.validation.constraints.NotNull;
 public class SmsRecordDTO {
 
     @ApiModelProperty(value = "商户编号")
-    private String api_code;
+    private String apiCode;
 
     @ApiModelProperty(value = "公司标识")
     private String cid;

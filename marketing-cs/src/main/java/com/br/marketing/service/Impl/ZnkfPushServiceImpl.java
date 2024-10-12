@@ -251,10 +251,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Override
     public String smsCallBack(SmsRecordDTO dto) {
         try {
-            if(StringUtils.isEmpty(dto.getApi_code()) || StringUtils.isEmpty(dto.getCid()) ||
-            StringUtils.isEmpty(dto.getThirdCallNo()) || StringUtils.isEmpty(dto.getCaseNum())
-                    || dto.getSmsSendStatus() == null || StringUtils.isEmpty(dto.getUserType())) {
-                return "必填字段为空：" + JSONObject.toJSONString(dto);
+            String value = checkValues(dto);
+            if(!value.isEmpty()){
+                return value;
             }
             String thirdCallNo = dto.getThirdCallNo();
             //校验是否已经落库
@@ -269,13 +268,35 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             smsCallback.setCreateDate(String.valueOf(LocalDate.now()));
             smsCallback.setCreateTime(new Date());
             BeanUtils.copyProperties(dto, smsCallback);
-            smsCallback.setApiCode(dto.getApi_code());
+            smsCallback.setApiCode(dto.getApiCode());
             smsCallbackMapper.insert(smsCallback);
         }catch (Exception ex){
             log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
             return "外呼短信记录落库失败(insert b_sms_callback fail)!";
         }
         return "success";
+    }
+
+    private String checkValues(SmsRecordDTO dto) {
+        if(StringUtils.isEmpty(dto.getApiCode())){
+            return "apiCode为空";
+        }
+        if(StringUtils.isEmpty(dto.getCid())){
+            return "cid为空";
+        }
+        if(StringUtils.isEmpty(dto.getThirdCallNo())){
+            return "短信流水号 thirdCallNo 为空";
+        }
+        if(StringUtils.isEmpty(dto.getCaseNum())){
+            return "案件编号 caseNum 为空";
+        }
+        if(StringUtils.isEmpty(dto.getSmsSendStatus())){
+            return "短信发送状态 smsSendStatus 为空";
+        }
+        if(StringUtils.isEmpty(dto.getUserType())){
+            return "场景 userType 为空";
+        }
+        return "";
     }
 
     private String goShDX(CallRecordDTO dto) {
