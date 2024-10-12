@@ -20,6 +20,10 @@ public class ZhongAnBusAnalyOneReportDTO implements Serializable {
 
     @ApiModelProperty(value = "日期")
     private String reportDate;
+
+    @ApiModelProperty(value = "观测日")
+    private String queryDate;
+
     @ApiModelProperty(value = "组别")
     private String constituencies;
     @ApiModelProperty(value = "总数据量")

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO;
+import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalySevenReportDTO;
 import com.br.marketing.dto.report.zhongan.ZhonganOutboundCallReportDTO;
 import com.br.marketing.entity.ReportStatisticTransfer;
 import com.br.marketing.entity.ReportStatisticTransferExample;
@@ -74,6 +75,7 @@ public class ZhongAnBusAnalyOneConverter extends AbstractBiReportConverter<BiRep
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
+        yAxis.add(buildWrapDataVO("观测日", sortedData, ZhongAnBusAnalyOneReportDTO::getQueryDate, FormatType.DEFAULT));
         yAxis.add(buildWrapDataVO("组别", sortedData, ZhongAnBusAnalyOneReportDTO::getConstituencies, FormatType.DEFAULT));
         yAxis.add(buildWrapDataVO("总数据量", sortedData, ZhongAnBusAnalyOneReportDTO::getTotalNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("进件人数", sortedData, ZhongAnBusAnalyOneReportDTO::getIncomingNum, FormatType.THOUSAND_SEPARATOR));

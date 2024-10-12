@@ -103,7 +103,7 @@ public class ZhongAnControlGroupServiceImpl implements ZhongAnControlGroupServic
                 zhongAnControlGroupDTO.setPayPassRate(new BigDecimal(zhongAnCustomInfo.getPayPassRate()).movePointLeft(2));
             }
             if(zhongAnCustomInfo.getLendersSucAmount() != null){
-                zhongAnControlGroupDTO.setLendersSucAmount(new BigDecimal(zhongAnCustomInfo.getLendersSucAmount()).movePointLeft(2));
+                zhongAnControlGroupDTO.setLendersSucAmount(new BigDecimal(zhongAnCustomInfo.getLendersSucAmount()));
             }
             zhongAnControlGroupDTO.setApplyPayNum(zhongAnCustomInfo.getApplyPayNum());
             zhongAnControlGroupDTO.setLendersSucNum(zhongAnCustomInfo.getLendersSucNum());

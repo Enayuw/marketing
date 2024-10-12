@@ -73,6 +73,7 @@ public class ZhongAnBusAnalyEightConverter extends AbstractBiReportConverter<BiR
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
+        yAxis.add(buildWrapDataVO("观测日", sortedData, ZhongAnBusAnalyEightReportDTO::getQueryDate, FormatType.DEFAULT));
         yAxis.add(buildWrapDataVO("组别", sortedData, ZhongAnBusAnalyEightReportDTO::getConstituencies, FormatType.DEFAULT));
         yAxis.add(buildWrapDataVO("总数据量", sortedData, ZhongAnBusAnalyEightReportDTO::getTotalNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("进件人数", sortedData, ZhongAnBusAnalyEightReportDTO::getIncomingNum, FormatType.THOUSAND_SEPARATOR));

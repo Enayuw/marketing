@@ -13,6 +13,10 @@ public class ZhongAnBusAnalySevenReportDTO {
 
     @ApiModelProperty(value = "日期")
     private String reportDate;
+
+    @ApiModelProperty(value = "观测日")
+    private String queryDate;
+
     @ApiModelProperty(value = "客群组别")
     private String constituencies;
     @ApiModelProperty(value = "数据量")
@@ -27,24 +31,29 @@ public class ZhongAnBusAnalySevenReportDTO {
 
     @ApiModelProperty(value = "进件人数")
     private Long incomingNum;
-    @DecimalFieldConvertor(scale = 1)
-    @ApiModelProperty(value = "进件增量提升率")
-    private BigDecimal incomingIncreaseRate;
+
     @DecimalFieldConvertor(scale = 4)
     @ApiModelProperty(value = "进件穿透率")
     private BigDecimal incomingTotalRate;
+
+    @DecimalFieldConvertor(scale = 1)
+    @ApiModelProperty(value = "进件增量提升率")
+    private BigDecimal incomingIncreaseRate;
+
     @ApiModelProperty(value = "批核人数")
     private Long approversNum;
     @ApiModelProperty(value = "批核通过率")
     @DecimalFieldConvertor(scale = 1)
     private BigDecimal approversRate;
-    @ApiModelProperty(value = "批核通过穿透率提升比")
-    @DecimalFieldConvertor(scale = 1)
-    private BigDecimal approversIncreaseRate;
 
     @ApiModelProperty(value = "批核通过穿透率")
     @DecimalFieldConvertor(scale = 4)
     private BigDecimal approversTotalRate;
+
+    @ApiModelProperty(value = "批核通过穿透率提升比")
+    @DecimalFieldConvertor(scale = 1)
+    private BigDecimal approversIncreaseRate;
+
 
     @ApiModelProperty(value = "增量批核人数")
     private Long approversIncrNum;
@@ -78,7 +87,7 @@ public class ZhongAnBusAnalySevenReportDTO {
     private BigDecimal lendersSucRate;
 
 
-    @ApiModelProperty(value = "批核放款穿透")
+    @ApiModelProperty(value = "批核放款穿透率")
     @DecimalFieldConvertor(scale = 2)
     private BigDecimal lendersApproversRate;
 
@@ -104,13 +113,13 @@ public class ZhongAnBusAnalySevenReportDTO {
     @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal productCapacity;
 
-    @ApiModelProperty(value = "成本")
-    @DecimalFieldConvertor(scale = 2, isPercent = false)
-    private BigDecimal cost;
-
     @ApiModelProperty(value = "收入")
     @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal income;
+
+    @ApiModelProperty(value = "成本")
+    @DecimalFieldConvertor(scale = 2, isPercent = false)
+    private BigDecimal cost;
 
     @ApiModelProperty(value = "ROI")
     @DecimalFieldConvertor(scale = 2, isPercent = false)
