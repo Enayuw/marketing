@@ -200,6 +200,6 @@ corn:
 rocketmq:
   name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876  #预发rocketmq代理地址
   producer:
-    group: springboot_producer_group
+    group: Marketing_PreUser_Receive
   consumer:
-    group: springboot_producer_group
+    group: Marketing_PreUser_Receive
