@@ -87,7 +87,8 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
             Integer step = scoreFieldDTO.getStep();
             // 分组查询
             for (String value : formatField(dimensionValue)) {
-                List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.selectZaMultiHeadGroupListbI_(reportId, field, dimensionField, value, "案件量");
+                List<ZhongAnDistributionStatisticDTO> dtoList = zhongAnBiReportMapper.
+                        selectZaMultiHeadGroupListbI_(reportId, field, dimensionField, value, "案件量");
                 bulidGroupHead(dtoList, field, groupNameMap.get(value), step, dtos);
             }
         }
@@ -162,7 +163,7 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                                 zhongAnGroupedScoreDistributionDTO.setInterval(interval);
                                 zhongAnGroupedScoreDistributionDTO.setName(dto.getName());
                                 zhongAnGroupedScoreDistributionDTO.setNum(0L);
-                                zhongAnGroupedScoreDistributionDTO.setProportion(new BigDecimal("0"));
+                                zhongAnGroupedScoreDistributionDTO.setProportion(new BigDecimal(0));
                                 zhongAnGroupedScoreDistributionDTO.setStep(dto.getStep());
                                 list.add(zhongAnGroupedScoreDistributionDTO);
                             }else {
@@ -172,7 +173,7 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                     }
                     // 占比字段格式化
                     List<ZhongAnGroupedScoreDistributionDTO> transformedList = list.stream()
-                            .map(dto -> {
+                            .map((ZhongAnGroupedScoreDistributionDTO dto) -> {
                                 BigDecimal newProportion = dto.getProportion().multiply(BigDecimal.valueOf(100));
                                 dto.setProportion(newProportion.setScale(2, RoundingMode.HALF_UP));
                                 return dto;
@@ -185,8 +186,10 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                     zhongAnGroupedScoreDistributionDTO.setProportion(BigDecimal.valueOf(100));
                     transformedList.add(zhongAnGroupedScoreDistributionDTO);
 
-                    yAxisData.add(buildWrapDataVO(comparisonName + "量级", transformedList, ZhongAnGroupedScoreDistributionDTO::getNum, FormatType.THOUSAND_SEPARATOR));
-                    yAxisData.add(buildWrapDataVO(comparisonName + "占比", transformedList, ZhongAnGroupedScoreDistributionDTO::getProportion, FormatType.PERCENT_SIGN));
+                    yAxisData.add(buildWrapDataVO(comparisonName + "量级", transformedList, ZhongAnGroupedScoreDistributionDTO::getNum,
+                            FormatType.THOUSAND_SEPARATOR));
+                    yAxisData.add(buildWrapDataVO(comparisonName + "占比", transformedList, ZhongAnGroupedScoreDistributionDTO::getProportion,
+                            FormatType.PERCENT_SIGN));
                 }
                 BiReportVO biReportVO = new BiReportVO();
                 biReportVO.setReportName(entry1.getKey());
@@ -294,7 +297,8 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                     String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
                     if (value.contains("%")) {
                         BigDecimal decimal = new BigDecimal(value.replace("%", ""));
-                        writer.writeCellValue(i + 1, rowIndex + j + 1, decimal.divide(BigDecimal.valueOf(100), decimal.scale() + 2, RoundingMode.HALF_UP));
+                        writer.writeCellValue(i + 1, rowIndex + j + 1, decimal.divide(BigDecimal.valueOf(100),
+                                decimal.scale() + 2, RoundingMode.HALF_UP));
                         writer.getCell(i + 1, rowIndex + j + 1).setCellStyle(getDataBarCellStyle(writer, decimal));
                     } else {
                         writer.writeCellValue(i + 1, rowIndex + j + 1, value);
