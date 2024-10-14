@@ -3,7 +3,6 @@ package com.br.marketing.bi.xiecheng;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
-import com.br.marketing.dto.report.xiecheng.XiechengTransferDailyReportDTO;
 import com.br.marketing.dto.report.xiecheng.XiechengTransferDailySwitchOnReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;

@@ -82,7 +82,6 @@ public enum BiReportTypeEnum {
      */
     XIECHENG_TRANSFER_DAILYSWITCHON_REPORT(115, 16, "xiechengTransferDailySwitchOnReport", "携程日接通转化报表"),
     ;
-    ;
 
     /** code */
     private final Integer code;
