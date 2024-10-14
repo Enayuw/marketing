@@ -1,11 +1,15 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
+import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -13,14 +17,21 @@ import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.br.marketing.vo.TaskInfoVO;
+import com.br.marketing.vo.bi.BiReportTaskVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
+import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
+import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
 import com.github.pagehelper.PageHelper;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-
+import org.springframework.util.CollectionUtils;
+import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,8 +64,20 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
+    @Resource
+    private ReportFieldDictMapper reportFieldDictMapper;
+
+    @Resource
+    private ReportFieldMappingMapper reportFieldMappingMapper;
+
+    @Resource
+    private BiReportMapper biReportMapper;
+
+    @Autowired
+    private ZhongAnControlGroupMapper zhongAnControlGroupMapper;
+
     @Override
-    public Map getProducts(String ids) {
+    public Map getProducts(String ids, String fieldType) {
         Map map = new HashMap();
         Map<String, String> fieldsMap = new HashMap();
         // 给前端提示产品在不同跑分文件中差异结果<产品,跑分文件>
@@ -62,7 +85,14 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         // 给前端提示产品在不同跑分文件中差异结果<跑分文件,产品Set>
         List<Map<String, Set>> batchSwiftAndScoreSetList = new ArrayList<>();
         // 需要的跑分产品前缀集合
-        Set<String> reportScorePrefixSet = marketingCommonConfig.getReportScorePrefixSet();
+        Set<String> reportScorePrefixSet = null;
+        if ("all".equals(fieldType)) {
+            reportScorePrefixSet = marketingCommonConfig.getReportScorePrefixSet();
+        } else if ("score".equals(fieldType)) {
+            reportScorePrefixSet = marketingCommonConfig.getReportScoreOnlyPrefixSet();
+        } else if ("multPoint".equals(fieldType)) {
+            reportScorePrefixSet = marketingCommonConfig.getReportmultPointPrefixSet();
+        }
         List<Long> fileIds = Arrays.stream(ids.split(",")).map(t -> Long.valueOf(t)).collect(Collectors.toList());
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
@@ -203,9 +233,21 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     @Override
-    public ApiResult<Boolean> addReportTask(ReportTaskParam reportTaskParam) {
+    public ApiResult<Boolean> addReportTask(ReportTaskParam reportTaskParam){
         String ids = reportTaskParam.getIds();
         String cid = reportTaskParam.getCid();
+        String reportTypeName = reportTaskParam.getReportTypeName();
+        List<String> businessList = Lists.newArrayList(BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getTypeName(),
+                BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getTypeName(),
+                BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName());
+
+        if (businessList.contains(reportTypeName) && (!checkBusinessReportConfig(reportTaskParam))) {
+            return new ApiResult<Boolean>().fail(false, "经营分析报表未配置报表配置，请检查");
+        }
+        Integer reportType = null;
+        if (reportTypeName != null) {
+            reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
+        }
         String reportName = reportTaskParam.getReportName();
         String rules = reportTaskParam.getRules();
         String productAndBatchNumber = reportTaskParam.getProductAndBatchNumber();
@@ -217,20 +259,33 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         if(reportTasks.size() > 0){
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.SUCCESS_6);
         }
-        JSONObject json = new JSONObject();
-        json.put("rules", rules);
-        json.put("productAndBatchNumber", productAndBatchNumber);
         // 给写入b_report_task表拼装数据
         ReportTask reportTask = new ReportTask();
         reportTask.setReportName(reportName);
+        reportTask.setReportType(reportType == null ? 1 : reportType);
+        List<ReportFieldDict> reportFieldDicts = null;
+        JSONObject json = new JSONObject();
+        if (reportType == null) {
+            json.put("rules", rules);
+            json.put("productAndBatchNumber", productAndBatchNumber);
+        } else {
+            json = JSON.parseObject(rules);
+            reportFieldDicts = processReportRules(json, reportTypeName);
+        }
         reportTask.setReportRules(json.toJSONString());
         reportTask.setStatus(0);
-        reportTask.setReportType(1);
         reportTask.setIsDel(1);
         reportTask.setCreateTime(new Date());
         reportTask.setUpdateTime(new Date());
         reportTaskMapper.insertSelective(reportTask);
+        if (businessList.contains(reportTypeName)) {
+            return new ApiResult<Boolean>().success(true);
+        }
+
         Long reportId = reportTask.getId();
+        if (!CollectionUtils.isEmpty(reportFieldDicts)) {
+            addReportFieldMapping(reportFieldDicts, reportId);
+        }
         List<Long> fileIds = Arrays.stream(ids.split(",")).map(t -> Long.valueOf(t)).collect(Collectors.toList());
         StraHisFileExample straHisFileExample = new StraHisFileExample();
         straHisFileExample.createCriteria().andIdIn(fileIds);
@@ -252,6 +307,119 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             reportTaskScoreSourceMapper.insertBatch(list);
         }
         return new ApiResult<Boolean>().success(true);
+    }
+
+    private Boolean checkBusinessReportConfig(ReportTaskParam reportTaskParam) {
+        JSONObject rulesJson = JSON.parseObject(reportTaskParam.getRules());
+        JSONObject transferConfig = rulesJson.getJSONObject("transfer");
+        LocalDate startDate = LocalDate.parse(transferConfig.getString("requestStartDate"));
+        LocalDate endDate = LocalDate.parse(transferConfig.getString("requestEndDate"));
+        List<String> dateList = getDatesBetween(startDate, endDate).stream().map(LocalDate::toString).collect(Collectors.toList());
+        long dateBetween = (endDate.toEpochDay() - startDate.toEpochDay()) + 1;
+        String reportTypeName = reportTaskParam.getReportTypeName();
+        if (BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getTypeName().equals(reportTypeName)) {
+            List<ZhongAnCustomInfoVO> oneGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "1", "1");
+            List<ZhongAnCustomInfoVO> twoGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "1", "2");
+            return (oneGroupList.size() == dateBetween) && (twoGroupList.size() == dateBetween);
+        }
+        if (BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName().equals(reportTypeName)) {
+            List<ZhongAnCustomInfoVO> threeGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "7", "3");
+            List<ZhongAnCustomInfoVO> fourGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "7", "4");
+            return (threeGroupList.size() == dateBetween) && (fourGroupList.size() == dateBetween);
+        }
+        if (BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getTypeName().equals(reportTypeName)) {
+            List<ZhongAnCustomInfoVO> fiveGroupList = zhongAnControlGroupMapper.selectConfigByGroupbI_(dateList, "8", "5");
+            return fiveGroupList.size() == dateBetween;
+        }
+        return Boolean.FALSE;
+    }
+
+    private List<LocalDate> getDatesBetween(LocalDate startDate, LocalDate endDate) {
+        List<LocalDate> localDateList = new ArrayList<>();
+        long length = endDate.toEpochDay() - startDate.toEpochDay();
+        for (long i = length; i >= 0; i--) {
+            LocalDate localDate = endDate.minusDays(i);
+            localDateList.add(localDate);
+        }
+        return localDateList;
+    }
+
+    private void addReportFieldMapping(List<ReportFieldDict> reportFieldDicts, Long reportId) {
+        for (ReportFieldDict reportFieldDict : reportFieldDicts) {
+            ReportFieldMapping reportFieldMapping = new ReportFieldMapping();
+            reportFieldMapping.setReportTaskId(reportId.toString());
+            reportFieldMapping.setUserType(reportFieldDict.getUserType());
+            reportFieldMapping.setItemShow(reportFieldDict.getItemShow());
+            reportFieldMapping.setItemName(reportFieldDict.getItemName());
+            reportFieldMapping.setItemOrder(reportFieldDict.getItemOrder());
+            reportFieldMapping.setItemFormatType(reportFieldDict.getItemFormatType());
+            reportFieldMapping.setCreateTime(new Date());
+            reportFieldMapping.setUpdateTime(new Date());
+            reportFieldMappingMapper.insertSelective(reportFieldMapping);
+        }
+    }
+
+    /**
+     * @param rulesJson
+     * @param reportTypeName
+     * @return List<ReportFieldDict>
+     * @description 处理rules，并新增【b_report_field_mapping】
+     * @author hedongshuo
+     * @date 2024/9/23 17:22
+     **/
+    private List<ReportFieldDict> processReportRules(JSONObject rulesJson, String reportTypeName){
+        //1.补充batchNumber
+        JSONObject score = rulesJson.getJSONObject("score");
+        if (!score.containsKey("batchNumber")) {
+            score.put("batchNumber", "");
+            rulesJson.put("score", score);
+        }
+        //2.补充dimensions_value
+        String apiCode = rulesJson.getString("apiCode");
+        JSONObject upload = rulesJson.getJSONObject("upload");
+        String dimensionsField = upload.getString("dimensionsField");
+        String userType = upload.getString("userType");
+        HashMap<String, JSONObject> groupDictConfig = marketingCommonConfig.getBiReportGroupDictConfig();
+        JSONObject apiCodeDictConfig = groupDictConfig.get(apiCode);
+        JSONObject userTypeDictConfig = apiCodeDictConfig.getJSONObject(userType);
+        if (userTypeDictConfig != null) {
+            JSONArray dictConfig = userTypeDictConfig.getJSONArray(dimensionsField);
+            upload.put("dimensionsValue", dictConfig);
+        }
+        BiReportTypeEnum biReportTypeEnum = BiReportTypeEnum.getEnumByTypeName(reportTypeName);
+        //3.分组校验
+        if (!"defaultNone".equals(dimensionsField)
+                && (biReportTypeEnum == BiReportTypeEnum.MULTPOINT_REPORT
+                    || biReportTypeEnum == BiReportTypeEnum.GROUP_SCORE_REPORT
+                    || biReportTypeEnum == BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT)) {
+            String batchNumber = score.getString("batchNumber");
+            Integer scoreDataCountBydimension = biReportMapper
+                    .getScoreDataCountBydimensionbI_("b_score_" + batchNumber, apiCode, userType, dimensionsField);
+            if (scoreDataCountBydimension == 0) {
+                throw new KnowException("跑分批次" + batchNumber +"无法以该分组生成报表");
+            }
+        }
+        //4.补充statistics_scene
+        HashMap<String, String> biReportScenePrefixConfig = marketingCommonConfig.getBiReportScenePrefixConfig();
+        String scenePrefix = biReportScenePrefixConfig.get(apiCode);
+        String scene = "";
+        if (biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getType()
+                || biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getType()
+                || biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getType()) {
+            scene = String.format("%s(%s)_%s场景%s", scenePrefix, apiCode, userType, biReportTypeEnum.getStatName());
+        } else {
+            scene = String.format("%s(%s)_%s", scenePrefix, apiCode, biReportTypeEnum.getStatName());
+        }
+        rulesJson.put("upload", upload);
+        rulesJson.put("statisticsScene", scene);
+        //5.增加【b_report_field_mapping】
+        ReportFieldDictExample dictExample = new ReportFieldDictExample();
+        dictExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andReportTypeEqualTo(biReportTypeEnum.getType().toString())
+                .andUserTypeEqualTo(userType)
+                .andIsDelEqualTo(1);
+        return reportFieldDictMapper.selectByExample(dictExample);
     }
 
     /**
@@ -288,5 +456,59 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             t.setUserType(String.join(",", batchNumberList));
         });
         return (PageResultReturn<List<ScoreDetailVo>>)PageResultReturn.setPageResult(scoreDetailVos, batchNumVO.getCurrent(), batchNumVO.getSize());
+    }
+
+    /**
+     * Bi报表列表查看（众安）
+     * @param reportTaskParam
+     * @return
+     */
+    @Override
+    public PageResultReturn getBiReportTaskList(BiReportTaskParam reportTaskParam) {
+        int page = 1;
+        int pageSize = 10;
+        if (reportTaskParam != null) {
+            page = reportTaskParam.getCurrent() == null ? page : reportTaskParam.getCurrent();
+            pageSize = reportTaskParam.getSize() == null ? pageSize : reportTaskParam.getSize();
+        }
+        PageHelper.startPage(page, pageSize);
+        try {
+            convertReportType(reportTaskParam);
+            List<BiReportTaskVO> list = reportTaskMapper.queryBiReportTaskListtikv_(reportTaskParam);
+            processBiReportTaskVO(list);
+            return PageResultReturn.setPageResult(list, page, pageSize);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    /**
+     * 转化报表类型名称，解析reportRules
+     * @param list
+     */
+    private void processBiReportTaskVO(List<BiReportTaskVO> list) {
+        for (BiReportTaskVO biReportTaskVO : list) {
+            biReportTaskVO.setReportTypeName(BiReportTypeEnum.getEnumByType(biReportTaskVO.getReportType()).getTypeName());
+            String requestStartDate = biReportTaskVO.getRequestStartDate();
+            String requestEndDate = biReportTaskVO.getRequestEndDate();
+            if (!StringUtils.isEmpty(requestStartDate) && !StringUtils.isEmpty(requestEndDate)) {
+                String transferDateTimeRange = requestStartDate + "~" + requestEndDate;
+                biReportTaskVO.setTransferDateTimeRange(transferDateTimeRange);
+            }
+        }
+    }
+
+    /**
+     * @description 将reportTypeName转为reportType
+     * @return void
+     * @author hedongshuo
+     * @date 2024/9/23 14:03
+     **/
+    private void convertReportType(BiReportTaskParam reportTaskParam) {
+        if (reportTaskParam == null || StringUtils.isEmpty(reportTaskParam.getReportTypeName())) {
+            return;
+        }
+        reportTaskParam.setReportType(BiReportTypeEnum.getEnumByTypeName(reportTaskParam.getReportTypeName()).getType());
     }
 }

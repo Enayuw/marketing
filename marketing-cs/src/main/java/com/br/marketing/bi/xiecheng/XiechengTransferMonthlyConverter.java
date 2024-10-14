@@ -58,7 +58,8 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
      * @date 2024/09/04
      */
     @Override
-    public BiReportVO process(List<XiechengTransferMonthlyReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<XiechengTransferMonthlyReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_MONTHLY_REPORT.getTypeName());
         biReportVO.setReportName("月转化报表");
@@ -103,6 +104,7 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
         yAxis.add(buildWrapDataVO("ROI", sortedData, XiechengTransferMonthlyReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("授信目标完成率", sortedData, XiechengTransferMonthlyReportDTO::getCreditCompleteRatio, FormatType.PERCENT_SIGN));
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 }

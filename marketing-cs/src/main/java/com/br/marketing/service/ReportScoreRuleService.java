@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 
 import java.util.List;
@@ -19,11 +20,12 @@ public interface ReportScoreRuleService {
 
     /**
      * 产品集合列表
-     * 
-     * @param ids 跑分文件对应的主键id
+     *
+     * @param ids       跑分文件对应的主键id
+     * @param fieldType
      * @return
      */
-    Map getProducts(String ids);
+    Map getProducts(String ids, String fieldType);
 
     /**
      * 新增 跑分模型报表任务 方法
@@ -56,4 +58,11 @@ public interface ReportScoreRuleService {
      * @return List<ScoreDetailVo>
      */
     PageResultReturn<List<ScoreDetailVo>> getBatchInfoList(CustomerBatchNumVO batchNumVO);
+
+    /**
+     * Bi报表列表查看（众安）
+     * @param reportTaskParam
+     * @return
+     */
+    PageResultReturn getBiReportTaskList(BiReportTaskParam reportTaskParam);
 }

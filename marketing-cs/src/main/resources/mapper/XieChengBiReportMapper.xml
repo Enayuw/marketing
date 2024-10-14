@@ -69,7 +69,7 @@
         count(DISTINCT datalog.cell_sha256_code_list) as count
         from
         ods_xc_colliding_log_half_hourly datalog
-        inner join ods_upload_half_hourly upload on
+        inner join proxy_password: t0jI8xLwload_half_hourly upload on
         datalog.cell_sha256_code_list = upload.cell_sha256
         where
         datalog.create_time >= #{reportDate}

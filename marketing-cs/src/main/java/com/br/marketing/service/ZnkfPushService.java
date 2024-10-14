@@ -3,6 +3,7 @@ package com.br.marketing.service;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
+import com.br.marketing.dto.customer.SmsRecordDTO;
 
 public interface ZnkfPushService {
     /**
@@ -41,4 +42,6 @@ public interface ZnkfPushService {
      * @return
      */
     Boolean isPushBlackPhoneEnd(String apiCode, String pushDate);
+
+    String smsCallBack(SmsRecordDTO dto);
 }

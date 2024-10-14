@@ -2149,6 +2149,31 @@ public class MarketingCommonConfig {
     private JSONObject cryptoConfig;
 
     /**
+     * Bi报表分组维度配置
+     */
+    private HashMap<String, JSONObject> biReportGroupConfig;
+
+    /**
+     * Bi报表分组维度字典配置
+     */
+    private HashMap<String, JSONObject> biReportGroupDictConfig;
+
+    /**
+     * 跑分模型分布 配置数据展示规则时需要的产品（无多头）前缀
+     */
+    private Set<String> reportScoreOnlyPrefixSet;
+
+    /**
+     * 跑分模型分布 配置数据展示规则时需要的多头前缀
+     */
+    private Set<String> reportmultPointPrefixSet;
+
+    /**
+     * bi报表场景名称前缀配置
+     */
+    private HashMap<String, String> biReportScenePrefixConfig;
+
+    /**
      * 数禾推送百可录场景及apiCode路由配置
      */
     private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;

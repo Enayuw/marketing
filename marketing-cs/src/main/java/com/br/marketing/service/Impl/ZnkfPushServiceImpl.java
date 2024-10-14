@@ -12,14 +12,12 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
+import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.entity.*;
-import com.br.marketing.mapper.CallRecordMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
-import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
+import com.br.marketing.mapper.*;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
 import com.br.marketing.origin.TransferSource;
@@ -39,6 +37,7 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -50,6 +49,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Autowired
     private CallRecordMapper callRecordMapper;
+
+    @Autowired
+    private SmsCallbackMapper smsCallbackMapper;
 
     @Autowired
     private PushDataService pushDataService;
@@ -244,6 +246,57 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             isPushEnd = true;
         }
         return isPushEnd;
+    }
+
+    @Override
+    public String smsCallBack(SmsRecordDTO dto) {
+        try {
+            String value = checkValues(dto);
+            if(!value.isEmpty()){
+                return value;
+            }
+            String thirdCallNo = dto.getThirdCallNo();
+            //校验是否已经落库
+            SmsCallbackExample smsCallbackExample = new SmsCallbackExample();
+            smsCallbackExample.createCriteria().andThirdCallNoEqualTo(thirdCallNo);
+            int i = smsCallbackMapper.countByExample(smsCallbackExample);
+            if (i > 0) {
+                log.warn("短信流水号重复：" + thirdCallNo);
+                return "短信流水号重复：" + thirdCallNo;
+            }
+            SmsCallback smsCallback = new SmsCallback();
+            smsCallback.setCreateDate(String.valueOf(LocalDate.now()));
+            smsCallback.setCreateTime(new Date());
+            BeanUtils.copyProperties(dto, smsCallback);
+            smsCallback.setApiCode(dto.getApiCode());
+            smsCallbackMapper.insert(smsCallback);
+        }catch (Exception ex){
+            log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
+            return "外呼短信记录落库失败(insert b_sms_callback fail)!";
+        }
+        return "success";
+    }
+
+    private String checkValues(SmsRecordDTO dto) {
+        if(StringUtils.isEmpty(dto.getApiCode())){
+            return "apiCode为空";
+        }
+        if(StringUtils.isEmpty(dto.getCid())){
+            return "cid为空";
+        }
+        if(StringUtils.isEmpty(dto.getThirdCallNo())){
+            return "短信流水号 thirdCallNo 为空";
+        }
+        if(StringUtils.isEmpty(dto.getCaseNum())){
+            return "案件编号 caseNum 为空";
+        }
+        if(StringUtils.isEmpty(dto.getSmsSendStatus())){
+            return "短信发送状态 smsSendStatus 为空";
+        }
+        if(StringUtils.isEmpty(dto.getUserType())){
+            return "场景 userType 为空";
+        }
+        return "";
     }
 
     private String goShDX(CallRecordDTO dto) {
