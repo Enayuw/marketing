@@ -3,6 +3,7 @@ package com.br.marketing.bi.xiecheng;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
+import com.br.marketing.dto.report.xiecheng.XiechengTransferDailyReportDTO;
 import com.br.marketing.dto.report.xiecheng.XiechengTransferDailySwitchOnReportDTO;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
@@ -54,8 +55,8 @@ public class XiechengTransferDailySwitchOnConverter extends AbstractBiReportConv
      * @return com.br.marketing.vo.bi.BiReportVO
      */
     @Override
-    public BiReportVO process(List<XiechengTransferDailySwitchOnReportDTO> dtos, JSONObject extend) {
-        BiReportVO biReportVO = new BiReportVO();
+    public List<BiReportVO> process(List<XiechengTransferDailySwitchOnReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();        BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_DAILYSWITCHON_REPORT.getTypeName());
         biReportVO.setReportName("日接通转化报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
@@ -94,6 +95,7 @@ public class XiechengTransferDailySwitchOnConverter extends AbstractBiReportConv
         yAxis.add(buildWrapDataVO("上报数据百万转化", sortedData, XiechengTransferDailySwitchOnReportDTO::getSubmitMillionTransferNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("外呼数据百万转化", sortedData, XiechengTransferDailySwitchOnReportDTO::getOutboundMillionTransferNum, FormatType.THOUSAND_SEPARATOR));
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 }

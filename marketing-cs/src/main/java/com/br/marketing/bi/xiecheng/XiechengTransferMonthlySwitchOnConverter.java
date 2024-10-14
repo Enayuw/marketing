@@ -55,7 +55,8 @@ public class XiechengTransferMonthlySwitchOnConverter extends AbstractBiReportCo
      * @return com.br.marketing.vo.bi.BiReportVO
      */
     @Override
-    public BiReportVO process(List<XiechengTransferMonthlySwitchOnReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<XiechengTransferMonthlySwitchOnReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_MONTHLYSWITCHON_REPORT.getTypeName());
         biReportVO.setReportName("月接通转化报表");
@@ -102,6 +103,7 @@ public class XiechengTransferMonthlySwitchOnConverter extends AbstractBiReportCo
         yAxis.add(buildWrapDataVO("ROI", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("授信目标完成率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCreditCompleteRatio, FormatType.PERCENT_SIGN));
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 }
