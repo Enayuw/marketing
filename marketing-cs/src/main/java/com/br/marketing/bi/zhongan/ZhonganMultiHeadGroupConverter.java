@@ -298,6 +298,8 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
             List<String> xAxis = param.getXAxis();
             List<WrapDataVO> yAxis = param.getYAxis();
             // 写入X轴名称
+            writer.writeCellValue(0, rowIndex, param.getReportName() + "_" + param.getGroup());
+            rowIndex++;
             writer.writeCellValue(0, rowIndex, param.getXAxisName());
             // 写X轴数据
             for (int i = 0; i < xAxis.size(); i++) {
