@@ -350,6 +350,7 @@ rocketmq:
     enableMsgTrace: false
     # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
     customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
+    namespace: ${ROCKETMQ_NAMESPACE:pre}
   consumer:
     # 配置指定group是否启动监听器 group1.topic1 = false
     # 配置指定group是否启动监听器 group1.topic1 = false
