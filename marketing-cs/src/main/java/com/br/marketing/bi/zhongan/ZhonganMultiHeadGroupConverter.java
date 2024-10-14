@@ -179,7 +179,7 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                         }
                     }
                     // 占比字段格式化
-                    List<ZhongAnGroupedScoreDistributionDTO> transformedList = list.stream().map(dto -> {
+                    List<ZhongAnGroupedScoreDistributionDTO> transformedList = list.stream().map((ZhongAnGroupedScoreDistributionDTO dto) -> {
                         BigDecimal newProportion = dto.getProportion().multiply(BigDecimal.valueOf(100));
                         dto.setProportion(newProportion.setScale(2, RoundingMode.HALF_UP));
                         return dto;
@@ -316,7 +316,8 @@ public class ZhonganMultiHeadGroupConverter extends AbstractBiReportConverter<Bi
                     String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
                     if (value.contains("%")) {
                         BigDecimal decimal = new BigDecimal(value.replace("%", ""));
-                        writer.writeCellValue(i + 1, rowIndex + j + 1, decimal.divide(BigDecimal.valueOf(100), decimal.scale() + 2, RoundingMode.HALF_UP));
+                        writer.writeCellValue(i + 1, rowIndex + j + 1, decimal.divide(BigDecimal.valueOf(100),
+                                decimal.scale() + 2, RoundingMode.HALF_UP));
                         writer.getCell(i + 1, rowIndex + j + 1).setCellStyle(getDataBarCellStyle(writer, decimal));
                     } else {
                         writer.writeCellValue(i + 1, rowIndex + j + 1, value);

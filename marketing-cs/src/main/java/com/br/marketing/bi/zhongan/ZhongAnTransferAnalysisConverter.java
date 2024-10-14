@@ -109,7 +109,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                 List<ReportStatisticTransferDetail> reportDataList = zhongAnBiReportMapper.queryReportStatisticTransferDetailbI_(reportId, "", "", "", "");
 
                 List<ReportStatisticTransferDetail> caseList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "数据量");
-                caseList = caseList.stream().sorted(Comparator.comparing((data) -> {
+                caseList = caseList.stream().sorted(Comparator.comparing((ReportStatisticTransferDetail data) -> {
                     String scoreValue = data.getScoreValue();
                     String value = scoreValue.split(",")[0].substring(1);
                     return Integer.parseInt(value);
@@ -131,7 +131,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                     FormatType formatType = FormatType.getByName(formatTypeName);
                     List<ReportStatisticTransferDetail> detailList = filter(reportDataList, scoreField, dimensionField, dimensionValue, itemName);
                     // sort
-                    detailList = detailList.stream().sorted(Comparator.comparing((data) -> {
+                    detailList = detailList.stream().sorted(Comparator.comparing((ReportStatisticTransferDetail data) -> {
                         String scoreValue = data.getScoreValue();
                         String value = scoreValue.split(",")[0].substring(1);
                         return Integer.parseInt(value);
