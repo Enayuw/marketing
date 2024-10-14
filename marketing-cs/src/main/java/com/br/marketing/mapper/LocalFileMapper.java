@@ -86,4 +86,6 @@ public interface LocalFileMapper extends LocalFileMapperBase {
      * @param localFile localFile
      */
     void updatePushNumber(@Param("localFile") LocalFile localFile);
+
+    void updatePushStatusByLocalId(@Param("highValueIds") String highValueIds);
 }

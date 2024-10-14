@@ -112,4 +112,8 @@
             push_end_time = #{localFile.pushEndTime,jdbcType=TIMESTAMP}
         where id = #{localFile.id,jdbcType=BIGINT}
     </update>
+
+    <update id="updatePushStatusByLocalId">
+        update b_local_file set push_status = null where id in ${highValueIds};
+    </update>
 </mapper>

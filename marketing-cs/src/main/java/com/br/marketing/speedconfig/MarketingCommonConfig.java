@@ -2134,11 +2134,6 @@ public class MarketingCommonConfig {
     private String wuBaDingDingSecret;
 
     /**
-     * 数禾推送百可录apiCode路由配置
-     */
-    private JSONObject shuHeProxyToBioclooApiCode;
-
-    /**
      * 数禾推送百可录AES加密key配置
      */
     private JSONObject shuHeToBioclooAesKeyConfig;
@@ -2157,6 +2152,21 @@ public class MarketingCommonConfig {
      * 加解密秘钥配置 格式 {"7492770":{"aesKey":"7H6j39W6W6b90077","aesIv":"sd0S94rU1009P43B"}}
      */
     private JSONObject cryptoConfig;
+
+    /**
+     * 数禾推送百可录场景及apiCode路由配置
+     */
+    private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
+
+    /**
+     * 你我贷转化规则过滤配置
+     */
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+
+    /**
+     * 苏商文件时间
+     */
+    private String suShangFileDate;
 
     /**
      * 携程促活数据处理线程数

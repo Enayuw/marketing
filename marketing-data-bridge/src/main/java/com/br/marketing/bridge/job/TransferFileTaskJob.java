@@ -152,8 +152,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
 
     @Resource
     private TransferToFileByYouMeDServiceImpl transferToFileByYouMeDService;
-    @Resource
-    private TransferToFileByGomeServiceImpl transferToFileByGomeService;
 
     @Resource
     private TransferToFileByDiDiServiceImpl transferToFileByDiDiService;
@@ -242,6 +240,12 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
      */
     @Resource
     private TransferToFileByYiShiServiceImpl transferToFileByYiShiService;
+
+    /**
+     * 国美
+     */
+    @Resource
+    private TransferToFileByGuoMeiServiceImpl transferToFileByGuoMeiService;
 
     /**
      * 58新客-营销名单上报-数据提取
@@ -403,7 +407,7 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 // 海尔新系统转换数据提取
                 .addBind(transferToFileByNewHaierServicea, marketingCommonConfig.getNewHaierTransferApiCodes())
                 // 国美转化数据提取
-                .addBind(transferToFileByGomeService, marketingCommonConfig.getGomeApiCodes())
+                .addBind(transferToFileByGuoMeiService, marketingCommonConfig.getGomeApiCodes())
                 // 永辉转化数据提取
                 .addBind(transferToFileByYonghuiService, marketingCommonConfig.getYonghuiTransferExtractApiCodes())
                 // 众邦财富转换数据提取
