@@ -54,18 +54,18 @@ public class DataBarUtil {
             // 仅展示数据栏设置
             dbf.setIconOnly(false);
             if (dbf instanceof XSSFDataBarFormatting) {
-                Field _databar = XSSFDataBarFormatting.class.getDeclaredField("_databar");
-                _databar.setAccessible(true);
+                Field databar = XSSFDataBarFormatting.class.getDeclaredField("_databar");
+                databar.setAccessible(true);
                 org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar ctDataBar =
-                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar)_databar.get(dbf);
+                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar)databar.get(dbf);
                 ctDataBar.setMinLength(0);
                 ctDataBar.setMaxLength(100);
             }
             if (rule instanceof XSSFConditionalFormattingRule) {
-                Field _cfRule = XSSFConditionalFormattingRule.class.getDeclaredField("_cfRule");
-                _cfRule.setAccessible(true);
+                Field cfRule = XSSFConditionalFormattingRule.class.getDeclaredField("_cfRule");
+                cfRule.setAccessible(true);
                 org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule ctRule =
-                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule)_cfRule.get(rule);
+                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule)cfRule.get(rule);
                 org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtensionList extList = ctRule.addNewExtLst();
                 org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtension ext = extList.addNewExt();
                 String extXML = "<x14:id" + " xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\">"
@@ -73,9 +73,9 @@ public class DataBarUtil {
                 org.apache.xmlbeans.XmlObject xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXML);
                 ext.set(xlmObject);
                 ext.setUri("{" + UUID.fastUUID() + "}");
-                Field _sh = XSSFConditionalFormattingRule.class.getDeclaredField("_sh");
-                _sh.setAccessible(true);
-                XSSFSheet ruleSheet = (XSSFSheet)_sh.get(rule);
+                Field sh = XSSFConditionalFormattingRule.class.getDeclaredField("_sh");
+                sh.setAccessible(true);
+                XSSFSheet ruleSheet = (XSSFSheet)sh.get(rule);
                 extList = ruleSheet.getCTWorksheet().addNewExtLst();
                 ext = extList.addNewExt();
                 StringBuilder extXMLBuilder = new StringBuilder();
@@ -114,18 +114,18 @@ public class DataBarUtil {
             ConditionalFormattingRule rule = sheetCF.createConditionalFormattingRule(color);
             DataBarFormatting dbf = rule.getDataBarFormatting();
             if (dbf instanceof XSSFDataBarFormatting) {
-                Field _databar = XSSFDataBarFormatting.class.getDeclaredField("_databar");
-                _databar.setAccessible(true);
+                Field databar = XSSFDataBarFormatting.class.getDeclaredField("_databar");
+                databar.setAccessible(true);
                 org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar ctDataBar =
-                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar)_databar.get(dbf);
+                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTDataBar)databar.get(dbf);
                 ctDataBar.setMinLength(0);
                 ctDataBar.setMaxLength(100);
             }
             if (rule instanceof XSSFConditionalFormattingRule) {
-                Field _cfRule = XSSFConditionalFormattingRule.class.getDeclaredField("_cfRule");
-                _cfRule.setAccessible(true);
+                Field cfRule = XSSFConditionalFormattingRule.class.getDeclaredField("_cfRule");
+                cfRule.setAccessible(true);
                 org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule ctRule =
-                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule)_cfRule.get(rule);
+                    (org.openxmlformats.schemas.spreadsheetml.x2006.main.CTCfRule)cfRule.get(rule);
                 org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtensionList extList = ctRule.addNewExtLst();
                 org.openxmlformats.schemas.spreadsheetml.x2006.main.CTExtension ext = extList.addNewExt();
                 String extXML = "<x14:id" + " xmlns:x14=\"http://schemas.microsoft.com/office/spreadsheetml/2009/9/main\">"
@@ -133,9 +133,9 @@ public class DataBarUtil {
                 org.apache.xmlbeans.XmlObject xlmObject = org.apache.xmlbeans.XmlObject.Factory.parse(extXML);
                 ext.set(xlmObject);
                 ext.setUri("{" + UUID.fastUUID() + "}");
-                Field _sh = XSSFConditionalFormattingRule.class.getDeclaredField("_sh");
-                _sh.setAccessible(true);
-                XSSFSheet ruleSheet = (XSSFSheet)_sh.get(rule);
+                Field sh = XSSFConditionalFormattingRule.class.getDeclaredField("_sh");
+                sh.setAccessible(true);
+                XSSFSheet ruleSheet = (XSSFSheet)sh.get(rule);
                 extList = ruleSheet.getCTWorksheet().addNewExtLst();
                 ext = extList.addNewExt();
 
