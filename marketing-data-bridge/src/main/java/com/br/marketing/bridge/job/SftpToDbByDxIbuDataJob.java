@@ -178,6 +178,12 @@ public class SftpToDbByDxIbuDataJob extends AbstractSimpleElasticJob {
                                     , localFile
                                     , baseHeads
                                     , iTxtToDbService::phoneTodbByIbu);
+
+                            // 更新推送状态为待推送
+                            LocalFile updateFile = new LocalFile();
+                            updateFile.setId(localFile.getId());
+                            updateFile.setPushStatus("0");
+                            localFileMapper.updateByPrimaryKeySelective(updateFile);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
                             try {
