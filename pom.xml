@@ -29,7 +29,7 @@
         <speed.version>2.0.1</speed.version>
         <lettuce.version>6.2.0.RELEASE</lettuce.version>
         <reactor.version>3.4.24</reactor.version>
-        <rocketmq5x.version>1.0.0</rocketmq5x.version>
+        <rocketmq5x.version>1.0.1</rocketmq5x.version>
     </properties>
     <dependencies>
         <dependency>
