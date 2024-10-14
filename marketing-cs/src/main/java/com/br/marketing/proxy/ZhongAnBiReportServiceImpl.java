@@ -62,6 +62,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         mapToLong(ZhongAnBusAnalyOneReportDTO::getIncomingNum).sum());
                 oneReportDTO.setApproversNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group)).
                         mapToLong(ZhongAnBusAnalyOneReportDTO::getApproversNum).sum());
+                oneReportDTO.setCompositeIncrNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                        mapToLong(ZhongAnBusAnalyOneReportDTO::getCompositeIncrNum).sum());
                 oneReportDTO.setIncome(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
                         .map(ZhongAnBusAnalyOneReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
                 oneReportDTO.setCost(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
@@ -98,14 +100,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         .divide(new BigDecimal((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() * zhongAnReportDTO.getApproversNum()), 6, BigDecimal.ROUND_HALF_UP));
 
             }
-            brReportDTO.setCompositeIncrNum(0L);
-            if (zhongAnReportDTO.getTotalNum() != 0L) {
-                brReportDTO.setCompositeIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() * (brReportDTO.getTotalNum()
-                        / (double) zhongAnReportDTO.getTotalNum())));
-            }
             zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
             zhongAnReportDTO.setApproversIncreaseRate(brReportDTO.getApproversIncreaseRate());
-            zhongAnReportDTO.setCompositeIncrNum(brReportDTO.getCompositeIncrNum());
             //营销非首登组,众安对照非首登组
             ZhongAnBusAnalyOneReportDTO brNoLoginReportDTO = totalList.get(2);
             ZhongAnBusAnalyOneReportDTO zhongAnNoLoginReportDTO = totalList.get(3);
@@ -121,14 +117,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         .divide(new BigDecimal((double) brNoLoginReportDTO.getTotalNum() / zhongAnNoLoginReportDTO.getTotalNum() * zhongAnNoLoginReportDTO.getApproversNum()), 6, BigDecimal.ROUND_HALF_UP));
 
             }
-            brNoLoginReportDTO.setCompositeIncrNum(0L);
-            if (zhongAnNoLoginReportDTO.getTotalNum() != 0L) {
-                brNoLoginReportDTO.setCompositeIncrNum(Math.round(brNoLoginReportDTO.getApproversNum() - zhongAnNoLoginReportDTO.getApproversNum() *
-                        (brNoLoginReportDTO.getTotalNum() / (double) zhongAnNoLoginReportDTO.getTotalNum())));
-            }
             zhongAnNoLoginReportDTO.setIncomingIncreaseRate(brNoLoginReportDTO.getIncomingIncreaseRate());
             zhongAnNoLoginReportDTO.setApproversIncreaseRate(brNoLoginReportDTO.getApproversIncreaseRate());
-            zhongAnNoLoginReportDTO.setCompositeIncrNum(brNoLoginReportDTO.getCompositeIncrNum());
             zhongAnBusAnalyOneReportList.addAll(totalList);
         }
         return zhongAnBusAnalyOneReportList;
@@ -158,6 +148,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         mapToLong(ZhongAnBusAnalyEightReportDTO::getIncomingNum).sum());
                 eightReportDTO.setApproversNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group)).
                         mapToLong(ZhongAnBusAnalyEightReportDTO::getApproversNum).sum());
+                eightReportDTO.setCompositeIncrNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                        mapToLong(ZhongAnBusAnalyEightReportDTO::getCompositeIncrNum).sum());
                 eightReportDTO.setIncome(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
                         .map(ZhongAnBusAnalyEightReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
                 eightReportDTO.setCost(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
@@ -193,14 +185,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         .divide(new BigDecimal((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() * zhongAnReportDTO.getApproversNum()), 6, BigDecimal.ROUND_HALF_UP));
 
             }
-            brReportDTO.setCompositeIncrNum(0L);
-            if (zhongAnReportDTO.getTotalNum() != 0L) {
-                brReportDTO.setCompositeIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() * ((double) brReportDTO.getTotalNum()
-                        / zhongAnReportDTO.getTotalNum())));
-            }
             zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
             zhongAnReportDTO.setApproversIncreaseRate(brReportDTO.getApproversIncreaseRate());
-            zhongAnReportDTO.setCompositeIncrNum(brReportDTO.getCompositeIncrNum());
             zhongAnBusAnalyEightReportList.addAll(totalList);
         }
         return zhongAnBusAnalyEightReportList;
