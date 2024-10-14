@@ -10,6 +10,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -23,7 +24,6 @@ import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
 import com.github.pagehelper.PageHelper;
-import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -262,7 +262,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         // 给写入b_report_task表拼装数据
         ReportTask reportTask = new ReportTask();
         reportTask.setReportName(reportName);
-        reportTask.setReportType(reportType == null ? 1 : reportType);
+        reportTask.setReportType(reportType == null ? ReportTaskTypeEnum.SCORE_MODEL_TYPE.getValue() : reportType);
         List<ReportFieldDict> reportFieldDicts = null;
         JSONObject json = new JSONObject();
         if (reportType == null) {
