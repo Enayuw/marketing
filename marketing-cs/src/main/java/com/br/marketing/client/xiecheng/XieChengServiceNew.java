@@ -71,13 +71,14 @@ public class XieChengServiceNew {
             JSONObject dataMap = new JSONObject();
             String s = sha256CodeList.get(i);
             dataMap.put("sha256Code",s);
-            dataMap.put("hitRequestNo", RandomUtil.randomString(29).toUpperCase());
             if(i%2==0){
                 dataMap.put("result",true);
                 dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
                 dataMap.put("releaseDate", null);
+                dataMap.put("hitRequestNo", RandomUtil.randomString(29).toUpperCase());
             }else {
                 dataMap.put("result",false);
+                dataMap.put("hitRequestNo", null);
                 dataMap.put("releaseDate", DateUtil.formatDate(DateUtil.offsetDay(new Date(), RandomUtil.getRandom().nextInt(7)+1)));
             }
             dataMap.put("orgChannel","测试orgChannel");
