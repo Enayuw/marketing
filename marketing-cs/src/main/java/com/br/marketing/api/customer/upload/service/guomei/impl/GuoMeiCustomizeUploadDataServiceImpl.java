@@ -3,18 +3,15 @@ package com.br.marketing.api.customer.upload.service.guomei.impl;
 import java.util.Collections;
 import java.util.Set;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Md5Utils;
 import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.guomei.GuoMeiCustomizeUploadDataService;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadJsonDTO;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadResponseDTO;
-import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.dto.CustomerResponseDTO;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +25,21 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUploadDataService {
+
+    /**
+     * 解密jsonData
+     *
+     * @param apiCode  apiCode
+     * @param jsonData jsonData
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2024/09/11
+     */
+    @Override
+    public String decryptJsonData(String apiCode, String jsonData) {
+        return jsonData;
+    }
+
     /**
      * 2023-10-18 16:45 客户
      *

@@ -6,11 +6,12 @@
         from (SELECT a.id, a.cell, a.local_id, ROW_NUMBER() OVER (PARTITION BY a.cell ORDER BY a.id) AS row_num
         from b_wuba_colliding_data_front a
         left join b_wuba_colliding_data_loop_cycle d on a.cell = d.cell and d.is_deleted = 0
+        left join b_wuba_colliding_data_second_loop_cycle e on a.cell = e.cell and e.is_deleted = 0
         left join b_wuba_colliding_data_rob b
         on a.cell = b.cell
         <![CDATA[ and ((b.create_time >= #{today} and b.create_time < #{tomorrow} ]]>) or (b.package_id in ${highValueIds}))
         and b.api_code = #{apiCode} and b.is_deleted = 0
-        where b.id is null and d.id is null
+        where b.id is null and d.id is null and e.id is null
         and a.is_deleted = 0
         and a.api_code = #{apiCode}
         and a.local_id = #{localId}
@@ -30,5 +31,13 @@
         <foreach collection="list" item="front" open="(" separator="," close=")">
             #{front.cell}
         </foreach>
+    </update>
+
+    <update id="updatePushStatusByHighValueFileIds">
+        update b_wuba_colliding_data_front
+        set push_status = 1
+        where is_deleted = 0
+          and status = 1 and push_status >1
+          and local_id in ${highValueIds} limit 200000;
     </update>
 </mapper>

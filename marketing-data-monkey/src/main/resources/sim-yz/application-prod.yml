@@ -253,6 +253,10 @@ api:
       encryptKey: "0496a17bc0917d63e02b2e09b75d3ae6c496a8efc053c722123744dd094227254404006e9a23509deaeeb9f543158bd30483ef39d5a7fdf41c1e40a0a2a603ef2b"
       cksStr: "87522C1758A0493D99BD05FE9300DDEA"
       slotKey: "AJJouRpxr9dw0ldw/ZoMpw=="
+  biocloo:
+    baseUrl: https://callcenter.biocloo.com.cn
+    blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
+    isProxy: true
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672

@@ -2,12 +2,11 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.ReportTask;
 import com.br.marketing.entity.ReportTaskExample;
+import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
-
 public interface ReportTaskMapperBase {
-    int countByExample(ReportTaskExample example);
+    long countByExample(ReportTaskExample example);
 
     int deleteByExample(ReportTaskExample example);
 

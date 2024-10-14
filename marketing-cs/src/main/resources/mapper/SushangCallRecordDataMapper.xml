@@ -22,16 +22,12 @@
     </select>
 
 
-    <select id="getHalfYearCallRecord" resultType="com.br.marketing.entity.SushangCallRecordData">
-
+    <select id="getHalfYearCallRecordtikv_" resultType="com.br.marketing.entity.SushangCallRecordData">
         Select *
         From b_sushang_call_record_data
         where local_id =#{local_id}
         and  <![CDATA[call_time >= #{beginDate} and call_time <= #{endDate}]]>
-        <if test="indexId != null and indexId!=''">
-            and id > #{indexId}
-        </if>
-        order by id asc limit #{pageSize};
+        order by call_time asc ,id asc limit #{limitStart},#{pageSize};
     </select>
 
 

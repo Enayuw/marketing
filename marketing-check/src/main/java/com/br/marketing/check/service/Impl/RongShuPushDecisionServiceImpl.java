@@ -208,8 +208,8 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                          * 这里的redis锁的key要跟 相同
                          * {@link RongShuTransferDataToPolicyImpl}
                          */
-                        String key = RedisKeyConstant.dributeDataSloeLock.concat(String.format(":%d:%d:%s:%s", DistributeTypeEnum.POLICYDATA.getValue()
-                                , 1, apiCode, cell));
+                        String key = RedisKeyConstant.dributeDataSloeLock.concat(String.format(":%d:%d:%s:%s"
+                                , DistributeTypeEnum.POLICYDATA.getValue(), 1, apiCode, cell));
                         String lockValue = UUID.randomUUID().toString();
                         if (cellSet.add(cell)) {
                             try {

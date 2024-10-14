@@ -614,7 +614,7 @@
     </select>
 
     <select id="getCellLastByCustNums" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select b.cell,b.cust_num from
+        select b.cell,b.cust_num,b.applet_time from
         (
         select cust_num,max(applet_time) as applet_time
         from b_marketing_sync_${apiCode} a
@@ -976,5 +976,20 @@
         where cust_num = #{custNum}
         and status =1
         order by applet_time desc limit 1
+    </select>
+
+    <select id="getYiXinNewSyncUserByDateAndResourceChannel" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          and status = 1
+          and is_repeat in (1, 2)
+          and user_type = #{userType}
+          and reserve_field1 -> '$.resourceChannel' = #{resourceChannel}
+        <if test="minId != null and minId > 0">
+            and id > #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
     </select>
 </mapper>
