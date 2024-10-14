@@ -219,7 +219,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
             List<String> proportion =
                 data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
-                    .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : percent + "%").collect(Collectors.toList());
+                    .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : (percent + "%")).collect(Collectors.toList());
             WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
             yAxis.add(proportionWrapDataVo);
         }
