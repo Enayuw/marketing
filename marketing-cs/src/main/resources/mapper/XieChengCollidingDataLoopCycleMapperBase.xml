@@ -10,6 +10,7 @@
     <result column="market_coupon_list" property="marketCouponList" jdbcType="VARCHAR" />
     <result column="coupon_code" property="couponCode" jdbcType="VARCHAR" />
     <result column="coupon_desc" property="couponDesc" jdbcType="VARCHAR" />
+    <result column="customer_group" property="customerGroup" jdbcType="INTEGER" />
     <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="is_delete" property="isDelete" jdbcType="INTEGER" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
@@ -76,9 +77,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, package_id, data_source_type, cell_sha256_code_list, release_time, market_coupon_list, 
-    coupon_code, coupon_desc, push_time, is_delete, extend, create_time, update_time, 
-    retry_count
+    id, package_id, data_source_type, cell_sha256_code_list, release_time, market_coupon_list,
+    coupon_code, coupon_desc, customer_group, push_time, is_delete, extend, create_time,
+    update_time, retry_count
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycleExample" >
     select
@@ -95,7 +96,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_xiecheng_colliding_data_loop_cycle
     where id = #{id,jdbcType=BIGINT}
@@ -114,16 +115,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_colliding_data_loop_cycle (package_id, data_source_type, cell_sha256_code_list, 
-      release_time, market_coupon_list, coupon_code, 
-      coupon_desc, push_time, is_delete, 
-      extend, create_time, update_time, 
-      retry_count)
-    values (#{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, #{cellSha256CodeList,jdbcType=VARCHAR}, 
-      #{releaseTime,jdbcType=TIMESTAMP}, #{marketCouponList,jdbcType=VARCHAR}, #{couponCode,jdbcType=VARCHAR}, 
-      #{couponDesc,jdbcType=VARCHAR}, #{pushTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}, 
-      #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
-      #{retryCount,jdbcType=INTEGER})
+    insert into b_xiecheng_colliding_data_loop_cycle (package_id, data_source_type, cell_sha256_code_list,
+    release_time, market_coupon_list, coupon_code,
+    coupon_desc, customer_group, push_time,
+    is_delete, extend, create_time,
+    update_time, retry_count)
+    values (#{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR}, #{cellSha256CodeList,jdbcType=VARCHAR},
+    #{releaseTime,jdbcType=TIMESTAMP}, #{marketCouponList,jdbcType=VARCHAR}, #{couponCode,jdbcType=VARCHAR},
+    #{couponDesc,jdbcType=VARCHAR}, #{customerGroup,jdbcType=INTEGER}, #{pushTime,jdbcType=TIMESTAMP},
+    #{isDelete,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}, #{retryCount,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycle" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -151,6 +152,9 @@
       </if>
       <if test="couponDesc != null" >
         coupon_desc,
+      </if>
+      <if test="customerGroup != null" >
+        customer_group,
       </if>
       <if test="pushTime != null" >
         push_time,
@@ -192,6 +196,9 @@
       </if>
       <if test="couponDesc != null" >
         #{couponDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="customerGroup != null" >
+        #{customerGroup,jdbcType=INTEGER},
       </if>
       <if test="pushTime != null" >
         #{pushTime,jdbcType=TIMESTAMP},
@@ -246,6 +253,9 @@
       <if test="record.couponDesc != null" >
         coupon_desc = #{record.couponDesc,jdbcType=VARCHAR},
       </if>
+      <if test="record.customerGroup != null" >
+        customer_group = #{record.customerGroup,jdbcType=INTEGER},
+      </if>
       <if test="record.pushTime != null" >
         push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       </if>
@@ -272,19 +282,20 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_data_loop_cycle
     set id = #{record.id,jdbcType=BIGINT},
-      package_id = #{record.packageId,jdbcType=BIGINT},
-      data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
-      market_coupon_list = #{record.marketCouponList,jdbcType=VARCHAR},
-      coupon_code = #{record.couponCode,jdbcType=VARCHAR},
-      coupon_desc = #{record.couponDesc,jdbcType=VARCHAR},
-      push_time = #{record.pushTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      retry_count = #{record.retryCount,jdbcType=INTEGER}
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    data_source_type = #{record.dataSourceType,jdbcType=VARCHAR},
+    cell_sha256_code_list = #{record.cellSha256CodeList,jdbcType=VARCHAR},
+    release_time = #{record.releaseTime,jdbcType=TIMESTAMP},
+    market_coupon_list = #{record.marketCouponList,jdbcType=VARCHAR},
+    coupon_code = #{record.couponCode,jdbcType=VARCHAR},
+    coupon_desc = #{record.couponDesc,jdbcType=VARCHAR},
+    customer_group = #{record.customerGroup,jdbcType=INTEGER},
+    push_time = #{record.pushTime,jdbcType=TIMESTAMP},
+    is_delete = #{record.isDelete,jdbcType=INTEGER},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    retry_count = #{record.retryCount,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -313,6 +324,9 @@
       <if test="couponDesc != null" >
         coupon_desc = #{couponDesc,jdbcType=VARCHAR},
       </if>
+      <if test="customerGroup != null" >
+        customer_group = #{customerGroup,jdbcType=INTEGER},
+      </if>
       <if test="pushTime != null" >
         push_time = #{pushTime,jdbcType=TIMESTAMP},
       </if>
@@ -337,18 +351,19 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengCollidingDataLoopCycle" >
     update b_xiecheng_colliding_data_loop_cycle
     set package_id = #{packageId,jdbcType=BIGINT},
-      data_source_type = #{dataSourceType,jdbcType=VARCHAR},
-      cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
-      release_time = #{releaseTime,jdbcType=TIMESTAMP},
-      market_coupon_list = #{marketCouponList,jdbcType=VARCHAR},
-      coupon_code = #{couponCode,jdbcType=VARCHAR},
-      coupon_desc = #{couponDesc,jdbcType=VARCHAR},
-      push_time = #{pushTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER},
-      extend = #{extend,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      retry_count = #{retryCount,jdbcType=INTEGER}
+        data_source_type = #{dataSourceType,jdbcType=VARCHAR},
+        cell_sha256_code_list = #{cellSha256CodeList,jdbcType=VARCHAR},
+        release_time = #{releaseTime,jdbcType=TIMESTAMP},
+        market_coupon_list = #{marketCouponList,jdbcType=VARCHAR},
+        coupon_code = #{couponCode,jdbcType=VARCHAR},
+        coupon_desc = #{couponDesc,jdbcType=VARCHAR},
+        customer_group = #{customerGroup,jdbcType=INTEGER},
+        push_time = #{pushTime,jdbcType=TIMESTAMP},
+        is_delete = #{isDelete,jdbcType=INTEGER},
+        extend = #{extend,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        retry_count = #{retryCount,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

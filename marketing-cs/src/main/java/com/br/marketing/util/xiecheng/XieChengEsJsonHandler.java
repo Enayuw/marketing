@@ -60,6 +60,10 @@ public class XieChengEsJsonHandler {
                         collidingFilterDTO.setCoupon_desc(couponDescMap);
                         iterator.remove();
                         break;
+                    case "customer_group":
+                        collidingFilterDTO.setCustomerGroup(jsonData.getString("value"));
+                        iterator.remove();
+                        break;
                     default:
                 }
             }
@@ -73,6 +77,7 @@ public class XieChengEsJsonHandler {
         Map<String, Object> releaseTime = collidingFilterDTO.getReleaseTime();
         Map<String, Object> couponCode = collidingFilterDTO.getCoupon_code();
         Map<String, Object> couponDesc = collidingFilterDTO.getCoupon_desc();
+        String customerGroup = collidingFilterDTO.getCustomerGroup();
 
         if (!CollectionUtils.isEmpty(releaseTime)) {
             Object value = releaseTime.get("value");
@@ -97,7 +102,12 @@ public class XieChengEsJsonHandler {
             zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("coupon_desc", (String) couponDesc.get("operation"),
                     couponDesc.get("value")));
         }
-
+        if (StringUtils.isNotEmpty(customerGroup)) {
+            if (StringUtils.isNotEmpty(zkTrueCondition.toString())) {
+                zkTrueCondition.append(" and ");
+            }
+            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("customer_group", "=", customerGroup));
+        }
         return zkTrueCondition.toString();
     }
 

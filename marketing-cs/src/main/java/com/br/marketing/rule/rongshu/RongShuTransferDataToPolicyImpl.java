@@ -66,17 +66,26 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         String cell = marketingSyncUser.getCell();
         pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
-
-        pushMarketingUserDetailByRuleDTO.setVariables((JSONObject) JSON.toJSON(transfer));
+        JSONObject variables = new JSONObject();
+        variables.putAll((JSONObject) JSON.toJSON(transfer));
+        variables.remove("reserveField1");
+        variables.remove("id");
+        variables.remove("createTime");
+        variables.remove("updateTime");
+        variables.remove("requestData");
+        variables.remove("requestTime");
+        variables.remove("tCid");
+        pushMarketingUserDetailByRuleDTO.setVariables(variables);
         String reserveField1 = transfer.getReserveField1();
         if (JSON.isValidObject(reserveField1)) {
             JSONObject jsonObject = JSONObject.parseObject(reserveField1);
+            variables.putAll(jsonObject);
             String finalState = jsonObject.getString("finalState");
-            if(StringUtils.isNotBlank(finalState)){
+            if (StringUtils.isNotBlank(finalState)) {
                 HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
                 JSONObject strategyCodeObject = strategyCodeMap.get(apiCode);
                 String strategyCode = strategyCodeObject.getString(finalState);
-                if(null == strategyCode){
+                if (null == strategyCode) {
                     String message = String.format("[%s]榕树自动化转决策出现非预期的finalState:[%s]", apiCode, finalState);
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RONGSHU_PROCESS_WARNING.getCode()
                             , message , message));
@@ -95,6 +104,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         }else{
             return null;
         }
+        variables.put("status", status);
         pushMarketingUserDetailByRuleDTO.setBatchNumber(
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + apiCode);
         //去重参数设置

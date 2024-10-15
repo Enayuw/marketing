@@ -1,7 +1,24 @@
 package com.br.marketing.monkeydata.handle.yixin;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
+
 import com.br.common.log.AlertLog;
-import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.baiying.ByApiServiceClient;
 import com.br.marketing.client.baiying.input.BlacklistDataDTO;
 import com.br.marketing.client.baiying.input.ReqBlacklistDTO;
@@ -11,6 +28,7 @@ import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneQueryDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingDataValidConfig;
@@ -21,24 +39,11 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.monkeydata.entity.IterationResult;
 import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
-import com.br.marketing.monkeydata.handle.yixin.sole.YiXinBlackPushDistributeSoleProcessor;
 import com.br.marketing.monkeydata.handle.yixin.sole.YiXinBlackPushRedisSoleProcessor;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.ObjectUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.Future;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 宜信转化过滤推送百应
@@ -56,10 +61,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
-
-    @Resource
-    private YiXinBlackPushDistributeSoleProcessor blackDistributeSoleProcessor;
-
+    
     @Resource
     private YiXinBlackPushRedisSoleProcessor blackPushRedisSoleProcessor;
 
@@ -108,8 +110,8 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             Long indexId = null;
             while (true) {
                 // 循环获取条件数据，每次pageSize条
-                final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getNewSyncUserByDate(
-                        synApiCode, appletDate, userType, pageSize, indexId);
+                final List<MarketingSyncUser> pageList = marketingSyncUserMapper.getYiXinNewSyncUserByDateAndResourceChannel(
+                        synApiCode, appletDate,"1", userType, pageSize, indexId);
 
                 if (CollectionUtils.isEmpty(pageList)) {
                     break;
@@ -187,37 +189,17 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
         try {
             // pageParam
             String apiCode = condition.getApiCode();
-            String requestData = condition.getRequestData();
-            String synApiCode = condition.getSynApiCode();
-
-            Set<String> custNumSets = pageList.stream().map(MarketingSyncUser::getCustNum).collect(Collectors.toSet());
-            Map<String, SyncUserValidityPeriodsBO> custNumToSyncUserBoMap = transferDataValidityPeriodService
-                    .getValidityPeriodsByCustNum(custNumSets, synApiCode, requestData);
-
-            // 未获取到上传数据
-            if (CollectionUtils.isEmpty(custNumToSyncUserBoMap)) {
-                log.warn(TITLE+"未获取到上传数据或未配置有效期, apiCode: {}, requestData: {}", apiCode, requestData);
-                return result;
-            }
-
-            List<MarketingSyncUser> periodList = pageList.stream().filter(data -> {
-                String custNum = data.getCustNum();
-                if (custNumToSyncUserBoMap.get(custNum) == null) {
-                    return false;
-                }
-                return true;
-            }).collect(Collectors.toList());
 
             // queryBlack
             List<MarketingSyncUser> pushList = new ArrayList<>();
-            Result<Map<String, String>> queryBlackResult = getBlackList(periodList, apiCode);
+            Result<Map<String, String>> queryBlackResult = getBlackList(pageList, apiCode);
 
             HashMap<String, String> blackData = new HashMap<>();
             if (ResultCode.SUCCESS.getValue().equals(queryBlackResult.getCode())) {
                 blackData.putAll(queryBlackResult.getData());
             }
 
-            List<MarketingSyncUser> blackList = periodList.stream()
+            List<MarketingSyncUser> blackList = pageList.stream()
                     .filter(syncUser -> !StringUtils.isBlank(blackData.get(syncUser.getId().toString()))
                             && blackData.get(syncUser.getId().toString()).equals("Y"))
                     .collect(Collectors.toList());
@@ -228,7 +210,7 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
             pushList = blackList;
 
             // distribute去重 custNum + distribute_date
-            blackPushRedisSoleProcessor.process(pushList, condition);
+            blackPushRedisSoleProcessor.process(pushList, condition, DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getValue());
 
             Result<?> resultAction = resultAction(pushList, condition, pushPool);
             result.setCode(resultAction.getCode());
@@ -258,45 +240,25 @@ public class YiXinBlackPushToBaiYingHandler extends IMonkeyDataHandle<MarketingS
 
         int size = outputDataList.size();
         int count = 0;
-        List<BlacklistDataDTO> pushByList = new ArrayList<>();
-        List<BlacklistDataDTO> pushBlkList = new ArrayList<>();
-
+        List<BlacklistDataDTO> pushList = new ArrayList<>();
         for (MarketingSyncUser syncUser : outputDataList) {
             BlacklistDataDTO blacklistDataDTO = new BlacklistDataDTO();
             blacklistDataDTO.setCaseNum(syncUser.getCustNum());
             blacklistDataDTO.setExpireDate(LocalDate.now()
                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                     .concat(" 23:59:59"));
-            pushByList.add(blacklistDataDTO);
-
-            BlacklistDataDTO blackBlklistDataDTO = new BlacklistDataDTO();
-            blackBlklistDataDTO.setCaseNum(syncUser.getCustNum());
-            blackBlklistDataDTO.setExpireDate(LocalDate.now()
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                    .concat(" 23:59:59"));
-            blackBlklistDataDTO.setPhone(syncUser.getCellMd5());
-            pushBlkList.add(blackBlklistDataDTO);
-
+            pushList.add(blacklistDataDTO);
             count++;
-
-            if (pushByList.size() == pushSize || size == count) {
-                List<BlacklistDataDTO> finalList = pushByList;
-                List<BlacklistDataDTO> finalBklList = pushBlkList;
+            if (pushList.size() == pushSize || size == count) {
+                List<BlacklistDataDTO> finalList = pushList;
                 pushPool.execute(() -> {
                     ReqBlacklistDTO reqBlacklistDTO = new ReqBlacklistDTO();
                     reqBlacklistDTO.setMethod(pushMethod);
                     reqBlacklistDTO.setApiCode(condition.getSynApiCode());
                     reqBlacklistDTO.setData(finalList);
                     byApiServiceClient.pushBaiying(reqBlacklistDTO,0);
-                    // 紧急需求，增加了推送百可录逻辑（后续逻辑变更请注意）
-                    ReqBlacklistDTO reqBklBlacklistDTO = new ReqBlacklistDTO();
-                    reqBklBlacklistDTO.setMethod(pushMethod);
-                    reqBklBlacklistDTO.setApiCode(condition.getSynApiCode());
-                    reqBklBlacklistDTO.setData(finalBklList);
-                    byApiServiceClient.pushDataToBiocloo(reqBklBlacklistDTO,0);
                 });
-                pushByList = new ArrayList<>();
-                pushBlkList = new ArrayList<>();
+                pushList = new ArrayList<>();
             }
         }
         result.setCode(ResultCode.SUCCESS.getValue());

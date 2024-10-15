@@ -18,8 +18,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-public class GuMeUploadJsonDTO extends BaseUploadDataAdaptee {
+public class GuMeUploadJsonDTO extends BaseUploadDataAdaptee<MarketingPreUserDTO> {
 
+    private static final long serialVersionUID = 3764405936555885180L;
     /**
      * 流水号
      */
@@ -42,8 +43,13 @@ public class GuMeUploadJsonDTO extends BaseUploadDataAdaptee {
      */
     private JSONArray userList;
 
+    /**
+     * @param apiCode
+     * @param jsonData
+     * @return
+     */
     @Override
-    protected MarketingPreUserDTO adapteeRequest(String apiCode, MarketingPreUserDTO marketingPreUserDTO) {
-        return marketingPreUserDTO;
+    protected MarketingPreUserDTO adapteeRequest(String apiCode, String jsonData) {
+        return new MarketingPreUserDTO();
     }
 }

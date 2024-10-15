@@ -381,4 +381,12 @@ public interface MarketingSyncUserMapper {
     MarketingSyncUser findSyncUserByCustNumsAndAppletTime(
             @Param("apiCode") String apiCode,
             @Param("custNum") String custNum);
+
+    List<MarketingSyncUser> getYiXinNewSyncUserByDateAndResourceChannel(
+            @Param("apiCode") String apiCode,
+            @Param("appletDate") String appletDate,
+            @Param("resourceChannel") String resourceChannel,
+            @Param("userType") String userType,
+            @Param("pageSize") Integer pageSize,
+            @Param("minId") Long minId);
 }

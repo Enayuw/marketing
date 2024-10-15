@@ -1,19 +1,21 @@
 package com.br.marketing.monkeydata.handle.yixin.sole;
 
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.enums.DistributeTypeEnum;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.monkeydata.entity.yixin.YiXinCondition;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
@@ -24,13 +26,12 @@ public class YiXinTransferPushRedisSoleProcessor {
 
     private final static String TITLE = "【宜信转化过滤推送百应】-转化推送-REDIS去重";
 
-    public List<MarketingTransferSyncUser> process(List<MarketingTransferSyncUser> pushList, YiXinCondition condition){
+    public List<MarketingTransferSyncUser> process(List<MarketingTransferSyncUser> pushList, YiXinCondition condition, Integer distributeType){
         if(CollectionUtils.isEmpty(pushList)){
             return pushList;
         }
 
         String apiCode = condition.getApiCode();
-        Integer distributeType = DistributeTypeEnum.YIXIN_TRANSFER_PUSH_BAIYING.getValue();
         String distributeDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Integer soleDay = 1;
         String key = RedisKeyConstant.YIXIN_TRANSFER_PUSH_BAIYING_REDIS_SLOE;

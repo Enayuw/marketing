@@ -1,11 +1,11 @@
 package com.br.marketing.rule.niwodai;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -16,6 +16,7 @@ import com.br.marketing.context.impl.NiwodaiRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +25,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * D20230314你我贷自动化过滤-3710064 业务
@@ -43,14 +48,9 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(
             DateHelper.LINE_DATE_COLON_TIME_FORMAT);
-    private final static Map<String, String> TAG_MAP = new ConcurrentHashMap<>();
 
-    static {
-        TAG_MAP.put("F", "0");
-        TAG_MAP.put("B", "0");
-        TAG_MAP.put("C", "0");
-        TAG_MAP.put("H", "2");
-    }
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -99,23 +99,59 @@ public class NiwodaiCustomerTransferImpl implements AssembleData<ConversionData>
                     log.warn(e.getMessage(), e);
                     return false;
                 }
-                Set<Map.Entry<String, String>> entries = TAG_MAP.entrySet();
-                // 遍历所有标记
-                for (Map.Entry<String, String> entry : entries) {
-                    // 检查指定标记中值中满足1的值
-                    if ("1".equals(jsonObject.getString(entry.getKey()))) {
-                        NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData data =
-                                (NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData) context.getRuleNecessaryData();
-                        // 检查有效期配置，非空时满足有效期
-                        if (data.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) != null) {
-                            data.setInversionStatus(entry.getValue());
-                            return true;
-                        }
-                    }
+                //1.有效期判断
+                NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData data =
+                        (NiwodaiRuleCollectDataImpl.NiwodaiRuleNecessaryData) context.getRuleNecessaryData();
+                if (data.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) == null) {
+                    return false;
                 }
+                //2.规则过滤并赋值inversionStatus
+                String inversionStatus = getInversionStatus(context.getApiCode(), transfer.getUserType(), jsonObject);
+                if (StringUtils.isEmpty(inversionStatus)) {
+                    return false;
+                }
+                data.setInversionStatus(inversionStatus);
+                return true;
             }
         }
         return false;
+    }
+
+    /**
+     * 过滤规则，获得inversionStatus
+     * @param apiCode
+     * @param userType
+     * @param reserveField1
+     */
+    private String getInversionStatus(String apiCode, String userType, JSONObject reserveField1) {
+        String inversionStatus = "";
+        Map<String, JSONArray> youMeLoanTransferFilterConfig = marketingCommonConfig.getYouMeLoanTransferFilterConfig();
+        JSONArray config = youMeLoanTransferFilterConfig.get(apiCode);
+        if (config != null) {
+            List<Map> congfigList = config.toJavaList(Map.class);
+            tagGroup:
+            for (Map map : congfigList) {
+                //1.tag匹配
+                List<Map<String, String>> tagList = (List<Map<String, String>>) map.get("tag");
+                for (Map<String, String> tag : tagList) {
+                    if (!tag.get("tagValue").equals(reserveField1.getString(tag.get("tagKey")))) {
+                        continue tagGroup;
+                    }
+                }
+                //2.userType匹配
+                String userTypeString = (String) map.get("userType");
+                if (StringUtils.isNotEmpty(userTypeString)) {
+                    List<String> userTypes = Arrays.stream(userTypeString.split(",")).collect(Collectors.toList());
+                    if (!userTypes.contains(userType)) {
+                        continue;
+                    }
+                }
+                //3.匹配通过后，赋值inversionStatus
+                inversionStatus = (String) map.get("inversionStatus");
+                break;
+            }
+        }
+        return inversionStatus;
     }
 
     @Override
