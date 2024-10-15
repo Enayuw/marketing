@@ -198,6 +198,11 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
         for (BiReportDownLoadParam param : params) {
             List<String> xAxis = param.getXAxis();
             List<WrapDataVO> yAxis = param.getYAxis();
+            String reportName = param.getReportName();
+
+            // 写入报表名称
+            writer.writeCellValue(0, rowIndex, reportName);
+            rowIndex++;
             // 写入X轴名称
             writer.writeCellValue(0, rowIndex, param.getXAxisName());
             // 写X轴数据
