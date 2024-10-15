@@ -163,7 +163,7 @@ public class ZhongAnGroupConverter extends AbstractBiReportConverter<BiReportVO,
                                 zhongAnGroupedScoreDistributionDTO.setInterval(interval);
                                 zhongAnGroupedScoreDistributionDTO.setName(dto.getName());
                                 zhongAnGroupedScoreDistributionDTO.setNum(0L);
-                                zhongAnGroupedScoreDistributionDTO.setProportion(new BigDecimal(0));
+                                zhongAnGroupedScoreDistributionDTO.setProportion(BigDecimal.ZERO);
                                 zhongAnGroupedScoreDistributionDTO.setStep(dto.getStep());
                                 list.add(zhongAnGroupedScoreDistributionDTO);
                             }else {
