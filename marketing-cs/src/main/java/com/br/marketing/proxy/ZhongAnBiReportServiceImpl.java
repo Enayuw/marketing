@@ -62,8 +62,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         mapToLong(ZhongAnBusAnalyOneReportDTO::getIncomingNum).sum());
                 oneReportDTO.setApproversNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group)).
                         mapToLong(ZhongAnBusAnalyOneReportDTO::getApproversNum).sum());
-                oneReportDTO.setCompositeIncrNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group)).
-                        mapToLong(ZhongAnBusAnalyOneReportDTO::getCompositeIncrNum).sum());
+                oneReportDTO.setCompositeIncrNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                        .map(ZhongAnBusAnalyOneReportDTO::getCompositeIncrNum).reduce(BigDecimal.ZERO, BigDecimal::add));
                 oneReportDTO.setIncome(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
                         .map(ZhongAnBusAnalyOneReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
                 oneReportDTO.setCost(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
@@ -162,8 +162,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         mapToLong(ZhongAnBusAnalyEightReportDTO::getIncomingNum).sum());
                 eightReportDTO.setApproversNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group)).
                         mapToLong(ZhongAnBusAnalyEightReportDTO::getApproversNum).sum());
-                eightReportDTO.setCompositeIncrNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group)).
-                        mapToLong(ZhongAnBusAnalyEightReportDTO::getCompositeIncrNum).sum());
+                eightReportDTO.setCompositeIncrNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                        .map(ZhongAnBusAnalyEightReportDTO::getCompositeIncrNum).reduce(BigDecimal.ZERO, BigDecimal::add));
                 eightReportDTO.setIncome(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
                         .map(ZhongAnBusAnalyEightReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
                 eightReportDTO.setCost(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
