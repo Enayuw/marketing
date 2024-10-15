@@ -1817,6 +1817,11 @@ public class MarketingCommonConfig {
     private JSONObject xieChengSmsCollidingConfig;
 
     /**
+     *  携程短信撞库一次性初始化流水号接口参数配置
+     */
+    private JSONObject xieChengCollidingInitRequestNoConfig;
+
+    /**
      *  奇富360推决策策略编号配置
      */
     private JSONObject qiFuToPolicyStrategyCodeConfig;
@@ -2149,6 +2154,31 @@ public class MarketingCommonConfig {
     private JSONObject cryptoConfig;
 
     /**
+     * Bi报表分组维度配置
+     */
+    private HashMap<String, JSONObject> biReportGroupConfig;
+
+    /**
+     * Bi报表分组维度字典配置
+     */
+    private HashMap<String, JSONObject> biReportGroupDictConfig;
+
+    /**
+     * 跑分模型分布 配置数据展示规则时需要的产品（无多头）前缀
+     */
+    private Set<String> reportScoreOnlyPrefixSet;
+
+    /**
+     * 跑分模型分布 配置数据展示规则时需要的多头前缀
+     */
+    private Set<String> reportmultPointPrefixSet;
+
+    /**
+     * bi报表场景名称前缀配置
+     */
+    private HashMap<String, String> biReportScenePrefixConfig;
+
+    /**
      * 数禾推送百可录场景及apiCode路由配置
      */
     private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
@@ -2167,6 +2197,17 @@ public class MarketingCommonConfig {
      * 苏商自动回传转化状态时间
      */
     private String suShangFileExecTime;
+
+    /**
+     * 携程促活数据处理线程数
+     */
+    private Integer xiechengCollidingActivateThread;
+
+    /**
+     * 携程一次性初始化流水号撞库开关
+     * true 打开，false 关闭
+     */
+    private Boolean xieChengCollidingHitRequestNoSwitch;
 
 }
 
