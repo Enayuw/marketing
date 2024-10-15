@@ -57,7 +57,8 @@ public class XiechengTransferDailyConverter extends AbstractBiReportConverter<Bi
      * @date 2024/08/28
      */
     @Override
-    public BiReportVO process(List<XiechengTransferDailyReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<XiechengTransferDailyReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_DAILY_REPORT.getTypeName());
         biReportVO.setReportName("日转化报表");
@@ -99,6 +100,7 @@ public class XiechengTransferDailyConverter extends AbstractBiReportConverter<Bi
         yAxis.add(
             buildWrapDataVO("外呼数据百万转化", sortedData, XiechengTransferDailyReportDTO::getOutboundMillionTransferNum, FormatType.THOUSAND_SEPARATOR));
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 }

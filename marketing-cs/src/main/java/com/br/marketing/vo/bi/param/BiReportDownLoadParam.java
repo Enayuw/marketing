@@ -23,6 +23,10 @@ public class BiReportDownLoadParam {
     @ApiModelProperty(value = "报告名称")
     @NotNull(message = "报表类型不能为空")
     private String reportTypeName;
+    @ApiModelProperty(value = "分组")
+    private String group;
+    @ApiModelProperty(value = "任务名称")
+    private String reportTaskName;
     @ApiModelProperty(value = "报告名称")
     @NotNull(message = "报表名称不能为空")
     private String reportName;

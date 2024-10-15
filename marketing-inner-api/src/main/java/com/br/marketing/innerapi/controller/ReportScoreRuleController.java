@@ -5,11 +5,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Resource;
-
 import com.br.marketing.aspect.LogRecordAnnotation;
+import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.enums.InterfaceOperationsEnum;
+import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.br.marketing.aspect.AuthDataControllerPermission;
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.commondto.ApiResult;
@@ -29,7 +28,6 @@ import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
-
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,8 +50,8 @@ public class ReportScoreRuleController {
     private FastDfsClient fastDfsClient;
 
     @GetMapping("/getTaskScoreProducts")
-    public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids) {
-        return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids));
+    public ApiResult<Map> getTaskScoreProducts(@RequestParam(required = true) String ids, @RequestParam(defaultValue = "all")String fieldType) {
+        return new ApiResult<Map>().success(reportScoreRuleService.getProducts(ids, fieldType));
     }
 
     @ApiOperation(value = "获取报告任务列表")
@@ -73,6 +71,8 @@ public class ReportScoreRuleController {
     public ApiResult<Boolean> addReportTaskScore(@RequestBody ReportTaskParam reportTaskParam) {
         try {
             return reportScoreRuleService.addReportTask(reportTaskParam);
+        } catch (KnowException ke) {
+            return new ApiResult<Boolean>().fail(false, ke.getMessage());
         } catch (Exception e) {
             log.warn("添加跑分报表任务异常,入参:{}--", reportTaskParam, e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
@@ -115,5 +115,16 @@ public class ReportScoreRuleController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @ApiOperation(value = "获取Bi报表列表")
+    @PostMapping("/getBiReportTaskList")
+    @AuthDataControllerPermission
+    public ApiResult<PageResultReturn> getBiReportTaskList(@RequestBody(required=false) BiReportTaskParam reportTaskParam) {
+        PageResultReturn listPage = reportScoreRuleService.getBiReportTaskList(reportTaskParam);
+        if (listPage != null) {
+            return new ApiResult<PageResultReturn>().success(listPage);
+        }
+        return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
     }
 }

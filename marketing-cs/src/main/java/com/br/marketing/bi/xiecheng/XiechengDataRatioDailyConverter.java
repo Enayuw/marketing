@@ -55,7 +55,8 @@ public class XiechengDataRatioDailyConverter extends AbstractBiReportConverter<B
      * @date 2024/08/28
      */
     @Override
-    public BiReportVO process(List<XiechengDataRatioDailyReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<XiechengDataRatioDailyReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_DATARATIO_DAILY_REPORT.getTypeName());
         biReportVO.setReportName("数据使用率表");
@@ -75,7 +76,8 @@ public class XiechengDataRatioDailyConverter extends AbstractBiReportConverter<B
         yAxis.add(buildWrapDataVO("析出率", sortedData, XiechengDataRatioDailyReportDTO::getExtractionRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("可外呼率", sortedData, XiechengDataRatioDailyReportDTO::getCallableRatio, FormatType.PERCENT_SIGN));
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 
 }
