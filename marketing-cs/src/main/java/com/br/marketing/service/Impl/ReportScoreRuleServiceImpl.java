@@ -403,9 +403,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         HashMap<String, String> biReportScenePrefixConfig = marketingCommonConfig.getBiReportScenePrefixConfig();
         String scenePrefix = biReportScenePrefixConfig.get(apiCode);
         String scene = "";
-        if (biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getType()
-                || biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getType()
-                || biReportTypeEnum.getType() == BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getType()) {
+        if (Objects.equals(biReportTypeEnum.getType(), BiReportTypeEnum.BUSINESS_ANALYSIS_ONE_REPORT.getType())
+                || Objects.equals(biReportTypeEnum.getType(), BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getType())
+                || Objects.equals(biReportTypeEnum.getType(), BiReportTypeEnum.BUSINESS_ANALYSIS_EIGHT_REPORT.getType())) {
             scene = String.format("%s(%s)_%s场景%s", scenePrefix, apiCode, userType, biReportTypeEnum.getStatName());
         } else {
             scene = String.format("%s(%s)_%s", scenePrefix, apiCode, biReportTypeEnum.getStatName());

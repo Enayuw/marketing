@@ -2,6 +2,8 @@ package com.br.marketing.enums.report;
 
 import lombok.Getter;
 
+import java.util.Objects;
+
 /**
  * 营销报表类型枚举
  * <p>
@@ -118,7 +120,7 @@ public enum BiReportTypeEnum {
      */
     public static BiReportTypeEnum getEnumByType(Integer type) {
         for (BiReportTypeEnum enumValue : BiReportTypeEnum.values()) {
-            if (enumValue.getType() == type) {
+            if (Objects.equals(enumValue.getType(), type)) {
                 return enumValue;
             }
         }
