@@ -1817,6 +1817,11 @@ public class MarketingCommonConfig {
     private JSONObject xieChengSmsCollidingConfig;
 
     /**
+     *  携程短信撞库一次性初始化流水号接口参数配置
+     */
+    private JSONObject xieChengCollidingInitRequestNoConfig;
+
+    /**
      *  奇富360推决策策略编号配置
      */
     private JSONObject qiFuToPolicyStrategyCodeConfig;
@@ -2187,6 +2192,17 @@ public class MarketingCommonConfig {
      * 苏商文件时间
      */
     private String suShangFileDate;
+
+    /**
+     * 携程促活数据处理线程数
+     */
+    private Integer xiechengCollidingActivateThread;
+
+    /**
+     * 携程一次性初始化流水号撞库开关
+     * true 打开，false 关闭
+     */
+    private Boolean xieChengCollidingHitRequestNoSwitch;
 
 }
 

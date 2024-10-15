@@ -61,12 +61,15 @@
         <!--               enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false">-->
         <table tableName="b_report_field_mapping" domainObjectName="ReportFieldMapping" >
 
+
 <!--            <property name="useActualColumnNames" value="false"/>-->
             <!-- 数据库表主键 自动返回主键值 -->
             <generatedKey column="id" sqlStatement="Mysql" identity="true"/>
             <!--如果有超常字段 需要映射字段类型为VARCHAR-->
 
 <!--            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />-->
+            <columnOverride column="extend" javaType="java.lang.String" jdbcType="VARCHAR" />
+            <columnOverride column="market_coupon_list" javaType="java.lang.String" jdbcType="VARCHAR" />
         </table>
     </context>
 

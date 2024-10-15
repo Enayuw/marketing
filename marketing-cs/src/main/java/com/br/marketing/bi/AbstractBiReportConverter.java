@@ -141,7 +141,8 @@ public abstract class AbstractBiReportConverter<V, T> {
     protected void autoSizeColumnAll(ExcelWriter writer) {
         // 自适应宽度
         XSSFSheet sheet = (XSSFSheet)writer.getSheet();
-        int columnCount = writer.getColumnCount();
+        int rowCount = writer.getPhysicalRowCount();
+        int columnCount = writer.getColumnCount(rowCount - 1);
         for (int i = 0; i < columnCount; i++) {
             // 调整每一列宽度
             sheet.autoSizeColumn(i);

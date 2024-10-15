@@ -15,7 +15,7 @@ import java.math.BigDecimal;
  */
 @Data
 @ApiModel(value = "携程单日撞库结果分布报表dto")
-public class ZhonganOutboundCallReportDTO implements Serializable {
+public class ZhonganOutboundCallReportDTO {
 
     @ApiModelProperty(value = "触达日期")
     private String reportDate;
