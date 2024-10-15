@@ -5,11 +5,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Resource;
-
 import com.br.marketing.aspect.LogRecordAnnotation;
-import com.br.marketing.common.exception.BusinessException;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
@@ -22,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.br.marketing.aspect.AuthDataControllerPermission;
 import com.br.marketing.client.FastDfsClient;
 import com.br.marketing.common.commondto.ApiResult;
@@ -32,7 +28,6 @@ import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
-
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 

@@ -51,7 +51,8 @@ public class ZhongAnBusAnalyOneReportDTO implements Serializable {
 
 
     @ApiModelProperty(value = "综合增量件数")
-    private Long compositeIncrNum;
+    @DecimalFieldConvertor(scale = 0, isPercent = false)
+    private BigDecimal compositeIncrNum;
 
 
     @ApiModelProperty(value = "成本")

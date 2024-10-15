@@ -41,9 +41,9 @@ public class ZhongAnBusAnalyEightReportDTO {
     @DecimalFieldConvertor(scale = 4)
     private BigDecimal approversTotalRate;
 
-
     @ApiModelProperty(value = "综合增量件数")
-    private Long compositeIncrNum;
+    @DecimalFieldConvertor(scale = 0, isPercent = false)
+    private BigDecimal compositeIncrNum;
 
 
     @ApiModelProperty(value = "成本")
