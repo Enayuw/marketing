@@ -26,7 +26,7 @@ public interface CustomerUploadDataHandler {
     /**
      * 解密jsonData
      *
-     * @param apiCode  apiCode
+     * @param apiCode apiCode
      * @param jsonData jsonData
      * @return {@link String }
      * @author senyang.zheng
@@ -55,7 +55,7 @@ public interface CustomerUploadDataHandler {
      * @param adaptee 客户定制数据
      * @return 封装了响应结果与标记客户数据的状况
      */
-    CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee);
+   <T>  CustomerResponseDTO verifyFields(BaseUploadDataAdaptee<T> adaptee);
 
     /**
      * 获取requestId
@@ -106,6 +106,18 @@ public interface CustomerUploadDataHandler {
      * @return 定制化客户响
      */
     CustomerResponseDTO fallbackResponse(Exception e);
+
+    /**
+     * 数据下发
+     *
+     * @param tCid tCid
+     * @param sourceId 数据源主键id
+     * @author senyang.zheng
+     * @date 2024/09/25
+     */
+    default void dataDirection(String tCid, Long sourceId) {
+
+    }
 
     /**
      * 2023-10-26 11:44 封装原始信息

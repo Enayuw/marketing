@@ -56,13 +56,18 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
         return CustomerUploadHandlerEnum.U_ALIEN_DEFAULT;
     }
 
+    /**
+     * 2023-10-18 16:45 反序列化客户定制数据
+     *
+     * @param jsonData json 字符串
+     * @return 转化适配者
+     */
     @Override
-    public BaseUploadDataAdaptee parseObject(String jsonData) {
-        return new BaseUploadDataAdaptee() {
-            private static final long serialVersionUID = 3258873088320758294L;
-
+    public BaseUploadDataAdaptee<MarketingPreUserDTO> parseObject(String jsonData) {
+        return new BaseUploadDataAdaptee<MarketingPreUserDTO>() {
+            private static final long serialVersionUID = 8794287668420049112L;
             @Override
-            protected MarketingPreUserDTO adapteeRequest(String apiCode, MarketingPreUserDTO marketingPreUserDTO) {
+            protected MarketingPreUserDTO adapteeRequest(String apiCode, String jsonData) {
                 return null;
             }
         };
@@ -136,4 +141,5 @@ public class AlienUploadUploadDataServiceImpl implements CustomerUploadDataHandl
         alienUploadResponseDTO.failed(MarketingErrorInfo.UNKNOWN_ERROR);
         return new CustomerResponseDTO(alienUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, alienUploadResponseDTO.getCode());
     }
+
 }

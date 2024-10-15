@@ -14,7 +14,7 @@ public interface XieChengCollidingDataLogMapperBase {
 
     int insert(XieChengCollidingDataLog record);
 
-    int insertSelective(XieChengCollidingDataLog record);
+    Long insertSelective(XieChengCollidingDataLog record);
 
     List<XieChengCollidingDataLog> selectByExample(XieChengCollidingDataLogExample example);
 
