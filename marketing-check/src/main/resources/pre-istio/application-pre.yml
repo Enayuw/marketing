@@ -342,7 +342,7 @@ rocketmq:
     # 异步消息重试此处，默认2
     retryTimesWhenSendAsyncFailed: 2
     # 发送消息超时时间，默认3000
-    sendMessageTimeout: 3000
+    sendMessageTimeout: 5000
     # 消息最大长度，默认1024 * 1024 * 4(默认4M)
     maxMessageSize: 4096
     # 压缩消息阈值，默认4k(1024 * 4)
