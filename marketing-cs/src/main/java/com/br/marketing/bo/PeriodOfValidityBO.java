@@ -3,6 +3,7 @@ package com.br.marketing.bo;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.utils.DateHelper;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -194,9 +195,17 @@ public class PeriodOfValidityBO {
                 periodOfValidityBO.beginDateTimeStr = DateUtils.format(
                         periodOfValidityBO.getBeginDate(), DateHelper.LINE_DATE_COLON_TIME_FORMAT);
             }
-            if (periodOfValidityBO.getEnDate() != null) {
+            Date enDate1 = periodOfValidityBO.getEnDate();
+            if (enDate1 != null) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTime(enDate1);
+                calendar.set(Calendar.HOUR_OF_DAY, 23);
+                calendar.set(Calendar.MINUTE, 59);
+                calendar.set(Calendar.SECOND, 59);
+                calendar.set(Calendar.MILLISECOND, 999);
+                Date updatedDate = calendar.getTime();
                 periodOfValidityBO.enDateTimeStr = DateUtils.format(
-                        periodOfValidityBO.getEnDate(), DateHelper.LINE_DATE_COLON_TIME_FORMAT);
+                        updatedDate, DateHelper.LINE_DATE_COLON_TIME_FORMAT);
             }
             return this;
         }
