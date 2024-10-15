@@ -21,7 +21,9 @@ public enum ReportTaskTypeEnum {
     OUTBOUND_STAT_TYPE(11, "外呼统计"),
     BUSINESS_ANALYSIS_ONE_TYPE(12, "经营分析1场景"),
     BUSINESS_ANALYSIS_SEVEN_TYPE(13, "经营分析7场景"),
-    BUSINESS_ANALYSIS_EIGHT_TYPE(14, "经营分析8场景");
+    BUSINESS_ANALYSIS_EIGHT_TYPE(14, "经营分析8场景"),
+    XIECHENG_MONTH_TRANSFER_CALL_TYPE(16, "携程月接通转化报表"),
+    XIECHENG_DAY_TRANSFER_CALL_TYPE(17, "携程月接通转化报表");
 
 
     ReportTaskTypeEnum(Integer value, String desc) {
