@@ -22,6 +22,11 @@ public class ReportTaskParam {
     @ApiModelProperty(value = "勾选跑分文件对应的cid")
     private String cid;
     /**
+     * 报表类型
+     */
+    @ApiModelProperty(value = "报表类型")
+    private String reportTypeName;
+    /**
      * 报告名称
      */
     @ApiModelProperty(value = "报告名称")

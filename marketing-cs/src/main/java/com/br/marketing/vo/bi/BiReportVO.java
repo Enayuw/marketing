@@ -25,6 +25,8 @@ public class BiReportVO {
     private String reportName;
     @ApiModelProperty(value = "报表类型:表格:table;折线图:line;柱状图:bar;饼图:pie")
     private String type;
+    @ApiModelProperty(value = "分组")
+    private String group;
     @ApiModelProperty(value = "X轴名称")
     @JsonProperty(value = "xAxisName")
     private String xAxisName;

@@ -34,4 +34,44 @@
         ORDER BY task.create_time DESC,
                  task.id DESC
     </select>
+
+    <select id="queryBiReportTaskListtikv_" resultType="com.br.marketing.vo.bi.BiReportTaskVO">
+        select id,
+               report_name,
+               download_url,
+               status,
+               down_status,
+               report_type,
+               group_count,
+               is_del,
+               create_time,
+               update_time,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.upload.userType')) as userType,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.upload.dimensionsField')) as dimensionsField,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.score.batchNumber')) as batchNumber,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.transfer.requestStartDate')) as requestStartDate,
+               JSON_UNQUOTE(JSON_EXTRACT(report_rules,'$.transfer.requestEndDate')) as requestEndDate
+        from b_report_task
+        where
+            is_del = 1
+            <choose>
+                <when test="reportType != null and reportType !=''">
+                    and report_type = #{reportType}
+                </when>
+                <otherwise>
+                    and report_type in (7,8,9,12,13,14)
+                </otherwise>
+            </choose>
+            <if test="reportName != null and reportName !=''">
+                and report_name like CONCAT('%', #{reportName}, '%')
+            </if>
+            <if test="userType != null and userType !=''">
+                and JSON_EXTRACT(report_rules,'$.upload.userType') = #{userType}
+            </if>
+            <if test="dimensionsField != null and dimensionsField !=''">
+                and JSON_EXTRACT(report_rules,'$.upload.dimensionsField') = #{dimensionsField}
+            </if>
+        GROUP BY create_time, id
+        ORDER BY create_time DESC, id DESC
+    </select>
 </mapper>

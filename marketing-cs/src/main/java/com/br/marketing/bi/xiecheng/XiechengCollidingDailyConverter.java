@@ -1,5 +1,6 @@
 package com.br.marketing.bi.xiecheng;
 
+import com.google.api.client.util.Lists;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -76,7 +77,8 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
      * @date 2024/08/28
      */
     @Override
-    public BiReportVO process(List<XiechengCollidingDailyReportDTO> dtos, JSONObject extend) {
+    public List<BiReportVO> process(List<XiechengCollidingDailyReportDTO> dtos, JSONObject extend) {
+        List<BiReportVO> biReportVOList = Lists.newArrayList();
         BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_COLLIDING_DAILY_REPORT.getTypeName());
         biReportVO.setReportName("单日撞库结果分布");
@@ -121,24 +123,26 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
                 return new WrapDataVO(reportDate, data);
             }).collect(Collectors.toList());
         biReportVO.setYAxis(yAxis);
-        return biReportVO;
+        biReportVOList.add(biReportVO);
+        return biReportVOList;
     }
 
     /**
      * 导出数据
      *
      * @param excelWriter excelWriter
-     * @param param 参数
+     * @param params 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
     @Override
-    public void exportData(ExcelWriter excelWriter, BiReportDownLoadParam param) {
+    public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
         // excel sheet名称最大长度31，超出31截取前31位
-        String sheetName = param.getReportName().length() > 31 ? param.getReportName().substring(0, 31) : param.getReportName();
+        String sheetName =
+            params.get(0).getReportName().length() > 31 ? params.get(0).getReportName().substring(0, 31) : params.get(0).getReportName();
         excelWriter.setSheet(sheetName);
         // 数据写入
-        writeData(excelWriter, param);
+        writeData(excelWriter, params);
         // 剔除默认生成的第一个sheet
         excelWriter.getWorkbook().removeSheetAt(0);
     }
@@ -147,38 +151,42 @@ public class XiechengCollidingDailyConverter extends AbstractBiReportConverter<B
      * 写入数据
      *
      * @param writer writer
-     * @param param 参数
+     * @param params 参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
-    private void writeData(ExcelWriter writer, BiReportDownLoadParam param) {
-        List<String> xAxis = param.getXAxis();
-        List<WrapDataVO> yAxis = param.getYAxis();
-        // 写入X轴名称
-        List<String> tagNames = Splitter.on(SEPARATOR).splitToList(param.getXAxisName());
-        for (int i = 0; i < tagNames.size(); i++) {
-            writer.writeCellValue(i, 0, tagNames.get(i));
-        }
-        // 写X轴数据
-        for (int i = 0; i < xAxis.size(); i++) {
-            List<String> tags = Splitter.on(SEPARATOR).splitToList(xAxis.get(i));
-            for (int j = 0; j < tags.size(); j++) {
-                writer.writeCellValue(j, i + 1, Objects.equals("null", tags.get(j)) ? "NULL" : tags.get(j));
+    private void writeData(ExcelWriter writer, List<BiReportDownLoadParam> params) {
+        int rowIndex = 0;
+        for (BiReportDownLoadParam param : params) {
+            List<String> xAxis = param.getXAxis();
+            List<WrapDataVO> yAxis = param.getYAxis();
+            // 写入X轴名称
+            List<String> tagNames = Splitter.on(SEPARATOR).splitToList(param.getXAxisName());
+            for (int i = 0; i < tagNames.size(); i++) {
+                writer.writeCellValue(i, rowIndex, tagNames.get(i));
             }
-        }
-        writer.merge(xAxis.size(), xAxis.size(), 0, 1, null, false);
-        // 写入Y轴数据
-        for (int i = 0; i < yAxis.size(); i++) {
-            WrapDataVO yAxi = yAxis.get(i);
-            List<String> yData = yAxi.getData();
-            // 写入Y轴名称
-            writer.writeCellValue(i + 2, 0, yAxi.getName());
+            // 写X轴数据
+            for (int i = 0; i < xAxis.size(); i++) {
+                List<String> tags = Splitter.on(SEPARATOR).splitToList(xAxis.get(i));
+                for (int j = 0; j < tags.size(); j++) {
+                    writer.writeCellValue(j, rowIndex + i + 1, Objects.equals("null", tags.get(j)) ? "NULL" : tags.get(j));
+                }
+            }
             // 写入Y轴数据
-            for (int j = 0; j < xAxis.size(); j++) {
-                String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
-                // 求和时处理千分位
-                writer.writeCellValue(i + 2, j + 1, value);
+            for (int i = 0; i < yAxis.size(); i++) {
+                WrapDataVO yAxi = yAxis.get(i);
+                List<String> yData = yAxi.getData();
+                // 写入Y轴名称
+                writer.writeCellValue(i + 2, rowIndex, yAxi.getName());
+                // 写入Y轴数据
+                for (int j = 0; j < xAxis.size(); j++) {
+                    String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
+                    // 求和时处理千分位
+                    writer.writeCellValue(i + 2, rowIndex + j + 1, value);
+                }
             }
+            // 添加空行 xAxis.size() + 1 为当前表格所占行数，再+1添加空行
+            rowIndex += xAxis.size() + 2;
         }
         // 自适应宽度
         autoSizeColumnAll(writer);
