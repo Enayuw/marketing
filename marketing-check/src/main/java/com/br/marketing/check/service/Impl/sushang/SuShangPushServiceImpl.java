@@ -135,9 +135,9 @@ public class SuShangPushServiceImpl implements SuShangPushService {
         localFile.setId(localFile.getId());
         localFileMapper.updateByPrimaryKeySelective(localFile);
         //更新通话明细记录为推送成功状态
-        localFile.setPushStatus("2");
-        localFile.setId(callRecordFile.getId());
-        localFileMapper.updateByPrimaryKeySelective(localFile);
+        callRecordFile.setPushStatus("2");
+        callRecordFile.setId(callRecordFile.getId());
+        localFileMapper.updateByPrimaryKeySelective(callRecordFile);
     }
 
     private void pushNoDealData(List<SushangCallRecordData> callRecordData) {

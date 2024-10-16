@@ -98,8 +98,13 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
                     .andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
             List<LocalFile> newTransferFiles = localFileMapper.selectByExample(newExample);
 
-            // 判断两个日期的量级，返回大量级的localFile集合
-            transferFiles = getTransferFiles(transferFiles, newTransferFiles);
+            // T-1日转化数据记录为空
+            if (CollectionUtils.isEmpty(newTransferFiles)) {
+                transferFiles = newTransferFiles;
+            } else {
+                // 判断两个日期的量级，返回大量级的localFile集合
+                transferFiles = getTransferFiles(transferFiles, newTransferFiles);
+            }
         } else {
             //查询 T日 待推送文件
             LocalFileExample example = new LocalFileExample();
@@ -111,7 +116,7 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
             transferFiles = localFileMapper.selectByExample(example);
         }
 
-        // T日通话明细和T日转化数据(或指定日期转化数据)
+        // T日通话明细和T-1日转化数据(或指定日期转化数据)
         if (CollectionUtils.isEmpty(transferFiles) || CollectionUtils.isEmpty(callRecordFiles)) {
             log.warn("苏商自动化回传，通话明细或转化文件为空");
             return;
