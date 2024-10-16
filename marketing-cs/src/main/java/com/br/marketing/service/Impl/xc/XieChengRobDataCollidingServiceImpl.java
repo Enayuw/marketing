@@ -1,5 +1,44 @@
 package com.br.marketing.service.Impl.xc;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.xiecheng.XieChengServiceNew;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
+import com.br.marketing.entity.CustomizeUploadData;
+import com.br.marketing.entity.XieChengCollidingDataHitRequestNoMapping;
+import com.br.marketing.entity.XieChengCollidingDataHitRequestNoMappingExample;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycleExample;
+import com.br.marketing.entity.XieChengCollidingDataPackage;
+import com.br.marketing.entity.XieChengCollidingDataPackageExample;
+import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.entity.XieChengCollidingDataRobExample;
+import com.br.marketing.entity.XiechengCollidingDataPackageRule;
+import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
+import com.br.marketing.mapper.XieChengCollidingDataHitRequestNoMappingMapper;
+import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
+import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
+import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
+import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -11,36 +50,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.XieChengCollidingDataPackageExample;
-import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
-import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.stereotype.Service;
-
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.xiecheng.XieChengServiceNew;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.XieChengCollidingDataRob;
-import com.br.marketing.entity.XieChengCollidingDataRobExample;
-import com.br.marketing.entity.XiechengCollidingDataPackageRule;
-import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
-import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import com.br.marketing.mapper.XiechengCollidingDataPackageRuleMapper;
-import com.br.marketing.service.Impl.VariableAllocationServiceImpl;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.collect.Lists;
-
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 携程非周期数据撞库相关Service实现
@@ -77,7 +86,9 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     @Resource
     private XieChengCollidingDataPackageMapper packageMapper;
     private static final Integer RESETPARTITION = 10000;
-
+    @Resource
+    private XieChengCollidingDataHitRequestNoMappingMapper mappingMapper;
+    public static final ThreadPoolExecutor XIECHENG_ACTIVATE_THREAD_POOL = BrExecutors.getThreadPool(10,10);
 
     @Override
     public void collidingData() {
@@ -297,5 +308,108 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         }
 
         return true;
+    }
+
+    /**
+     * 促活数据接入后续处理
+     * @param xieChengActivateDTO
+     * @return
+     */
+    @Override
+    public Result<Boolean> activateDataHandle(XieChengActivateDTO xieChengActivateDTO) {
+        CustomizeUploadData data = loopCycleMapper.selectActivateData(xieChengActivateDTO);
+        if (Objects.isNull(data)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程促活，根据id查询前置表数据为空"));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+        try {
+            JSONArray jsonArray = JSON.parseArray(data.getRequestJsonData());
+            List<JSONObject> jsonDataList = jsonArray.stream().map((Object t) -> (JSONObject) t).collect(Collectors.toList());
+
+            XIECHENG_ACTIVATE_THREAD_POOL.setCorePoolSize(marketingCommonConfig.getXiechengCollidingActivateThread());
+            XIECHENG_ACTIVATE_THREAD_POOL.setMaximumPoolSize(marketingCommonConfig.getXiechengCollidingActivateThread());
+            jsonDataList.forEach((JSONObject jsonData) -> {
+                XIECHENG_ACTIVATE_THREAD_POOL.submit(() -> singleHandle(jsonData, data));
+            });
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程促活，主线程处理异常，前置表id：" + data.getId()), e);
+        }
+
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private void singleHandle(JSONObject jsonData, CustomizeUploadData data) {
+        try {
+            String releaseTime = jsonData.getString("releaseTime");
+            if (Objects.isNull(releaseTime)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                        , "携程促活，客户未传releaseTime，前置表id:" + data.getId()));
+                return;
+            }
+
+            String hitRequestNo = jsonData.getString("hitRequestNo");
+            if (Objects.isNull(hitRequestNo)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                        , "携程促活，客户未传hitRequestNo，前置表id:" + data.getId()));
+                return;
+            }
+
+            // 根据hitRequestNo查询cell
+            XieChengCollidingDataHitRequestNoMappingExample mappingExample = new XieChengCollidingDataHitRequestNoMappingExample();
+            mappingExample.createCriteria().andIsDeleteEqualTo(0).andHitRequestNoEqualTo(hitRequestNo);
+            List<XieChengCollidingDataHitRequestNoMapping> hitRequestNoMappings = mappingMapper.selectByExample(mappingExample);
+            if (org.springframework.util.CollectionUtils.isEmpty(hitRequestNoMappings)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                        , "携程促活，根据hitRequestNo查询映射表数据为空，前置表id:" + data.getId()));
+                return;
+            }
+            String cellSha256CodeList = hitRequestNoMappings.get(0).getCellSha256CodeList();
+
+            DateTime releaseDateTime = DateUtil.parse(releaseTime, DatePattern.NORM_DATETIME_PATTERN);
+            // cell在周期表：更新release_time并打标cpa促活
+            XieChengCollidingDataLoopCycle loopCycle = new XieChengCollidingDataLoopCycle();
+            loopCycle.setCustomerGroup(2);
+            loopCycle.setReleaseTime(releaseDateTime);
+            loopCycle.setUpdateTime(new Date());
+            XieChengCollidingDataLoopCycleExample loopCycleExample = new XieChengCollidingDataLoopCycleExample();
+            loopCycleExample.createCriteria().andIsDeleteEqualTo(0).andCellSha256CodeListEqualTo(cellSha256CodeList);
+            int i = loopCycleMapper.updateByExampleSelective(loopCycle, loopCycleExample);
+            if (i > 0) {
+                return;
+            }
+            // cell在非周期表：从非周期表删除，写入周期表，更新release_time并打标cpa促活
+            XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
+            robExample.createCriteria().andIsDeleteEqualTo(0).andCellSha256CodeListEqualTo(cellSha256CodeList);
+            List<XieChengCollidingDataRob> robs = xieChengCollidingDataRobMapper.selectByExample(robExample);
+            if (!org.springframework.util.CollectionUtils.isEmpty(robs)) {
+                XieChengCollidingDataRob rob = robs.get(0);
+                rob.setReleaseTime(releaseDateTime);
+                handleService.activateDataByFalseToTrue(rob);
+                return;
+            }
+            // cell不在撞库表：撞库包=cpa促活数据包，data_source_type='A'，写入周期表，更新release_time并打标cpa促活
+            XieChengCollidingDataLoopCycle xieChengCollidingDataLoopCycle = new XieChengCollidingDataLoopCycle();
+            xieChengCollidingDataLoopCycle.setReleaseTime(releaseDateTime);
+            xieChengCollidingDataLoopCycle.setCustomerGroup(2);
+            xieChengCollidingDataLoopCycle.setPackageId(getActivatePackageId());
+            xieChengCollidingDataLoopCycle.setDataSourceType("A");
+            xieChengCollidingDataLoopCycle.setCellSha256CodeList(cellSha256CodeList);
+            xieChengCollidingDataLoopCycle.setRetryCount(0);
+            xieChengCollidingDataLoopCycle.setCreateTime(new Date());
+            xieChengCollidingDataLoopCycle.setUpdateTime(new Date());
+            loopCycleMapper.insertSelective(xieChengCollidingDataLoopCycle);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode()
+                    , "携程促活，子线程处理异常"), e);
+        }
+    }
+
+    private Long getActivatePackageId() {
+        XieChengCollidingDataPackageExample packageExample = new XieChengCollidingDataPackageExample();
+        packageExample.createCriteria().andPackageNameEqualTo("cpa促活数据包");
+        List<XieChengCollidingDataPackage> packages = packageMapper.selectByExample(packageExample);
+        return org.springframework.util.CollectionUtils.isEmpty(packages) ? null : packages.get(0).getId();
     }
 }

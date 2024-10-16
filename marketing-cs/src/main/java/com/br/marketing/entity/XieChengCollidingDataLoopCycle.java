@@ -7,7 +7,7 @@ import java.util.Date;
 @Data
 public class XieChengCollidingDataLoopCycle{
     /**
-     *
+     * 
      */
     private Long id;
 
@@ -47,6 +47,11 @@ public class XieChengCollidingDataLoopCycle{
     private String couponDesc;
 
     /**
+     * 客群名称：1-未注册、2-促活
+     */
+    private Integer customerGroup;
+
+    /**
      * 最近一次撞库时间
      */
     private Date pushTime;
@@ -55,6 +60,11 @@ public class XieChengCollidingDataLoopCycle{
      * 状态 0-正常 1-删除
      */
     private Integer isDelete;
+
+    /**
+     * 扩展字段
+     */
+    private String extend;
 
     /**
      * 创建时间
@@ -71,8 +81,4 @@ public class XieChengCollidingDataLoopCycle{
      */
     private Integer retryCount;
 
-    /**
-     * 扩展字段
-     */
-    private String extend;
 }

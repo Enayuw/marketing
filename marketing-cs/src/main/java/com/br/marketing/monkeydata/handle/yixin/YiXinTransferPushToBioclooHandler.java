@@ -192,7 +192,7 @@ public class YiXinTransferPushToBioclooHandler extends IMonkeyDataHandle<Marketi
             }
 
             // 过滤掉非百可录标识的上传数据
-            custNumToSyncUserBoMap.forEach((key, periodsBO) -> {
+            custNumToSyncUserBoMap.forEach((String key, SyncUserValidityPeriodsBO periodsBO) -> {
                 List<MarketingSyncUser> filtered = periodsBO.getSyncUsers().stream().filter((MarketingSyncUser syncUser) -> {
                     String reserveField1 = syncUser.getReserveField1();
                     return StringUtils.isNotEmpty(reserveField1) && JSONObject.isValid(reserveField1)

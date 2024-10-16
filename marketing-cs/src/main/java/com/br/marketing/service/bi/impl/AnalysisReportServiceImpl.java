@@ -2,11 +2,12 @@ package com.br.marketing.service.bi.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,14 +19,19 @@ import java.util.stream.Stream;
 
 import javax.annotation.Resource;
 
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.FastDfsClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.ReportStatisticsScore;
 import com.br.marketing.entity.ReportStatisticsScoreExample;
@@ -37,6 +43,7 @@ import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ScoreStatisticsDetailBaseMapper;
 import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.DataBarUtil;
 import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.WrapDataVO;
 import com.google.common.base.Splitter;
@@ -47,6 +54,7 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
+import cn.hutool.poi.excel.style.StyleUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -200,13 +208,21 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             Collectors.toMap(ScoreStatisticsDetail::getFieldXValue, ScoreStatisticsDetail::getFieldNum)));
         // 构建 yAxis 列表
         List<String> keys = Splitter.on(",").splitToList(axisWrapVo.getXAxisProduct());
-        List<WrapDataVO> yAxis = keys.stream().map((String yName) -> {
+        List<WrapDataVO> yAxis = Lists.newArrayList();
+        for (String yName : keys) {
             // 根据 X轴步长 填充Y轴数据
             List<String> data =
                 xAxis.stream().map(xValue -> String.valueOf(groupedByY.getOrDefault(yName, Collections.emptyMap()).getOrDefault(xValue, 0)))
                     .collect(Collectors.toList());
-            return new WrapDataVO(yName, data);
-        }).collect(Collectors.toList());
+            WrapDataVO numWrapDataVo = new WrapDataVO(yName, data);
+            yAxis.add(numWrapDataVo);
+            BigDecimal total = data.stream().map(BigDecimal::new).reduce(BigDecimal.ZERO, BigDecimal::add);
+            List<String> proportion =
+                data.stream().map(BigDecimal::new).map(num -> num.multiply(BigDecimal.valueOf(100)).divide(total, 3, RoundingMode.HALF_UP))
+                    .map(percent -> percent.compareTo(BigDecimal.ZERO) == 0 ? "0%" : (percent + "%")).collect(Collectors.toList());
+            WrapDataVO proportionWrapDataVo = new WrapDataVO(yName + "占比", proportion);
+            yAxis.add(proportionWrapDataVo);
+        }
         // 设置横纵坐标轴的内容
         axisWrapVo.setXAxis(xAxis);
         axisWrapVo.setYAxis(yAxis);
@@ -219,7 +235,7 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         fiveStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiveStepLength"));
         List<String> fiftyStepLength = Lists.newArrayList();
         fiftyStepLength.addAll(marketingCommonConfig.getBiReportStepConfig().get("fiftyStepLength"));
-        //剔除 [-1,0) 区间做交集
+        // 剔除 [-1,0) 区间做交集
         keys.remove("[-1,0)");
         fiveStepLength.remove("[-1,0)");
         fiftyStepLength.remove("[-1,0)");
@@ -249,7 +265,71 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
         for (int i = 0; i < xAxis.size(); i++) {
             writer.writeCellValue(0, i + 1, xAxis.get(i));
         }
+
+        switch (data.getReportScoreType()) {
+            case 1:
+                writeSingleDataBar(writer, yAxis, xAxis);
+                break;
+            case 2:
+                writeMultipleDataBar(writer, yAxis, xAxis);
+                break;
+            default:
+                break;
+        }
+
+        // 自适应宽度
+        XSSFSheet sheet = (XSSFSheet)writer.getSheet();
+        int columnCount = writer.getColumnCount();
+        for (int i = 0; i < columnCount; i++) {
+            // 调整每一列宽度
+            sheet.autoSizeColumn(i);
+            // 解决自动设置列宽中文失效的问题
+            sheet.setColumnWidth(i, sheet.getColumnWidth(i) * 15 / 10);
+        }
+    }
+
+    private void writeSingleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
+        Workbook workbook = writer.getWorkbook();
+        DataFormat format = workbook.createDataFormat();
+        List<String> regions = Lists.newArrayList();
         // 写入Y轴数据
+        for (int i = 0; i < yAxis.size(); i++) {
+            WrapDataVO yAxi = yAxis.get(i);
+            List<String> yData = yAxi.getData();
+            // 按列写入
+            writer.writeCellValue(i + 1, 0, yAxi.getName());
+
+            // Write the Y-axis data
+            for (int j = 0; j < xAxis.size(); j++) {
+                String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
+                if (value.contains("%")) {
+                    BigDecimal decimal = new BigDecimal(value.replace("%", ""));
+                    writer.writeCellValue(i + 1, j + 1, decimal.divide(BigDecimal.valueOf(100), decimal.scale() + 2, RoundingMode.HALF_UP));
+
+                    CellStyle cellStyle = StyleUtil.cloneCellStyle(workbook, writer.getCellStyle());
+                    if (decimal.compareTo(BigDecimal.ZERO) == 0) {
+                        short formatIndex = format.getFormat("0%");
+                        cellStyle.setDataFormat(formatIndex);
+                    } else {
+                        short formatIndex = format.getFormat("0.000%");
+                        cellStyle.setDataFormat(formatIndex);
+                    }
+                    writer.getCell(i + 1, j + 1).setCellStyle(cellStyle);
+                } else {
+                    writer.writeCellValue(i + 1, j + 1, value);
+                }
+            }
+            if (i % 2 == 1) {
+                String startCell = CellReference.convertNumToColString(i + 1) + (2);
+                String endCell = CellReference.convertNumToColString(i + 1) + (xAxis.size() + 1);
+                String region = startCell + ":" + endCell;
+                regions.add(region);
+            }
+        }
+        DataBarUtil.addMinMaxDataBar(writer, regions);
+    }
+
+    private static void writeMultipleDataBar(ExcelWriter writer, List<WrapDataVO> yAxis, List<String> xAxis) {
         for (int i = 0; i < yAxis.size(); i++) {
             WrapDataVO yAxi = yAxis.get(i);
             List<String> yData = yAxi.getData();
@@ -258,11 +338,9 @@ public class AnalysisReportServiceImpl implements AnalysisReportService {
             // Write the Y-axis data
             for (int j = 0; j < xAxis.size(); j++) {
                 String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "0";
-                writer.writeCellValue(i + 1, j + 1, value);
+                writer.writeCellValue(i + 1, j + 1, Long.parseLong(value));
             }
         }
-        // 自适应宽度
-        writer.autoSizeColumnAll();
     }
 
     public void deleteTempFile(String tmpPath) {

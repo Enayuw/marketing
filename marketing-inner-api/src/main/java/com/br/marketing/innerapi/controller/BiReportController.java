@@ -1,5 +1,6 @@
 package com.br.marketing.innerapi.controller;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.br.marketing.aspect.AuthDataControllerPermission;
 import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.client.FastDfsClient;
@@ -8,8 +9,10 @@ import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.service.bi.BiReportService;
 import com.br.marketing.vo.bi.BiReportConfigDictVO;
+import com.br.marketing.vo.bi.BiReportTimeRangeVO;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.param.BiReportConfigDictParam;
+import com.br.marketing.vo.bi.param.BiReportConfigParam;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
 import com.br.marketing.vo.bi.param.BiReportParam;
 import io.swagger.annotations.Api;
@@ -50,21 +53,21 @@ public class BiReportController {
     @ApiOperation(value = "查看BI报表")
     @PostMapping(value = "/report/getBiReport")
     @AuthDataControllerPermission
-    public ApiResult<BiReportVO> getBiReport(@RequestBody BiReportParam param) {
+    public ApiResult<List<BiReportVO>> getBiReport(@RequestBody BiReportParam param) {
         log.warn("查看BI报表,请求参数{}", param);
-        BiReportVO biReportVO = biReportService.getBiReport(param);
-        if (biReportVO != null) {
-            return new ApiResult<BiReportVO>().success(biReportVO);
+        List<BiReportVO> biReportVOList = biReportService.getBiReport(param);
+        if (CollectionUtil.isNotEmpty(biReportVOList)) {
+            return new ApiResult<List<BiReportVO>>().success(biReportVOList);
         }
-        return new ApiResult<BiReportVO>().fail(ServiceResultEnum.FAILED);
+        return new ApiResult<List<BiReportVO>>().fail(ServiceResultEnum.FAILED);
     }
 
     @ApiOperation(value = "下载BI报表")
     @PostMapping("/report/downloadReport")
-    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_DOWNLOAD_REPORT, extendInfo = "下载BI报表类型：{#param.reportTypeName}，BI报表名称：{#param" +
+    @LogRecordAnnotation(bizNo = InterfaceOperationsEnum.BI_DOWNLOAD_REPORT, extendInfo = "下载BI报表类型：{#params[0].reportTypeName}，BI报表名称：{#params[0]" +
             ".reportName}")
-    public String downloadReport(@RequestBody BiReportDownLoadParam param, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        return biReportService.downloadReport(param, request, response);
+    public String downloadReport(@RequestBody List<BiReportDownLoadParam> params, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        return biReportService.downloadReport(params, request, response);
     }
 
 
@@ -97,5 +100,27 @@ public class BiReportController {
     public ApiResult<Boolean> saveBiReportConfigDict(@RequestBody BiReportConfigDictParam param) {
         log.warn("新增修改BI报表配置字典,请求参数{}", param);
         return biReportService.saveBiReportConfigDict(param);
+    }
+
+    @ApiOperation(value = "获取报表分组维度")
+    @PostMapping("/config/getReportGroupList")
+    public ApiResult<List<String>> getReportGroupList(@RequestBody BiReportConfigParam param) {
+        try {
+            return new ApiResult<List<String>>().success().setData(biReportService.getReportGroupList(param));
+        } catch (Exception e) {
+            log.warn("获取报表分组维度,入参:{}--", param, e);
+            return new ApiResult<List<String>>().fail(null, ServiceResultEnum.FAILED);
+        }
+    }
+
+    @ApiOperation(value = "获取数据时间范围")
+    @PostMapping("/config/getReportTimeRange")
+    public ApiResult<BiReportTimeRangeVO> getReportTimeRange(@RequestBody BiReportConfigParam param) {
+        try {
+            return new ApiResult<BiReportTimeRangeVO>().success().setData(biReportService.getReportTimeRange(param));
+        } catch (Exception e) {
+            log.warn("获取报表分组维度,入参:{}--", param, e);
+            return new ApiResult<BiReportTimeRangeVO>().fail(null, ServiceResultEnum.FAILED);
+        }
     }
 }

@@ -78,7 +78,7 @@ public class BiReportConverterSelector {
      * @author senyang.zheng
      * @date 2024/08/28
      */
-    public <V, T> V process(List<T> data, JSONObject extendJson, BiReportTypeEnum reportType) {
+    public <V, T> List<V> process(List<T> data, JSONObject extendJson, BiReportTypeEnum reportType) {
         // 根据数据类型选择对应的策略
         @SuppressWarnings("unchecked")
         AbstractBiReportConverter<V, T> strategy = (AbstractBiReportConverter<V, T>) this.strategyMap.get(reportType);
@@ -93,19 +93,19 @@ public class BiReportConverterSelector {
      * 导出数据
      *
      * @param excelWriter excelWriter
-     * @param param       参数
+     * @param params       参数
      * @param reportType  报告类型
      * @author senyang.zheng
      * @date 2024/08/29
      */
-    public <V, T> void exportData(ExcelWriter excelWriter, BiReportDownLoadParam param, BiReportTypeEnum reportType) {
+    public <V, T> void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params, BiReportTypeEnum reportType) {
         // 根据数据类型选择对应的策略
         @SuppressWarnings("unchecked")
         AbstractBiReportConverter<V, T> strategy = (AbstractBiReportConverter<V, T>) this.strategyMap.get(reportType);
         if (strategy == null) {
             throw new IllegalArgumentException("No strategy found for report type: " + reportType);
         }
-        strategy.exportData(excelWriter, param);
+        strategy.exportData(excelWriter, params);
     }
 
 }
