@@ -401,10 +401,7 @@ public class SftpClient extends BaseFtpClient{
      */
     public boolean uploadFile(String remotePath, String remoteFilename, String localFileName) throws Exception {
         boolean success = false;
-        if(true){
-            log.error("mock Exception!!!!");
-            throw new Exception();
-        }
+        log.warn("开始上传文件！");
         File localFile = new File(localFileName);
         try (InputStream fis = Files.newInputStream(Paths.get(localFile.getPath()))) {
             if (!isExist(remotePath)) {
