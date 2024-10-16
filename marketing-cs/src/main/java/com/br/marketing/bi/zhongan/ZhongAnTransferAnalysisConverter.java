@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -97,6 +98,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
 
         JSONArray scoreFieldJa = JSONObject.parseArray(scoreFieldStr);
         JSONArray dimensionValueJa = JSONObject.parseArray(dimensionValueStr);
+        Map<String, String> sumValueMap = new HashMap<>();
         for(Object scoreFieldObj : scoreFieldJa){
             JSONObject scoreFieldJo = (JSONObject) scoreFieldObj;
             String scoreField = scoreFieldJo.getString("field");
@@ -140,12 +142,9 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                         return Integer.parseInt(value);
                     })).collect(Collectors.toList());
                     // sum
-                    BigDecimal sumValue = detailList.stream().map((ReportStatisticTransferDetail data)-> {
-                        BigDecimal itemValueDecimal = new BigDecimal(String.valueOf(data.getItemValue()));
-                        return itemValueDecimal;
-                    }).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    String sum = calculateSum(itemName, reportDataList, sumValueMap);
                     ReportStatisticTransferDetail sumDetail = new ReportStatisticTransferDetail();
-                    sumDetail.setItemValue(sumValue.toString());
+                    sumDetail.setItemValue(sum);
                     detailList.add(sumDetail);
                     yAxis.add(buildWrapDataVO(itemShow, detailList, ReportStatisticTransferDetail::getItemValue, formatType));
                 }
@@ -228,7 +227,8 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
         autoSizeColumnAll(writer);
     }
 
-    public List<ReportStatisticTransferDetail> filter(List<ReportStatisticTransferDetail> reportDataList, String scoreField, String dimensionField, String dimensionValue, String itemName) {
+    public List<ReportStatisticTransferDetail> filter(List<ReportStatisticTransferDetail> reportDataList, String scoreField
+            , String dimensionField, String dimensionValue, String itemName) {
         List<ReportStatisticTransferDetail> dataList = reportDataList.stream().filter(data -> {
             if(scoreField.equals(data.getScoreField()) && dimensionField.equals(data.getDimensionField())
                     && dimensionValue.equals(data.getDimensionValue()) && itemName.equals(data.getItemName())){
@@ -238,6 +238,59 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
         }).collect(Collectors.toList());
         return dataList;
     }
+
+    public String sum(List<ReportStatisticTransferDetail> reportDataList, String itemName, Map<String, String> sumValueMap) {
+        BigDecimal sumValue = reportDataList.stream().map((ReportStatisticTransferDetail data)-> {
+            BigDecimal itemValueDecimal = new BigDecimal(String.valueOf(data.getItemValue()));
+            return itemValueDecimal;
+        }).reduce(BigDecimal.ZERO, BigDecimal::add);
+        sumValueMap.put(itemName, sumValue.toString());
+        return sumValue.toString();
+    }
+
+    public String sumRate(String dividendName, String divisorName, Map<String, String> sumValueMap) {
+        String dividendSumValue = sumValueMap.get(dividendName);
+        String divisorSumValue = sumValueMap.get(divisorName);
+        BigDecimal dividendValue = new BigDecimal(dividendSumValue);
+        BigDecimal divisorValue = new BigDecimal(divisorSumValue);
+        BigDecimal divideValue = dividendValue.divide(divisorValue, 6, RoundingMode.HALF_UP);
+        return divideValue.toString();
+    }
+
+    public String calculateSum(String itemName, List<ReportStatisticTransferDetail> reportDataList
+            , Map<String, String> sumValueMap) {
+        switch (itemName){
+            case "数据量":
+            case "登录量":
+            case "进件人数":
+            case "批核人数":
+            case "发起提现人数":
+            case "放款成功人数":
+                return sum(reportDataList, itemName, sumValueMap);
+            case "评分分布":
+                return sumRate("数据量", "数据量", sumValueMap);
+            case "登录率":
+                return sumRate("登录量", "数据量", sumValueMap);
+            case "进件穿透率":
+                return sumRate("进件人数", "数据量", sumValueMap);
+            case "批核通过率":
+                return sumRate("批核人数", "进件人数", sumValueMap);
+            case "批核穿透率":
+                return sumRate("批核人数", "数据量", sumValueMap);
+            case "批核转化占比":
+                return sumRate("批核人数", "批核人数", sumValueMap);
+            case "发起提现率":
+                return sumRate("发起提现人数", "批核人数", sumValueMap);
+            case "放款成功率":
+                return sumRate("放款成功人数", "发起提现人数", sumValueMap);
+            case "放款成功穿透率":
+                return sumRate("放款成功人数", "数据量", sumValueMap);
+            case "放款成功转化占比":
+                return sumRate("放款成功人数", "放款成功人数", sumValueMap);
+        }
+        return "0.00";
+    }
+
 
     public Map<String, String> formatReportRules(String taskId) {
         ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(Long.valueOf(taskId));
