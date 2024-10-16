@@ -7,7 +7,6 @@ import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
-import com.br.marketing.entity.SushangTransferData;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.SushangTransferDataMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -15,7 +14,6 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import com.github.pagehelper.util.StringUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
