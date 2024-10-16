@@ -25,7 +25,7 @@ public class XiechengTransferDailySwitchOnReportDTO implements Serializable {
     private Long operateNum;
 
     @ApiModelProperty("当日接通量")
-    private Long cellNum;
+    private Long callNum;
 
     @ApiModelProperty("当日身份认证量")
     private Long certifyNum;
@@ -104,10 +104,5 @@ public class XiechengTransferDailySwitchOnReportDTO implements Serializable {
     @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawSucRatio;
 
-    @ApiModelProperty("上报数据百万转化")
-    private Long submitMillionTransferNum;
-
-    @ApiModelProperty("外呼数据百万转化")
-    private Long outboundMillionTransferNum;
 
 }

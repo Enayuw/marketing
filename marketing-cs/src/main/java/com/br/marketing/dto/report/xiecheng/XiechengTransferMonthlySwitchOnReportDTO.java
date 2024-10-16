@@ -127,7 +127,4 @@ public class XiechengTransferMonthlySwitchOnReportDTO implements Serializable {
     @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal roi;
 
-    @ApiModelProperty("授信目标完成率")
-    @DecimalFieldConvertor(scale = 2)
-    private BigDecimal creditCompleteRatio;
 }

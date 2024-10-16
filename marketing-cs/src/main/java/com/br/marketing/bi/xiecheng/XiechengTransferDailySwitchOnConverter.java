@@ -69,7 +69,7 @@ public class XiechengTransferDailySwitchOnConverter extends AbstractBiReportConv
         // 构造纵坐标数据
         List<WrapDataVO> yAxis = Lists.newArrayList();
         yAxis.add(buildWrapDataVO("当日运营量", sortedData, XiechengTransferDailySwitchOnReportDTO::getOperateNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("当日接通量", sortedData, XiechengTransferDailySwitchOnReportDTO::getCellNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("当日接通量", sortedData, XiechengTransferDailySwitchOnReportDTO::getCallNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日身份认证量", sortedData, XiechengTransferDailySwitchOnReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日申请量", sortedData, XiechengTransferDailySwitchOnReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日授信量", sortedData, XiechengTransferDailySwitchOnReportDTO::getCreditNum, FormatType.THOUSAND_SEPARATOR));
@@ -91,8 +91,6 @@ public class XiechengTransferDailySwitchOnConverter extends AbstractBiReportConv
         yAxis.add(buildWrapDataVO("当日授信后提现成功", sortedData, XiechengTransferDailySwitchOnReportDTO::getCreditWithdrawSucNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("当日授信后发起提现率", sortedData, XiechengTransferDailySwitchOnReportDTO::getCreditWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("当日授信后提现成功率", sortedData, XiechengTransferDailySwitchOnReportDTO::getCreditWithdrawSucRatio, FormatType.PERCENT_SIGN));
-        yAxis.add(buildWrapDataVO("上报数据百万转化", sortedData, XiechengTransferDailySwitchOnReportDTO::getSubmitMillionTransferNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("外呼数据百万转化", sortedData, XiechengTransferDailySwitchOnReportDTO::getOutboundMillionTransferNum, FormatType.THOUSAND_SEPARATOR));
         biReportVO.setYAxis(yAxis);
         biReportVOList.add(biReportVO);
         return biReportVOList;

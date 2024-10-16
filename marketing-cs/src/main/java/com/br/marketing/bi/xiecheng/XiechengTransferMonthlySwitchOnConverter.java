@@ -101,7 +101,6 @@ public class XiechengTransferMonthlySwitchOnConverter extends AbstractBiReportCo
         yAxis.add(buildWrapDataVO("总收入", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getIncome, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("总成本", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
         yAxis.add(buildWrapDataVO("ROI", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getRoi, FormatType.THOUSAND_SEPARATOR_DECIMAL));
-        yAxis.add(buildWrapDataVO("授信目标完成率", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCreditCompleteRatio, FormatType.PERCENT_SIGN));
         biReportVO.setYAxis(yAxis);
         biReportVOList.add(biReportVO);
         return biReportVOList;
