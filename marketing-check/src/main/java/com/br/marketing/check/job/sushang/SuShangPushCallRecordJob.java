@@ -58,13 +58,28 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
         String dateToday = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String dateTodayReduceTwo = "";
 
-        // 原有T-2的逻辑在2.1版本改为了T日
-        dateTodayReduceTwo = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        // 原有T-2的逻辑在2.1版本改为了T-1日
+        dateTodayReduceTwo = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+
+        // 查询苏商通话明细文件
+        LocalFileExample exampleCallRecord = new LocalFileExample();
+        exampleCallRecord.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_CALLRECORD.getValue())
+                .andFileNameLike("%" + dateToday + "%")
+                .andStatusEqualTo("2")
+                .andPushStatusIsNull()
+                .andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
+        List<LocalFile> callRecordFiles = localFileMapper.selectByExample(exampleCallRecord);
+
+        // T日通话明细可推送
+        if (CollectionUtils.isEmpty(callRecordFiles)) {
+            log.warn("苏商自动化回传，通话明细文件为空");
+            return;
+        }
 
         List<LocalFile> transferFiles = new ArrayList<>();
         // 配置了 指定日期 进行量级比较
         if (StringUtil.isNotEmpty(suShangFileDate)){
-            // 查询 T日 待推送文件
+            // 查询 T-1日 待推送文件
             LocalFileExample example = new LocalFileExample();
             example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_TRANSFER.getValue())
                     .andFileNameLike("%" + dateTodayReduceTwo + "%")
@@ -97,15 +112,6 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
                     .andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
             transferFiles = localFileMapper.selectByExample(example);
         }
-
-        // 查询苏商通话明细文件
-        LocalFileExample exampleCallRecord = new LocalFileExample();
-        exampleCallRecord.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SUSHANG_CALLRECORD.getValue())
-                .andFileNameLike("%" + dateToday + "%")
-                .andStatusEqualTo("2")
-                .andPushStatusIsNull()
-                .andApiCodeIn(marketingCommonConfig.getSuShangApiCodes());
-        List<LocalFile> callRecordFiles = localFileMapper.selectByExample(exampleCallRecord);
 
         // T日通话明细和T日转化数据(或指定日期转化数据)
         if (CollectionUtils.isEmpty(transferFiles) || CollectionUtils.isEmpty(callRecordFiles)) {
