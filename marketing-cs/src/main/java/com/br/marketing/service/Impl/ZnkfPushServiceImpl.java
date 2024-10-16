@@ -45,7 +45,6 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -311,69 +310,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             return "场景 userType 为空";
         }
         return "";
-    }
-
-    private String goShDX(CallRecordDTO dto) {
-        try {
-            Date day = new Date();
-            SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            //select * from b_marketing_sync_7410437 bms where cust_num ='' order by applet_date desc limit 1;
-            MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(dto.getApiCode(), dto.getCaseNum());
-            if (marketingSyncUser == null) {
-                log.info("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！", dto.getApiCode(), dto.getCaseNum());
-                return "true";
-            }
-            //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
-            Integer tcid = (Math.abs(dto.getCid()));
-            MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnum(tcid.toString(), dto.getCaseNum());
-
-            LocalFile localFile = new LocalFile();
-            PhoneSale phoneSale = new PhoneSale();
-            PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
-            PushShDXDTO pushShDXDTO = new PushShDXDTO()
-                    .setLocalFile(localFile)
-                    .setPhoneSale(phoneSale)
-                    .setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
-            localFile.setCid(dto.getCid().toString());
-            localFile.setApiCode(dto.getApiCode());
-            localFile.setFileName("客服");
-            phoneSale.setUid(dto.getCaseNum());
-            String s = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
-            phoneSale.setPhone(s);//b_marketing_sync_{apicode}的cell，明文
-            phoneSale.setName("");
-            phoneSale.setOrgname("shuheshenwan");
-            phoneSale.setSource("16");
-            phoneSale.setUserType("2");
-            phoneSale.setType("2");
-            if (marketingTransferSyncUser != null) {
-                ////b_marketing_transfer_sync_{cid} 的login_time
-                phoneSale.setLoginTime(StringUtils.isNotEmpty(marketingTransferSyncUser.getLoginTime()) ? marketingTransferSyncUser.getLoginTime() : "");
-                //b_marketing_transfer_sync_{cid} reserve_field1
-                phoneSale.setExtend(StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1()) ? marketingTransferSyncUser.getReserveField1() : "");
-            } else {
-                phoneSale.setLoginTime("");
-                phoneSale.setExtend("");
-            }
-
-            phoneSaleExtendShuhe.setCustNum(dto.getCaseNum());
-            phoneSaleExtendShuhe.setAppletDate(dfDay.format(day));
-            phoneSaleExtendShuhe.setAppletTime(dfSecond.format(day));
-            phoneSaleExtendShuhe.setStatus("b");
-            Result<Boolean> result = pushDataService.pushShDX(pushShDXDTO);
-            if (result.getData()) {
-                log.info("推送电销成功！");
-            } else {
-                String msg = String.format("客服->营销(custNum=%s)推送电销失败！失败信息：%s", marketingTransferSyncUser.getCustNum(), result.getData());
-                log.error(msg);
-                //alarmClient.sendAlarm(msg, title, appName, secretKey, Constants.sendCodeMap.get("sysError"));
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            //alarmClient.sendAlarm("保存到电销失败" + e.getMessage(), title, appName, secretKey, Constants.sendCodeMap.get("sysError"));
-        }
-        return "success";
     }
 
     private String paramOfValidity(CallRecordDTO dto) {
