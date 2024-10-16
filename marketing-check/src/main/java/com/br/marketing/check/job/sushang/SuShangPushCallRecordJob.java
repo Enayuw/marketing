@@ -99,7 +99,7 @@ public class SuShangPushCallRecordJob extends AbstractSimpleElasticJob {
             List<LocalFile> newTransferFiles = localFileMapper.selectByExample(newExample);
 
             // T-1日转化数据记录为空
-            if (CollectionUtils.isEmpty(newTransferFiles)) {
+            if (CollectionUtils.isEmpty(transferFiles)) {
                 transferFiles = newTransferFiles;
             } else {
                 // 判断两个日期的量级，返回大量级的localFile集合
