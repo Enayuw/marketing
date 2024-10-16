@@ -142,7 +142,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
                         return Integer.parseInt(value);
                     })).collect(Collectors.toList());
                     // sum
-                    String sum = calculateSum(itemName, reportDataList, sumValueMap);
+                    String sum = calculateSum(itemName, detailList, sumValueMap);
                     ReportStatisticTransferDetail sumDetail = new ReportStatisticTransferDetail();
                     sumDetail.setItemValue(sum);
                     detailList.add(sumDetail);
@@ -257,8 +257,7 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
         return divideValue.toString();
     }
 
-    public String calculateSum(String itemName, List<ReportStatisticTransferDetail> reportDataList
-            , Map<String, String> sumValueMap) {
+    public String calculateSum(String itemName, List<ReportStatisticTransferDetail> reportDataList, Map<String, String> sumValueMap) {
         switch (itemName){
             case "数据量":
             case "登录量":
