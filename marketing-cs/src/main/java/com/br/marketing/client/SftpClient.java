@@ -1,10 +1,13 @@
 package com.br.marketing.client;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +31,8 @@ public class SftpClient extends BaseFtpClient{
     private Channel channel = null;
     private Session session = null;
 
-
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     /**
      * Instantiates a new Sftp config.
@@ -401,8 +405,11 @@ public class SftpClient extends BaseFtpClient{
      * @param localFileName
      * @return
      */
-    public boolean uploadFile(String remotePath, String remoteFilename, String localFileName) {
+    public boolean uploadFile(String remotePath, String remoteFilename, String localFileName) throws Exception {
         boolean success = false;
+        if(checkMockSwitch()){
+            throw new Exception();
+        }
         File localFile = new File(localFileName);
         try (InputStream fis = Files.newInputStream(Paths.get(localFile.getPath()))) {
             if (!isExist(remotePath)) {
@@ -413,10 +420,16 @@ public class SftpClient extends BaseFtpClient{
             success = true;
         } catch (SftpException e) {
             log.error("SftpException", e);
+            throw e;
         } catch (Exception e) {
             log.error("Exception", e);
+            throw e;
         }
         return success;
+    }
+
+    public boolean checkMockSwitch(){
+        return marketingCommonConfig.getUploadFileSftp();
     }
 
     @Override

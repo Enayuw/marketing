@@ -2204,5 +2204,10 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
+    /**
+     * 上传文件至远程sftp服务器是否异常开关
+     */
+    private Boolean uploadFileSftp;
+
 }
 
