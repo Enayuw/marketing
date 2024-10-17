@@ -177,7 +177,7 @@ public class ResultUtil {
     public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
                                     MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
                                     BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
-            , MarketingTaskService marketingTaskService,String part) throws IOException {
+            , MarketingTaskService marketingTaskService, String part) throws IOException {
         log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
         JSONObject esResult = new JSONObject();
         StringBuilder sb = new StringBuilder();
@@ -234,13 +234,13 @@ public class ResultUtil {
                 if (marketingCondition != null) {
                     marketingCondition.setFlag(resultJson.get("flag_score") == null ? "" : resultJson.getString("flag_score"));
                     marketingCondition.setFieldKey(s);
-                    String strValue =  esResult.getString(s);
+                    String strValue = esResult.getString(s);
                     if (StringUtils.isNotBlank(strValue)) {
-                        if(Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()){
+                        if (Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()) {
                             marketingCondition.setDValue(Double.valueOf(esResult.getString(s)));
                         }
                         Long date = DateHelper.strToMill(strValue);
-                        if(date !=null){
+                        if (date != null) {
                             marketingCondition.setLValue(date);
                         }
                     }
@@ -253,11 +253,11 @@ public class ResultUtil {
                     marketingConditionStr.setFieldKey(s);
                     marketingConditionStr.setStrValue(esResult.getString(s));
                     if (StringUtils.isNotBlank(strValue)) {
-                        if(Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()){
+                        if (Pattern.compile(RegexConstants.Numeric).matcher(strValue).matches()) {
                             marketingConditionStr.setDValue(Double.valueOf(esResult.getString(s)));
                         }
                         Long date = DateHelper.strToMill(strValue);
-                        if(date !=null){
+                        if (date != null) {
                             marketingConditionStr.setLValue(date);
                         }
 
@@ -434,13 +434,29 @@ public class ResultUtil {
                     } else if ("custnum".equals(title)) {
                         mh.setCusNum(StringUtils.isBlank(str) ? "" : str);
                     } else if ("idcard".equals(title)) {
-                        mh.setIdCard(StringUtils.isBlank(strId) ? "" : strId);
+                        if (ib.equals(head.getType())) {
+                            mh.setIdCard(StringUtils.isBlank(strId) ? "" : strId);
+                        } else if (ic.equals(head.getType())) {
+                            mh.setIdCard(StringUtils.isBlank(str) ? "" : str);
+                        }
                     } else if ("id".equals(title)) {
-                        mh.setIdCard(StringUtils.isBlank(strId) ? "" : strId);
+                        if (ib.equals(head.getType())) {
+                            mh.setIdCard(StringUtils.isBlank(strId) ? "" : strId);
+                        } else if (ic.equals(head.getType())) {
+                            mh.setIdCard(StringUtils.isBlank(str) ? "" : str);
+                        }
                     } else if ("name".equals(title)) {
-                        mh.setName(StringUtils.isBlank(strNm) ? "" : strNm);
+                        if (ib.equals(head.getType())) {
+                            mh.setName(StringUtils.isBlank(strNm) ? "" : strNm);
+                        } else if (ic.equals(head.getType())) {
+                            mh.setName(StringUtils.isBlank(str) ? "" : str);
+                        }
                     } else if ("cell".equals(title)) {
-                        mh.setCell(StringUtils.isBlank(strCell) ? "" : strCell);
+                        if (ib.equals(head.getType())) {
+                            mh.setCell(StringUtils.isBlank(strCell) ? "" : strCell);
+                        } else if (ic.equals(head.getType())) {
+                            mh.setCell(StringUtils.isBlank(str) ? "" : str);
+                        }
                     } else {
                         conditionObj.put(head.getName(), StringUtils.isBlank(str) ? "" : str);
                     }

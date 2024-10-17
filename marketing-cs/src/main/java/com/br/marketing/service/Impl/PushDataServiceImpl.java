@@ -37,12 +37,61 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.common.utils.*;
-import com.br.marketing.dto.PushShDXDTO;
+import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.RandomUtils;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.entity.*;
-import com.br.marketing.mapper.*;
+import com.br.marketing.entity.HaierCollidingData;
+import com.br.marketing.entity.HaierCollidingDataLog;
+import com.br.marketing.entity.HaierData;
+import com.br.marketing.entity.HaierDataExample;
+import com.br.marketing.entity.HaierReq;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferInfo;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.entity.PhoneSaleIbu;
+import com.br.marketing.entity.RetryMainLog;
+import com.br.marketing.entity.TwosevenFile;
+import com.br.marketing.entity.XieChengData;
+import com.br.marketing.entity.XieChengDataExample;
+import com.br.marketing.entity.XieChengJudgeConvTypeValue;
+import com.br.marketing.entity.XieChengSmsCollidingData;
+import com.br.marketing.entity.XieChengSmsCollidingDataExample;
+import com.br.marketing.entity.XieChengSmsCollidingDataLog;
+import com.br.marketing.entity.XieChengSmsCollidingDataLogExample;
+import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
+import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
+import com.br.marketing.entity.XieChengSmsCollidingDataVt;
+import com.br.marketing.entity.XiechengSmsQuitData;
+import com.br.marketing.entity.XiechengSmsQuitDataExample;
+import com.br.marketing.entity.YiqianbaoData;
+import com.br.marketing.entity.YiqianbaoDataExample;
+import com.br.marketing.mapper.HaierCollidingDataLogMapper;
+import com.br.marketing.mapper.HaierCollidingDataMapper;
+import com.br.marketing.mapper.HaierDataMapper;
+import com.br.marketing.mapper.HaierReqMapper;
+import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.MarketingSyncInfoMapper;
+import com.br.marketing.mapper.MarketingTransferInfoMapper;
+import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
+import com.br.marketing.mapper.PhoneSaleExtendShuheMapper;
+import com.br.marketing.mapper.PhoneSaleIbuMapper;
+import com.br.marketing.mapper.PhoneSaleMapper;
+import com.br.marketing.mapper.PhoneSaleTransferMapper;
+import com.br.marketing.mapper.RetryMainLogMapper;
+import com.br.marketing.mapper.TwosevenFileMapper;
+import com.br.marketing.mapper.XieChengDataMapper;
+import com.br.marketing.mapper.XieChengSmsCollidingDataLogMapper;
+import com.br.marketing.mapper.XieChengSmsCollidingDataLogVtMapper;
+import com.br.marketing.mapper.XieChengSmsCollidingDataMapper;
+import com.br.marketing.mapper.XieChengSmsCollidingDataVtMapper;
+import com.br.marketing.mapper.XiechengSmsQuitDataMapper;
+import com.br.marketing.mapper.YiqianbaoDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
@@ -51,9 +100,7 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.ValidityPeriodDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
-import com.br.marketing.thread.HaierCollidingDataThread;
 import com.br.marketing.util.TimeUtils;
-import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -76,8 +123,25 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -215,12 +279,10 @@ public class PushDataServiceImpl implements PushDataService {
     private final static int XIECHENGSMSCOLLIDINGPARTATIONNUM = 50;
 
     private final static String XIECHENGSMSCOLLIDINGFORMATTER = "yyyy-MM-dd HH:mm:ss";
-
+    ThreadPoolExecutor pushDassThreadPool = BrExecutors.getThreadPool(5, 5);
 
     @Override
     public Result pushDassData(Long id) {
-
-
         Boolean isContiue = false;
         Boolean actionMark = true;
         Long minId = null;
@@ -229,6 +291,7 @@ public class PushDataServiceImpl implements PushDataService {
         if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
             threadNum = Integer.valueOf(redisChgService.get(key));
         }
+        modifyThreadPool(pushDassThreadPool, threadNum);
 
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
@@ -236,8 +299,9 @@ public class PushDataServiceImpl implements PushDataService {
         }
 
         localFile.setPushStartTime(new Date());
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
+
         Integer number = 0;
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
         while (actionMark) {
             List<DassImportDataDTO> phoneSales = phoneSaleMapper.getPushDassData(id, minId);
             number += phoneSales.size();
@@ -248,7 +312,8 @@ public class PushDataServiceImpl implements PushDataService {
                 List<DassImportDataDTO> collect = phoneSales.stream().map(t -> (DassImportDataDTO) t).collect(Collectors.toList());
                 dto.setList(collect);
                 minId = phoneSale.getId();
-                threadPool.submit(() -> {
+
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     Result result = dassServiceClient.postHermesUserData(dto);
                     if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                         RetryMainLog mainLog = new RetryMainLog();
@@ -264,21 +329,13 @@ public class PushDataServiceImpl implements PushDataService {
                         mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
                         retryMainLogMapper.insertSelective(mainLog);
                     }
-                });
+                }, pushDassThreadPool);
+                futures.add(future);
             } else {
                 actionMark = false;
             }
         }
-        threadPool.shutdown();
-        while (true) {
-            if (threadPool.isTerminated()) {
-                break;
-            }
-            try {
-                Thread.sleep(3000);
-            } catch (Exception e) {
-            }
-        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(number);
@@ -305,6 +362,7 @@ public class PushDataServiceImpl implements PushDataService {
         if (redisChgService.exists(key) && StringUtils.isNotBlank(redisChgService.get(key))) {
             threadNum = Integer.valueOf(redisChgService.get(key));
         }
+        modifyThreadPool(pushDassThreadPool, threadNum);
 
         LocalFile localFile = localFileMapper.selectByPrimaryKey(id);
         if (localFile == null) {
@@ -312,11 +370,11 @@ public class PushDataServiceImpl implements PushDataService {
         }
 
         localFile.setPushStartTime(new Date());
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum);
         Integer number = 0;
         AtomicInteger success = new AtomicInteger(0);
         AtomicInteger fail = new AtomicInteger(0);
         AtomicInteger retry = new AtomicInteger(0);
+        List<CompletableFuture<Void>> futures = Lists.newArrayList();
         while (actionMark) {
             List<DassTransferDataDTO> transferDataDTOS = phoneSaleTransferMapper.getPushDassTransferData(id, minId);
             number += transferDataDTOS.size();
@@ -330,7 +388,8 @@ public class PushDataServiceImpl implements PushDataService {
                 DassTransferDataAdapDTO dto = new DassTransferDataAdapDTO();
                 dto.setDassTransferDataDTOList(transferDataDTOS);
                 minId = transferDataDTO.getId();
-                threadPool.submit(() -> {
+
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                     Result result = methodRetryHandlerService.dassTransferWithFile(dto, null);
                     int size = dto.getDassTransferDataDTOList().size();
                     if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -340,21 +399,13 @@ public class PushDataServiceImpl implements PushDataService {
                     } else {
                         retry.addAndGet(size);
                     }
-                });
+                }, pushDassThreadPool);
+                futures.add(future);
             } else {
                 actionMark = false;
             }
         }
-        threadPool.shutdown();
-        while (true) {
-            if (threadPool.isTerminated()) {
-                break;
-            }
-            try {
-                Thread.sleep(3000);
-            } catch (Exception e) {
-            }
-        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
         localFile.setPushEndTime(new Date());
         localFile.setPushNumber(success.get());
@@ -1101,103 +1152,6 @@ public class PushDataServiceImpl implements PushDataService {
     private void sendAlarm(String msg) {
         log.warn(msg);
         alarmClient.sendAlarm(msg, "海尔消金转电销(转化数据)警告", AlarmSendCodeEnum.EXCEPTION_URGENT.getCode());
-    }
-
-    /**
-     * 数禾推送电销
-     *
-     * @param pushShDXDTO
-     * @return 传输数据样例
-     * LocalFile localFile = new LocalFile();
-     * PhoneSale phoneSale = new PhoneSale();
-     * PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
-     * PushShDXDTO pushShDXDTO = new PushShDXDTO()
-     * .setLocalFile(localFile)
-     * .setPhoneSale(phoneSale)
-     * .setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
-     * localFile.setCid("");
-     * localFile.setApiCode("");
-     * localFile.setFileName("数禾-转化/客服+数据id");
-     * phoneSale.setUid("custNum");
-     * phoneSale.setPhone("手机号明文");
-     * phoneSale.setName("");
-     * phoneSale.setOrgname("shuheshenwan");
-     * phoneSale.setSource("16");
-     * phoneSale.setUserType("2");
-     * phoneSale.setLoginTime("");
-     * phoneSale.setExtend("{\"clc_usr_iso_pho_tim\":\"\",\"clc_usr_iso_idt_tim\":\"\",\"clc_usr_iso_crd_tim\":\"\",\"clc_usr_iso_inf_tim\":\"\"}");
-     * phoneSaleExtendShuhe.setCustNum("custNum");
-     * phoneSaleExtendShuhe.setAppletDate("当前日期yyyy-MM-dd");
-     * phoneSaleExtendShuhe.setAppletTime("当前时间yyyy-MM-dd HH:mm:ss");
-     * phoneSaleExtendShuhe.setStatus("a/b");
-     */
-    @Override
-    public Result<Boolean> pushShDX(PushShDXDTO pushShDXDTO) {
-
-        Date date = new Date();
-        LocalFile localFile = pushShDXDTO.getLocalFile();
-        localFile.setFileType(SftpFileTypeEnum.SHBYTRANSFORM.getValue());
-        localFile.setCreateTime(date);
-        String apiCode = localFile.getApiCode();
-        String phone = "";
-        PhoneSale phoneSale = pushShDXDTO.getPhoneSale();
-        phone = phoneSale.getPhone();
-        phoneSale.setCreateTime(date);
-        String s = AESUtil.aesEncrypty(phoneSale.getPhone(), aesKey);
-        phoneSale.setPhone(s);
-        phoneSale.setPhoneAes(BrCipherMaker.getInstance().encode(phone));
-        phoneSale.setApiCode(apiCode);
-        phoneSale.setApiCid(localFile.getCid());
-        JSONObject jo = new JSONObject();
-        jo.put("face_recognitiion", "0");
-        jo.put("is_usr_idt", "0");
-        jo.put("is_bindcard", "0");
-        jo.put("is_usr_inf", "0");
-        if (StringUtils.isNotBlank(phoneSale.getExtend())) {
-            JSONObject jsonObject = JSON.parseObject(phoneSale.getExtend());
-            String pho = jsonObject.getString("clc_usr_iso_pho_tim");
-            String idt = jsonObject.getString("clc_usr_iso_idt_tim");
-            String crd = jsonObject.getString("clc_usr_iso_crd_tim");
-            String inf = jsonObject.getString("clc_usr_iso_inf_tim");
-            if (StringUtils.isNotBlank(pho)) {
-                jo.put("face_recognitiion", "1");
-            }
-            if (StringUtils.isNotBlank(idt)) {
-                jo.put("is_usr_idt", "1");
-            }
-            if (StringUtils.isNotBlank(crd)) {
-                jo.put("is_bindcard", "1");
-            }
-            if (StringUtils.isNotBlank(inf)) {
-                jo.put("is_usr_inf", "1");
-            }
-        }
-        phoneSale.setExtend(JSON.toJSONString(jo));
-        PhoneSaleExtendShuhe phoneSaleExtendShuhe = pushShDXDTO.getPhoneSaleExtendShuhe();
-        phoneSaleExtendShuhe.setCreateTime(date);
-
-        PhoneSaleExtendShuheExample shuheExample = new PhoneSaleExtendShuheExample();
-        shuheExample.createCriteria().andCustNumEqualTo(phoneSaleExtendShuhe.getCustNum()).andAppletDateEqualTo(phoneSaleExtendShuhe.getAppletDate());
-        List<PhoneSaleExtendShuhe> phoneSaleExtendShuhes = phoneSaleExtendShuheMapper.selectByExample(shuheExample);
-        if (phoneSaleExtendShuhes.size() > 0) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-        }
-
-        Result result = addShuHeLock(apiCode, phoneSaleExtendShuhe.getCustNum(), phoneSaleExtendShuhe.getStatus());
-        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-        }
-
-        localFileMapper.insertSelective(localFile);
-        phoneSale.setLocalId(localFile.getId().toString());
-        phoneSaleMapper.insertSelective(phoneSale);
-        phoneSaleExtendShuhe.setLocalId(localFile.getId());
-        phoneSaleExtendShuhe.setpId(phoneSale.getId());
-        phoneSaleExtendShuheMapper.insertSelective(phoneSaleExtendShuhe);
-        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
-
-        removeHaluoLock(apiCode, phoneSaleExtendShuhe.getCustNum(), phoneSaleExtendShuhe.getStatus());
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.TRUE);
     }
 
     @Override
@@ -2140,5 +2094,10 @@ public class PushDataServiceImpl implements PushDataService {
                 log.error(ex.getMessage(), ex);
             }
         }
+    }
+
+    private void modifyThreadPool(ThreadPoolExecutor threadPool, Integer poolSize){
+        threadPool.setCorePoolSize(poolSize);
+        threadPool.setMaximumPoolSize(poolSize);
     }
 }

@@ -311,7 +311,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     }
 
     /**
-     * 促活数据接入后续处理
+     * 促活数据接入后续处理(消费端在marketing-mq-consumer，保证兆维亦庄流量都可以被消费)
      * @param xieChengActivateDTO
      * @return
      */
