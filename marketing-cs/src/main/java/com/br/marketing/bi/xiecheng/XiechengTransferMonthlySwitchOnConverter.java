@@ -76,7 +76,8 @@ public class XiechengTransferMonthlySwitchOnConverter extends AbstractBiReportCo
         yAxis.add(buildWrapDataVO("实际外呼量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getOutboundNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("累计运营量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getOperateNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("累计接通量级（未去重）", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCallNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("累计接通量级（去量）", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getDistinctCallNum, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("累计接通量级（去重）", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getDistinctCallNum,
+                FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("身份认证量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCertifyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("申请量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getApplyNum, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("授信量", sortedData, XiechengTransferMonthlySwitchOnReportDTO::getCreditNum, FormatType.THOUSAND_SEPARATOR));
