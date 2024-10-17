@@ -130,10 +130,14 @@ public class SuShangPushServiceImpl implements SuShangPushService {
         }
         log.warn("苏商推送规则二(非成交)运行耗时：{}s", (System.currentTimeMillis() - startTwo) / 1000);
         custNumALL.clear();
-        //更新为推送成功状态
+        //更新转化文件记录为推送成功状态
         localFile.setPushStatus("2");
         localFile.setId(localFile.getId());
         localFileMapper.updateByPrimaryKeySelective(localFile);
+        //更新通话明细记录为推送成功状态
+        callRecordFile.setPushStatus("2");
+        callRecordFile.setId(callRecordFile.getId());
+        localFileMapper.updateByPrimaryKeySelective(callRecordFile);
     }
 
     private void pushNoDealData(List<SushangCallRecordData> callRecordData) {
