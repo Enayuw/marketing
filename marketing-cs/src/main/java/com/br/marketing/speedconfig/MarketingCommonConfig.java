@@ -2194,6 +2194,11 @@ public class MarketingCommonConfig {
     private String suShangFileDate;
 
     /**
+     * 苏商自动回传转化状态时间
+     */
+    private String suShangFileExecTime;
+
+    /**
      * 携程促活数据处理线程数
      */
     private Integer xiechengCollidingActivateThread;
