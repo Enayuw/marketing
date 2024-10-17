@@ -9,14 +9,13 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 /**
- * 携程月转化报表dto
- *
- * @author senyang.zheng
- * @date 2024/08/28
+ * 携程月接通转化报表dto
+ * @author guangxiu.li
+ * @date 2024/10/10 16:58
  */
 @Data
-@ApiModel(value = "携程月转化报表dto")
-public class XiechengTransferMonthlyReportDTO implements Serializable {
+@ApiModel(value = "携程月接通转化报表dto")
+public class XiechengTransferMonthlySwitchOnReportDTO implements Serializable {
 
     private static final long serialVersionUID = -3827396898483783969L;
     @ApiModelProperty("日期")
@@ -33,6 +32,12 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
 
     @ApiModelProperty("累计运营量")
     private Long operateNum;
+
+    @ApiModelProperty("未去重累计接通量级")
+    private Long callNum;
+
+    @ApiModelProperty("去重累计接通量级")
+    private Long distinctCallNum;
 
     @ApiModelProperty("身份认证量")
     private Long certifyNum;
@@ -122,7 +127,4 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     @DecimalFieldConvertor(scale = 2, isPercent = false)
     private BigDecimal roi;
 
-    @ApiModelProperty("授信目标完成率")
-    @DecimalFieldConvertor(scale = 2)
-    private BigDecimal creditCompleteRatio;
 }

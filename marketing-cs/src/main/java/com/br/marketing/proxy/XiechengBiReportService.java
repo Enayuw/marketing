@@ -2,20 +2,18 @@ package com.br.marketing.proxy;
 
 import java.util.List;
 
+import com.br.marketing.dto.report.xiecheng.*;
 import org.apache.ibatis.annotations.Param;
-
-import com.br.marketing.dto.report.xiecheng.XiechengCollidingDailyReportDTO;
-import com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO;
-import com.br.marketing.dto.report.xiecheng.XiechengDataRatioDailyReportDTO;
-import com.br.marketing.dto.report.xiecheng.XiechengTransferDailyReportDTO;
-import com.br.marketing.dto.report.xiecheng.XiechengTransferMonthlyReportDTO;
-import com.br.marketing.dto.report.xiecheng.XiechengTransferWeeklyReportDTO;
 
 public interface XiechengBiReportService {
 
     List<XiechengTransferMonthlyReportDTO> selectXcTrabsferMonthlyList(String month);
 
+    List<XiechengTransferMonthlySwitchOnReportDTO> selectXcTrabsferMonthlySwitchOnList(String month);
+
     List<XiechengTransferDailyReportDTO> selectXcTransferDaily(String reportDateStart, String reportDateEnd);
+
+    List<XiechengTransferDailySwitchOnReportDTO> selectXcTransferDailySwitchOn(String reportDateStart, String reportDateEnd);
 
     List<XiechengTransferWeeklyReportDTO> selectXcTransferSevenRollList(String reportDateStart, String reportDateEnd);
 
