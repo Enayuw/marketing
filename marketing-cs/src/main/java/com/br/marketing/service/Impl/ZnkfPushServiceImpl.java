@@ -269,7 +269,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
             smsCallback.setCreateTime(new Date());
             BeanUtils.copyProperties(dto, smsCallback);
             smsCallback.setApiCode(dto.getApiCode());
-            smsCallbackMapper.insert(smsCallback);
+            smsCallbackMapper.insertSelective(smsCallback);
         }catch (Exception ex){
             log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
             return "外呼短信记录落库失败(insert b_sms_callback fail)!";
@@ -292,9 +292,6 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         }
         if(StringUtils.isEmpty(dto.getSmsSendStatus())){
             return "短信发送状态 smsSendStatus 为空";
-        }
-        if(StringUtils.isEmpty(dto.getUserType())){
-            return "场景 userType 为空";
         }
         return "";
     }
