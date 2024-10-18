@@ -84,6 +84,47 @@ public class QiFuClients {
         IS_LOG_DEFAULT_LIST = Arrays.asList(false, false);
     }
 
+    /**
+     * 奇富促完件实时批量查询接口
+     * @return
+     */
+    public Result<ResponseData<QrySleepUserRealMessageResp>> qryPromoteCompletion(QrySleepUserRealMessageReq bizData) {
+        Result<ResponseData<QrySleepUserRealMessageResp>> resultResp = new Result<>();
+        try {
+            // 调用奇富查询用户接口
+            Result<String> result = queryMessage(bizData,0);
+            if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                ResponseData<QrySleepUserRealMessageResp> responseData = JSON.parseObject(result.getData()
+                        , new TypeReference<ResponseData<QrySleepUserRealMessageResp>>() {
+                        });
+                resultResp.setDate(responseData);
+                switch (CodeEnum.valueof(responseData.getCode())) {
+                    // 成功
+                    case GWS100:
+                        // 解密业务数据
+                        responseData.decryptData(qifuPublicKey, brPrivateKey
+                                , new TypeReference<QrySleepUserRealMessageResp>() {
+                                });
+                        resultResp.setCode(ResultCode.SUCCESS.getValue());
+                        return resultResp;
+                    // 重试
+                    case GWS805:
+                        resultResp.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+                        return resultResp;
+                    default:
+                }
+                resultResp.setCode(ResultCode.FAIL.getValue());
+                return resultResp;
+            }
+            resultResp.setCode(result.getCode());
+            resultResp.setMessage(result.getMessage());
+        }catch (Exception e) {
+            log.error(e.getMessage(), e);
+            resultResp.setCode(ResultCode.FAIL.getValue());
+            resultResp.setMessage(e.getMessage());
+        }
+        return resultResp;
+    }
 
     /**
      * 奇富批量接口用户查询
