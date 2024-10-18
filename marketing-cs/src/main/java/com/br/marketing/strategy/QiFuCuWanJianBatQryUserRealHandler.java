@@ -1,8 +1,9 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.robotaiapi.input.InterfaceData;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.dto.wuba.WuBaSubmitConversionDataDto;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -21,21 +22,21 @@ import java.util.List;
  */
 @Service
 @Slf4j
-public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfaceHandler<WuBaSubmitConversionDataDto> {
+public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfaceHandler<InterfaceData<MarketingSyncUser>> {
     private final static String TITLE = "【360促完件用户信息批量查询】";
 
     @Resource
     private WubaSubmitConversionDataMapper dataMapper;
 
     @Override
-    public JSONObject call(List<WuBaSubmitConversionDataDto> list, ProcessHandlerContext context) {
+    public JSONObject call(List<InterfaceData<MarketingSyncUser>> list, ProcessHandlerContext context) {
         List<WubaSubmitConversionData> dataList = new ArrayList<>();
-        for(WuBaSubmitConversionDataDto dto : list){
-            WubaSubmitConversionData data = dto.getWubaSubmitConversionData();
-            if(data !=null) {
-                dataList.add(data);
-            }
-        }
+//        for(WuBaSubmitConversionDataDto dto : list){
+//            WubaSubmitConversionData data = dto.getWubaSubmitConversionData();
+//            if(data !=null) {
+//                dataList.add(data);
+//            }
+//        }
 
         if(!CollectionUtils.isEmpty(dataList)){
             dataMapper.batchAdd(dataList);
@@ -46,6 +47,6 @@ public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfac
 
     @Override
     public InterfaceHandlerEnum handlerEnum() {
-        return InterfaceHandlerEnum.WUBA_CALL_RECORD_ADD_DB;
+        return InterfaceHandlerEnum.QIFU_CUWANJIAN_BAT_QRY_USER_REAL;
     }
 }
