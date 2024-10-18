@@ -5,20 +5,17 @@ import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.client.dassservice.input.transfer.ConversionDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.impl.ZhongAnRuleCollectCustomerTransferImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
@@ -30,15 +27,12 @@ import java.util.Map;
  */
 @Service
 @Slf4j
-public class WuBaTransferDataToCustomerFilter implements AssembleData<ConversionDataSoleDTO> {
+public class WuBaTransferDataToCustomerFilter implements AssembleData<ConversionData> {
 
     private static final String TITLE = "【58新客转化数据推送客服】";
 
-    @Resource
-    MarketingSyncUserMapper marketingSyncUserMapper;
-
     @Override
-    public ConversionDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(marketingTransferSyncUser.getId().toString());
@@ -62,10 +56,7 @@ public class WuBaTransferDataToCustomerFilter implements AssembleData<Conversion
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
-        ConversionDataSoleDTO dataSoleDTO = new ConversionDataSoleDTO();
-        dataSoleDTO.setConversionData(conversionData);
-        dataSoleDTO.setStatus("1");
-        return dataSoleDTO;
+        return conversionData;
     }
 
     @Override
@@ -88,7 +79,7 @@ public class WuBaTransferDataToCustomerFilter implements AssembleData<Conversion
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_USE_STATUS.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode();
     }
 
     @Override
