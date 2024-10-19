@@ -128,6 +128,11 @@ public class SyncConfig {
      */
     private Integer type;
 
+    /**
+     * 定制化类型
+     */
+    private Integer customizedType;
+
     public Long getId() {
         return id;
     }
@@ -326,5 +331,13 @@ public class SyncConfig {
 
     public void setType(Integer type) {
         this.type = type;
+    }
+
+    public Integer getCustomizedType() {
+        return customizedType;
+    }
+
+    public void setCustomizedType(Integer customizedType) {
+        this.customizedType = customizedType;
     }
 }
