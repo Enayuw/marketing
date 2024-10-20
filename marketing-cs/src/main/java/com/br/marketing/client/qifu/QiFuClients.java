@@ -41,6 +41,9 @@ public class QiFuClients {
     @Value("${api.qifu.qrySleepUserRealMessageUrl:}")
     private String qrySleepUserRealMessageUrl;
 
+    @Value("${api.qifu.qryUserRealMessageUrl:}")
+    private String qryUserRealMessageUrl;
+
     /**
      * 客户公钥
      */
@@ -88,11 +91,11 @@ public class QiFuClients {
      * 奇富促完件实时批量查询接口
      * @return
      */
-    public Result<ResponseData<QrySleepUserRealMessageResp>> qryPromoteCompletion(QrySleepUserRealMessageReq bizData) {
+    public Result<ResponseData<QrySleepUserRealMessageResp>> qryUserRealMessageUrl(QrySleepUserRealMessageReq bizData) {
         Result<ResponseData<QrySleepUserRealMessageResp>> resultResp = new Result<>();
         try {
             // 调用奇富查询用户接口
-            Result<String> result = queryMessage(bizData,0);
+            Result<String> result = queryMessage(bizData,qryUserRealMessageUrl,0);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 ResponseData<QrySleepUserRealMessageResp> responseData = JSON.parseObject(result.getData()
                         , new TypeReference<ResponseData<QrySleepUserRealMessageResp>>() {
@@ -134,7 +137,7 @@ public class QiFuClients {
         Result<ResponseData<QrySleepUserRealMessageResp>> resultResp = new Result<>();
         try {
             // 调用奇富查询用户接口
-            Result<String> result = queryMessage(bizData,0);
+            Result<String> result = queryMessage(bizData,qrySleepUserRealMessageUrl,0);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 ResponseData<QrySleepUserRealMessageResp> responseData = JSON.parseObject(result.getData()
                         , new TypeReference<ResponseData<QrySleepUserRealMessageResp>>() {
@@ -170,7 +173,8 @@ public class QiFuClients {
 
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public Result<String> queryMessage(QrySleepUserRealMessageReq bizData,Integer retry) {
+    public Result<String> queryMessage(QrySleepUserRealMessageReq bizData,
+                                       String url,Integer retry) {
         Result<String> result = new Result<>();
         String qiFuApiPublicKey = marketingCommonConfig.getQiFuApiPublicKey();
         if (StringUtils.isNotBlank(qiFuApiPublicKey)) {
@@ -182,7 +186,7 @@ public class QiFuClients {
         try {
             long start = System.currentTimeMillis();
             log.warn(TITLE+"调度开始, requestParam{}", JSONObject.toJSONString(requestParam));
-            Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(requestParam, qrySleepUserRealMessageUrl, isProxy,
+            Map<String, String> httpResponseMap = httpProxyClient.sendByCodeWithLog(requestParam, url, isProxy,
                     MediaType.APPLICATION_JSON_UTF8_VALUE,
                     JSON.toJSONString(requestParam), true, true);
 
