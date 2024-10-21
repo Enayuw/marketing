@@ -7,6 +7,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.qifu.QiFuCuWanJianBatQryUserRealDto;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
@@ -144,7 +145,6 @@ public class QiFuCuWanJianBatQryUserRealService {
             realDataes.add(realDataesReq);
             Long id = marketingSyncUser.getId();
             custNumToIdMap.put(marketingSyncUser.getCustNum(), id);
-            realDataes.add(realDataesReq);
         }
 
         QrySleepUserRealMessageReq qrySleepUserRealMessageReq = new QrySleepUserRealMessageReq();
@@ -183,7 +183,13 @@ public class QiFuCuWanJianBatQryUserRealService {
 
     private List<Map<String, String>> assembleExtendList(JSONObject userMessageJo){
         String name = userMessageJo.getString("name");
+        if(StringUtils.isEmpty(name)){
+            name = "";
+        }
         String sex = userMessageJo.getString("sex");
+        if(StringUtils.isEmpty(sex)){
+            sex = "";
+        }
         String gender;
         switch (sex){
             case "F": gender="0"; break;
@@ -197,8 +203,8 @@ public class QiFuCuWanJianBatQryUserRealService {
         nameMap.put("key", "cusName");
         nameMap.put("value", name);
         Map<String, String> sexMap = new HashMap<>();
-        nameMap.put("key", "gender");
-        nameMap.put("value", gender);
+        sexMap.put("key", "gender");
+        sexMap.put("value", gender);
 
         extendList.add(nameMap);
         extendList.add(sexMap);

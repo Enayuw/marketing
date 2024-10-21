@@ -390,7 +390,7 @@ public interface MarketingSyncUserMapper {
             @Param("pageSize") Integer pageSize,
             @Param("minId") Long minId);
 
-    List<MarketingSyncUser> updateExtend(
+    int updateExtend(
             @Param("apiCode") String apiCode,
             @Param("custNum") String custNum,
             @Param("extendList") List<Map<String, String>> extendList,
