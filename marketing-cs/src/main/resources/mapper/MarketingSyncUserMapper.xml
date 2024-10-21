@@ -992,4 +992,24 @@
         order by id asc
         limit #{pageSize}
     </select>
+
+    <update id="updateExtend">
+        UPDATE b_marketing_sync_${apiCode}
+        SET reserve_field1 = JSON_SET(reserve_field1,
+        <foreach collection="extendList" item="extendMap" separator=",">
+            '$.${extendMap.key}', '${extendMap.value}'
+        </foreach>
+        )
+        where api_code=#{apiCode}
+            and cust_num = #{custNum}
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="idList != null and idList.size()>0">
+                and id in
+                <foreach collection="idList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+    </update>
 </mapper>
