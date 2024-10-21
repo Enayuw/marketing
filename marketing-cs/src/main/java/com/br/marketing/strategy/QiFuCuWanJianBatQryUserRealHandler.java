@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfaceHandler<InterfaceData<MarketingSyncUser>> {
 
-    private final static String TITLE = "【360促完件用户信息批量查询】";
+    private final static String TITLE = "【360促完件用户信息批量查询-清洗数据更新】";
 
     ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(10, 10);
 
@@ -54,6 +54,7 @@ public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfac
         if (CollectionUtils.isEmpty(interfaceDataList)) {
             return null;
         }
+        //apiCode
         String apiCode = interfaceDataList.get(0).getData().getApiCode();
 
         // taskMap
@@ -63,7 +64,7 @@ public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfac
             return taskId;
         }, LinkedHashMap::new, Collectors.toList()));
 
-        //
+        // taskId keySet
         Set<String> keySet = taskMap.keySet();
         for (String taskId : keySet) {
             List<InterfaceData<MarketingSyncUser>> taskInterfaceDataList = taskMap.get(taskId);
@@ -73,9 +74,11 @@ public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfac
     }
 
     private void actionTaskDataList(String apiCode, String taskId, List<InterfaceData<MarketingSyncUser>> taskInterfaceDataList) {
-        dbActionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
-        dbActionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
-        PARTITION_SIZE = marketingCommonConfig.getWuBaQueryConversionBatDBPartitionSize();
+        Integer threadPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("threadPoolSize")));
+        Integer partitionSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
+        dbActionPool.setCorePoolSize(threadPoolSize);
+        dbActionPool.setMaximumPoolSize(threadPoolSize);
+        PARTITION_SIZE = partitionSize;
 
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
         List<List<InterfaceData<MarketingSyncUser>>> dataPartitions = Lists.partition(taskInterfaceDataList, PARTITION_SIZE);
@@ -95,7 +98,6 @@ public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfac
     private void actionPartition(String apiCode, String taskId, List<InterfaceData<MarketingSyncUser>> partition) {
         List<RealDataesReq> realDataes = new ArrayList<>();
         Map<String, Long> custNumToIdMap = new HashMap<>();
-        List<Long> idList = new ArrayList<>();
         for (InterfaceData<MarketingSyncUser> interfaceData : partition) {
             MarketingSyncUser marketingSyncUser = interfaceData.getData();
             RealDataesReq realDataesReq = new RealDataesReq();
@@ -133,31 +135,36 @@ public class QiFuCuWanJianBatQryUserRealHandler extends AbstractExternalInterfac
                     continue;
                 }
 
-                String name = userMessageJo.getString("name");
-                String sex = userMessageJo.getString("sex");
-                String gender;
-                switch (sex){
-                    case "F": gender="0"; break;
-                    case "M": gender="1"; break;
-                    default: gender="";
-                }
-
-                // extendList
-                List<Map<String, String>> extendList = new ArrayList<>();
-                Map<String, String> nameMap = new HashMap<>();
-                nameMap.put("key", "cusName");
-                nameMap.put("value", name);
-                Map<String, String> sexMap = new HashMap<>();
-                nameMap.put("key", "gender");
-                nameMap.put("value", gender);
-
-                extendList.add(nameMap);
-                extendList.add(sexMap);
+                List<Map<String, String>> extendList = assembleExtendList(userMessageJo);
                 // update
                 Long id = custNumToIdMap.get(custNum);
                 marketingSyncUserMapper.updateExtend(apiCode, custNum, extendList, id, null);
             }
         }
+    }
+
+    private List<Map<String, String>> assembleExtendList(JSONObject userMessageJo){
+        String name = userMessageJo.getString("name");
+        String sex = userMessageJo.getString("sex");
+        String gender;
+        switch (sex){
+            case "F": gender="0"; break;
+            case "M": gender="1"; break;
+            default: gender="";
+        }
+
+        // extendList
+        List<Map<String, String>> extendList = new ArrayList<>();
+        Map<String, String> nameMap = new HashMap<>();
+        nameMap.put("key", "cusName");
+        nameMap.put("value", name);
+        Map<String, String> sexMap = new HashMap<>();
+        nameMap.put("key", "gender");
+        nameMap.put("value", gender);
+
+        extendList.add(nameMap);
+        extendList.add(sexMap);
+        return extendList;
     }
 
     @Override

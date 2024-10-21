@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class QiFuCuWanJianBatQryUserRealFilter implements AssembleData<InterfaceData<MarketingSyncUser>> {
 
-    private static final String TITLE = "【360促完件用户信息批量查询】";
+    private static final String TITLE = "【360促完件用户信息批量查询-自动化过滤】";
 
     @Override
     public InterfaceData<MarketingSyncUser> assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -43,7 +43,7 @@ public class QiFuCuWanJianBatQryUserRealFilter implements AssembleData<Interface
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE_USE_STATUS.getCode();
+        return InterfaceHandlerEnum.QIFU_CUWANJIAN_BAT_QRY_USER_REAL.getCode();
     }
 
     @Override

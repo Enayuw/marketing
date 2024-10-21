@@ -38,7 +38,7 @@ public enum InterfaceHandlerEnum {
 
     BIOCLOO_BLACK_LIST(33, "百可录黑名单"),
 
-    QIFU_CUWANJIAN_BAT_QRY_USER_REAL(31, "360促完件用户信息批量查询"),
+    QIFU_CUWANJIAN_BAT_QRY_USER_REAL(34, "360促完件用户信息批量查询"),
     ;
 
 
