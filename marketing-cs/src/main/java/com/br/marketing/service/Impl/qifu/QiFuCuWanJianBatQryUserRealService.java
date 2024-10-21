@@ -11,8 +11,10 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.qifu.QiFuCuWanJianBatQryUserRealDto;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.SynInfoQueryAction;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.mapper.SynInfoQueryActionMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
@@ -54,6 +56,9 @@ public class QiFuCuWanJianBatQryUserRealService {
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
 
+    @Resource
+    private SynInfoQueryActionMapper synInfoQueryActionMapper;
+
     public Result<Map<String, Object>> action(Page2Condition<QiFuCuWanJianBatQryUserRealDto> condition) {
         return scanData(condition);
     }
@@ -65,10 +70,8 @@ public class QiFuCuWanJianBatQryUserRealService {
         String apiCode = param.getApiCode();
         List<Integer> statusList = param.getStatusList();
         String actionData = param.getActionData();
-        Integer pageSize = condition.getPageSize();
 
         try{
-            // 循环获取条件数据，每次pageSize条
             Map<String, String> marketingTimeInterval = calculateTimeInterval(actionData);
             String createTimeStart = marketingTimeInterval.get("createTimeStart");
             String createTimeEnd = marketingTimeInterval.get("createTimeEnd");
@@ -78,22 +81,34 @@ public class QiFuCuWanJianBatQryUserRealService {
                 data.put("hasScanData", "0");
                 return new Result().success().setDate(data);
             }
-            log.warn(TITLE + "scanData 获取到数据, 条数{}", marketingSyncInfoList.size());
 
             MarketingSyncInfo marketingSyncInfo = marketingSyncInfoList.get(0);
+            Long dataId = marketingSyncInfo.getId();
             String taskId = marketingSyncInfo.getCusBatch();
+            log.warn(TITLE + "scanData 获取到数据, dataId: {}, taskId: {}", dataId, taskId);
+
+            // saveAction
+            SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionData);
+
+            // marketingSyncUserList
             List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(apiCode, marketingSyncInfo.getRequestBatch());
 
-            // process submit data
-            actionDataList(apiCode, taskId, marketingSyncUserList);
+            // actionDataList
+            Result<Map<String, Object>> actionResult = actionDataList(apiCode, taskId, marketingSyncUserList);
+
+            // updateActionStatus
+            if (actionResult!=null && actionResult.isSuccess()){
+                updateActionStatus(queryAction.getId(), 2);
+                log.warn(TITLE+"今日更新成功, apiCode:{}, actionData:{}", apiCode, actionData);
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
-            Thread.currentThread().interrupt();
         }
         return result;
     }
 
-    private void actionDataList(String apiCode, String taskId, List<MarketingSyncUser> dataList) {
+    private Result<Map<String, Object>> actionDataList(String apiCode, String taskId, List<MarketingSyncUser> dataList) {
+        Result result = new Result().failure();
         Integer threadPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("threadPoolSize")));
         Integer partitionSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
         dbActionPool.setCorePoolSize(threadPoolSize);
@@ -113,6 +128,7 @@ public class QiFuCuWanJianBatQryUserRealService {
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         log.warn(TITLE + "actionTaskDataList, apiCode: {}, taskId: {}");
+        return result.success();
     }
 
     private void actionPartition(String apiCode, String taskId, List<MarketingSyncUser> partition) {
@@ -197,6 +213,23 @@ public class QiFuCuWanJianBatQryUserRealService {
         res.put("createTimeStart", createTimeStart);
         res.put("createTimeEnd", createTimeEnd);
         return res;
+    }
+
+    public SynInfoQueryAction saveAction(Long dataId, String apiCode, String actionData) {
+        SynInfoQueryAction queryAction = new SynInfoQueryAction();
+        queryAction.setDataId(dataId);
+        queryAction.setDataType("1");
+        queryAction.setApiCode(apiCode);
+        queryAction.setActionStatus(1);
+        queryAction.setActionDate(actionData);
+        synInfoQueryActionMapper.insert(queryAction);
+        return queryAction;
+    }
+    public void updateActionStatus(Long id, Integer status) {
+        SynInfoQueryAction action = new SynInfoQueryAction();
+        action.setId(id);
+        action.setActionStatus(status);
+        synInfoQueryActionMapper.updateByPrimaryKeySelective(action);
     }
 
 
