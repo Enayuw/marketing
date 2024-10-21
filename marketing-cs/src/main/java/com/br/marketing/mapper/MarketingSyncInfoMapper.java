@@ -22,9 +22,10 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("id") Long id, @Param("beginTime") String beginTime
             , @Param("endTime") String endTime);
 
-    List<MarketingSyncInfo> querySynInfoWithAction(
+    List<MarketingSyncInfo> querySynInfoWithActiontikv_(
             @Param("apiCode") String apiCode,
             @Param("statusList") List<Integer> statusList,
+            @Param("actionDate") String actionDate,
             @Param("createTimeStart") String createTimeStart,
             @Param("createTimeEnd") String createTimeEnd
     );

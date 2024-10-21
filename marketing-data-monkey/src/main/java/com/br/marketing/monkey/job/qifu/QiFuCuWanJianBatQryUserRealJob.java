@@ -54,9 +54,9 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
             // action
             for (Map<String, String> paramMap : paramList) {
                 String apiCode = paramMap.get("apiCode");
-                String actionDate = paramMap.get("actionDate");
+                String bizDate = paramMap.get("bizDate");
 
-                Result<Map<String, Object>> actionResult = action(apiCode, actionDate);
+                Result<Map<String, Object>> actionResult = action(apiCode, bizDate);
                 boolean hasScanData = judgeHasScanData(actionResult);
                 if(hasScanData){
                     break;
@@ -69,10 +69,10 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private Result<Map<String, Object>> action(String apiCode, String actionDate) {
+    private Result<Map<String, Object>> action(String apiCode, String bizDate) {
         QiFuCuWanJianBatQryUserRealDto param = new QiFuCuWanJianBatQryUserRealDto();
         param.setApiCode(apiCode);
-        param.setActionData(actionDate);
+        param.setBizDate(bizDate);
         List<Integer> statusList = new ArrayList<>();
         statusList.add(2);
         statusList.add(4);
@@ -95,7 +95,7 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
 
     /**
      * 解析Job参数，格式如下：
-     * e.g [{"apiCode":"3710155","actionDate":"0"},{"apiCode":"3710155","actionDate":"-1"}]
+     * e.g [{"apiCode":"3710155","bizDate":"0"},{"apiCode":"3710155","bizDate":"-1"}]
      */
     private List<Map<String, String>> parseParameter() throws Exception {
         List<Map<String, String>> paramList = new ArrayList<>();
@@ -112,15 +112,15 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
             }
             paramMap.put("apiCode", apiCode);
 
-            // actionDate
-            String actionDateDay = configMap.get("actionDate");
-            if(StringUtils.isEmpty(actionDateDay)){
+            // bizDate
+            String bizDateDay = configMap.get("bizDate");
+            if(StringUtils.isEmpty(bizDateDay)){
                 throw new Exception("Job参数actionDate格式不正确");
             }
-            Long actionDateDayLong = Long.parseLong(actionDateDay);
-            LocalDate actionLocalDate = curLocalDate.plusDays(actionDateDayLong);
-            String actionDateFormat = actionLocalDate.toString();
-            paramMap.put("actionDate", actionDateFormat);
+            Long bizDateDayLong = Long.parseLong(bizDateDay);
+            LocalDate bizLocalDate = curLocalDate.plusDays(bizDateDayLong);
+            String bizDateFormat = bizLocalDate.toString();
+            paramMap.put("bizDate", bizDateFormat);
 
             // add paramList
             paramList.add(paramMap);

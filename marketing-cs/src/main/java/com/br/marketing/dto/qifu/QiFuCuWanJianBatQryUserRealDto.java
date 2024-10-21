@@ -9,5 +9,5 @@ public class QiFuCuWanJianBatQryUserRealDto {
 
     private String apiCode;
     private List<Integer> statusList;
-    private String actionData;
+    private String bizDate;
 }

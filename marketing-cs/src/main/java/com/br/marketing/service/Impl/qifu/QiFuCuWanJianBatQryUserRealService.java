@@ -70,13 +70,15 @@ public class QiFuCuWanJianBatQryUserRealService {
         QiFuCuWanJianBatQryUserRealDto param = condition.getParam();
         String apiCode = param.getApiCode();
         List<Integer> statusList = param.getStatusList();
-        String actionData = param.getActionData();
+        String bizDate = param.getBizDate();
+        String actionDate = LocalDate.now().toString();
 
         try{
-            Map<String, String> marketingTimeInterval = calculateTimeInterval(actionData);
+            Map<String, String> marketingTimeInterval = calculateTimeInterval(bizDate);
             String createTimeStart = marketingTimeInterval.get("createTimeStart");
             String createTimeEnd = marketingTimeInterval.get("createTimeEnd");
-            List<MarketingSyncInfo> marketingSyncInfoList = marketingSyncInfoMapper.querySynInfoWithAction(apiCode, statusList, createTimeStart, createTimeEnd);
+            List<MarketingSyncInfo> marketingSyncInfoList = marketingSyncInfoMapper.querySynInfoWithActiontikv_(apiCode
+                    , statusList, actionDate, createTimeStart, createTimeEnd);
             if (CollectionUtils.isEmpty(marketingSyncInfoList)) {
                 log.warn(TITLE+"scanData, 未获取到数据");
                 data.put("hasScanData", "0");
@@ -89,7 +91,7 @@ public class QiFuCuWanJianBatQryUserRealService {
             log.warn(TITLE + "scanData 获取到数据, dataId: {}, taskId: {}", dataId, taskId);
 
             // saveAction
-            SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionData);
+            SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
 
             // marketingSyncUserList
             List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(apiCode, marketingSyncInfo.getRequestBatch());
@@ -100,7 +102,7 @@ public class QiFuCuWanJianBatQryUserRealService {
             // updateActionStatus
             if (actionResult!=null && actionResult.isSuccess()){
                 updateActionStatus(queryAction.getId(), 2);
-                log.warn(TITLE+"今日更新成功, apiCode:{}, actionData:{}", apiCode, actionData);
+                log.warn(TITLE+"今日更新成功, apiCode:{}, bizDate:{}", apiCode, bizDate);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
@@ -203,24 +205,24 @@ public class QiFuCuWanJianBatQryUserRealService {
         return extendList;
     }
 
-    private Map<String, String> calculateTimeInterval(String actionDate) throws ParseException {
+    private Map<String, String> calculateTimeInterval(String bizDate) throws ParseException {
         Map<String, String> res = new HashMap<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate actionLocalDate = LocalDate.parse(actionDate, formatter);
-        LocalDate endLocalDate = actionLocalDate.plusDays(1);
+        LocalDate bizLocalDate = LocalDate.parse(bizDate, formatter);
+        LocalDate endLocalDate = bizLocalDate.plusDays(1);
 
-        res.put("createTimeStart", actionLocalDate.toString());
+        res.put("createTimeStart", bizLocalDate.toString());
         res.put("createTimeEnd", endLocalDate.toString());
         return res;
     }
 
-    public SynInfoQueryAction saveAction(Long dataId, String apiCode, String actionData) {
+    public SynInfoQueryAction saveAction(Long dataId, String apiCode, String actionDate) {
         SynInfoQueryAction queryAction = new SynInfoQueryAction();
         queryAction.setDataId(dataId);
         queryAction.setDataType("1");
         queryAction.setApiCode(apiCode);
         queryAction.setActionStatus(1);
-        queryAction.setActionDate(actionData);
+        queryAction.setActionDate(actionDate);
         queryAction.setDeleteFlag(0);
         queryAction.setCreateTime(new Date());
         queryAction.setUpdateTime(new Date());
