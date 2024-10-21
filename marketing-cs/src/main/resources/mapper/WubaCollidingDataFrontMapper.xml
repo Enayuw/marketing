@@ -9,7 +9,8 @@
         left join b_wuba_colliding_data_second_loop_cycle e on a.cell = e.cell and e.is_deleted = 0
         left join b_wuba_colliding_data_rob b
         on a.cell = b.cell
-        <![CDATA[ and ((b.create_time >= #{today} and b.create_time < #{tomorrow} ]]>) or (b.package_id in ${highValueIds}))
+        <![CDATA[ and ((b.create_time >= #{today} and b.create_time < #{tomorrow} ]]>) or (b.package_id in ${highValueIds})
+        or (b.package_id in ${reavedFileIds}))
         and b.api_code = #{apiCode} and b.is_deleted = 0
         where b.id is null and d.id is null and e.id is null
         and a.is_deleted = 0

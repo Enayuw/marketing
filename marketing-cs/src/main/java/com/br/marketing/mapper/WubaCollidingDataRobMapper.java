@@ -21,4 +21,9 @@ public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBa
 
     void batchSaveTrueToFalseData(@Param("cells") List<String> cells, @Param("apiCode") String apiCode,
                                   @Param("dataSourceType") String dataSourceType);
+
+    List<WubaCollidingData> selectReavedData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode,
+                                             @Param("pushTimeEnd") Date pushTimeEnd,
+                                             @Param("loopCycleReavedFileId") Long loopCycleReavedFileId);
+
 }

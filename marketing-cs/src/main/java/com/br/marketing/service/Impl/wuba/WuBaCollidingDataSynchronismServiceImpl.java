@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.wuba;
 
 import com.br.common.log.AlertLog;
+import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -21,8 +22,11 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -80,6 +84,9 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
 
         // 查询高价值文件id
         String highValueIds = getHighValueFileIds(apiCode);
+        // 查询-2的文件id
+        String reavedFileIds = getWubaCollidingReavedFileIds();
+        log.warn("58撞库数据同步作业，开启撞库的status=-2文件ids：{}", reavedFileIds);
         Long minId = null;
         while (true) {
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
@@ -89,7 +96,7 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
             Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDatetikv_(localFile.getId(),
-                    apiCode, minId, pageSize, today, tomorrow, highValueIds);
+                    apiCode, minId, pageSize, today, tomorrow, highValueIds, reavedFileIds);
             if (CollectionUtils.isEmpty(wubaCollidingDataFronts)) {
                 break;
             }
@@ -104,6 +111,23 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         }
 
         threadPoolShutDown(pool);
+    }
+
+    private String getWubaCollidingReavedFileIds() {
+        List<Long> reavedFileIds = new ArrayList<>();
+        HashMap<String, HashMap<String, Boolean>> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
+        for (Map.Entry<String, HashMap<String, Boolean>> mapEntry : map.entrySet()) {
+            for (Map.Entry<String, Boolean> booleanEntry : mapEntry.getValue().entrySet()) {
+                if (booleanEntry.getValue()) {
+                    reavedFileIds.add(Long.valueOf(booleanEntry.getKey()));
+                }
+            }
+        }
+
+        if (CollectionUtils.isEmpty(reavedFileIds)) {
+            return "(\"\")";
+        }
+        return Joiner.on(",").join(reavedFileIds);
     }
 
     @Override

@@ -1912,6 +1912,12 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingHighValueFiles;
 
     /**
+     * 58撞库status=-2文件id集合，T:非金融周期，S:金融周期，F:非周期，true:开启撞库，false:关闭撞库 e.g.{"非周期":{"文件id":是否开启撞库}}
+     * {"T":{"123":true},"S":{"456":true},"F":{"789":true}}
+     */
+    private HashMap<String, HashMap<String, Boolean>> wubaCollidingReavedFileIds;
+
+    /**
      * 58撞库每日最大量级限制
      */
     private Integer wubaCollidingDataMaxCountLimit;

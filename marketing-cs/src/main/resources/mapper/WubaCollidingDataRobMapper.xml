@@ -48,4 +48,13 @@
             (#{item}, #{apiCode}, #{dataSourceType}, 1)
         </foreach>
     </insert>
+
+    <select id="selectReavedData" resultType="com.br.marketing.entity.WubaCollidingData">
+        select id, cell, package_id from b_wuba_colliding_data_rob
+        where is_deleted = 0 and package_id = #{loopCycleReavedFileId}
+          and api_code = #{apiCode}
+          <![CDATA[ and push_time < #{pushTimeEnd} ]]>
+        order by push_time
+            limit #{pageSize}
+    </select>
 </mapper>
