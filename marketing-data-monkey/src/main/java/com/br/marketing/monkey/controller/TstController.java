@@ -40,15 +40,15 @@ public class TstController {
     public String queryList(){
         ArrayList<RealDataesReq> list = new ArrayList<>();
         RealDataesReq realDataesReq = new RealDataesReq();
-        realDataesReq.setUniqueReqNo("zdh8252290811");
-        realDataesReq.setMobileMd5("6ae55d7fe41e1b558dd8be321e218f7e");
+        realDataesReq.setUniqueReqNo("AGOP6567212229496934401");
+        realDataesReq.setMobileMd5("c4a2ec03981c32175c52c1c5ecf3802b");
         list.add(realDataesReq);
 
         String uuid = UUID.randomUUID().toString();
         QrySleepUserRealMessageReq req = new QrySleepUserRealMessageReq();
         req.setRealDataes(list);
         req.setRequestNo(uuid);
-        req.setBatchNo("qftest56178176");
+        req.setBatchNo("68228_6567211717338857473");
         req.setInitiatingType("noArt");
         req.setPartner("bairong");
 

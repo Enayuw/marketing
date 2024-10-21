@@ -203,7 +203,7 @@ api:
     isProxy: 1
   qifu:
     baseUri: https://stg1-gws-bps-web.daikuan.360.cn
-    baseCuDongZhiUri: https://stg3-gws-bps-web.daikuan.360.cn
+    baseCuDongZhiUri: https://stg2-gws-bps-web.daikuan.360.cn
     saveReachDeleteRecordUrl: ${api.qifu.baseUri}/api/gws/bps/gateway/agent/operation/agentOperationSaveReachDeleteRecord
     saveReachDeleteRecordCuDongZhiUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/agent/operation/agentOperationActSaveReachDeleteRecord
     qrySleepUserRealMessageUrl: ${api.qifu.baseCuDongZhiUri}/api/gws/bps/gateway/operation/batchQrySleepUserRealMessage
