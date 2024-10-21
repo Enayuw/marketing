@@ -2,7 +2,6 @@ package com.br.marketing.monkey.job.qifu;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.qifu.QiFuCuWanJianBatQryUserRealDto;
@@ -17,8 +16,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -112,15 +113,13 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
             paramMap.put("apiCode", apiCode);
 
             // actionDate
-            String actionDateStr = configMap.get("actionDate");
-            if(StringUtils.isEmpty(actionDateStr)){
-                throw new Exception("Job参数bizDate格式不正确");
+            String actionDateDay = configMap.get("actionDate");
+            if(StringUtils.isEmpty(actionDateDay)){
+                throw new Exception("Job参数actionDate格式不正确");
             }
-            Long actionDateLong = Long.parseLong(actionDateStr);
-            LocalDate actionLocalDate = curLocalDate.plusDays(actionDateLong);
-            Date actionDate = Date.from(actionLocalDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant());
-            String actionDateFormat = DateUtils.format(actionDate, "yyyyMMdd");
-
+            Long actionDateDayLong = Long.parseLong(actionDateDay);
+            LocalDate actionLocalDate = curLocalDate.plusDays(actionDateDayLong);
+            String actionDateFormat = actionLocalDate.toString();
             paramMap.put("actionDate", actionDateFormat);
 
             // add paramList

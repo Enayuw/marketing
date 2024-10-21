@@ -2,7 +2,6 @@ package com.br.marketing.service.Impl.qifu;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.client.qifu.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -24,6 +23,8 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -151,7 +152,7 @@ public class QiFuCuWanJianBatQryUserRealService {
         qrySleepUserRealMessageReq.setInitiatingType("noArt");
         qrySleepUserRealMessageReq.setPartner("bairong");
         qrySleepUserRealMessageReq.setRealDataes(realDataes);
-        Result<ResponseData<QrySleepUserRealMessageResp>> dataResult = qiFuClients.qrySleepUserRealMessage(qrySleepUserRealMessageReq);
+        Result<ResponseData<QrySleepUserRealMessageResp>> dataResult = qiFuClients.qryUserRealMessageUrl(qrySleepUserRealMessageReq);
         log.warn(TITLE + "返回结果, dataResult{}", JSONObject.toJSONString(dataResult));
 
         if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
@@ -204,14 +205,12 @@ public class QiFuCuWanJianBatQryUserRealService {
 
     private Map<String, String> calculateTimeInterval(String actionDate) throws ParseException {
         Map<String, String> res = new HashMap<>();
-        Date bizDate = DateUtils.parse(actionDate, "yyyyMMdd");
-        Date endDate = new Date(bizDate.getTime() + 86400000L);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate actionLocalDate = LocalDate.parse(actionDate, formatter);
+        LocalDate endLocalDate = actionLocalDate.plusDays(1);
 
-        String createTimeStart = DateUtils.format(bizDate, "yyyy-MM-dd 00:00:00");
-        String createTimeEnd = DateUtils.format(endDate, "yyyy-MM-dd 00:00:00");
-
-        res.put("createTimeStart", createTimeStart);
-        res.put("createTimeEnd", createTimeEnd);
+        res.put("createTimeStart", actionLocalDate.toString());
+        res.put("createTimeEnd", endLocalDate.toString());
         return res;
     }
 
@@ -222,6 +221,9 @@ public class QiFuCuWanJianBatQryUserRealService {
         queryAction.setApiCode(apiCode);
         queryAction.setActionStatus(1);
         queryAction.setActionDate(actionData);
+        queryAction.setDeleteFlag(0);
+        queryAction.setCreateTime(new Date());
+        queryAction.setUpdateTime(new Date());
         synInfoQueryActionMapper.insert(queryAction);
         return queryAction;
     }
