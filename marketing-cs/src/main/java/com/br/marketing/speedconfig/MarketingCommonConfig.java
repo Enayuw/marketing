@@ -2209,5 +2209,20 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
+    /**
+     * 奇富360-促完件-用户信息批量查询Job-开关，1-开，0-关
+     */
+    private String qiFuCuWanJianBatQryUserRealJobSwitch;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询Job-条件参数
+     */
+    private List<Map<String, String>> qiFuCuWanJianBatQryUserRealJobParams;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询config参数
+     */
+    private Map<String, Object> qiFuCuWanJianBatQryUserRealConfigParams;
+
 }
 
