@@ -440,4 +440,19 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
+    <job:simple id="【monkey】-QiFuCuWanJianBatQryUserRealJob"
+                class="com.br.marketing.monkey.job.qifu.QiFuCuWanJianBatQryUserRealJob"
+                cron="0/5 * * * * ? "
+                description="360促完件用户信息批量查询"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
 </beans>
