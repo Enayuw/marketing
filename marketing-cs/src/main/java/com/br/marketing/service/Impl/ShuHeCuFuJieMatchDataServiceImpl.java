@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.es.bean.MarketingCondition;
 import java.util.Date;
@@ -7,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +63,7 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
      * @param apiCode apiCode
      * @param date 促复借文件拉取日期
      * @param batchNumber 跑分编号
-     * @param forceFlag
+     * @param forceFlag 强制全量清洗标识
      * @param fieldId 跑分任务主键id
      */
     @Override
@@ -80,7 +83,7 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
         if (minId == null) {
             return;
         }
-        log.warn(String.format("数禾促复借{}自动化匹配数据清洗开始", date));
+        log.warn("数禾促复借{}自动化匹配数据清洗开始", date);
         minId = minId - 1;
         while (mark) {
             List<ShuHeCuFuJieData> shuHeCuFuJieDataList = shuHeCuFuJieDataMapper.shuHeCuFuJieMatchDataByMinId(date, minId, limit);
@@ -103,58 +106,65 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
             }
             threadPool.submit(() -> {
                 try {
-                    for (ShuHeCuFuJieData shuHeCuFuJieData : shuHeCuFuJieDataList) {
+                    //清洗上传数据
+                    List<String> sha256Cells = shuHeCuFuJieDataList.stream().map(ShuHeCuFuJieData::getMobileSha256).collect(Collectors.toList());
+                    Map<String, ShuHeCuFuJieData> sha256MobileMap =
+                        shuHeCuFuJieDataList.stream().collect(Collectors.toMap(ShuHeCuFuJieData::getMobileSha256, data -> data));
+                    List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.selectByDynamicCondition(apiCode, sha256Cells, condition);
+                    for (MarketingSyncUser marketingSyncUser : marketingSyncUsers) {
                         String custype = "已结清";
-                        String sha256Cell = shuHeCuFuJieData.getMobileSha256();
-                        MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectByDynamicCondition(apiCode, sha256Cell, condition);
-                        if (marketingSyncUser == null) {
-                            continue;
-                        }
+                        String sha256Cell = marketingSyncUser.getCellSha256();
+                        ShuHeCuFuJieData shuHeCuFuJieData = sha256MobileMap.get(sha256Cell);
                         String reserveField1 = marketingSyncUser.getReserveField1();
                         if (StringUtils.isNotEmpty(reserveField1)) {
                             JSONObject reserveField = JSONObject.parseObject(reserveField1);
                             if (StringUtils.isNotEmpty(shuHeCuFuJieData.getAdtLmt()) && StringUtils.isNotEmpty(shuHeCuFuJieData.getAvlLmt())
-                                && Long.parseLong(shuHeCuFuJieData.getAdtLmt()) > Long.parseLong(shuHeCuFuJieData.getAvlLmt())) {
+                                    && Long.parseLong(shuHeCuFuJieData.getAdtLmt()) > Long.parseLong(shuHeCuFuJieData.getAvlLmt())) {
                                 custype = "额度未清空";
                             }
                             reserveField.put("custype", custype);
                             marketingSyncUser.setReserveField1(reserveField.toJSONString());
                         }
                         marketingSyncUserMapper.updateReserveFieldByPrimaryKey(marketingSyncUser);
-                        boolean update = false;
-                        JSONObject jsonData = new JSONObject();
-                        jsonData.put("type", "logic");
-                        jsonData.put("logic", "and");
-                        JSONArray data = new JSONArray();
-                        JSONObject cellCondition = new JSONObject();
-                        cellCondition.put("type", "operation");
-                        cellCondition.put("key", "cell");
-                        cellCondition.put("operation", "=");
-                        cellCondition.put("value", marketingSyncUser.getCell());
-                        data.add(cellCondition);
-                        jsonData.put("data", data);
-                        QueryBaseBean queryBaseBean = new QueryBaseBean();
-                        queryBaseBean.setApiCode(apiCode);
-                        queryBaseBean.setBatchNumbers(batchNumber);
-                        queryBaseBean.setFileIds(String.valueOf(fieldId));
-                        queryBaseBean.setJsonData(jsonData.toJSONString());
-                        queryBaseBean.setPageSize(2000);
-                        List<Map<String, MarketingHistory>> marketingHistoryMapList =
+                    }
+                    //清洗es
+                    List<String> cells = marketingSyncUsers.stream().map(MarketingSyncUser::getCell).collect(Collectors.toList());
+                    Map<String, MarketingSyncUser> cellMap =
+                            marketingSyncUsers.stream().collect(Collectors.toMap(MarketingSyncUser::getCell, data -> data));
+                    JSONObject jsonData = new JSONObject();
+                    jsonData.put("type", "logic");
+                    jsonData.put("logic", "and");
+                    JSONArray data = new JSONArray();
+                    JSONObject cellCondition = new JSONObject();
+                    cellCondition.put("type", "operation");
+                    cellCondition.put("key", "cell");
+                    cellCondition.put("operation", "in");
+                    cellCondition.put("value", cells);
+                    data.add(cellCondition);
+                    jsonData.put("data", data);
+                    QueryBaseBean queryBaseBean = new QueryBaseBean();
+                    queryBaseBean.setApiCode(apiCode);
+                    queryBaseBean.setBatchNumbers(batchNumber);
+                    queryBaseBean.setFileIds(String.valueOf(fieldId));
+                    queryBaseBean.setJsonData(jsonData.toJSONString());
+                    queryBaseBean.setPageSize(2000);
+                    List<Map<String, MarketingHistory>> marketingHistoryMapList =
                             marketingHistoryEsService.builderMarketingWithIdList(queryBaseBean, null, false);
-                        for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
-                            for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
-                                MarketingHistory marketingHistory = entry.getValue();
-                                List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
-                                addOrUpdateCustypeCondition(marketingConditions, custype);
-                                JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
-                                params.put("_id", entry.getKey());
-                                RpcClientProxy.modify(index, params, EsIceType.EN.getCode(), EsIceType.R_FALSE.getCode(),
+                    for (Map<String, MarketingHistory> marketingHistoryMap : marketingHistoryMapList) {
+                        for (Map.Entry<String, MarketingHistory> entry : marketingHistoryMap.entrySet()) {
+                            MarketingHistory marketingHistory = entry.getValue();
+                            List<MarketingCondition> marketingConditions = marketingHistory.getCondition();
+                            MarketingSyncUser marketingSyncUser = cellMap.get(marketingHistory.getCell());
+                            String custype = JSONObject.parseObject(marketingSyncUser.getReserveField1()).getString("custype");
+                            addOrUpdateCustypeCondition(marketingConditions, custype);
+                            JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
+                            params.put("_id", entry.getKey());
+                            RpcClientProxy.modify(index, params, EsIceType.EN.getCode(), EsIceType.R_FALSE.getCode(),
                                     EsIceType.MARKETING.getCode());
-                            }
                         }
                     }
                 } catch (Exception ex) {
-                    log.error(ex.getMessage(), ex);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), "数禾促复借每日自动化匹配清洗异常"), ex);
                 }
             });
         }

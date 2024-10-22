@@ -390,6 +390,6 @@ public interface MarketingSyncUserMapper {
             @Param("pageSize") Integer pageSize,
             @Param("minId") Long minId);
 
-    MarketingSyncUser selectByDynamicCondition(@Param("apiCode") String apiCode, @Param("cellSha256") String cellSha256,
+    List<MarketingSyncUser> selectByDynamicCondition(@Param("apiCode") String apiCode, @Param("sha256Cells") List<String> sha256Cells,
                                                @Param("whereStr") String whereStr);
 }
