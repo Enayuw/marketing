@@ -1,7 +1,10 @@
 package com.br.marketing.entity;
 
+import lombok.Data;
+
 import java.util.Date;
 
+@Data
 public class TransferFileTask {
     /**
      * 
@@ -59,6 +62,11 @@ public class TransferFileTask {
     private Long contextId;
 
     /**
+     * 扩展字段
+     */
+    private String extend;
+
+    /**
      * 入库日期
      */
     private Date createTime;
@@ -67,127 +75,4 @@ public class TransferFileTask {
      * 修改时间
      */
     private Date updateTime;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getApiCode() {
-        return apiCode;
-    }
-
-    public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
-    }
-
-    public Integer getFileType() {
-        return fileType;
-    }
-
-    public void setFileType(Integer fileType) {
-        this.fileType = fileType;
-    }
-
-    public String getBatchNumber() {
-        return batchNumber;
-    }
-
-    public void setBatchNumber(String batchNumber) {
-        this.batchNumber = batchNumber == null ? null : batchNumber.trim();
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName == null ? null : fileName.trim();
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath == null ? null : filePath.trim();
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public Integer getTaskNumber() {
-        return taskNumber;
-    }
-
-    public void setTaskNumber(Integer taskNumber) {
-        this.taskNumber = taskNumber;
-    }
-
-    public String getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.startDate = startDate == null ? null : startDate.trim();
-    }
-
-    public Long getContextId() {
-        return contextId;
-    }
-
-    public void setContextId(Long contextId) {
-        this.contextId = contextId;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public String getFileChildDir() {
-        return fileChildDir;
-    }
-
-    public void setFileChildDir(String fileChildDir) {
-        this.fileChildDir = fileChildDir == null ? null : fileChildDir.trim();
-    }
-
-    @Override
-    public String toString() {
-        return "TransferFileTask{" +
-                "id=" + id +
-                ", apiCode='" + apiCode + '\'' +
-                ", fileType=" + fileType +
-                ", batchNumber='" + batchNumber + '\'' +
-                ", fileName='" + fileName + '\'' +
-                ", filePath='" + filePath + '\'' +
-                ", fileChildDir='" + fileChildDir + '\'' +
-                ", status=" + status +
-                ", taskNumber=" + taskNumber +
-                ", startDate='" + startDate + '\'' +
-                ", contextId=" + contextId +
-                ", createTime=" + createTime +
-                ", updateTime=" + updateTime +
-                '}';
-    }
 }
