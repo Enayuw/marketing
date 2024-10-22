@@ -1,19 +1,22 @@
 package com.br.marketing.rule.wuba;
 
+import com.alibaba.fastjson.JSON;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.common.util.StringUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
-import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.context.impl.ZhongAnRuleCollectCustomerTransferImpl;
+import com.br.marketing.context.RuleDataCollectionEnum;
+import com.br.marketing.context.impl.WuBaRuleCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,23 +42,22 @@ public class WuBaTransferDataToCustomerFilter implements AssembleData<Conversion
         conversionData.setCid(marketingTransferSyncUser.getCid());
         conversionData.setCaseNum(marketingTransferSyncUser.getCustNum());
         conversionData.setPartnerProcessDate(DateUtils.format(marketingTransferSyncUser.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-        ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData ruleNecessaryData =
-                (ZhongAnRuleCollectCustomerTransferImpl.ZhongAnRuleNecessaryData) context.getRuleNecessaryData();
+        WuBaRuleCollectDataImpl.WuBaRuleNecessaryData ruleNecessaryData =
+                (WuBaRuleCollectDataImpl.WuBaRuleNecessaryData) context.getRuleNecessaryData();
         conversionData.setInversionStatus("0");
-        Map<String, Map<String, SyncUserValidityPeriodsBO>> customerUserTypeMap = ruleNecessaryData.getCustomerUserTypeMap();
-        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = customerUserTypeMap.get(marketingTransferSyncUser.getCustNum());
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get("1");
+        Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getSyncUserValidityPeriodMap();
+        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = userValidityPeriodsBOMap.get(marketingTransferSyncUser.getCustNum());
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
         conversionData.setGroupType(syncUsers.get(0).getUserType());
-        // 去重参数设置
-        conversionData.setInitId(marketingTransferSyncUser.getId());
-        conversionData.setSoleField(SoleFieldEnum.CELL_STATUS_SOLE.getValue());
-        conversionData.setSoleType(-1);
+
         PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateString().addOfDayTimeStrString().builder();
         conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+        BeanUtils.copyProperties(marketingTransferSyncUser, vo);
+        conversionData.setInversionInfo(JSON.toJSONString(vo));
         return conversionData;
     }
 
@@ -67,6 +69,7 @@ public class WuBaTransferDataToCustomerFilter implements AssembleData<Conversion
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         String applyResult = transfer.getApplyResult();
         if (StringUtils.isEmpty(applyResult) || !"1".equals(applyResult)) {
+            log.warn(TITLE+"applyResult: {}", applyResult);
             return false;
         }
         return true;
@@ -84,6 +87,6 @@ public class WuBaTransferDataToCustomerFilter implements AssembleData<Conversion
 
     @Override
     public Integer ruleDataCollection() {
-        return null;
+        return RuleDataCollectionEnum.WUBA_TRANSFER_FILTER_COLLECTION.getCode();
     }
 }
