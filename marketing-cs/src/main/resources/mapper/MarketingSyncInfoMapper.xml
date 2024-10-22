@@ -30,6 +30,21 @@
         order by id asc limit 200
     </select>
 
+    <select id="querySynInfoWithActiontikv_" resultType="com.br.marketing.entity.MarketingSyncInfo">
+        select a.*
+        from b_marketing_sync_info a
+        left join b_syn_info_query_action b on (a.id = b.data_id and b.action_date = #{actionDate} )
+        where a.api_code = #{apiCode}
+            <if test="cusBatch != null and cusBatch !=''">
+                and cus_batch = #{cusBatch}
+            </if>
+            and a.status in (2,4)
+            <![CDATA[ and a.create_time >= #{createTimeStart} and a.create_time < #{createTimeEnd}  ]]>
+            and b.data_id is null
+        order by a.id asc
+        limit #{pageSize}
+    </select>
+
     <update id="createMarketingTransferTable" parameterType="java.lang.String">
         CREATE TABLE
             IF NOT EXISTS ${tableName} (

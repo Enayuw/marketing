@@ -350,6 +350,12 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
 
+    List<MarketingSyncUser> getSyncUserByCondition(
+            @Param("apiCode") String apiCode,
+            @Param("requestBatch") String requestBatch,
+            @Param("cusBatch") String cusBatch
+    );
+
     List<MarketingSyncUser> getSyncUserByCusBatch(@Param("apiCode") String apiCode,
                                                   @Param("cusBatch") String cusBatch,
                                                   @Param("minId") Long minId,
@@ -389,4 +395,12 @@ public interface MarketingSyncUserMapper {
             @Param("userType") String userType,
             @Param("pageSize") Integer pageSize,
             @Param("minId") Long minId);
+
+    int updateExtend(
+            @Param("apiCode") String apiCode,
+            @Param("custNum") String custNum,
+            @Param("extendList") List<Map<String, String>> extendList,
+            @Param("id") Long id,
+            @Param("idList") List<Long> idList
+    );
 }
