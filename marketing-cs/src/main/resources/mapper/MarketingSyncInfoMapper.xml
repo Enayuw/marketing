@@ -38,7 +38,8 @@
             and a.status in (2,4)
             <![CDATA[ and a.create_time >= #{createTimeStart} and a.create_time < #{createTimeEnd}  ]]>
             and b.data_id is null
-        order by a.id asc limit 1
+        order by a.id asc
+        limit #{pageSize}
     </select>
 
     <update id="createMarketingTransferTable" parameterType="java.lang.String">

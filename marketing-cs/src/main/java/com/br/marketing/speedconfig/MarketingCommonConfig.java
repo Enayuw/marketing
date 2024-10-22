@@ -2210,17 +2210,22 @@ public class MarketingCommonConfig {
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
     /**
-     * 奇富360-促完件-用户信息批量查询Job-开关，1-开，0-关
+     * 奇富360-促完件-用户信息批量查询-Job开关，1-开，0-关
      */
     private String qiFuCuWanJianBatQryUserRealJobSwitch;
 
     /**
-     * 奇富360-促完件-用户信息批量查询Job-条件参数
+     * 奇富360-促完件-用户信息批量查询-Job条件参数
      */
     private List<Map<String, String>> qiFuCuWanJianBatQryUserRealJobParams;
 
     /**
-     * 奇富360-促完件-用户信息批量查询config参数
+     * 奇富360-促完件-用户信息批量查询-Job分页条数
+     */
+    private Integer qiFuCuWanJianBatQryUserRealJobPageSize;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询-config参数
      */
     private Map<String, Object> qiFuCuWanJianBatQryUserRealConfigParams;
 

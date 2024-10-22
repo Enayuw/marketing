@@ -73,37 +73,41 @@ public class QiFuCuWanJianBatQryUserRealService {
         List<Integer> statusList = param.getStatusList();
         String bizDate = param.getBizDate();
         String actionDate = LocalDate.now().toString();
+        Integer pageSize = condition.getPageSize();
 
         try{
+            // 循环获取条件数据，每次pageSize条
             Map<String, String> marketingTimeInterval = calculateTimeInterval(bizDate);
             String createTimeStart = marketingTimeInterval.get("createTimeStart");
             String createTimeEnd = marketingTimeInterval.get("createTimeEnd");
             List<MarketingSyncInfo> marketingSyncInfoList = marketingSyncInfoMapper.querySynInfoWithActiontikv_(apiCode
-                    , statusList, actionDate, createTimeStart, createTimeEnd);
+                    , statusList, actionDate, createTimeStart, createTimeEnd, pageSize);
             if (CollectionUtils.isEmpty(marketingSyncInfoList)) {
                 log.warn(TITLE+"scanData, 未获取到数据");
                 data.put("hasScanData", "0");
                 return new Result().success().setDate(data);
             }
+            log.warn(TITLE + "scanData 获取到数据, size: {}", marketingSyncInfoList.size());
 
-            MarketingSyncInfo marketingSyncInfo = marketingSyncInfoList.get(0);
-            Long dataId = marketingSyncInfo.getId();
-            String taskId = marketingSyncInfo.getCusBatch();
-            log.warn(TITLE + "scanData 获取到数据, dataId: {}, taskId: {}", dataId, taskId);
+            for(MarketingSyncInfo marketingSyncInfo : marketingSyncInfoList) {
+                Long dataId = marketingSyncInfo.getId();
+                String taskId = marketingSyncInfo.getCusBatch();
+                log.warn(TITLE + "scanData 获取到数据, dataId: {}, taskId: {}", dataId, taskId);
 
-            // saveAction
-            SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
+                // saveAction
+                SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
 
-            // marketingSyncUserList
-            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(apiCode, marketingSyncInfo.getRequestBatch());
+                // marketingSyncUserList
+                List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(apiCode, marketingSyncInfo.getRequestBatch());
 
-            // actionDataList
-            Result<Map<String, Object>> actionResult = actionDataList(apiCode, taskId, marketingSyncUserList);
+                // actionDataList
+                Result<Map<String, Object>> actionResult = actionDataList(apiCode, taskId, marketingSyncUserList);
 
-            // updateActionStatus
-            if (actionResult!=null && actionResult.isSuccess()){
-                updateActionStatus(queryAction.getId(), 2);
-                log.warn(TITLE+"今日更新成功, apiCode:{}, bizDate:{}", apiCode, bizDate);
+                // updateActionStatus
+                if (actionResult != null && actionResult.isSuccess()) {
+                    updateActionStatus(queryAction.getId(), 2);
+                    log.warn(TITLE + "今日更新成功, apiCode:{}, bizDate:{}", apiCode, bizDate);
+                }
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));

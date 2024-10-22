@@ -50,13 +50,14 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
             }
             // Params
             List<Map<String, String>> paramList = parseParameter();
-
+            // pageSize
+            Integer pageSize = marketingCommonConfig.getQiFuCuWanJianBatQryUserRealJobPageSize();
             // action
             for (Map<String, String> paramMap : paramList) {
                 String apiCode = paramMap.get("apiCode");
                 String bizDate = paramMap.get("bizDate");
 
-                Result<Map<String, Object>> actionResult = action(apiCode, bizDate);
+                Result<Map<String, Object>> actionResult = action(apiCode, bizDate, pageSize);
                 boolean hasScanData = judgeHasScanData(actionResult);
                 if(hasScanData){
                     break;
@@ -69,7 +70,7 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private Result<Map<String, Object>> action(String apiCode, String bizDate) {
+    private Result<Map<String, Object>> action(String apiCode, String bizDate, Integer pageSize) {
         QiFuCuWanJianBatQryUserRealDto param = new QiFuCuWanJianBatQryUserRealDto();
         param.setApiCode(apiCode);
         param.setBizDate(bizDate);
@@ -79,6 +80,7 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
         param.setStatusList(statusList);
         Page2Condition<QiFuCuWanJianBatQryUserRealDto> condition = new Page2Condition<>();
         condition.setParam(param);
+        condition.setPageSize(pageSize);
         log.warn(TITLE + "condition: {}", JSONObject.toJSON(condition));
         return service.action(condition);
     }

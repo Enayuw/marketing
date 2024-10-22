@@ -27,7 +27,8 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             @Param("statusList") List<Integer> statusList,
             @Param("actionDate") String actionDate,
             @Param("createTimeStart") String createTimeStart,
-            @Param("createTimeEnd") String createTimeEnd
+            @Param("createTimeEnd") String createTimeEnd,
+            @Param("pageSize") Integer pageSize
     );
 
     void createMarketingTransferTable(@Param("tableName") String tableName);
