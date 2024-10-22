@@ -121,7 +121,7 @@ public class QiFuCuWanJianBatQryUserRealService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
         }
         long end = System.currentTimeMillis();
-        log.warn(TITLE + "scanData end, cost: {}, apiCode: {}, bizDate: {}, paramTaskId:{}, ", apiCode, bizDate, paramTaskId);
+        log.warn(TITLE + "scanData end, cost: {}, apiCode: {}, bizDate: {}, paramTaskId:{}, ", end-start, apiCode, bizDate, paramTaskId);
         return result;
     }
 

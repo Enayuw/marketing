@@ -119,7 +119,7 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
             // taskId
             String taskId = configMap.get("taskId");
             if(StringUtils.isEmpty(taskId)){
-                throw new Exception("Job参数taskId格式不正确");
+                taskId = "";
             }
             paramMap.put("taskId", taskId);
 
