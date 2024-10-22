@@ -84,6 +84,9 @@ public class TransferFileTaskServiceImpl implements TransferFileTaskService {
             return new ApiResult<>().success();
         }
         String mrpExtraTaskId = jo.getString("mrpExtraTaskId");
+        if(StringUtils.isEmpty(mrpExtraTaskId)){
+            return new ApiResult<>().success();
+        }
         String startDate = fileTask.getStartDate();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         LocalDate actionLocalDate = LocalDate.parse(startDate, formatter);
