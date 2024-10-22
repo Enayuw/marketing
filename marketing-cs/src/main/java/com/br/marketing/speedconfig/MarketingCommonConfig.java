@@ -1006,7 +1006,7 @@ public class MarketingCommonConfig {
     /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
-    private HashMap<String,List<String>>  gradeOfcallToDass;
+    private HashMap<String,List<String>>    gradeOfcallToDass;
 
     /**
      * 携程vt配置信息{"adVt":{"appId":"bairong002","source":"BaiRong_CPS_C01","iv":"3b2dac323465b024","aesKey":"f3df6f62f0527bf0","singKey":"95cc01ec07387a44"}}
@@ -2209,5 +2209,9 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
+    /**
+     * #自动刷新任务配置：apiCode \ 跑分配置规则编号 \ 推送决策规则编号
+     */
+    private Map<String, JSONObject> autoRefreshConfig;
 }
 
