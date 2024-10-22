@@ -1,15 +1,12 @@
 package com.br.marketing.service.Impl.qifu;
 
-import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.qifu.*;
-import com.br.marketing.common.annoation.RetryMethod;
+import com.br.marketing.client.qifu.QiFuClients;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.qifu.QiFuCuWanJianBatQryUserRealDto;
+import com.br.marketing.dto.qifu.QiFuCuWanJianBatQryUserRealParamsDto;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.SynInfoQueryAction;
@@ -27,7 +24,10 @@ import javax.annotation.Resource;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -61,6 +61,9 @@ public class QiFuCuWanJianBatQryUserRealService {
 
     @Resource
     private SynInfoQueryActionMapper synInfoQueryActionMapper;
+
+    @Resource
+    private QiFuCuWanJianBatQryUserRealTransService qiFuCuWanJianBatQryUserRealTransService;
 
     public Result<Map<String, Object>> action(Page2Condition<QiFuCuWanJianBatQryUserRealDto> condition) {
         return scanData(condition);
@@ -129,7 +132,11 @@ public class QiFuCuWanJianBatQryUserRealService {
         for (List<MarketingSyncUser> partition : dataPartitions) {
             futures.add(CompletableFuture.runAsync(() -> {
                 try {
-                    actionPartition(apiCode, taskId, partition);
+                    QiFuCuWanJianBatQryUserRealParamsDto paramsDto = new QiFuCuWanJianBatQryUserRealParamsDto();
+                    paramsDto.setApiCode(apiCode);
+                    paramsDto.setTaskId(taskId);
+                    paramsDto.setPartition(partition);
+                    qiFuCuWanJianBatQryUserRealTransService.actionPartition(paramsDto, 0);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "分页数据处理异常"));
                 }
@@ -138,83 +145,6 @@ public class QiFuCuWanJianBatQryUserRealService {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         log.warn(TITLE + "actionTaskDataList, apiCode: {}, taskId: {}");
         return result.success();
-    }
-
-    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
-    private void actionPartition(String apiCode, String taskId, List<MarketingSyncUser> partition) {
-        List<RealDataesReq> realDataes = new ArrayList<>();
-        Map<String, Long> custNumToIdMap = new HashMap<>();
-        for (MarketingSyncUser marketingSyncUser : partition) {
-            RealDataesReq realDataesReq = new RealDataesReq();
-            realDataesReq.setUniqueReqNo(marketingSyncUser.getCustNum());
-            realDataesReq.setMobileMd5(marketingSyncUser.getCellMd5());
-            realDataes.add(realDataesReq);
-            Long id = marketingSyncUser.getId();
-            custNumToIdMap.put(marketingSyncUser.getCustNum(), id);
-        }
-
-        QrySleepUserRealMessageReq qrySleepUserRealMessageReq = new QrySleepUserRealMessageReq();
-        String uuid = UUID.randomUUID().toString();
-        qrySleepUserRealMessageReq.setRequestNo(uuid);
-        qrySleepUserRealMessageReq.setBatchNo(taskId);
-        qrySleepUserRealMessageReq.setInitiatingType("noArt");
-        qrySleepUserRealMessageReq.setPartner("bairong");
-        qrySleepUserRealMessageReq.setRealDataes(realDataes);
-        Result<ResponseData<QrySleepUserRealMessageResp>> dataResult = qiFuClients.qryUserRealMessageUrl(qrySleepUserRealMessageReq);
-        log.warn(TITLE + "返回结果, dataResult{}", JSONObject.toJSONString(dataResult));
-
-        if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
-            ResponseData<QrySleepUserRealMessageResp> data = dataResult.getData();
-            QrySleepUserRealMessageResp qrySleepUserRealMessageResp = data.getData().getT();
-            List<QryUserRealMessage> realDetails = qrySleepUserRealMessageResp.getRealDetails();
-            for (QryUserRealMessage qryUserRealMessage : realDetails) {
-                String custNum = qryUserRealMessage.getUniqueReqNo();
-                // String mobileMd5 = qryUserRealMessage.getMobileMd5();
-                Object userMessageRes = qryUserRealMessage.getUserMessageRes();
-                if (userMessageRes == null) {
-                    continue;
-                }
-                JSONObject userMessageJo = JSONObject.parseObject(userMessageRes.toString());
-                if (userMessageJo == null) {
-                    continue;
-                }
-
-                List<Map<String, String>> extendList = assembleExtendList(userMessageJo);
-                // update
-                Long id = custNumToIdMap.get(custNum);
-                marketingSyncUserMapper.updateExtend(apiCode, custNum, extendList, id, null);
-            }
-        }
-    }
-
-    private List<Map<String, String>> assembleExtendList(JSONObject userMessageJo){
-        String name = userMessageJo.getString("name");
-        if(StringUtils.isEmpty(name)){
-            name = "";
-        }
-        String sex = userMessageJo.getString("sex");
-        if(StringUtils.isEmpty(sex)){
-            sex = "";
-        }
-        String gender;
-        switch (sex){
-            case "F": gender="0"; break;
-            case "M": gender="1"; break;
-            default: gender="";
-        }
-
-        // extendList
-        List<Map<String, String>> extendList = new ArrayList<>();
-        Map<String, String> nameMap = new HashMap<>();
-        nameMap.put("key", "cusName");
-        nameMap.put("value", name);
-        Map<String, String> sexMap = new HashMap<>();
-        sexMap.put("key", "gender");
-        sexMap.put("value", gender);
-
-        extendList.add(nameMap);
-        extendList.add(sexMap);
-        return extendList;
     }
 
     private Map<String, String> calculateTimeInterval(String bizDate) throws ParseException {
