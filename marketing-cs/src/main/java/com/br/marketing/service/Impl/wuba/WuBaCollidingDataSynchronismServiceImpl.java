@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -83,7 +84,8 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
                 marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
 
         // 查询高价值文件id
-        String highValueIds = getHighValueFileIds(apiCode);
+        List<Long> highValueIdList = getHighValueFileIds(apiCode);
+        String highValueIds = Objects.isNull(highValueIdList) ? "(\"\")" : "(" + Joiner.on(",").join(highValueIdList) + ")";
         // 查询-2的文件id
         String reavedFileIds = getWubaCollidingReavedFileIds();
         log.warn("58撞库数据同步作业，开启撞库的status=-2文件ids：{}", reavedFileIds);
@@ -131,21 +133,21 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
     }
 
     @Override
-    public String getHighValueFileIds(String apiCode) {
+    public List<Long> getHighValueFileIds(String apiCode) {
         List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
         if (CollectionUtils.isEmpty(highValueFiles)) {
-            return "(\"\")";
+            return null;
         }
 
         LocalFileExample localFileExample = new LocalFileExample();
         localFileExample.createCriteria().andApiCodeEqualTo(apiCode).andFileNameIn(highValueFiles);
         List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
         List<Long> highValueIds = localFiles.stream().map(LocalFile::getId).collect(Collectors.toList());
-
         if (CollectionUtils.isEmpty(highValueIds)) {
-            return "(\"\")";
+            return null;
         }
-        return "(" + Joiner.on(",").join(highValueIds) + ")";
+
+        return highValueIds;
     }
 
     private void modifyThreadPool(ThreadPoolExecutor pool) {

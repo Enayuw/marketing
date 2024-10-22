@@ -57,4 +57,12 @@
         order by push_time
             limit #{pageSize}
     </select>
+
+    <insert id="batchSaveReavedDataInToRob" >
+        INSERT INTO b_wuba_colliding_data_rob (cell, api_code, data_source_type, package_id, push_time)
+        VALUES
+        <foreach collection="cells" item="item" separator=",">
+            (#{item}, #{apiCode}, #{dataSourceType}, #{packageId}, now())
+        </foreach>
+    </insert>
 </mapper>

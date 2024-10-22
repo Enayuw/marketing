@@ -85,4 +85,22 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
         wubaCollidingDataSecondLoopCycleMapper.batchDeleteByCell(cells, apiCode);
         wubaCollidingDataRobMapper.batchSaveTrueToFalseData(cells, apiCode, "S");
     }
+
+    /**
+     * 撞回status=-2数据从非金融周期表删除，并保存到非金融-2撞库包
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId) {
+        wubaCollidingDataLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(cells, apiCode, "T", packageId);
+    }
+
+    /**
+     * 撞回status=-2数据从金融周期表删除，并保存到金融-2撞库包
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteSecondLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId) {
+        wubaCollidingDataSecondLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(cells, apiCode, "S", packageId);
+    }
 }

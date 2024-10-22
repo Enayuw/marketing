@@ -49,4 +49,20 @@ public interface WuBaCollidingDataBusinessService {
      * @param apiCode
      */
     void deleteSecondLoopAndSaveRob(List<String> data, String apiCode);
+
+    /**
+     * 非金融数据进入非金融status=-2撞库包
+     * @param cells
+     * @param apiCode
+     * @param packageId
+     */
+    void deleteLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId);
+
+    /**
+     * 金融数据进入金融status=-2撞库包
+     * @param cells
+     * @param apiCode
+     * @param packageId
+     */
+    void deleteSecondLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId);
 }
