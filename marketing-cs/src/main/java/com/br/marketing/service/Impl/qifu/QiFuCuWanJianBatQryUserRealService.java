@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl.qifu;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.qifu.*;
+import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -139,6 +140,7 @@ public class QiFuCuWanJianBatQryUserRealService {
         return result.success();
     }
 
+    @RetryMethod(retryNowNum = 3, isOrNoDbRetry = true)
     private void actionPartition(String apiCode, String taskId, List<MarketingSyncUser> partition) {
         List<RealDataesReq> realDataes = new ArrayList<>();
         Map<String, Long> custNumToIdMap = new HashMap<>();
