@@ -1732,7 +1732,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
+        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
             sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 dataInfoDTO.setApiCode(apiCode);
@@ -1793,7 +1793,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(infoId);
             mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                 String message = JSON.toJSONString(mqFact);
                 template.syncSend(MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
@@ -2280,7 +2280,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(id);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                 String message = JSON.toJSONString(mqFact);
                 template.syncSend(MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
@@ -2293,13 +2293,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private void transferSendUserTypeCollectionMsg(String cid, MarketingTransferInfo transferInfo
             , Map<String, UserTypeCollectionDTO> localUserTypeCache) {
-        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+        String apiCode = transferInfo.getApiCode();
+        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
             sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
                 dataInfoDTO.setArgList(collections);
                 dataInfoDTO.setCid(cid);
-                dataInfoDTO.setApiCode(transferInfo.getApiCode());
+                dataInfoDTO.setApiCode(apiCode);
                 dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
                 dataInfoDTO.setRequestId(transferInfo.getRequestId());
@@ -2311,7 +2312,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());
                 dataInfoDTO.setArgList(collections);
                 dataInfoDTO.setCid(cid);
-                dataInfoDTO.setApiCode(transferInfo.getApiCode());
+                dataInfoDTO.setApiCode(apiCode);
                 dataInfoDTO.setRawDataSaveTimeStr(transferInfo.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
                 dataInfoDTO.setRequestId(transferInfo.getRequestId());
