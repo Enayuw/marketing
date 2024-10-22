@@ -399,15 +399,15 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     }
 
     private Long getReavedPackageIdFromSpeed(String sourceType) {
-        HashMap<String, HashMap<String, Boolean>> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
-        HashMap<String, Boolean> hashMap = map.get(sourceType);
+        HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
+        JSONObject hashMap = map.get(sourceType);
         if (Objects.isNull(hashMap)) {
             sendAlert();
             return null;
         }
 
-        Set<Map.Entry<String, Boolean>> entries = hashMap.entrySet();
-        for (Map.Entry<String, Boolean> entry : entries) {
+        Set<Map.Entry<String, Object>> entries = hashMap.entrySet();
+        for (Map.Entry<String, Object> entry : entries) {
             return Long.valueOf(entry.getKey());
         }
 

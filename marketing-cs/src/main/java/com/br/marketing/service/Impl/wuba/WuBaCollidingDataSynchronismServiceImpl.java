@@ -1,7 +1,7 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -93,7 +93,15 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         while (true) {
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
 
-            // local_id and status =1 and push_status =1，去重逻辑：1.该文件本身去重、2.该文件与非周期当天已同步数据或高质量数据去重、3.该文件与周期表全量去重
+            // local_id and status =1 and push_status =1，去重逻辑：
+            // 1.与该文件本身数据去重
+            // 2.与当天已上传数据去重
+            // 3.与高价值数据去重
+            // 4.与周期非金融数据去重
+            // 5.与周期金融数据去重
+            // 6.与周期非金融status=-2包去重
+            // 7.与周期金融status=-2包去重
+            // 8.与补包status=-2包去重
             Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
@@ -117,10 +125,10 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
 
     private String getWubaCollidingReavedFileIds() {
         List<Long> reavedFileIds = new ArrayList<>();
-        HashMap<String, HashMap<String, Boolean>> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
-        for (Map.Entry<String, HashMap<String, Boolean>> mapEntry : map.entrySet()) {
-            for (Map.Entry<String, Boolean> booleanEntry : mapEntry.getValue().entrySet()) {
-                if (booleanEntry.getValue()) {
+        HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
+        for (Map.Entry<String, JSONObject> mapEntry : map.entrySet()) {
+            for (Map.Entry<String, Object> booleanEntry : mapEntry.getValue().entrySet()) {
+                if ((Boolean) booleanEntry.getValue()) {
                     reavedFileIds.add(Long.valueOf(booleanEntry.getKey()));
                 }
             }
@@ -129,7 +137,7 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         if (CollectionUtils.isEmpty(reavedFileIds)) {
             return "(\"\")";
         }
-        return Joiner.on(",").join(reavedFileIds);
+        return "(" + Joiner.on(",").join(reavedFileIds) + ")";
     }
 
     @Override

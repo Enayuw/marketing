@@ -309,15 +309,15 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         return new Pair<>(null, null);
     }
 
-    private Long getReavedFileIdByType(String type){
-        HashMap<String, HashMap<String, Boolean>> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
-        HashMap<String, Boolean> hashMap = map.get(type);
+    private Long getReavedFileIdByType(String type) {
+        HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
+        JSONObject hashMap = map.get(type);
         if (CollectionUtils.isEmpty(hashMap)) {
             return null;
         }
 
-        for (Map.Entry<String, Boolean> entry : hashMap.entrySet()) {
-            if (entry.getValue()) {
+        for (Map.Entry<String, Object> entry : hashMap.entrySet()) {
+            if ((Boolean) entry.getValue()) {
                 return Long.valueOf(entry.getKey());
             }
         }
