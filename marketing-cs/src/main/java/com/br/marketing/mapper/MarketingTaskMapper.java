@@ -236,4 +236,8 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     @AddDataAuth
     List<ScoreDetailVo> queryBatchList(CustomerBatchNumVO batchNumVO);
+
+    List<MarketingTaskVO> queryCompletStatus(@Param("apiCode")String apiCode, @Param("createTimeStart")String createTimeStart,
+                                             @Param("createTimeEnd")String createTimeEnd, @Param("taskStatus")Integer taskStatus,
+                                             @Param("conditionType")String conditionType, @Param("ruleNameShort")String ruleNameShort);
 }

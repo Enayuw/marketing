@@ -8,6 +8,6 @@ public interface IRuleRefreshConfigService {
     /**
      * 自动刷新任务配置
      */
-    void buildRefreshConfig();
+    void autoRefreshConfig();
 
 }
