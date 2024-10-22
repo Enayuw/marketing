@@ -69,7 +69,7 @@ public class WuBaTransferDataToCustomerFilter implements AssembleData<Conversion
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         String applyResult = transfer.getApplyResult();
         if (StringUtils.isEmpty(applyResult) || !"1".equals(applyResult)) {
-            log.warn(TITLE+"applyResult: {}", applyResult);
+            log.warn(TITLE+"-isNeedAssemble, applyResult: {}", applyResult);
             return false;
         }
         return true;
@@ -89,4 +89,5 @@ public class WuBaTransferDataToCustomerFilter implements AssembleData<Conversion
     public Integer ruleDataCollection() {
         return RuleDataCollectionEnum.WUBA_TRANSFER_FILTER_COLLECTION.getCode();
     }
+
 }
