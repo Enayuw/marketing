@@ -3,6 +3,9 @@ package com.br.marketing.innerapi.controller.test;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Md5Utils;
 import com.br.marketing.client.zbank.ZbankClient;
+import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.es.bean.QueryBaseBean;
+import com.br.marketing.es.service.MarketingHistoryEsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -63,5 +67,20 @@ public class HttpTestController {
         String s = zBankClient.labelRatingRe(map4);
         log.warn("zBank##################################:" + s);
         return JSONObject.parseObject(s);
+    }
+
+    @Resource
+    MarketingHistoryEsService marketingHistoryEsService;
+
+    @GetMapping(path = {"testEs"})
+    public String testEs(String scriptFields){
+        QueryBaseBean queryBaseBean = new QueryBaseBean();
+        queryBaseBean.setApiCode("7410950");
+        queryBaseBean.setBatchNumbers("7410950_20241017000000_2626");
+        queryBaseBean.setFileIds("3000069");
+        queryBaseBean.setJsonData("{\"type\":\"logic\",\"logic\":\"and\",\"data\":[{\"type\":\"operation\",\"key\":\"scorencashonxchx\",\"operation\":\">=\",\"value\":\"10\"}]}");
+        queryBaseBean.setScriptFields(scriptFields);
+        List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+        return "";
     }
 }
