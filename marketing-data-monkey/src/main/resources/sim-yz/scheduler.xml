@@ -442,7 +442,7 @@
 
     <job:simple id="【monkey】-QiFuCuWanJianBatQryUserRealJob"
                 class="com.br.marketing.monkey.job.qifu.QiFuCuWanJianBatQryUserRealJob"
-                cron="0/5 * * * * ? "
+                cron="0/10 * * * * ? "
                 description="360促完件用户信息批量查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
