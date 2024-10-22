@@ -79,8 +79,18 @@ public class QiFuCuWanJianBatQryUserRealTransService {
 
         if (ResultCode.SUCCESS.getValue().equals(dataResult.getCode())) {
             ResponseData<QrySleepUserRealMessageResp> data = dataResult.getData();
-            QrySleepUserRealMessageResp qrySleepUserRealMessageResp = data.getData().getT();
+            ResultDataObj<QrySleepUserRealMessageResp> dataObj = data.getData();
+            if(dataObj == null){
+                return result.success();
+            }
+            QrySleepUserRealMessageResp qrySleepUserRealMessageResp = dataObj.getT();
+            if(qrySleepUserRealMessageResp == null){
+                return result.success();
+            }
             List<QryUserRealMessage> realDetails = qrySleepUserRealMessageResp.getRealDetails();
+            if(CollectionUtils.isEmpty(realDataes)){
+                return result.success();
+            }
             log.warn(TITLE + "返回结果, realDetails: {}", JSONObject.toJSONString(dataResult));
             for (QryUserRealMessage qryUserRealMessage : realDetails) {
                 String custNum = qryUserRealMessage.getUniqueReqNo();
