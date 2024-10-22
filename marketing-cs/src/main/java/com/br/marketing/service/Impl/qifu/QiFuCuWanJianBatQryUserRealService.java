@@ -79,6 +79,8 @@ public class QiFuCuWanJianBatQryUserRealService {
         String actionDate = LocalDate.now().toString();
         Integer pageSize = condition.getPageSize();
 
+        log.warn(TITLE + "scanData start, apiCode: {}, bizDate: {}", apiCode, bizDate);
+        long start = System.currentTimeMillis();
         try{
             // 循环获取条件数据，每次pageSize条
             Map<String, String> marketingTimeInterval = calculateTimeInterval(bizDate);
@@ -116,10 +118,14 @@ public class QiFuCuWanJianBatQryUserRealService {
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
         }
+        long end = System.currentTimeMillis();
+        log.warn(TITLE + "scanData end, cost: {}, apiCode: {}, bizDate: {}", end-start, apiCode, bizDate);
         return result;
     }
 
     private Result<Map<String, Object>> actionDataList(String apiCode, String taskId, List<MarketingSyncUser> dataList) {
+        log.warn(TITLE + "actionDataList start, apiCode: {}, taskId: {}", apiCode, taskId);
+        long start = System.currentTimeMillis();
         Result result = new Result().failure();
         Integer threadPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("threadPoolSize")));
         Integer partitionSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
@@ -143,7 +149,8 @@ public class QiFuCuWanJianBatQryUserRealService {
             }, dbActionPool));
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        log.warn(TITLE + "actionTaskDataList, apiCode: {}, taskId: {}");
+        long end = System.currentTimeMillis();
+        log.warn(TITLE + "actionDataList end, cost: {}, apiCode: {}, taskId: {}", end-start, apiCode, taskId);
         return result.success();
     }
 

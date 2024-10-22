@@ -45,6 +45,9 @@ public class QiFuCuWanJianBatQryUserRealTransService {
             return result.success();
         }
 
+        log.warn(TITLE + "actionPartition start, apiCode: {}, taskId: {}", apiCode, taskId);
+        long start = System.currentTimeMillis();
+
         List<RealDataesReq> realDataes = new ArrayList<>();
         Map<String, Long> custNumToIdMap = new HashMap<>();
         for (MarketingSyncUser marketingSyncUser : partition) {
@@ -97,6 +100,8 @@ public class QiFuCuWanJianBatQryUserRealTransService {
                 marketingSyncUserMapper.updateExtend(apiCode, custNum, extendList, id, null);
             }
         }
+        long end = System.currentTimeMillis();
+        log.warn(TITLE + "actionPartition end, cost: {}, apiCode: {}, taskId: {}", end-start, apiCode, taskId);
         return result.success();
     }
 
