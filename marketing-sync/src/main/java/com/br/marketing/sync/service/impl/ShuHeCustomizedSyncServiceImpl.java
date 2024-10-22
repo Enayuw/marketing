@@ -1,10 +1,16 @@
 package com.br.marketing.sync.service.impl;
 
+import com.br.marketing.client.FtpClient;
+import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.utils.Constants;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
@@ -44,6 +50,7 @@ public class ShuHeCustomizedSyncServiceImpl implements ShuHeCustomizedSyncServic
     public void syncFile(SyncConfig syncConfig, BaseFtpClient srcClient, BaseFtpClient targetClient) {
         log.warn("数禾促复借定制化拉取文件开始！syncConfig:{}", JSONObject.toJSONString(syncConfig));
         try {
+
             // 原始路径
             String originalPath = syncConfig.getSrcPath();
             // 获取当前日期
@@ -57,11 +64,23 @@ public class ShuHeCustomizedSyncServiceImpl implements ShuHeCustomizedSyncServic
             String filePath = updatedPath.substring(0, lastSlashIndex).concat("/");
             // 替换路径为原格式
             syncConfig.setSrcPath(filePath);
-            String fileName = updatedPath.substring(lastSlashIndex + 1);
-            syncServiceImpl.copyFile(syncConfig, fileName, srcClient, targetClient);
-            Path tempFile = Files.createTempFile(fileName, ".success");
-            targetClient.uploadFile(Files.newInputStream(tempFile), syncConfig.getTargetPath(), fileName.concat(".success"));
-            Files.deleteIfExists(tempFile);
+            Map<String, List<String>> resultMap=new HashMap<>();
+            BaseFtpClient client = syncServiceImpl.getClient(syncConfig,true);
+            if(Constants.LOAN_WARNING_SFTP.equals(syncConfig.getSrcType())){
+                syncServiceImpl.sftpFileList(resultMap, syncConfig, (SftpClient)client, syncConfig.getApiCode());
+            }else if(Constants.LOAN_WARNING_FTP.equals(syncConfig.getSrcType())){
+                syncServiceImpl.ftpFileList(resultMap, syncConfig, (FtpClient)client, syncConfig.getApiCode());
+            }
+            List<String> csvFiles = resultMap.get("csv");
+            for (String csvFile : csvFiles) {
+                String fileName = updatedPath.substring(lastSlashIndex + 1);
+                if (fileName.equals(csvFile)) {
+                    syncServiceImpl.copyFile(syncConfig, fileName, srcClient, targetClient);
+                    Path tempFile = Files.createTempFile(fileName, ".success");
+                    targetClient.uploadFile(Files.newInputStream(tempFile), syncConfig.getTargetPath(), fileName.concat(".success"));
+                    Files.deleteIfExists(tempFile);
+                }
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), e.getMessage(), "数禾促复借自动化拉取文件异常"), e);
         }

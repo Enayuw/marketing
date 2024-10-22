@@ -2209,5 +2209,11 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
+
+    /**
+     * 数禾促复借每日自动化匹配数据相关配置
+     */
+    private String shuHeCuFuJieMatchDataConfig;
+
 }
 

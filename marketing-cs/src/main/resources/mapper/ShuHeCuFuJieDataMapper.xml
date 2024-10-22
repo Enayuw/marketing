@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ShuHeCuFuJieDataMapper">
+    <select id="shuHeCuFuJieMatchDataOfMinId" resultType="java.lang.Long">
+        select min(id)
+        from b_shuhe_cufujie_data
+        where status = 1
+          and create_date = #{date}
+    </select>
+
+    <select id="shuHeCuFuJieMatchDataByMinId" resultType="com.br.marketing.entity.ShuHeCuFuJieData">
+        select id, mobile_sha256, adt_lmt, avl_lmt
+        from b_shuhe_cufujie_data
+        where status = 1
+          and create_date = #{date,jdbcType=VARCHAR}
+        <if test="minId != null and minId > 0">
+            and id > #{minId,jdbcType=BIGINT}
+        </if>
+        order by id
+        limit #{limit,jdbcType=INTEGER}
+    </select>
+</mapper>

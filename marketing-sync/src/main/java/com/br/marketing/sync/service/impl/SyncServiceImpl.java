@@ -15,7 +15,6 @@ import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
-import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.sync.SyncApplication;
 import com.br.marketing.sync.service.ShuHeCustomizedSyncService;
 import com.br.marketing.sync.service.SyncService;
@@ -93,9 +92,6 @@ public class SyncServiceImpl implements SyncService {
         dateSet.add(DateHelper.getDateByMinute(-60));
         dateSet.add(DateHelper.getDateAddYyMmDd(0));
         for(SyncConfig loanSyncConfig:loanSyncConfigs){
-            if(!loanSyncConfig.getApiCode().equals("7410709")) {
-                continue;
-            }
             log.info("LoanSyncConfig:{}",loanSyncConfig);
             String srcPath = loanSyncConfig.getSrcPath();
             String targetPath = loanSyncConfig.getTargetPath();
@@ -251,7 +247,7 @@ public class SyncServiceImpl implements SyncService {
      * @param isSrc 是否为源地址账号
      * @return SftpClient
      */
-    private BaseFtpClient getClient(SyncConfig loanSyncConfig, boolean isSrc){
+    public BaseFtpClient getClient(SyncConfig loanSyncConfig, boolean isSrc){
         BaseFtpClient client= null;
         if(isSrc){
             if(Constants.LOAN_WARNING_FTP.equals(loanSyncConfig.getSrcType())){
@@ -394,7 +390,7 @@ public class SyncServiceImpl implements SyncService {
         return resultMap;
     }
 
-    private void ftpFileList(Map<String, List<String>> resultMap, SyncConfig loanSyncConfig, FtpClient client, String apiCode) {
+    public void ftpFileList(Map<String, List<String>> resultMap, SyncConfig loanSyncConfig, FtpClient client, String apiCode) {
         try {
             String srcPath = loanSyncConfig.getSrcPath();
             FTPFile[] ftpFiles = client.listFiles(srcPath);
@@ -416,7 +412,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
 
-    private void sftpFileList(Map<String,List<String>> resultMap, SyncConfig loanSyncConfig, SftpClient client, String apiCode){
+    public void sftpFileList(Map<String,List<String>> resultMap, SyncConfig loanSyncConfig, SftpClient client, String apiCode){
             try {
                 String srcPath = loanSyncConfig.getSrcPath();
                 Map<String, SftpATTRS> map = client.listFiles(srcPath);

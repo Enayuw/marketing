@@ -784,4 +784,48 @@
         order by mt.api_code,shf.create_time desc) vie
     </select>
 
+    <select id="queryLastNonValidationTask" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select bmt.id,
+               shf.id                  as `hisFileId`,
+               bmt.api_code,
+               bmt.batch_number        as `batchNumber`,
+               bmt.status,
+               bmt.priority,
+               bmt.task_number         as `taskNumber`,
+               shf.zipFile_name        as `fileName`,
+               bmt.monitor_type        as `execType`,
+               shf.create_time         as `taskCreateTime`,
+               shf.running_end_time    as `taskUpdateTime`,
+               bmt.is_online           as `isOnline`,
+               case
+                   when shf.status is null then 0
+                   when shf.status = 2 then 2
+                   when shf.status = 0 then 3
+                   when shf.status = 1 then 1
+                   when shf.status = 3 then 1
+                   when shf.status = 4 then 1
+                   when shf.status = 5 then 1
+                   when shf.status = 6 then 1
+                   when shf.status = 7 then 1
+                   when shf.status = 9 then 1
+                   when shf.status = 10 then 4
+                   when shf.status = 11 then 5
+                   else shf.status end as taskStatus,
+               bmt.start_date          as startDate,
+               bmt.close_date          as closeDate,
+               bmt.start_time          as startTime,
+               bmt.create_time         as createTime,
+               bmt.update_time         as updateTime
+        from b_marketing_task bmt
+                 left join stra_his_file shf on shf.batch_number = bmt.batch_number
+        where bmt.api_code = #{apiCode}
+          and bmt.status = 1
+          and bmt.monitor_type != 2
+          and shf.status = 2
+        <if test="batchNumber != null and batchNumber != ''">
+            and bmt.batch_number = #{batchNumber}
+        </if>
+        order by bmt.create_time desc
+        limit 1
+    </select>
 </mapper>

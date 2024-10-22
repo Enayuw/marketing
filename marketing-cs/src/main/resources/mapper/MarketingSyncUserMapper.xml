@@ -992,4 +992,14 @@
         order by id asc
         limit #{pageSize}
     </select>
+
+    <select id="selectByDynamicCondition" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where status = 1
+        and cell_sha256 = #{cellSha256,jdbcType=VARCHAR}
+        and is_repeat in (1, 2)
+        and (${whereStr})
+    </select>
+
 </mapper>
