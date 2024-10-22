@@ -28,6 +28,7 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             @Param("actionDate") String actionDate,
             @Param("createTimeStart") String createTimeStart,
             @Param("createTimeEnd") String createTimeEnd,
+            @Param("cusBatch") String cusBatch,
             @Param("pageSize") Integer pageSize
     );
 

@@ -88,7 +88,7 @@ public class QiFuCuWanJianBatQryUserRealService {
             String createTimeStart = marketingTimeInterval.get("createTimeStart");
             String createTimeEnd = marketingTimeInterval.get("createTimeEnd");
             List<MarketingSyncInfo> marketingSyncInfoList = marketingSyncInfoMapper.querySynInfoWithActiontikv_(apiCode
-                    , statusList, actionDate, createTimeStart, createTimeEnd, pageSize);
+                    , statusList, actionDate, createTimeStart, createTimeEnd, paramTaskId, pageSize);
             if (CollectionUtils.isEmpty(marketingSyncInfoList)) {
                 log.warn(TITLE+"scanData, 未获取到数据");
                 data.put("hasScanData", "0");
@@ -118,6 +118,7 @@ public class QiFuCuWanJianBatQryUserRealService {
                 }
             }
         } catch (Exception e) {
+            log.warn(TITLE+ e.getMessage(), e);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
         }
         long end = System.currentTimeMillis();
