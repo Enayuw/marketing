@@ -350,6 +350,12 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserByRequestBatch(@Param("apiCode") String apiCode, @Param("requestBatch") String requestBatch);
 
+    List<MarketingSyncUser> getSyncUserByCondition(
+            @Param("apiCode") String apiCode,
+            @Param("requestBatch") String requestBatch,
+            @Param("cusBatch") String cusBatch
+    );
+
     List<MarketingSyncUser> getSyncUserByCusBatch(@Param("apiCode") String apiCode,
                                                   @Param("cusBatch") String cusBatch,
                                                   @Param("minId") Long minId,

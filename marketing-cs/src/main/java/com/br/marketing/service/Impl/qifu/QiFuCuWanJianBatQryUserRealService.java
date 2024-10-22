@@ -43,7 +43,7 @@ public class QiFuCuWanJianBatQryUserRealService {
 
     private final static String TITLE = "【360促完件用户信息批量查询】";
 
-    ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(10, 10);
+    ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(4, 4);
 
     private Integer PARTITION_SIZE = 50;
 
@@ -74,12 +74,13 @@ public class QiFuCuWanJianBatQryUserRealService {
 
         QiFuCuWanJianBatQryUserRealDto param = condition.getParam();
         String apiCode = param.getApiCode();
-        List<Integer> statusList = param.getStatusList();
+        String paramTaskId = param.getTaskId();
         String bizDate = param.getBizDate();
+        List<Integer> statusList = param.getStatusList();
         String actionDate = LocalDate.now().toString();
         Integer pageSize = condition.getPageSize();
 
-        log.warn(TITLE + "scanData start, apiCode: {}, bizDate: {}", apiCode, bizDate);
+        log.warn(TITLE + "scanData start, apiCode: {}, bizDate: {}, paramTaskId:{}, ", apiCode, bizDate, paramTaskId);
         long start = System.currentTimeMillis();
         try{
             // 循环获取条件数据，每次pageSize条
@@ -104,7 +105,8 @@ public class QiFuCuWanJianBatQryUserRealService {
                 SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
 
                 // marketingSyncUserList
-                List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByRequestBatch(apiCode, marketingSyncInfo.getRequestBatch());
+                List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode
+                        , marketingSyncInfo.getRequestBatch(), paramTaskId);
 
                 // actionDataList
                 Result<Map<String, Object>> actionResult = actionDataList(apiCode, taskId, marketingSyncUserList);
@@ -119,7 +121,7 @@ public class QiFuCuWanJianBatQryUserRealService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
         }
         long end = System.currentTimeMillis();
-        log.warn(TITLE + "scanData end, cost: {}, apiCode: {}, bizDate: {}", end-start, apiCode, bizDate);
+        log.warn(TITLE + "scanData end, cost: {}, apiCode: {}, bizDate: {}, paramTaskId:{}, ", apiCode, bizDate, paramTaskId);
         return result;
     }
 

@@ -8,6 +8,7 @@ import java.util.List;
 public class QiFuCuWanJianBatQryUserRealDto {
 
     private String apiCode;
-    private List<Integer> statusList;
+    private String taskId;
     private String bizDate;
+    private List<Integer> statusList;
 }

@@ -55,9 +55,10 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
             // action
             for (Map<String, String> paramMap : paramList) {
                 String apiCode = paramMap.get("apiCode");
+                String taskId = paramMap.get("taskId");
                 String bizDate = paramMap.get("bizDate");
 
-                Result<Map<String, Object>> actionResult = action(apiCode, bizDate, pageSize);
+                Result<Map<String, Object>> actionResult = action(apiCode, taskId, bizDate, pageSize);
                 boolean hasScanData = judgeHasScanData(actionResult);
                 if(hasScanData){
                     break;
@@ -70,9 +71,10 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private Result<Map<String, Object>> action(String apiCode, String bizDate, Integer pageSize) {
+    private Result<Map<String, Object>> action(String apiCode, String taskId, String bizDate, Integer pageSize) {
         QiFuCuWanJianBatQryUserRealDto param = new QiFuCuWanJianBatQryUserRealDto();
         param.setApiCode(apiCode);
+        param.setTaskId(taskId);
         param.setBizDate(bizDate);
         List<Integer> statusList = new ArrayList<>();
         statusList.add(2);
@@ -114,10 +116,17 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
             }
             paramMap.put("apiCode", apiCode);
 
+            // taskId
+            String taskId = configMap.get("taskId");
+            if(StringUtils.isEmpty(taskId)){
+                throw new Exception("Job参数taskId格式不正确");
+            }
+            paramMap.put("taskId", taskId);
+
             // bizDate
             String bizDateDay = configMap.get("bizDate");
             if(StringUtils.isEmpty(bizDateDay)){
-                throw new Exception("Job参数actionDate格式不正确");
+                throw new Exception("Job参数bizDate格式不正确");
             }
             Long bizDateDayLong = Long.parseLong(bizDateDay);
             LocalDate bizLocalDate = curLocalDate.plusDays(bizDateDayLong);

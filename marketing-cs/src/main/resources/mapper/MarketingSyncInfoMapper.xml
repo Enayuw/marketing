@@ -35,6 +35,9 @@
         from b_marketing_sync_info a
         left join b_syn_info_query_action b on (a.id = b.data_id and b.action_date = #{actionDate} )
         where a.api_code = #{apiCode}
+            <if test="cusBatch != null and cusBatch !=''">
+                and cus_batch = #{cusBatch}
+            </if>
             and a.status in (2,4)
             <![CDATA[ and a.create_time >= #{createTimeStart} and a.create_time < #{createTimeEnd}  ]]>
             and b.data_id is null
