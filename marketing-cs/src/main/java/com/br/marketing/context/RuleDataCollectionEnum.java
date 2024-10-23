@@ -61,6 +61,7 @@ public enum RuleDataCollectionEnum {
     YILIAN_TRANSFER_FILTER_COLLECTION(29, "亿联转化数据过滤规则所需数据收集"),
     SHUHE_CUSHOUDENG_RULE_DATA_COLLECTION(30, "数禾促首登规则所需数据收集"),
     YISHI_TRANSFER_FILTER_COLLECTION(31, "医时转化规则所需数据收集"),
+    WEIJU_TRANSFER_FILTER_COLLECTION(32, "微聚转化规则所需数据收集"),
     ;
 
 
