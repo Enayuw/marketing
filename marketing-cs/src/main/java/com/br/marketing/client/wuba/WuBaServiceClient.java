@@ -250,9 +250,15 @@ public class WuBaServiceClient {
                     jsonObject.put("id", randomNumber);
                     jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
 
-                    ArrayList<Integer> radomStatus = Lists.newArrayList(1, -2);
-                    jsonObject.put("status", RandomUtil.randomEle(radomStatus));
-                    ArrayList<String> randomUserType = Lists.newArrayList("1", "2", null);
+                    List<Integer> radomStatus = JSON.parseArray(content.getString("radomStatus")).toJavaList(Integer.class);
+                    radomStatus.add(null);
+                    Integer status = RandomUtil.randomEle(radomStatus);
+                    if (Objects.nonNull(status)) {
+                        jsonObject.put("status", status);
+                    }
+
+                    List<String> randomUserType = JSON.parseArray(content.getString("randomUserType")).toJavaList(String.class);
+                    randomUserType.add(null);
                     String userType = RandomUtil.randomEle(randomUserType);
                     if (Objects.nonNull(userType)) {
                         jsonObject.put("userType", userType);
