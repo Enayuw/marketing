@@ -72,6 +72,12 @@ public class HttpTestController {
     @Resource
     MarketingHistoryEsService marketingHistoryEsService;
 
+    /**
+     * 测试参数
+     * %7B"listValue"%3A%7B"script"%3A%7B"lang"%3A"painless"%2C"source"%3A"for%20(item%20in%20params%5B%27_source%27%5D%5B%27condition%27%5D)%20%7B%20if%20((item%5B%27field_key%27%5D%20%3D%3D%20%27scorencashonxcysxsxtg%27%20%26%26%20item%5B%27d_value%27%5D%20!%3Dnull%20%26%26%20item%5B%27d_value%27%5D%20>%3D%2075%20%26%26%20item%5B%27d_value%27%5D%20<%2080)%7C%7C(item%5B%27field_key%27%5D%20%3D%3D%20%27scorencashonxcysxsxtg%27%20%26%26%20item%5B%27d_value%27%5D%20!%3Dnull%20%20%26%26%20item%5B%27d_value%27%5D%20>%3D%2080%20%26%26%20item%5B%27d_value%27%5D%20<%2085))%20%7B%20return%20%27中价值%27%3B%20%7D%20%7D%20return%20%27%27%3B"%7D%7D%2C"valueType"%3A%7B"script"%3A%7B"lang"%3A"painless"%2C"source"%3A"for%20(item%20in%20params%5B%27_source%27%5D%5B%27condition%27%5D)%20%7B%20if%20((item%5B%27field_key%27%5D%20%3D%3D%20%27scorencashonxcysxsxtg%27%20%26%26%20item%5B%27d_value%27%5D%20!%3Dnull%20%20%26%26%20item%5B%27d_value%27%5D%20>%3D%2075%20%26%26%20item%5B%27d_value%27%5D%20<%2080)%7C%7C(item%5B%27field_key%27%5D%20%3D%3D%20%27scorencashonxcysxsxtg%27%20%26%26%20item%5B%27d_value%27%5D%20!%3Dnull%20%20%26%26%20item%5B%27d_value%27%5D%20>%3D%2080%20%26%26%20item%5B%27d_value%27%5D%20<%2085))%20%7B%20return%20%27type2%27%3B%20%7D%20%7D%20return%20%27%27%3B"%7D%7D%7D
+     * @param scriptFields
+     * @return
+     */
     @GetMapping(path = {"testEs"})
     public String testEs(String scriptFields){
         QueryBaseBean queryBaseBean = new QueryBaseBean();
