@@ -2215,10 +2215,5 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
-    /**
-     * 58新客撞库日志清洗及数据提取配置
-     */
-    private HashMap<String, Object> wuBaCleanAndExtractToPackageConfig;
-
 }
 

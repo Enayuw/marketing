@@ -13,14 +13,4 @@
         <![CDATA[ and push_time < #{pushTime} ]]>
         order by id limit #{pageSize}
     </select>
-
-    <select id="selectBatchNoByTimeRange" resultType="java.util.Map">
-        select batch_no as batchNo,
-               data_source_type as dataSourceType,
-               DATE_FORMAT(create_time, '%Y-%m-%d') as pushDate
-        from b_wuba_colliding_data_batch_no
-        where api_code = #{apiCode}
-              and batch_type = 1
-              ${condition}
-    </select>
 </mapper>
