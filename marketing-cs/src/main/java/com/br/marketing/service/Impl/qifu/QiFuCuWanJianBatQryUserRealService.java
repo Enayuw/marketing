@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl.qifu;
 
 import com.br.common.log.AlertLog;
-import com.br.marketing.client.qifu.QiFuClients;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -51,9 +50,6 @@ public class QiFuCuWanJianBatQryUserRealService {
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private QiFuClients qiFuClients;
-
-    @Resource
     private MarketingSyncInfoMapper marketingSyncInfoMapper;
 
     @Resource
@@ -99,14 +95,15 @@ public class QiFuCuWanJianBatQryUserRealService {
             for(MarketingSyncInfo marketingSyncInfo : marketingSyncInfoList) {
                 Long dataId = marketingSyncInfo.getId();
                 String taskId = marketingSyncInfo.getCusBatch();
-                log.warn(TITLE + "scanData 获取到数据, dataId: {}, taskId: {}", dataId, taskId);
+                String requestBatch = marketingSyncInfo.getRequestBatch();
+                log.warn(TITLE + "marketingSyncInfo, dataId: {}, taskId: {}", dataId, taskId);
 
                 // saveAction
                 SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
 
                 // marketingSyncUserList
                 List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode
-                        , marketingSyncInfo.getRequestBatch(), paramTaskId);
+                        , requestBatch, paramTaskId);
 
                 // actionDataList
                 Result<Map<String, Object>> actionResult = actionDataList(apiCode, taskId, marketingSyncUserList);
@@ -114,7 +111,7 @@ public class QiFuCuWanJianBatQryUserRealService {
                 // updateActionStatus
                 if (actionResult != null && actionResult.isSuccess()) {
                     updateActionStatus(queryAction.getId(), 2);
-                    log.warn(TITLE + "今日更新成功, apiCode:{}, bizDate:{}", apiCode, bizDate);
+                    log.warn(TITLE + "action更新成功, dataId:{}, taskId:{}", dataId, taskId);
                 }
             }
         } catch (Exception e) {

@@ -67,7 +67,7 @@ public class QiFuCuWanJianBatQryUserRealJob extends AbstractSimpleElasticJob {
 
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),e.getMessage(), TITLE), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(),e.getMessage(), TITLE), e);
         }
     }
 
