@@ -4,6 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.WubaCollidingDataFront;
+import com.br.marketing.entity.WubaCollidingDataFrontExample;
 import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
 import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @Description WuBaCollidingDataBusinessService
@@ -31,6 +34,8 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     WubaCollidingDataLoopCycleMapper wubaCollidingDataLoopCycleMapper;
     @Resource
     WubaCollidingDataSecondLoopCycleMapper wubaCollidingDataSecondLoopCycleMapper;
+    @Resource
+    WuBaCollidingDataSynchronismService wuBaCollidingDataSynchronismService;
 
     @Transactional(rollbackFor = Exception.class)
     public void insertToRobAndUpdateFront(List<WubaCollidingDataFront> wubaCollidingDataFronts, LocalFile localFile) {
@@ -52,7 +57,7 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
 
     @Transactional(rollbackFor = Exception.class)
     public void saveSecondLoopAnddeleteRob(List<String> cells, String apiCode) {
-        wubaCollidingDataSecondLoopCycleMapper.batchSaveData(cells, apiCode,"F");
+        wubaCollidingDataSecondLoopCycleMapper.batchSaveData(cells, apiCode, "F");
         wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
     }
 
@@ -92,7 +97,8 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     @Transactional(rollbackFor = Exception.class)
     public void deleteLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId) {
         wubaCollidingDataLoopCycleMapper.batchDeleteByCell(cells, apiCode);
-        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(cells, apiCode, "T", packageId);
+        List<String> reavedCellsExcludeHighValue = getReavedCellsExcludeHighValue(apiCode, cells);
+        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(reavedCellsExcludeHighValue, apiCode, "T", packageId);
     }
 
     /**
@@ -101,6 +107,33 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     @Transactional(rollbackFor = Exception.class)
     public void deleteSecondLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId) {
         wubaCollidingDataSecondLoopCycleMapper.batchDeleteByCell(cells, apiCode);
-        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(cells, apiCode, "S", packageId);
+        List<String> reavedCellsExcludeHighValue = getReavedCellsExcludeHighValue(apiCode, cells);
+        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(reavedCellsExcludeHighValue, apiCode, "S", packageId);
+    }
+
+    /**
+     * 非周期数据，从中剔除高价值数据后，进入补包status=-2撞库包
+     */
+    public void saveReavedExcludeHighValueIntoRob(List<String> cells, String apiCode, Long packageId) {
+        List<String> reavedCellsExcludeHighValue = getReavedCellsExcludeHighValue(apiCode, cells);
+        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(reavedCellsExcludeHighValue, apiCode, "F", packageId);
+    }
+
+    /**
+     * 撞得status=-2中剔除高价值数据
+     */
+    private List<String> getReavedCellsExcludeHighValue(String apiCode, List<String> reavedCells) {
+        List<Long> highValueIdList = wuBaCollidingDataSynchronismService.getHighValueFileIds(apiCode);
+        if (Objects.isNull(highValueIdList)) {
+            return reavedCells;
+        }
+
+        WubaCollidingDataFrontExample example = new WubaCollidingDataFrontExample();
+        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDeletedEqualTo(0)
+                .andLocalIdIn(highValueIdList).andCellIn(reavedCells);
+        List<WubaCollidingDataFront> highValueReavedDatas = wubaCollidingDataFrontMapper.selectByExample(example);
+        List<String> highValueReavedCells = highValueReavedDatas.stream().map(WubaCollidingDataFront::getCell).collect(Collectors.toList());
+
+        return reavedCells.stream().filter((String reavedCell) -> !highValueReavedCells.contains(reavedCell)).collect(Collectors.toList());
     }
 }

@@ -65,4 +65,12 @@ public interface WuBaCollidingDataBusinessService {
      * @param packageId
      */
     void deleteSecondLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId);
+
+    /**
+     * 非周期数据，从中剔除高价值数据后，进入补包status=-2撞库包
+     * @param cells
+     * @param apiCode
+     * @param packageId
+     */
+    void saveReavedExcludeHighValueIntoRob(List<String> cells, String apiCode, Long packageId);
 }

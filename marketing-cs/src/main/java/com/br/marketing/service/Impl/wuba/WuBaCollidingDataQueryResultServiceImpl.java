@@ -183,9 +183,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
             // 撞得status=-2数据
             List<WubaCollidingData> reavedDatas = getReavedDatas(jsonArray);
-
-            // 撞得status=-2中剔除高价值数据
-            List<String> reavedCellsExcludeHighValue = getReavedCellsExcludeHighValue(apiCode, reavedDatas);
+            List<String> reavedCells = reavedDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
 
             // 撞得的非金融场景数据
             List<WubaCollidingData> nonFinancialDatas = filterNonFinancialByUserType(jsonArray);
@@ -197,7 +195,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             List<String> otherFalseCells = updateLogResultAndGetOtherFalseCells(trueDatas, reavedDatas, batchNo, jsonArray, apiCode);
 
             // 根据sourceType处理数据
-            List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatas, financialDatas, reavedCellsExcludeHighValue,
+            List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatas, financialDatas, reavedCells,
                     otherFalseCells, apiCode, batchNo, taskId);
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
@@ -382,8 +380,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         return wubaCollidingDataSyncCleans.size();
     }
 
-    private List<String> getReavedCellsExcludeHighValue(String apiCode, List<WubaCollidingData> reavedDatas) {
-        List<String> reavedCells = reavedDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
+    private List<String> getReavedCellsExcludeHighValue(String apiCode, List<String> reavedCells) {
         List<Long> highValueIdList = wuBaCollidingDataSynchronismService.getHighValueFileIds(apiCode);
         if (Objects.isNull(highValueIdList)) {
             return reavedCells;
@@ -463,7 +460,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
      * 根据sourceType处理数据
      */
     private List<CompletableFuture<Void>> handleDataBySourceType(String sourceType, List<WubaCollidingData> nonFinancialDatas,
-                                                                 List<WubaCollidingData> financialDatas, List<String> reavedCellsExcludeHighValue,
+                                                                 List<WubaCollidingData> financialDatas, List<String> reavedCells,
                                                                  List<String> otherFalseCells, String apiCode, String batchNo, Long taskId) {
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
         // 根据sourceType获取-2包id，结果可为空
@@ -473,7 +470,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 futures.addAll(batchHandleBusinessAsync(financialDatas,
                         (List<WubaCollidingData> data) -> nonFinancialToFinancialBusiness(data, apiCode, batchNo, taskId),
                         "非金融场景撞得数据转为金融场景，并保存到清洗表"));
-                futures.addAll(batchHandleFalseBusinessAsync(reavedCellsExcludeHighValue,
+                futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
                         (List<String> data) -> wuBaCollidingDataBusinessService.deleteLoopAndSaveReavedIntoRob(data, apiCode, reavedPackageId),
                         "非金融场景撞回status=-2，保存到非金融-2包"));
                 futures.addAll(batchHandleFalseBusinessAsync(otherFalseCells,
@@ -486,7 +483,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 futures.addAll(batchHandleBusinessAsync(nonFinancialDatas,
                         (List<WubaCollidingData> data) -> financialToNonFinancialBusiness(data, apiCode, batchNo, taskId),
                         "金融场景撞得数据转为非金融场景，并保存到清洗表"));
-                futures.addAll(batchHandleFalseBusinessAsync(reavedCellsExcludeHighValue,
+                futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
                         (List<String> data) -> wuBaCollidingDataBusinessService.deleteSecondLoopAndSaveReavedIntoRob(data, apiCode, reavedPackageId),
                         "金融场景撞回status=-2，保存到金融-2包"));
                 futures.addAll(batchHandleFalseBusinessAsync(otherFalseCells,
@@ -503,8 +500,9 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 futures.addAll(batchHandleBusinessAsync(financialDatas, (List<WubaCollidingData> data) -> falseToFinancialBusiness(data, apiCode,
                                 batchNo, taskId),
                         "非周期撞得数据转为金融场景，并保存到清洗表"));
-                futures.addAll(batchHandleFalseBusinessAsync(reavedCellsExcludeHighValue,
-                        (List<String> data) -> wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(data, apiCode, "F", reavedPackageId),
+                futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
+                        (List<String> data) ->
+                                wuBaCollidingDataBusinessService.saveReavedExcludeHighValueIntoRob(data, apiCode, reavedPackageId),
                         "非周期撞回status=-2，保存到补包-2包"));
                 break;
             default:
