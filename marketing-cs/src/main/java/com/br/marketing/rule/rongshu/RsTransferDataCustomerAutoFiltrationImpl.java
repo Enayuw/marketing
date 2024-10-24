@@ -74,15 +74,20 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
         if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
-        conversionData.setExpireDate(enDateTimeString);
-        if("4".equals(transfer.getUserType())
-                || "5".equals(transfer.getUserType())
-                || getUnlentAmount(transfer)){
-            conversionData.setInversionStatus(INVERSIONSTATUS);
-        }else if(isCaseEffective0(transfer)){
+        if(isBlack1(transfer)){
+            // ExpireDate不进行设置(永久)
             conversionData.setInversionStatus(INVERSION_STATUS_2);
         }else{
-            log.warn("apiCode[{}]custNum[{}]出现rs运营自动化过滤未预期的结果", apiCode, custNum);
+            conversionData.setExpireDate(enDateTimeString);
+            if("4".equals(transfer.getUserType())
+                    || "5".equals(transfer.getUserType())
+                    || getUnlentAmount(transfer)){
+                conversionData.setInversionStatus(INVERSIONSTATUS);
+            }else if(isCaseEffective0(transfer)){
+                conversionData.setInversionStatus(INVERSION_STATUS_2);
+            }else{
+                log.warn("apiCode[{}]custNum[{}]出现rs运营自动化过滤未预期的结果", apiCode, custNum);
+            }
         }
         MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
         if (marketingSyncUser != null) {
@@ -107,11 +112,24 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             return "4".equals(transfer.getUserType())
                     || "5".equals(transfer.getUserType())
                     || getUnlentAmount(transfer)
-                    || isCaseEffective0(transfer);
+                    || isCaseEffective0(transfer)
+                    || isBlack1(transfer);
         }
         return false;
     }
 
+    private boolean isBlack1(MarketingTransferSyncUser transfer){
+        String reserveField1 = transfer.getReserveField1();
+        String isBlack = null;
+        if (StringUtils.isNotBlank(reserveField1)) {
+            JSONObject reserveField1Json = JSON.parseObject(reserveField1);
+            isBlack = reserveField1Json.getString("isBlack");
+        }
+        if(StringUtils.isNotBlank(isBlack) && "1".equals(isBlack)){
+            return true;
+        }
+        return false;
+    }
     private boolean isCaseEffective0(MarketingTransferSyncUser transfer){
         String caseEffective = transfer.getCaseEffective();
         if(StringUtils.isNotBlank(caseEffective) && CASE_EFFECTIVE_0.equalsIgnoreCase(caseEffective)){
