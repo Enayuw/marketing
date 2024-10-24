@@ -29,6 +29,10 @@ public class MarketingUploadConstants {
      * 携程促活数据专用队列对应的 Tag
      */
     public static final String TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE = "Marketing.XieCheng.Colliding.Activate";
+    /**
+     * 微距上传数据清洗专用队列对应的 Tag
+     */
+    public static final String TAG_MARKETING_WEIJU_DATA_CLEAN = "Marketing.WeiJu.Data.Clean";
 //    Tag 结束
 
 
@@ -54,9 +58,9 @@ public class MarketingUploadConstants {
      */
     public static final String MARKETING_XIECHENG_COLLIDING_ACTIVATE = "Marketing_XieCheng_Colliding_Activate";
     /**
-     * 携程促活数据专用队列对应的 consumerGroup
+     * 微距上传数据清洗专用队列对应的 consumerGroup
      */
-    public static final String MARKETING_WEIJU_DATA_CLEAN_QUEUE = "marketing_weiju_data_clean_queue";
+    public static final String MARKETING_WEIJU_DATA_CLEAN = "Marketing_WeiJu_Data_Clean";
 //    consumerGroup 结束
 
 }

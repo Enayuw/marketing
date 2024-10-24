@@ -7,7 +7,6 @@ import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.xiecheng.XieChengActivateDataService;
 import com.br.marketing.api.customer.upload.service.xiecheng.dto.XieChengActivateDataResponseDTO;
-import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
@@ -188,7 +187,7 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
             xieChengActivateDTO.setCId(tCid);
             xieChengActivateDTO.setDataId(sourceId);
             String msg = JSONObject.toJSONString(xieChengActivateDTO);
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN)){
+            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)){
                 template.syncSend(MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
             }else{

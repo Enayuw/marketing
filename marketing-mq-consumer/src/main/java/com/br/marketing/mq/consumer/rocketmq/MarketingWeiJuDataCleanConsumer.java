@@ -1,11 +1,9 @@
 package com.br.marketing.mq.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
-import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
+import com.br.marketing.service.weiju.WeiJuDataCleanService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
@@ -26,15 +24,14 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
         topic = MarketingUploadConstants.TOPIC,
-        consumerGroup = MarketingUploadConstants.MARKETING_XIECHENG_COLLIDING_ACTIVATE,
-        selectorExpression = MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)
+        consumerGroup = MarketingUploadConstants.MARKETING_WEIJU_DATA_CLEAN,
+        selectorExpression = MarketingUploadConstants.TAG_MARKETING_WEIJU_DATA_CLEAN)
 public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired
     RocketMqConsumerService consumerService;
-
     @Resource
-    private XieChengRobDataCollidingService robDataCollidingService;
+    private WeiJuDataCleanService weiJuDataCleanService;
 
     @Override
     protected String consumerName() {
@@ -44,11 +41,8 @@ public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener imple
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_XIECHENG_COLLIDING_ACTIVATE：获取消息成功:{}",bodyString);
-        XieChengActivateDTO xieChengActivateDTO = JSON.parseObject(bodyString,
-                new TypeReference<XieChengActivateDTO>() {
-                }.getType());
-        consumerService.consumerRun(messageExt, robDataCollidingService::activateDataHandle, xieChengActivateDTO, null);
+        log.warn("MARKETING_WEIJU_DATA_CLEAN：获取消息成功:{}",bodyString);
+        consumerService.consumerRun(messageExt, weiJuDataCleanService::cleanData, bodyString, null);
     }
 
     @Override
