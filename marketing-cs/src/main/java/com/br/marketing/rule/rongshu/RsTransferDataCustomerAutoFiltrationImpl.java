@@ -13,6 +13,7 @@ import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.RsCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.TransferDataValidityPeriodService;
@@ -38,8 +39,6 @@ import java.util.*;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<ConversionData> {
 
-
-
     private final static String INVERSIONSTATUS="0";
     private final static String INVERSION_STATUS_2="2";
     private final static String CASE_EFFECTIVE_0="0";
@@ -49,6 +48,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
     private final TableCreateServiceImpl tableCreateService;
 
     private final TransferDataValidityPeriodService transferDataValidityPeriodService;
+    private final MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -59,25 +59,29 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
         String custNum = transfer.getCustNum();
         conversionData.setCaseNum(custNum);
         conversionData.setDataId(transfer.getId().toString());
-        // 新版本有效期判断
-        Set<String> custNumSet = new HashSet<>();
-        custNumSet.add(custNum);
-        Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
-                transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
-        SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
-        if (syncUserValidityPeriodsBO == null || null == syncUserValidityPeriodsBO.getSyncUsers()) {
-            log.warn("apiCode[{}]custNum[{}]不满足rs案件编号[有效期内]条件", apiCode, custNum);
-            return null;
-        }
-        PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateTimeString().builder();
-        String enDateTimeString = periodOfValidityBO.getEnDateTimeStr();
-        if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
-            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
-        }
         if(isBlack1(transfer)){
             // ExpireDate不进行设置(永久)
             conversionData.setInversionStatus(INVERSION_STATUS_2);
+            MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
+            if(null != marketingSyncUser){
+                conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
+            }else{
+                log.error("apiCode[{}]custNum[{}]榕树转化数据自动过滤推客服isBlack=1未发现手机号[{}]"
+                        , apiCode, custNum, marketingSyncUser.getCell());
+            }
         }else{
+            // 新版本有效期判断
+            Set<String> custNumSet = new HashSet<>();
+            custNumSet.add(custNum);
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
+            SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNum.get(custNum);
+            if (syncUserValidityPeriodsBO == null || null == syncUserValidityPeriodsBO.getSyncUsers()) {
+                log.warn("apiCode[{}]custNum[{}]不满足rs案件编号[有效期内]条件", apiCode, custNum);
+                return null;
+            }
+            PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateTimeString().builder();
+            String enDateTimeString = periodOfValidityBO.getEnDateTimeStr();
             conversionData.setExpireDate(enDateTimeString);
             if("4".equals(transfer.getUserType())
                     || "5".equals(transfer.getUserType())
@@ -88,10 +92,13 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             }else{
                 log.warn("apiCode[{}]custNum[{}]出现rs运营自动化过滤未预期的结果", apiCode, custNum);
             }
+            MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
+            if (marketingSyncUser != null) {
+                conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
+            }
         }
-        MarketingSyncUser marketingSyncUser = syncUserValidityPeriodsBO.getSyncUsers().get(0);
-        if (marketingSyncUser != null) {
-            conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
+        if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
+            conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         return conversionData;
     }
@@ -100,6 +107,9 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+            if(isBlack1(transfer)){
+                return true;
+            }
             RsCollectDataImpl.RsRuleNecessaryData ruleNecessaryData =
                     (RsCollectDataImpl.RsRuleNecessaryData) context.getRuleNecessaryData();
             Map<String, MarketingSyncUser> customerMap = ruleNecessaryData.getCustomerMap();
@@ -112,8 +122,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             return "4".equals(transfer.getUserType())
                     || "5".equals(transfer.getUserType())
                     || getUnlentAmount(transfer)
-                    || isCaseEffective0(transfer)
-                    || isBlack1(transfer);
+                    || isCaseEffective0(transfer);
         }
         return false;
     }
