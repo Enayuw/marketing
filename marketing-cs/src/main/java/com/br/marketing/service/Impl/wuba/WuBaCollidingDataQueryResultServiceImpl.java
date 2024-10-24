@@ -382,21 +382,6 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         return wubaCollidingDataSyncCleans.size();
     }
 
-    private List<String> getReavedCellsExcludeHighValue(String apiCode, List<String> reavedCells) {
-        List<Long> highValueIdList = wuBaCollidingDataSynchronismService.getHighValueFileIds(apiCode);
-        if (Objects.isNull(highValueIdList)) {
-            return reavedCells;
-        }
-
-        WubaCollidingDataFrontExample example = new WubaCollidingDataFrontExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).andIsDeletedEqualTo(0)
-                .andLocalIdIn(highValueIdList).andCellIn(reavedCells);
-        List<WubaCollidingDataFront> highValueReavedDatas = wubaCollidingDataFrontMapper.selectByExample(example);
-        List<String> highValueReavedCells = highValueReavedDatas.stream().map(WubaCollidingDataFront::getCell).collect(Collectors.toList());
-
-        return reavedCells.stream().filter((String reavedCell) -> !highValueReavedCells.contains(reavedCell)).collect(Collectors.toList());
-    }
-
     private Long getReavedPackageIdFromSpeed(String sourceType) {
         HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
         JSONObject hashMap = map.get(sourceType);
