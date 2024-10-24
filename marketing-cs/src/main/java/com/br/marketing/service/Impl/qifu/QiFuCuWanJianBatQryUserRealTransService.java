@@ -91,28 +91,36 @@ public class QiFuCuWanJianBatQryUserRealTransService {
             if(CollectionUtils.isEmpty(realDataes)){
                 return result.success();
             }
-            log.warn(TITLE + "返回结果, realDetails: {}", JSONObject.toJSONString(dataResult));
-            for (QryUserRealMessage qryUserRealMessage : realDetails) {
-                String custNum = qryUserRealMessage.getUniqueReqNo();
-                // String mobileMd5 = qryUserRealMessage.getMobileMd5();
-                Object userMessageRes = qryUserRealMessage.getUserMessageRes();
-                if (userMessageRes == null) {
-                    continue;
-                }
-                JSONObject userMessageJo = JSONObject.parseObject(userMessageRes.toString());
-                if (userMessageJo == null) {
-                    continue;
-                }
+            log.warn(TITLE + "返回结果, realDetails: {}", JSONObject.toJSONString(realDetails));
 
-                List<Map<String, String>> extendList = assembleExtendList(userMessageJo);
-                // update
-                Long id = custNumToIdMap.get(custNum);
-                marketingSyncUserMapper.updateExtend(apiCode, custNum, extendList, id, null);
+            // update
+            for (QryUserRealMessage qryUserRealMessage : realDetails) {
+                updateInfoList(apiCode, qryUserRealMessage, custNumToIdMap);
             }
         }
         long end = System.currentTimeMillis();
         log.warn(TITLE + "actionPartition end, cost: {}, apiCode: {}, taskId: {}", end-start, apiCode, taskId);
         return result.success();
+    }
+
+    private void updateInfoList(String apiCode, QryUserRealMessage qryUserRealMessage, Map<String, Long> custNumToIdMap){
+        String custNum = qryUserRealMessage.getUniqueReqNo();
+        if(StringUtils.isEmpty(custNum)){
+            return;
+        }
+        Object userMessageRes = qryUserRealMessage.getUserMessageRes();
+        if (userMessageRes == null) {
+            return;
+        }
+        JSONObject userMessageJo = JSONObject.parseObject(userMessageRes.toString());
+        if (userMessageJo == null) {
+            return;
+        }
+
+        List<Map<String, String>> extendList = assembleExtendList(userMessageJo);
+        // update
+        Long id = custNumToIdMap.get(custNum);
+        marketingSyncUserMapper.updateExtend(apiCode, extendList, id);
     }
 
     private List<Map<String, String>> assembleExtendList(JSONObject userMessageJo){

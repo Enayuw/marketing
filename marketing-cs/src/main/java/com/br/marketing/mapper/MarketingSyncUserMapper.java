@@ -398,9 +398,7 @@ public interface MarketingSyncUserMapper {
 
     int updateExtend(
             @Param("apiCode") String apiCode,
-            @Param("custNum") String custNum,
             @Param("extendList") List<Map<String, String>> extendList,
-            @Param("id") Long id,
-            @Param("idList") List<Long> idList
+            @Param("id") Long id
     );
 }

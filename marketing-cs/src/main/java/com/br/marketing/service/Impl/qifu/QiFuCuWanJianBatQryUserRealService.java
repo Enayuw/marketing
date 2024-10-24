@@ -42,7 +42,8 @@ public class QiFuCuWanJianBatQryUserRealService {
 
     private final static String TITLE = "【360促完件用户信息批量查询】";
 
-    ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(4, 4);
+    ThreadPoolExecutor taskActionPool = BrExecutors.getThreadPool(4, 4);
+    ThreadPoolExecutor queryActionPool = BrExecutors.getThreadPool(4, 4);
 
     private Integer PARTITION_SIZE = 50;
 
@@ -92,28 +93,22 @@ public class QiFuCuWanJianBatQryUserRealService {
             }
             log.warn(TITLE + "scanData 获取到数据, size: {}", marketingSyncInfoList.size());
 
+            // 1个批次1个线程，因为批次要更新执行状态
+            Integer threadPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("taskActionPoolSize")));
+            taskActionPool.setCorePoolSize(threadPoolSize);
+            taskActionPool.setMaximumPoolSize(threadPoolSize);
+
+            List<CompletableFuture<Void>> futures = Lists.newArrayList();
             for(MarketingSyncInfo marketingSyncInfo : marketingSyncInfoList) {
-                Long dataId = marketingSyncInfo.getId();
-                String taskId = marketingSyncInfo.getCusBatch();
-                String requestBatch = marketingSyncInfo.getRequestBatch();
-                log.warn(TITLE + "marketingSyncInfo, dataId: {}, taskId: {}", dataId, taskId);
-
-                // saveAction
-                SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
-
-                // marketingSyncUserList
-                List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode
-                        , requestBatch, paramTaskId);
-
-                // actionDataList
-                Result<Map<String, Object>> actionResult = actionDataList(apiCode, taskId, marketingSyncUserList);
-
-                // updateActionStatus
-                if (actionResult != null && actionResult.isSuccess()) {
-                    updateActionStatus(queryAction.getId(), 2);
-                    log.warn(TITLE + "action更新成功, dataId:{}, taskId:{}", dataId, taskId);
-                }
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        actionSyncInfo(apiCode, paramTaskId, actionDate, marketingSyncInfo);
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "taskAction异常"));
+                    }
+                }, taskActionPool));
             }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         } catch (Exception e) {
             log.warn(TITLE+ e.getMessage(), e);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
@@ -123,18 +118,49 @@ public class QiFuCuWanJianBatQryUserRealService {
         return result;
     }
 
-    private Result<Map<String, Object>> actionDataList(String apiCode, String taskId, List<MarketingSyncUser> dataList) {
+    private Result actionSyncInfo(String apiCode, String paramTaskId, String actionDate, MarketingSyncInfo marketingSyncInfo) {
+        Result result = new Result().failure();
+        try {
+            Long dataId = marketingSyncInfo.getId();
+            String taskId = marketingSyncInfo.getCusBatch();
+            String requestBatch = marketingSyncInfo.getRequestBatch();
+            log.warn(TITLE + "actionSyncInfo, dataId: {}, taskId: {}", dataId, taskId);
+
+            // saveAction
+            SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
+
+            // marketingSyncUserList
+            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode
+                    , requestBatch, paramTaskId);
+
+            // actionDataList
+            Result<Map<String, Object>> actionResult = actionDetailList(apiCode, taskId, marketingSyncUserList);
+
+            // updateActionStatus
+            if (actionResult != null && actionResult.isSuccess()) {
+                updateActionStatus(queryAction.getId(), 2);
+                log.warn(TITLE + "action更新成功, dataId:{}, taskId:{}", dataId, taskId);
+            }
+        } catch (Exception e) {
+            log.warn(TITLE + e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + e.getMessage()));
+        }
+        return result.success();
+    }
+
+    private Result<Map<String, Object>> actionDetailList(String apiCode, String taskId, List<MarketingSyncUser> detailList) {
         log.warn(TITLE + "actionDataList start, apiCode: {}, taskId: {}", apiCode, taskId);
         long start = System.currentTimeMillis();
         Result result = new Result().failure();
-        Integer threadPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("threadPoolSize")));
+
+        Integer queryActionPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("queryActionPoolSize")));
+        queryActionPool.setCorePoolSize(queryActionPoolSize);
+        queryActionPool.setMaximumPoolSize(queryActionPoolSize);
         Integer partitionSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
-        dbActionPool.setCorePoolSize(threadPoolSize);
-        dbActionPool.setMaximumPoolSize(threadPoolSize);
         PARTITION_SIZE = partitionSize;
 
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
-        List<List<MarketingSyncUser>> dataPartitions = Lists.partition(dataList, PARTITION_SIZE);
+        List<List<MarketingSyncUser>> dataPartitions = Lists.partition(detailList, PARTITION_SIZE);
         for (List<MarketingSyncUser> partition : dataPartitions) {
             futures.add(CompletableFuture.runAsync(() -> {
                 try {
@@ -144,9 +170,9 @@ public class QiFuCuWanJianBatQryUserRealService {
                     paramsDto.setPartition(partition);
                     qiFuCuWanJianBatQryUserRealTransService.actionPartition(paramsDto, 0);
                 } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "分页数据处理异常"));
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "queryAction异常"));
                 }
-            }, dbActionPool));
+            }, queryActionPool));
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         long end = System.currentTimeMillis();
