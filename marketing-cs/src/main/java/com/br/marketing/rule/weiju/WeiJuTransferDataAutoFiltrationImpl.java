@@ -1,19 +1,14 @@
 package com.br.marketing.rule.weiju;
 
 import com.alibaba.fastjson.JSON;
-import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
-import com.br.marketing.bo.PeriodOfValidityBO;
-import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.context.RuleDataCollectionEnum;
-import com.br.marketing.context.impl.WeiJuRuleCollectDataImpl;
-import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
@@ -26,7 +21,6 @@ import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 /**
  * 【紧急】D20241022微聚自动化过滤-3710157
@@ -58,25 +52,23 @@ public class WeiJuTransferDataAutoFiltrationImpl implements AssembleData<Convers
                 ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transfer.getCreateTime()
                 , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
         conversionData.setInversionStatus(INVERSION_STATUS_2);
-        WeiJuRuleCollectDataImpl.WeiJuRuleNecessaryData data =
-                (WeiJuRuleCollectDataImpl.WeiJuRuleNecessaryData) context.getRuleNecessaryData();
-        Map<String, SyncUserValidityPeriodsBO> syncUserValidityPeriodMap = data.getSyncUserValidityPeriodMap();
-        SyncUserValidityPeriodsBO bo = syncUserValidityPeriodMap.get(custNum);
-        MarketingSyncUser marketingSyncUser = bo.getSyncUsers().get(0);
-        PeriodOfValidityBO.Builder builder = bo.getBuilders().get(0);
-        conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
-        PeriodOfValidityBO periodOfValidityBO = builder.addDateString().addOfDayTimeStrString().builder();
-        // 有效期设置
-        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
+        String apiCode = transfer.getApiCode();
+        //cell md5
+        String cell = RpcClientProxy.decode(custNum, "cell", "md5", apiCode+custNum);
+        if (org.apache.commons.lang3.StringUtils.isBlank(cell)) {
+            log.warn("解密失败apiCode[{}]custNum[{}]", apiCode, custNum);
+        }else{
+            conversionData.setPhone(cell);
+        }
+        // 无有效期设置
+//        conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
         BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
         // 去重参数设置
         conversionData.setInitId(transfer.getId());
-        conversionData.setSoleField(SoleFieldEnum.CUST_NUM_SOLE.getValue());
-        conversionData.setSoleType(1);
-        conversionData.setExpireBeginDate(periodOfValidityBO.getBeginDateStr());
-        conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
+        conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
+        conversionData.setSoleType(30);
         return conversionData;
     }
 
@@ -86,11 +78,6 @@ public class WeiJuTransferDataAutoFiltrationImpl implements AssembleData<Convers
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String caseEffective = transfer.getCaseEffective();
             if(StringUtils.isNotBlank(caseEffective) && CASE_EFFECTIVE_0.equalsIgnoreCase(caseEffective)){
-                WeiJuRuleCollectDataImpl.WeiJuRuleNecessaryData data =
-                        (WeiJuRuleCollectDataImpl.WeiJuRuleNecessaryData) context.getRuleNecessaryData();
-                if (data.getSyncUserValidityPeriodMap().get(transfer.getCustNum()) == null) {
-                    return false;
-                }
                 return true;
             }
         }
@@ -109,6 +96,6 @@ public class WeiJuTransferDataAutoFiltrationImpl implements AssembleData<Convers
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.WEIJU_TRANSFER_FILTER_COLLECTION.getCode();
+        return null;
     }
 }
