@@ -11,6 +11,7 @@
             `biz_data_number`   int(9)       DEFAULT '0' COMMENT '数据量',
             `response_code`     varchar(50)  DEFAULT '' COMMENT '响应码',
             `response_data`     longtext     DEFAULT NULL COMMENT '响应数据',
+            `extend`            longtext     DEFAULT NULL COMMENT '扩展字段',
             `status`            int(1)       DEFAULT '0' COMMENT '状态 0-无效、1-有效',
             `sync_status`       int(1)       DEFAULT '0' COMMENT '同步状态 0-未同步、1-已同步',
             `receive_date`      varchar(50)  DEFAULT '' COMMENT '接入日期yyyy-MM-dd',
@@ -49,6 +50,9 @@
             <if test="responseData != null">
                 response_data,
             </if>
+            <if test="extend != null">
+                extend,
+            </if>
             <if test="status != null">
                 `status`,
             </if>
@@ -83,6 +87,9 @@
             </if>
             <if test="responseData != null">
                 #{responseData,jdbcType=VARCHAR},
+            </if>
+            <if test="extend != null">
+                #{extend,jdbcType=VARCHAR},
             </if>
             <if test="status != null">
                 #{status,jdbcType=INTEGER},

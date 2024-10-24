@@ -178,7 +178,7 @@ public class MarketingUserPreController {
     /**
      * 接收客制化上传数据
      *
-     * @param apiCode api代码
+     * @param apiCode apiCode
      * @param jsonData json数据
      * @return {@link ResponseCustomDTO }
      * @author senyang.zheng

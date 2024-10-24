@@ -15,11 +15,11 @@ import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.DigestUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * D20231218数禾电销数据自动化转决策
@@ -62,7 +62,16 @@ public class ShuHeSyncDataToPolicyImpl implements AssembleData<PushMarketingUser
         if (StringUtils.isNotBlank(groupTypeNew)) {
             varDto.put("groupType", groupTypeNew);
         }
+
+        HashMap<String, String> dataCleanMappingMap = marketingCommonConfig.getDataCleanMappingMap();
+        String value = dataCleanMappingMap.get(apiCode);
+        if (value != null) {
+            List<String> dataCleanValue = marketingCommonConfig.getDataCleanValue();
+            String customNameType = dataCleanValue != null ? dataCleanValue.get(0) : "customNameType";
+            varDto.put(customNameType, parseObject.getOrDefault(value, "").toString());
+        }
         varDto.put("orderId", syncUser.getCustNum());
+        varDto.putAll(parseObject);
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
 
         log.warn("数禾上传数据推送决策,apicode={}", apiCode);

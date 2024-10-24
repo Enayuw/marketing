@@ -613,6 +613,32 @@ public class MarketingCommonConfig {
      * 榕树周期性推送时间集合
      */
     private List<Integer> rongShuCyclePushDays;
+    /**
+     * 榕树自动化规则调用决策，根据情况配置对应的决策参数 strategyCode
+     * 说明：
+     * {
+     *   "apiCode":{
+     *     "finalState":"策略编号"
+     *   }
+     * }
+     * 样例：
+     * {
+     * 	"7492800": {
+     * 		"2": "CASTR0142044",
+     * 		"3": "CASTR0142043",
+     * 		"4": "CASTR0142042",
+     * 		"5": "CASTR0142041",
+     * 		"6": "CASTR0142040",
+     * 		"7": "CASTR0142039",
+     * 		"8": "CASTR0142039"
+     *  },
+     * 	"4004643": {
+     * 		"2": "CASTR0000864",
+     * 		"3": "CASTR0000865"
+     *  }
+     * }
+     */
+    private HashMap<String, JSONObject> rongShuPushPolicyStrategyCode;
 
     /**
      * 榕树推送人工Ibu接口开关，true为可推送，false不能推送
@@ -646,6 +672,10 @@ public class MarketingCommonConfig {
 
     /**
      * 榕树推送决策策略集
+     * {
+     * "7492800":{"c":"CASTR0000846","d":"CASTR0000847","1":"CASTR0000846"},
+     * "4004643":{"c":"CASTR0000864","d":"CASTR0000865"}
+     * }
      */
     private HashMap<String, JSONObject> rsStrategyCodes;
 
@@ -1787,6 +1817,11 @@ public class MarketingCommonConfig {
     private JSONObject xieChengSmsCollidingConfig;
 
     /**
+     *  携程短信撞库一次性初始化流水号接口参数配置
+     */
+    private JSONObject xieChengCollidingInitRequestNoConfig;
+
+    /**
      *  奇富360推决策策略编号配置
      */
     private JSONObject qiFuToPolicyStrategyCodeConfig;
@@ -1872,9 +1907,26 @@ public class MarketingCommonConfig {
     private Integer wuBaCollidingDataSyncPageSize;
 
     /**
-     * 58提交撞库开关(true:开启，false关闭)
+     * 58撞库高价值文件名集合
      */
-    private Boolean wuBaCollidingDataSwitch;
+    private List<String> wubaCollidingHighValueFiles;
+
+    /**
+     * 58撞库每日最大量级限制
+     */
+    private Integer wubaCollidingDataMaxCountLimit;
+
+    /**
+     * 58提交周期撞库开关(true:开启，false关闭)
+     * {"T":true,"S":true}
+     */
+    private HashMap<String, Boolean> wuBaCollidingDataSwitch;
+
+    /**
+     * 58提交撞库周期天数配置
+     * {"T":8,"S":15}
+     */
+    private HashMap<String, Integer> wuBaCollidingCycleDayConfig;
 
     /**
      * 58提交撞库数据分页条数
@@ -2094,6 +2146,143 @@ public class MarketingCommonConfig {
      * 奇富360数据提取custNum对应上传字段
      */
     private HashMap<String, List<String>> qiFuExtDataCustNumMapConfig;
+
+    /**
+     * 原始上传数据清洗映射配置 key:apiCode value:映射的原值字段
+     */
+    private HashMap<String, String> dataCleanMappingMap;
+
+    /**
+     * 原始上传数据清洗映射新值字段
+     */
+    private List<String> dataCleanValue;
+
+    /**
+     * bi报表步长配置
+     */
+    private Map<String,List<String>> biReportStepConfig;
+
+    /**
+     * 2024-08-20 15:42
+     * 跑分模型分布 配置数据展示规则时需要的产品前缀
+     */
+    private Set<String> reportScorePrefixSet;
+
+    /**
+     * 跑分报表分值区间配置
+     */
+    private Map<String, Integer> scoreReportRangeConfig;
+
+    /**
+     * 58钉钉告警token
+     */
+    private String wuBaDingDingAccessToken;
+
+    /**
+     * 58钉钉告警密钥
+     */
+    private String wuBaDingDingSecret;
+
+    /**
+     * 数禾推送百可录AES加密key配置
+     */
+    private JSONObject shuHeToBioclooAesKeyConfig;
+
+    /**
+     * 携程Bi报表展示数量
+     */
+    private Map<String, Integer> xiechengBiReportShowNumMap;
+
+    /**
+     * 携程Bi单日撞库报表dataPacket排序
+     */
+    private Map<String, Integer> xiechengBiReportDistrubuteDayDataPacketOrderMap;
+
+    /**
+     * 加解密秘钥配置 格式 {"7492770":{"aesKey":"7H6j39W6W6b90077","aesIv":"sd0S94rU1009P43B"}}
+     */
+    private JSONObject cryptoConfig;
+
+    /**
+     * Bi报表分组维度配置
+     */
+    private HashMap<String, JSONObject> biReportGroupConfig;
+
+    /**
+     * Bi报表分组维度字典配置
+     */
+    private HashMap<String, JSONObject> biReportGroupDictConfig;
+
+    /**
+     * 跑分模型分布 配置数据展示规则时需要的产品（无多头）前缀
+     */
+    private Set<String> reportScoreOnlyPrefixSet;
+
+    /**
+     * 跑分模型分布 配置数据展示规则时需要的多头前缀
+     */
+    private Set<String> reportmultPointPrefixSet;
+
+    /**
+     * bi报表场景名称前缀配置
+     */
+    private HashMap<String, String> biReportScenePrefixConfig;
+
+    /**
+     * 数禾推送百可录场景及apiCode路由配置
+     */
+    private JSONObject shuHeToBioclooUserTypeAndApiCodeMapping;
+
+    /**
+     * 你我贷转化规则过滤配置
+     */
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+
+    /**
+     * 苏商文件时间
+     */
+    private String suShangFileDate;
+
+    /**
+     * 苏商自动回传转化状态时间
+     */
+    private String suShangFileExecTime;
+
+    /**
+     * 携程促活数据处理线程数
+     */
+    private Integer xiechengCollidingActivateThread;
+
+    /**
+     * 携程一次性初始化流水号撞库开关
+     * true 打开，false 关闭
+     */
+    private Boolean xieChengCollidingHitRequestNoSwitch;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询-Job开关，1-开，0-关
+     */
+    private String qiFuCuWanJianBatQryUserRealJobSwitch;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询-Job条件参数
+     */
+    private List<Map<String, String>> qiFuCuWanJianBatQryUserRealJobParams;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询-Job分页条数
+     */
+    private Integer qiFuCuWanJianBatQryUserRealJobPageSize;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询-config参数
+     */
+    private Map<String, Object> qiFuCuWanJianBatQryUserRealConfigParams;
+
+    /**
+     * 奇富360促完件挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, Object> qryUserRealMock;
 
 }
 

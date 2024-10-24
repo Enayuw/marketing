@@ -2,10 +2,10 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.WubaCollidingDataLogMapper">
     <insert id="batchSaveByBatchNo">
-        insert into b_wuba_colliding_data_log (data_id,cell,batch_no,api_code)
+        insert into b_wuba_colliding_data_log (data_id,cell,batch_no,api_code,package_id,data_source_type)
         values
         <foreach collection="list" item="item" separator=",">
-            (#{item.dataId},#{item.cell},#{item.batchNo},#{item.apiCode})
+            (#{item.dataId},#{item.cell},#{item.batchNo},#{item.apiCode},#{item.packageId},#{item.dataSourceType})
         </foreach>
     </insert>
 
@@ -15,5 +15,10 @@
         <foreach collection="logs" item="log" open="(" separator="," close=")">
             #{log.id}
         </foreach>
+    </update>
+
+    <update id="updateByBatchNoAndCell">
+        update b_wuba_colliding_data_log set result = #{result}, extend = #{extend}
+        where batch_no = #{batchNo} and cell = #{cell}
     </update>
 </mapper>

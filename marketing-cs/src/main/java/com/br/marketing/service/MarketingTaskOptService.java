@@ -7,4 +7,5 @@ import com.br.marketing.entity.TaskStatus;
 public interface MarketingTaskOptService {
     Result pauseTask(Long fileId, Integer isOrPause);
     Result pauseTaskByStraHisFile(Integer pauseType, StraHisFile straHisFile, TaskStatus taskStatus);
+
 }

@@ -7,6 +7,7 @@ import com.br.marketing.entity.WubaCollidingDataFront;
 import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
 import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
+import com.br.marketing.mapper.WubaCollidingDataSecondLoopCycleMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,8 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     WubaCollidingDataRobMapper wubaCollidingDataRobMapper;
     @Resource
     WubaCollidingDataLoopCycleMapper wubaCollidingDataLoopCycleMapper;
+    @Resource
+    WubaCollidingDataSecondLoopCycleMapper wubaCollidingDataSecondLoopCycleMapper;
 
     @Transactional(rollbackFor = Exception.class)
     public void insertToRobAndUpdateFront(List<WubaCollidingDataFront> wubaCollidingDataFronts, LocalFile localFile) {
@@ -43,7 +46,43 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
 
     @Transactional(rollbackFor = Exception.class)
     public void saveLoopAnddeleteRob(List<String> cells, String apiCode) {
-        wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode);
+        wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode, "F");
         wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveSecondLoopAnddeleteRob(List<String> cells, String apiCode) {
+        wubaCollidingDataSecondLoopCycleMapper.batchSaveData(cells, apiCode,"F");
+        wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveSecondLoopAnddeleteLoop(List<String> cells, String apiCode) {
+        wubaCollidingDataSecondLoopCycleMapper.batchSaveData(cells, apiCode, "T");
+        wubaCollidingDataLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void saveLoopAnddeleteSecondLoop(List<String> cells, String apiCode) {
+        wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode, "S");
+        wubaCollidingDataSecondLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+    }
+
+    /**
+     * 不可营销数据从非金融周期表删除，并保存到非周期表
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteLoopAndSaveRob(List<String> cells, String apiCode) {
+        wubaCollidingDataLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+        wubaCollidingDataRobMapper.batchSaveTrueToFalseData(cells, apiCode, "T");
+    }
+
+    /**
+     * 不可营销数据从金融周期表删除，并保存到非周期表
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteSecondLoopAndSaveRob(List<String> cells, String apiCode) {
+        wubaCollidingDataSecondLoopCycleMapper.batchDeleteByCell(cells, apiCode);
+        wubaCollidingDataRobMapper.batchSaveTrueToFalseData(cells, apiCode, "S");
     }
 }

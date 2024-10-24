@@ -4,14 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.validator.CellUtils;
 import com.br.marketing.check.dto.FileContext;
 import com.br.marketing.check.enums.ErrorFileTypeEnum;
-import com.br.marketing.check.utils.SftpToDbUtils;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.utils.*;
-import com.br.marketing.common.utils.file.MyFileUtil;
+import com.br.marketing.common.utils.AESUtil;
+import com.br.marketing.common.utils.DateHelper;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LoadResult;
-import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.entity.PhoneSale;
 import com.br.marketing.mapper.LoadResultMapper;
@@ -28,12 +27,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
@@ -94,89 +96,6 @@ public class SftpToDbByDXService {
         }
         return true;
     }
-
-    public Boolean actionTxtFile(FileContext context,LocalFile localFile) {
-        String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
-        StringBuilder head;
-        int totalLines = MyFileUtil.getTotalLines(new File(txtFilePathAndName));
-        if (totalLines == 0) {
-            log.error(String.format("%s 文件内容为空", context.getTxtFileName()));
-            LocalFile updateFile = new LocalFile();
-            updateFile.setId(localFile.getId());
-            updateFile.setComplete("4");
-            localFileMapper.updateByPrimaryKeySelective(updateFile);
-            return false;
-        }
-        head = MyFileUtil.gethead(txtFilePathAndName);
-
-        HashMap<Integer, String> address = new HashMap<>();
-        HashMap<Integer, String> extSetField = new HashMap<>();
-        Result hashMapResult = SftpToDbUtils.statisticsHead(head.toString(), address, extSetField);
-        if (!ResultCode.SUCCESS.getValue().equals(hashMapResult.getCode())) {
-            log.error(String.format("%s 文件：%s", context.getTxtFileName(), hashMapResult.getMessage()));
-            LocalFile updateFile = new LocalFile();
-            updateFile.setId(localFile.getId());
-            updateFile.setComplete("2");
-            localFileMapper.updateByPrimaryKeySelective(updateFile);
-            return false;
-        }
-
-        long start = System.currentTimeMillis();
-
-        String filepath = context.getLocalTxtFilePath().concat(context.getTxtFileName());
-        AtomicInteger errorMark = new AtomicInteger(0);
-        try(
-                FileReader read = new FileReader(filepath);
-                BufferedReader br = new BufferedReader(read);) {
-            String row;
-            Integer line = 1;
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(20, 20);
-            while ((row = br.readLine()) != null) {
-                String trim = row.trim();
-                if (StringUtils.isNotEmpty(row) && StringUtils.isNotEmpty(trim) && line > 1) {
-                    Integer lineNum = line;
-                    threadPool.submit(() -> {
-                        PhoneSale phoneSale = new PhoneSale();
-                        phoneSale.setApiCode(localFile.getApiCode());
-                        phoneSale.setLocalId(localFile.getId().toString());
-                        setDataByPhone(trim, phoneSale, address, extSetField, errorMark, lineNum);
-                    });
-                }
-                line++;
-            }
-            /**
-             * 等待所有任务都执行完成
-             **/
-            threadPool.shutdown();
-            while (true) {
-                if (threadPool.isTerminated()) {
-                    log.info("所有线程都执行结束");
-                    break;
-                }
-                try {
-                    Thread.sleep(3000);
-                } catch (Exception e) {
-                }
-            }
-            LocalFile updateFile = new LocalFile();
-            updateFile.setId(localFile.getId());
-            updateFile.setActualNumber(line);
-            if (errorMark.get() > 0) {
-                updateFile.setComplete("3");
-            }
-            localFileMapper.updateByPrimaryKeySelective(updateFile);
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
-        }catch (Exception e){
-            log.error(e.getMessage(),e);
-            Thread.currentThread().interrupt();
-        }
-        long end = System.currentTimeMillis();
-        if(log.isWarnEnabled()){
-            log.warn(String.format("数据入库时长:%d",end-start));
-        }
-        return true;
-    }
-
 
     public void checkConfigFile(FileContext context) {
         MarketingTask task = context.getTask();

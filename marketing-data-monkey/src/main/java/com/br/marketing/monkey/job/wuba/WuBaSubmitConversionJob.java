@@ -54,8 +54,10 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
             for (Map<String, String> paramMap : paramList) {
                 String apiCode = paramMap.get("apiCode");
                 String bizDate = paramMap.get("bizDate");
+                String userType = paramMap.get("userType");
                 Integer createDate = Integer.parseInt(bizDate);
-                Result<Map<String, Object>> actionResult = action(apiCode, createDate, pageSize);
+
+                Result<Map<String, Object>> actionResult = action(apiCode, createDate, userType, pageSize);
                 boolean hasScanData = judgeHasScanData(actionResult);
                 if(hasScanData){
                     break;
@@ -68,11 +70,12 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
         }
     }
 
-    private Result<Map<String, Object>> action(String apiCode, Integer createDate, Integer pageSize) {
+    private Result<Map<String, Object>> action(String apiCode, Integer createDate, String userType, Integer pageSize) {
         WubaSubmitConversionData param = new WubaSubmitConversionData();
         param.setApiCode(apiCode);
         param.setStatus(1);
         param.setPushStatus(0);
+        param.setUserType(userType);
         param.setCreateDate(createDate);
         Page2Condition<WubaSubmitConversionData> condition = new Page2Condition<>();
         condition.setParam(param);
@@ -93,7 +96,7 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
 
     /**
      * 解析Job参数，格式如下：
-     * e.g [{"apiCode":"3710155","bizDate":"-6"},{"apiCode":"3710155","bizDate":"-5"}]
+     * e.g [{"apiCode":"3710155","bizDate":"0","userType":"2"},{"apiCode":"3710155","bizDate":"-6","userType":"1"}]
      */
     private List<Map<String, String>> parseParameter() throws Exception {
         List<Map<String, String>> paramList = new ArrayList<>();
@@ -121,6 +124,15 @@ public class WuBaSubmitConversionJob extends AbstractSimpleElasticJob {
             String bizDateFormat = DateUtils.format(bizDate, "yyyyMMdd");
 
             paramMap.put("bizDate", bizDateFormat);
+
+            // userType
+            String userType = configMap.get("userType");
+            if(StringUtils.isEmpty(userType)){
+                throw new Exception("Job参数bizDate格式不正确");
+            }
+            paramMap.put("userType", userType);
+
+            // add paramList
             paramList.add(paramMap);
         }
         log.warn(TITLE + "paramList: {}", JSONObject.toJSONString(paramList));

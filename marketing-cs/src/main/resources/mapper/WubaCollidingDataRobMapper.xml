@@ -2,15 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.WubaCollidingDataRobMapper" >
     <insert id="batchSaveData" >
-        INSERT INTO b_wuba_colliding_data_rob (cell, api_code)
+        INSERT INTO b_wuba_colliding_data_rob (cell, api_code, package_id, data_source_type)
         VALUES
         <foreach collection="robs" item="item" separator=",">
-            (#{item.cell}, #{apiCode})
+            (#{item.cell}, #{apiCode}, #{item.localId}, 'F')
         </foreach>
     </insert>
 
-    <select id="selectCollidingData" resultType="com.br.marketing.entity.WubaCollidingDataRob">
-        select id, cell, api_code from b_wuba_colliding_data_rob
+    <select id="selectCollidingData" resultType="com.br.marketing.entity.WubaCollidingData">
+        select id, cell, package_id from b_wuba_colliding_data_rob
         where is_deleted = 0 and push_time is null and api_code = #{apiCode} limit #{pageSize}
     </select>
 
@@ -29,4 +29,23 @@
             #{cell}
         </foreach>
     </update>
+
+    <select id="selectHighValueCollidingData" resultType="com.br.marketing.entity.WubaCollidingData">
+        select a.id, a.cell, a.package_id
+        from b_wuba_colliding_data_rob a join b_local_file b on a.package_id = b.id
+        where a.is_deleted = 0 and a.api_code = #{apiCode} <![CDATA[ and (a.push_time < #{nowDate} or a.push_time is null) ]]>
+        and b.api_code = #{apiCode} and b.status = 2 and b.complete = 1 and b.push_status = 2 and b.file_name in
+        <foreach collection="fileNames" item="fileName" open="(" separator="," close=")">
+            #{fileName}
+        </foreach>
+        limit #{pageSize}
+    </select>
+
+    <insert id="batchSaveTrueToFalseData" >
+        INSERT INTO b_wuba_colliding_data_rob (cell, api_code, data_source_type, is_deleted)
+        VALUES
+        <foreach collection="cells" item="item" separator=",">
+            (#{item}, #{apiCode}, #{dataSourceType}, 1)
+        </foreach>
+    </insert>
 </mapper>

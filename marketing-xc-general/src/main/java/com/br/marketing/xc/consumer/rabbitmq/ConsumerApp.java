@@ -1,10 +1,15 @@
 package com.br.marketing.xc.consumer.rabbitmq;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import javax.annotation.Resource;
-
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
+import com.br.marketing.entity.XieChengCollidingDataLog;
+import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
+import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
+import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.Exchange;
 import org.springframework.amqp.rabbit.annotation.Queue;
@@ -12,12 +17,9 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import com.alibaba.fastjson.JSONArray;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.entity.XieChengCollidingDataLog;
-import com.br.marketing.service.Impl.ConsumerService;
-import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
-import com.rabbitmq.client.Channel;
+import javax.annotation.Resource;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * rabbitmq 消费端
@@ -33,6 +35,9 @@ public class ConsumerApp {
 
     @Resource
     private XieChengCollidingDataLogService xieChengCollidingDataLogService;
+
+    @Resource
+    private XieChengRobDataCollidingService robDataCollidingService;
 
     /**
      * 营销携程撞库日志消息消费端
@@ -51,5 +56,4 @@ public class ConsumerApp {
         List<XieChengCollidingDataLog> collidingDataLogList = JSONArray.parseArray(messageStr, XieChengCollidingDataLog.class);
         consumerService.consumerRun(channel, message, xieChengCollidingDataLogService::saveXieChengCollidingDataLog, collidingDataLogList, null);
     }
-
 }

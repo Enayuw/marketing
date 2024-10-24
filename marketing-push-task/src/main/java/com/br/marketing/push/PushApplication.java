@@ -40,6 +40,7 @@ public class PushApplication {
 
     public static void main(String[] args) {
         Long start=System.currentTimeMillis();
+        log.warn("回滚验证日志！");
         log.warn("PushApplication开始启动！");
         ac= new SpringApplicationBuilder().sources(PushApplication.class).run(args);
         Runtime.getRuntime().addShutdownHook(new Thread() {

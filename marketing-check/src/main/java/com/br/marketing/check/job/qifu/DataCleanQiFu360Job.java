@@ -21,6 +21,22 @@ import java.util.UUID;
 public class DataCleanQiFu360Job extends AbstractSimpleElasticJob {
     @Resource
     private DataCleanQiFu360Service dataCleanQiFu360Service;
+    /**
+     * job参数：
+     *   beginQueryDate 和 endQueryDate 是 create_time 的时间范围（使用时必须配置 createDate）
+     *   createDate 配置时表示 大于等于create_date
+     *   业务不调整时，apiCode不需要填写
+     *样例：
+     *  {
+     *   	"beginQueryDate": "2024-09-08 20:00:00",
+     *   	"endQueryDate": "2024-09-09 10:00:00",
+     *   	"createDate": "2024-09-08",
+     *   	"apiCode": ["3710139", "7491635"]
+     *  }
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/9/9 17:10
+     * @param context
+     */
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         String uuid = UUID.randomUUID().toString();

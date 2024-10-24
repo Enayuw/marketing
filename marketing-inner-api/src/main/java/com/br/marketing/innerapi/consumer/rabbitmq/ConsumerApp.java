@@ -82,22 +82,6 @@ public class ConsumerApp {
     }
 
     /**
-     * 消费 哈啰
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_TRANSFER_PUSH_HALUO, durable = "true")
-            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_HALUO)}, containerFactory = "primaryContainerFactory")
-    public void consumerHaLuo(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
-        /*消费逻辑*/
-        consumerService.consumerRun(channel, message, pushRuleService::consumerHaLuo, o, null);
-    }
-
-    /**
      * 消费 营销平台数据导入异步处理
      *
      * @param channel 通道

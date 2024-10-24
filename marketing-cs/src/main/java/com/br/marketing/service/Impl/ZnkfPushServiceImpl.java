@@ -14,10 +14,19 @@ import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
+import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.dto.shuhe.factory.UserTypeStrategyFactory;
 import com.br.marketing.dto.shuhe.strategy.BaseUserType;
 import com.br.marketing.dto.shuhe.strategy.CuFuJie;
 import com.br.marketing.entity.*;
+import com.br.marketing.mapper.*;
+import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.CallRecordExample;
+import com.br.marketing.entity.CaseShuheUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUserExample;
+import com.br.marketing.entity.RoboAIBlackPhoneMark;
+import com.br.marketing.entity.RoboAIBlackPhoneMarkExample;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
@@ -41,11 +50,16 @@ import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -53,6 +67,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
 
     @Autowired
     private CallRecordMapper callRecordMapper;
+
+    @Autowired
+    private SmsCallbackMapper smsCallbackMapper;
 
     @Autowired
     private PushDataService pushDataService;
@@ -256,67 +273,52 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
         return isPushEnd;
     }
 
-    private String goShDX(CallRecordDTO dto) {
+    @Override
+    public String smsCallBack(SmsRecordDTO dto) {
         try {
-            Date day = new Date();
-            SimpleDateFormat dfDay = new SimpleDateFormat("yyyy-MM-dd");
-            SimpleDateFormat dfSecond = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            //select * from b_marketing_sync_7410437 bms where cust_num ='' order by applet_date desc limit 1;
-            MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.getNewestByCusnum(dto.getApiCode(), dto.getCaseNum());
-            if (marketingSyncUser == null) {
-                log.info("上传数据表中(apicode=%s)不存在 custNum=%s 的数据！", dto.getApiCode(), dto.getCaseNum());
-                return "true";
+            String value = checkValues(dto);
+            if(!value.isEmpty()){
+                return value;
             }
-            //select * from b_marketing_transfer_sync_762 where cust_num='000071'  order by create_time desc limit 1;
-            Integer tcid = (Math.abs(dto.getCid()));
-            MarketingTransferSyncUser marketingTransferSyncUser = marketingTransferSyncUserMapper.getNewestByCusnum(tcid.toString(), dto.getCaseNum());
-
-            LocalFile localFile = new LocalFile();
-            PhoneSale phoneSale = new PhoneSale();
-            PhoneSaleExtendShuhe phoneSaleExtendShuhe = new PhoneSaleExtendShuhe();
-            PushShDXDTO pushShDXDTO = new PushShDXDTO()
-                    .setLocalFile(localFile)
-                    .setPhoneSale(phoneSale)
-                    .setPhoneSaleExtendShuhe(phoneSaleExtendShuhe);
-            localFile.setCid(dto.getCid().toString());
-            localFile.setApiCode(dto.getApiCode());
-            localFile.setFileName("客服");
-            phoneSale.setUid(dto.getCaseNum());
-            String s = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
-            phoneSale.setPhone(s);//b_marketing_sync_{apicode}的cell，明文
-            phoneSale.setName("");
-            phoneSale.setOrgname("shuheshenwan");
-            phoneSale.setSource("16");
-            phoneSale.setUserType("2");
-            phoneSale.setType("2");
-            if (marketingTransferSyncUser != null) {
-                ////b_marketing_transfer_sync_{cid} 的login_time
-                phoneSale.setLoginTime(StringUtils.isNotEmpty(marketingTransferSyncUser.getLoginTime()) ? marketingTransferSyncUser.getLoginTime() : "");
-                //b_marketing_transfer_sync_{cid} reserve_field1
-                phoneSale.setExtend(StringUtils.isNotEmpty(marketingTransferSyncUser.getReserveField1()) ? marketingTransferSyncUser.getReserveField1() : "");
-            } else {
-                phoneSale.setLoginTime("");
-                phoneSale.setExtend("");
+            String thirdCallNo = dto.getThirdCallNo();
+            //校验是否已经落库
+            SmsCallbackExample smsCallbackExample = new SmsCallbackExample();
+            smsCallbackExample.createCriteria().andThirdCallNoEqualTo(thirdCallNo);
+            int i = smsCallbackMapper.countByExample(smsCallbackExample);
+            if (i > 0) {
+                log.warn("短信流水号重复：" + thirdCallNo);
+                return "短信流水号重复：" + thirdCallNo;
             }
-
-            phoneSaleExtendShuhe.setCustNum(dto.getCaseNum());
-            phoneSaleExtendShuhe.setAppletDate(dfDay.format(day));
-            phoneSaleExtendShuhe.setAppletTime(dfSecond.format(day));
-            phoneSaleExtendShuhe.setStatus("b");
-            Result<Boolean> result = pushDataService.pushShDX(pushShDXDTO);
-            if (result.getData()) {
-                log.info("推送电销成功！");
-            } else {
-                String msg = String.format("客服->营销(custNum=%s)推送电销失败！失败信息：%s", marketingTransferSyncUser.getCustNum(), result.getData());
-                log.error(msg);
-                //alarmClient.sendAlarm(msg, title, appName, secretKey, Constants.sendCodeMap.get("sysError"));
-            }
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            //alarmClient.sendAlarm("保存到电销失败" + e.getMessage(), title, appName, secretKey, Constants.sendCodeMap.get("sysError"));
+            SmsCallback smsCallback = new SmsCallback();
+            smsCallback.setCreateDate(String.valueOf(LocalDate.now()));
+            smsCallback.setCreateTime(new Date());
+            BeanUtils.copyProperties(dto, smsCallback);
+            smsCallback.setApiCode(dto.getApiCode());
+            smsCallbackMapper.insertSelective(smsCallback);
+        }catch (Exception ex){
+            log.error("外呼短信记录落库失败！短信流水号={},错误信息为{}", dto.getThirdCallNo(), ex);
+            return "外呼短信记录落库失败(insert b_sms_callback fail)!";
         }
         return "success";
+    }
+
+    private String checkValues(SmsRecordDTO dto) {
+        if(StringUtils.isEmpty(dto.getApiCode())){
+            return "apiCode为空";
+        }
+        if(StringUtils.isEmpty(dto.getCid())){
+            return "cid为空";
+        }
+        if(StringUtils.isEmpty(dto.getThirdCallNo())){
+            return "短信流水号 thirdCallNo 为空";
+        }
+        if(StringUtils.isEmpty(dto.getCaseNum())){
+            return "案件编号 caseNum 为空";
+        }
+        if(StringUtils.isEmpty(dto.getSmsSendStatus())){
+            return "短信发送状态 smsSendStatus 为空";
+        }
+        return "";
     }
 
     private String paramOfValidity(CallRecordDTO dto) {

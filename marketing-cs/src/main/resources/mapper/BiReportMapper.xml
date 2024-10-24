@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.BiReportMapper">
+    <select id="getReportTimeRange" resultType="com.br.marketing.vo.bi.BiReportTimeRangeVO">
+        select
+            min(valid_start_date) as requestStartDate,
+            max(valid_end_date) as requestEndDate
+        from
+            b_marketing_data_valid_config
+        where
+          api_code = #{apiCode}
+          and user_type = #{userType}
+          and <![CDATA[ valid_start_date <= #{statisticDate} and valid_end_date >= #{statisticDate} ]]>
+	      and is_del = 1
+    </select>
+    <select id="getScoreDataCountBydimensionbI_" resultType="java.lang.Integer">
+        select
+            count(0)
+        from
+            ${scoreTableName} score
+                inner join ods_upload_half_hourly upload
+            on score.cus_num = upload.cust_num
+        where
+          upload.api_code = #{apiCode}
+          and upload.user_type = #{userType}
+          and get_json_string(upload.reserve_field1,CONCAT('$.', #{dimensionsField})) is not null;
+    </select>
+</mapper>

@@ -9,6 +9,12 @@ import javax.annotation.Resource;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.config.RocketMQSwitch;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.entity.XieChengCollidingDataHitRequestNoMapping;
+import com.br.marketing.mapper.XieChengCollidingDataHitRequestNoMappingMapper;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONArray;
@@ -28,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 撞库日志相关service
- *
  * @author senyang.zheng
  * @date 2024/03/23
  */
@@ -38,6 +43,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
 
     @Resource
     private XieChengCollidingDataLogMapper xieChengCollidingDataLogMapper;
+    @Resource
+    private XieChengCollidingDataHitRequestNoMappingMapper xieChengCollidingDataHitRequestNoMappingMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -51,21 +58,20 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
 
     /**
      * 构造撞库正常log
-     *
-     * @param id id
-     * @param packageId packageId
-     * @param packageRuleId packageRuleId
+     * @param id             id
+     * @param packageId      packageId
+     * @param packageRuleId  packageRuleId
      * @param dataSourceType 数据源类型 T True数据,F False数据
-     * @param returnData 返回数据
-     * @param httpcode httpcode
-     * @param businessCode 客户返回Code码
+     * @param returnData     返回数据
+     * @param httpcode       httpcode
+     * @param businessCode   客户返回Code码
      * @return {@link XieChengCollidingDataLog }
      * @author senyang.zheng
      * @date 2024/03/23
      */
     @Override
     public XieChengCollidingDataLog buildSuccessXieChengCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
-        JSONObject returnData, String httpcode, Integer businessCode) {
+                                                                         JSONObject returnData, String httpcode, Integer businessCode) {
         String sha256Code = returnData.getString("sha256Code");
         Boolean result = returnData.getBoolean("result");
         String orgChannel = returnData.getString("orgChannel");
@@ -101,7 +107,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
             }
         } catch (Exception e) {
             xieChengCollidingDataLog.setMarketCouponList(String.valueOf(returnData.get("marketCouponList")));
-            log.error("携程撞库日志析出marketCouponList异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程撞库日志析出marketCouponList异常！"), e);
         }
         xieChengCollidingDataLog.setReturnContent(returnData.toString(SerializerFeature.WriteMapNullValue));
         xieChengCollidingDataLog.setCreateTime(new Date());
@@ -111,20 +118,19 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
 
     /**
      * 构建异常携程撞库日志
-     *
-     * @param id id
-     * @param packageId packageId
-     * @param packageRuleId packageRuleId
-     * @param dataSourceType 数据源类型 T True数据,F False数据
+     * @param id                 id
+     * @param packageId          packageId
+     * @param packageRuleId      packageRuleId
+     * @param dataSourceType     数据源类型 T True数据,F False数据
      * @param cellSha256CodeList 手机号
-     * @param resJson res json
+     * @param resJson            res json
      * @return {@link XieChengCollidingDataLog }
      * @author senyang.zheng
      * @date 2024/03/23
      */
     @Override
     public XieChengCollidingDataLog buildFailXieChengCollidingDataLog(Long id, Long packageId, Long packageRuleId, String dataSourceType,
-        String cellSha256CodeList, JSONObject resJson) {
+                                                                      String cellSha256CodeList, JSONObject resJson) {
         String httpcode = resJson.getString("httpcode");
         XieChengCollidingDataLog xieChengCollidingDataLog = new XieChengCollidingDataLog();
         xieChengCollidingDataLog.setSmsCollidingDataId(id);
@@ -149,7 +155,6 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
 
     /**
      * 推送保存log消息
-     *
      * @param collidingLogs 碰撞日志
      * @author senyang.zheng
      * @date 2024/03/23
@@ -164,7 +169,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
             }
         } catch (Exception e) {
-            log.error("推送携程撞库日志消息异常", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "推送携程撞库日志消息异常！"), e);
         }
     }
 
@@ -172,7 +178,38 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     public Result<Boolean> saveXieChengCollidingDataLog(List<XieChengCollidingDataLog> collidingLogs) {
         XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.setMaximumPoolSize(marketingCommonConfig.getXiechengSaveCollidingLogThread());
         XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.setCorePoolSize(marketingCommonConfig.getXiechengSaveCollidingLogThread());
-        XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.submit(() -> xieChengCollidingDataLogMapper.batchSave(collidingLogs));
+        for (XieChengCollidingDataLog collidingLog : collidingLogs) {
+            XIECHENG_SAVE_COLLIDING_LOG_THREAD_POOL.submit(() -> {
+                        saveLogAndMapping(collidingLog);
+                    }
+            );
+        }
+
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    /**
+     * 保存撞库日志和流水号手机号映射
+     * @param collidingLog
+     */
+    private void saveLogAndMapping(XieChengCollidingDataLog collidingLog) {
+        try {
+            // 写入日志表
+            xieChengCollidingDataLogMapper.insertSelective(collidingLog);
+            XieChengCollidingDataHitRequestNoMapping requestNoMapping = new XieChengCollidingDataHitRequestNoMapping();
+            String returnContent = collidingLog.getReturnContent();
+            JSONObject jsonReturnContent = JSONObject.parseObject(returnContent);
+
+            // 写入映射表
+            String hitRequestNo = jsonReturnContent.getString("hitRequestNo");
+            requestNoMapping.setLogId(collidingLog.getId());
+            requestNoMapping.setHitRequestNo(hitRequestNo);
+            requestNoMapping.setCellSha256CodeList(collidingLog.getCellSha256CodeList());
+            requestNoMapping.setCreateDate(Integer.valueOf(DateUtil.format(DateUtil.date(), DatePattern.PURE_DATE_PATTERN)));
+            xieChengCollidingDataHitRequestNoMappingMapper.insertSelective(requestNoMapping);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "携程撞库保存日志和映射表异常！"), e);
+        }
     }
 }

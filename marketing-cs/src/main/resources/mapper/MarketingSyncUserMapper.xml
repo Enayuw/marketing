@@ -614,7 +614,7 @@
     </select>
 
     <select id="getCellLastByCustNums" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select b.cell,b.cust_num from
+        select b.cell,b.cust_num,b.applet_time from
         (
         select cust_num,max(applet_time) as applet_time
         from b_marketing_sync_${apiCode} a
@@ -912,6 +912,15 @@
         where api_code =#{apiCode} and request_batch = #{requestBatch}
     </select>
 
+    <select id="getSyncUserByCondition" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where api_code =#{apiCode}
+            and request_batch = #{requestBatch}
+            and status=1
+            and is_repeat in (1,2)
+    </select>
+
     <select id="getSyncUserByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
         select
           b.*
@@ -968,5 +977,48 @@
         update b_marketing_sync_${apiCode}
         set reserve_field1 = #{reserveField1,jdbcType=VARCHAR}
         where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="findSyncUserByCustNumsAndAppletTime" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cell, cust_num, user_type
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        and status =1
+        order by applet_time desc limit 1
+    </select>
+
+    <select id="getYiXinNewSyncUserByDateAndResourceChannel" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where applet_date = #{appletDate}
+          and status = 1
+          and is_repeat in (1, 2)
+          and user_type = #{userType}
+          and reserve_field1 -> '$.resourceChannel' = #{resourceChannel}
+        <if test="minId != null and minId > 0">
+            and id > #{minId}
+        </if>
+        order by id asc
+        limit #{pageSize}
+    </select>
+
+    <update id="updateExtend">
+        UPDATE b_marketing_sync_${apiCode}
+        SET reserve_field1 = JSON_SET(reserve_field1,
+        <foreach collection="extendList" item="extendMap" separator=",">
+            '$.${extendMap.key}', '${extendMap.value}'
+        </foreach>
+        )
+        where api_code=#{apiCode}
+            and cust_num = #{custNum}
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="idList != null and idList.size()>0">
+                and id in
+                <foreach collection="idList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
     </update>
 </mapper>

@@ -65,7 +65,7 @@ public class WuBaSubmitConversionService {
     private WuBaSubmitConversionSoleProcessor soleProcessor;
 
     @Resource
-    private WuBaSubmitConversionValidityProcessor ValidityProcessor;
+    private WuBaSubmitConversionValidityProcessor validityProcessor;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -83,6 +83,7 @@ public class WuBaSubmitConversionService {
         String apiCode = param.getApiCode();
         Integer status = param.getStatus();
         Integer pushStatus = param.getPushStatus();
+        String userType = param.getUserType();
         Integer createDate = param.getCreateDate();
         Integer pageSize = condition.getPageSize();
 
@@ -92,7 +93,7 @@ public class WuBaSubmitConversionService {
             String marketingTimeStart = marketingTimeInterval.get("marketingTimeStart");
             String marketingTimeEnd = marketingTimeInterval.get("marketingTimeEnd");
             List<WubaSubmitConversionData> pageList = wubaSubmitConversionDataMapper.findWithMarketingTimeByPage(
-                    apiCode, status, pushStatus, marketingTimeStart, marketingTimeEnd, pageSize);
+                    apiCode, status, pushStatus, userType, marketingTimeStart, marketingTimeEnd, pageSize);
             if (CollectionUtils.isEmpty(pageList)) {
                 log.warn(TITLE+"scanData, 未获取到数据");
                 data.put("hasScanData", "0");
@@ -113,7 +114,7 @@ public class WuBaSubmitConversionService {
             log.warn(TITLE + "scanData, 去重条数{}, 推送条数{}", noPushIds.size(), pageList.size());
 
             // 判断有效期
-            List<Long> noValidIds = ValidityProcessor.validate(pageList, param);
+            List<Long> noValidIds = validityProcessor.validate(pageList, param);
             if(!CollectionUtils.isEmpty(noValidIds)){
                 WubaSubmitConversionData dataUpdate = new WubaSubmitConversionData();
                 dataUpdate.setStatus(4);

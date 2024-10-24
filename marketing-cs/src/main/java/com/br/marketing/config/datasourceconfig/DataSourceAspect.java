@@ -19,6 +19,8 @@ public class DataSourceAspect {
     public static final String marketingTikiv = "marketingTikiv";
     public static final String marketingTiFlash = "marketingTiFlash";
     public static final String MARKETING_DORIS = "marketingDoris";
+    public static final String MARKETING_BI = "marketingBI";
+
 
     /**
      * 切换tikv数据源
@@ -53,13 +55,25 @@ public class DataSourceAspect {
         DbContextHolder.setDbType(MARKETING_DORIS);
     }
 
-    @After("tiKvOfMarketing()||tiflashOfMarketing()||dorisOfMarketing()")
+    /**
+     * 切换Doris BI数据源
+     */
+    @Before("bIOfMarketing()")
+    public void bIOfMarketingInterceptor() {
+        if(logger.isInfoEnabled()){
+            logger.info("切换到数据源{}.......................", "BI");
+        }
+        DbContextHolder.setDbType(MARKETING_BI);
+    }
+
+    @After("tiKvOfMarketing()||tiflashOfMarketing()||dorisOfMarketing()||bIOfMarketing()")
     public void afterInterceptor() {
         if(logger.isInfoEnabled()){
             logger.info("释放数据源{}.......................", DbContextHolder.getDbType());
         }
         DbContextHolder.clearDbType();
     }
+
 
     @Pointcut(value = "@annotation(com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfTikvMarketing)||execution(* com.br.marketing.mapper.*.*tikv_(..))")
     public void tiKvOfMarketing() {
@@ -72,5 +86,10 @@ public class DataSourceAspect {
     @Pointcut(value = "@annotation(com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfDorisMarketing)||execution(* com.br.marketing" +
             ".mapper.*.*doris_(..))")
     public void dorisOfMarketing() {
+    }
+
+    @Pointcut(value = "@annotation(com.br.marketing.config.datasourceconfig.datasourceannotion.DbOfBIMarketing)||execution(* com.br.marketing" +
+            ".mapper.*.*bI_(..))")
+    public void bIOfMarketing() {
     }
 }

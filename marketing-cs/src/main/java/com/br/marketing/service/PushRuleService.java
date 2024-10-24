@@ -1,11 +1,5 @@
 package com.br.marketing.service;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
@@ -30,6 +24,11 @@ import com.br.marketing.vo.MarketingTransferUserStatusVO;
 import com.br.marketing.vo.PushInfoDetailVO;
 import com.br.marketing.vo.ScoreConditionDetailVO;
 import com.br.marketing.vo.xiecheng.PushViewVO;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Map;
 
 public interface PushRuleService {
 
@@ -200,10 +199,6 @@ public interface PushRuleService {
     Result<Boolean> consumerCommonBlack(Long id);
 
     Result<Boolean> consumerBlack(Long id);
-
-    Result<Boolean> consumerHaLuo(Long id);
-
-
 
     /**
      * 模拟数据库或者redis异常
