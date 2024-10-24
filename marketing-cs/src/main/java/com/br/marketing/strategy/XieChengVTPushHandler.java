@@ -72,7 +72,8 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                     JSONObject msg = new JSONObject();
                     msg.put("localId", dto.getInitId());
                     msg.put("type", 2);
-                    if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
+                    if(rocketMQSwitch.rocketMQSwitchFlag(xieChengData.getApiCode()
+                            , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
                         template.syncSend(MarketingAssistConstants.TOPIC
                                 , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
                     }else{
