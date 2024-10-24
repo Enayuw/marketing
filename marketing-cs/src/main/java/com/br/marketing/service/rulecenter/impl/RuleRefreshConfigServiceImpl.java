@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -138,13 +139,16 @@ public class RuleRefreshConfigServiceImpl implements IRuleRefreshConfigService {
     }
 
     private Boolean queryDecisionsTaskLog(String apiCode, PushDecisions pushDecisions) {
+        LocalDateTime localDateTime = LocalDate.now().atTime(0, 0, 0);
+        Date createTimeStart = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
         Boolean aTrue = Boolean.FALSE;
         DecisionsTaskLogExample decisionsTaskLogExample = new DecisionsTaskLogExample();
         decisionsTaskLogExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andPushConfigIdEqualTo(pushDecisions.getId())
                 .andIsDelEqualTo(Constants.DATA_VALID)
-                .andCreateTimeLessThanOrEqualTo(new Date());
+                .andCreateTimeGreaterThanOrEqualTo(createTimeStart);
         int i = decisionsTaskLogMapper.countByExample(decisionsTaskLogExample);
         log.warn(TITLE + "查询是否生成推决策任务:{}", i);
         if(i > 0){

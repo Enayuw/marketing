@@ -790,16 +790,6 @@
         shf.id                                            as `hisFileId`,
         bmt.api_code                                      ,
         bmt.batch_number                                  as `batchNumber`,
-        bsrc.id                                           as `ruleId`,
-        bsrc.rule_name                                    as `ruleName`,
-        bsrc.rule_name_short                              as `ruleNameShort`,
-        bmt.status,
-        bmt.priority,
-        bmt.task_number                                   as `taskNumber`,
-        bsrc.condition_info                               as `conditionInfo`,
-        bmte.condition_type                               as `conditionType`,
-        bmte.condition_info_show                          as `conditionInfoShow`,
-        shf.status                                  as taskStatus,
         bmt.create_time                             as createTime,
         bmt.update_time                             as updateTime
         from b_marketing_task bmt
