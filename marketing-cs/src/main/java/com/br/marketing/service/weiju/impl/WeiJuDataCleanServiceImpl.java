@@ -106,6 +106,7 @@ public class WeiJuDataCleanServiceImpl implements WeiJuDataCleanService {
             JSONObject reserveField1 = new JSONObject();
             reserveField1.put("customNameType", uploadJson.getOperationUserType());
             reserveField1.put("userType", fieldMapping.getString(uploadJson.getScene()));
+            reserveField1.put("sleepGroup", uploadJson.getSilenceDaysGroup());
             if (StringUtils.isNotEmpty(item.getString("registedTime"))) {
                 reserveField1.put("registerTime", item.getString("registedTime"));
             }
@@ -114,9 +115,6 @@ public class WeiJuDataCleanServiceImpl implements WeiJuDataCleanService {
             }
             if (StringUtils.isNotEmpty(item.getString("lastAllSettleTime"))) {
                 reserveField1.put("settleTime", item.getString("lastAllSettleTime"));
-            }
-            if (StringUtils.isNotEmpty(item.getString("silenceDaysGroup"))) {
-                reserveField1.put("sleepGroup", item.getString("silenceDaysGroup"));
             }
             if (StringUtils.isNotEmpty(item.getString("lastcreditAmountRangeLabel"))) {
                 reserveField1.put("auditAmountGroup", item.getString("lastcreditAmountRangeLabel"));

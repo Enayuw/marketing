@@ -290,7 +290,7 @@ public class ConsumerApp {
 
 
     /**
-     * 消费 携程促活数据接入消费端
+     * 消费 微聚数据清洗消费端
      * @param channel 通道
      * @param message 消息体
      */
