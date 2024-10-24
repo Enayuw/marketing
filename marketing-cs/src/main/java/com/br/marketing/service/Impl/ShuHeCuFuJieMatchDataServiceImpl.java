@@ -70,7 +70,6 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
     public void matchData(String condition, String apiCode, String date, String batchNumber, Boolean forceFlag, Long fieldId) {
         JSONObject shuHeCuFuJieMatchDataConfig = JSONObject.parseObject(marketingCommonConfig.getShuHeCuFuJieMatchDataConfig());
         Integer threadSize = shuHeCuFuJieMatchDataConfig.getInteger("threadSize");
-        Integer limit = shuHeCuFuJieMatchDataConfig.getInteger("limit");
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadSize, threadSize);
         String redisKey = RedisKeyConstant.SHU_HE_CUFUJIE_MATCH_DATA_FLAG + ":" + date + ":" + batchNumber;
         String index = EsHandleUtil.getDateFromBatchNumber(batchNumber);
@@ -86,6 +85,7 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
         log.warn("数禾促复借{}自动化匹配数据清洗开始", date);
         minId = minId - 1;
         while (mark) {
+            Integer limit = shuHeCuFuJieMatchDataConfig.getInteger("limit");
             List<ShuHeCuFuJieData> shuHeCuFuJieDataList = shuHeCuFuJieDataMapper.shuHeCuFuJieMatchDataByMinId(date, minId, limit);
             if (shuHeCuFuJieDataList.size() <= 0) {
                 mark = Boolean.FALSE;
