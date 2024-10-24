@@ -68,6 +68,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             }else{
                 log.error("apiCode[{}]custNum[{}]榕树转化数据自动过滤推客服isBlack=1未发现手机号"
                         , apiCode, custNum);
+                return null;
             }
         }else{
             // 新版本有效期判断
