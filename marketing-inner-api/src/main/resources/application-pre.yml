@@ -225,12 +225,6 @@ NESTED_PORT: -1
 NESTED_DATA_DIR: target/test_zk_data/
 corn:
   taskJob: 0 0/30 * * * ?
-rocketmq:
-  name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876  #预发rocketmq代理地址
-  producer:
-    group: Marketing_PreUser_Receive
-  consumer:
-    group: Marketing_PreUser_Receive
 
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
