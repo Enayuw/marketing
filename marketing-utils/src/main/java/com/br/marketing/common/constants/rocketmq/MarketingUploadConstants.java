@@ -25,6 +25,10 @@ public class MarketingUploadConstants {
      * 数禾上传专用队列对应的 Tag
      */
     public static final String TAG_MARKETING_PRE_USER_SHUHE_RECEIVE = "Marketing.PreUser.ShuHeReceive";
+    /**
+     * 携程促活数据专用队列对应的 Tag
+     */
+    public static final String TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE = "Marketing.XieCheng.Colliding.Activate";
 //    Tag 结束
 
 
@@ -45,6 +49,14 @@ public class MarketingUploadConstants {
      * 数禾上传专用队列对应的 consumerGroup
      */
     public static final String MARKETING_PRE_USER_SHUHE_RECEIVE = "Marketing_PreUser_ShuHeReceive";
+    /**
+     * 携程促活数据专用队列对应的 consumerGroup
+     */
+    public static final String MARKETING_XIECHENG_COLLIDING_ACTIVATE = "Marketing_XieCheng_Colliding_Activate";
+    /**
+     * 携程促活数据专用队列对应的 consumerGroup
+     */
+    public static final String MARKETING_WEIJU_DATA_CLEAN_QUEUE = "marketing_weiju_data_clean_queue";
 //    consumerGroup 结束
 
 }

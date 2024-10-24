@@ -7,18 +7,24 @@ import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.xiecheng.XieChengActivateDataService;
 import com.br.marketing.api.customer.upload.service.xiecheng.dto.XieChengActivateDataResponseDTO;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Set;
+
+import static com.br.marketing.common.utils.MQConstants.ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN;
 
 /**
  * XieChengActivateDataServiceImpl
@@ -28,6 +34,10 @@ import java.util.Set;
 public class XieChengActivateDataServiceImpl implements XieChengActivateDataService {
     @Resource
     private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
     /**
      * 解密jsonData
      *
@@ -177,7 +187,13 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
             XieChengActivateDTO xieChengActivateDTO = new XieChengActivateDTO();
             xieChengActivateDTO.setCId(tCid);
             xieChengActivateDTO.setDataId(sourceId);
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE, JSONObject.toJSONString(xieChengActivateDTO));
+            String msg = JSONObject.toJSONString(xieChengActivateDTO);
+            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN)){
+                template.syncSend(MarketingUploadConstants.TOPIC
+                        , MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
+            }else{
+                rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
+            }
             log.warn("携程促活数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
