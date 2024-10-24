@@ -164,7 +164,8 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                         }
                     }
                 } catch (Exception ex) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), "数禾促复借每日自动化匹配清洗异常"), ex);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(),
+                            "数禾促复借每日自动化匹配清洗异常，minId:" + shuHeCuFuJieDataList.get(shuHeCuFuJieDataList.size() - 1).getId()), ex);
                 }
             });
         }
