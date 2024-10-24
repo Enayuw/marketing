@@ -78,11 +78,11 @@ public enum BiReportTypeEnum {
     /**
      * 携程月接通转化报表
      */
-    XIECHENG_TRANSFER_MONTHLYSWITCHON_REPORT(114, ReportTaskTypeEnum.XIECHENG_MONTH_TRANSFER_CALL_TYPE.getValue(), "xiechengTransferMonthlySwitchOnReport", "携程月接通转化报表"),
+    XIECHENG_TRANSFER_MONTHLYSWITCHON_REPORT(114, ReportTaskTypeEnum.XIECHENG_MONTH_TRANSFER_CALL_TYPE.getValue(), "xiechengTransferMonthlySwitchOnReport", "携程接通月转化报表"),
     /**
      * 携程日接通转化报表
      */
-    XIECHENG_TRANSFER_DAILYSWITCHON_REPORT(115, ReportTaskTypeEnum.XIECHENG_DAY_TRANSFER_CALL_TYPE.getValue(), "xiechengTransferDailySwitchOnReport", "携程日接通转化报表"),
+    XIECHENG_TRANSFER_DAILYSWITCHON_REPORT(115, ReportTaskTypeEnum.XIECHENG_DAY_TRANSFER_CALL_TYPE.getValue(), "xiechengTransferDailySwitchOnReport", "携程接通日转化报表"),
     ;
 
 

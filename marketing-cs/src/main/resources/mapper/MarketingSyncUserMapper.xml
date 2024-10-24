@@ -912,6 +912,15 @@
         where api_code =#{apiCode} and request_batch = #{requestBatch}
     </select>
 
+    <select id="getSyncUserByCondition" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where api_code =#{apiCode}
+            and request_batch = #{requestBatch}
+            and status=1
+            and is_repeat in (1,2)
+    </select>
+
     <select id="getSyncUserByCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
         select
           b.*
@@ -992,6 +1001,26 @@
         order by id asc
         limit #{pageSize}
     </select>
+
+    <update id="updateExtend">
+        UPDATE b_marketing_sync_${apiCode}
+        SET reserve_field1 = JSON_SET(reserve_field1,
+        <foreach collection="extendList" item="extendMap" separator=",">
+            '$.${extendMap.key}', '${extendMap.value}'
+        </foreach>
+        )
+        where api_code=#{apiCode}
+            and cust_num = #{custNum}
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="idList != null and idList.size()>0">
+                and id in
+                <foreach collection="idList" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+    </update>
 
     <select id="selectByDynamicCondition" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *

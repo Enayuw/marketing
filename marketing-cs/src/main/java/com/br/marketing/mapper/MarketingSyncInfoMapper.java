@@ -22,6 +22,16 @@ public interface MarketingSyncInfoMapper extends MarketingSyncInfoMapperBase {
             , @Param("id") Long id, @Param("beginTime") String beginTime
             , @Param("endTime") String endTime);
 
+    List<MarketingSyncInfo> querySynInfoWithActiontikv_(
+            @Param("apiCode") String apiCode,
+            @Param("statusList") List<Integer> statusList,
+            @Param("actionDate") String actionDate,
+            @Param("createTimeStart") String createTimeStart,
+            @Param("createTimeEnd") String createTimeEnd,
+            @Param("cusBatch") String cusBatch,
+            @Param("pageSize") Integer pageSize
+    );
+
     void createMarketingTransferTable(@Param("tableName") String tableName);
 
     Integer insertBatchTransfer(@Param("execSql") String execSql);

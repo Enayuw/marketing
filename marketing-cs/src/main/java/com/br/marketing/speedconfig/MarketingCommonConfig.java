@@ -2209,6 +2209,31 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
+    /**
+     * 奇富360-促完件-用户信息批量查询-Job开关，1-开，0-关
+     */
+    private String qiFuCuWanJianBatQryUserRealJobSwitch;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询-Job条件参数
+     */
+    private List<Map<String, String>> qiFuCuWanJianBatQryUserRealJobParams;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询-Job分页条数
+     */
+    private Integer qiFuCuWanJianBatQryUserRealJobPageSize;
+
+    /**
+     * 奇富360-促完件-用户信息批量查询-config参数
+     */
+    private Map<String, Object> qiFuCuWanJianBatQryUserRealConfigParams;
+
+    /**
+     * 奇富360促完件挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
+     */
+    private HashMap<String, Object> qryUserRealMock;
+
 
     /**
      * 数禾促复借每日自动化匹配数据相关配置

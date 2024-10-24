@@ -57,7 +57,7 @@ public class XiechengTransferDailySwitchOnConverter extends AbstractBiReportConv
     public List<BiReportVO> process(List<XiechengTransferDailySwitchOnReportDTO> dtos, JSONObject extend) {
         List<BiReportVO> biReportVOList = Lists.newArrayList();        BiReportVO biReportVO = new BiReportVO();
         biReportVO.setReportTypeName(BiReportTypeEnum.XIECHENG_TRANSFER_DAILYSWITCHON_REPORT.getTypeName());
-        biReportVO.setReportName("日接通转化报表");
+        biReportVO.setReportName("接通日转化报表");
         biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
         // 根据时间排序
         List<XiechengTransferDailySwitchOnReportDTO> sortedData = dtos.stream()
