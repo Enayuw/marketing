@@ -62,12 +62,12 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
         if(isBlack1(transfer)){
             // ExpireDate不进行设置(永久)
             conversionData.setInversionStatus(INVERSION_STATUS_2);
-            MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
-            if(null != marketingSyncUser){
+            MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLastWithStatus(apiCode, custNum);
+            if(null != marketingSyncUser && StringUtils.isNotBlank(marketingSyncUser.getCell())){
                 conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
             }else{
-                log.error("apiCode[{}]custNum[{}]榕树转化数据自动过滤推客服isBlack=1未发现手机号[{}]"
-                        , apiCode, custNum, marketingSyncUser.getCell());
+                log.error("apiCode[{}]custNum[{}]榕树转化数据自动过滤推客服isBlack=1未发现手机号"
+                        , apiCode, custNum);
             }
         }else{
             // 新版本有效期判断
