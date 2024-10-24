@@ -424,8 +424,6 @@ public class TransferFileTaskJob extends AbstractSimpleElasticJob {
                 .addBind(transferToFileByCuDongZhiService, marketingCommonConfig.getCuDongZhiTransferExtractApiCodes())
                 .addBind(transferToFileByQiFuFullService, ObjectUtil.isEmpty(marketingCommonConfig.getQiFuFullExtDataConfig()) ? null
                         : marketingCommonConfig.getQiFuFullExtDataConfig().keySet())
-                .addBind(transferToFileByWbxkService, ObjectUtil.isEmpty(marketingCommonConfig.getWbxkExtDataConfig()) ? null
-                        : marketingCommonConfig.getWbxkExtDataConfig().keySet())
                 .addBind(transferToFileBySuShangService, marketingCommonConfig.getSuShangTransferExtractApiCodes())
                 //医时转换数据提取
                 .addBind(transferToFileByYiShiService, marketingCommonConfig.getYiShiTransferApiCodes())
