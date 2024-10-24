@@ -22,6 +22,7 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getUserById(@Param("apiCode") String apiCode, @Param("minId") Long minId, @Param("maxId") Long maxId, @Param("dataType") Integer dataType);
 
     MarketingSyncUser selectSynsUserByCustNumLast(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
+    MarketingSyncUser selectSynsUserByCustNumLastWithStatus(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
     MarketingSyncUser selectSynsUserByCellLast(@Param("apiCode") String apiCode, @Param("cell") String cell);
 
