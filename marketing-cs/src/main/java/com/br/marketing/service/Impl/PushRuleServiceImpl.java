@@ -33,7 +33,6 @@ import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.*;
@@ -111,7 +110,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
@@ -2256,7 +2254,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
         }
 
-        if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
         if (pushCustomerApiCodes.contains(apiCode)
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
