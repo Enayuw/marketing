@@ -106,7 +106,7 @@ public class WeiJuDataCleanServiceImpl implements WeiJuDataCleanService {
             JSONObject reserveField1 = new JSONObject();
             reserveField1.put("customNameType", uploadJson.getOperationUserType());
             reserveField1.put("userType", fieldMapping.getString(uploadJson.getScene()));
-            reserveField1.put("sleepGroup", uploadJson.getSilenceDaysGroup());
+            reserveField1.put("sleepGroup", JSONArray.parse(uploadJson.getSilenceDaysGroup()));
             if (StringUtils.isNotEmpty(item.getString("registedTime"))) {
                 reserveField1.put("registerTime", item.getString("registedTime"));
             }
