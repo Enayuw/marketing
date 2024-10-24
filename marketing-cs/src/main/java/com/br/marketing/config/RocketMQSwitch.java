@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.core.env.Environment;
 
+import java.util.UUID;
+
 
 /**
  * RocketMQ和RabbitMQ切换开关
@@ -59,6 +61,8 @@ public class RocketMQSwitch {
     private MarketingCommonConfig marketingCommonConfig;
 
     public Boolean rocketMQSwitchFlag(String apiCode, String tag){
+        UUID uuid = UUID.randomUUID();
+        log.warn("[{}]rocketMQSwitchFlag--apiCode[{}]tag[{}]", uuid, apiCode, tag);
         String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
         if(StringUtils.isBlank(rocketMqSwitchString)){
             return Boolean.FALSE;
@@ -75,6 +79,7 @@ public class RocketMQSwitch {
                 return Boolean.FALSE;
             }else{
                 Boolean flagBoolean = tagObjet.getBoolean(FLAG);
+                log.warn("[{}]rocketMQSwitchFlag--tagObjet[{}]flagBoolean[{}]", uuid, tagObjet, flagBoolean);
                 if(flagBoolean){
                     return Boolean.TRUE;
                 }else{

@@ -1,6 +1,8 @@
 package com.br.marketing.api.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.RequestLog;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
@@ -30,6 +32,8 @@ public class TestSre {
     MarketingCommonConfig marketingCommonConfig;
     @Autowired
     private RocketMqTemplate template;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
 
     @GetMapping("/testSre")
     public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){
@@ -98,4 +102,13 @@ public class TestSre {
         return null;
     }
 
+    @RequestMapping("/testRocketMQSwitchFlag")
+    public String testRocketMQSwitchFlag(@RequestParam("tag") String tag
+            , @RequestParam("apiCode") String apiCode) {
+        String a = MarketingAssistConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE;
+        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, tag)){
+            return "";
+        }
+        return null;
+    }
 }
