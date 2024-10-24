@@ -1,6 +1,7 @@
 package com.br.marketing.rule.weiju;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -76,7 +77,12 @@ public class WeiJuTransferDataAutoFiltrationImpl implements AssembleData<Convers
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-            String caseEffective = transfer.getCaseEffective();
+            String reserveField1 = transfer.getReserveField1();
+            String caseEffective = null;
+            if (StringUtils.isNotBlank(reserveField1)) {
+                JSONObject reserveField1Json = JSON.parseObject(reserveField1);
+                caseEffective = reserveField1Json.getString("caseEffective");
+            }
             if(StringUtils.isNotBlank(caseEffective) && CASE_EFFECTIVE_0.equalsIgnoreCase(caseEffective)){
                 return true;
             }
