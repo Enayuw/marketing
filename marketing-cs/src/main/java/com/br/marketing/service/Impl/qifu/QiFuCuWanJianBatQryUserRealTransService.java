@@ -125,10 +125,15 @@ public class QiFuCuWanJianBatQryUserRealTransService {
             sex = "";
         }
         String gender;
-        switch (sex){
-            case "F": gender="0"; break;
-            case "M": gender="1"; break;
-            default: gender="";
+        switch (sex) {
+            case "F":
+                gender = "0";
+                break;
+            case "M":
+                gender = "1";
+                break;
+            default:
+                gender = "";
         }
 
         // extendList
