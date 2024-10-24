@@ -6,6 +6,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.ConditionTypeEnum;
 import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.mapper.DecisionsTaskLogMapper;
 import com.br.marketing.mapper.MarketingTaskMapper;
@@ -127,7 +128,7 @@ public class RuleRefreshConfigServiceImpl implements IRuleRefreshConfigService {
         LocalDateTime now = LocalDateTime.now();
         String createTimeEnd = now.format(formatter);
         Integer taskStatus = ScoreStatusEnum.FINISH.getValue();
-        String conditionType = "1";
+        Integer conditionType = ConditionTypeEnum.RUNNING.getValue();
         List<MarketingTaskVO> marketingTaskVOS = marketingTaskMapper.queryCompletStatus(apiCode,
                 createTimeStart, createTimeEnd, taskStatus, conditionType, ruleNameShort);
         log.warn(TITLE + "查询当日跑分任务是否完成:{}", JSONObject.toJSONString(marketingTaskVOS));

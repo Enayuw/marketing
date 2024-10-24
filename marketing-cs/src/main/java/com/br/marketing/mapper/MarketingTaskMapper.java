@@ -239,5 +239,5 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     List<MarketingTaskVO> queryCompletStatus(@Param("apiCode")String apiCode, @Param("createTimeStart")String createTimeStart,
                                              @Param("createTimeEnd")String createTimeEnd, @Param("taskStatus")Integer taskStatus,
-                                             @Param("conditionType")String conditionType, @Param("ruleNameShort")String ruleNameShort);
+                                             @Param("conditionType")Integer conditionType, @Param("ruleNameShort")String ruleNameShort);
 }
