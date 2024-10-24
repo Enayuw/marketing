@@ -52,7 +52,11 @@ import java.util.stream.Collectors;
 public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubmitService {
     public static final String T = "T";
     public static final String S = "S";
+    public static final String H = "H";
     public static final String F = "F";
+    public static final String J = "J";
+    public static final String Q = "Q";
+    public static final String K = "K";
     @Resource
     WuBaServiceClient wuBaServiceClient;
     @Autowired
@@ -151,7 +155,11 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                     // 更新周期场景2表pushTime
                     wubaCollidingDataSecondLoopCycleMapper.batchUpdatePushTimeById(collidingData);
                     break;
+                case H:
                 case F:
+                case J:
+                case Q:
+                case K:
                     // 更新非周期表pushTime
                     wubaCollidingDataRobMapper.batchUpdatePushTimeById(collidingData);
                     break;
@@ -262,7 +270,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         if (!CollectionUtils.isEmpty(highValueFiles)) {
             List<WubaCollidingData> robs = wubaCollidingDataRobMapper.selectHighValueCollidingData(limit, apiCode, nowDate, highValueFiles);
             if (!CollectionUtils.isEmpty(robs)) {
-                return new Pair<>(F, robs);
+                return new Pair<>(H, robs);
             }
         }
 
@@ -273,36 +281,36 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         }
 
         // 非高价值周期非金融TRUE的-2
-        Long nonFinancialReavedFileId = getReavedFileIdByType(T);
+        Long nonFinancialReavedFileId = getReavedFileIdByType(J);
         if (Objects.nonNull(nonFinancialReavedFileId)) {
             Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
             DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
             List<WubaCollidingData> nonFinancialReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, pushTimeEnd,
                     nonFinancialReavedFileId);
             if (!CollectionUtils.isEmpty(nonFinancialReaveds)) {
-                return new Pair<>(F, nonFinancialReaveds);
+                return new Pair<>(J, nonFinancialReaveds);
             }
         }
 
         // 非高价值周期金融TRUE的-2
-        Long financialReavedFileId = getReavedFileIdByType(S);
+        Long financialReavedFileId = getReavedFileIdByType(Q);
         if (Objects.nonNull(financialReavedFileId)) {
             Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
             DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
             List<WubaCollidingData> financialReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, pushTimeEnd,
                     financialReavedFileId);
             if (!CollectionUtils.isEmpty(financialReaveds)) {
-                return new Pair<>(F, financialReaveds);
+                return new Pair<>(Q, financialReaveds);
             }
         }
 
         // 补包的-2
-        Long supplyReavedFileId = getReavedFileIdByType(F);
+        Long supplyReavedFileId = getReavedFileIdByType(K);
         if (Objects.nonNull(supplyReavedFileId)) {
             List<WubaCollidingData> supplyReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, nowDate,
                     supplyReavedFileId);
             if (!CollectionUtils.isEmpty(supplyReaveds)) {
-                return new Pair<>(F, supplyReaveds);
+                return new Pair<>(K, supplyReaveds);
             }
         }
 

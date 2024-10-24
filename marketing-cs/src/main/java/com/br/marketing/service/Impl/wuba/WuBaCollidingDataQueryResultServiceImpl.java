@@ -300,19 +300,21 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         return otherCells;
     }
 
-    private void falseToNonFinancialBusiness(List<WubaCollidingData> nonFinancialDatas, String apiCode, String batchNo, Long taskId) {
+    private void falseToNonFinancialBusiness(List<WubaCollidingData> nonFinancialDatas, String apiCode, String batchNo, Long taskId,
+                                             String dataSourceType) {
         // 撞得非金融场景保存到非金融场景周期表，并从非周期表删除
         List<String> nonFinancialCells = nonFinancialDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
-        wuBaCollidingDataBusinessService.saveLoopAnddeleteRob(nonFinancialCells, apiCode);
+        wuBaCollidingDataBusinessService.saveLoopAnddeleteRob(nonFinancialCells, apiCode, dataSourceType);
 
         // 保存到上传清洗表
         wubaCollidingDataSyncCleanMapper.batchSaveData(nonFinancialDatas, batchNo, apiCode, taskId);
     }
 
-    private void falseToFinancialBusiness(List<WubaCollidingData> financialDatas, String apiCode, String batchNo, Long taskId) {
+    private void falseToFinancialBusiness(List<WubaCollidingData> financialDatas, String apiCode, String batchNo, Long taskId,
+                                          String dataSourceType) {
         // 撞得金融场景保存到金融场景周期表，并从非周期表删除
         List<String> nonFinancialCells = financialDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
-        wuBaCollidingDataBusinessService.saveSecondLoopAnddeleteRob(nonFinancialCells, apiCode);
+        wuBaCollidingDataBusinessService.saveSecondLoopAnddeleteRob(nonFinancialCells, apiCode, dataSourceType);
 
         // 保存到上传清洗表
         wubaCollidingDataSyncCleanMapper.batchSaveData(financialDatas, batchNo, apiCode, taskId);
@@ -492,18 +494,30 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                         (List<WubaCollidingData> data) -> wubaCollidingDataSyncCleanMapper.batchSaveData(data, batchNo, apiCode,
                                 taskId), "金融场景撞得数据保存到清洗表"));
                 break;
+            case "H":
+            case "J":
+            case "Q":
+            case "K":
+                futures.addAll(batchHandleBusinessAsync(nonFinancialDatas, (List<WubaCollidingData> data) -> falseToNonFinancialBusiness(data,
+                                apiCode,
+                                batchNo, taskId, sourceType),
+                        "非周期撞得数据转为非金融场景，并保存到清洗表"));
+                futures.addAll(batchHandleBusinessAsync(financialDatas, (List<WubaCollidingData> data) -> falseToFinancialBusiness(data, apiCode,
+                                batchNo, taskId, sourceType),
+                        "非周期撞得数据转为金融场景，并保存到清洗表"));
+                break;
             case "F":
                 futures.addAll(batchHandleBusinessAsync(nonFinancialDatas, (List<WubaCollidingData> data) -> falseToNonFinancialBusiness(data,
                                 apiCode,
-                                batchNo, taskId),
+                                batchNo, taskId, sourceType),
                         "非周期撞得数据转为非金融场景，并保存到清洗表"));
                 futures.addAll(batchHandleBusinessAsync(financialDatas, (List<WubaCollidingData> data) -> falseToFinancialBusiness(data, apiCode,
-                                batchNo, taskId),
+                                batchNo, taskId, sourceType),
                         "非周期撞得数据转为金融场景，并保存到清洗表"));
                 futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
                         (List<String> data) ->
-                                wuBaCollidingDataBusinessService.saveReavedExcludeHighValueIntoRob(data, apiCode, reavedPackageId),
-                        "非周期撞回status=-2，保存到补包-2包"));
+                                wuBaCollidingDataBusinessService.saveReavedIntoRob(data, apiCode, reavedPackageId, sourceType),
+                        "补包撞回status=-2，保存到补包-2包"));
                 break;
             default:
                 break;

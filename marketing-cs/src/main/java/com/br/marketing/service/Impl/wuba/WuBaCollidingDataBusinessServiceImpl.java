@@ -50,14 +50,14 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void saveLoopAnddeleteRob(List<String> cells, String apiCode) {
-        wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode, "F");
+    public void saveLoopAnddeleteRob(List<String> cells, String apiCode, String dataSourceType) {
+        wubaCollidingDataLoopCycleMapper.batchSaveData(cells, apiCode, dataSourceType);
         wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public void saveSecondLoopAnddeleteRob(List<String> cells, String apiCode) {
-        wubaCollidingDataSecondLoopCycleMapper.batchSaveData(cells, apiCode, "F");
+    public void saveSecondLoopAnddeleteRob(List<String> cells, String apiCode, String dataSourceType) {
+        wubaCollidingDataSecondLoopCycleMapper.batchSaveData(cells, apiCode, dataSourceType);
         wubaCollidingDataRobMapper.batchDeleteByCell(cells, apiCode);
     }
 
@@ -112,11 +112,10 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     }
 
     /**
-     * 非周期数据，从中剔除高价值数据后，进入补包status=-2撞库包
+     * 撞回status=-2的补包数据，进入补包status=-2撞库包
      */
-    public void saveReavedExcludeHighValueIntoRob(List<String> cells, String apiCode, Long packageId) {
-        List<String> reavedCellsExcludeHighValue = getReavedCellsExcludeHighValue(apiCode, cells);
-        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(reavedCellsExcludeHighValue, apiCode, "F", packageId);
+    public void saveReavedIntoRob(List<String> cells, String apiCode, Long packageId, String sourceType) {
+        wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(cells, apiCode, sourceType, packageId);
     }
 
     /**
