@@ -2186,7 +2186,7 @@ public class MarketingCommonConfig {
     /**
      * 你我贷转化规则过滤配置
      */
-    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();;
+    private Map<String, JSONArray> youMeLoanTransferFilterConfig = new HashMap<>();
 
     /**
      * 苏商文件时间
@@ -2233,6 +2233,12 @@ public class MarketingCommonConfig {
      * 奇富360促完件挡板开关 (switch: true-开启挡板 false-关闭挡板)(code: 1-成功  500-失败重试)
      */
     private HashMap<String, Object> qryUserRealMock;
+
+
+    /**
+     * 微聚清洗字段映射配置
+     */
+    private JSONObject weiJuCleanFieldMappingConfig;
 
 }
 

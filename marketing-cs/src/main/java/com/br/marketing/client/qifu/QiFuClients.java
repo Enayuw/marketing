@@ -91,11 +91,12 @@ public class QiFuClients {
      * 奇富促完件实时批量查询接口
      * @return
      */
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<ResponseData<QrySleepUserRealMessageResp>> qryUserRealMessageUrl(QrySleepUserRealMessageReq bizData) {
         Result<ResponseData<QrySleepUserRealMessageResp>> resultResp = new Result<>();
         try {
             // 调用奇富查询用户接口
-            Result<String> result = queryRealMessage(bizData,0);
+            Result<String> result = queryRealMessage(bizData);
             if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 if(result.getData().isEmpty()){
                     resultResp.setDate(new ResponseData<>());
@@ -134,8 +135,7 @@ public class QiFuClients {
         return resultResp;
     }
 
-    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public Result<String> queryRealMessage(QrySleepUserRealMessageReq bizData,Integer retry) {
+    public Result<String> queryRealMessage(QrySleepUserRealMessageReq bizData) {
 
          //获取挡板开关
         Map<String, Object> mock = marketingCommonConfig.getQryUserRealMock();

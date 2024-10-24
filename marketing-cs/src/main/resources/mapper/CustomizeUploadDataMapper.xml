@@ -108,4 +108,12 @@
             </if>
         </trim>
     </insert>
+
+    <select id="selectById" resultType="com.br.marketing.entity.CustomizeUploadData">
+        select * from b_customize_upload_data_${tCid} where id = #{sourceId}
+    </select>
+
+    <update id="updateSyncStatusById">
+        update b_customize_upload_data_${tCid} set sync_status = #{syncStatus} where id = #{sourceId}
+    </update>
 </mapper>
