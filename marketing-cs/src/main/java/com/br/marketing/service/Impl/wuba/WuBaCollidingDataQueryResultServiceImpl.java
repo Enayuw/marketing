@@ -383,6 +383,10 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     }
 
     private Long getReavedPackageIdFromSpeed(String sourceType) {
+        ArrayList<String> sourceTypeList = Lists.newArrayList("T", "S", "F");
+        if (!sourceTypeList.contains(sourceType)) {
+            return null;
+        }
         HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
         JSONObject hashMap = map.get(sourceType);
         if (Objects.isNull(hashMap)) {
