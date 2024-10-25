@@ -70,7 +70,7 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
                 if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
                     template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                             , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
-                            , (int)v);
+                            , (int)v/1000);
                 }else{
                     producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALF_HOUR, message, String.valueOf((int)v));
                 }
