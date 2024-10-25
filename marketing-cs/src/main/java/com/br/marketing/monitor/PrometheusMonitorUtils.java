@@ -66,6 +66,11 @@ public class PrometheusMonitorUtils {
      */
     public static final String COUNT_CORE_SCORE_API_METRIC_NAME = "countCoreScoreAPIMetricName";
 
+    /**
+     * 跑分接口线程使用情况
+     */
+    public static final String COUNT_CORE_SCORE_API_THREAD_METRIC_NAME = "countCoreScoreThreadMetricName";
+
 
     /**
      * 查询ApiCode

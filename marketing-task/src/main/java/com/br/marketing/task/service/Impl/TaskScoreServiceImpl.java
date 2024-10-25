@@ -21,12 +21,14 @@ import com.br.marketing.enums.ScoreStatusEnum;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.enums.ZkScoreStatusEnum;
 import com.br.marketing.mapper.*;
+import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.StrategyCs;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.dto.ObservedTaskObj;
 import com.br.marketing.task.thread.CoreScoreThread;
+import com.br.marketing.util.BrMonitorExecutor;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
@@ -169,7 +171,9 @@ public class TaskScoreServiceImpl {
         if (customer.getThreadNum() == null) {
             customer.setThreadNum(20);
         }
-        ThreadPoolExecutor warrningExecutor = BrExecutors.getThreadPool(customer.getThreadNum(), customer.getThreadNum());
+        //线程池调用使用线程池监控调用类
+        ThreadPoolExecutor warrningExecutor = BrMonitorExecutor.getThreadPool(customer.getThreadNum(), customer.getThreadNum(),
+                PrometheusMonitorUtils.COUNT_CORE_SCORE_API_THREAD_METRIC_NAME,apiCode);
 
         //线程监听
         ObservedTaskObj observedTaskObj = new ObservedTaskObj(warrningExecutor, task);
