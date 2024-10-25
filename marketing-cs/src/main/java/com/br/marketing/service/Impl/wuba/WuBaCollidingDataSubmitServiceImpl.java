@@ -278,7 +278,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         }
 
         // 非高价值周期非金融TRUE的-2
-        Long nonFinancialReavedFileId = getReavedFileIdByType(J);
+        Long nonFinancialReavedFileId = getReavedFileIdByType(T);
         if (Objects.nonNull(nonFinancialReavedFileId)) {
             Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
             DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
@@ -290,7 +290,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         }
 
         // 非高价值周期金融TRUE的-2
-        Long financialReavedFileId = getReavedFileIdByType(Q);
+        Long financialReavedFileId = getReavedFileIdByType(S);
         if (Objects.nonNull(financialReavedFileId)) {
             Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
             DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
@@ -302,7 +302,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
         }
 
         // 补包的-2
-        Long supplyReavedFileId = getReavedFileIdByType(K);
+        Long supplyReavedFileId = getReavedFileIdByType(F);
         if (Objects.nonNull(supplyReavedFileId)) {
             List<WubaCollidingData> supplyReaveds = wubaCollidingDataRobMapper.selectReavedData(limit, apiCode, nowDate,
                     supplyReavedFileId);
