@@ -218,11 +218,8 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                 log.setApiCode(apiCode);
                 log.setDataSourceType(dataSourceType);
 
-                // 周期数据不保存packageId
-                if (Objects.equals(dataSourceType, F)) {
-                    log.setPackageId(data.getPackageId());
-                }
-
+                // 周期数据没有packageId
+                log.setPackageId(data.getPackageId());
                 return log;
             }).collect(Collectors.toList());
 
