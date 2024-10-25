@@ -353,8 +353,7 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserByCondition(
             @Param("apiCode") String apiCode,
-            @Param("requestBatch") String requestBatch,
-            @Param("cusBatch") String cusBatch
+            @Param("requestBatch") String requestBatch
     );
 
     List<MarketingSyncUser> getSyncUserByCusBatch(@Param("apiCode") String apiCode,

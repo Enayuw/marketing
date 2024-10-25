@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -46,6 +45,9 @@ public class QiFuCuWanJianBatQryUserRealService {
     ThreadPoolExecutor queryActionPool = BrExecutors.getThreadPool(4, 4);
 
     private Integer PARTITION_SIZE = 50;
+
+    private static final String CREATE_TIME_START = "createTimeStart";
+    private static final String CREATE_TIME_END = "createTimeEnd";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -79,11 +81,12 @@ public class QiFuCuWanJianBatQryUserRealService {
 
         log.warn(TITLE + "scanData start, apiCode: {}, bizDate: {}, paramTaskId:{}, ", apiCode, bizDate, paramTaskId);
         long start = System.currentTimeMillis();
+
         try{
             // 循环获取条件数据，每次pageSize条
             Map<String, String> marketingTimeInterval = calculateTimeInterval(bizDate);
-            String createTimeStart = marketingTimeInterval.get("createTimeStart");
-            String createTimeEnd = marketingTimeInterval.get("createTimeEnd");
+            String createTimeStart = marketingTimeInterval.get(CREATE_TIME_START);
+            String createTimeEnd = marketingTimeInterval.get(CREATE_TIME_END);
             List<MarketingSyncInfo> marketingSyncInfoList = marketingSyncInfoMapper.querySynInfoWithActiontikv_(apiCode
                     , statusList, actionDate, createTimeStart, createTimeEnd, paramTaskId, pageSize);
             if (CollectionUtils.isEmpty(marketingSyncInfoList)) {
@@ -102,7 +105,7 @@ public class QiFuCuWanJianBatQryUserRealService {
             for(MarketingSyncInfo marketingSyncInfo : marketingSyncInfoList) {
                 futures.add(CompletableFuture.runAsync(() -> {
                     try {
-                        actionSyncInfo(apiCode, paramTaskId, actionDate, marketingSyncInfo);
+                        actionSyncInfo(apiCode, actionDate, marketingSyncInfo);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "taskAction异常"));
                     }
@@ -113,25 +116,26 @@ public class QiFuCuWanJianBatQryUserRealService {
             log.warn(TITLE+ e.getMessage(), e);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
         }
+
         long end = System.currentTimeMillis();
         log.warn(TITLE + "scanData end, cost: {}, apiCode: {}, bizDate: {}, paramTaskId:{}, ", end-start, apiCode, bizDate, paramTaskId);
         return result;
     }
 
-    private Result actionSyncInfo(String apiCode, String paramTaskId, String actionDate, MarketingSyncInfo marketingSyncInfo) {
+    private Result actionSyncInfo(String apiCode, String actionDate, MarketingSyncInfo marketingSyncInfo) {
         Result result = new Result().failure();
-        try {
-            Long dataId = marketingSyncInfo.getId();
-            String taskId = marketingSyncInfo.getCusBatch();
-            String requestBatch = marketingSyncInfo.getRequestBatch();
-            log.warn(TITLE + "actionSyncInfo, dataId: {}, taskId: {}", dataId, taskId);
+        Long dataId = marketingSyncInfo.getId();
+        String taskId = marketingSyncInfo.getCusBatch();
+        String requestBatch = marketingSyncInfo.getRequestBatch();
+        long start = System.currentTimeMillis();
+        log.warn(TITLE + "actionSyncInfo, apiCode: {}, dataId: {}, taskId: {}", apiCode, dataId, taskId);
 
+        try {
             // saveAction
             SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
 
             // marketingSyncUserList
-            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode
-                    , requestBatch, paramTaskId);
+            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode, requestBatch);
 
             // actionDataList
             Result<Map<String, Object>> actionResult = actionDetailList(apiCode, taskId, marketingSyncUserList);
@@ -145,6 +149,8 @@ public class QiFuCuWanJianBatQryUserRealService {
             log.warn(TITLE + e.getMessage(), e);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + e.getMessage()));
         }
+        long end = System.currentTimeMillis();
+        log.warn(TITLE + "actionSyncInfo end, cost: {}, apiCode: {}, dataId: {}, taskId: {}", end-start, apiCode, dataId, taskId);
         return result.success();
     }
 
@@ -170,24 +176,26 @@ public class QiFuCuWanJianBatQryUserRealService {
                     paramsDto.setPartition(partition);
                     qiFuCuWanJianBatQryUserRealTransService.actionPartition(paramsDto, 0);
                 } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "queryAction异常"));
+                    log.warn(TITLE + "actionPartition error, apiCode: {}, taskId: {}", apiCode, taskId, e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "actionPartition异常"));
                 }
             }, queryActionPool));
         }
+        // 等待结束，需要获取并更新批次的执行状态
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         long end = System.currentTimeMillis();
         log.warn(TITLE + "actionDataList end, cost: {}, apiCode: {}, taskId: {}", end-start, apiCode, taskId);
         return result.success();
     }
 
-    private Map<String, String> calculateTimeInterval(String bizDate) throws ParseException {
+    private Map<String, String> calculateTimeInterval(String bizDate) {
         Map<String, String> res = new HashMap<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate bizLocalDate = LocalDate.parse(bizDate, formatter);
         LocalDate endLocalDate = bizLocalDate.plusDays(1);
 
-        res.put("createTimeStart", bizLocalDate.toString());
-        res.put("createTimeEnd", endLocalDate.toString());
+        res.put(CREATE_TIME_START, bizLocalDate.toString());
+        res.put(CREATE_TIME_END, endLocalDate.toString());
         return res;
     }
 

@@ -41,6 +41,7 @@ public class QiFuCuWanJianBatQryUserRealTransService {
         String apiCode = paramsDto.getApiCode();
         String taskId = paramsDto.getTaskId();
         List<MarketingSyncUser> partition = paramsDto.getPartition();
+
         if(CollectionUtils.isEmpty(partition)){
             return result.success();
         }
