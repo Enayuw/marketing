@@ -25,7 +25,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * 你我贷自动化转决策
  *
@@ -46,12 +45,7 @@ public class NiWoDaiTransferToPolicyFilter implements AssembleData<PushMarketing
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         JSONObject jsonObject = JSONObject.parseObject(transfer.getReserveField1());
-        String status;
-        if (("1".equals(jsonObject.getString("A"))) && ("0".equals(jsonObject.getString("B"))) && ("0".equals(jsonObject.getString("C")))) {
-            status = "a";
-        } else {
-            status = "b";
-        }
+
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
         Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
         if (pushCellEncPolicy != null && pushCellEncPolicy.get(context.getApiCode()) != null) {
@@ -68,15 +62,13 @@ public class NiWoDaiTransferToPolicyFilter implements AssembleData<PushMarketing
         String phone = pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         pushMarketingUserDetailByRuleDTO.setPhone(phone);
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
-        JSONObject varDto = new JSONObject();
-        varDto.put("userType", transfer.getUserType());
-        varDto.put("status", status);
-        pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + marketingCommonConfig.getNiWoDaiPushPolicyTargetApiCode());
+        JSONObject varDto = jsonObject;
+        pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_"
+                + marketingCommonConfig.getNiWoDaiPushPolicyTargetApiCode());
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
-        pushMarketingUserDetailByRuleDTO.setStatus(status);
         return pushMarketingUserDetailByRuleDTO;
     }
 
