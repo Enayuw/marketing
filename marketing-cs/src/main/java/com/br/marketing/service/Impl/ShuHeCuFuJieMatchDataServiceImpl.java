@@ -109,7 +109,8 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                     //清洗上传数据
                     List<String> sha256Cells = shuHeCuFuJieDataList.stream().map(ShuHeCuFuJieData::getMobileSha256).collect(Collectors.toList());
                     Map<String, ShuHeCuFuJieData> sha256MobileMap =
-                        shuHeCuFuJieDataList.stream().collect(Collectors.toMap(ShuHeCuFuJieData::getMobileSha256, data -> data));
+                            shuHeCuFuJieDataList.stream().collect(Collectors.toMap(ShuHeCuFuJieData::getMobileSha256, data -> data, (oldValue,
+                                                                                                                                     newValue) -> newValue));
                     List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.selectByDynamicCondition(apiCode, sha256Cells, condition);
                     for (MarketingSyncUser marketingSyncUser : marketingSyncUsers) {
                         String custype = "已结清";
@@ -130,7 +131,8 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                     //清洗es
                     List<String> cells = marketingSyncUsers.stream().map(MarketingSyncUser::getCell).collect(Collectors.toList());
                     Map<String, MarketingSyncUser> cellMap =
-                            marketingSyncUsers.stream().collect(Collectors.toMap(MarketingSyncUser::getCell, data -> data));
+                            marketingSyncUsers.stream().collect(Collectors.toMap(MarketingSyncUser::getCell, data -> data, (oldValue,
+                                                                                                                            newValue) -> newValue));
                     JSONObject jsonData = new JSONObject();
                     jsonData.put("type", "logic");
                     jsonData.put("logic", "and");
