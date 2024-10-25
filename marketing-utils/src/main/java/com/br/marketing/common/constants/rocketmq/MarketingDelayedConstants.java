@@ -38,7 +38,7 @@ public class MarketingDelayedConstants {
      */
     public static final String MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE = "Marketing_Send_UserType_Message_Delay_Queue";
     /**
-     * 的 consumerGroup
+     * 5分钟、半小时、一小时 延迟队列 的 consumerGroup
      */
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR = "Marketing_Universal_Transfer_Receive_Delay_HalfHour";
     /**
@@ -51,6 +51,7 @@ public class MarketingDelayedConstants {
     public static final String MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY = "Marketing_OffLineTask_File_CallBack_ErrorDelay";
     /**
      * 的 consumerGroup
+     * 与 MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR 公用消费者组
      */
     public static final String MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY = "Marketing_Universal_Transfer_Error_Delay";
 //    consumerGroup 结束
