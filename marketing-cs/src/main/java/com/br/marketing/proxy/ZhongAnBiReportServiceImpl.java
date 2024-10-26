@@ -241,8 +241,6 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         mapToLong(ZhongAnBusAnalySevenReportDTO::getIncomingNum).sum());
                 sevenReportDTO.setApproversNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
                         mapToLong(ZhongAnBusAnalySevenReportDTO::getApproversNum).sum());
-                sevenReportDTO.setApprovalsAvgNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
-                        mapToLong(ZhongAnBusAnalySevenReportDTO::getApprovalsAvgNum).sum());
                 sevenReportDTO.setApplyPayNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
                         mapToLong(ZhongAnBusAnalySevenReportDTO::getApplyPayNum).sum());
                 sevenReportDTO.setApplyPaySuccessNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
@@ -255,6 +253,9 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         .map(ZhongAnBusAnalySevenReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
                 sevenReportDTO.setCost(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group))
                         .map(ZhongAnBusAnalySevenReportDTO::getCost).reduce(BigDecimal.ZERO, BigDecimal::add));
+                Long totalApprovalCost = zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                        .map(report-> report.getApprovalsAvgNum()*report.getApproversNum()).reduce(0L, Long::sum);
+                sevenReportDTO.setApprovalsAvgNum(0L);
                 sevenReportDTO.setLendersSucAvgAmount(0L);
                 sevenReportDTO.setRoi(new BigDecimal((0)));
                 sevenReportDTO.setProductCapacity(new BigDecimal((0)));
@@ -285,6 +286,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 if (!sevenReportDTO.getApproversNum().equals(0L)) {
                     sevenReportDTO.setApplyPayRate(new BigDecimal(sevenReportDTO.getApplyPayNum()).divide(new BigDecimal(sevenReportDTO.
                                     getApproversNum()), 6, BigDecimal.ROUND_HALF_UP));
+                    sevenReportDTO.setApprovalsAvgNum(Math.round(totalApprovalCost / (double) sevenReportDTO.getApproversNum()));
                 }
                 if (!sevenReportDTO.getApplyPaySuccessNum().equals(0L)) {
                     sevenReportDTO.setLendersSucRate(new BigDecimal(sevenReportDTO.getLendersSucNum()).divide(new BigDecimal(sevenReportDTO.
@@ -314,7 +316,6 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         zhongAnReportDTO.getTotalNum() * zhongAnReportDTO.getIncomingNum()))
                         .divide(new BigDecimal((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
                                         zhongAnReportDTO.getIncomingNum()), 6, BigDecimal.ROUND_HALF_UP));
-
             }
             brReportDTO.setApproversIncreaseRate(new BigDecimal((0)));
             if (zhongAnReportDTO.getApproversTotalRate().compareTo(BigDecimal.ZERO) != 0) {

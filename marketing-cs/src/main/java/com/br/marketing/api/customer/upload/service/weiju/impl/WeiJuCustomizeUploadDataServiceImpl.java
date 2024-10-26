@@ -1,9 +1,6 @@
 package com.br.marketing.api.customer.upload.service.weiju.impl;
 
-import com.br.marketing.api.customer.upload.service.weiju.util.RSAEncryptUtil;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -12,14 +9,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.weiju.WeiJuCustomizeUploadDataService;
 import com.br.marketing.api.customer.upload.service.weiju.dto.WeiJuUploadJsonDTO;
 import com.br.marketing.api.customer.upload.service.weiju.dto.WeiJuUploadResponseDTO;
-import com.br.marketing.api.customer.upload.service.weiju.util.AESUtil;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.CustomerResponseDTO;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,6 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUploadDataService {
+
+    @Resource
+    private RabbitMqProducter rabbitMqProducter;
+
 
     /**
      * 解密JsonData
@@ -167,5 +170,27 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
         WeiJuUploadResponseDTO weiJuUploadResponseDTO = new WeiJuUploadResponseDTO();
         weiJuUploadResponseDTO.failed();
         return new CustomerResponseDTO(weiJuUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, weiJuUploadResponseDTO.getCode());
+    }
+
+    /**
+     * 数据下发
+     *
+     * @param tCid     tCid
+     * @param sourceId 数据源主键id
+     * @author senyang.zheng
+     * @date 2024/09/25
+     */
+    @Override
+    public void dataDirection(String tCid, Long sourceId) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("tCid", tCid);
+            json.put("sourceId", sourceId);
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_WEIJU_DATA_CLEAN, json.toJSONString());
+            log.warn("微聚定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                    , "推送微聚定制数据下发消息异常！"), e);
+        }
     }
 }

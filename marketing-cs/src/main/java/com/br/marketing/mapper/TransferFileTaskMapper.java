@@ -10,4 +10,9 @@ public interface TransferFileTaskMapper extends TransferFileTaskMapperBase{
 
     @AddDataAuth
     List<TransferFileTaskVO> getTransferFileList(@Param("serach") String serach, @Param("startDateStart") String startDateStart, @Param("startDateEnd") String startDateEnd);
+
+    int deleteMrpExtraTaskAction(
+            @Param("mrpExtraTaskId") String mrpExtraTaskId,
+            @Param("actionDate") String actionDate
+    );
 }
