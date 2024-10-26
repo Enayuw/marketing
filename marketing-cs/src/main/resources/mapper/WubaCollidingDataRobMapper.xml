@@ -15,7 +15,7 @@
     </select>
 
     <update id="batchUpdatePushTimeById">
-        update b_wuba_colliding_data_rob set push_time = now()
+        update b_wuba_colliding_data_rob set push_time = now(), data_source_type = #{sourceType}
         where id in
         <foreach collection="robs" item="rob" open="(" close=")" separator=",">
             #{rob.id}

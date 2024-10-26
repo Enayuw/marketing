@@ -12,7 +12,7 @@ public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBa
 
     List<WubaCollidingData> selectCollidingData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
-    void batchUpdatePushTimeById(@Param("robs") List<WubaCollidingData> robs);
+    void batchUpdatePushTimeById(@Param("robs") List<WubaCollidingData> robs, @Param("sourceType") String sourceType);
 
     void batchDeleteByCell(@Param("cells") List<String> cells, @Param("apiCode") String apiCode);
 

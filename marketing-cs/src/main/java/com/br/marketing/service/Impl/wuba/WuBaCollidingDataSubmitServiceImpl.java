@@ -160,8 +160,8 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                 case J:
                 case Q:
                 case K:
-                    // 更新非周期表pushTime
-                    wubaCollidingDataRobMapper.batchUpdatePushTimeById(collidingData);
+                    // 更新非周期表pushTime、sourceType
+                    wubaCollidingDataRobMapper.batchUpdatePushTimeById(collidingData, sourceType);
                     break;
                 default:
                     break;
@@ -231,7 +231,7 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     }
 
     /**
-     * 查询待撞数据，顺序为：周期场景1 → 周期场景2 → 高价值 → 手动上传
+     * 查询待撞数据，顺序为：周期场景1 → 周期场景2 → 高价值 → 手动上传 → 周期1的-2包 → 周期2的-2包 → 手动上传的-2包
      * @param apiCode
      * @param limit
      * @return
