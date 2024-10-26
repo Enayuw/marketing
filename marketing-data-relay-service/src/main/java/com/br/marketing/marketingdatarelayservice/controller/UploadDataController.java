@@ -38,12 +38,6 @@ import java.nio.charset.StandardCharsets;
 @RestController
 @Slf4j
 public class UploadDataController {
-    // todo speed
-    String appId = "bairong";
-    String qiFuPublicKey;
-    String brPrivateKey;
-    String brPublicKey;
-
     @Resource
     private QiFuAiUploadDataService qiFuAiUploadDataService;
     @Resource
@@ -54,6 +48,8 @@ public class UploadDataController {
     @LogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public QiFuAiResDTO qiFuAiUploadData(@RequestBody QiFuAiReqDTO requestBody) {
+        String qiFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
+        String brPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
         System.out.println("==================== 解密开始 ====================");
         String requestStr = JSON.toJSONString(requestBody);
         // 服务端1. SHA256withRSA验签

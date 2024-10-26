@@ -1,4 +1,4 @@
-package com.br.marketing.marketingdatarelayservice.entity;
+package com.br.marketing.entity;
 
 import lombok.Data;
 

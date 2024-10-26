@@ -2245,5 +2245,10 @@ public class MarketingCommonConfig {
      */
     private String qiFuAIUploadDataApiCode;
 
+    /**
+     * 奇富AI上传数据参数配置
+     */
+    private JSONObject qiFuAIServerConfig;
+
 }
 

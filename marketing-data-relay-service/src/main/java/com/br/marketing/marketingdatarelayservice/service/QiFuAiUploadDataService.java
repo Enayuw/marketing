@@ -7,15 +7,16 @@ import com.br.marketing.client.qifu.enums.CodeEnum;
 import com.br.marketing.client.qifu.enums.FlagEnum;
 import com.br.marketing.client.qifu.util.RSAUtil;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.entity.DrsCustomizeUploadData;
+import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.marketingdatarelayservice.client.QiFuAiBizDataDTO;
 import com.br.marketing.marketingdatarelayservice.client.QiFuAiResDTO;
-import com.br.marketing.marketingdatarelayservice.entity.DrsCustomizeUploadData;
-import com.br.marketing.marketingdatarelayservice.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -34,14 +35,9 @@ import static com.br.common.util.DateUtils.yyyyMMdd;
 @Service
 @Slf4j
 public class QiFuAiUploadDataService {
-    // todo speed
-    String appId = "bairong";
-    String qiFuPublicKey;
-    String brPrivateKey;
-    String brPublicKey;
     @Resource
     private TableCreateServiceImpl tableCreateService;
-    @Resource
+    @Autowired
     DrsCustomizeUploadDataMapper drsCustomizeUploadDataMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -73,7 +69,6 @@ public class QiFuAiUploadDataService {
             uploadData.setResponseData(null);
             uploadData.setExtend("JSON解析失败");
             uploadData.setStatus(0);
-
             return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
         }
 
@@ -107,6 +102,8 @@ public class QiFuAiUploadDataService {
     }
 
     public QiFuAiResDTO getResult(CodeEnum codeEnum, FlagEnum flagEnum) {
+        JSONObject qiFuAIServerConfig = marketingCommonConfig.getQiFuAIServerConfig();
+
         QiFuAiResDTO qiFuAiResDTO = new QiFuAiResDTO();
         qiFuAiResDTO.setCode(codeEnum.getCode());
         qiFuAiResDTO.setMsg(codeEnum.getDesc());
@@ -114,21 +111,21 @@ public class QiFuAiUploadDataService {
         System.out.println(flagEnum.toString());
 
         QiFuAiResDTO.DataResult dataResult = new QiFuAiResDTO.DataResult();
-        dataResult.setAppId(appId);
+        dataResult.setAppId(qiFuAIServerConfig.getString("appId"));
         dataResult.setTimestamp(String.valueOf(System.currentTimeMillis()));
         // todo
         dataResult.setBizData("");
 
         String aesKey = RandomStringUtils.randomAlphanumeric(16);
         String iv = RandomStringUtils.randomAlphanumeric(16);
-        String rsaEncryptKey = RSAUtil.encryptByPublicKey(brPublicKey, aesKey);
-        String rsaEncryptIv = RSAUtil.encryptByPublicKey(brPublicKey, iv);
+        String rsaEncryptKey = RSAUtil.encryptByPublicKey(qiFuAIServerConfig.getString("brPublicKey"), aesKey);
+        String rsaEncryptIv = RSAUtil.encryptByPublicKey(qiFuAIServerConfig.getString("brPublicKey"), iv);
         dataResult.setEncryptKey(rsaEncryptKey);
         dataResult.setEncryptIV(rsaEncryptIv);
 
         JSONObject responseJson = JSONObject.parseObject(JSON.toJSONString(dataResult));
         String signature = RSAUtil.generateContent(responseJson);
-        String sign = RSAUtil.signByPrivateKey(brPrivateKey, signature);
+        String sign = RSAUtil.signByPrivateKey(qiFuAIServerConfig.getString("brPrivateKey"), signature);
 
         dataResult.setSign(sign);
         qiFuAiResDTO.setData(dataResult);
