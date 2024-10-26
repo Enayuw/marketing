@@ -9,6 +9,7 @@ import javax.annotation.Resource;
 import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.enums.InterfaceOperationsEnum;
+import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -126,5 +127,13 @@ public class ReportScoreRuleController {
             return new ApiResult<PageResultReturn>().success(listPage);
         }
         return new ApiResult<PageResultReturn>().fail(ServiceResultEnum.FAILED);
+    }
+
+    @ApiOperation(value = "获取跑分文件对应评分分布列表")
+    @GetMapping("/getReportTaskListForScore")
+    @AuthDataControllerPermission
+    public ApiResult<List<ReportTaskVO>> getReportTaskListForScore(@RequestParam(required = false) String name, @RequestParam String ids) {
+        List<ReportTaskVO> list = reportScoreRuleService.getReportTaskListForScore(name, ids);
+        return new ApiResult<List<ReportTaskVO>>().success(list);
     }
 }

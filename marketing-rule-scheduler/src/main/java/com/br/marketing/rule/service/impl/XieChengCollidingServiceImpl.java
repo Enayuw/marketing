@@ -10,6 +10,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.GeneScriptUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
@@ -26,7 +27,6 @@ import com.br.marketing.rule.service.XieChengCollidingService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.EncAndDecUtil;
-import com.br.marketing.util.EsConditionTransferSqlUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
@@ -209,6 +209,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(jsonRule.toString());
+            String scoreCondition = customerInfoPushMain.getmScoreCondition();
+            boolean scFlag = org.apache.commons.lang3.StringUtils.isNotEmpty(scoreCondition);
+            if (scFlag) {
+                queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
+            }
             //兼容数据重复的情况
             queryBaseBean.setPageSize(2000);
             //根据跑分条件查询ES，符合条件的数据即为要推送数据
@@ -227,7 +232,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                     andHttpCodeEqualTo(200).andBusinessCodeEqualTo(0);
             List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataLogExample);
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
-            assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt, xieChengCollidingDataLogs);
+            assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt, xieChengCollidingDataLogs, scFlag);
             //推送任务基础信息
             PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
             pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
@@ -261,7 +266,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
     }
 
     private void assmbleUserDetail(List<MarketingHistory> marketingHistories, List<PushMarketingUserDetailDTO> userDetailDTOS, Integer threeEncrypt,
-                                   List<XieChengCollidingDataLog> xieChengCollidingDataLogs) {
+                                   List<XieChengCollidingDataLog> xieChengCollidingDataLogs, boolean scFlag) {
         Map<String, XieChengCollidingDataLog> dataLogMap = getDataLogGroupByCell(xieChengCollidingDataLogs);
         for (int k = 0; k < marketingHistories.size(); k++) {
             MarketingHistory marketingHistory = marketingHistories.get(k);
@@ -293,6 +298,17 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             varObject.put("orgChannel", xieChengCollidingDataLog.getOrgChannel());
             varObject.put("mktLevel", xieChengCollidingDataLog.getMktLevel());
             varObject.put("info", xieChengCollidingDataLog.getInfo());
+            JSONObject fields = marketingHistory.getFields();
+            if (fields != null) {
+                JSONObject listValueJson = fields.getJSONObject("listValue");
+                JSONObject valueTypeJson = fields.getJSONObject("valueType");
+                if (listValueJson != null) {
+                    varObject.put("listValue", listValueJson.getString("value"));
+                }
+                if (valueTypeJson != null) {
+                    varObject.put("valueType", valueTypeJson.getString("value"));
+                }
+            }
             dto1.setVariables(varObject);
             userDetailDTOS.add(dto1);
         }

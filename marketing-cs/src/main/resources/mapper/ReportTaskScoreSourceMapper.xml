@@ -22,4 +22,22 @@
         </foreach>
     </insert>
 
+    <select id="selectReportIdByBatchNumbers" resultType="java.util.Map">
+        select t1.report_id as reportId,
+               count(0) count
+        from b_report_task_score_source t1 inner join
+            (select report_id,
+                    count(0) as count
+            from b_report_task_score_source
+            where batch_number in
+            <foreach collection="batchNumbers" item="batchNumber" open="(" separator="," close=")">
+                #{batchNumber}
+            </foreach>
+            group by report_id
+            ) t2
+        on t1.report_id = t2.report_id
+        where t2.count = #{size}
+        group by t1.report_id having count = #{size};
+    </select>
+
 </mapper>

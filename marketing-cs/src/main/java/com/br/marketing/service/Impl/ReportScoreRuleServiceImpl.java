@@ -484,6 +484,32 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     /**
+     * @description 根据评分分布名称和跑分文件id筛选评分分布列表
+     * @param name
+     * @param ids
+     * @return List<ReportTaskVO>
+     * @author hedongshuo
+     * @date 2024/10/24 16:01
+     **/
+    @Override
+    public List<ReportTaskVO> getReportTaskListForScore(String name, String ids) {
+        List<Long> fileIds = Arrays.stream(ids.split(",")).map(t->Long.valueOf(t)).collect(Collectors.toList());
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
+        straHisFileExample.createCriteria().andIdIn(fileIds);
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+        List<String> batchNumbers = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
+        if (batchNumbers.size() == 0) {
+            return null;
+        }
+        List<Map<String, Object>> reportIdData =  reportTaskScoreSourceMapper.selectReportIdByBatchNumbers(batchNumbers, batchNumbers.size());
+        if (reportIdData.size() == 0) {
+            return null;
+        }
+        List<String> reportIds = reportIdData.stream().map((Map each) -> each.get("reportId").toString()).collect(Collectors.toList());
+        return reportTaskMapper.selectDataByIds(reportIds, name);
+    }
+
+    /**
      * 转化报表类型名称，解析reportRules
      * @param list
      */

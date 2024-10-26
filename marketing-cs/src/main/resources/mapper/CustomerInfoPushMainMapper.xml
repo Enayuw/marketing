@@ -34,6 +34,8 @@
         m_cus_batch_number_list as mCusBatchNumberList,
         m_rule_condition_show as mRuleConditionShow,
         m_rule_condition as mRuleCondition,
+        m_score_condition_show as mScoreConditionShow,
+        m_score_condition as mScoreCondition,
         m_realy_num as mRealyNum,
         m_plan_num as mPlanNum,
         m_percentage as mPercentage,

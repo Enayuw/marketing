@@ -74,4 +74,37 @@
         GROUP BY create_time, id
         ORDER BY create_time DESC, id DESC
     </select>
+
+    <select id="selectDataByIds" resultType="com.br.marketing.vo.bi.ReportTaskVO">
+        SELECT task.id,
+               task.report_name,
+               task.report_rules,
+               task.download_url,
+               task.status,
+               task.down_status,
+               task.report_type,
+               task.group_count,
+               task.is_del,
+               task.create_time,
+               task.update_time,
+               GROUP_CONCAT(DISTINCT source.api_code ORDER BY source.id DESC SEPARATOR ',') AS api_codes,
+               GROUP_CONCAT(DISTINCT source.batch_number ORDER BY source.id DESC SEPARATOR ',') AS batch_numbers
+        FROM b_report_task task
+        LEFT JOIN b_report_task_score_source source ON source.report_id = task.id
+        <where>
+            task.is_del = 1
+            and task.report_type = 1
+            <if test="name != null and name != ''">
+                and task.report_name like CONCAT('%', #{name}, '%')
+            </if>
+                and task.id in
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+        </where>
+        GROUP BY task.create_time, task.id
+        ORDER BY task.create_time DESC,
+        task.id DESC
+    </select>
+
 </mapper>

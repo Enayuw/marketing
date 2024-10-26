@@ -11,6 +11,8 @@
     <result column="source_condition" property="sourceCondition" jdbcType="VARCHAR" />
     <result column="content" property="content" jdbcType="VARCHAR" />
     <result column="content_show" property="contentShow" jdbcType="VARCHAR" />
+    <result column="score_content" property="scoreContent" jdbcType="VARCHAR" />
+    <result column="score_content_show" property="scoreContentShow" jdbcType="VARCHAR" />
     <result column="is_del" property="isDel" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -75,7 +77,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, `condition_number`, `name`, `status`, condition_type, source_type, source_condition, 
-    content, content_show, is_del, create_time, update_time
+    content, content_show, score_content, score_content_show, is_del, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ScoreSearchConditionExample" >
     select
@@ -113,12 +115,12 @@
     </selectKey>
     insert into b_score_search_condition (`condition_number`, `name`, `status`, 
       condition_type, source_type, source_condition, 
-      content, content_show, is_del, 
+      content, content_show, score_content, score_content_show, is_del,
       create_time, update_time)
     values (#{conditionNumber,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
       #{conditionType,jdbcType=INTEGER}, #{sourceType,jdbcType=INTEGER}, #{sourceCondition,jdbcType=VARCHAR}, 
-      #{content,jdbcType=VARCHAR}, #{contentShow,jdbcType=VARCHAR}, #{isDel,jdbcType=INTEGER}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+      #{content,jdbcType=VARCHAR}, #{contentShow,jdbcType=VARCHAR}, #{scoreContent,jdbcType=VARCHAR}, #{scoreContentShow,jdbcType=VARCHAR},
+      #{isDel,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ScoreSearchCondition" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -149,6 +151,12 @@
       </if>
       <if test="contentShow != null" >
         content_show,
+      </if>
+      <if test="scoreContent != null" >
+        score_content,
+      </if>
+      <if test="scoreContentShow != null" >
+        score_content_show,
       </if>
       <if test="isDel != null" >
         is_del,
@@ -184,6 +192,12 @@
       </if>
       <if test="contentShow != null" >
         #{contentShow,jdbcType=VARCHAR},
+      </if>
+      <if test="scoreContent != null" >
+        #{scoreContent,jdbcType=VARCHAR},
+      </if>
+      <if test="scoreContentShow != null" >
+        #{scoreContentShow,jdbcType=VARCHAR},
       </if>
       <if test="isDel != null" >
         #{isDel,jdbcType=INTEGER},
@@ -232,6 +246,12 @@
       <if test="record.contentShow != null" >
         content_show = #{record.contentShow,jdbcType=VARCHAR},
       </if>
+      <if test="record.scoreContent != null" >
+        score_content = #{record.scoreContent,jdbcType=VARCHAR},
+      </if>
+      <if test="record.scoreContentShow != null" >
+        score_content_show = #{record.scoreContentShow,jdbcType=VARCHAR},
+      </if>
       <if test="record.isDel != null" >
         is_del = #{record.isDel,jdbcType=INTEGER},
       </if>
@@ -257,6 +277,8 @@
       source_condition = #{record.sourceCondition,jdbcType=VARCHAR},
       content = #{record.content,jdbcType=VARCHAR},
       content_show = #{record.contentShow,jdbcType=VARCHAR},
+      score_content = #{record.scoreContent,jdbcType=VARCHAR},
+      score_content_show = #{record.scoreContentShow,jdbcType=VARCHAR},
       is_del = #{record.isDel,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -291,6 +313,12 @@
       <if test="contentShow != null" >
         content_show = #{contentShow,jdbcType=VARCHAR},
       </if>
+      <if test="scoreContent != null" >
+        score_content = #{scoreContent,jdbcType=VARCHAR},
+      </if>
+      <if test="scoreContentShow != null" >
+        score_content_show = #{scoreContentShow,jdbcType=VARCHAR},
+      </if>
       <if test="isDel != null" >
         is_del = #{isDel,jdbcType=INTEGER},
       </if>
@@ -313,6 +341,8 @@
       source_condition = #{sourceCondition,jdbcType=VARCHAR},
       content = #{content,jdbcType=VARCHAR},
       content_show = #{contentShow,jdbcType=VARCHAR},
+      score_content = #{scoreContent,jdbcType=VARCHAR},
+      score_content_show = #{scoreContentShow,jdbcType=VARCHAR},
       is_del = #{isDel,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

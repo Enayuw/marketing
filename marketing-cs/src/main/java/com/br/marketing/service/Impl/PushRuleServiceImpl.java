@@ -76,9 +76,11 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
+import org.apache.commons.codec.EncoderException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.aspectj.org.eclipse.jdt.internal.compiler.env.IGenericField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -1052,12 +1054,17 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         @Override
-        public List<Future<Result<Integer>>> call() {
+        public List<Future<Result<Integer>>> call() throws EncoderException {
             QueryBaseBean queryBaseBean = new QueryBaseBean();
             queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+            String scoreCondition = customerInfoPushMain.getmScoreCondition();
+            boolean scFlag = StringUtils.isNotEmpty(scoreCondition);
+            if (scFlag) {
+                queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
+            }
             if (!isPerOrTop) {
                 queryBaseBean.setPart(part);
             }
@@ -1122,13 +1129,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                         varObject.put("taskId", marketingHistory.getTaskId());
                         varObject.put("userType", marketingHistory.getUserType());
                         varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
+                        if (scFlag) {
+                            markForCell(varObject, marketingHistory.getFields());
+                        }
                         dto1.setVariables(varObject);
                         if (StringUtils.isNotBlank(customerInfoPushMain.getStrategyCode())) {
                             dto1.setStrategyCode(customerInfoPushMain.getStrategyCode());
                         }
                         userDetailDTOS.add(dto1);
                     }
-
                     //推送任务基础信息
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
@@ -1158,6 +1167,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
             return resList;
+        }
+    }
+
+    private void markForCell(JSONObject varObject, JSONObject fields) {
+        if (fields == null) {
+            return;
+        }
+        JSONObject listValueJson = fields.getJSONObject("listValue");
+        JSONObject valueTypeJson = fields.getJSONObject("valueType");
+        if (listValueJson != null) {
+            varObject.put("listValue", listValueJson.getString("value"));
+        }
+        if (valueTypeJson != null) {
+            varObject.put("valueType", valueTypeJson.getString("value"));
         }
     }
 
@@ -3460,6 +3483,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setConditionType(1);
         searchCondition.setContent(dto.getmRuleCondition());
         searchCondition.setContentShow(dto.getmRuleConditionShow());
+        searchCondition.setScoreContent(dto.getmScoreCondition());
+        searchCondition.setScoreContentShow(dto.getmScoreConditionShow());
         searchCondition.setCreateTime(date);
         searchCondition.setUpdateTime(date);
         searchCondition.setSourceType(dto.getSourceType());

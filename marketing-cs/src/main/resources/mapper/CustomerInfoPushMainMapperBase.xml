@@ -20,6 +20,8 @@
     <result column="finish_time" property="finishTime" jdbcType="TIMESTAMP" />
     <result column="m_rule_condition" property="mRuleCondition" jdbcType="VARCHAR" />
     <result column="m_rule_condition_show" property="mRuleConditionShow" jdbcType="VARCHAR" />
+    <result column="m_score_condition" property="mScoreCondition" jdbcType="VARCHAR" />
+    <result column="m_score_condition_show" property="mScoreConditionShow" jdbcType="VARCHAR" />
     <result column="m_percentage" property="mPercentage" jdbcType="DECIMAL" />
     <result column="opt_user_id" property="optUserId" jdbcType="VARCHAR" />
     <result column="opt_user_name" property="optUserName" jdbcType="VARCHAR" />
@@ -91,7 +93,7 @@
   <sql id="Base_Column_List" >
     id, m_api_code, m_model, m_model_version, m_num_min, m_num_max, m_score_min, m_score_max, 
     m_plan_num, m_realy_num, m_cus_batch_number_list, m_status, is_del, create_time, 
-    update_time, finish_time, m_rule_condition, m_rule_condition_show, m_percentage, 
+    update_time, finish_time, m_rule_condition, m_rule_condition_show, m_score_condition, m_score_condition_show, m_percentage,
     opt_user_id, opt_user_name, filter_type, batch_name, extend, source_type, build_type, 
     strategy_code
   </sql>
@@ -134,7 +136,8 @@
       m_score_max, m_plan_num, m_realy_num, 
       m_cus_batch_number_list, m_status, is_del, 
       create_time, update_time, finish_time, 
-      m_rule_condition, m_rule_condition_show, m_percentage, 
+      m_rule_condition, m_rule_condition_show,
+      m_score_condition, m_score_condition_show, m_percentage,
       opt_user_id, opt_user_name, filter_type, 
       batch_name, extend, source_type, 
       build_type, strategy_code)
@@ -143,7 +146,8 @@
       #{mScoreMax,jdbcType=INTEGER}, #{mPlanNum,jdbcType=INTEGER}, #{mRealyNum,jdbcType=INTEGER}, 
       #{mCusBatchNumberList,jdbcType=VARCHAR}, #{mStatus,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{finishTime,jdbcType=TIMESTAMP}, 
-      #{mRuleCondition,jdbcType=VARCHAR}, #{mRuleConditionShow,jdbcType=VARCHAR}, #{mPercentage,jdbcType=DECIMAL}, 
+      #{mRuleCondition,jdbcType=VARCHAR}, #{mRuleConditionShow,jdbcType=VARCHAR},
+      #{mScoreCondition,jdbcType=VARCHAR}, #{mScoreConditionShow,jdbcType=VARCHAR}, #{mPercentage,jdbcType=DECIMAL},
       #{optUserId,jdbcType=VARCHAR}, #{optUserName,jdbcType=VARCHAR}, #{filterType,jdbcType=INTEGER}, 
       #{batchName,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR}, #{sourceType,jdbcType=INTEGER}, 
       #{buildType,jdbcType=INTEGER}, #{strategyCode,jdbcType=VARCHAR})
@@ -204,6 +208,12 @@
       </if>
       <if test="mRuleConditionShow != null" >
         m_rule_condition_show,
+      </if>
+      <if test="mScoreCondition != null" >
+        m_score_condition,
+      </if>
+      <if test="mScoreConditionShow != null" >
+        m_score_condition_show,
       </if>
       <if test="mPercentage != null" >
         m_percentage,
@@ -284,6 +294,12 @@
       </if>
       <if test="mRuleConditionShow != null" >
         #{mRuleConditionShow,jdbcType=VARCHAR},
+      </if>
+      <if test="mScoreCondition != null" >
+        #{mScoreCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="mScoreConditionShow != null" >
+        #{mScoreConditionShow,jdbcType=VARCHAR},
       </if>
       <if test="mPercentage != null" >
         #{mPercentage,jdbcType=DECIMAL},
@@ -377,6 +393,12 @@
       <if test="record.mRuleConditionShow != null" >
         m_rule_condition_show = #{record.mRuleConditionShow,jdbcType=VARCHAR},
       </if>
+      <if test="record.mScoreCondition != null" >
+        m_score_condition = #{record.mScoreCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mScoreConditionShow != null" >
+        m_score_condition_show = #{record.mScoreConditionShow,jdbcType=VARCHAR},
+      </if>
       <if test="record.mPercentage != null" >
         m_percentage = #{record.mPercentage,jdbcType=DECIMAL},
       </if>
@@ -429,6 +451,8 @@
       finish_time = #{record.finishTime,jdbcType=TIMESTAMP},
       m_rule_condition = #{record.mRuleCondition,jdbcType=VARCHAR},
       m_rule_condition_show = #{record.mRuleConditionShow,jdbcType=VARCHAR},
+      m_score_condition = #{record.mScoreCondition,jdbcType=VARCHAR},
+      m_score_condition_show = #{record.mScoreConditionShow,jdbcType=VARCHAR},
       m_percentage = #{record.mPercentage,jdbcType=DECIMAL},
       opt_user_id = #{record.optUserId,jdbcType=VARCHAR},
       opt_user_name = #{record.optUserName,jdbcType=VARCHAR},
@@ -496,6 +520,12 @@
       <if test="mRuleConditionShow != null" >
         m_rule_condition_show = #{mRuleConditionShow,jdbcType=VARCHAR},
       </if>
+      <if test="mScoreCondition != null" >
+        m_score_condition = #{mScoreCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="mScoreConditionShow != null" >
+        m_score_condition_show = #{mScoreConditionShow,jdbcType=VARCHAR},
+      </if>
       <if test="mPercentage != null" >
         m_percentage = #{mPercentage,jdbcType=DECIMAL},
       </if>
@@ -545,6 +575,8 @@
       finish_time = #{finishTime,jdbcType=TIMESTAMP},
       m_rule_condition = #{mRuleCondition,jdbcType=VARCHAR},
       m_rule_condition_show = #{mRuleConditionShow,jdbcType=VARCHAR},
+      m_score_condition = #{mScoreCondition,jdbcType=VARCHAR},
+      m_score_condition_show = #{mScoreConditionShow,jdbcType=VARCHAR},
       m_percentage = #{mPercentage,jdbcType=DECIMAL},
       opt_user_id = #{optUserId,jdbcType=VARCHAR},
       opt_user_name = #{optUserName,jdbcType=VARCHAR},

@@ -9,6 +9,7 @@
         ,a.name
         ,a.status
         ,content_show as contentShow
+        ,score_content_show as scoreContentShow
         ,date_format(a.create_time,'%Y-%m-%d %T') as createTime
         ,date_format(a.update_time,'%Y-%m-%d %T') as updateTime
         from b_score_search_condition as a
@@ -44,7 +45,7 @@
     </select>
 
     <select id="getScoreByNameNumberList" resultType="com.br.marketing.vo.ConditionOfScoreVO">
-        select `id`,`name`,`source_type`,`content`,`content_show`,`condition_number`
+        select `id`,`name`,`source_type`,`content`,`content_show`,`score_content`,`score_content_show`,`condition_number`
         from b_score_search_condition
         where condition_type = 1
         and `status` = 1
@@ -60,7 +61,7 @@
     </select>
 
     <select id="getScoreByConditionType"  resultType="com.br.marketing.vo.ConditionOfScoreVO">
-        select a.`id`,a.`name`,a.`content`,a.`content_show`,a.`condition_number`
+        select a.`id`,a.`name`,a.`content`,a.`content_show`,a.`score_content`,a.`score_content_show`,a.`condition_number`
         from b_score_search_condition as a
                  join b_score_search_condition_mapping as b on a.id = b.condition_id
         where a.condition_type = #{conditionType}
