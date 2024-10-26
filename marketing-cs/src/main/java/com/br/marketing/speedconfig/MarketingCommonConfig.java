@@ -2240,5 +2240,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject weiJuCleanFieldMappingConfig;
 
+    /**
+     * 奇富AI上传数据apiCode
+     */
+    private String qiFuAIUploadDataApiCode;
+
 }
 
