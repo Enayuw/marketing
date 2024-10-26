@@ -210,7 +210,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(jsonRule.toString());
             String scoreCondition = customerInfoPushMain.getmScoreCondition();
-            boolean scFlag = org.apache.commons.lang3.StringUtils.isNotEmpty(scoreCondition);
+            boolean scFlag = StringUtils.isNotEmpty(scoreCondition);
             if (scFlag) {
                 queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
             }

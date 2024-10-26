@@ -89,8 +89,16 @@ public class GeneScriptUtil {
                 .put(OPERATION_BETWEEN_RIGHT + SECTION_IDENTIFIER_RIGHT, OPERATOR_LESS_EQUAL).build();
     }
 
+    /**
+     * @description 生成es打标脚本
+     * @param scoreLables
+     * @return java.lang.String
+     * @author hedongshuo
+     * @date 2024/10/26 18:32
+     **/
     public static String esLableScript(String scoreLables) throws EncoderException {
         JSONArray array = JSON.parseArray(scoreLables);
+        //构建标签list
         List<ScoreLable> list = new ArrayList<>(array.size());
         for (Object obj : array) {
             ScoreLable scoreLable = new ScoreLable();
@@ -112,29 +120,55 @@ public class GeneScriptUtil {
             StringBuilder sourceBuilder = new StringBuilder();
             sourceBuilder.append(IF_FRAG_LEFT);
             JSONObject condition = jsonObject.getJSONObject("condition");
-            JSONArray data = condition.getJSONArray("data");
-            for (int i = 0; i < data.size(); i++) {
-                JSONObject dataJson = JSON.parseObject(data.get(i).toString());
-                String scoreCondition = analysisData(dataJson, i == data.size() - 1 ? "" : logicMap.get(condition.getString("logic")));
-                sourceBuilder.append(scoreCondition);
-            }
+            process(sourceBuilder, condition);
             sourceBuilder.append(PARENTHESIS_FRAG_RIGHT);
             scoreLable.setConditionSource(sourceBuilder.toString());
         }
+        //list排序
         list.sort(Comparator.comparing(ScoreLable::getOrder));
         StringBuilder listValueSource = new StringBuilder();
         StringBuilder valueTypeSource = new StringBuilder();
+        //for片段
         listValueSource.append(FOR_FRAG).append(BRACE_FRAG_LEFT);
         valueTypeSource.append(FOR_FRAG).append(BRACE_FRAG_LEFT);
+        //条件片段
         for (ScoreLable scoreLable : list) {
             listValueSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT).append(scoreLable.getListValue()).append(RETURN_FRAG_RIGHT);
             valueTypeSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT).append(scoreLable.getValueType()).append(RETURN_FRAG_RIGHT);
         }
+        //}补齐
         listValueSource.append(BRACE_FRAG_RIGHT);
         valueTypeSource.append(BRACE_FRAG_RIGHT);
+        //未标记，return片段
         listValueSource.append(RETURN_FRAG_END);
         valueTypeSource.append(RETURN_FRAG_END);
+        //生成script_fields
         return geneScript(listValueSource.toString(), valueTypeSource.toString());
+    }
+
+    /**
+     * 处理一个Json{
+     *     type:"logic/operation"
+     *     logic:"or/and"
+     *     data:[{...}]
+     * }
+     * data[{
+     *     "type": "operation",
+     *     "key": "scorencashon58xkcsxcd",
+     *     "operation": "between_left",
+     *     "value": "75,80"
+     * }
+     * ]
+     * @param sourceBuilder
+     * @param condition
+     */
+    public static void process(StringBuilder sourceBuilder, JSONObject condition) {
+        JSONArray data = condition.getJSONArray("data");
+        for (int i = 0; i < data.size(); i++) {
+            JSONObject dataJson = JSON.parseObject(data.get(i).toString());
+            String scoreCondition = analysisData(dataJson, i == data.size() - 1 ? "" : logicMap.get(condition.getString("logic")));
+            sourceBuilder.append(scoreCondition);
+        }
     }
 
     /**
@@ -162,7 +196,7 @@ public class GeneScriptUtil {
         JSONObject scriptFieldsObject = new JSONObject();
         scriptFieldsObject.put("listValue", listValueObject);
         scriptFieldsObject.put("valueType", valueTypeObject);
-
+        //String转urlCode
         URLCodec urlCodec = new URLCodec();
         return urlCodec.encode(scriptFieldsObject.toString());
     }
@@ -176,15 +210,12 @@ public class GeneScriptUtil {
     public static String analysisData(JSONObject data, String logicOperator) {
         String type = data.getString("type");
         StringBuilder conditionBuilder = new StringBuilder();
+        //层级无限延伸
         if ("logic".equals(type)) {
             conditionBuilder.append(PARENTHESIS_FRAG_LEFT);
-            JSONArray dataInner = data.getJSONArray("data");
-            for (int i = 0; i < dataInner.size(); i++) {
-                JSONObject dataJson = JSON.parseObject(dataInner.get(i).toString());
-                String conditionReturn = analysisData(dataJson, i == dataInner.size() - 1 ? "" : logicMap.get(data.getString("logic")));
-                conditionBuilder.append(conditionReturn);
-            }
+            process(conditionBuilder, data);
             conditionBuilder.append(PARENTHESIS_FRAG_RIGHT);
+            //底层解析
         } else if ("operation".equals(type)) {
             String key = data.getString("key");
             String operatorLeft = opetatorMap.get(data.getString("operation") + SECTION_IDENTIFIER_LEFT);
@@ -194,9 +225,9 @@ public class GeneScriptUtil {
             String valueRight = value.get(1);
             conditionBuilder.append(CONDITION_ONE).append(key).append(CONDITION_TWO).append(operatorLeft).append(SPACE_FRAG).append(valueLeft)
                     .append(CONDITION_THR).append(operatorRight).append(SPACE_FRAG).append(valueRight).append(PARENTHESIS_FRAG_RIGHT);
-            if (StringUtils.isNotEmpty(logicOperator)) {
-                conditionBuilder.append(logicOperator);
-            }
+        }
+        if (StringUtils.isNotEmpty(logicOperator)) {
+            conditionBuilder.append(logicOperator);
         }
         return conditionBuilder.toString();
     }
