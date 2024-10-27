@@ -1,10 +1,8 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.DrsCustomizeUploadData;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-@Mapper
 public interface DrsCustomizeUploadDataMapper {
 
     void createDrsCustomizeUploadDataTable(@Param("tCid") String tCid);

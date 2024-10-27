@@ -16,7 +16,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -37,7 +36,7 @@ import static com.br.common.util.DateUtils.yyyyMMdd;
 public class QiFuAiUploadDataService {
     @Resource
     private TableCreateServiceImpl tableCreateService;
-    @Autowired
+    @Resource
     DrsCustomizeUploadDataMapper drsCustomizeUploadDataMapper;
     @Resource
     private MarketingCommonConfig marketingCommonConfig;

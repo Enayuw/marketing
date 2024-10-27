@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.entity.DrsCustomizeUploadData">
+<mapper namespace="com.br.marketing.mapper.DrsCustomizeUploadDataMapper">
     <update id="createDrsCustomizeUploadDataTable" parameterType="java.lang.String">
         CREATE TABLE IF NOT EXISTS b_drs_customize_upload_data_${tCid}
         (
@@ -26,7 +26,7 @@
     </update>
 
 
-    <insert id="insertSelective" parameterType="com.br.marketing.marketingdatarelayservice.entity.DrsCustomizeUploadData">
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.DrsCustomizeUploadData">
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
@@ -109,7 +109,7 @@
         </trim>
     </insert>
 
-    <select id="selectById" resultType="com.br.marketing.marketingdatarelayservice.entity.DrsCustomizeUploadData">
+    <select id="selectById" resultType="com.br.marketing.entity.DrsCustomizeUploadData">
         select * from b_drs_customize_upload_data_${tCid} where id = #{sourceId}
     </select>
 
