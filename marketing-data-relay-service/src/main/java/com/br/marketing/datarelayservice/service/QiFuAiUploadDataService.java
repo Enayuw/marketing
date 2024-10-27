@@ -1,4 +1,4 @@
-package com.br.marketing.marketingdatarelayservice.service;
+package com.br.marketing.datarelayservice.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -9,8 +9,8 @@ import com.br.marketing.client.qifu.util.RSAUtil;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
-import com.br.marketing.marketingdatarelayservice.client.QiFuAiBizDataDTO;
-import com.br.marketing.marketingdatarelayservice.client.QiFuAiResDTO;
+import com.br.marketing.datarelayservice.client.QiFuAiBizDataDTO;
+import com.br.marketing.datarelayservice.client.QiFuAiResDTO;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import javafx.util.Pair;
@@ -22,6 +22,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.br.common.util.DateUtils.yyyyMMdd;
@@ -44,10 +45,14 @@ public class QiFuAiUploadDataService {
     public Pair<CodeEnum, FlagEnum> bizHandle(String decryptData) {
         String apiCode = marketingCommonConfig.getQiFuAIUploadDataApiCode();
         String tCid = tableCreateService.getTcId(apiCode);
+        String suffix = null;
+        if (Objects.nonNull(tCid)) {
+            suffix = "_" + tCid;
+        }
         DrsCustomizeUploadData uploadData = new DrsCustomizeUploadData();
         uploadData.setApiCode(apiCode);
-        uploadData.setTCid(tCid);
-        drsCustomizeUploadDataMapper.createDrsCustomizeUploadDataTable(uploadData.getTCid());
+        uploadData.setTCid(suffix);
+        drsCustomizeUploadDataMapper.createDrsCustomizeUploadDataTable(suffix);
 
         QiFuAiBizDataDTO qiFuAiBizDataDTO;
         try {
@@ -74,7 +79,7 @@ public class QiFuAiUploadDataService {
         try {
             uploadData.setRequestId(qiFuAiBizDataDTO.getFlowNo());
             List<QiFuAiBizDataDTO.DataList> dataList = qiFuAiBizDataDTO.getDataList();
-            uploadData.setRequestJsonData(JSON.toJSONString(dataList));
+            uploadData.setRequestJsonData(decryptData);
             uploadData.setBizDataNumber(dataList == null ? 0 : dataList.size());
             uploadData.setReceiveDate(LocalDate.now().toString());
             uploadData.setCreateTime(new Date());

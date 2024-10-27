@@ -1,9 +1,9 @@
-package com.br.marketing.marketingdatarelayservice.alarm;
+package com.br.marketing.datarelayservice.alarm;
 
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.rolling.RollingFileAppender;
-import com.br.marketing.marketingdatarelayservice.MarketingDataRelayServiceApplication;
+import com.br.marketing.datarelayservice.MarketingDataRelayServiceApplication;
 import com.br.marketing.service.Impl.SystemExceptionServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 

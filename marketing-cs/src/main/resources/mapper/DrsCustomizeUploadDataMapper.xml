@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.DrsCustomizeUploadDataMapper">
     <update id="createDrsCustomizeUploadDataTable" parameterType="java.lang.String">
-        CREATE TABLE IF NOT EXISTS b_drs_customize_upload_data_${tCid}
+        CREATE TABLE IF NOT EXISTS b_drs_customize_upload_data${tCid}
         (
             `id`                bigint(20) NOT NULL AUTO_INCREMENT,
             `api_code`          varchar(10)  DEFAULT '' COMMENT '用户编号',
@@ -30,7 +30,7 @@
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_drs_customize_upload_data_${tCid}
+        insert into b_drs_customize_upload_data${tCid}
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="apiCode != null">
                 api_code,
@@ -110,10 +110,10 @@
     </insert>
 
     <select id="selectById" resultType="com.br.marketing.entity.DrsCustomizeUploadData">
-        select * from b_drs_customize_upload_data_${tCid} where id = #{sourceId}
+        select * from b_drs_customize_upload_data${tCid} where id = #{sourceId}
     </select>
 
     <update id="updateSyncStatusById">
-        update b_drs_customize_upload_data_${tCid} set sync_status = #{syncStatus} where id = #{sourceId}
+        update b_drs_customize_upload_data${tCid} set sync_status = #{syncStatus} where id = #{sourceId}
     </update>
 </mapper>

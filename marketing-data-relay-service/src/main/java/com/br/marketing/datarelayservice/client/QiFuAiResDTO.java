@@ -1,4 +1,4 @@
-package com.br.marketing.marketingdatarelayservice.client;
+package com.br.marketing.datarelayservice.client;
 
 import lombok.Data;
 

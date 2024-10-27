@@ -1,4 +1,4 @@
-package com.br.marketing.marketingdatarelayservice;
+package com.br.marketing.datarelayservice;
 
 import com.br.cloud.boot.EnablePrometheusEndpoint;
 import com.br.cloud.hystrix.EnableHystrixPrometheus;

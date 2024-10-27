@@ -1,4 +1,4 @@
-package com.br.marketing.marketingdatarelayservice.controller;
+package com.br.marketing.datarelayservice.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -11,9 +11,9 @@ import com.br.marketing.client.qifu.enums.FlagEnum;
 import com.br.marketing.client.qifu.util.AESUtil;
 import com.br.marketing.client.qifu.util.RSAUtil;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.marketingdatarelayservice.client.QiFuAiReqDTO;
-import com.br.marketing.marketingdatarelayservice.client.QiFuAiResDTO;
-import com.br.marketing.marketingdatarelayservice.service.QiFuAiUploadDataService;
+import com.br.marketing.datarelayservice.client.QiFuAiReqDTO;
+import com.br.marketing.datarelayservice.client.QiFuAiResDTO;
+import com.br.marketing.datarelayservice.service.QiFuAiUploadDataService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -76,9 +76,9 @@ public class UploadDataController {
 
         // 服务端3. AES-CBC解密业务数据
         String originData = requestBody.getBizData();
-//        String decryptData = AESUtil.decrypt(decryptKey, decryptIv, originData);
-        String decryptData = new String(Base64.decodeBase64(AESUtil.decrypt(decryptKey, decryptIv, originData))
-                , StandardCharsets.UTF_8);
+        String decryptData = AESUtil.decrypt(decryptKey, decryptIv, originData);
+//        String decryptData = new String(Base64.decodeBase64(AESUtil.decrypt(decryptKey, decryptIv, originData))
+//                , StandardCharsets.UTF_8);
         System.out.println("经过AES解密后的业务数据：" + decryptData);
 
         System.out.println("==================== 解密结束 ====================");
