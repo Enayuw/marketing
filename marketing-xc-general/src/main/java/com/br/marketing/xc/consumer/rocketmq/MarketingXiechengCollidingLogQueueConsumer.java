@@ -1,10 +1,10 @@
 package com.br.marketing.xc.consumer.rocketmq;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
-import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
@@ -13,10 +13,12 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
- *
+ * 营销携程撞库日志消息消费端
  * @Author yu.xia@brgroup.com
  * @Date 2024/8/20 20:57
  */
@@ -30,9 +32,8 @@ public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageLis
 
     @Autowired
     RocketMqConsumerService consumerService;
-
-    @Autowired
-    PushRuleService pushRuleService;
+    @Resource
+    private XieChengCollidingDataLogService xieChengCollidingDataLogService;
 
     @Override
     protected String consumerName() {
@@ -42,10 +43,10 @@ public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageLis
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
-        }.getType());
-        log.warn("MARKETING_PRE_USER_RECEIVE：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o, null);
+        log.warn("MARKETING_XIECHENG_COLLIDING_LOG_QUEUE：获取消息成功:{}",bodyString);
+        /*消费逻辑*/
+        List<XieChengCollidingDataLog> collidingDataLogList = JSONArray.parseArray(bodyString, XieChengCollidingDataLog.class);
+        consumerService.consumerRun(messageExt, xieChengCollidingDataLogService::saveXieChengCollidingDataLog, collidingDataLogList, null);
     }
 
     @Override
