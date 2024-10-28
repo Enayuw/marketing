@@ -81,7 +81,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
                 customizeUploadDataMapper.updateSyncStatusById(tCid, sourceId, 1);
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), "携程促活，主线程处理异常，前置表id：" + data.getId()), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), "国美前置数据清洗，主线程处理异常，前置表id：" + data.getId()), e);
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
@@ -103,20 +103,20 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
             reserveField1.put("gender", fieldMapping.getString(item.getString("gender")));
 
             reserveField1.put("registerTime", StringUtils.isNotEmpty(item.getString("registerTime")) ?
-                    DateUtil.formatDate(DateUtil.parse(item.getString("registerTime"), DatePattern.NORM_DATETIME_FORMAT)) : "");
+                    DateUtil.formatDate(DateUtil.parse(item.getString("registerTime"), fieldMapping.getString("registerTime"))) : "");
 
             reserveField1.put("auditTime", StringUtils.isNotEmpty(item.getString("audittTime")) ?
-                    DateUtil.formatDate(DateUtil.parse(item.getString("audittTime"), DatePattern.NORM_DATE_FORMAT)) : "");
+                    DateUtil.formatDate(DateUtil.parse(item.getString("audittTime"), fieldMapping.getString("audittTime"))) : "");
 
             reserveField1.put("auditAmount", StringUtils.isNotEmpty(item.getString("auditAmount")) ? item.getString("auditAmount") : "");
 
             reserveField1.put("lentTime", StringUtils.isNotEmpty(item.getString("lastloan")) ?
-                    DateUtil.formatDate(DateUtil.parse(item.getString("lastloan"), DatePattern.NORM_DATE_FORMAT)) : "");
+                    DateUtil.formatDate(DateUtil.parse(item.getString("lastloan"), fieldMapping.getString("lastloan"))) : "");
 
             reserveField1.put("lentAmount", StringUtils.isNotEmpty(item.getString("lastamount")) ? item.getString("lastamount") : "");
 
             reserveField1.put("settleTime", StringUtils.isNotEmpty(item.getString("lastsettle")) ?
-                    DateUtil.formatDate(DateUtil.parse(item.getString("lastsettle"), DatePattern.NORM_DATETIME_FORMAT)) : "");
+                    DateUtil.formatDate(DateUtil.parse(item.getString("lastsettle"), fieldMapping.getString("lastsettle"))) : "");
 
             reserveField1.put("age", StringUtils.isNotEmpty(item.getString("age")) ? item.getString("age") : "");
 
