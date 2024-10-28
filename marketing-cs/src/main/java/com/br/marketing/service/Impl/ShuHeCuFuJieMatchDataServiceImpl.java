@@ -161,7 +161,7 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                             addOrUpdateCustypeCondition(marketingConditions, custype);
                             JSONObject params = JSON.parseObject(JSON.toJSONString(marketingHistory));
                             params.put("_id", entry.getKey());
-                            RpcClientProxy.modify(index, params, EsIceType.EN.getCode(), EsIceType.R_FALSE.getCode(),
+                            RpcClientProxy.modify(index, params, EsIceType.EE.getCode(), EsIceType.R_FALSE.getCode(),
                                     EsIceType.MARKETING.getCode());
                         }
                     }
