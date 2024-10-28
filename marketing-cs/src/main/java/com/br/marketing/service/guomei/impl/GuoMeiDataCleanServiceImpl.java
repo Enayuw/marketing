@@ -103,7 +103,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
             reserveField1.put("gender", fieldMapping.getString(item.getString("gender")));
             try {
                 reserveField1.put("registerTime", StringUtils.isNotEmpty(item.getString("registerTime")) ?
-                        DateUtil.formatDate(DateUtil.parse(item.getString("registerTime"), fieldMapping.getString("registerTime"))) : "");
+                        DateUtil.formatDateTime(DateUtil.parse(item.getString("registerTime"), fieldMapping.getString("registerTime"))) : "");
             } catch (Exception e) {
                 reserveField1.put("registerTime", item.getString("registerTime"));
             }
@@ -128,7 +128,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
 
             try {
                 reserveField1.put("settleTime", StringUtils.isNotEmpty(item.getString("lastsettle")) ?
-                        DateUtil.formatDate(DateUtil.parse(item.getString("lastsettle"), fieldMapping.getString("lastsettle"))) : "");
+                        DateUtil.formatDateTime(DateUtil.parse(item.getString("lastsettle"), fieldMapping.getString("lastsettle"))) : "");
             } catch (Exception e) {
                 reserveField1.put("settleTime", item.getString("lastsettle"));
             }
