@@ -53,6 +53,10 @@ public class MarketingAssistConstants {
      * 的 Tag
      */
     public static final String TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "marketing.xiecheng.colliding.log";
+    /**
+     * 的 Tag
+     */
+    public static final String TAG_MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing.Universal.SftpToDb.Receive";
 //    Tag 结束
 
 
@@ -102,6 +106,10 @@ public class MarketingAssistConstants {
      * 的 consumerGroup
      */
     public static final String MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "Marketing_XieCheng_Colliding_Log_Queue";
+    /**
+     * 的 consumerGroup
+     */
+    public static final String MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing_Universal_SftpToDb_Receive";
 //    consumerGroup 结束
 
 }

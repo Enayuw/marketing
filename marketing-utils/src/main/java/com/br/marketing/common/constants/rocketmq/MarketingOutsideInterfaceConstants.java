@@ -36,10 +36,6 @@ public class MarketingOutsideInterfaceConstants {
     /**
      * 的 Tag
      */
-    public static final String TAG_MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing.Universal.SftpToDb.Receive";
-    /**
-     * 的 Tag
-     */
     public static final String TAG_MARKETING_PUSH_BLACK = "Marketing.Push.Black";
     /**
      * 的 Tag
@@ -85,10 +81,6 @@ public class MarketingOutsideInterfaceConstants {
      * 的 consumerGroup
      */
     public static final String MARKETING_PUSH_SEVEN_FILETRANSFER = "Marketing_Push_Seven_FileTransfer";
-    /**
-     * 的 consumerGroup
-     */
-    public static final String MARKETING_UNIVERSAL_SFTPTODB_RECEIVE = "Marketing_Universal_SftpToDb_Receive";
     /**
      * 的 consumerGroup
      */

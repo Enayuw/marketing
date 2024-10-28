@@ -2,7 +2,7 @@ package com.br.marketing.check.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Service
 @RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingOutsideInterfaceConstants.TOPIC,
-        consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_UNIVERSAL_SFTPTODB_RECEIVE,
-        selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_RECEIVE)
+        topic = MarketingAssistConstants.TOPIC,
+        consumerGroup = MarketingAssistConstants.MARKETING_UNIVERSAL_SFTPTODB_RECEIVE,
+        selectorExpression = MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_RECEIVE)
 public class MarketingUniversalSftpToDbReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired
