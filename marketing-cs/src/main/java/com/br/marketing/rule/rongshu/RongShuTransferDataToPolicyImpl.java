@@ -29,6 +29,7 @@ import java.util.HashMap;
 /**
  * https://c.100credit.cn/pages/viewpage.action?pageId=178192841
  * 【紧急】D20240906榕树自动化转决策v3-4004643  情况2处理
+ * 2024-10-28 apicode:4004643转化数据，按照规则生成后推送至4004733
  * <p>
  * 情况1 为调度任务  RongShuPushDecisionServiceImpl
  * <p>
