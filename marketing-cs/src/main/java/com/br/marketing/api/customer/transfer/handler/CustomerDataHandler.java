@@ -6,18 +6,16 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
-import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.transfer.adapter.TransferDataAdaptee;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.PulsarTopic;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
+import com.br.marketing.util.ApiFieldCheckUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 客户数据处理
@@ -125,48 +123,6 @@ public interface CustomerDataHandler {
             return;
         }
         throw new JSONException("非json结构");
-    }
-
-    /**
-     * 2023-10-24 19:17
-     * 新增字段检查
-     *
-     * @param fieldSet           需要检查的字段集合
-     * @param localCacheFieldSet 本地缓存的字段集合
-     * @param redisChgService    redis bean
-     * @param apiCode            客户编号
-     * @param requestId          请求流水号
-     * @return 组装的消息, 无时为null
-     */
-    default String checkField(Set<String> fieldSet
-            , final Set<String> localCacheFieldSet
-            , final RedisChgService redisChgService
-            , String apiCode
-            , String requestId) {
-        StringBuilder fieldStr = new StringBuilder();
-        String redisKey = RedisKeyConstant.CUSTOMER_TRANSFER_FIELD_KEY.concat(":").concat(apiCode);
-        String separator = "、";
-        for (String field : fieldSet) {
-            if (localCacheFieldSet.add(field)) {
-                Long aLong = redisChgService.saddMember(redisKey, field);
-                if (aLong == 1) {
-                    fieldStr.append(fieldStr.length() > 0 ? separator : "\n").append(field);
-                }
-            }
-        }
-        if (fieldStr.length() > 0) {
-            String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_NEW_FIELD_CHECK.getCode()
-                    , customer().getName() + "(" + apiCode + ")在请求(" +
-                            requestId + ")中有新增字段：".concat(fieldStr.toString())
-                            .concat("\n请及时与客户沟通确认^_^"), customer().getName() + "(" + apiCode + ")定制化"
-                            + AlarmSendCodeEnum.EXCEPTION_NEW_FIELD_CHECK.getMessage());
-            Long rSum = redisChgService.scard(redisKey);
-            if (rSum == null || rSum < localCacheFieldSet.size()) {
-                redisChgService.sadd(redisKey, new ArrayList<>(localCacheFieldSet));
-            }
-            return msg;
-        }
-        return null;
     }
 
     /**
