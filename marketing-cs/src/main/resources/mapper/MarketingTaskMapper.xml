@@ -784,4 +784,39 @@
         order by mt.api_code,shf.create_time desc) vie
     </select>
 
+    <select id="queryCompletStatus" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select
+        bmt.id,
+        shf.id                                            as `hisFileId`,
+        bmt.api_code                                      ,
+        bmt.batch_number                                  as `batchNumber`,
+        bmt.create_time                             as createTime,
+        bmt.update_time                             as updateTime
+        from b_marketing_task bmt
+        left join stra_his_file shf on shf.batch_number = bmt.batch_number
+        left  join b_marketing_task_extend bmte on bmte.task_id = bmt.id
+        left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+        where  bsrc.is_del = 1
+        and bmt.status !=0
+        <if test="apiCode !=null and apiCode!=''">
+            and bmt.api_code = #{apiCode}
+        </if>
+        <if test="taskStatus !=null and taskStatus!=''">
+            and shf.status = #{taskStatus}
+        </if>
+        <if test="conditionType !=null and conditionType!=''">
+            and bmte.condition_type = #{conditionType}
+        </if>
+        <if test="ruleNameShort !=null and ruleNameShort!=''">
+            and bsrc.rule_name_short = #{ruleNameShort}
+        </if>
+        <if test="createTimeStart !=null and createTimeStart!=''">
+            <![CDATA[  and bmt.create_time >=#{createTimeStart} ]]>
+        </if>
+        <if test="createTimeEnd !=null and createTimeEnd!=''">
+            <![CDATA[  and bmt.create_time <#{createTimeEnd} ]]>
+        </if>
+        order by bmt.create_time desc,bmt.id desc
+    </select>
+
 </mapper>
