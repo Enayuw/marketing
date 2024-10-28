@@ -196,9 +196,7 @@ public class GeneScriptUtil {
         JSONObject scriptFieldsObject = new JSONObject();
         scriptFieldsObject.put("listValue", listValueObject);
         scriptFieldsObject.put("valueType", valueTypeObject);
-        //String转urlCode
-        URLCodec urlCodec = new URLCodec();
-        return urlCodec.encode(scriptFieldsObject.toString());
+        return scriptFieldsObject.toString();
     }
 
     /**

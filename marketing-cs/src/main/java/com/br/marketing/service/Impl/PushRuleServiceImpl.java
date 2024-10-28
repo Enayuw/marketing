@@ -485,6 +485,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setmApiCode(dto.getApiCode());
         customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
         customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
+        customerInfoPushMain.setmScoreCondition(dto.getmScoreCondition());
+        customerInfoPushMain.setmScoreConditionShow(dto.getmScoreConditionShow());
         customerInfoPushMain.setmPercentage(dto.getmPercentage());
         customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
         customerInfoPushMain.setmRealyNum(pushNum);

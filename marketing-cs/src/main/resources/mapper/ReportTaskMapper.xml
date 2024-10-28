@@ -98,7 +98,7 @@
                 and task.report_name like CONCAT('%', #{name}, '%')
             </if>
                 and task.id in
-                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                <foreach collection="reportIds" item="id" open="(" separator="," close=")">
                     #{id}
                 </foreach>
         </where>

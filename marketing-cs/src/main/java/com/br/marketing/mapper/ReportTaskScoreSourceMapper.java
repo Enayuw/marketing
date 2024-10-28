@@ -11,5 +11,5 @@ public interface ReportTaskScoreSourceMapper extends ReportTaskScoreSourceMapper
 
     void insertBatch(@Param("list") List<ReportTaskScoreSource> list);
 
-    List<Map<String, Object>> selectReportIdByBatchNumbers(@Param("batchNumbers")List<String> batchNumbers, @Param("size")int size);
+    List<Map<String, Object>> selectReportIdByBatchNumberstikv_(@Param("batchNumbers")List<String> batchNumbers, @Param("size")int size);
 }

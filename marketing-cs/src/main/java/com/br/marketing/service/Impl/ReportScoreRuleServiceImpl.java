@@ -501,7 +501,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         if (batchNumbers.size() == 0) {
             return null;
         }
-        List<Map<String, Object>> reportIdData =  reportTaskScoreSourceMapper.selectReportIdByBatchNumbers(batchNumbers, batchNumbers.size());
+        List<Map<String, Object>> reportIdData =  reportTaskScoreSourceMapper.selectReportIdByBatchNumberstikv_(batchNumbers, batchNumbers.size());
         if (reportIdData.size() == 0) {
             return null;
         }

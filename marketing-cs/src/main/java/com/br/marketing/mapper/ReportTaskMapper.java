@@ -12,5 +12,5 @@ public interface ReportTaskMapper extends ReportTaskMapperBase {
 
     List<BiReportTaskVO> queryBiReportTaskListtikv_(BiReportTaskParam reportTaskParam);
 
-    List<ReportTaskVO> selectDataByIds(List<String> reportIds, String name);
+    List<ReportTaskVO> selectDataByIds(@Param("reportIds")List<String> reportIds, @Param("name")String name);
 }
