@@ -24,6 +24,7 @@ import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.CustomerTransferDataReceive;
 import com.br.marketing.mapper.CustomerTransferDataReceiveMapper;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.util.ApiFieldCheckUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,10 +33,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -63,9 +62,8 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
     @Resource
     private RedisChgService redisChgService;
 
-    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 10);
-
-    private static final Set<String> FIELD_SET = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final ThreadPoolExecutor BR_EXECUTORS = BrExecutors.getThreadPool(1, 10
+            , "订制转化数据接入字段检查");
 
     @Override
     public ResponseCustomDTO receiveTransferDataHandler(String apiCode, String jsonData) {
@@ -178,11 +176,8 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
             try {
                 Set<String> bizAllFields = customDataHandleImpl.getBizAllFields(jsonData);
                 if (bizAllFields != null) {
-                    String msg = customDataHandleImpl.checkField(
-                            bizAllFields, FIELD_SET, redisChgService, apiCode, requestId);
-                    if (msg != null) {
-                        log.warn(msg);
-                    }
+                    ApiFieldCheckUtils.checkField(bizAllFields, redisChgService, apiCode
+                            , customDataHandleImpl.customer().getName(), "receiveTransferData", requestId);
                 }
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
