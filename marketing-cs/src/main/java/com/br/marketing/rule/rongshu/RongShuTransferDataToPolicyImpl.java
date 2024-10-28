@@ -59,6 +59,10 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         if (pushCellEncPolicy != null && pushCellEncPolicy.get(apiCode) != null) {
             encType = pushCellEncPolicy.get(apiCode);
         }
+        // 2024-10-28 apicode:4004643转化数据，按照规则生成后推送至4004733
+        if("4004643".equals(apiCode)){
+            apiCode = "4004733";
+        }
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(transfer.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(transfer.getCustNum());
@@ -111,6 +115,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         pushMarketingUserDetailByRuleDTO.setStatus(status);
+        pushMarketingUserDetailByRuleDTO.setPushApiCode(apiCode);
         return pushMarketingUserDetailByRuleDTO;
     }
 
