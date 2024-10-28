@@ -2,10 +2,10 @@ spring:
   web.interceptors.enabled: true
   application:
     name: marketing-data-relay-service
-  profiles.active: pre
+  profiles.active: prod
   aop:
-    proxy-target-class: true
-    auto: true
+   proxy-target-class: true
+   auto: true
   threadpool:
     queueCapacity: 10000
     # 线程池所使用的缓冲队列
@@ -17,10 +17,13 @@ spring:
     # 线程池维护线程所允许的空闲时间
     threadNamePrefix: ThreadPool-Common
     # 线程池所生产的线程名前缀
-
 server:
   port: 18801
 
+mybatis:
+  mapper-locations: mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
 #exporter监控
 endpoints:
   prometheus:

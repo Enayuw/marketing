@@ -24,16 +24,10 @@
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>${ENCODER_PATTERN}</pattern>
         </encoder>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <level>ERROR</level>
-            <onMatch>DENY</onMatch>
-            <onMismatch>ACCEPT</onMismatch>
-        </filter>
     </appender>
 
     <appender name="ASYNC" class="com.br.transfer.log.appender.LogbackAsyncAppender">
         <appender-ref ref="RollingFile"/>
-        <queueSize>512</queueSize>
     </appender>
 
     <!--必填，根据配置的路径进行日志采集-->

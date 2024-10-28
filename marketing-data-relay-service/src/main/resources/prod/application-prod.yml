@@ -3,9 +3,9 @@ datasource:
     names: shardingmarketing,marketingTikiv,marketingTiFlash
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: qTODziGYQsq11aw8Js2V
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
@@ -26,12 +26,12 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: qTODziGYQsq11aw8Js2V
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 5 # 最小连接池数量
-      maxActive: 30 # 最大连接池数量
+      maxActive: 300 # 最大连接池数量
       maxWait: 60000 # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置
       timeBetweenEvictionRunsMillis: 60000 # 关闭空闲连接的检测时间间隔.Destroy线程会检测连接的间隔时间，如果连接空闲时间大于等于minEvictableIdleTimeMillis则关闭物理连接。
       minEvictableIdleTimeMillis: 300000 # 连接的最小生存时间.连接保持空闲而不被驱逐的最小时间
@@ -52,9 +52,9 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
+      url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: qTODziGYQsq11aw8Js2V
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -74,42 +74,47 @@ datasource:
 #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
-
 logging:
   level:
-    com.br.off.mapper: debug
+    com.br.off.mapper: info
   file: ./logs/core.log
   root: INFO
 otherConfig:
+  huaXiangInterface:
+    getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+  sanxiangzhiliInterface:
+    sanxiang_url: http://zh-service/v1/getData
+    haina_url: http://HAINA-SERVICE/query
   alarm:
-    secretKey: a9c57e4138807a9e18b439cd9dab275b
+    secretKey: b58783d4b67f942166f2ffad298080e4
     appName: marketing
-    outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
+    outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
     outsideAppName: marketing-out
   userCenter:
     appName: loan-strategy
-    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
+    appSecretKey: 7357430aa11febfe81d45945c02706b3
   warning:
     pageSize: 5000
     apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
     path: /opt/data/inloan/download/marketing/
-    sftpHost: 10.100.123.65
+    sftpHost: brsftp3.brapp.com
     sftpPort: 9999
-    sftpUser: BRmarketing_pre
-    sftpPwd: 72aXd79ITcMeuyPAlDYy@_2021.06.07
+    sftpUser: BRmarketing
+    sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
   encodeMapping:
     appName: loan-warning
-    appSecretKey: f15a1421ac95a284683688af14688b72
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
   proxy:
-    proxy_host: squid-proxy-pre.brapp.com
+    proxy_host: squid-proxy2.brapp.com
     proxy_port: 3128
     proxy_username: spmarketing
-    proxy_password: ek1EIgo9
-    proxy_host_zw: 10.100.123.221
+    proxy_password: t0jI8xLw
+    proxy_host_zw: 192.168.22.169
   mom:
-    appSecretKey: d42726322ba9bda57b74043be21aa2c4
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
     appName: marketing_query_producer
     destinationName: marketing_query_log
+
 cluster:
   flag: ${CONF_CLUSTER}
 innerSftp:
