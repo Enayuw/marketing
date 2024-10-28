@@ -101,26 +101,51 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
             reserveField1.put("userType", fieldMapping.getString(item.getString("userType")));
 
             reserveField1.put("gender", fieldMapping.getString(item.getString("gender")));
+            try {
+                reserveField1.put("registerTime", StringUtils.isNotEmpty(item.getString("registerTime")) ?
+                        DateUtil.formatDateTime(DateUtil.parse(item.getString("registerTime"), fieldMapping.getString("registerTime"))) : "");
+            } catch (Exception e) {
+                log.warn("国美前置数据清洗实现 registerTime 为非标日期字符串，registerTime :{}", item.getString("registerTime"));
+                reserveField1.put("registerTime", item.getString("registerTime"));
+            }
 
-            reserveField1.put("registerTime", StringUtils.isNotEmpty(item.getString("registerTime")) ?
-                    DateUtil.formatDate(DateUtil.parse(item.getString("registerTime"), fieldMapping.getString("registerTime"))) : "");
-
-            reserveField1.put("auditTime", StringUtils.isNotEmpty(item.getString("audittTime")) ?
-                    DateUtil.formatDate(DateUtil.parse(item.getString("audittTime"), fieldMapping.getString("audittTime"))) : "");
+            try {
+                reserveField1.put("auditTime", StringUtils.isNotEmpty(item.getString("audittTime")) ?
+                        DateUtil.formatDate(DateUtil.parse(item.getString("audittTime"), fieldMapping.getString("audittTime"))) : "");
+            } catch (Exception e) {
+                log.warn("国美前置数据清洗实现 audittTime 为非标日期字符串，audittTime:{}", item.getString("audittTime"));
+                reserveField1.put("auditTime", item.getString("audittTime"));
+            }
 
             reserveField1.put("auditAmount", StringUtils.isNotEmpty(item.getString("auditAmount")) ? item.getString("auditAmount") : "");
 
-            reserveField1.put("lentTime", StringUtils.isNotEmpty(item.getString("lastloan")) ?
-                    DateUtil.formatDate(DateUtil.parse(item.getString("lastloan"), fieldMapping.getString("lastloan"))) : "");
+            try {
+                reserveField1.put("lentTime", StringUtils.isNotEmpty(item.getString("lastloan")) ?
+                        DateUtil.formatDate(DateUtil.parse(item.getString("lastloan"), fieldMapping.getString("lastloan"))) : "");
+            } catch (Exception e) {
+                log.warn("国美前置数据清洗实现 lastloan 为非标日期字符串，lastloan:{}", item.getString("lastloan"));
+                reserveField1.put("lentTime", item.getString("lastloan"));
+            }
 
             reserveField1.put("lentAmount", StringUtils.isNotEmpty(item.getString("lastamount")) ? item.getString("lastamount") : "");
 
-            reserveField1.put("settleTime", StringUtils.isNotEmpty(item.getString("lastsettle")) ?
-                    DateUtil.formatDate(DateUtil.parse(item.getString("lastsettle"), fieldMapping.getString("lastsettle"))) : "");
+            try {
+                reserveField1.put("settleTime", StringUtils.isNotEmpty(item.getString("lastsettle")) ?
+                        DateUtil.formatDateTime(DateUtil.parse(item.getString("lastsettle"), fieldMapping.getString("lastsettle"))) : "");
+            } catch (Exception e) {
+                log.warn("国美前置数据清洗实现 lastsettle 为非标日期字符串，lastsettle:{}", item.getString("lastsettle"));
+                reserveField1.put("settleTime", item.getString("lastsettle"));
+            }
 
             reserveField1.put("age", StringUtils.isNotEmpty(item.getString("age")) ? item.getString("age") : "");
 
-            reserveField1.put("lastboot", StringUtils.isNotEmpty(item.getString("lastboot")) ? item.getString("lastboot") : "");
+            try {
+                reserveField1.put("lastboot", StringUtils.isNotEmpty(item.getString("lastboot")) ?
+                        DateUtil.formatDate(DateUtil.parse(item.getString("lastboot"), fieldMapping.getString("lastboot"))) : "");
+            } catch (Exception e) {
+                log.warn("国美前置数据清洗实现 lastboot 为非标日期字符串，lastboot:{}", item.getString("lastboot"));
+                reserveField1.put("lastboot", item.getString("lastboot"));
+            }
 
             reserveField1.put("planId", uploadJson.getPlanId() != null ? String.valueOf(uploadJson.getPlanId()) : "");
 
