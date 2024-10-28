@@ -2250,5 +2250,10 @@ public class MarketingCommonConfig {
      */
     private String shuHeCuFuJieMatchDataConfig;
 
+    /**
+     * 国美清洗字段映射配置
+     */
+    private JSONObject guoMeiCleanFieldMappingConfig;
+
 }
 

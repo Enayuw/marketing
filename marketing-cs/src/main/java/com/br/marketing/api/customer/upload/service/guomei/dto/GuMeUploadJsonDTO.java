@@ -21,6 +21,11 @@ import lombok.EqualsAndHashCode;
 public class GuMeUploadJsonDTO extends BaseUploadDataAdaptee<MarketingPreUserDTO> {
 
     private static final long serialVersionUID = 3764405936555885180L;
+
+    private Integer batch;
+
+    private Integer planId;
+
     /**
      * 流水号
      */
