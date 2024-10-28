@@ -189,7 +189,7 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
             rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_WEIJU_DATA_CLEAN, json.toJSONString());
             log.warn("微聚定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.WEIJU_SERVICEERROR.getCode(), e.getMessage()
                     , "推送微聚定制数据下发消息异常！"), e);
         }
     }
