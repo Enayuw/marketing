@@ -17,6 +17,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -127,7 +128,6 @@ public class QiFuAiUploadDataService {
                 return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
             }
 
-
             uploadData.setRequestId(qiFuAiBizDataDTO.getFlowNo());
             List<QiFuAiBizDataDTO.DataList> dataList = qiFuAiBizDataDTO.getDataList();
             uploadData.setRequestJsonData(decryptData);
@@ -141,7 +141,15 @@ public class QiFuAiUploadDataService {
             uploadData.setExtend(null);
             uploadData.setStatus(1);
             // 保存前置数据
-            int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+            int i = 0;
+            try {
+                i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+            } catch (DuplicateKeyException e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                        "jsonData:" + decryptData), "奇富AI上传数据入库失败，flowNo重复！！！");
+                return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
+            }
+
             if (i != 1) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
                         "jsonData:" + decryptData), "奇富AI上传数据入库失败！！！");

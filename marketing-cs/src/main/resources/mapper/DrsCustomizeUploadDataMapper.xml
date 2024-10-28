@@ -18,7 +18,7 @@
             `create_time`       timestamp    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
             `update_time`       timestamp    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
             PRIMARY KEY (`id`),
-            KEY `idx_request_id` (`request_id`),
+            unique KEY `idx_request_id` (`request_id`),
             KEY `idx_receive_date` (`receive_date`)
         ) ENGINE = InnoDB
           DEFAULT CHARSET = utf8
