@@ -189,6 +189,12 @@
         where cust_num = #{custNum}
         order by applet_time desc limit 1;
     </select>
+    <select id="selectSynsUserByCustNumLastWithStatus" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum} and status = 1 and is_repeat in (1,2)
+        order by applet_time desc limit 1;
+    </select>
 
     <select id="selectSynsUserByCellLast" resultType="com.br.marketing.entity.MarketingSyncUser">
         select *
