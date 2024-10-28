@@ -784,4 +784,83 @@
         order by mt.api_code,shf.create_time desc) vie
     </select>
 
+    <select id="queryCompletStatus" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select
+        bmt.id,
+        shf.id                                            as `hisFileId`,
+        bmt.api_code                                      ,
+        bmt.batch_number                                  as `batchNumber`,
+        bmt.create_time                             as createTime,
+        bmt.update_time                             as updateTime
+        from b_marketing_task bmt
+        left join stra_his_file shf on shf.batch_number = bmt.batch_number
+        left  join b_marketing_task_extend bmte on bmte.task_id = bmt.id
+        left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+        where  bsrc.is_del = 1
+        and bmt.status !=0
+        <if test="apiCode !=null and apiCode!=''">
+            and bmt.api_code = #{apiCode}
+        </if>
+        <if test="taskStatus !=null and taskStatus!=''">
+            and shf.status = #{taskStatus}
+        </if>
+        <if test="conditionType !=null and conditionType!=''">
+            and bmte.condition_type = #{conditionType}
+        </if>
+        <if test="ruleNameShort !=null and ruleNameShort!=''">
+            and bsrc.rule_name_short = #{ruleNameShort}
+        </if>
+        <if test="createTimeStart !=null and createTimeStart!=''">
+            <![CDATA[  and bmt.create_time >=#{createTimeStart} ]]>
+        </if>
+        <if test="createTimeEnd !=null and createTimeEnd!=''">
+            <![CDATA[  and bmt.create_time <#{createTimeEnd} ]]>
+        </if>
+        order by bmt.create_time desc,bmt.id desc
+    </select>
+
+    <select id="queryLastNonValidationTask" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select bmt.id,
+               shf.id                  as `hisFileId`,
+               bmt.api_code,
+               bmt.batch_number        as `batchNumber`,
+               bmt.status,
+               bmt.priority,
+               bmt.task_number         as `taskNumber`,
+               shf.zipFile_name        as `fileName`,
+               bmt.monitor_type        as `execType`,
+               shf.create_time         as `taskCreateTime`,
+               shf.running_end_time    as `taskUpdateTime`,
+               bmt.is_online           as `isOnline`,
+               case
+                   when shf.status is null then 0
+                   when shf.status = 2 then 2
+                   when shf.status = 0 then 3
+                   when shf.status = 1 then 1
+                   when shf.status = 3 then 1
+                   when shf.status = 4 then 1
+                   when shf.status = 5 then 1
+                   when shf.status = 6 then 1
+                   when shf.status = 7 then 1
+                   when shf.status = 9 then 1
+                   when shf.status = 10 then 4
+                   when shf.status = 11 then 5
+                   else shf.status end as taskStatus,
+               bmt.start_date          as startDate,
+               bmt.close_date          as closeDate,
+               bmt.start_time          as startTime,
+               bmt.create_time         as createTime,
+               bmt.update_time         as updateTime
+        from b_marketing_task bmt
+                 left join stra_his_file shf on shf.batch_number = bmt.batch_number
+        where bmt.api_code = #{apiCode}
+          and bmt.status = 1
+          and bmt.monitor_type != 2
+          and shf.status = 2
+        <if test="batchNumber != null and batchNumber != ''">
+            and bmt.batch_number = #{batchNumber}
+        </if>
+        order by bmt.create_time desc
+        limit 1
+    </select>
 </mapper>

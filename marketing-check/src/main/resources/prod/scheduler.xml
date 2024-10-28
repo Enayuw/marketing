@@ -1063,4 +1063,18 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+    <job:simple id="ShuHeCuFuJieMatchDataJob"
+                class="com.br.marketing.check.job.ShuHeCuFuJieMatchDataJob"
+                cron="00 00 11 * * ?"
+                description="数禾促复借每日自动化匹配数据作业"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

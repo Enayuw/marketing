@@ -1006,7 +1006,7 @@ public class MarketingCommonConfig {
     /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
-    private HashMap<String,List<String>>  gradeOfcallToDass;
+    private HashMap<String,List<String>>    gradeOfcallToDass;
 
     /**
      * 携程vt配置信息{"adVt":{"appId":"bairong002","source":"BaiRong_CPS_C01","iv":"3b2dac323465b024","aesKey":"f3df6f62f0527bf0","singKey":"95cc01ec07387a44"}}
@@ -2239,6 +2239,16 @@ public class MarketingCommonConfig {
      * 微聚清洗字段映射配置
      */
     private JSONObject weiJuCleanFieldMappingConfig;
+
+    /**
+     * #自动刷新任务配置：apiCode \ 跑分配置规则编号 \ 推送决策规则编号
+     */
+    private Map<String, JSONObject> autoRefreshConfig;
+
+    /**
+     * 数禾促复借每日自动化匹配数据相关配置
+     */
+    private String shuHeCuFuJieMatchDataConfig;
 
     /**
      * 国美清洗字段映射配置

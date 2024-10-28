@@ -215,7 +215,7 @@
         <dependency>
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
-            <version>4.0.7-SNAPSHOT</version>
+            <version>4.0.8-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
