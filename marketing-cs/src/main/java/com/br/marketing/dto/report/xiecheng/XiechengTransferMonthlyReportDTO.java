@@ -88,7 +88,7 @@ public class XiechengTransferMonthlyReportDTO implements Serializable {
     @DecimalFieldConvertor(scale = 2)
     private BigDecimal creditWithdrawSucRatio;
 
-    @ApiModelProperty("申请授信量2")
+    @ApiModelProperty("申请提现量2")
     private Long applyCreditNum2;
 
     @ApiModelProperty("提现成功量2")

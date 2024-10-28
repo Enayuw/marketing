@@ -9,8 +9,28 @@
         order by report_date desc
     </select>
 
+    <select id="selectXcTrabsferMonthlySwitchOnListbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferMonthlySwitchOnReportDTO">
+        select *
+        from dws_xc_transfer_accrue_natural_mouth_call_d
+        where
+          report_date like concat("%", #{month},"%") and is_delete = 0
+        order by report_date desc
+    </select>
+
     <select id="selectXcTransferDailybI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferDailyReportDTO">
         select * from dws_xc_transfer_day_d
+        where is_delete = 0
+        <if test="reportDateStart !=null and reportDateStart!=''">
+            <![CDATA[ and report_date >= #{reportDateStart}]]>
+        </if>
+        <if test="reportDateEnd !=null and reportDateEnd!=''">
+            <![CDATA[ and report_date <= #{reportDateEnd}]]>
+        </if>
+        order by report_date desc;
+    </select>
+
+    <select id="selectXcTransferDailySwitchOnbI_" resultType="com.br.marketing.dto.report.xiecheng.XiechengTransferDailySwitchOnReportDTO">
+        select * from dws_xc_transfer_day_call_d
         where is_delete = 0
         <if test="reportDateStart !=null and reportDateStart!=''">
             <![CDATA[ and report_date >= #{reportDateStart}]]>

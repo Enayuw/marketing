@@ -93,7 +93,7 @@ public class XiechengTransferMonthlyConverter extends AbstractBiReportConverter<
         yAxis.add(buildWrapDataVO("过件率", sortedData, XiechengTransferMonthlyReportDTO::getOverPieceRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("授信后提现发起率", sortedData, XiechengTransferMonthlyReportDTO::getCreditWithdrawLaunchRatio, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("授信后提现成功率", sortedData, XiechengTransferMonthlyReportDTO::getCreditWithdrawSucRatio, FormatType.PERCENT_SIGN));
-        yAxis.add(buildWrapDataVO("申请授信量2", sortedData, XiechengTransferMonthlyReportDTO::getApplyCreditNum2, FormatType.THOUSAND_SEPARATOR));
+        yAxis.add(buildWrapDataVO("申请提现量2", sortedData, XiechengTransferMonthlyReportDTO::getApplyCreditNum2, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("提现成功量2", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawSucNum2, FormatType.THOUSAND_SEPARATOR));
         yAxis.add(buildWrapDataVO("申请提现率2", sortedData, XiechengTransferMonthlyReportDTO::getApplyWithdrawRatio2, FormatType.PERCENT_SIGN));
         yAxis.add(buildWrapDataVO("提现率2", sortedData, XiechengTransferMonthlyReportDTO::getWithdrawRatio2, FormatType.PERCENT_SIGN));
