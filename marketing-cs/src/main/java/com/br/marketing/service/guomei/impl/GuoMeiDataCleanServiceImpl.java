@@ -60,7 +60,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
         String sourceId = jsonObject.getString("sourceId");
         CustomizeUploadData data = customizeUploadDataMapper.selectById(tCid, sourceId);
         if (Objects.isNull(data) || StringUtils.isEmpty(data.getRequestJsonData())) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), "微聚数据清洗，根据id查询待清洗数据为空"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), "国美前置数据清洗，根据id查询待清洗数据为空"));
             return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         try {
