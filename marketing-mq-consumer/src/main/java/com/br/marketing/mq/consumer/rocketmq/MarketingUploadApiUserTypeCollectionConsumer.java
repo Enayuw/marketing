@@ -40,7 +40,7 @@ public class MarketingUploadApiUserTypeCollectionConsumer extends BaseMqMessageL
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_TRANSFER_RECEIVE：获取消息成功:{}",bodyString);
+        log.warn("Marketing_Upload_Api_UserType_Collection：获取消息成功:{}",bodyString);
         consumerService.consumerRun(messageExt, variableDicService::batchAddUserTypeVariableDicTry, bodyString, null);
     }
 

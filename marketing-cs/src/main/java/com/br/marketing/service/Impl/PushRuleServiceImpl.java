@@ -2291,7 +2291,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private void transferSendUserTypeCollectionMsg(String cid, MarketingTransferInfo transferInfo
             , Map<String, UserTypeCollectionDTO> localUserTypeCache) {
         String apiCode = transferInfo.getApiCode();
-        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION)){
             sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());

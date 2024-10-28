@@ -44,7 +44,7 @@ public class MarketingPushDaasScoreConsumer extends BaseMqMessageListener implem
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        log.warn("MARKETING_PRE_USER_RECEIVE：获取消息成功:{}",o);
+        log.warn("MARKETING_PUSH_DASS_SCORE：获取消息成功:{}",o);
         consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o, null);
     }
 

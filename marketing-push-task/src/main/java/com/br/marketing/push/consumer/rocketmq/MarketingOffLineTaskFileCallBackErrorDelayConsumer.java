@@ -46,7 +46,7 @@ public class MarketingOffLineTaskFileCallBackErrorDelayConsumer extends BaseMqMe
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        log.warn("Marketing_PushTask_File_Merge_ErrorDelay：获取消息成功:{}",o);
+        log.warn("Marketing_OffLineTask_File_CallBack_ErrorDelay：获取消息成功:{}",o);
         consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileCallBack, o, MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY);
     }
 

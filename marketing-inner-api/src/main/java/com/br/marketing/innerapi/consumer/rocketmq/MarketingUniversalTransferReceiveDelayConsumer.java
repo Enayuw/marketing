@@ -44,7 +44,7 @@ public class MarketingUniversalTransferReceiveDelayConsumer extends BaseMqMessag
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("Marketing_Send_UserType_Message_Delay_Queue：获取消息成功:{}",bodyString);
+        log.warn("Marketing_Universal_Transfer_Receive_Delay_HalfHour：获取消息成功:{}",bodyString);
         /*消费逻辑*/
         consumerService.consumerRun(messageExt, interfaceHandlerService::handleDataDirection, bodyString, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
     }
