@@ -125,19 +125,6 @@ public interface CustomerDataHandler {
         throw new JSONException("非json结构");
     }
 
-    default void checkField(final Set<String> bizAllFields
-            , final String apiCode
-            , final String requestId
-            , final RedisChgService redisChgService
-            , ThreadPoolExecutor brThreadPool) {
-        brThreadPool.execute(() -> {
-            if (bizAllFields != null) {
-                ApiFieldCheckUtils.checkField(bizAllFields, redisChgService, apiCode
-                        , customer().getName(), "receiveTransferData", requestId);
-            }
-        });
-    }
-
     /**
      * 2023-10-23 17:37
      * 获取业务数据量
