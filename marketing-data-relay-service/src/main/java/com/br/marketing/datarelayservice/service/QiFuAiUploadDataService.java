@@ -106,33 +106,11 @@ public class QiFuAiUploadDataService {
     }
 
     public QiFuAiResDTO getResult(CodeEnum codeEnum, FlagEnum flagEnum) {
-        JSONObject qiFuAIServerConfig = marketingCommonConfig.getQiFuAIServerConfig();
-
         QiFuAiResDTO qiFuAiResDTO = new QiFuAiResDTO();
         qiFuAiResDTO.setCode(codeEnum.getCode());
         qiFuAiResDTO.setMsg(codeEnum.getDesc());
         qiFuAiResDTO.setFlag(flagEnum.toString());
-        System.out.println(flagEnum.toString());
-
-        QiFuAiResDTO.DataResult dataResult = new QiFuAiResDTO.DataResult();
-        dataResult.setAppId(qiFuAIServerConfig.getString("appId"));
-        dataResult.setTimestamp(String.valueOf(System.currentTimeMillis()));
-        // todo
-        dataResult.setBizData("");
-
-        String aesKey = RandomStringUtils.randomAlphanumeric(16);
-        String iv = RandomStringUtils.randomAlphanumeric(16);
-        String rsaEncryptKey = RSAUtil.encryptByPublicKey(qiFuAIServerConfig.getString("brPublicKey"), aesKey);
-        String rsaEncryptIv = RSAUtil.encryptByPublicKey(qiFuAIServerConfig.getString("brPublicKey"), iv);
-        dataResult.setEncryptKey(rsaEncryptKey);
-        dataResult.setEncryptIV(rsaEncryptIv);
-
-        JSONObject responseJson = JSONObject.parseObject(JSON.toJSONString(dataResult));
-        String signature = RSAUtil.generateContent(responseJson);
-        String sign = RSAUtil.signByPrivateKey(qiFuAIServerConfig.getString("brPrivateKey"), signature);
-
-        dataResult.setSign(sign);
-        qiFuAiResDTO.setData(dataResult);
+        qiFuAiResDTO.setData(new QiFuAiResDTO.DataResult());
         return qiFuAiResDTO;
     }
 }

@@ -76,9 +76,8 @@ public class UploadDataController {
 
         // 服务端3. AES-CBC解密业务数据
         String originData = requestBody.getBizData();
-        String decryptData = AESUtil.decrypt(decryptKey, decryptIv, originData);
-//        String decryptData = new String(Base64.decodeBase64(AESUtil.decrypt(decryptKey, decryptIv, originData))
-//                , StandardCharsets.UTF_8);
+        String decryptData = new String(Base64.decodeBase64(AESUtil.decrypt(decryptKey, decryptIv, originData))
+                , StandardCharsets.UTF_8);
         System.out.println("经过AES解密后的业务数据：" + decryptData);
 
         System.out.println("==================== 解密结束 ====================");
