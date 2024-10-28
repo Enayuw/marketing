@@ -59,9 +59,15 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         if (pushCellEncPolicy != null && pushCellEncPolicy.get(apiCode) != null) {
             encType = pushCellEncPolicy.get(apiCode);
         }
+        HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
+        JSONObject apiCodeReplace = strategyCodeMap.get("apiCodeReplace");
         // 2024-10-28 apicode:4004643转化数据，按照规则生成后推送至4004733
-        if("4004643".equals(apiCode)){
-            apiCode = "4004733";
+        if(StringUtils.isNotBlank(apiCode)){
+            if(StringUtils.isNotBlank(apiCodeReplace.getString(apiCode))){
+                apiCode = apiCodeReplace.getString(apiCode);
+            }else{
+                log.warn("未发现rs-apiCode[{}]替换配置[{}]",apiCode, strategyCodeMap);
+            }
         }
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(transfer.getId());
@@ -87,7 +93,6 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
             variables.putAll(jsonObject);
             String finalState = jsonObject.getString("finalState");
             if (StringUtils.isNotBlank(finalState)) {
-                HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
                 JSONObject strategyCodeObject = strategyCodeMap.get(apiCode);
                 String strategyCode = strategyCodeObject.getString(finalState);
                 if (null == strategyCode) {
