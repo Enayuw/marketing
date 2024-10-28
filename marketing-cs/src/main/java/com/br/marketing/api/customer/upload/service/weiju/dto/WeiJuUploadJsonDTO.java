@@ -31,11 +31,17 @@ public class WeiJuUploadJsonDTO extends BaseUploadDataAdaptee<MarketingPreUserDT
      */
     private String executeBatchNo;
 
+
+    /**
+     * 营销⽤户名单 marketing:营销名单 complaint:客诉名单
+     */
+    private String pushType;
+
     /**
      * ⽤户类型：silence: 沉默⽤户；littleSilence: 较沉默⽤户；
      *
      */
-    private String userType;
+    private String operationUserType;
 
     /**
      * 场景：registedNoCredit:注册未授信； creditedNoWithdrawal:授信未提现； clearedNoReloan:结清未复贷；
@@ -56,10 +62,15 @@ public class WeiJuUploadJsonDTO extends BaseUploadDataAdaptee<MarketingPreUserDT
      */
     private JSONArray userInfoList;
 
+
     /**
-     * @param apiCode
-     * @param jsonData
-     * @return
+     * 适应者请求
+     *
+     * @param apiCode  apiCode
+     * @param jsonData json数据
+     * @return {@link MarketingPreUserDTO }
+     * @author senyang.zheng
+     * @date 2024/10/23
      */
     @Override
     protected MarketingPreUserDTO adapteeRequest(String apiCode, String jsonData) {
