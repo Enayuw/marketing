@@ -123,7 +123,7 @@ public class QiFuAiUploadDataService {
                 int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
                 if (i != 1) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                            "jsonData:" + decryptData), "奇富AI上传数据入库失败！！！");
+                            "jsonData:" + decryptData, "奇富AI上传数据入库失败！！！"));
                 }
                 return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
             }
@@ -146,20 +146,20 @@ public class QiFuAiUploadDataService {
                 i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
             } catch (DuplicateKeyException e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                        "jsonData:" + decryptData), "奇富AI上传数据入库失败，flowNo重复！！！");
+                        "jsonData:" + decryptData, "奇富AI上传数据入库失败，flowNo重复！！！"), e);
                 return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
             }
 
             if (i != 1) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                        "jsonData:" + decryptData), "奇富AI上传数据入库失败！！！");
+                        "jsonData:" + decryptData, "奇富AI上传数据入库失败！！！"));
                 return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
             }
 
             return new Pair<>(CodeEnum.GWS100, FlagEnum.S);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                    "该apiCode:" + apiCode + "定制上传数据接入异常！！！，jsonData:" + decryptData), e);
+                    "jsonData:" + decryptData, "该apiCode:" + apiCode + "定制上传数据接入异常！！！"), e);
             return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
         }
     }
