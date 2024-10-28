@@ -135,7 +135,12 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
 
             reserveField1.put("age", StringUtils.isNotEmpty(item.getString("age")) ? item.getString("age") : "");
 
-            reserveField1.put("lastboot", StringUtils.isNotEmpty(item.getString("lastboot")) ? item.getString("lastboot") : "");
+            try {
+                reserveField1.put("lastboot", StringUtils.isNotEmpty(item.getString("lastboot")) ?
+                        DateUtil.formatDate(DateUtil.parse(item.getString("lastboot"), fieldMapping.getString("lastboot"))) : "");
+            } catch (Exception e) {
+                reserveField1.put("lastboot", item.getString("lastboot"));
+            }
 
             reserveField1.put("planId", uploadJson.getPlanId() != null ? String.valueOf(uploadJson.getPlanId()) : "");
 
