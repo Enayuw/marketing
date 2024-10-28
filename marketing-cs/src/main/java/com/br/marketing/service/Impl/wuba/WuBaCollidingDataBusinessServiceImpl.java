@@ -12,6 +12,7 @@ import com.br.marketing.mapper.WubaCollidingDataSecondLoopCycleMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -94,20 +95,24 @@ public class WuBaCollidingDataBusinessServiceImpl implements WuBaCollidingDataBu
     /**
      * 撞回status=-2数据从非金融周期表删除，并保存到非金融-2撞库包
      */
-    @Transactional(rollbackFor = Exception.class)
     public void deleteLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId) {
         wubaCollidingDataLoopCycleMapper.batchDeleteByCell(cells, apiCode);
         List<String> reavedCellsExcludeHighValue = getReavedCellsExcludeHighValue(apiCode, cells);
+        if (CollectionUtils.isEmpty(reavedCellsExcludeHighValue)) {
+            return;
+        }
         wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(reavedCellsExcludeHighValue, apiCode, "T", packageId);
     }
 
     /**
      * 撞回status=-2数据从金融周期表删除，并保存到金融-2撞库包
      */
-    @Transactional(rollbackFor = Exception.class)
     public void deleteSecondLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId) {
         wubaCollidingDataSecondLoopCycleMapper.batchDeleteByCell(cells, apiCode);
         List<String> reavedCellsExcludeHighValue = getReavedCellsExcludeHighValue(apiCode, cells);
+        if (CollectionUtils.isEmpty(reavedCellsExcludeHighValue)) {
+            return;
+        }
         wubaCollidingDataRobMapper.batchSaveReavedDataInToRob(reavedCellsExcludeHighValue, apiCode, "S", packageId);
     }
 
