@@ -1,5 +1,7 @@
 package com.br.marketing.check.job;
 
+import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -43,6 +45,9 @@ public class ShuHeCuFuJieMatchDataJob extends AbstractSimpleElasticJob {
     private MarketingTaskExtendService marketingTaskExtendService;
     @Resource
     private SoleStrategyService soleStrategyService;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
 
     /**
      * 过程
@@ -53,8 +58,9 @@ public class ShuHeCuFuJieMatchDataJob extends AbstractSimpleElasticJob {
      */
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
+        JSONObject shuHeCuFuJieMatchDataConfig = JSONObject.parseObject(marketingCommonConfig.getShuHeCuFuJieMatchDataConfig());
+        String apiCode = shuHeCuFuJieMatchDataConfig.getString("apiCode");
         String date = DateUtil.today();
-        String apiCode = "3710043";
         String batchNumber = null;
         Boolean forceFlag = false;
         String jobParameter = context.getJobParameter();
