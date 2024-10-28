@@ -2244,5 +2244,11 @@ public class MarketingCommonConfig {
      * #自动刷新任务配置：apiCode \ 跑分配置规则编号 \ 推送决策规则编号
      */
     private Map<String, JSONObject> autoRefreshConfig;
+
+    /**
+     * 数禾促复借每日自动化匹配数据相关配置
+     */
+    private String shuHeCuFuJieMatchDataConfig;
+
 }
 

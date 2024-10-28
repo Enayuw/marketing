@@ -404,4 +404,7 @@ public interface MarketingSyncUserMapper {
             @Param("id") Long id,
             @Param("idList") List<Long> idList
     );
+
+    List<MarketingSyncUser> selectByDynamicCondition(@Param("apiCode") String apiCode, @Param("sha256Cells") List<String> sha256Cells,
+                                               @Param("whereStr") String whereStr);
 }

@@ -240,4 +240,15 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
     List<MarketingTaskVO> queryCompletStatus(@Param("apiCode")String apiCode, @Param("createTimeStart")String createTimeStart,
                                              @Param("createTimeEnd")String createTimeEnd, @Param("taskStatus")Integer taskStatus,
                                              @Param("conditionType")Integer conditionType, @Param("ruleNameShort")String ruleNameShort);
+
+    /**
+     * 通过apiCode查询最后一个非验证任务
+     *
+     * @param apiCode     apiCode
+     * @param batchNumber 任务编号
+     * @return {@link List }<{@link MarketingTask }>
+     * @author senyang.zheng
+     * @date 2024/10/21
+     */
+    MarketingTaskVO queryLastNonValidationTask(@Param("apiCode") String apiCode, @Param("batchNumber") String batchNumber);
 }

@@ -1027,4 +1027,19 @@
                 </foreach>
             </if>
     </update>
+
+    <select id="selectByDynamicCondition" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select *
+        from b_marketing_sync_${apiCode}
+        where status = 1
+        <if test="sha256Cells != null">
+            and cell_sha256 in
+            <foreach collection="sha256Cells" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        and is_repeat in (1, 2)
+        and (${whereStr})
+    </select>
+
 </mapper>
