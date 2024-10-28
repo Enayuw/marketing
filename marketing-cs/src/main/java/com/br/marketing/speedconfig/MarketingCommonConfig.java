@@ -2240,5 +2240,10 @@ public class MarketingCommonConfig {
      */
     private JSONObject weiJuCleanFieldMappingConfig;
 
+    /**
+     * 国美清洗字段映射配置
+     */
+    private JSONObject guoMeiCleanFieldMappingConfig;
+
 }
 
