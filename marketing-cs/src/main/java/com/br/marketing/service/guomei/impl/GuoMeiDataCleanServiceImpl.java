@@ -1,27 +1,21 @@
 package com.br.marketing.service.guomei.impl;
 
-import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadJsonDTO;
-import com.br.marketing.api.customer.upload.service.weiju.dto.WeiJuUploadJsonDTO;
-import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
-import com.br.marketing.dto.TransferDataDTO;
-import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.mapper.CustomizeUploadDataMapper;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.guomei.GuoMeiDataCleanService;
-import com.br.marketing.service.weiju.WeiJuDataCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import java.util.List;
@@ -96,6 +90,7 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
             marketingPreUserDetailDTO.setCell(item.getString("cell"));
             marketingPreUserDetailDTO.setCustNum(item.getString("userId"));
             JSONObject reserveField1 = new JSONObject();
+            reserveField1.put("properties", uploadJson.getProperties());
             reserveField1.put("firstName", StringUtils.isNotEmpty(item.getString("firstName")) ? item.getString("firstName") : "");
 
             reserveField1.put("userType", fieldMapping.getString(item.getString("userType")));
