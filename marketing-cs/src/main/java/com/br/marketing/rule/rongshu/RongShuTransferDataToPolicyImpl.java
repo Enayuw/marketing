@@ -78,6 +78,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
         JSONObject variables = new JSONObject();
+        transfer.setApiCode(apiCode);
         variables.putAll((JSONObject) JSON.toJSON(transfer));
         variables.remove("reserveField1");
         variables.remove("id");
