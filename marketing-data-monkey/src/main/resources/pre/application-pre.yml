@@ -255,6 +255,14 @@ api:
     baseUrl: http://58.33.156.202:57436
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
     isProxy: true
+  shunfeng:
+    baseUri: https://sfapi-sbox.sf-express.com
+    getTokenUrl: ${api.shunfeng.baseUri}/oauth2/accessToken
+    businessInfoUrl: ${api.shunfeng.baseUri}/std/service
+    partnerID: JSKJOGFXT05
+    secret: tKkr6BqgnGHPij3E3zzJEiyhXUi2T6Xt
+    aesKey: 91d23007684c45f5a750fa97d4594821
+    isProxy: true
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672

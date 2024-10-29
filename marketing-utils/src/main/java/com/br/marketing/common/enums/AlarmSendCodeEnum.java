@@ -263,6 +263,9 @@ public enum AlarmSendCodeEnum {
     //微聚业务异常,立即推送
     WEIJU_SERVICEERROR("6038001", "微聚业务异常"),
 
+    //顺丰业务异常,立即推送
+    SHUNFENG_SERVICEERROR("6039001", "顺丰业务异常"),
+
     ;
 
     /**
