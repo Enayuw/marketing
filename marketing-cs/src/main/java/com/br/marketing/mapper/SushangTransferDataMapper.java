@@ -11,4 +11,6 @@ public interface SushangTransferDataMapper extends SushangTransferDataMapperBase
     List<SushangTransferData> getMinOrderDateDatatikv_(@Param("local_id") Long transferLocalId,@Param("indexId") Long indexId,
                                                        @Param("pageSize") Integer pageSize);
 
+
+    int countByLocalId(Long localId);
 }

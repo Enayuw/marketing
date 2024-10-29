@@ -9,4 +9,7 @@ public interface WubaCollidingDataLogMapper extends WubaCollidingDataLogMapperBa
     void batchSaveByBatchNo(@Param("list") List<WubaCollidingDataLog> list);
 
     void batchUpdateResultById(@Param("logs") List<WubaCollidingDataLog> list, @Param("result") Boolean result);
+
+    void updateByBatchNoAndCell(@Param("batchNo") String batchNo, @Param("cell") String cell, @Param("result") Boolean result,
+                                @Param("extend") String extend);
 }

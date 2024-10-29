@@ -2,7 +2,6 @@ package com.br.marketing.api.customer.upload.adapter;
 
 import com.br.marketing.dto.MarketingPreUserDTO;
 
-
 /**
  * 客户定制上传数据适配接口
  *
@@ -19,5 +18,5 @@ public interface CustomerUploadDataTarget {
      * @author senyang.zheng
      * @date 2024/08/07
      */
-    MarketingPreUserDTO adapteeCustomerUploadData(BaseUploadDataAdaptee adaptee);
+    <T> T adapteeCustomerUploadData(BaseUploadDataAdaptee<T> adaptee);
 }

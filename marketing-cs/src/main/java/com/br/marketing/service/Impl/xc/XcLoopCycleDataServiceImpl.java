@@ -1,5 +1,34 @@
 package com.br.marketing.service.Impl.xc;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.xiecheng.XieChengServiceNew;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.XieChengCollidingDataLog;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.entity.XieChengCollidingDataPackage;
+import com.br.marketing.entity.XieChengCollidingDataPackageExample;
+import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
+import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
+import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
+import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -10,38 +39,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
-
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.client.RedisChgService;
-import com.br.marketing.client.xiecheng.XieChengServiceNew;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.XieChengCollidingDataLog;
-import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
-import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.XieChengCollidingDataPackageExample;
-import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
-import com.br.marketing.mapper.XieChengCollidingDataPackageMapper;
-import com.br.marketing.mapper.XiechengCollidingDataEliminationMapper;
-import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.google.common.collect.Lists;
-
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Description 携程TRUE数据撞库作业实现类
@@ -173,7 +170,7 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
     private void trueHandle(JSONArray returnDataList, Map<String, XieChengCollidingDataLoopCycle> cellMaps) {
         List<XieChengCollidingDataLoopCycle> trueList = returnDataList.stream().map(t -> (JSONObject)t)
             .filter(t -> t.getBoolean("result").equals(Boolean.TRUE)).map(t -> buildTrueDataDto(t, cellMaps)).collect(Collectors.toList());
-        trueList.forEach((XieChengCollidingDataLoopCycle t) -> dataLoopCycleMapper.updateByPrimaryKeySelective(t));
+        trueList.forEach((XieChengCollidingDataLoopCycle t) -> dataLoopCycleMapper.updateByTrueData(t));
     }
 
     /**
@@ -233,6 +230,8 @@ public class XcLoopCycleDataServiceImpl implements XcLoopCycleDataService {
         dto.setRetryCount(0);
         // 更新releaseTime
         dto.setReleaseTime(DateUtil.parse(t.getString("releaseTime"), DatePattern.NORM_DATETIME_PATTERN));
+        // 更新客群标志
+        dto.setCustomerGroup(1);
         try {
             JSONArray jsonArray = t.getJSONArray("marketCouponList");
             if (jsonArray != null && !jsonArray.isEmpty()) {

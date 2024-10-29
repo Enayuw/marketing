@@ -4,12 +4,15 @@ import com.br.common.util.DateUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.wuba.WuBaSubmitConversionDataDto;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.WubaSubmitConversionData;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.Date;
 
 /**
@@ -24,13 +27,27 @@ public class WuBaCallRecordAddToDbFilter implements AssembleData<WuBaSubmitConve
 
     private static final String TITLE = "【58新客通话明细入库-3710155】";
 
+    @Resource
+    MarketingSyncUserMapper marketingSyncUserMapper;
+
     @Override
     public WuBaSubmitConversionDataDto assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         CallRecordBO bo = (CallRecordBO) transmitFact;
+        String apiCode = bo.getApiCode();
+        String cell = bo.getCaseNum();
+
+        MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.findSyncUserByCustNumsAndAppletTime(apiCode, cell);
+        if(marketingSyncUser == null){
+            return null;
+        }
+        String userType = marketingSyncUser.getUserType();
+
         WubaSubmitConversionData data = new WubaSubmitConversionData();
-        data.setApiCode(bo.getApiCode());
+        data.setApiCode(apiCode);
         data.setLocalId(0L);
-        data.setCell(bo.getCaseNum());
+        data.setCell(cell);
+        data.setUserType(userType);
+
         Date callStartTime = bo.getDetail().getCallStartTime();
         if (callStartTime == null) {
             callStartTime = new Date();
@@ -56,7 +73,11 @@ public class WuBaCallRecordAddToDbFilter implements AssembleData<WuBaSubmitConve
 
     @Override
     public boolean isNeedAssemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
-        return true;
+        if (transmitFact instanceof CallRecordBO) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override

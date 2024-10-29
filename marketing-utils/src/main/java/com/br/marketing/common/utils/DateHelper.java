@@ -487,6 +487,20 @@ public class DateHelper {
         return res;
     }
 
+    /**
+     * @description Date转为时分秒时间戳
+     * @param date
+     * @return java.lang.String
+     * @author hedongshuo
+     * @date 2024/8/21 20:55
+     **/
+    public static String dateToDateTime(Date date) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateTime = format.format(date);
+        return dateTime;
+    }
+
+
 
 
 }

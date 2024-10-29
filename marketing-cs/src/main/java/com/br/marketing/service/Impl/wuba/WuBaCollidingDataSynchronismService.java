@@ -4,4 +4,5 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 
 public interface WuBaCollidingDataSynchronismService {
     void process(JobExecutionMultipleShardingContext context);
+    String getHighValueFileIds(String apiCode);
 }

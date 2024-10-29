@@ -39,4 +39,9 @@ public class XieChengCollidingFilterDTO {
      */
     private Map<String,Object> coupon_desc;
 
+    /**
+     * 客群名称
+     */
+    private String customerGroup;
+
 }

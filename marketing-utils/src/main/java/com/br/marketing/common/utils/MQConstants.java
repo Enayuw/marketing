@@ -101,7 +101,9 @@ public class MQConstants {
     public static final String MARKETING_TRANSFER_API_DATA_COUNT_FRAGMENTS = "marketing_transfer_api_data_count_fragments";
 
     public static final String MARKETING_XIECHENG_COLLIDING_LOG_QUEUE = "marketing_xiecheng_colliding_log_queue";
-
+    public static final String MARKETING_XIECHENG_COLLIDING_ACTIVATE_QUEUE = "marketing_xiecheng_colliding_activate_queue";
+    public static final String MARKETING_WEIJU_DATA_CLEAN_QUEUE = "marketing_weiju_data_clean_queue";
+    public static final String MARKETING_GUOMEI_DATA_CLEAN_QUEUE = "marketing_guomei_data_clean_queue";
 
     /**
      * routingkey
@@ -192,4 +194,9 @@ public class MQConstants {
 
 
     public static final String ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG = "marketing.xiecheng.colliding.log";
+    public static final String ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE = "marketing.xiecheng.colliding.activate";
+
+    public static final String ROUTING_KEY_MARKETING_WEIJU_DATA_CLEAN = "marketing.weiju.data.clean";
+
+    public static final String ROUTING_KEY_MARKETING_GUOMEI_DATA_CLEAN = "marketing.guomei.data.clean";
 }

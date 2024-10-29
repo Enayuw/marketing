@@ -174,7 +174,6 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
             threadPool.submit(() ->{
                 List<PushMarketingUserDetailDTO> list = new ArrayList<>();
                 try {
-                    String key = RedisKeyConstant.RONG_SHU_PUSH_DECISION_LOCK;
                     // 手机号去重使用
                     HashSet cellSet = new HashSet();
                     // 收集分页查询出来的数据中场景对应CustNum集合
@@ -205,7 +204,12 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                         }
                         MarketingSyncUser marketingSyncUser = boMap.getSyncUsers().get(0);
                         String cell = marketingSyncUser.getCell();
-                        key = key.concat(String.format(":%s:%s:%s", apiCode, nowDataStringForRedis, cell));
+                        /**
+                         * 这里的redis锁的key要跟 相同
+                         * {@link RongShuTransferDataToPolicyImpl}
+                         */
+                        String key = RedisKeyConstant.dributeDataSloeLock.concat(String.format(":%d:%d:%s:%s"
+                                , DistributeTypeEnum.POLICYDATA.getValue(), 1, apiCode, cell));
                         String lockValue = UUID.randomUUID().toString();
                         if (cellSet.add(cell)) {
                             try {

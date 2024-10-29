@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.ScoreStatisticsDetailBaseMapper">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ScoreStatisticsDetail">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="statistics_id" jdbcType="BIGINT" property="statisticsId" />
+    <result column="field_x_value" jdbcType="VARCHAR" property="fieldXValue" />
+    <result column="field_y_value" jdbcType="VARCHAR" property="fieldYValue" />
+    <result column="field_num" jdbcType="INTEGER" property="fieldNum" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, statistics_id, field_x_value, field_y_value, field_num, create_time, update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_score_statistics_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_score_statistics_detail
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_score_statistics_detail
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample">
+    delete from b_score_statistics_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ScoreStatisticsDetail" useGeneratedKeys="true">
+    insert into b_score_statistics_detail (statistics_id, field_x_value, field_y_value, 
+      field_num, create_time, update_time
+      )
+    values (#{statisticsId,jdbcType=BIGINT}, #{fieldXValue,jdbcType=VARCHAR}, #{fieldYValue,jdbcType=VARCHAR}, 
+      #{fieldNum,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ScoreStatisticsDetail" useGeneratedKeys="true">
+    insert into b_score_statistics_detail
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="statisticsId != null">
+        statistics_id,
+      </if>
+      <if test="fieldXValue != null">
+        field_x_value,
+      </if>
+      <if test="fieldYValue != null">
+        field_y_value,
+      </if>
+      <if test="fieldNum != null">
+        field_num,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="statisticsId != null">
+        #{statisticsId,jdbcType=BIGINT},
+      </if>
+      <if test="fieldXValue != null">
+        #{fieldXValue,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldYValue != null">
+        #{fieldYValue,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldNum != null">
+        #{fieldNum,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ScoreStatisticsDetailExample" resultType="java.lang.Long">
+    select count(*) from b_score_statistics_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_score_statistics_detail
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.statisticsId != null">
+        statistics_id = #{record.statisticsId,jdbcType=BIGINT},
+      </if>
+      <if test="record.fieldXValue != null">
+        field_x_value = #{record.fieldXValue,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fieldYValue != null">
+        field_y_value = #{record.fieldYValue,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fieldNum != null">
+        field_num = #{record.fieldNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_score_statistics_detail
+    set id = #{record.id,jdbcType=BIGINT},
+      statistics_id = #{record.statisticsId,jdbcType=BIGINT},
+      field_x_value = #{record.fieldXValue,jdbcType=VARCHAR},
+      field_y_value = #{record.fieldYValue,jdbcType=VARCHAR},
+      field_num = #{record.fieldNum,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ScoreStatisticsDetail">
+    update b_score_statistics_detail
+    <set>
+      <if test="statisticsId != null">
+        statistics_id = #{statisticsId,jdbcType=BIGINT},
+      </if>
+      <if test="fieldXValue != null">
+        field_x_value = #{fieldXValue,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldYValue != null">
+        field_y_value = #{fieldYValue,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldNum != null">
+        field_num = #{fieldNum,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ScoreStatisticsDetail">
+    update b_score_statistics_detail
+    set statistics_id = #{statisticsId,jdbcType=BIGINT},
+      field_x_value = #{fieldXValue,jdbcType=VARCHAR},
+      field_y_value = #{fieldYValue,jdbcType=VARCHAR},
+      field_num = #{fieldNum,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

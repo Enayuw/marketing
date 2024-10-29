@@ -30,6 +30,7 @@ public class DataBridgeApplication {
     public static ConfigurableApplicationContext ac;
 
     public static void main(String[] args) {
+        log.warn("回滚验证日志！");
         log.warn("marketing-data-bridge开始启动！");
         Long start = System.currentTimeMillis();
         ac = new SpringApplicationBuilder().sources(DataBridgeApplication.class).run(args);

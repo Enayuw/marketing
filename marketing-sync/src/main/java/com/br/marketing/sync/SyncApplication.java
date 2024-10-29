@@ -30,6 +30,7 @@ import org.springframework.context.annotation.ImportResource;
 public class SyncApplication {
     public static ConfigurableApplicationContext ac;
     public static void main(String[] args) {
+        log.warn("回滚验证日志！");
         Long start = System.currentTimeMillis();
         log.warn("marketing-sync开始启动！");
         ac= new SpringApplicationBuilder().sources(SyncApplication.class).run(args);

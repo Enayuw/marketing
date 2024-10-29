@@ -92,8 +92,8 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
         String apiCode = parameter.getApiCode();
         if (LocalTime.now().isAfter(localTime)) {
             String dateStr = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
-            //新增actionType
-            int actionType = 3;
+            //新增2024-08-29===actionType
+            int actionType = 4;
             List<TransferActionFront> actionFrontList = getActionFrontList(apiCode, actionType, dateStr, mapper);
             if (CollectionUtils.isEmpty(actionFrontList)) {
                 TransferActionFront actionFront = new TransferActionFront();

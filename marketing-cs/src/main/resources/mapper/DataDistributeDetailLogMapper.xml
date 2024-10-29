@@ -61,6 +61,9 @@
         <if test="marketingDate !=null and marketingDate!=''">
             and JSON_EXTRACT(extend, '$.marketingDate') = #{marketingDate}
         </if>
+        <if test="userType !=null and userType!=''">
+            and JSON_EXTRACT(extend, '$.userType') = #{userType}
+        </if>
     </select>
 
     <select id="findZhongAnLockingDataDistributeLog" resultType="java.lang.Long">

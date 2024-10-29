@@ -1,11 +1,6 @@
 package com.br.marketing.service;
 
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.dto.PushShDXDTO;
-import com.br.marketing.entity.XieChengSmsCollidingData;
-
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public interface PushDataService {
     Result pushDassData(Long id);
@@ -27,12 +22,6 @@ public interface PushDataService {
      */
     @Deprecated
     Result<Boolean> pushHaierTransferData(Long id);
-    /**
-     * 数禾推送电销
-     * @param pushShDXDTO
-     * @return code=1处理成功 data=true有推送 data=false无需推送
-     */
-    Result<Boolean> pushShDX(PushShDXDTO pushShDXDTO);
 
     /**
      * 单条推电销 a/b 一天推一条,true-->推;false-->不推

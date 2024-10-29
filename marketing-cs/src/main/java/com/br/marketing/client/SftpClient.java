@@ -4,7 +4,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.SyncConfig;
 import com.jcraft.jsch.*;
 import lombok.extern.slf4j.Slf4j;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +26,6 @@ public class SftpClient extends BaseFtpClient{
     private ChannelSftp sftp = null;
     private Channel channel = null;
     private Session session = null;
-
 
 
     /**
@@ -401,8 +399,9 @@ public class SftpClient extends BaseFtpClient{
      * @param localFileName
      * @return
      */
-    public boolean uploadFile(String remotePath, String remoteFilename, String localFileName) {
+    public boolean uploadFile(String remotePath, String remoteFilename, String localFileName) throws Exception {
         boolean success = false;
+        log.warn("开始上传文件！");
         File localFile = new File(localFileName);
         try (InputStream fis = Files.newInputStream(Paths.get(localFile.getPath()))) {
             if (!isExist(remotePath)) {
@@ -413,8 +412,10 @@ public class SftpClient extends BaseFtpClient{
             success = true;
         } catch (SftpException e) {
             log.error("SftpException", e);
+            throw e;
         } catch (Exception e) {
             log.error("Exception", e);
+            throw e;
         }
         return success;
     }

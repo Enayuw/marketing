@@ -2,6 +2,7 @@ package com.br.marketing.monkey.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.client.qifu.*;
 import com.br.marketing.client.tongcheng.TongChengAgentMktClient;
 import com.br.marketing.client.zhongan.ZhongAnClient;
 import com.br.marketing.client.zhongan.input.ZaMarketDataDTO;
@@ -14,19 +15,12 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.monkeydata.entity.commonobj.MonkeyContext;
 import com.br.marketing.monkeydata.entity.commonobj.PageCondition;
 import com.br.marketing.monkeydata.handle.IMonkeyDataHandle;
-import com.br.marketing.util.RandomUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.nio.file.LinkOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @RestController
@@ -36,9 +30,32 @@ public class TstController {
 
     @Autowired
     ZhongAnClient zhongAnClient;
+    @Autowired
+    QiFuClients qiFuClients;
 
     @Autowired
     IMonkeyDataHandle zhongAnHandleImpl;
+
+    @GetMapping("/queryList")
+    public String queryList(){
+        ArrayList<RealDataesReq> list = new ArrayList<>();
+        RealDataesReq realDataesReq = new RealDataesReq();
+        realDataesReq.setUniqueReqNo("AGOP6567212229496934401");
+        realDataesReq.setMobileMd5("c4a2ec03981c32175c52c1c5ecf3802b");
+        list.add(realDataesReq);
+
+        String uuid = UUID.randomUUID().toString();
+        QrySleepUserRealMessageReq req = new QrySleepUserRealMessageReq();
+        req.setRealDataes(list);
+        req.setRequestNo(uuid);
+        req.setBatchNo("68228_6567211717338857473");
+        req.setInitiatingType("noArt");
+        req.setPartner("bairong");
+
+        Result<ResponseData<QrySleepUserRealMessageResp>> responseDataResult =
+                qiFuClients.qryUserRealMessageUrl(req);
+        return JSONObject.toJSONString(responseDataResult);
+    }
 
     @GetMapping("/testPushZan")
     public String testPushZan(){

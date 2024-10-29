@@ -284,6 +284,22 @@ public interface TransferDataValidityPeriodService {
                                                                                 Object requestDateObj);
 
     /**
+     * 根据上传数据custNum集合+userType集合获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
+     *
+     * @param custNumSet     custNum集合
+     * @param userTypeSet    场景集合
+     * @param apiCode        apiCode
+     * @param requestDateObj 日期
+     * @return Map key:custNum value:{@link Map<String, SyncUserValidityPeriodsBO>} key:userType value:{@link SyncUserValidityPeriodsBO}
+     * @author Hua Qiang
+     * @date 2024-08-27 18:50
+     */
+    Map<String, Map<String, SyncUserValidityPeriodsBO>> getValidityPeriodsByCustNumAndUserTypeSet(Set<String> custNumSet,
+                                                                                                  Set<String> userTypeSet,
+                                                                                                  String apiCode,
+                                                                                                  Object requestDateObj);
+
+    /**
      * 获取有效期的有效期配置,分页
      *
      * @param apiCode        客户编号

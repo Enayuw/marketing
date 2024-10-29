@@ -114,8 +114,8 @@ public class SftpToDbByCommonService {
         return true;
     }
 
-    public Boolean actionTxtFile(FileContext context, LocalFile localFile, List<String> baseHeads, String routKey, Function<TxtToDbDTO, Result> fuc) {
-        return actionTxtFile(context, localFile, baseHeads, routKey, fuc, null);
+    public Boolean actionTxtFile(FileContext context, LocalFile localFile, List<String> baseHeads, Function<TxtToDbDTO, Result> fuc) {
+        return actionTxtFile(context, localFile, baseHeads, fuc, null);
     }
 
     /**
@@ -124,11 +124,10 @@ public class SftpToDbByCommonService {
      * @param context
      * @param localFile
      * @param baseHeads
-     * @param routKey
      * @param fuc
      * @return
      */
-    public Boolean actionTxtFile(FileContext context, LocalFile localFile, List<String> baseHeads, String routKey, Function<TxtToDbDTO, Result> fuc, Function<LocalFile, Result> datafuc) {
+    public Boolean actionTxtFile(FileContext context, LocalFile localFile, List<String> baseHeads, Function<TxtToDbDTO, Result> fuc, Function<LocalFile, Result> datafuc) {
         String txtFilePathAndName = context.getLocalTxtFilePath().concat(context.getTxtFileName());
         StringBuilder head;
         int totalLines = MyFileUtil.getTotalLines(new File(txtFilePathAndName));
@@ -218,7 +217,7 @@ public class SftpToDbByCommonService {
 
             updateFile.setErrorActualNumber(errorMark.get());
             localFileMapper.updateByPrimaryKeySelective(updateFile);
-            producter.send(routKey, localFile.getId().toString());
+//            producter.send(routKey, localFile.getId().toString());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

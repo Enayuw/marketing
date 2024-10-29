@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.ProFieldsClient;
 import com.br.marketing.common.bean.Score;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.FastdfsUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
 import com.br.marketing.common.utils.file.ZipUtil;
@@ -202,39 +201,6 @@ public class MergeServiceImpl implements MergeService {
         return zipFile;
     }
 
-    private void uploadFastDfs(ArrayList<String> countFileNameList,LoanFile blf,String fileName){
-        try{
-            fileName=fileName.replace(".txt",".zip");
-            String filePath=blf.getFilePath().concat("/fastdfs/");
-            File dir=new File(filePath);
-            if(!dir.exists()||!dir.isDirectory()){
-                boolean mkdirs = dir.mkdirs();
-                if(!mkdirs){
-                    log.error("创建文件夹失败-{}",filePath);
-                    return ;
-                }
-            }
-
-            String filePathAndName=filePath.concat(fileName);
-            ZipUtil.compress(filePathAndName,countFileNameList);
-
-            byte[] buffer;
-            FileInputStream in=new FileInputStream(new File(filePathAndName));
-            OutputStream outputStream = new ByteArrayOutputStream();
-            byte[] b = new byte[1024];
-            int n = 0;
-            while ((n = in.read(b)) != -1){
-                outputStream.write(b, 0, n);
-            }
-            buffer = ((ByteArrayOutputStream) outputStream).toByteArray();
-            String  url = FastdfsUtils.uploadDFSFileByte(buffer,fileName);
-            blf.setStatisticFilePath(url);
-            blf.setScoreStatus(2);
-
-        }catch (Exception e){
-            log.error("上传fastdfs异常，{}",blf.getFilePath(), e);
-        }
-    }
     private ArrayList<String> standard(String fileName, String separator, Integer total) {
         ArrayList<String> fileNameList = new ArrayList<>();
         try {

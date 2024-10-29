@@ -15,7 +15,7 @@ import com.br.marketing.dto.MarketingPreUserDTO;
 public class CustomerUploadDataAdapter implements CustomerUploadDataTarget {
 
     /**
-     * 适配客户上传数据
+     * 适配客户传输数据
      *
      * @param adaptee 适配器
      * @return {@link MarketingPreUserDTO }
@@ -23,8 +23,7 @@ public class CustomerUploadDataAdapter implements CustomerUploadDataTarget {
      * @date 2024/08/07
      */
     @Override
-    public MarketingPreUserDTO adapteeCustomerUploadData(BaseUploadDataAdaptee adaptee) {
-        return adaptee == null ? null : adaptee.adapteeRequest(adaptee.getApiCode(), new MarketingPreUserDTO());
+    public <T> T adapteeCustomerUploadData(BaseUploadDataAdaptee<T> adaptee) {
+        return adaptee == null ? null : adaptee.adapteeRequest(adaptee.getApiCode(),adaptee.getJsonData());
     }
-
 }

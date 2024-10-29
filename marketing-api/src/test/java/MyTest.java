@@ -2,6 +2,7 @@
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
@@ -33,6 +34,25 @@ public class MyTest {
         LocalDate now = LocalDate.now();
         long days = startDate.until(now, ChronoUnit.DAYS);
         System.out.println(days);
+    }
+
+    @Test
+    public void A(){
+        Integer a =1;
+        B(a);
+        System.out.println("对象值"+a);
+        ArrayList<Integer> list = new ArrayList<>();
+        list.add(1);
+        C(list);
+        System.out.println(list.toString());
+
+    }
+
+    private void C(List<Integer> l){
+        l.add(123);
+    }
+    private void B(Integer a){
+        a=2;
     }
 
     @Test

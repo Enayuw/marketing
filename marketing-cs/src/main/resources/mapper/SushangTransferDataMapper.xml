@@ -18,4 +18,9 @@
         order by b.id asc limit #{pageSize};
     </select>
 
+
+    <select id="countByLocalId" resultType="int">
+        SELECT COUNT(*) FROM b_sushang_transfer_data WHERE local_id = #{localId}
+    </select>
+
 </mapper>

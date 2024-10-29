@@ -72,7 +72,7 @@ public interface MarketingCustomerService {
 
 
     /**
-     * 根据cid获取客户信息
+     * 根据apiCode获取客户信息
      *
      * @param apiCode apiCode
      * @return {@link MarketingCustomer}

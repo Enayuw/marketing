@@ -49,37 +49,6 @@ public class ConsumerApp {
     RedisTestServiceImpl redisTestService;
 
     /**
-     * 延迟消费 获取推送客服中心数据状态
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(queues = MQConstants.MARKETING_PUSH_DASS_SCORE, containerFactory = "containerFactory")
-    public void consumerPushDass(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushDassData, o, "");
-    }
-
-
-
-    /**
-     * 中原sftp文件数据推外呼（客服）
-     * @param channel
-     * @param message
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_OUTBOUND_SCORE, durable = "true")
-            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE)}, containerFactory = "containerFactory")
-    public void consumerPushData(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
-        /*消费逻辑*/
-        consumerService.consumerRun(channel, message, zhongYuanService::pushOutBoundData, o, null);
-    }
-
-
-    /**
      * 消费 黑名单
      *
      * @param channel 通道
@@ -133,36 +102,6 @@ public class ConsumerApp {
         Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
         }.getType());
         consumerService.consumerRun(channel, message, pushDataService::pushSftpToDbData, o, "");
-    }
-
-
-    /**
-     * 推送dass转化
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_DASS_TRANSFER, durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_TRANSFER)}, containerFactory = "containerFactory")
-    public void consumerPushDassTransfer(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushDassTransferData, o, "");
-    }
-    /**
-     * 推送dassIBU
-     *
-     * @param channel 通道
-     * @param message 消息体
-     */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_PUSH_DASS_IBU, durable = "true")
-            , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
-            , key = MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_IBU)}, containerFactory = "containerFactory")
-    public void consumerPushDassIbu(Channel channel, Message message) {
-        Long o = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8), new TypeReference<Long>() {
-        }.getType());
-        consumerService.consumerRun(channel, message, pushDataService::pushDassTransferIbu, o, "");
     }
 
     /**

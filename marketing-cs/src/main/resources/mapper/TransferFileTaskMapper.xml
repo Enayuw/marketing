@@ -26,4 +26,9 @@
         </where>
         order by create_time desc,id desc
     </select>
+    <delete id="deleteMrpExtraTaskAction">
+        delete from b_extra_file_task_action
+        where task_id = #{mrpExtraTaskId}
+            and action_date = #{actionDate}
+    </delete>
 </mapper>

@@ -1,0 +1,529 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ShuHeCuFuJieDataMapperBase" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ShuHeCuFuJieData" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name_sha256" property="nameSha256" jdbcType="VARCHAR" />
+    <result column="mobile_sha256" property="mobileSha256" jdbcType="VARCHAR" />
+    <result column="identification_no_sha256" property="identificationNoSha256" jdbcType="VARCHAR" />
+    <result column="adt_lmt" property="adtLmt" jdbcType="VARCHAR" />
+    <result column="avl_lmt" property="avlLmt" jdbcType="VARCHAR" />
+    <result column="order_start" property="orderStart" jdbcType="VARCHAR" />
+    <result column="risk_pass_cnt" property="riskPassCnt" jdbcType="VARCHAR" />
+    <result column="fund_pass_cnt" property="fundPassCnt" jdbcType="VARCHAR" />
+    <result column="loan_principal_amount" property="loanPrincipalAmount" jdbcType="VARCHAR" />
+    <result column="ds" property="ds" jdbcType="VARCHAR" />
+    <result column="is_non_operate" property="isNonOperate" jdbcType="VARCHAR" />
+    <result column="asset_level_6" property="assetLevel6" jdbcType="VARCHAR" />
+    <result column="lst_non_dcp_trs_tim" property="lstNonDcpTrsTim" jdbcType="VARCHAR" />
+    <result column="lst_ord_tim_all_blbtchhl" property="lstOrdTimAllBlbtchhl" jdbcType="VARCHAR" />
+    <result column="lst_adt_apy_tim_hvy" property="lstAdtApyTimHvy" jdbcType="VARCHAR" />
+    <result column="lst_app_sta_tim" property="lstAppStaTim" jdbcType="VARCHAR" />
+    <result column="lst_mp_sta_tim" property="lstMpStaTim" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="create_date" property="createDate" jdbcType="DATE" />
+    <result column="local_id" property="localId" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="INTEGER" />
+    <result column="data_message" property="dataMessage" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, name_sha256, mobile_sha256, identification_no_sha256, adt_lmt, avl_lmt, order_start, 
+    risk_pass_cnt, fund_pass_cnt, loan_principal_amount, ds, is_non_operate, asset_level_6, 
+    lst_non_dcp_trs_tim, lst_ord_tim_all_blbtchhl, lst_adt_apy_tim_hvy, lst_app_sta_tim, 
+    lst_mp_sta_tim, extend, create_time, create_date, local_id, api_code, data_message, 
+    `status`
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ShuHeCuFuJieDataExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_shuhe_cufujie_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_shuhe_cufujie_data
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_shuhe_cufujie_data
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ShuHeCuFuJieDataExample" >
+    delete from b_shuhe_cufujie_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ShuHeCuFuJieData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_shuhe_cufujie_data (name_sha256, mobile_sha256, identification_no_sha256, 
+      adt_lmt, avl_lmt, order_start, 
+      risk_pass_cnt, fund_pass_cnt, loan_principal_amount, 
+      ds, is_non_operate, asset_level_6, 
+      lst_non_dcp_trs_tim, lst_ord_tim_all_blbtchhl, 
+      lst_adt_apy_tim_hvy, lst_app_sta_tim, lst_mp_sta_tim, 
+      extend, create_time, create_date, 
+      local_id, api_code, data_message, 
+      `status`)
+    values (#{nameSha256,jdbcType=VARCHAR}, #{mobileSha256,jdbcType=VARCHAR}, #{identificationNoSha256,jdbcType=VARCHAR}, 
+      #{adtLmt,jdbcType=VARCHAR}, #{avlLmt,jdbcType=VARCHAR}, #{orderStart,jdbcType=VARCHAR}, 
+      #{riskPassCnt,jdbcType=VARCHAR}, #{fundPassCnt,jdbcType=VARCHAR}, #{loanPrincipalAmount,jdbcType=VARCHAR}, 
+      #{ds,jdbcType=VARCHAR}, #{isNonOperate,jdbcType=VARCHAR}, #{assetLevel6,jdbcType=VARCHAR}, 
+      #{lstNonDcpTrsTim,jdbcType=VARCHAR}, #{lstOrdTimAllBlbtchhl,jdbcType=VARCHAR}, 
+      #{lstAdtApyTimHvy,jdbcType=VARCHAR}, #{lstAppStaTim,jdbcType=VARCHAR}, #{lstMpStaTim,jdbcType=VARCHAR}, 
+      #{extend,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{createDate,jdbcType=DATE}, 
+      #{localId,jdbcType=BIGINT}, #{apiCode,jdbcType=INTEGER}, #{dataMessage,jdbcType=VARCHAR}, 
+      #{status,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ShuHeCuFuJieData" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_shuhe_cufujie_data
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="nameSha256 != null" >
+        name_sha256,
+      </if>
+      <if test="mobileSha256 != null" >
+        mobile_sha256,
+      </if>
+      <if test="identificationNoSha256 != null" >
+        identification_no_sha256,
+      </if>
+      <if test="adtLmt != null" >
+        adt_lmt,
+      </if>
+      <if test="avlLmt != null" >
+        avl_lmt,
+      </if>
+      <if test="orderStart != null" >
+        order_start,
+      </if>
+      <if test="riskPassCnt != null" >
+        risk_pass_cnt,
+      </if>
+      <if test="fundPassCnt != null" >
+        fund_pass_cnt,
+      </if>
+      <if test="loanPrincipalAmount != null" >
+        loan_principal_amount,
+      </if>
+      <if test="ds != null" >
+        ds,
+      </if>
+      <if test="isNonOperate != null" >
+        is_non_operate,
+      </if>
+      <if test="assetLevel6 != null" >
+        asset_level_6,
+      </if>
+      <if test="lstNonDcpTrsTim != null" >
+        lst_non_dcp_trs_tim,
+      </if>
+      <if test="lstOrdTimAllBlbtchhl != null" >
+        lst_ord_tim_all_blbtchhl,
+      </if>
+      <if test="lstAdtApyTimHvy != null" >
+        lst_adt_apy_tim_hvy,
+      </if>
+      <if test="lstAppStaTim != null" >
+        lst_app_sta_tim,
+      </if>
+      <if test="lstMpStaTim != null" >
+        lst_mp_sta_tim,
+      </if>
+      <if test="extend != null" >
+        extend,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="createDate != null" >
+        create_date,
+      </if>
+      <if test="localId != null" >
+        local_id,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="dataMessage != null" >
+        data_message,
+      </if>
+      <if test="status != null" >
+        `status`,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="nameSha256 != null" >
+        #{nameSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="mobileSha256 != null" >
+        #{mobileSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="identificationNoSha256 != null" >
+        #{identificationNoSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="adtLmt != null" >
+        #{adtLmt,jdbcType=VARCHAR},
+      </if>
+      <if test="avlLmt != null" >
+        #{avlLmt,jdbcType=VARCHAR},
+      </if>
+      <if test="orderStart != null" >
+        #{orderStart,jdbcType=VARCHAR},
+      </if>
+      <if test="riskPassCnt != null" >
+        #{riskPassCnt,jdbcType=VARCHAR},
+      </if>
+      <if test="fundPassCnt != null" >
+        #{fundPassCnt,jdbcType=VARCHAR},
+      </if>
+      <if test="loanPrincipalAmount != null" >
+        #{loanPrincipalAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="ds != null" >
+        #{ds,jdbcType=VARCHAR},
+      </if>
+      <if test="isNonOperate != null" >
+        #{isNonOperate,jdbcType=VARCHAR},
+      </if>
+      <if test="assetLevel6 != null" >
+        #{assetLevel6,jdbcType=VARCHAR},
+      </if>
+      <if test="lstNonDcpTrsTim != null" >
+        #{lstNonDcpTrsTim,jdbcType=VARCHAR},
+      </if>
+      <if test="lstOrdTimAllBlbtchhl != null" >
+        #{lstOrdTimAllBlbtchhl,jdbcType=VARCHAR},
+      </if>
+      <if test="lstAdtApyTimHvy != null" >
+        #{lstAdtApyTimHvy,jdbcType=VARCHAR},
+      </if>
+      <if test="lstAppStaTim != null" >
+        #{lstAppStaTim,jdbcType=VARCHAR},
+      </if>
+      <if test="lstMpStaTim != null" >
+        #{lstMpStaTim,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createDate != null" >
+        #{createDate,jdbcType=DATE},
+      </if>
+      <if test="localId != null" >
+        #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ShuHeCuFuJieDataExample" resultType="java.lang.Integer" >
+    select count(*) from b_shuhe_cufujie_data
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_shuhe_cufujie_data
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.nameSha256 != null" >
+        name_sha256 = #{record.nameSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mobileSha256 != null" >
+        mobile_sha256 = #{record.mobileSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="record.identificationNoSha256 != null" >
+        identification_no_sha256 = #{record.identificationNoSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="record.adtLmt != null" >
+        adt_lmt = #{record.adtLmt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.avlLmt != null" >
+        avl_lmt = #{record.avlLmt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderStart != null" >
+        order_start = #{record.orderStart,jdbcType=VARCHAR},
+      </if>
+      <if test="record.riskPassCnt != null" >
+        risk_pass_cnt = #{record.riskPassCnt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fundPassCnt != null" >
+        fund_pass_cnt = #{record.fundPassCnt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.loanPrincipalAmount != null" >
+        loan_principal_amount = #{record.loanPrincipalAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ds != null" >
+        ds = #{record.ds,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isNonOperate != null" >
+        is_non_operate = #{record.isNonOperate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.assetLevel6 != null" >
+        asset_level_6 = #{record.assetLevel6,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lstNonDcpTrsTim != null" >
+        lst_non_dcp_trs_tim = #{record.lstNonDcpTrsTim,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lstOrdTimAllBlbtchhl != null" >
+        lst_ord_tim_all_blbtchhl = #{record.lstOrdTimAllBlbtchhl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lstAdtApyTimHvy != null" >
+        lst_adt_apy_tim_hvy = #{record.lstAdtApyTimHvy,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lstAppStaTim != null" >
+        lst_app_sta_tim = #{record.lstAppStaTim,jdbcType=VARCHAR},
+      </if>
+      <if test="record.lstMpStaTim != null" >
+        lst_mp_sta_tim = #{record.lstMpStaTim,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.createDate != null" >
+        create_date = #{record.createDate,jdbcType=DATE},
+      </if>
+      <if test="record.localId != null" >
+        local_id = #{record.localId,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=INTEGER},
+      </if>
+      <if test="record.dataMessage != null" >
+        data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_shuhe_cufujie_data
+    set id = #{record.id,jdbcType=BIGINT},
+      name_sha256 = #{record.nameSha256,jdbcType=VARCHAR},
+      mobile_sha256 = #{record.mobileSha256,jdbcType=VARCHAR},
+      identification_no_sha256 = #{record.identificationNoSha256,jdbcType=VARCHAR},
+      adt_lmt = #{record.adtLmt,jdbcType=VARCHAR},
+      avl_lmt = #{record.avlLmt,jdbcType=VARCHAR},
+      order_start = #{record.orderStart,jdbcType=VARCHAR},
+      risk_pass_cnt = #{record.riskPassCnt,jdbcType=VARCHAR},
+      fund_pass_cnt = #{record.fundPassCnt,jdbcType=VARCHAR},
+      loan_principal_amount = #{record.loanPrincipalAmount,jdbcType=VARCHAR},
+      ds = #{record.ds,jdbcType=VARCHAR},
+      is_non_operate = #{record.isNonOperate,jdbcType=VARCHAR},
+      asset_level_6 = #{record.assetLevel6,jdbcType=VARCHAR},
+      lst_non_dcp_trs_tim = #{record.lstNonDcpTrsTim,jdbcType=VARCHAR},
+      lst_ord_tim_all_blbtchhl = #{record.lstOrdTimAllBlbtchhl,jdbcType=VARCHAR},
+      lst_adt_apy_tim_hvy = #{record.lstAdtApyTimHvy,jdbcType=VARCHAR},
+      lst_app_sta_tim = #{record.lstAppStaTim,jdbcType=VARCHAR},
+      lst_mp_sta_tim = #{record.lstMpStaTim,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      create_date = #{record.createDate,jdbcType=DATE},
+      local_id = #{record.localId,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=INTEGER},
+      data_message = #{record.dataMessage,jdbcType=VARCHAR},
+      `status` = #{record.status,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ShuHeCuFuJieData" >
+    update b_shuhe_cufujie_data
+    <set >
+      <if test="nameSha256 != null" >
+        name_sha256 = #{nameSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="mobileSha256 != null" >
+        mobile_sha256 = #{mobileSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="identificationNoSha256 != null" >
+        identification_no_sha256 = #{identificationNoSha256,jdbcType=VARCHAR},
+      </if>
+      <if test="adtLmt != null" >
+        adt_lmt = #{adtLmt,jdbcType=VARCHAR},
+      </if>
+      <if test="avlLmt != null" >
+        avl_lmt = #{avlLmt,jdbcType=VARCHAR},
+      </if>
+      <if test="orderStart != null" >
+        order_start = #{orderStart,jdbcType=VARCHAR},
+      </if>
+      <if test="riskPassCnt != null" >
+        risk_pass_cnt = #{riskPassCnt,jdbcType=VARCHAR},
+      </if>
+      <if test="fundPassCnt != null" >
+        fund_pass_cnt = #{fundPassCnt,jdbcType=VARCHAR},
+      </if>
+      <if test="loanPrincipalAmount != null" >
+        loan_principal_amount = #{loanPrincipalAmount,jdbcType=VARCHAR},
+      </if>
+      <if test="ds != null" >
+        ds = #{ds,jdbcType=VARCHAR},
+      </if>
+      <if test="isNonOperate != null" >
+        is_non_operate = #{isNonOperate,jdbcType=VARCHAR},
+      </if>
+      <if test="assetLevel6 != null" >
+        asset_level_6 = #{assetLevel6,jdbcType=VARCHAR},
+      </if>
+      <if test="lstNonDcpTrsTim != null" >
+        lst_non_dcp_trs_tim = #{lstNonDcpTrsTim,jdbcType=VARCHAR},
+      </if>
+      <if test="lstOrdTimAllBlbtchhl != null" >
+        lst_ord_tim_all_blbtchhl = #{lstOrdTimAllBlbtchhl,jdbcType=VARCHAR},
+      </if>
+      <if test="lstAdtApyTimHvy != null" >
+        lst_adt_apy_tim_hvy = #{lstAdtApyTimHvy,jdbcType=VARCHAR},
+      </if>
+      <if test="lstAppStaTim != null" >
+        lst_app_sta_tim = #{lstAppStaTim,jdbcType=VARCHAR},
+      </if>
+      <if test="lstMpStaTim != null" >
+        lst_mp_sta_tim = #{lstMpStaTim,jdbcType=VARCHAR},
+      </if>
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createDate != null" >
+        create_date = #{createDate,jdbcType=DATE},
+      </if>
+      <if test="localId != null" >
+        local_id = #{localId,jdbcType=BIGINT},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=INTEGER},
+      </if>
+      <if test="dataMessage != null" >
+        data_message = #{dataMessage,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ShuHeCuFuJieData" >
+    update b_shuhe_cufujie_data
+    set name_sha256 = #{nameSha256,jdbcType=VARCHAR},
+      mobile_sha256 = #{mobileSha256,jdbcType=VARCHAR},
+      identification_no_sha256 = #{identificationNoSha256,jdbcType=VARCHAR},
+      adt_lmt = #{adtLmt,jdbcType=VARCHAR},
+      avl_lmt = #{avlLmt,jdbcType=VARCHAR},
+      order_start = #{orderStart,jdbcType=VARCHAR},
+      risk_pass_cnt = #{riskPassCnt,jdbcType=VARCHAR},
+      fund_pass_cnt = #{fundPassCnt,jdbcType=VARCHAR},
+      loan_principal_amount = #{loanPrincipalAmount,jdbcType=VARCHAR},
+      ds = #{ds,jdbcType=VARCHAR},
+      is_non_operate = #{isNonOperate,jdbcType=VARCHAR},
+      asset_level_6 = #{assetLevel6,jdbcType=VARCHAR},
+      lst_non_dcp_trs_tim = #{lstNonDcpTrsTim,jdbcType=VARCHAR},
+      lst_ord_tim_all_blbtchhl = #{lstOrdTimAllBlbtchhl,jdbcType=VARCHAR},
+      lst_adt_apy_tim_hvy = #{lstAdtApyTimHvy,jdbcType=VARCHAR},
+      lst_app_sta_tim = #{lstAppStaTim,jdbcType=VARCHAR},
+      lst_mp_sta_tim = #{lstMpStaTim,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      create_date = #{createDate,jdbcType=DATE},
+      local_id = #{localId,jdbcType=BIGINT},
+      api_code = #{apiCode,jdbcType=INTEGER},
+      data_message = #{dataMessage,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

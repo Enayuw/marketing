@@ -14,7 +14,7 @@ public enum DistributeTypeEnum {
     YIXIN_TRANSFER_PUSH_BAIYING(6, "宜信转化推送百应"),
     YIXIN_REALTIME_POLICYDATA(7, "宜信实时推决策数据"),
     WUBA_SUBMIT_CONVERSION(5, "58新客提交营销名单"),
-
+    YIXIN_TRANSFER_PUSH_BIOCLOO(9, "宜信转化推送百可录"),
     ;
 
     private Integer value;

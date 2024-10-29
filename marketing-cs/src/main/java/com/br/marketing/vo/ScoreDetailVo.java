@@ -32,4 +32,7 @@ public class ScoreDetailVo {
 
     @ApiModelProperty(value = "场景")
     private String userType;
+
+    @ApiModelProperty(value = "cid")
+    private String cid;
 }

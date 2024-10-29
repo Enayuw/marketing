@@ -7,10 +7,11 @@ import com.br.marketing.entity.WubaSubmitConversionData;
 import com.br.marketing.mapper.WubaSubmitConversionDataMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 58新客通话明细入库-3710155
@@ -28,11 +29,18 @@ public class WuBaCallRecordAddToDbHandler extends AbstractExternalInterfaceHandl
 
     @Override
     JSONObject call(List<WuBaSubmitConversionDataDto> list, ProcessHandlerContext context) {
-        List<WubaSubmitConversionData> dataList = list.stream().map(WuBaSubmitConversionDataDto::getWubaSubmitConversionData)
-                .collect(Collectors.toList());
+        List<WubaSubmitConversionData> dataList = new ArrayList<>();
+        for(WuBaSubmitConversionDataDto dto : list){
+            WubaSubmitConversionData data = dto.getWubaSubmitConversionData();
+            if(data !=null) {
+                dataList.add(data);
+            }
+        }
 
-        dataMapper.batchAdd(dataList);
-        log.warn(TITLE + "批量入库成功");
+        if(!CollectionUtils.isEmpty(dataList)){
+            dataMapper.batchAdd(dataList);
+            log.warn(TITLE + "批量入库成功");
+        }
         return null;
     }
 

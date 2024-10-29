@@ -4,8 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.zhongyou.ZhongYouDataService;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.ConsumerService;
+import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
+import com.br.marketing.service.guomei.GuoMeiDataCleanService;
+import com.br.marketing.service.weiju.WeiJuDataCleanService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +55,15 @@ public class ConsumerApp {
 
     @Resource
     private ZhongYouDataService zhongYouDataService;
+
+    @Resource
+    private XieChengRobDataCollidingService robDataCollidingService;
+
+    @Resource
+    private WeiJuDataCleanService weiJuDataCleanService;
+    @Resource
+    private GuoMeiDataCleanService guoMeiDataCleanService;
+
 
     /**
      * 消费 原始上传数据消费端（大队列）
@@ -264,4 +277,44 @@ public class ConsumerApp {
                 , new String(message.getBody(), StandardCharsets.UTF_8), null);
     }
 
+    /**
+     * 消费 携程促活数据接入消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_XIECHENG_COLLIDING_ACTIVATE_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE)}, containerFactory = "concurrentContainerFactory")
+    public void consumerXieChengActivate(Channel channel, Message message) {
+        XieChengActivateDTO xieChengActivateDTO = JSON.parseObject(new String(message.getBody(), StandardCharsets.UTF_8),
+                new TypeReference<XieChengActivateDTO>() {
+                }.getType());
+        consumerService.consumerRun(channel, message, robDataCollidingService::activateDataHandle, xieChengActivateDTO, null);
+    }
+
+
+    /**
+     * 消费 微聚数据清洗消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_WEIJU_DATA_CLEAN_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_WEIJU_DATA_CLEAN)}, containerFactory = "concurrentContainerFactory")
+    public void consumerWeiJuDataClean(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, weiJuDataCleanService::cleanData, new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
+
+
+    /**
+     * 消费 国美数据清洗消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_GUOMEI_DATA_CLEAN_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_GUOMEI_DATA_CLEAN)}, containerFactory = "concurrentContainerFactory")
+    public void consumerGuoMeiDataClean(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, guoMeiDataCleanService::cleanData, new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
 }

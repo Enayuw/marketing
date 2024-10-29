@@ -6,9 +6,9 @@ import com.br.arch.geo.pulsar.ProductPulsarProducer;
 import com.br.cloud.counter.BrCounter;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.encryption.Sha256Util;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -93,7 +93,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -264,14 +263,6 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     public CustomerBatchNumDTO getCustomerBatchNumDTO(CustomerBatchNumDTO dto) {
-        //if(StringUtils.isNotBlank(dto.getUploadBeginTime())){
-        //    Date dateUpdate = addDay(dto.getUploadEndTime(), 1, "yyyy-MM-dd");
-        //    dto.setUploadEndTime(DateUtils.format(dateUpdate, "yyyy-MM-dd"));
-        //}
-        //if(StringUtils.isNotBlank(dto.getScoreBeginTime())){
-        //    Date date = addDay(dto.getScoreEndTime(), 1, "yyyy-MM-dd");
-        //    dto.setScoreEndTime(DateUtils.format(date, "yyyy-MM-dd"));
-        //}
         if (StringUtils.isNotBlank(dto.getProductName())) {
             String productName = dto.getProductName();
             String[] module = productName.split(",");
@@ -335,14 +326,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     RobotaiApiServiceClient robotaiApiServiceClient;
-
-    final String redisKey_apiCode_taskId = "marketing:preuser:";
-
-    final String redisKeySoleNum = "sole:thread:num";
-
-    final String redisKeyPushCustomer = "marketing:transfer:pushcustomer:apicode";
-
-    final String redisKeyPushHaluo = "marketing:transfer:pushhaluo:apicode";
 
     @Autowired
     TableCreateServiceImpl tableCreateService;
@@ -538,11 +521,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             customerInfoPushBatch.setmFileId(t.getId());
             customerInfoPushBatchMapper.insertSelective(customerInfoPushBatch);
         });
-
-        //endregion
-
-        //region push mq
-//        producter.send("Marketing.Push.CustomerService", customerInfoPushMain.getId().toString());
         //endregion
         return new Result<String>().setCode(ResultCode.SUCCESS.getValue()).setDate(customerInfoPushMain.getId().toString());
     }
@@ -588,7 +566,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
-            querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+            if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
+                querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+            } else {
+                querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
+            }
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
         }
@@ -607,7 +589,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         String condition = falseDataCondition(jsonObject, batchNumberList, cleanTime);
         querySql.append("select count(1) from (").append(condition).append(") a ;");
         return querySql.toString();
-
     }
 
     private String falseDataCondition(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
@@ -663,10 +644,52 @@ public class PushRuleServiceImpl implements PushRuleService {
         return cycleAndscoreSql.toString();
     }
 
-    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList) {
+    private String cycleDataQueryForDelete(JSONObject jsonObject, List<String> batchNumberList
+            , XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
-        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
-                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
+        Date cleanTime = DateHelper.parseDate(xieChengCollidingFilterDTO.getCleanTime());
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
+        String cycleSql = String.format
+                ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                "where (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                        , cleanDateTime, cleanEndTime, endDateTime);
+        //True关联查询
+        //true筛选字段处理
+        String condition = XieChengEsJsonHandler.zkTrueCondition(xieChengCollidingFilterDTO);
+        if (StringUtils.isNotEmpty(condition)) {
+            if (condition.contains("release_time")) {
+                cycleSql = String.format
+                        ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle where %s and is_delete=0"
+                                , condition);
+            } else {
+                cycleSql = String.format
+                        ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                        "where %s and (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                                , condition, cleanDateTime, cleanEndTime, endDateTime);
+            }
+        }
+        StringBuilder cycleAndscoreSql = new StringBuilder();
+        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
+                "score.cell = cycle.cell;");
+        return cycleAndscoreSql.toString();
+    }
+
+    private String cycleDataDeleteQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanDate) {
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        Date cleanTime = DateHelper.parseDate(cleanDate);
+        Date cleanTimeEnd = DateHelper.addDays(cleanTime, 1);
+        Date endTime = DateHelper.addDays(cleanTime, 7);
+        String cleanDateTime = DateHelper.dateToDateTime(cleanTime);
+        String cleanEndTime = DateHelper.dateToDateTime(cleanTimeEnd);
+        String endDateTime = DateHelper.dateToDateTime(endTime);
+        String cycleSql = String.format
+                ("select cell_sha256_code_list as cell from b_xiecheng_colliding_data_loop_cycle " +
+                                "where (release_time < '%s' or (release_time >= '%s' and release_time < '%s')) and is_delete=0"
+                        , cleanDateTime, cleanEndTime, endDateTime);
         //True关联查询
         StringBuilder cycleAndscoreSql = new StringBuilder();
         cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle left join (").append(scoreSql).append(") score on " +
@@ -676,13 +699,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 组装跑分筛选SQL
-     *
      * @param jsonObject      入参jsonsql
      * @param batchNumberList batchNumber集合
      * @return String
      */
     private String scoreSql(JSONObject jsonObject, List<String> batchNumberList) {
-
         String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
         String scoreSql = "";
         for (int i = 0; i < batchNumberList.size(); i++) {
@@ -693,7 +714,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 scoreSql = scoreSql.concat("select id,cell from b_xiecheng_colliding_").concat(batchNumberList.get(i)).concat(" where ")
                         .concat(sqlCondition).concat(" and is_delete=0 ").concat(" union all ");
             }
-
         }
         return scoreSql;
     }
@@ -711,16 +731,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return isXieCheng;
-
     }
 
 
     @Override
     public Result<PushViewVO> pushPreview(PushCustomerDTO dto) {
-
         AssertResult.assertResult(checkThreekEnc(dto.getFileIdList()));
         return getTotal(dto);
-
     }
 
     @Override
@@ -729,13 +746,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         straHisFileExample.createCriteria().andIdIn(fileIds);
         List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
         List<String> batchNumbers = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
-
         MarketingTaskExample taskExample = new MarketingTaskExample();
         taskExample.createCriteria().andBatchNumberIn(batchNumbers);
-
         List<MarketingTask> marketingTasks = marketingTaskMapper.selectByExample(taskExample);
         List<Long> taskIds = marketingTasks.stream().map(t -> t.getId()).collect(Collectors.toList());
-
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
         taskExtendExample.createCriteria().andTaskIdIn(taskIds);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
@@ -777,7 +791,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         xiechengCollidingDataProcessTask.setTaskType(1);
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         int i = xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
@@ -838,7 +852,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
-        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList());
+        String deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
         // doris查询
         // 查询Doris
         try {
@@ -856,14 +870,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (ScoreThreeKeyEncryptEnum.md5.getValue().equals(type)) {
             return DigestUtils.md5DigestAsHex(content.getBytes());
         }
-
         if (ScoreThreeKeyEncryptEnum.sha256.getValue().equals(type)) {
             return Sha256Util.getSHA256Encrypt(content);
         }
         return content;
     }
 
-    //    @Transactional(rollbackFor = Exception.class)
     @Override
     public Result<Boolean> consumerPushCustomer(Long id) {
         long initTime = System.currentTimeMillis();
@@ -906,28 +918,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         extendInfosByFileIds.forEach(t -> {
             hsTaskExtend.put(t.getFileId(), t);
         });
-
-//        if (customerInfoPushMain.getmNumMin() != null && customerInfoPushMain.getmNumMax() != null) {
-//            queryBaseBean.setAmountTop(customerInfoPushMain.getmNumMin().toString()
-//                    .concat(",").concat(customerInfoPushMain.getmNumMax().toString()));
-//        }
-        //region push Intelligent Customer Service
-
-        //调用es查询接口
-//        int minTop = (customerInfoPushMain.getmNumMin() == null) ? 0 : customerInfoPushMain.getmNumMin();
-//        int startPageYushu = minTop % 10000;
-//        Integer startPage = minTop / 10000 + (startPageYushu > 0 ? 1 : 0);
-//        for (int i = 1; i <= startPage; i++) {
-//
-//            if (i == startPage && startPageYushu > 0) {
-//                queryBaseBean.setPageSize(startPageYushu);
-//            } else {
-//                queryBaseBean.setPageSize(10000);
-//            }
-//            queryBaseBean.setSearchAfter(searchAfterStr);
-//            String s = marketingHistoryEsService.builderMarketingWithSearchAfter(queryBaseBean);
-//            searchAfterStr = s;
-//        }
         Integer getEsNum = marketingCommonConfig.getScoreByEsThreadNum() != null
                 && marketingCommonConfig.getScoreByEsThreadNum() > 0
                 ? marketingCommonConfig.getScoreByEsThreadNum()
@@ -972,7 +962,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
         }
-
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
                     , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i))));
@@ -1006,7 +995,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
-
         try {
             actionEs.shutdown();
             pushJc.shutdown();
@@ -1028,12 +1016,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
-
-        //region push mq
-//        producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_CUSTOMER_SERVICE_SEARCH_DELAY
-//                , customerInfoPushMain.getId().toString());
-        //endregion
-
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
@@ -1163,7 +1145,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
                     pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
                     pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-
                     resList.add(pushJcPool.submit(new PushJcAction(pushMarketingUserDTO
                             , pushMarketingUserTaskInfoDTO.getAccessNumber()
                             , customerInfoPushMain.getId()
@@ -1301,7 +1282,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 StringBuilder sb = new StringBuilder();
                 sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append("，");
                 sb.append("【推送完成，请求批次号】："+ verification).append("，【推送结果】：" + verificationReason);
-                sendAlert("【营销自动化推决策失败】", sb.toString());
+                sendAlert("【营销自动化推决策确认失败】", sb.toString());
             }
         } else {
             log.warn("决策查询接口异常result={}", JSON.toJSONString(result));
@@ -1309,10 +1290,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     public void sendAlert(String title, String text) {
-
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
         Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
-
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
         markdown.setTitle(title);
         markdown.setText(text);
@@ -1330,7 +1309,6 @@ public class PushRuleServiceImpl implements PushRuleService {
      */
     @Override
     public Result insertMarketingPreUserText(String apiCode, String jsonData) {
-
         //region check
         long l1 = System.currentTimeMillis();
         RequestCommonDTO<MarketingPreUserDTO> dto = new RequestCommonDTO<>();
@@ -1388,12 +1366,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.info("check耗时:{}", (System.currentTimeMillis() - l1));
         }
         //endregion
-
         long l = System.currentTimeMillis();
         String uploadKey = RedisKeyConstant.uploadKey.concat(":").concat(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         String syncInfoId = "";
         Boolean dbException = Boolean.FALSE;
-
         //region 数据入库
         try {
             MarketingSyncInfo syncInfo = new MarketingSyncInfo();
@@ -1446,13 +1422,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         //endregion
-
         //region 写入上传明细MQ
         if (!dbException) {
             sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
         }
-        //endregion
-
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("成功");
     }
 
@@ -1601,7 +1574,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setCellMd5(marketingPreUserDetailDTO.getCellMd5());
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
-                marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField, finalReserveFileld1Json));
+                marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField,
+                        finalReserveFileld1Json,apiCode));
                 marketingSyncUser.setReserveField2(marketingPreUserDetailDTO.getReserveField2());
                 marketingSyncUser.setCreateTime(nowData);
                 marketingSyncUser.setUpdateTime(nowData);
@@ -1739,6 +1713,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (log.isInfoEnabled()) {
             log.info("数据解析插入耗时:{}", (System.currentTimeMillis() - l));
         }
+        if (errorSize > 0) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.INITDATA_MUST_ERROR.getCode()
+                    , String.format("apiCode【%s】,代运营数据原始表id【%d】", apiCode, infoId)
+                    , AlarmSendCodeEnum.INITDATA_MUST_ERROR.getMessage()));
+        }
         List<String> initDataPushApiCode = marketingCommonConfig.getInitDataPushRule() == null ? new ArrayList<String>() : marketingCommonConfig.getInitDataPushRule();
         if (status && initDataPushApiCode.contains(apiCode)) {
             MqFact mqFact = new MqFact();
@@ -1758,13 +1737,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                     taskTime.setCreateTime(new Date());
                     taskTimeMapper.insertSelective(taskTime);
                 } catch (DuplicateKeyException ex) {
-
                 }
                 if (taskApiCodeSet.size() >= 1000) {
                     taskApiCodeSet.clear();
                 }
                 taskApiCodeSet.add(concat);
-
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
@@ -1866,7 +1843,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     //ReserveField1DTO中的属性是固定的，无法满足，客户动态增加字段的需求,
     //所以检查下客户上传的原始JSON，如果有些字段没有在ReserveField1DTO中，则动态拼装到数据中。
-    private String assembleReserveField1(ReserveField1DTO finalReserveField, JSONObject finalReserveFileld1Json) {
+    private String assembleReserveField1(ReserveField1DTO finalReserveField, JSONObject finalReserveFileld1Json,
+                                         String apiCode) {
         JSONObject finalReserveFieldObject = (JSONObject) JSONObject.toJSON(finalReserveField);
         if (null != finalReserveFileld1Json) {
             finalReserveFileld1Json.keySet().stream().forEach(k -> {
@@ -1874,8 +1852,21 @@ public class PushRuleServiceImpl implements PushRuleService {
                     finalReserveFieldObject.put(k, finalReserveFileld1Json.get(k));
                 }
             });
+            cleanData(finalReserveFieldObject,finalReserveFileld1Json,apiCode);
         }
         return JSONObject.toJSONString(finalReserveFieldObject);
+    }
+
+    private void cleanData(JSONObject finalReserveFieldObject, JSONObject finalReserveFileld1Json,
+                           String apiCode) {
+        // 定制化清洗apiCode
+        HashMap<String, String> dataCleanMappingMap = marketingCommonConfig.getDataCleanMappingMap();
+        String value = dataCleanMappingMap.get(apiCode);
+        if(value != null){
+            List<String> dataCleanValue = marketingCommonConfig.getDataCleanValue();
+            String customNameType = dataCleanValue != null ? dataCleanValue.get(0) : "customNameType";
+            finalReserveFieldObject.put(customNameType,finalReserveFileld1Json.get(value));
+        }
     }
 
     @Override
@@ -2165,6 +2156,13 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateSyncInfo.setErrorInfo(JSON.toJSONString(errorBuild));
         }
         marketingTransferInfoMapper.updateByPrimaryKeySelective(updateSyncInfo);
+
+        if (errorSize > 0) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getCode()
+                    , String.format("apiCode【%s】,转化数据原始表id【%d】", transferInfo.getApiCode(), id)
+                    , AlarmSendCodeEnum.TRANSFER_MUST_ERROR.getMessage()));
+        }
+
         if (pushCustomerApiCodes.contains(transferInfo.getApiCode())
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
@@ -2669,7 +2667,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                 }
             }
-
             // 不同apicode上传数据，根据applet_time取最新一条
             Optional<MarketingSyncUser> optional = list.stream().sorted(Comparator.comparing(MarketingSyncUser::getAppletTime).reversed()).findFirst();
             if (optional.isPresent()) {
@@ -2980,13 +2977,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         alarmClient.sendAlarm(smg, "接口转化(私人订制)数据同步到智能客服警告", AlarmSendCodeEnum.EXCEPTION_COMMON.getCode());
         redisChgService.incrBy(key, -1);
         redisChgService.expire(key, getKeyExpiration());
-    }
-
-    private synchronized Long getApiCodeCount(String key) {
-        Long incr = redisChgService.incr(key);
-        int keyExpiration = getKeyExpiration();
-        redisChgService.expire(key, keyExpiration);
-        return incr;
     }
 
     /**
@@ -3440,205 +3430,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<>()
                 .setCode(ResultCode.SUCCESS.getValue())
                 .setDate(isContinue);
-    }
-
-    @Override
-    public Result<Boolean> consumerHaLuo(Long id) {
-        Boolean isContinue = Boolean.FALSE;
-        MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
-        String apiCode = transferInfo.getApiCode();
-        if (transferInfo == null) {
-            return new Result<>()
-                    .setCode(ResultCode.SUCCESS.getValue())
-                    .setDate(isContinue)
-                    .setMessage("数据不存在");
-        }
-        String tcId = tableCreateService.getTcId(apiCode);
-        if (tcId == null) {
-            return new Result<>()
-                    .setCode(ResultCode.FAIL.getValue())
-                    .setDate(isContinue)
-                    .setMessage(String.format("apiCode:%s 未维护cid信息", apiCode));
-        }
-        MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
-        example.createCriteria().andApiCodeEqualTo(apiCode).
-                andRequestIdEqualTo(transferInfo.getRequestId());
-        example.settCid(tcId);
-        List<MarketingTransferSyncUser> marketingTransferSyncUsers = marketingTransferSyncUserMapper.selectByExample(example);
-        LocalFile localFile = new LocalFile();
-        validData:
-        for (MarketingTransferSyncUser marketingTransferSyncUser : marketingTransferSyncUsers) {
-            JSONObject jb = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
-            boolean a = "1".equals(marketingTransferSyncUser.getIfLogin())
-                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "0".equals(jb.getString("applyInformation")))
-                    && !"1".equals(marketingTransferSyncUser.getIfApply());
-
-            boolean b = "1".equals(marketingTransferSyncUser.getIfLogin())
-                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
-                    && !"1".equals(marketingTransferSyncUser.getIfApply());
-
-//            boolean c = "1".equals(marketingTransferSyncUser.getIfLogin())
-//                    && (jb != null && StringUtils.isNotBlank(jb.getString("applyInformation")) && "1".equals(jb.getString("applyInformation")))
-//                    && "1".equals(marketingTransferSyncUser.getIfApply())
-//                    && "0".equals(marketingTransferSyncUser.getApplyResult());
-
-            Double unlentAmount = Double.valueOf(StringUtils.isNotBlank(marketingTransferSyncUser.getUnlentAmount()) ? marketingTransferSyncUser.getUnlentAmount() : "0");
-            boolean d = unlentAmount > 0;
-//            if (!a && !b && !c && !d) {
-//                continue;
-//            }
-            if (!a && !b && !d) {
-                continue;
-            }
-            MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, marketingTransferSyncUser.getCustNum());
-            if (marketingSyncUser == null) {
-                continue;
-            }
-            String cusBatch = marketingSyncUser.getCusBatch();
-            TaskTimeExample timeExample = new TaskTimeExample();
-            timeExample.createCriteria().andApiCodeEqualTo(apiCode).andTaskIdEqualTo(cusBatch);
-            List<TaskTime> taskTimes = taskTimeMapper.selectByExample(timeExample);
-            if (taskTimes.size() <= 0) {
-                continue;
-            }
-            TaskTime taskTime = taskTimes.get(0);
-            LocalDate startDate = LocalDate.parse(taskTime.getStartDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            LocalDate now = LocalDate.now();
-            long days = startDate.until(now, ChronoUnit.DAYS);
-            if (days > 29) {
-                continue;
-            }
-            LocalDate dxStartDate = now.minusDays(6);
-            PhoneSaleExtendHaluoExample phoneSaleExtendHaluoExample = new PhoneSaleExtendHaluoExample();
-            phoneSaleExtendHaluoExample.createCriteria()
-                    .andCustNumEqualTo(marketingTransferSyncUser.getCustNum())
-                    .andTaskIdEqualTo(cusBatch)
-                    .andAppletDateGreaterThanOrEqualTo(dxStartDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
-                    .andAppletDateLessThanOrEqualTo(now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-            List<PhoneSaleExtendHaluo> phoneSaleExtendHaluos = phoneSaleExtendHaluoMapper.selectByExample(phoneSaleExtendHaluoExample);
-            if (phoneSaleExtendHaluos.size() > 0) {
-                long dLen = phoneSaleExtendHaluos.stream().filter(t -> "d".equals(t.getStatus())).count();
-                long abcLen = phoneSaleExtendHaluos.size() - dLen;
-                if (dLen > 0) {
-                    continue;
-                }
-//                if (dLen == 0 && abcLen > 0 && (a || b || c) && !d) {
-//                    continue;
-//                }
-                if (dLen == 0 && abcLen > 0 && (a || b) && !d) {
-                    continue;
-                }
-            }
-
-            String status = "";
-            if (d) {
-                status = "d";
-            } else if (b) {
-                status = "b";
-            }
-//            else if (c) {
-//                status = "c";
-//            }
-            else if (a) {
-                status = "a";
-            }
-            Boolean lock = Boolean.FALSE;
-            while (!lock) {
-                Result<Boolean> booleanResult = addHaluoLock(apiCode, cusBatch, marketingTransferSyncUser.getCustNum(), status);
-                //不需要等待
-                if (!ResultCode.SUCCESS.getValue().equals(booleanResult.getCode())) {
-                    continue validData;
-                }
-                lock = booleanResult.getData();
-                //如满足需要等待再次获取
-                if (!lock) {
-                    try {
-                        Thread.sleep(500L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            if (localFile.getId() == null || localFile.getId() <= 0) {
-                localFile.setApiCode(apiCode);
-                localFile.setCreateTime(new Date());
-                localFile.setFileType(SftpFileTypeEnum.HLBYTRANSFORM.getValue());
-                localFile.setFileName("哈罗—".concat(marketingTransferSyncUser.getRequestId()));
-                localFileMapper.insertSelective(localFile);
-
-                HaluoCallRelation haluoCallRelation = new HaluoCallRelation();
-                haluoCallRelation.setTransferId(transferInfo.getId());
-                haluoCallRelation.setDxId(localFile.getId());
-                haluoCallRelation.setBlackId(localFile.getId());
-                haluoCallRelation.setRequestId(transferInfo.getRequestId());
-                haluoCallRelation.setCreateTime(new Date());
-                haluoCallRelationMapper.insertSelective(haluoCallRelation);
-
-            }
-            String cell = BrCipherMaker.getInstance().decode(marketingSyncUser.getCell());
-            String s = AESUtil.aesEncrypty(cell, aesKey);
-            String name = StringUtils.isNotBlank(marketingSyncUser.getName()) ?
-                    BrCipherMaker.getInstance().decode(marketingSyncUser.getName())
-                    : "";
-            PhoneSale sale = new PhoneSale();
-            sale.setLocalId(localFile.getId().toString());
-            sale.setApiCode(apiCode);
-            sale.setOrgname("hellobike");
-            sale.setName(name);
-            sale.setPhone(s);
-            sale.setPhoneAes(marketingSyncUser.getCell());
-            sale.setUid(marketingTransferSyncUser.getCustNum());
-            sale.setUserType("d".equals(status) ? "3" : "2");
-            sale.setLoginTime(haluoBydxTimeFormat(marketingTransferSyncUser.getLoginTime()));
-            sale.setSource("96");
-            sale.setAuditTime(haluoBydxTimeFormat(marketingTransferSyncUser.getAuditTime()));
-            sale.setAuditAmount(marketingTransferSyncUser.getAuditAmount());
-            sale.setIfApply(marketingTransferSyncUser.getIfApply());
-            sale.setApplyDt(haluoBydxTimeFormat(marketingTransferSyncUser.getApplyDt()));
-            sale.setUnlentAmount(marketingTransferSyncUser.getUnlentAmount());
-            sale.setCreateTime(new Date());
-//            sale.setApplyResult(marketingTransferSyncUser.getApplyResult());
-            if (StringUtils.isNotBlank(marketingTransferSyncUser.getReserveField1())) {
-                JSONObject jsonObject = JSON.parseObject(marketingTransferSyncUser.getReserveField1());
-                if (jsonObject != null) {
-                    String applyInformation = jsonObject.getString("applyInformation");
-                    if (StringUtils.isNotBlank(applyInformation)) {
-                        JSONObject jsonObject1 = new JSONObject();
-                        jsonObject1.put("applyInformation", applyInformation);
-                        sale.setExtend(JSON.toJSONString(jsonObject1));
-                    }
-                }
-            }
-            phoneSaleMapper.insertSelective(sale);
-
-            PhoneSaleExtendHaluo haluo = new PhoneSaleExtendHaluo();
-            haluo.setpId(sale.getId());
-            haluo.setLocalId(localFile.getId());
-            haluo.setTaskId(cusBatch);
-            haluo.setCustNum(marketingTransferSyncUser.getCustNum());
-            haluo.setAppletDate(marketingTransferSyncUser.getRequestData());
-            haluo.setAppletTime(marketingTransferSyncUser.getRequestTime());
-            haluo.setCreateTime(new Date());
-            haluo.setStatus(status);
-            phoneSaleExtendHaluoMapper.insertSelective(haluo);
-
-            String expiredate = LocalDate.parse(marketingTransferSyncUser.getRequestData(), DateTimeFormatter.ofPattern("yyyy-MM-dd")).plusDays(6)
-                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:00";
-            PhoneBlack phoneBlack = new PhoneBlack();
-            phoneBlack.setLocalId(localFile.getId());
-            phoneBlack.setName(name);
-            phoneBlack.setPhone(marketingSyncUser.getCell());
-            phoneBlack.setExpiredate(expiredate);
-            phoneBlack.setCreateTime(new Date());
-            phoneBlack.setUpdateTime(new Date());
-            phoneBlackMapper.insertSelective(phoneBlack);
-            removeHaluoLock(apiCode, cusBatch, marketingTransferSyncUser.getCustNum(), status);
-        }
-        if (localFile.getId() != null && localFile.getId() > 0) {
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE, localFile.getId().toString());
-            producter.send(MQConstants.ROUTING_KEY_MARKETING_PUSH_BLACK, localFile.getId().toString());
-        }
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue);
     }
 
     @Override

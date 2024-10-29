@@ -51,6 +51,11 @@ public class CustomizeUploadData implements Serializable {
     private String responseData;
 
     /**
+     * 扩展字段
+     */
+    private String extend;
+
+    /**
      * 状态 0-无效、1-有效
      */
     private Integer status;

@@ -1,13 +1,16 @@
 package com.br.marketing.bridge.job;
 
-import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.entity.*;
+import com.br.marketing.bridge.common.utils.SftpToDbUtils;
 import com.br.marketing.bridge.model.dto.FileContext;
 import com.br.marketing.bridge.service.todb.impl.SftpToDbByCommonService;
 import com.br.marketing.bridge.service.todb.impl.SftpToDbByDXService;
-import com.br.marketing.bridge.common.utils.SftpToDbUtils;
+import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.SftpFileTypeEnum;
+import com.br.marketing.entity.LocalFile;
+import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.entity.SyncConfig;
+import com.br.marketing.entity.SyncConfigExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
@@ -27,7 +30,13 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -174,21 +183,18 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads
-                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
                                         , iTxtToDbService::phoneTodbByXW);
                             } else if (juziList.contains(apiCode)) {
                                 ArrayList<String> baseHeads = new ArrayList<>(Arrays.asList("测试编号", "md5手机号", "客群类型"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads
-                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
                                         , iTxtToDbService::phoneTodbByJuZi);
                             } else if (yixinList.contains(apiCode)) {
                                 ArrayList<String> baseHeads = new ArrayList<>(Arrays.asList("uid", "type"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads
-                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
                                         , iTxtToDbService::phoneTodbByYiXin
                                         ,iTxtToDbService::phoneTodbByYiXinAfterAction);
                             } else if (zhongYuanList.contains(apiCode)) {
@@ -196,17 +202,20 @@ public class SftpToDbByResultDataJob extends AbstractSimpleElasticJob {
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads
-                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DATA_SCORE
                                         , iTxtToDbService::phoneTodb);
                             } else {
                                 ArrayList<String> baseHeads = new ArrayList<String>(Arrays.asList("uid", "phone", "name", "orgname", "user_type"));
                                 sftpToDbByCommonService.actionTxtFile(context
                                         , localFile
                                         , baseHeads
-                                        , MQConstants.ROUTING_KEY_MARKETING_PUSH_DASS_SCORE
                                         , iTxtToDbService::phoneTodb);
                             }
-//                            sftpToDbByDXService.actionTxtFile(context,localFile);
+
+                            // 更新推送状态为待推送
+                            LocalFile updateFile = new LocalFile();
+                            updateFile.setId(localFile.getId());
+                            updateFile.setPushStatus("0");
+                            localFileMapper.updateByPrimaryKeySelective(updateFile);
                         } catch (Exception e) {
                             log.warn("rename file error ", e);
                             try {

@@ -5,14 +5,14 @@ import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.RuleNecessaryData;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import lombok.Data;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -29,7 +29,6 @@ public class RsCollectDataImpl extends CommonMethodHandlerService{
             RsRuleNecessaryData ruleNecessaryData = new RsRuleNecessaryData();
             List<MarketingTransferSyncUser> transferList = (List<MarketingTransferSyncUser>) transmitFacts;
             Set<String> set = transferList.stream().map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            String cId = tableCreateService.getTcId(context.getApiCode());
             ruleNecessaryData.setCustomerMap(customerMarketingSyncUser(set,context.getApiCode()));
             context.setRuleNecessaryData(ruleNecessaryData);
         }

@@ -1,6 +1,5 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -18,11 +17,11 @@ import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
-import com.br.marketing.mapper.MarketingValidityChangeMapper;
+import com.br.marketing.mapper.MarketingCustomerMapper;
+import com.br.marketing.mapper.MarketingDataValidConfigDefaultMapper;
 import com.br.marketing.mapper.VariableDicMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IPeriodOfValidityService;
-import com.br.marketing.mapper.*;
 import com.br.marketing.service.VariableDicService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerSelectVO;
@@ -43,10 +42,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -344,9 +340,8 @@ public class VariableDicServiceImpl implements VariableDicService {
                         }
                     }
                 }
-
-                createValidDateConfig(apiDataInfoDTO, apiDataInfoDTO.getRawDataSaveTimeStr(), collectionDTO, apiCode
-                        , userType);
+                // 自动生成有效期
+                createValidDateConfig(apiDataInfoDTO, collectionDTO, apiCode, userType);
             }
         } catch (Exception e) {
             log.error(e.getMessage() + "\n" + msgStr, e);
@@ -412,7 +407,8 @@ public class VariableDicServiceImpl implements VariableDicService {
             boolean isRealTimeSend = (localTime.isAfter(startParse) || localTime.equals(startParse))
                     && (localTime.isBefore(endParse) || localTime.equals(endParse));
             if (isRealTimeSend) {
-                String content = ("apiCode  userType\n".concat(apiCode).concat("  " + (userType)).concat("\n"));
+                String content = ("新增场景通知 " + LocalDate.now() + "\napiCode  userType\n".concat(apiCode).concat("  "
+                        + (userType)).concat("\n"));
                 sendDingDingTextMessage(content, map);
             } else {
                 // T+1日延时定时发送消息
@@ -446,23 +442,26 @@ public class VariableDicServiceImpl implements VariableDicService {
      * 创建有效期
      * <p>
      * <p>
-     * 2024-03-05 14:55 经过与测试同学、需求同学确认，转化和上传数据都要生成默认的有效期配置
+     * 生成有效期的数据为上传数据且状态为非剔除的数据
      *
      * @param apiDataInfoDTO 消息源
-     * @param dateTimeStr    数据接收时间
      * @param apiCode        客户编号
      * @param userType       场景
      */
-    private void createValidDateConfig(ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO, String dateTimeStr
+    private void createValidDateConfig(ApiDataInfoDTO<UserTypeCollectionDTO> apiDataInfoDTO
             , UserTypeCollectionDTO collectionDTO, String apiCode, String userType) {
-        if (apiDataInfoDTO.uploadMsgSource() && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode()) {
+        boolean bool = apiDataInfoDTO.transferMsgSource() || (apiDataInfoDTO.uploadMsgSource()
+                && collectionDTO.getStatus() == MonitorTypeEnum.STATUS_2.getTypeCode());
+        if (bool) {
+            // 转化数据或上传数据状态为提出的数据不生产有效期配置
             return;
         }
         Set<String> apiCodes = marketingCommonConfig.getNonConfigValidDefaultApiCodes();
         if ((apiCodes != null && apiCodes.contains(apiCode))) {
             return;
         }
-        LocalDateTime parseTime = LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        LocalDateTime parseTime = LocalDateTime.parse(apiDataInfoDTO.getRawDataSaveTimeStr()
+                , DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
         marketingSyncUser.setUserType(userType);
         marketingSyncUser.setApiCode(apiCode);
@@ -537,7 +536,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 log.warn("场景告警redis主键{}中不存在内容！", redisKey);
                 return result;
             }
-            String contentHeld = "apiCode  userType\n";
+            String contentHeld = "新增场景通知 " + LocalDate.now() + "\napiCode  userType\n";
             String content = "";
             int count = 0;
             for (String mgs : userTypeSet) {

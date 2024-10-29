@@ -221,11 +221,22 @@
     order by user_type asc;
   </select>
 
-  <select id="queryUserTypeByApiCodetikv_" parameterType="java.lang.String" resultType="java.lang.String" >
-    select
-      distinct user_type
+  <select id="queryUserTypeByApiCodetikv_" parameterType="java.lang.String" resultType="java.lang.String">
+    select distinct user_type
     from b_marketing_task_user_type
-    where api_code=#{apiCode,jdbcType=VARCHAR}
+    where api_code = #{apiCode,jdbcType=VARCHAR}
+    order by user_type asc;
+  </select>
+
+  <select id="queryUserTypeByBatchNumberAndApiCodetikv_" parameterType="java.lang.String" resultType="java.lang.String">
+    select
+    distinct user_type
+    from b_marketing_task_user_type
+    where batch_number in (
+    <foreach collection="batchNumber.split(',')" index="index" item="item" open="" close="" separator=",">
+      '${item}'
+    </foreach>
+    ) and api_code='${apiCode}'
     order by user_type asc;
   </select>
 

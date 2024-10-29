@@ -35,8 +35,8 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_VALIDITY_PERIOD("62005", "有效期规则提示"),
     //pulsar消费requestId冲突
     REQUESTID_CONFLICT("62006", "requestIdConflict"),
-    // 接口字段新增检查,阶梯推送，一般
-    EXCEPTION_NEW_FIELD_CHECK("62006", "接口字段新增检查"),
+    // 接口字段新增检查,立即推送，一般
+    EXCEPTION_NEW_FIELD_CHECK("62011", "接口字段新增检查"),
     // 一般通知,阶梯推送，一般
     EXCEPTION_USUAL_NOTICE("62007", "通知"),
     //众安通话明细回调
@@ -174,6 +174,8 @@ public enum AlarmSendCodeEnum {
     RONGSHU_SERVICEERROR("6019001", "榕树业务异常"),
     //榕树接口调用失败,阶梯推送
     RONGSHU_INTERFACEERROR("6019002", "榕树接口调用失败"),
+    //榕树业务处理阶梯告警
+    RONGSHU_PROCESS_WARNING("6019003", "榕树业务处理问题阶梯告警"),
 
     //亿联业务异常,立即推送
     YILIAN_SERVICEERROR("6020001", "亿联业务异常"),
@@ -254,6 +256,12 @@ public enum AlarmSendCodeEnum {
     DUXIAOMAN_SERVICEERROR("6036001", "度小满业务异常"),
     //度小满接口调用失败,阶梯推送
     DUXIAOMAN_INTERFACEERROR("6036002", "度小满接口调用失败"),
+
+    //BI报表业务异常,立即推送
+    BIREPORT_SERVICEERROR("6037001", "BI报表业务异常"),
+
+    //微聚业务异常,立即推送
+    WEIJU_SERVICEERROR("6038001", "微聚业务异常"),
 
     ;
 

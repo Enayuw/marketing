@@ -103,14 +103,10 @@ public class YiXinTransferPushToBaiYingJob extends AbstractSimpleElasticJob {
             }
 
             // action transfer
-            Result result1 = actionTransferPush(apiCode, bizDate, synApiCode,"1");
-            Result result2 = actionTransferPush(apiCode, bizDate, synApiCode,"2");
             Result result3 = actionTransferPush(apiCode, bizDate, synApiCode,"3");
             Result result4 = actionTransferPush(apiCode, bizDate, synApiCode,"4");
 
-            if (ResultCode.SUCCESS.getValue().equals(result1.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result2.getCode())
-                    && ResultCode.SUCCESS.getValue().equals(result3.getCode())
+            if (ResultCode.SUCCESS.getValue().equals(result3.getCode())
                     && ResultCode.SUCCESS.getValue().equals(result4.getCode())
             ) {
                 jobManager.updateFrontDataStatus(actionFront.getId(), 2);

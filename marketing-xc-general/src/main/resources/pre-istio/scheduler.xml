@@ -94,4 +94,18 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+    <job:simple id="【xc-general】-XieChengCollidingHitRequestNoInitJob"
+                class="com.br.marketing.xc.job.XieChengCollidingHitRequestNoInitJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="携程撞库一次性初始化撞库流水号作业"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>

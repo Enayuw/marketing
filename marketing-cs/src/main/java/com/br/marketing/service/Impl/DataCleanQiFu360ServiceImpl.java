@@ -50,11 +50,13 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
     public void cleaning(String jobParameter) {
         String beginQueryDate = null;
         String endQueryDate = null;
+        String createDate = null;
         JSONArray apiCodeFromJobParam = null;
         if(StringUtils.isNotBlank(jobParameter)){
             JSONObject paramJson = JSON.parseObject(jobParameter);
             beginQueryDate = paramJson.getString("beginQueryDate");
             endQueryDate = paramJson.getString("endQueryDate");
+            createDate = paramJson.getString("createDate");
             apiCodeFromJobParam = paramJson.getJSONArray("apiCode");
         }
         ThreadPoolExecutor pushPool = BrExecutors.getThreadPool(5, 5);
@@ -70,6 +72,7 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
             QueryUserRealMessageExample.Criteria criteria = example.createCriteria();
             criteria.andStatusEqualTo(0).andIsDeletedEqualTo(0);
             if(StringUtils.isNotBlank(beginQueryDate) && StringUtils.isNotBlank(endQueryDate) ){
+                // 使用beginQueryDate和endQueryDate必须配置上createDate
                 SimpleDateFormat sdf = new SimpleDateFormat(DateHelper.LINE_DATE_COLON_TIME_FORMAT);
                 try {
                     Date begin = sdf.parse(beginQueryDate);
@@ -79,6 +82,12 @@ public class DataCleanQiFu360ServiceImpl implements DataCleanQiFu360Service {
                 } catch (ParseException e) {
                     log.warn("DataCleanQiFu360Job-参数中时间格式格式化异常[{}]",jobParameter);
                 }
+            }
+            if(StringUtils.isBlank(createDate)){
+                String nowFormat = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                criteria.andCreateDateEqualTo(nowFormat);
+            }else{
+                criteria.andCreateDateGreaterThanOrEqualTo(createDate);
             }
             if(null != apiCodeFromJobParam && !apiCodeFromJobParam.isEmpty()){
                 criteria.andApiCodeIn(apiCodeFromJobParam.toJavaList(String.class));

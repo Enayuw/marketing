@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.ReportStatisticsScoreBaseMapper">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ReportStatisticsScore">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="report_id" jdbcType="BIGINT" property="reportId" />
+    <result column="report_rule" jdbcType="VARCHAR" property="reportRule" />
+    <result column="batch_number_list" jdbcType="VARCHAR" property="batchNumberList" />
+    <result column="field_x" jdbcType="VARCHAR" property="fieldX" />
+    <result column="field_y" jdbcType="VARCHAR" property="fieldY" />
+    <result column="field_x_range" jdbcType="VARCHAR" property="fieldXRange" />
+    <result column="field_y_range" jdbcType="VARCHAR" property="fieldYRange" />
+    <result column="report_score_type" jdbcType="INTEGER" property="reportScoreType" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="statistics_desc" jdbcType="VARCHAR" property="statisticsDesc" />
+    <result column="statistics_order" jdbcType="INTEGER" property="statisticsOrder" />
+    <result column="is_del" jdbcType="INTEGER" property="isDel" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, report_id, report_rule, batch_number_list, field_x, field_y, field_x_range, field_y_range, 
+    report_score_type, `status`, statistics_desc, statistics_order, is_del, create_time, 
+    update_time
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.ReportStatisticsScoreExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_report_statistics_score
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_report_statistics_score
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_report_statistics_score
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ReportStatisticsScoreExample">
+    delete from b_report_statistics_score
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ReportStatisticsScore" useGeneratedKeys="true">
+    insert into b_report_statistics_score (report_id, report_rule, batch_number_list, 
+      field_x, field_y, field_x_range, 
+      field_y_range, report_score_type, `status`, 
+      statistics_desc, statistics_order, is_del, 
+      create_time, update_time)
+    values (#{reportId,jdbcType=BIGINT}, #{reportRule,jdbcType=VARCHAR}, #{batchNumberList,jdbcType=VARCHAR}, 
+      #{fieldX,jdbcType=VARCHAR}, #{fieldY,jdbcType=VARCHAR}, #{fieldXRange,jdbcType=VARCHAR}, 
+      #{fieldYRange,jdbcType=VARCHAR}, #{reportScoreType,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, 
+      #{statisticsDesc,jdbcType=VARCHAR}, #{statisticsOrder,jdbcType=INTEGER}, #{isDel,jdbcType=INTEGER}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.ReportStatisticsScore" useGeneratedKeys="true">
+    insert into b_report_statistics_score
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="reportId != null">
+        report_id,
+      </if>
+      <if test="reportRule != null">
+        report_rule,
+      </if>
+      <if test="batchNumberList != null">
+        batch_number_list,
+      </if>
+      <if test="fieldX != null">
+        field_x,
+      </if>
+      <if test="fieldY != null">
+        field_y,
+      </if>
+      <if test="fieldXRange != null">
+        field_x_range,
+      </if>
+      <if test="fieldYRange != null">
+        field_y_range,
+      </if>
+      <if test="reportScoreType != null">
+        report_score_type,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="statisticsDesc != null">
+        statistics_desc,
+      </if>
+      <if test="statisticsOrder != null">
+        statistics_order,
+      </if>
+      <if test="isDel != null">
+        is_del,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="reportId != null">
+        #{reportId,jdbcType=BIGINT},
+      </if>
+      <if test="reportRule != null">
+        #{reportRule,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNumberList != null">
+        #{batchNumberList,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldX != null">
+        #{fieldX,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldY != null">
+        #{fieldY,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldXRange != null">
+        #{fieldXRange,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldYRange != null">
+        #{fieldYRange,jdbcType=VARCHAR},
+      </if>
+      <if test="reportScoreType != null">
+        #{reportScoreType,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="statisticsDesc != null">
+        #{statisticsDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="statisticsOrder != null">
+        #{statisticsOrder,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null">
+        #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ReportStatisticsScoreExample" resultType="java.lang.Long">
+    select count(*) from b_report_statistics_score
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_report_statistics_score
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.reportId != null">
+        report_id = #{record.reportId,jdbcType=BIGINT},
+      </if>
+      <if test="record.reportRule != null">
+        report_rule = #{record.reportRule,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchNumberList != null">
+        batch_number_list = #{record.batchNumberList,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fieldX != null">
+        field_x = #{record.fieldX,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fieldY != null">
+        field_y = #{record.fieldY,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fieldXRange != null">
+        field_x_range = #{record.fieldXRange,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fieldYRange != null">
+        field_y_range = #{record.fieldYRange,jdbcType=VARCHAR},
+      </if>
+      <if test="record.reportScoreType != null">
+        report_score_type = #{record.reportScoreType,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
+      </if>
+      <if test="record.statisticsDesc != null">
+        statistics_desc = #{record.statisticsDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="record.statisticsOrder != null">
+        statistics_order = #{record.statisticsOrder,jdbcType=INTEGER},
+      </if>
+      <if test="record.isDel != null">
+        is_del = #{record.isDel,jdbcType=INTEGER},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_report_statistics_score
+    set id = #{record.id,jdbcType=BIGINT},
+      report_id = #{record.reportId,jdbcType=BIGINT},
+      report_rule = #{record.reportRule,jdbcType=VARCHAR},
+      batch_number_list = #{record.batchNumberList,jdbcType=VARCHAR},
+      field_x = #{record.fieldX,jdbcType=VARCHAR},
+      field_y = #{record.fieldY,jdbcType=VARCHAR},
+      field_x_range = #{record.fieldXRange,jdbcType=VARCHAR},
+      field_y_range = #{record.fieldYRange,jdbcType=VARCHAR},
+      report_score_type = #{record.reportScoreType,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
+      statistics_desc = #{record.statisticsDesc,jdbcType=VARCHAR},
+      statistics_order = #{record.statisticsOrder,jdbcType=INTEGER},
+      is_del = #{record.isDel,jdbcType=INTEGER},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ReportStatisticsScore">
+    update b_report_statistics_score
+    <set>
+      <if test="reportId != null">
+        report_id = #{reportId,jdbcType=BIGINT},
+      </if>
+      <if test="reportRule != null">
+        report_rule = #{reportRule,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNumberList != null">
+        batch_number_list = #{batchNumberList,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldX != null">
+        field_x = #{fieldX,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldY != null">
+        field_y = #{fieldY,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldXRange != null">
+        field_x_range = #{fieldXRange,jdbcType=VARCHAR},
+      </if>
+      <if test="fieldYRange != null">
+        field_y_range = #{fieldYRange,jdbcType=VARCHAR},
+      </if>
+      <if test="reportScoreType != null">
+        report_score_type = #{reportScoreType,jdbcType=INTEGER},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="statisticsDesc != null">
+        statistics_desc = #{statisticsDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="statisticsOrder != null">
+        statistics_order = #{statisticsOrder,jdbcType=INTEGER},
+      </if>
+      <if test="isDel != null">
+        is_del = #{isDel,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ReportStatisticsScore">
+    update b_report_statistics_score
+    set report_id = #{reportId,jdbcType=BIGINT},
+      report_rule = #{reportRule,jdbcType=VARCHAR},
+      batch_number_list = #{batchNumberList,jdbcType=VARCHAR},
+      field_x = #{fieldX,jdbcType=VARCHAR},
+      field_y = #{fieldY,jdbcType=VARCHAR},
+      field_x_range = #{fieldXRange,jdbcType=VARCHAR},
+      field_y_range = #{fieldYRange,jdbcType=VARCHAR},
+      report_score_type = #{reportScoreType,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
+      statistics_desc = #{statisticsDesc,jdbcType=VARCHAR},
+      statistics_order = #{statisticsOrder,jdbcType=INTEGER},
+      is_del = #{isDel,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

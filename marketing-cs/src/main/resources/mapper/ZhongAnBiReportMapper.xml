@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ZhongAnBiReportMapper">
+    <select id="selectZaOutboundCallListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhonganOutboundCallReportDTO">
+        select * from dws_za_outbound_call_statistics
+        where is_delete = 0
+        <if test="reportDateStart !=null and reportDateStart!=''">
+            <![CDATA[ and report_date >= #{reportDateStart}]]>
+        </if>
+        <if test="reportDateEnd !=null and reportDateEnd!=''">
+            <![CDATA[ and report_date <= #{reportDateEnd}]]>
+        </if>
+        <if test="userTypes !=null">
+            and user_type in
+            <foreach collection="userTypes" item="userType" open="(" separator="," close=")">
+                #{userType}
+            </foreach>
+        </if>
+        order by report_date desc;
+    </select>
+
+    <select id="selectZaMultiHeadGroupListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnDistributionStatisticDTO">
+        select * from dws_report_statistic_transfer_detail
+        where report_id = #{reportId} and score_field = #{field}
+        <if test="dimensionField !=null and dimensionField!=''">
+            <![CDATA[ and dimension_field = #{dimensionField}]]>
+        </if>
+        <if test="dimensionValue !=null and dimensionValue!=''">
+            <![CDATA[ and dimension_value = #{dimensionValue}]]>
+        </if>
+        <if test="itemName !=null and itemName!=''">
+            <![CDATA[ and item_name = #{itemName}]]>
+        </if>
+        order by score_value desc;
+    </select>
+
+    <select id="selectZaBusAnalyOneListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO">
+        select * from dws_za_one_business_analysis where report_id = #{reportId} order by report_date asc,group_order asc
+    </select>
+
+    <select id="selectZaBusAnalySevenListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnBusAnalySevenReportDTO">
+        select * from dws_za_seven_business_analysis where report_id = #{reportId} order by report_date asc,group_order asc
+    </select>
+
+    <select id="selectZaBusAnalyEightListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyEightReportDTO">
+        select * from dws_za_eight_business_analysis where report_id = #{reportId} order by report_date asc,group_order asc
+    </select>
+
+    <select id="queryReportStatisticTransferDetailbI_" resultType="com.br.marketing.dto.report.zhongan.ReportStatisticTransferDetail">
+        select * from dws_report_statistic_transfer_detail
+        where report_id = #{reportId}
+        <if test="scoreField !=null and scoreField !=''">
+            <![CDATA[ and score_field = #{scoreField}]]>
+        </if>
+        <if test="dimensionField !=null and dimensionField!=''">
+            <![CDATA[ and dimension_field = #{dimensionField}]]>
+        </if>
+        <if test="dimensionValue !=null and dimensionValue!=''">
+            <![CDATA[ and dimension_value = #{dimensionValue}]]>
+        </if>
+        <if test="itemName !=null and itemName!=''">
+            <![CDATA[ and item_name = #{itemName}]]>
+        </if>
+        order by score_value desc
+    </select>
+
+</mapper>
+
+

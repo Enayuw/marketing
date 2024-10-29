@@ -1,15 +1,18 @@
 package com.br.marketing.client.wuba;
 
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
@@ -19,7 +22,9 @@ import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mock.MockService;
 import com.br.marketing.mock.custom.wuba.WuBaMockService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +37,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +108,8 @@ public class WuBaServiceClient {
         String data = resultJson.getString("data");
         if (code == 0 && StringUtils.isNotEmpty(data)) {
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(data);
+        } else if (code == 9999) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(JSON.toJSONString(resMap));
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
@@ -235,12 +243,21 @@ public class WuBaServiceClient {
 
             JSONArray array = new JSONArray();
             for (WubaCollidingDataLog collidingDataLog : logs) {
-                JSONObject jsonObject = new JSONObject();
                 if (collidingDataLog.getId().intValue() % 2 == 1) {
+                    JSONObject jsonObject = new JSONObject();
                     String randomNumber = RANDOM.ints(1, 10)
                             .limit(10).mapToObj(String::valueOf).collect(Collectors.joining()) + "0";
                     jsonObject.put("id", randomNumber);
                     jsonObject.put("mobileEncrypt", collidingDataLog.getCell());
+
+                    ArrayList<Integer> radomStatus = Lists.newArrayList(1, -2);
+                    jsonObject.put("status", RandomUtil.randomEle(radomStatus));
+                    ArrayList<String> randomUserType = Lists.newArrayList("1", "2", null);
+                    String userType = RandomUtil.randomEle(randomUserType);
+                    if (Objects.nonNull(userType)) {
+                        jsonObject.put("userType", userType);
+                    }
+
                     array.add(jsonObject);
                 }
             }
@@ -255,6 +272,24 @@ public class WuBaServiceClient {
             return resMock;
         } else {
             return resMap;
+        }
+    }
+
+    public void sendDingDingAlert(String title, String text) {
+        DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
+        markdown.setTitle(title);
+        markdown.setText(text);
+        DingDingMarkdownMessage dingDingMarkdownMessage = new DingDingMarkdownMessage();
+        dingDingMarkdownMessage.setMarkdown(markdown);
+
+        String token = marketingCommonConfig.getWuBaDingDingAccessToken();
+        String secret = marketingCommonConfig.getWuBaDingDingSecret();
+        try {
+            dingDingRobotHookService.sendMessageGroup(token, secret, dingDingMarkdownMessage, true);
+        } catch (Exception e) {
+            String subject = text + ",发送钉钉消息失败";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                    , subject), e);
         }
     }
 }

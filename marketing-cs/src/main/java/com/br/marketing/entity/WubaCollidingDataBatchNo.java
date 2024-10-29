@@ -14,6 +14,11 @@ public class WubaCollidingDataBatchNo {
     private String apiCode;
 
     /**
+     * 数据来源类型：T-周期，F-非周期
+     */
+    private String dataSourceType;
+
+    /**
      * 批次号
      */
     private String batchNo;
@@ -67,6 +72,14 @@ public class WubaCollidingDataBatchNo {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getDataSourceType() {
+        return dataSourceType;
+    }
+
+    public void setDataSourceType(String dataSourceType) {
+        this.dataSourceType = dataSourceType == null ? null : dataSourceType.trim();
     }
 
     public String getBatchNo() {

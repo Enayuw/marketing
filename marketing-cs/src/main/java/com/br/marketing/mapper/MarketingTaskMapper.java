@@ -4,11 +4,10 @@ import com.br.marketing.dto.CustomerBatchNumDTO;
 import com.br.marketing.entity.ApiCodeTask;
 import com.br.marketing.entity.MarketingTask;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
-import com.br.marketing.vo.FastTaskRuleListVO;
+import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.MarketingTaskVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
@@ -229,9 +228,27 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
 
     MarketingTask selectCycleTopByApiCode(String apiCode);
 
-    List<MarketingTask> getScoreTasks(@Param("date") String date,@Param("taskId") Long taskId,@Param("hm")String hm);
+    List<MarketingTask> getScoreTasks(@Param("date") String date, @Param("taskId") Long taskId, @Param("hm") String hm);
 
     Integer selectByPriority(Integer priority);
 
     String selectHisFileById(String hisFileId);
+
+    @AddDataAuth
+    List<ScoreDetailVo> queryBatchList(CustomerBatchNumVO batchNumVO);
+
+    List<MarketingTaskVO> queryCompletStatus(@Param("apiCode")String apiCode, @Param("createTimeStart")String createTimeStart,
+                                             @Param("createTimeEnd")String createTimeEnd, @Param("taskStatus")Integer taskStatus,
+                                             @Param("conditionType")Integer conditionType, @Param("ruleNameShort")String ruleNameShort);
+
+    /**
+     * 通过apiCode查询最后一个非验证任务
+     *
+     * @param apiCode     apiCode
+     * @param batchNumber 任务编号
+     * @return {@link List }<{@link MarketingTask }>
+     * @author senyang.zheng
+     * @date 2024/10/21
+     */
+    MarketingTaskVO queryLastNonValidationTask(@Param("apiCode") String apiCode, @Param("batchNumber") String batchNumber);
 }

@@ -14,6 +14,11 @@ public class WubaCollidingDataLoopCycle {
     private String apiCode;
 
     /**
+     * 数据来源类型：T-周期，F-非周期
+     */
+    private String dataSourceType;
+
+    /**
      * md5手机号
      */
     private String cell;
@@ -57,6 +62,14 @@ public class WubaCollidingDataLoopCycle {
 
     public void setApiCode(String apiCode) {
         this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getDataSourceType() {
+        return dataSourceType;
+    }
+
+    public void setDataSourceType(String dataSourceType) {
+        this.dataSourceType = dataSourceType == null ? null : dataSourceType.trim();
     }
 
     public String getCell() {

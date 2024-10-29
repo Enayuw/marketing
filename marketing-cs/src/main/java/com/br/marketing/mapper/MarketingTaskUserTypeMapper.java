@@ -32,5 +32,6 @@ public interface MarketingTaskUserTypeMapper {
     List<String> queryUserTypeByBatchNumbertikv_(@Param("batchNumber") String batchNumber);
     List<String> queryUserTypeByApiCodetikv_(@Param("apiCode") String apiCode);
 
+    List<String> queryUserTypeByBatchNumberAndApiCodetikv_(@Param("apiCode") String apiCode, @Param("batchNumber") String batchNumber);
 
 }
