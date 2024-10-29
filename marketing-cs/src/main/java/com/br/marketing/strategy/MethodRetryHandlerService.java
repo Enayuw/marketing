@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
@@ -51,6 +52,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
@@ -415,7 +417,8 @@ public class MethodRetryHandlerService {
             saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
-        log.error("调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
+                , "调用客服接口失败 -- " + JSON.toJSONString(transferRobotOutboundVO)));
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
@@ -445,7 +448,8 @@ public class MethodRetryHandlerService {
             saveBizLog(Joiner.on(",").join(set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
-        log.error("调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
+                , "调用客服接口失败 -- " + JSON.toJSONString(transferRobotOutboundVO)));
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
@@ -462,7 +466,8 @@ public class MethodRetryHandlerService {
             dataCompareMapper.insertSelective(dataCompare);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
-        log.error("携程新场景短信撞库，调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
+                , "携程新场景短信撞库，调用客服接口失败 --  -- " + JSON.toJSONString(transferRobotOutboundVO)));
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
