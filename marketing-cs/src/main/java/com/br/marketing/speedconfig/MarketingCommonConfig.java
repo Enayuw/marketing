@@ -2255,5 +2255,15 @@ public class MarketingCommonConfig {
      */
     private JSONObject guoMeiCleanFieldMappingConfig;
 
+    /**
+     * 奇富AI上传数据apiCode
+     */
+    private String qiFuAIUploadDataApiCode;
+
+    /**
+     * 奇富AI上传数据参数配置
+     */
+    private JSONObject qiFuAIServerConfig;
+
 }
 
