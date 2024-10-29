@@ -132,8 +132,10 @@ public class GeneScriptUtil {
         valueTypeSource.append(FOR_FRAG).append(BRACE_FRAG_LEFT);
         //条件片段
         for (ScoreLable scoreLable : list) {
-            listValueSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT).append(scoreLable.getListValue()).append(RETURN_FRAG_RIGHT);
-            valueTypeSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT).append(scoreLable.getValueType()).append(RETURN_FRAG_RIGHT);
+            listValueSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT)
+                    .append(scoreLable.getListValue()).append(RETURN_FRAG_RIGHT);
+            valueTypeSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT)
+                    .append(scoreLable.getValueType()).append(RETURN_FRAG_RIGHT);
         }
         //}补齐
         listValueSource.append(BRACE_FRAG_RIGHT);

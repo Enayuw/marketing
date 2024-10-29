@@ -266,8 +266,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         return result;
     }
 
-    private void assmbleUserDetail(List<MarketingHistory> marketingHistories, List<PushMarketingUserDetailDTO> userDetailDTOS, Integer threeEncrypt,
-                                   List<XieChengCollidingDataLog> xieChengCollidingDataLogs, boolean scFlag, Boolean markWithEsFlag, String scoreCondition) {
+    private void assmbleUserDetail(List<MarketingHistory> marketingHistories, List<PushMarketingUserDetailDTO> userDetailDTOS,
+                                   Integer threeEncrypt, List<XieChengCollidingDataLog> xieChengCollidingDataLogs,
+                                   boolean scFlag, Boolean markWithEsFlag, String scoreCondition) {
         Map<String, XieChengCollidingDataLog> dataLogMap = getDataLogGroupByCell(xieChengCollidingDataLogs);
         for (int k = 0; k < marketingHistories.size(); k++) {
             MarketingHistory marketingHistory = marketingHistories.get(k);
@@ -307,7 +308,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 List<MarketingCondition> conditions = marketingHistory.getCondition();
                 if (!CollectionUtils.isEmpty(conditions)) {
                     Map<String, Double> scoreMap = conditions.stream()
-                            .filter(condition -> org.apache.commons.lang3.StringUtils.isNotEmpty(condition.getCode()) && condition.getDValue() != null)
+                            .filter(condition -> StringUtils.isNotEmpty(condition.getCode()))
                             .collect(Collectors.toMap(MarketingCondition::getCode
                                     , MarketingCondition::getDValue
                                     , (existing, replacement) -> replacement));
