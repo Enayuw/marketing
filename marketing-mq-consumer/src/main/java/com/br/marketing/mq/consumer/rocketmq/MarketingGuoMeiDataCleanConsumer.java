@@ -32,7 +32,6 @@ public class MarketingGuoMeiDataCleanConsumer extends BaseMqMessageListener impl
     RocketMqConsumerService consumerService;
     @Resource
     private GuoMeiDataCleanService guoMeiDataCleanService;
-    @Resource
 
     @Override
     protected String consumerName() {
