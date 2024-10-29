@@ -1,8 +1,13 @@
 package com.br.marketing.api.customer.upload.service.guomei.impl;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import java.util.Collections;
 import java.util.Set;
 
+import javax.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +30,9 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUploadDataService {
+
+    @Resource
+    private RabbitMqProducter rabbitMqProducter;
 
     /**
      * 解密jsonData
@@ -164,5 +172,27 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
         GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
         guMeUploadResponseDTO.failed();
         return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
+    }
+
+    /**
+     * 数据下发
+     *
+     * @param tCid     tCid
+     * @param sourceId 数据源主键id
+     * @author senyang.zheng
+     * @date 2024/09/25
+     */
+    @Override
+    public void dataDirection(String tCid, Long sourceId) {
+        try {
+            JSONObject json = new JSONObject();
+            json.put("tCid", tCid);
+            json.put("sourceId", sourceId);
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_DATA_CLEAN, json.toJSONString());
+            log.warn("国美定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), e.getMessage()
+                    , "推送国美定制数据下发消息异常！"), e);
+        }
     }
 }

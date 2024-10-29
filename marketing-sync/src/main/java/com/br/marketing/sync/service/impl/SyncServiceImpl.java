@@ -11,11 +11,12 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCleanDataFile;
 import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.entity.SyncLog;
+import com.br.marketing.enums.SyncConfigCustomizedTypeEnum;
 import com.br.marketing.mapper.MarketingCleanDataFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.mapper.SyncLogMapper;
-import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.sync.SyncApplication;
+import com.br.marketing.sync.service.ShuHeCustomizedSyncService;
 import com.br.marketing.sync.service.SyncService;
 import com.jcraft.jsch.SftpATTRS;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +54,7 @@ public class SyncServiceImpl implements SyncService {
     SyncLogMapper loanSyncLogMapper;
 
     @Resource
-    private SyncConfigService syncConfigService;
+    private ShuHeCustomizedSyncService shuHeCustomizedSyncService;
 
     @Resource
     private MarketingCleanDataFileMapper marketingCleanDataFileMapper;
@@ -135,6 +136,31 @@ public class SyncServiceImpl implements SyncService {
             log.error("连接不可用 srcSftpClient.isConnected():{},targetSftpClient.isConnected():{}", srcClient.isConnected(), targetClient.isConnected());
             return;
         }
+
+        switch (SyncConfigCustomizedTypeEnum.getEnumByCode(loanSyncConfig.getCustomizedType())) {
+            case DEFAULT:
+                defaultSync(loanSyncConfig, stringListMap, date, diskBoll, srcClient, targetClient);
+                break;
+            case SHUHE_AUTO_MATCH_DATA:
+                shuHeCustomizedSyncService.syncFile(loanSyncConfig, srcClient, targetClient);
+                break;
+            default:
+                break;
+        }
+
+        try {
+            srcClient.disconnect();
+            if (diskBoll) {
+                return;
+            }
+            targetClient.disconnect();
+        } catch (Exception e) {
+            log.error("关闭sftp链接出错",e);
+        }
+
+    }
+
+    private void defaultSync(SyncConfig loanSyncConfig, Map<String, List<String>> stringListMap, String date, boolean diskBoll, BaseFtpClient srcClient, BaseFtpClient targetClient) {
         String suffixStr = loanSyncConfig.getSuffix();
         List<String> successList = stringListMap.get("success");
         List<String> finishList = stringListMap.get("finish");
@@ -144,7 +170,7 @@ public class SyncServiceImpl implements SyncService {
             List<String> txtList = stringListMap.get("txt");
             if(txtList!=null){
                 for(String fileName:txtList){
-                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)){
+                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList, date)){
                         if (diskBoll && bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
@@ -165,7 +191,7 @@ public class SyncServiceImpl implements SyncService {
             List<String> txtList = stringListMap.get("csv");
             if(txtList!=null){
                 for(String fileName:txtList){
-                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)) {
+                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList, date)) {
                         if (diskBoll && bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
@@ -186,7 +212,7 @@ public class SyncServiceImpl implements SyncService {
             List<String> zipList = stringListMap.get("zip");
             if(zipList!=null){
                 for(String fileName:zipList){
-                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList,date)) {
+                    if(checkFinishSuccess(loanSyncConfig,fileName,successList,finishList, date)) {
                         if (diskBoll && bean.downloadFileToLocalDisk(loanSyncConfig, srcClient, fileName)) {
                             continue;
                         }
@@ -213,16 +239,6 @@ public class SyncServiceImpl implements SyncService {
                 }
             }
         }
-        try {
-            srcClient.disconnect();
-            if (diskBoll) {
-                return;
-            }
-            targetClient.disconnect();
-        } catch (Exception e) {
-            log.error("关闭sftp链接出错",e);
-        }
-
     }
 
     /**
@@ -231,7 +247,7 @@ public class SyncServiceImpl implements SyncService {
      * @param isSrc 是否为源地址账号
      * @return SftpClient
      */
-    private BaseFtpClient getClient(SyncConfig loanSyncConfig, boolean isSrc){
+    public BaseFtpClient getClient(SyncConfig loanSyncConfig, boolean isSrc){
         BaseFtpClient client= null;
         if(isSrc){
             if(Constants.LOAN_WARNING_FTP.equals(loanSyncConfig.getSrcType())){
@@ -374,7 +390,7 @@ public class SyncServiceImpl implements SyncService {
         return resultMap;
     }
 
-    private void ftpFileList(Map<String, List<String>> resultMap, SyncConfig loanSyncConfig, FtpClient client, String apiCode) {
+    public void ftpFileList(Map<String, List<String>> resultMap, SyncConfig loanSyncConfig, FtpClient client, String apiCode) {
         try {
             String srcPath = loanSyncConfig.getSrcPath();
             FTPFile[] ftpFiles = client.listFiles(srcPath);
@@ -396,7 +412,7 @@ public class SyncServiceImpl implements SyncService {
     }
 
 
-    private void sftpFileList(Map<String,List<String>> resultMap, SyncConfig loanSyncConfig, SftpClient client, String apiCode){
+    public void sftpFileList(Map<String,List<String>> resultMap, SyncConfig loanSyncConfig, SftpClient client, String apiCode){
             try {
                 String srcPath = loanSyncConfig.getSrcPath();
                 Map<String, SftpATTRS> map = client.listFiles(srcPath);
