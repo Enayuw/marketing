@@ -238,6 +238,12 @@ api:
       encryptKey: "0463455a993b27010c80ceaca36f8faddcc5bb942b242faad8196ccda08d9ba556a669d6682d62d5278dbdc7a65d87ea8071635825725c35b92607eb379b369949"
       cksStr: "YRPZSSUEDOXHGNBYYYDGWPDASZJIIHXMJBZZFZTOSSHWABKGBHSBTUSJAMDFHIRX"
       slotKey: "rEFhYy7SRHzCrsMnzjqPoQ=="
+  guoMei: # 国美
+    baseUrl: "https://united-umg-t1.gomefinance.com.cn"
+    pushDataCallbackUrl: ${api.guoMei.baseUrl}/umg/api/v1/agencyOperation/pushDataCallback # 用户数据回传接口
+    pushResultCallbackUrl: ${api.guoMei.baseUrl}/umg/api/v1/agencyOperation/pushResultCallback # 营销结果数据回传接口
+    institutionCode: "bairong"
+    isProxy: true
 spring:
   rabbitmq:
     addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
