@@ -1042,4 +1042,25 @@
         and (${whereStr})
     </select>
 
+    <select id="getSyncUserLastByCustNumsAndCusBatch" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select b.cust_num, b.reserve_field1 from
+        (select cust_num,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num in
+        <foreach collection="custNums" item="custNum" open="(" separator="," close=")">
+            #{custNum}
+        </foreach>
+        and cus_batch='${cusBatch}' and json_valid(reserve_field1)=1
+        and reserve_field1->>'$.planId'='${planId}'
+        and status=1 and is_repeat in (1, 2)
+        group by cust_num
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.applet_time = b.applet_time
+        and a.cus_batch = b.cus_batch
+        where
+        b.status=1 and b.is_repeat in (1, 2)
+        and b.json_valid(reserve_field1)=1
+        and b.reserve_field1->>'$.planId'='${planId}'
+    </select>
+
 </mapper>
