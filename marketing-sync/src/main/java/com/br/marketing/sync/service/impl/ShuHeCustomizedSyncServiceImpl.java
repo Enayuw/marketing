@@ -72,13 +72,15 @@ public class ShuHeCustomizedSyncServiceImpl implements ShuHeCustomizedSyncServic
                 syncServiceImpl.ftpFileList(resultMap, syncConfig, (FtpClient)client, syncConfig.getApiCode());
             }
             List<String> csvFiles = resultMap.get("csv");
-            for (String csvFile : csvFiles) {
-                String fileName = updatedPath.substring(lastSlashIndex + 1);
-                if (fileName.equals(csvFile)) {
-                    syncServiceImpl.copyFile(syncConfig, fileName, srcClient, targetClient);
-                    Path tempFile = Files.createTempFile(fileName, ".success");
-                    targetClient.uploadFile(Files.newInputStream(tempFile), syncConfig.getTargetPath(), fileName.concat(".success"));
-                    Files.deleteIfExists(tempFile);
+            if (csvFiles != null) {
+                for (String csvFile : csvFiles) {
+                    String fileName = updatedPath.substring(lastSlashIndex + 1);
+                    if (fileName.equals(csvFile)) {
+                        syncServiceImpl.copyFile(syncConfig, fileName, srcClient, targetClient);
+                        Path tempFile = Files.createTempFile(fileName, ".success");
+                        targetClient.uploadFile(Files.newInputStream(tempFile), syncConfig.getTargetPath(), fileName.concat(".success"));
+                        Files.deleteIfExists(tempFile);
+                    }
                 }
             }
         } catch (Exception e) {
