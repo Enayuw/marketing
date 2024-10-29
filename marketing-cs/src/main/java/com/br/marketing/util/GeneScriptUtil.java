@@ -238,9 +238,10 @@ public class GeneScriptUtil {
      * @date 2024/10/29 13:38
      **/
     public static JSONObject scoreLable(String scoreLables, Map<String, Double> scoreMap) {
+
         JSONArray array = JSON.parseArray(scoreLables);
         //按order排序
-        array.sort(Comparator.comparing(obj -> ((cn.hutool.json.JSONObject) obj).getStr("order")));
+        array.sort(Comparator.comparing(obj -> JSON.parseObject(obj.toString()).getString("order")));
         //遍历评分分布分组
         for (Object obj : array) {
             JSONObject json = JSON.parseObject(obj.toString());
@@ -319,9 +320,9 @@ public class GeneScriptUtil {
         } else if (OPERATION_BETWEEN.equals(operation)) {
             return dValue.compareTo(valueStart) != -1 && dValue.compareTo(valueEnd) != 1;
         } else if (OPERATION_BETWEEN_LEFT.equals(operation)) {
-            return dValue.compareTo(valueStart) != -1 && dValue.compareTo(valueEnd) == -1;
-        } else if (OPERATION_BETWEEN_RIGHT.equals(operation)) {
             return dValue.compareTo(valueStart) == 1 && dValue.compareTo(valueEnd) != 1;
+        } else if (OPERATION_BETWEEN_RIGHT.equals(operation)) {
+            return dValue.compareTo(valueStart) != -1 && dValue.compareTo(valueEnd) == -1;
         } else {
             return true;
         }

@@ -301,7 +301,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             varObject.put("info", xieChengCollidingDataLog.getInfo());
             if (scFlag) {
                 if (markWithEsFlag) {
-                    markForCell(varObject, marketingHistory.getFields());
+                    markForCell(varObject, marketingHistory.getFields(), true);
                 }
             } else {
                 List<MarketingCondition> conditions = marketingHistory.getCondition();
@@ -313,7 +313,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                                     , (existing, replacement) -> replacement));
                     JSONObject fields = GeneScriptUtil.scoreLable(scoreCondition, scoreMap);
                     if (fields != null) {
-                        markForCell(varObject, fields);
+                        markForCell(varObject, fields, false);
                     }
                 }
             }
@@ -333,17 +333,22 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         }
     }
 
-    private void markForCell(JSONObject varObject, JSONObject fields) {
+    private void markForCell(JSONObject varObject, JSONObject fields, boolean b) {
         if (fields == null) {
             return;
         }
-        JSONObject listValueJson = fields.getJSONObject("listValue");
-        JSONObject valueTypeJson = fields.getJSONObject("valueType");
-        if (listValueJson != null) {
-            varObject.put("listValue", listValueJson.getString("value"));
-        }
-        if (valueTypeJson != null) {
-            varObject.put("valueType", valueTypeJson.getString("value"));
+        if (b) {
+            JSONObject listValueJson = fields.getJSONObject("listValue");
+            JSONObject valueTypeJson = fields.getJSONObject("valueType");
+            if (listValueJson != null) {
+                varObject.put("listValue", listValueJson.getString("value"));
+            }
+            if (valueTypeJson != null) {
+                varObject.put("valueType", valueTypeJson.getString("value"));
+            }
+        } else {
+            varObject.put("listValue", fields.getString("listValue"));
+            varObject.put("valueType", fields.getString("valueType"));
         }
     }
 
