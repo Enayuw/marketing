@@ -1,14 +1,13 @@
-package com.br.marketing.common.utils;
+package com.br.marketing.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.bean.ScoreLable;
+import com.br.marketing.common.utils.StringUtils;
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.codec.EncoderException;
-import org.apache.commons.codec.net.URLCodec;
 import java.util.*;
-
+import java.util.stream.Collectors;
 
 public class GeneScriptUtil {
 
@@ -96,7 +95,7 @@ public class GeneScriptUtil {
      * @author hedongshuo
      * @date 2024/10/26 18:32
      **/
-    public static String esLableScript(String scoreLables) throws EncoderException {
+    public static String esLableScript(String scoreLables) {
         JSONArray array = JSON.parseArray(scoreLables);
         //构建标签list
         List<ScoreLable> list = new ArrayList<>(array.size());
@@ -179,7 +178,7 @@ public class GeneScriptUtil {
      * @author hedongshuo
      * @date 2024/10/26 15:34
      **/
-    private static String geneScript(String listValueSource, String valueTypeSource) throws EncoderException {
+    private static String geneScript(String listValueSource, String valueTypeSource) {
         //3级
         JSONObject listValueScript = new JSONObject();
         listValueScript.put("lang", "painless");
@@ -213,7 +212,7 @@ public class GeneScriptUtil {
             conditionBuilder.append(PARENTHESIS_FRAG_LEFT);
             process(conditionBuilder, data);
             conditionBuilder.append(PARENTHESIS_FRAG_RIGHT);
-            //底层解析
+        //底层解析
         } else if ("operation".equals(type)) {
             String key = data.getString("key");
             String operatorLeft = opetatorMap.get(data.getString("operation") + SECTION_IDENTIFIER_LEFT);
@@ -229,4 +228,103 @@ public class GeneScriptUtil {
         }
         return conditionBuilder.toString();
     }
+
+    /**
+     * @description 返回数据打标
+     * @param scoreLables
+     * @param scoreMap
+     * @return com.alibaba.fastjson.JSONObject
+     * @author hedongshuo
+     * @date 2024/10/29 13:38
+     **/
+    public static JSONObject scoreLable(String scoreLables, Map<String, Double> scoreMap) {
+        JSONArray array = JSON.parseArray(scoreLables);
+        //按order排序
+        array.sort(Comparator.comparing(obj -> ((cn.hutool.json.JSONObject) obj).getStr("order")));
+        //遍历评分分布分组
+        for (Object obj : array) {
+            JSONObject json = JSON.parseObject(obj.toString());
+            JSONObject condition = json.getJSONObject("condition");
+            //解析condition
+            if (process(condition, scoreMap)) {
+                JSONArray labels = json.getJSONArray("labels");
+                JSONObject fields = new JSONObject();
+                for (Object label : labels) {
+                    JSONObject labelJson = JSON.parseObject(label.toString());
+                    String labelKey = labelJson.getString("labelKey");
+                    String labelValue = labelJson.getString("labelValue");
+                    if (LIST_VALUE.equals(labelKey)) {
+                        fields.put(LIST_VALUE, labelValue);
+                    }
+                    if (VALUE_TYPE.equals(labelKey)) {
+                        fields.put(VALUE_TYPE, labelValue);
+                    }
+                }
+                return fields;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @description 传入分值scoreMap，解析condition，是否满足条件
+     * @param condition
+     * @param scoreMap
+     * @return java.lang.Boolean
+     * @author hedongshuo
+     * @date 2024/10/29 13:43
+     **/
+    public static Boolean process(JSONObject condition, Map<String, Double> scoreMap) {
+        boolean isLogic = "logic".equals(condition.getString("type"));
+        //层级无限延伸
+        if (isLogic) {
+            JSONArray data = condition.getJSONArray("data");
+            boolean isAnd = "and".equals(condition.getString("logic"));
+            for (int i = 0; i < data.size(); i++) {
+                JSONObject dataJson = JSON.parseObject(data.get(i).toString());
+                if (isAnd) {
+                    if (!process(dataJson, scoreMap)) {
+                        return false;
+                    }
+                } else {
+                    if (process(dataJson, scoreMap)) {
+                        return true;
+                    }
+                }
+            }
+            if (isAnd) {
+                return true;
+            } else {
+                return false;
+            }
+        //底层解析
+        } else {
+            String key = condition.getString("key");
+            Double dValue = scoreMap.get(key);
+            if (dValue == null) {
+                return false;
+            }
+            return valueOperate(dValue, condition);
+        }
+    }
+
+    private static Boolean valueOperate(Double dValue, JSONObject dataJson) {
+        String operation = dataJson.getString("operation");
+        List<Double> value = Arrays.asList(dataJson.getString("value").split(","))
+                .stream().map(Double::valueOf).collect(Collectors.toList());
+        Double valueStart = value.get(0);
+        Double valueEnd = value.get(1);
+        if (OPERATION_BETWEEN_OPEN.equals(operation)) {
+            return dValue.compareTo(valueStart) == 1 && dValue.compareTo(valueEnd) == -1;
+        } else if (OPERATION_BETWEEN.equals(operation)) {
+            return dValue.compareTo(valueStart) != -1 && dValue.compareTo(valueEnd) != 1;
+        } else if (OPERATION_BETWEEN_LEFT.equals(operation)) {
+            return dValue.compareTo(valueStart) != -1 && dValue.compareTo(valueEnd) == -1;
+        } else if (OPERATION_BETWEEN_RIGHT.equals(operation)) {
+            return dValue.compareTo(valueStart) == 1 && dValue.compareTo(valueEnd) != 1;
+        } else {
+            return true;
+        }
+    }
+
 }

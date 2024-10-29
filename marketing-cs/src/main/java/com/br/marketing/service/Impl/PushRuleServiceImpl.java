@@ -29,7 +29,6 @@ import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.*;
@@ -66,6 +65,7 @@ import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
@@ -76,11 +76,9 @@ import com.github.pagehelper.PageInfo;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import lombok.SneakyThrows;
-import org.apache.commons.codec.EncoderException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.aspectj.org.eclipse.jdt.internal.compiler.env.IGenericField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -107,7 +105,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
@@ -966,9 +963,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
         }
+        Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
-                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i))));
+                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag)));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
         try {
@@ -1041,10 +1039,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         private Integer partDataNum;
 
+        private Boolean markWithEsFlag;
+
         public actionEs(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -1053,10 +1053,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             this._3kEncrypt = _3kEncrypt;
             this.isPerOrTop = isPerOrTop;
             this.partDataNum = partDataNum;
+            this.markWithEsFlag = markWithEsFlag;
         }
 
         @Override
-        public List<Future<Result<Integer>>> call() throws EncoderException {
+        public List<Future<Result<Integer>>> call() {
             QueryBaseBean queryBaseBean = new QueryBaseBean();
             queryBaseBean.setApiCode(customerInfoPushMain.getmApiCode());
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
@@ -1064,7 +1065,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
             String scoreCondition = customerInfoPushMain.getmScoreCondition();
             boolean scFlag = StringUtils.isNotEmpty(scoreCondition);
-            if (scFlag) {
+            if (markWithEsFlag && scFlag) {
+                //赋值es脚本
                 queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
             }
             if (!isPerOrTop) {
@@ -1132,7 +1134,24 @@ public class PushRuleServiceImpl implements PushRuleService {
                         varObject.put("userType", marketingHistory.getUserType());
                         varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
                         if (scFlag) {
-                            markForCell(varObject, marketingHistory.getFields());
+                            //es处理
+                            if (markWithEsFlag) {
+                                markForCell(varObject, marketingHistory.getFields());
+                            //代码处理逻辑
+                            } else {
+                                List<MarketingCondition> conditions = marketingHistory.getCondition();
+                                if (!CollectionUtils.isEmpty(conditions)) {
+                                    Map<String, Double> scoreMap = conditions.stream()
+                                            .filter(condition -> StringUtils.isNotEmpty(condition.getCode()) && condition.getDValue() != null)
+                                            .collect(Collectors.toMap(MarketingCondition::getCode
+                                                    , MarketingCondition::getDValue
+                                                    , (existing, replacement) -> replacement));
+                                    JSONObject fields = GeneScriptUtil.scoreLable(scoreCondition, scoreMap);
+                                    if (fields != null) {
+                                        markForCell(varObject, fields);
+                                    }
+                                }
+                            }
                         }
                         dto1.setVariables(varObject);
                         if (StringUtils.isNotBlank(customerInfoPushMain.getStrategyCode())) {

@@ -2209,5 +2209,10 @@ public class MarketingCommonConfig {
      */
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
+    /**
+     * 营销推决策数据打标es使用标志
+     */
+    private Boolean pushPolicyMarkWithEsFlag;
+
 }
 

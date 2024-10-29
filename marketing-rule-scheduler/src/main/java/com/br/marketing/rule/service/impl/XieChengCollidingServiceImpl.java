@@ -10,7 +10,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.common.utils.GeneScriptUtil;
+import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
@@ -211,7 +211,8 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             queryBaseBean.setJsonData(jsonRule.toString());
             String scoreCondition = customerInfoPushMain.getmScoreCondition();
             boolean scFlag = StringUtils.isNotEmpty(scoreCondition);
-            if (scFlag) {
+            Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
+            if (markWithEsFlag && scFlag) {
                 queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
             }
             //兼容数据重复的情况
@@ -232,7 +233,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                     andHttpCodeEqualTo(200).andBusinessCodeEqualTo(0);
             List<XieChengCollidingDataLog> xieChengCollidingDataLogs = xieChengCollidingDataLogMapper.selectByExample(dataLogExample);
             List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
-            assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt, xieChengCollidingDataLogs, scFlag);
+            assmbleUserDetail(marketingHistories, userDetailDTOS, threeEncrypt, xieChengCollidingDataLogs, scFlag, markWithEsFlag, scoreCondition);
             //推送任务基础信息
             PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
             pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
@@ -266,7 +267,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
     }
 
     private void assmbleUserDetail(List<MarketingHistory> marketingHistories, List<PushMarketingUserDetailDTO> userDetailDTOS, Integer threeEncrypt,
-                                   List<XieChengCollidingDataLog> xieChengCollidingDataLogs, boolean scFlag) {
+                                   List<XieChengCollidingDataLog> xieChengCollidingDataLogs, boolean scFlag, Boolean markWithEsFlag, String scoreCondition) {
         Map<String, XieChengCollidingDataLog> dataLogMap = getDataLogGroupByCell(xieChengCollidingDataLogs);
         for (int k = 0; k < marketingHistories.size(); k++) {
             MarketingHistory marketingHistory = marketingHistories.get(k);
@@ -298,6 +299,24 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             varObject.put("orgChannel", xieChengCollidingDataLog.getOrgChannel());
             varObject.put("mktLevel", xieChengCollidingDataLog.getMktLevel());
             varObject.put("info", xieChengCollidingDataLog.getInfo());
+            if (scFlag) {
+                if (markWithEsFlag) {
+                    markForCell(varObject, marketingHistory.getFields());
+                }
+            } else {
+                List<MarketingCondition> conditions = marketingHistory.getCondition();
+                if (!CollectionUtils.isEmpty(conditions)) {
+                    Map<String, Double> scoreMap = conditions.stream()
+                            .filter(condition -> org.apache.commons.lang3.StringUtils.isNotEmpty(condition.getCode()) && condition.getDValue() != null)
+                            .collect(Collectors.toMap(MarketingCondition::getCode
+                                    , MarketingCondition::getDValue
+                                    , (existing, replacement) -> replacement));
+                    JSONObject fields = GeneScriptUtil.scoreLable(scoreCondition, scoreMap);
+                    if (fields != null) {
+                        markForCell(varObject, fields);
+                    }
+                }
+            }
             JSONObject fields = marketingHistory.getFields();
             if (fields != null) {
                 JSONObject listValueJson = fields.getJSONObject("listValue");
@@ -311,6 +330,20 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             }
             dto1.setVariables(varObject);
             userDetailDTOS.add(dto1);
+        }
+    }
+
+    private void markForCell(JSONObject varObject, JSONObject fields) {
+        if (fields == null) {
+            return;
+        }
+        JSONObject listValueJson = fields.getJSONObject("listValue");
+        JSONObject valueTypeJson = fields.getJSONObject("valueType");
+        if (listValueJson != null) {
+            varObject.put("listValue", listValueJson.getString("value"));
+        }
+        if (valueTypeJson != null) {
+            varObject.put("valueType", valueTypeJson.getString("value"));
         }
     }
 
