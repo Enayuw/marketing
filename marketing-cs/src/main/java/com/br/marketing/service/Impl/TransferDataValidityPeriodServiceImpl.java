@@ -2,13 +2,9 @@ package com.br.marketing.service.Impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
-import com.br.marketing.bo.CellValidityPeriodBO;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -18,7 +14,6 @@ import com.br.marketing.mapper.MarketingDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.service.IPeriodOfValidityService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
-import com.br.marketing.util.PeriodOfValidityHelper;
 import com.google.common.collect.Sets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -65,26 +59,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
 
     private final static DateTimeFormatter DATE_FORMAT_PATTERN = DateTimeFormatter.ofPattern(DATEFORMATPATTERN);
 
-    @Override
-    public MarketingSyncUser getNewValidityPeriodData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
-        return getMarketingSyncUser(marketingTransferSyncUser, requestDate);
-    }
-
-    @Override
-    public MarketingSyncUser getNewValidityPeriodDataFirstVersion(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
-        return getMarketingSyncUserFistVersion(marketingTransferSyncUser, requestDate);
-    }
-
-    @Override
-    public boolean isValidityPeriodFirstVersion(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
-        return getMarketingSyncUserFistVersion(marketingTransferSyncUser, requestDate) != null;
-    }
-
-    @Override
-    public boolean isValidityPeriod(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
-        return getMarketingSyncUser(marketingTransferSyncUser, requestDate) != null;
-    }
-
 
     @Override
     public MarketingTransferSyncUserCell getNewValidityPeriodTransferData(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
@@ -98,27 +72,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             return marketingTransferSyncUserCell;
         }
         return null;
-    }
-
-    @Override
-    public Result<Date> getValidityBeginOfTn(String apiCode, Date endDate) {
-        MarketingDataValidConfigExample configExample = new MarketingDataValidConfigExample();
-        configExample.createCriteria().andApiCodeEqualTo(apiCode).andValidTypeEqualTo(2).andIsDelEqualTo(1);
-        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectByExample(configExample);
-        if (marketingDataValidConfigs.size() > 0) {
-            MarketingDataValidConfig marketingDataValidConfig = marketingDataValidConfigs.get(0);
-            Integer day = PeriodOfValidityHelper.getPeriodOfValidityDay(marketingDataValidConfig.getValidDays());
-            PeriodOfValidityBO builder = iPeriodOfValidityService.getPeriodOfValidityRange(-day, endDate).builder();
-            Date beginDate = builder.getBeginDate();
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(beginDate);
-        } else {
-            String minAppletDate = marketingSyncUserMap.getMinAppletDate(apiCode);
-            if (StringUtils.isBlank(minAppletDate)) {
-                return new Result<>().setCode(ResultCode.FAIL.getValue()).setMessage("该客户未上传过数据");
-            }
-            return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(minAppletDate);
-
-        }
     }
 
 
@@ -221,16 +174,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return tnValidityPeriodMap(configList, preUserByTask);
     }
 
-    /**
-     * 2023-03-23 12:25
-     * 配置T,T（范围），原始数据有效期
-     */
-    private Map<String, SyncUserValidityPeriodBO> ttValidityPeriodMap(List<MarketingDataValidConfig> configList
-        , List<MarketingSyncUser> preUserByTask, final Collection<String> userTypes) {
-        List<MarketingDataValidConfig> ttList = configList.parallelStream().filter(config -> config.getValidType()
-            .equals(1) && userTypes.contains(config.getUserType())).collect(Collectors.toList());
-        return null;
-    }
 
     /**
      * 2023-03-23 12:25
@@ -346,163 +289,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     }
 
 
-    @Override
-    public Map<String, SyncUserValidityPeriodBO> getSyncUserValidityPeriodMap(
-        List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj) {
-        // apicode全量有效期配置
-        List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
-        // 未配置任何有效期
-        if (CollectionUtils.isEmpty(configList)) {
-            Set<String> set = transferSyncUserList.parallelStream().map(
-                MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatus(
-                apiCode, set);
-            return longValid(syncUserList);
-        }
-        // 获取转化数据的请求日期
-        Set<Map.Entry<Date, List<MarketingTransferSyncUser>>> dateSet = getTransferDataRequestDate(
-            transferSyncUserList, requestDateObj).entrySet();
-        Map<String, SyncUserValidityPeriodBO> boMap = new ConcurrentHashMap<>(2048);
-        // 按日期处理有效期
-        for (Map.Entry<Date, List<MarketingTransferSyncUser>> dateListEntry : dateSet) {
-            final Date requestDate = dateListEntry.getKey();
-            final List<MarketingTransferSyncUser> transferSyncUsers = dateListEntry.getValue();
-            // 获取T,T （范围）模式的配置记录
-            List<MarketingDataValidConfig> ttDataValidConfigList = configList.parallelStream().filter(
-                config -> config.getValidType().equals(1) && org.apache.commons.lang3.StringUtils.isBlank(
-                    config.getUserType())).collect(Collectors.toList());
-            // 获取【非】以上集合最新的一条数据 configAppletDateTN 需要进行非空判断
-            List<MarketingSyncUser> syncUserLastByNotInAppletDateList = marketingSyncUserMapper
-                .getSyncUserLastByNotInAppletDateList(apiCode, ttDataValidConfigList, transferSyncUserList);
-            // 配置了T,T （范围）模式的情况
-            List<MarketingSyncUser> ttSyncUserLastByInAppletDateList = ttSyncUserLastByInAppletDateList(apiCode,
-                ttDataValidConfigList, transferSyncUsers, requestDate);
-            if (syncUserLastByNotInAppletDateList.size() == 0) {
-                boMap.putAll(ttValidityPeriodMap(ttDataValidConfigList, ttSyncUserLastByInAppletDateList));
-                continue;
-            }
-            Map<String, MarketingSyncUser> syncUserLastByNotInAppletDateMap = syncUserLastByNotInAppletDateList
-                .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                    , Function.identity(), (t1, t2) -> t1));
-            List<MarketingSyncUser> returnSyncUserList = ttSyncUserLastByInAppletDateList.parallelStream().filter(
-                    syncUser -> !syncUserLastByNotInAppletDateMap.containsKey(syncUser.getCustNum()))
-                .collect(Collectors.toList());
-            // 不在【非】集合中的数据
-            boMap.putAll(ttValidityPeriodMap(ttDataValidConfigList, returnSyncUserList));
-            Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap = ttSyncUserLastByInAppletDateList
-                .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                    , Function.identity(), (t1, t2) -> t1));
-            // 配置了T+N模式的情况
-            boMap.putAll(tnValidityPeriodMap(configList, requestDate, ttSyncUserLastByInAppletDateMap
-                , syncUserLastByNotInAppletDateList));
-        }
-        return boMap;
-    }
-
-    @Override
-    public Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-        List<MarketingTransferSyncUser> transferSyncUserList, String apiCode) {
-        return getSyncUserValidityPeriodUserTypeMap(transferSyncUserList, apiCode, null, null);
-    }
-
-    @Override
-    public Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, String limitDate) {
-        return getSyncUserValidityPeriodUserTypeMap(transferSyncUserList, apiCode, null, limitDate);
-    }
-
-    @Override
-    public Map<String, Map<String, SyncUserValidityPeriodBO>> getSyncUserValidityPeriodUserTypeMap(
-        List<MarketingTransferSyncUser> transferSyncUserList, String apiCode, Object requestDateObj, String UploadLimitDate) {
-        // apicode全量有效期配置
-        List<MarketingDataValidConfig> configList = findConfigAllByApiCodeList(apiCode);
-        // 未配置任何有效期
-        if (CollectionUtils.isEmpty(configList)) {
-            Set<String> set = transferSyncUserList.parallelStream().map(
-                MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
-            List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserLastByCustNumsAndStatusAndDate(
-                apiCode, set, UploadLimitDate);
-            return longValidUserType(syncUserList);
-        }
-        // 获取转化数据的请求日期
-        Set<Map.Entry<Date, List<MarketingTransferSyncUser>>> dateSet = getTransferDataRequestDate(
-            transferSyncUserList, requestDateObj).entrySet();
-        Map<String, Map<String, SyncUserValidityPeriodBO>> boMap = new ConcurrentHashMap<>(2048);
-        // 按日期处理有效期
-        for (Map.Entry<Date, List<MarketingTransferSyncUser>> dateListEntry : dateSet) {
-            final Date requestDate = dateListEntry.getKey();
-            final List<MarketingTransferSyncUser> transferSyncUsers = dateListEntry.getValue();
-            // 获取T,T （范围）模式的配置记录
-            List<MarketingDataValidConfig> ttDataValidConfigList = configList.parallelStream().filter(
-                config -> config.getValidType().equals(1) && org.apache.commons.lang3.StringUtils.isNotBlank(
-                    config.getUserType())).collect(Collectors.toList());
-            // 获取【非】以上集合最新的一条数据 configAppletDateTN 需要进行非空判断
-            List<MarketingSyncUser> syncUserLastByNotInAppletDateList = marketingSyncUserMapper
-                .getSyncUserLastByNotInAppletDateUserTypeList(apiCode, ttDataValidConfigList, transferSyncUserList, UploadLimitDate);
-            // 配置了T,T （范围）模式的情况
-            List<MarketingSyncUser> ttSyncUserLastByInAppletDateList = ttSyncUserLastByInAppletDateAndUserTypeList(
-                apiCode, ttDataValidConfigList, transferSyncUsers, requestDate);
-            if (syncUserLastByNotInAppletDateList.size() == 0) {
-                boMap.putAll(ttValidityPeriodUserTypeMap(ttDataValidConfigList, ttSyncUserLastByInAppletDateList));
-                continue;
-            }
-            Map<String, MarketingSyncUser> syncUserLastByNotInAppletDateMap = syncUserLastByNotInAppletDateList
-                .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                    , Function.identity(), (t1, t2) -> t2));
-            List<MarketingSyncUser> returnSyncUserList = ttSyncUserLastByInAppletDateList.parallelStream().filter(
-                    syncUser -> !syncUserLastByNotInAppletDateMap.containsKey(syncUser.getCustNum()))
-                .collect(Collectors.toList());
-            // 不在【非】集合中的数据
-            boMap.putAll(ttValidityPeriodUserTypeMap(ttDataValidConfigList, returnSyncUserList));
-            Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap = ttSyncUserLastByInAppletDateList
-                .parallelStream().collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                    , Function.identity(), (t1, t2) -> t2));
-            // 配置了T+N模式的情况
-            boMap.putAll(tnValidityPeriodUserTypeMap(configList, requestDate, ttSyncUserLastByInAppletDateMap
-                , syncUserLastByNotInAppletDateList));
-        }
-        return boMap;
-    }
-
-
-    /**
-     * 2023-04-07 9:52
-     * 获取数据的请求日期
-     *
-     * @return key requestDate; value List<MarketingTransferSyncUser>
-     */
-    private Map<Date, List<MarketingTransferSyncUser>> getTransferDataRequestDate(
-        List<MarketingTransferSyncUser> transferSyncUserList, Object requestDateObj) {
-        Map<Date, List<MarketingTransferSyncUser>> requestDateMap;
-        if (requestDateObj == null) {
-            // 对转化数据按请求日期分组
-            requestDateMap = transferSyncUserList.parallelStream().collect(Collectors.groupingBy(user -> {
-                try {
-                    return DateUtils.parse(user.getRequestData(), DateHelper.LINE_DATE_FORMAT);
-                } catch (ParseException pe) {
-                    // 日期格式解析失败时，使用当前时间
-                    try {
-                        return Date.from(LocalDateTime.parse(user.getRequestTime(), DateTimeFormatter.ofPattern(
-                            DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS)).toLocalDate().atStartOfDay(
-                            ZoneId.systemDefault()).toInstant());
-                    } catch (Exception e) {
-                        try {
-                            return Date.from(user.getCreateTime().toInstant().atZone(ZoneId.systemDefault())
-                                .toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                        } catch (Exception exception) {
-                            return Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-                        }
-                    }
-                }
-            }));
-        } else {
-            // 统一时间格式
-            Date requestDate = switchDate(requestDateObj);
-            requestDateMap = new HashMap<>(2);
-            requestDateMap.put(requestDate, transferSyncUserList);
-        }
-        return requestDateMap;
-    }
-
     /**
      * 2023-04-07 9:52
      * 获取数据的请求日期字符串，格式yyyy-MM-dd
@@ -543,43 +329,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return requestDateMap;
     }
 
-    /**
-     * 2023-04-06 16:36
-     * 转换日期
-     * 支持数据格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar
-     *
-     * @param requestDateObj 请求日期对象
-     * @return Date
-     */
-    private Date switchDate(Object requestDateObj) {
-        Date requestDate;
-        if (requestDateObj == null) {
-            requestDate = new Date();
-        } else if (requestDateObj instanceof Date) {
-            requestDate = (Date) requestDateObj;
-        } else if (requestDateObj instanceof String) {
-            try {
-                requestDate = DateUtils.parse((String) requestDateObj, DateHelper.LINE_DATE_FORMAT);
-            } catch (ParseException e) {
-                requestDate = Date.from(LocalDateTime.parse((String) requestDateObj
-                        , DateTimeFormatter.ofPattern(DateHelper.LINE_DATE_COLON_TIME_FORMAT_SSS))
-                    .atZone(ZoneId.systemDefault()).toInstant());
-            }
-        } else if (requestDateObj instanceof LocalDate) {
-            requestDate = Date.from(((LocalDate) requestDateObj).atStartOfDay().atZone(ZoneId.systemDefault())
-                .toInstant());
-        } else if (requestDateObj instanceof LocalDateTime) {
-            requestDate = Date.from(((LocalDateTime) requestDateObj).atZone(ZoneId.systemDefault()).toInstant());
-        } else if (requestDateObj instanceof Long) {
-            requestDate = new Date((Long) requestDateObj);
-        } else if (requestDateObj instanceof Calendar) {
-            requestDate = ((Calendar) requestDateObj).getTime();
-        } else {
-            throw new IllegalArgumentException("非法的参数：" + requestDateObj
-                + ",支持格式 String(yyyy-MM-dd)、Date、LocalDate、LocalDateTime、Long、Calendar");
-        }
-        return requestDate;
-    }
 
     /**
      * 2023-07-28 16:36
@@ -614,218 +363,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return requestDateStr;
     }
 
-    /**
-     * 2023-03-23 12:25
-     * 配置T,T（范围），原始数据
-     */
-    private List<MarketingSyncUser> ttSyncUserLastByInAppletDateList(String apiCode
-        , List<MarketingDataValidConfig> configList
-        , List<MarketingTransferSyncUser> transferSyncUserList, final Date requestDate) {
-        // 获取包含请求日期的T,T （范围）模式的配置记录
-        List<MarketingDataValidConfig> ttRequestDateDataValidConfigList = configList.parallelStream()
-            .filter(config -> compareRequestDate(config, requestDate)).collect(Collectors.toList());
-        // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
-        if (ttRequestDateDataValidConfigList.size() > 0) {
-            return marketingSyncUserMapper.getSyncUserLastByInAppletDateList(apiCode
-                , ttRequestDateDataValidConfigList, transferSyncUserList);
-        }
-        return Collections.emptyList();
-    }
-
-    /**
-     * 2023-03-23 12:25
-     * 配置T,T（范围）与 userType，原始数据
-     */
-    private List<MarketingSyncUser> ttSyncUserLastByInAppletDateAndUserTypeList(
-        String apiCode, List<MarketingDataValidConfig> configList
-        , List<MarketingTransferSyncUser> transferSyncUserList, final Date requestDate) {
-        final Set<String> userTypeSet = transferSyncUserList.stream().map(
-            MarketingTransferSyncUser::getUserType).collect(Collectors.toSet());
-        // 获取包含请求日期的T,T （范围）模式的配置记录
-        List<MarketingDataValidConfig> ttRequestDateDataValidConfigList = configList.stream()
-            .filter(config -> userTypeSet.contains(config.getUserType())
-                && compareRequestDate(config, requestDate)).collect(Collectors.toList());
-        // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
-        if (ttRequestDateDataValidConfigList.size() > 0) {
-            return marketingSyncUserMapper.getSyncUserLastByInAppletDateUserTypeList(apiCode
-                , ttRequestDateDataValidConfigList, transferSyncUserList);
-        }
-        return Collections.emptyList();
-    }
-
-
-    /**
-     * 2023-04-10 17:47
-     * 比较请求日期
-     * 闭区间 eg：
-     * [2023-07-19,9999-12-31] {@code requestDate}满足2023-07-19、9999-12-31、2023-07-19与9999-12-31范围内 返回 true
-     * [2023-07-19,2023-07-09] 非法的范围 返回false
-     */
-    private boolean compareRequestDate(MarketingDataValidConfig config, Date requestDate) {
-        String validStartDate = config.getValidStartDate();
-        String validEndDate = config.getValidEndDate();
-        LocalDate startDate = LocalDate.parse(validStartDate, DATE_FORMAT_PATTERN);
-        LocalDate endDate = LocalDate.parse(validEndDate, DATE_FORMAT_PATTERN);
-        LocalDate localDate = requestDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        return ((startDate.isBefore(localDate) || startDate.isEqual(localDate))
-            && (localDate.isBefore(endDate) || localDate.isEqual(endDate)));
-    }
-
-    /**
-     * 2023-03-23 12:25
-     * 配置T+n，原始数据有效期
-     */
-    private Map<String, SyncUserValidityPeriodBO> tnValidityPeriodMap(List<MarketingDataValidConfig> configList
-        , final Date requestDate
-        , final Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap
-        , List<MarketingSyncUser> syncUserLastByNotInAppletDateList) {
-        // 获取包含请求日期的T+N模式的配置记录
-        List<MarketingDataValidConfig> tnDataValidConfigList = configList.parallelStream().filter(
-            config -> org.apache.commons.lang3.StringUtils.isBlank(config.getUserType())
-                && config.getValidType().equals(2)).collect(Collectors.toList());
-        if (tnDataValidConfigList.size() == 0) {
-            // 永久有效
-            return longValid(syncUserLastByNotInAppletDateList.parallelStream().map(syncUser -> {
-                String custNum = syncUser.getCustNum();
-                return getNewMarketingSyncUser(ttSyncUserLastByInAppletDateMap.get(custNum), syncUser);
-            }).collect(Collectors.toList()));
-        } else {
-            // 缓存案件的有效期配置
-            final Map<String, MarketingDataValidConfig> configMap = new ConcurrentHashMap<>(1024);
-            return syncUserLastByNotInAppletDateList.parallelStream().filter(syncUser -> {
-                String custNum = syncUser.getCustNum();
-                for (MarketingDataValidConfig config : tnDataValidConfigList) {
-                    boolean bool = org.apache.commons.lang3.StringUtils.isBlank(config.getAppletDate())
-                        || syncUser.getAppletDate().equals(config.getAppletDate());
-                    // 判断是否有效
-                    if (bool && iPeriodOfValidityService.isNotExpire(requestDate
-                        , config.getValidDays(), syncUser.getAppletTime())) {
-                        configMap.put(custNum, config);
-                        return true;
-                    }
-                }
-                return false;
-            }).collect(Collectors.toConcurrentMap(MarketingSyncUser::getCustNum, syncUser -> {
-                String custNum = syncUser.getCustNum();
-                syncUser = getNewMarketingSyncUser(ttSyncUserLastByInAppletDateMap.get(custNum), syncUser);
-                // 组装原始数据有效期
-                SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
-                MarketingDataValidConfig marketingDataValidConfig = configMap.get(custNum);
-                PeriodOfValidityBO.Builder periodOfValidityRange = iPeriodOfValidityService.getPeriodOfValidityRange(
-                    marketingDataValidConfig.getValidDays(), ObjectUtils.isEmpty(syncUser.getAppletTime())
-                        ? syncUser.getCreateTime() : syncUser.getAppletTime());
-                bo.setSyncUser(syncUser);
-                bo.setBuilder(periodOfValidityRange);
-                return bo;
-            }));
-        }
-    }
-
-    /**
-     * 2023-03-23 12:25
-     * 配置T+n 与 userType，原始数据有效期
-     */
-    private Map<String, Map<String, SyncUserValidityPeriodBO>> tnValidityPeriodUserTypeMap(
-        List<MarketingDataValidConfig> configList
-        , final Date requestDate
-        , final Map<String, MarketingSyncUser> ttSyncUserLastByInAppletDateMap
-        , List<MarketingSyncUser> syncUserLastByNotInAppletDateList) {
-        // 获取包含请求日期的T+N模式的配置记录
-        List<MarketingDataValidConfig> tnDataValidConfigList = configList.parallelStream().filter(
-            config -> org.apache.commons.lang3.StringUtils.isNotBlank(config.getUserType())
-                && config.getValidType().equals(3)).collect(Collectors.toList());
-        if (tnDataValidConfigList.size() == 0) {
-            // 永久有效
-            return longValidUserType(syncUserLastByNotInAppletDateList.parallelStream().map(syncUser -> {
-                String custNum = syncUser.getCustNum();
-                return getNewMarketingSyncUser(ttSyncUserLastByInAppletDateMap.get(custNum), syncUser);
-            }).collect(Collectors.toList()));
-        } else {
-            // 缓存案件的有效期配置
-            final Map<String, MarketingDataValidConfig> configMap = new ConcurrentHashMap<>(1024);
-            return syncUserLastByNotInAppletDateList.parallelStream().filter(syncUser -> {
-                    String custNum = syncUser.getCustNum();
-                    for (MarketingDataValidConfig config : tnDataValidConfigList) {
-                        boolean bool = org.apache.commons.lang3.StringUtils.isBlank(config.getAppletDate())
-                            || syncUser.getAppletDate().equals(config.getAppletDate());
-                        // 判断是否有效
-                        if (syncUser.getUserType().equals(config.getUserType()) && bool
-                            && iPeriodOfValidityService.isNotExpire(
-                            requestDate, config.getValidDays(), syncUser.getAppletTime())) {
-                            configMap.put(custNum + config.getUserType(), config);
-                            return true;
-                        }
-                    }
-                    return false;
-                }).collect(Collectors.groupingBy(MarketingSyncUser::getCustNum))
-                .entrySet().parallelStream().collect(Collectors.toConcurrentMap(Map.Entry::getKey
-                    , listEntry -> listEntry.getValue().parallelStream().collect(
-                        Collectors.toConcurrentMap(MarketingSyncUser::getUserType, syncUser -> {
-                            String custNum = syncUser.getCustNum();
-                            syncUser = getNewMarketingSyncUser(ttSyncUserLastByInAppletDateMap.get(custNum)
-                                , syncUser);
-                            // 组装原始数据有效期
-                            SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
-                            MarketingDataValidConfig marketingDataValidConfig = configMap.get(
-                                custNum + syncUser.getUserType());
-                            PeriodOfValidityBO.Builder periodOfValidityRange = iPeriodOfValidityService
-                                .getPeriodOfValidityRange(marketingDataValidConfig.getValidDays()
-                                    , ObjectUtils.isEmpty(syncUser.getAppletTime())
-                                        ? syncUser.getCreateTime() : syncUser.getAppletTime());
-                            bo.setSyncUser(syncUser);
-                            bo.setBuilder(periodOfValidityRange);
-                            return bo;
-                        }, this::latestSyncUserValidityPeriodBO))));
-        }
-    }
-
-    /**
-     * 2023-03-23 12:25
-     * 配置T,T（范围），原始数据有效期
-     */
-    private Map<String, SyncUserValidityPeriodBO> ttValidityPeriodMap(List<MarketingDataValidConfig> configList
-        , final List<MarketingSyncUser> syncUserList) {
-        return syncUserList.parallelStream().collect(
-            Collectors.toConcurrentMap(MarketingSyncUser::getCustNum
-                , syncUser -> {
-                    // 组装原始数据有效期
-                    SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
-                    for (MarketingDataValidConfig config : configList) {
-                        if (syncUser.getAppletDate().equals(config.getAppletDate())) {
-                            packageSyncUserValidityPeriodBO(bo, config);
-                            break;
-                        }
-                    }
-                    bo.setSyncUser(syncUser);
-                    return bo;
-                })
-        );
-    }
-
-    /**
-     * 2023-03-23 12:25
-     * 配置T,T（范围）与 userType，原始数据有效期
-     */
-    private Map<String, Map<String, SyncUserValidityPeriodBO>> ttValidityPeriodUserTypeMap(
-        List<MarketingDataValidConfig> configList, final List<MarketingSyncUser> syncUserList) {
-        return syncUserList.parallelStream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum))
-            .entrySet().parallelStream().collect(Collectors.toConcurrentMap(Map.Entry::getKey
-                , listEntry -> listEntry.getValue().parallelStream().collect(
-                    Collectors.toConcurrentMap(MarketingSyncUser::getUserType, syncUser -> {
-                        // 组装原始数据有效期
-                        SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
-                        for (MarketingDataValidConfig config : configList) {
-                            if (syncUser.getUserType().equals(config.getUserType())
-                                && syncUser.getAppletDate().equals(config.getAppletDate())) {
-                                packageSyncUserValidityPeriodBO(bo, config);
-                                break;
-                            }
-                        }
-                        bo.setSyncUser(syncUser);
-                        return bo;
-                    }, this::latestSyncUserValidityPeriodBO)))
-            );
-    }
 
     /**
      * 2023-04-10 18:16
@@ -839,92 +376,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             , Date.from(endDate.atStartOfDay(ZoneId.systemDefault()).toInstant())));
     }
 
-    /**
-     * 2023-03-22 18:12
-     * 永久有效
-     *
-     * @param preUserByTask 原始数据集合
-     * @return Map key：custNum value：Map key：userType value：SyncUserValidityPeriodBO {@linkplain SyncUserValidityPeriodBO MarketingSyncUser PeriodOfValidityBO.Builder}
-     */
-    private Map<String, Map<String, SyncUserValidityPeriodBO>> longValidUserType(List<MarketingSyncUser> preUserByTask) {
-        return preUserByTask.parallelStream().collect(Collectors.groupingBy(MarketingSyncUser::getCustNum)).entrySet()
-            .parallelStream().collect(Collectors.toConcurrentMap(Map.Entry::getKey, stringListEntry ->
-                stringListEntry.getValue().parallelStream().collect(Collectors.toConcurrentMap(
-                    MarketingSyncUser::getUserType, marketingSyncUser -> {
-                        SyncUserValidityPeriodBO bo = new SyncUserValidityPeriodBO();
-                        bo.setSyncUser(marketingSyncUser);
-                        bo.setBuilder(PeriodOfValidityBO.custom(marketingSyncUser.getAppletTime(), null));
-                        return bo;
-                    }, this::latestSyncUserValidityPeriodBO))));
-    }
 
-
-    /**
-     * shijian
-     */
-    @Override
-    public MarketingSyncUser getMarketingSyncUserDidi(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
-        MarketingSyncUser marketingSyncUser = null;
-        // 1. 查询配置表
-
-        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectInfo(marketingTransferSyncUser.getApiCode(), marketingTransferSyncUser.getUserType());
-        // 获取需要判断的指定日期
-        requestDate = requestDate == null ? marketingTransferSyncUser.getRequestData() : requestDate;
-        LocalDate parse = LocalDate.parse(requestDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-
-        // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
-        List<MarketingDataValidConfig> marketingDataValidConfigTN = marketingDataValidConfigs.stream().filter(m -> m.getValidType() == 1).collect(Collectors.toList());
-        List<MarketingDataValidConfig> collectRequestDateTN = new ArrayList<>();
-        marketingDataValidConfigTN.forEach(mctn -> {
-            String validStartDate = mctn.getValidStartDate();
-            String validEndDate = mctn.getValidEndDate();
-            LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            if ((startDate.isBefore(parse) || startDate.isEqual(parse))
-                && (parse.isBefore(endDate) || parse.isEqual(endDate))) {
-                collectRequestDateTN.add(mctn);
-            }
-        });
-        // 如果T,N 模式不为空则查询最新一条数据
-        if (collectRequestDateTN.size() > 0) {
-            marketingSyncUser = marketingSyncUserMap.selectInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
-        }
-        return marketingSyncUser;
-    }
-
-    /**
-     * 新版有效期
-     */
-    private MarketingSyncUser getMarketingSyncUserFistVersion(MarketingTransferSyncUser marketingTransferSyncUser, String requestDate) {
-        MarketingSyncUser marketingSyncUser = null;
-        // 1. 查询配置表
-
-        List<MarketingDataValidConfig> marketingDataValidConfigs = marketingDataValidConfigMapper.selectInfoFirstVersion(marketingTransferSyncUser.getApiCode(), marketingTransferSyncUser.getUserType());
-        // 获取需要判断的指定日期
-        requestDate = requestDate == null ? marketingTransferSyncUser.getRequestData() : requestDate;
-        LocalDate parse = LocalDate.parse(requestDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-
-        // 2. 获取T,N 模式下 有效期范围的规则集合，T，N
-        List<MarketingDataValidConfig> collectRequestDateTN = new ArrayList<>();
-        marketingDataValidConfigs.forEach(mctn -> {
-            String validStartDate = mctn.getValidStartDate();
-            String validEndDate = mctn.getValidEndDate();
-            LocalDate startDate = LocalDate.parse(validStartDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            LocalDate endDate = LocalDate.parse(validEndDate, DateTimeFormatter.ofPattern(DATEFORMATPATTERN));
-            if ((startDate.isBefore(parse) || startDate.isEqual(parse))
-                && (parse.isBefore(endDate) || parse.isEqual(endDate))) {
-                collectRequestDateTN.add(mctn);
-            }
-        });
-
-        // 如果T,N 模式不为空则查询最新一条数据
-        if (collectRequestDateTN.size() > 0) {
-
-            marketingSyncUser = marketingSyncUserMap.selectInAppletDate(collectRequestDateTN, marketingTransferSyncUser);
-        }
-
-        return marketingSyncUser;
-    }
 
     @Override
     public Map<String, SyncUserValidityPeriodBO> getValidityPeriodUserTypeBatchFirstVersion(
@@ -964,63 +416,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return boMap;
     }
 
-    @Override
-    public Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(
-        List<CellValidityPeriodBO> cellValidityPeriodBOList, String apiCode, Object requestDateObj) {
-        if (CollectionUtils.isEmpty(cellValidityPeriodBOList)) {
-            return Collections.emptyMap();
-        }
-        Map<String, SyncUserValidityPeriodBO> boMap = new ConcurrentHashMap<>(2048);
-        // 获取转化数据的请求日期
-        getCellValidityPeriodBORequestDateStr(cellValidityPeriodBOList, requestDateObj).forEach((k, v) -> {
-            // 配置了T,T （范围）模式的情况
-            final Set<String> userTypeSet = v.stream().map(CellValidityPeriodBO::getUserType).filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-            boolean empty = userTypeSet.isEmpty();
-            // 获取包含请求日期的T,T （范围）模式的配置记录
-            List<MarketingDataValidConfig> dataValidConfigs;
-            int page = 0;
-            int pageSize = 2000;
-            if (empty) {
-                for (; ; ) {
-                    dataValidConfigs = getDataValidConfig(apiCode, k, null, page, pageSize);
-                    if (dataValidConfigs.isEmpty()) {
-                        break;
-                    }
-                    // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
-                    List<MarketingSyncUser> syncUserList =
-                        marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDateUserTypeList(apiCode
-                            , dataValidConfigs, v);
-                    packageKeyValidityPeriodInfo(MarketingSyncUser::getCell, syncUserList, dataValidConfigs, boMap);
-                    if (dataValidConfigs.size() < pageSize) {
-                        break;
-                    }
-                    ++page;
-                }
-            } else {
-                Set<String> newSet = new HashSet<>(userTypeSet);
-                for (; ; ) {
-                    dataValidConfigs = getDataValidConfig(apiCode, k, userTypeSet, page, pageSize);
-                    boolean isLast = dataValidConfigs.size() < pageSize;
-                    userTypeExistDataValidConfigCheck(dataValidConfigs, newSet, apiCode, isLast);
-                    if (dataValidConfigs.isEmpty()) {
-                        break;
-                    }
-                    // 包含请求日期的T,T （范围）模式的配置记录不为空则查询最新一条数据原始数据（上传数据）
-                    List<MarketingSyncUser> syncUserList =
-                        marketingSyncUserMapper.getSyncUserLastByCellAndInAppletDateUserTypeList(
-                            apiCode, dataValidConfigs, v);
-                    packageKeyValidityPeriodInfo(syncUser -> syncUser.getCell() + syncUser.getUserType()
-                        , syncUserList, dataValidConfigs, boMap);
-                    if (isLast) {
-                        break;
-                    }
-                    ++page;
-                }
-            }
-        });
-        return boMap;
-    }
 
     @Override
     public Map<String, SyncUserValidityPeriodBO> getValidityPeriodCellBatchFirstVersion(Set<String> cellSet
@@ -1266,36 +661,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return resultMap;
     }
 
-    /**
-     * 根据上传数据cell获取多组有效期范围 Tips：仅支持新版有效期规则，有效期配置valid_start_date和valid_end_date字段都非空
-     *
-     * @param cellSet        cell集合
-     * @param apiCode        apiCode
-     * @param requestDateObj 日期
-     * @return {@link Map }<{@link String }, {@link SyncUserValidityPeriodsBO }>
-     * @author senyang.zheng
-     * @date 2023/12/08
-     */
-    @Override
-    public Map<String, SyncUserValidityPeriodsBO> getValidityPeriodsByCells(Set<String> cellSet, String apiCode, Object requestDateObj) {
-        if (CollectionUtils.isEmpty(cellSet) || StringUtils.isEmpty(apiCode)) {
-            return Collections.emptyMap();
-        }
-        Map<String, SyncUserValidityPeriodsBO> resultMap = new ConcurrentHashMap<>(2048);
-        // 统一时间格式
-        final String requestDateStr = switchDateStr(requestDateObj);
-        // 获取有效期配置不分页
-        List<MarketingDataValidConfig> configList = getDataValidConfig(apiCode, requestDateStr, null, null, null);
-        if (CollectionUtil.isEmpty(configList)) {
-            return resultMap;
-        }
-        // 包含请求日期的T,T （范围）模式的配置记录不为空则查询所有符合的上传数据
-        List<MarketingSyncUser> syncUserList = marketingSyncUserMapper.getSyncUserByCellAndAppletDateList(apiCode, configList, cellSet);
-        // 组装有效期数据
-        buildValidityPeriodsInfo(syncUserList, configList, resultMap);
-        return resultMap;
-    }
-
     private void buildValidityPeriodsInfoByKeyMapper(Function<MarketingSyncUser, String> keyMapper,
                                                      List<MarketingSyncUser> syncUserList,
                                                      List<MarketingDataValidConfig> configList,
@@ -1423,14 +788,14 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
             example.createCriteria().andApiCodeEqualTo(apiCode).andValidTypeEqualTo(1).andIsDelEqualTo(1);
             int i = marketingDataValidConfigMapper.countByExample(example);
             if (i < 1) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
                         , "未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode
-                        , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
+                        , apiCode + AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getMessage()));
                 return true;
             }
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
                     , "数据不在有效期范围;apiCode:" + apiCode
-                    , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
+                    , apiCode + AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getMessage()));
             return true;
         }
         return false;
@@ -1452,14 +817,14 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                     .andUserTypeIn(new ArrayList<>(userTypeSet));
             int i = marketingDataValidConfigMapper.countByExample(example);
             if (i < 1) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
                         , "未配置任何有效期，请配置对应的有效期规则;apiCode:" + apiCode + ";userType:" + userTypeSet
-                        , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
+                        , apiCode + AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getMessage()));
                 return;
             }
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
                     , "数据不在有效期范围;apiCode:" + apiCode + ";userType:" + userTypeSet
-                    , apiCode + AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getMessage()));
+                    , apiCode + AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getMessage()));
         }
     }
 
@@ -1555,30 +920,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
         return bo;
     }
 
-    /**
-     * 2023-08-01 9:52
-     * 获取数据的请求日期
-     *
-     * @param cellValidityPeriodBOList 手机号有效期数据
-     * @param requestDateObj           任意格式的请求日期
-     * @return key requestDateStr; value List<CellValidityPeriodBO>
-     */
-    private Map<String, List<CellValidityPeriodBO>> getCellValidityPeriodBORequestDateStr(
-        List<CellValidityPeriodBO> cellValidityPeriodBOList, Object requestDateObj) {
-        Map<String, List<CellValidityPeriodBO>> requestDateMap;
-        if (requestDateObj == null) {
-            // 对转化数据按请求日期分组
-            requestDateMap = cellValidityPeriodBOList.parallelStream().collect(Collectors.groupingBy(
-                c -> org.apache.commons.lang3.StringUtils.isBlank(c.getRequestDate())
-                    ? LocalDate.now().toString() : c.getRequestDate()));
-        } else {
-            // 统一时间格式
-            String requestDateStr = switchDateStr(requestDateObj);
-            requestDateMap = new HashMap<>(2);
-            requestDateMap.put(requestDateStr, cellValidityPeriodBOList);
-        }
-        return requestDateMap;
-    }
 
     /**
      * 2023-09-12 11:33
@@ -1600,19 +941,6 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
     }
 
 
-    @Override
-    public List<MarketingDataValidConfig> getDataValidityPeriodPageList(
-            String apiCode, String userType, Object requestDateObj, int pageNo, int pageSize) {
-        return getDataValidityPeriodPageList(apiCode, Collections.singleton(userType), requestDateObj, pageNo, pageSize);
-    }
-
-    @Override
-    public List<MarketingDataValidConfig> getDataValidityPeriodPageList(
-            String apiCode, Set<String> userTypeSet, Object requestDateObj, int pageNo, int pageSize) {
-        //统一时间格式
-        String requestDateStr = switchDateStr(requestDateObj);
-        return getDataValidConfig(apiCode, requestDateStr, userTypeSet, pageNo, pageSize);
-    }
 
     @Override
     public List<MarketingDataValidConfig> getDataMergeValidityPeriodList(String apiCode, String userType, Object requestDateObj) {
