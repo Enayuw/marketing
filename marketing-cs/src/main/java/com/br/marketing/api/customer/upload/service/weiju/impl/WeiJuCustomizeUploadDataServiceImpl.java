@@ -201,7 +201,7 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
             }
             log.warn("微聚定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.WEIJU_SERVICEERROR.getCode(), e.getMessage()
                     , "推送微聚定制数据下发消息异常！"), e);
         }
     }

@@ -89,7 +89,7 @@ public class WeiJuDataCleanServiceImpl implements WeiJuDataCleanService {
                 customizeUploadDataMapper.updateSyncStatusById(tCid, sourceId, 1);
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.WEIJU_SERVICEERROR.getCode(), "携程促活，主线程处理异常，前置表id：" + data.getId()), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.WEIJU_SERVICEERROR.getCode(), "微聚前置数据清洗，主线程处理异常，前置表id：" + data.getId()), e);
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
@@ -106,6 +106,7 @@ public class WeiJuDataCleanServiceImpl implements WeiJuDataCleanService {
             JSONObject reserveField1 = new JSONObject();
             reserveField1.put("customNameType", uploadJson.getOperationUserType());
             reserveField1.put("userType", fieldMapping.getString(uploadJson.getScene()));
+            reserveField1.put("sleepGroup", JSONArray.parse(uploadJson.getSilenceDaysGroup()));
             if (StringUtils.isNotEmpty(item.getString("registedTime"))) {
                 reserveField1.put("registerTime", item.getString("registedTime"));
             }
@@ -114,9 +115,6 @@ public class WeiJuDataCleanServiceImpl implements WeiJuDataCleanService {
             }
             if (StringUtils.isNotEmpty(item.getString("lastAllSettleTime"))) {
                 reserveField1.put("settleTime", item.getString("lastAllSettleTime"));
-            }
-            if (StringUtils.isNotEmpty(item.getString("silenceDaysGroup"))) {
-                reserveField1.put("sleepGroup", item.getString("silenceDaysGroup"));
             }
             if (StringUtils.isNotEmpty(item.getString("lastcreditAmountRangeLabel"))) {
                 reserveField1.put("auditAmountGroup", item.getString("lastcreditAmountRangeLabel"));
