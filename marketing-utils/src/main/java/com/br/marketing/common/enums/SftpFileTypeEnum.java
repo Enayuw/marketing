@@ -9,17 +9,6 @@ public enum SftpFileTypeEnum {
     SEVEN("qiqi")
     ,DX("dianxiao")
     ,HLBYTRANSFORM("hl_transform")
-    ,SHBYTRANSFORM("sh_transform")
-    ,DXTRANSFORM("dx_transform")
-    ,DXIBU("dx_ibu")
-    ,ZHONGBANGLABEL("zhongbanglabel")
-    ,TONGCHENG_UNDO_PUSHTOCUSTOMER("tongcheng_undo_pushToCustomer")
-    ,XIECHENGSMSQUIT("xiechengsms")
-    ,ZHIJIACLUE("zhijiaclue")
-    ,SUSHANG_TRANSFER("sushang_transfer")
-    ,SUSHANG_CALLRECORD("sushang_callrecord")
-    ,WUBA_COLLIDING("wuba_colliding")
-    ,XIECHENG_ACTIVATE("xiecheng_activate")
-    ,DD("didi");
-   private String value;
+    ,SHBYTRANSFORM("sh_transform"), DXTRANSFORM("dx_transform"), DXIBU("dx_ibu"), ZHONGBANGLABEL("zhongbanglabel"), TONGCHENG_UNDO_PUSHTOCUSTOMER("tongcheng_undo_pushToCustomer"), XIECHENGSMSQUIT("xiechengsms"), ZHIJIACLUE("zhijiaclue"), SUSHANG_TRANSFER("sushang_transfer"), SUSHANG_CALLRECORD("sushang_callrecord"), WUBA_COLLIDING("wuba_colliding"), XIECHENG_ACTIVATE("xiecheng_activate"), DD("didi"), GUO_MEI_DATA_CALLBACK("guo_mei_data_callback");
+    private String value;
 }
