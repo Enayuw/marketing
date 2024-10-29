@@ -33,6 +33,10 @@ public class MarketingUploadConstants {
      * 微距上传数据清洗专用队列对应的 Tag
      */
     public static final String TAG_MARKETING_WEIJU_DATA_CLEAN = "Marketing.WeiJu.Data.Clean";
+    /**
+     * 国美上传数据清洗专用队列对应的 Tag
+     */
+    public static final String TAG_MARKETING_GUOMEI_DATA_CLEAN = "Marketing.GuoMei.Data.Clean";
 //    Tag 结束
 
 
@@ -61,6 +65,10 @@ public class MarketingUploadConstants {
      * 微距上传数据清洗专用队列对应的 consumerGroup
      */
     public static final String MARKETING_WEIJU_DATA_CLEAN = "Marketing_WeiJu_Data_Clean";
+    /**
+     * 国美上传数据清洗专用队列对应的 consumerGroup
+     */
+    public static final String MARKETING_GUOMEI_DATA_CLEAN = "Marketing_GuoMei_Data_Clean";
 //    consumerGroup 结束
 
 }
