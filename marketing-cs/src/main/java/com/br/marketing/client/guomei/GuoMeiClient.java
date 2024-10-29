@@ -29,13 +29,16 @@ import java.util.Map;
 @Slf4j
 public class GuoMeiClient {
 
-    @Value("${api.guomei.userDataCallBack.url:https://united-umg-t1.gomefinance.com.cn/umg/api/v1/agencyOperation/pushDataCallback}")
+    @Value("${api.guoMei.pushDataCallbackUrl:https://united-umg-t1.gomefinance.com.cn/umg/api/v1/agencyOperation/pushDataCallback}")
     private String pushDataCallbackUrl;
 
-    @Value("${api.guomei.userDataCallBack.url:https://united-umg-t1.gomefinance.com.cn/umg/api/v1/agencyOperation/pushResultCallback}")
+    @Value("${api.guoMei.pushResultCallbackUrl:https://united-umg-t1.gomefinance.com.cn/umg/api/v1/agencyOperation/pushResultCallback}")
     private String pushResultCallbackUrl;
 
-    @Value("${api.guomei.isProxy:false}")
+    @Value("${api.guoMei.institutionCode:bairong}")
+    private String institutionCode;
+
+    @Value("${api.guoMei.isProxy:false}")
     private boolean isProxy;
 
     @Resource
@@ -55,6 +58,7 @@ public class GuoMeiClient {
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public <T> Result<GmCallBackResponse<T>> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest, Class<T> responseClass) {
+        userDataCallBackRequest.setInstitutionCode(institutionCode);
         Map<String, String> map = httpProxyClient.sendByCodeWithLog(userDataCallBackRequest
                 , pushDataCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", true, false);
         return getResponse(map, pushDataCallbackUrl, responseClass);
@@ -67,11 +71,12 @@ public class GuoMeiClient {
      * 1：批量推送：每次 1000 条
      * 2：如果有重推需保证 requestId 不变
      *
-     * @return
+     * @return GmCallBackResponse
      */
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public <T> Result<GmCallBackResponse<T>> sendMarketingResultCallBack(GmMarketingResultCallBackRequest marketingResultCallBackRequest
             , Class<T> responseClass) {
+        marketingResultCallBackRequest.setInstitutionCode(institutionCode);
         Map<String, String> map = httpProxyClient.sendByCodeWithLog(marketingResultCallBackRequest
                 , pushResultCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", true, false);
         return getResponse(map, pushResultCallbackUrl, responseClass);
@@ -85,7 +90,8 @@ public class GuoMeiClient {
      * @param url           请求地址
      * @param responseClass 响应类型，不支持继承（实现）类的泛型
      */
-    private static <T> Result<GmCallBackResponse<T>> getResponse(Map<String, String> map, String url, Class<T> responseClass) {
+    private static <T> Result<GmCallBackResponse<T>> getResponse(Map<String, String> map, String url
+            , Class<T> responseClass) {
         Result<GmCallBackResponse<T>> result = new Result<>();
         try {
             String httpCode = map.getOrDefault("httpcode", "");
@@ -96,8 +102,9 @@ public class GuoMeiClient {
                     result.setCode(ResultCode.FAIL.getValue());
                     return result;
                 }
-                GmCallBackResponse<T> gmCallBackResponse = JSON.parseObject(respStr, new TypeReference<GmCallBackResponse<T>>(responseClass) {
-                });
+                GmCallBackResponse<T> gmCallBackResponse = JSON.parseObject(respStr
+                        , new TypeReference<GmCallBackResponse<T>>(responseClass) {
+                        });
                 result.setDate(gmCallBackResponse);
                 result.setMessage(gmCallBackResponse.getMsg());
                 result.setCode(ResultCode.SUCCESS.getValue());
