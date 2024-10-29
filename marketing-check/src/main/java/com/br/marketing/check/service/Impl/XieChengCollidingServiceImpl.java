@@ -3,7 +3,6 @@ package com.br.marketing.check.service.Impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
 import com.br.marketing.check.service.XieChengCollidingService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
@@ -11,7 +10,6 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.*;
@@ -110,8 +108,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         Object releaseTime = jsonRule.getJSONArray("data").stream().filter(obj ->("release_time").equals(
                 ((JSONObject) obj).getString("key"))).findAny().orElse(null);
         if (ObjectUtils.isEmpty(releaseTime)) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
-                    , "携程撞库推送决策缺少release_time，请检查！"));
+            log.error("携程撞库推送决策缺少release_time，请检查");
             return new Result<Boolean>().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
         }
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
@@ -151,8 +148,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 }
             }
         } catch (Exception ex) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
-                    , "推送决策 获取线程结果异常！"), ex);
+            log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
         // 关闭线程池
@@ -163,8 +159,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
-                    , "携程撞库推送决策：日志保存线程池结束异常！"), ex);
+            log.error("携程撞库推送决策：日志保存线程池结束异常！", ex);
             Thread.currentThread().interrupt();
         }
         main.setId(customerInfoPushMain.getId());
@@ -240,12 +235,11 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                         pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
-                        , "携程撞库推送决策重试失败 accessNumber:" + pushMarketingUserTaskInfoDTO.getAccessNumber()));
+                log.error("推送决策重试失败 accessNumber:{}", pushMarketingUserTaskInfoDTO.getAccessNumber());
             }
             result.setDate(userDetailDTOS.size());
         } catch (Exception e) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "携程撞库数据推送决策异常!"), e);
+            log.error("携程撞库数据推送决策异常", e.getMessage());
         }
         return result;
     }
