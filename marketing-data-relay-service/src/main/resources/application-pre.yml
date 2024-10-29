@@ -116,3 +116,5 @@ cluster:
   flag: k8s-prod-a
 innerSftp:
     uploadpath: /UploadFiles/marketing/
+grpc:
+  init: true

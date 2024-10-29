@@ -114,3 +114,5 @@ cluster:
   flag: ${CONF_CLUSTER}
 innerSftp:
   uploadpath: /UploadFiles/marketing/
+grpc:
+  init: true

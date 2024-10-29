@@ -30,3 +30,5 @@ endpoints:
     enabled: true
     path: /prometheus
     sensitive: false
+grpc:
+  init: true
