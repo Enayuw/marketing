@@ -119,8 +119,8 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                         String reserveField1 = marketingSyncUser.getReserveField1();
                         if (StringUtils.isNotEmpty(reserveField1)) {
                             JSONObject reserveField = JSONObject.parseObject(reserveField1);
-                            if (StringUtils.isNotEmpty(shuHeCuFuJieData.getAdtLmt()) && StringUtils.isNotEmpty(shuHeCuFuJieData.getAvlLmt())
-                                    && Long.parseLong(shuHeCuFuJieData.getAdtLmt()) > Long.parseLong(shuHeCuFuJieData.getAvlLmt())) {
+                            if (!"0".equals(shuHeCuFuJieData.getAdtLmt()) && (StringUtils.isNotEmpty(shuHeCuFuJieData.getAdtLmt()) && StringUtils.isNotEmpty(shuHeCuFuJieData.getAvlLmt())
+                                    && Long.parseLong(shuHeCuFuJieData.getAdtLmt()) > Long.parseLong(shuHeCuFuJieData.getAvlLmt()))) {
                                 custype = "额度未清空";
                             }
                             reserveField.put("custype", custype);
