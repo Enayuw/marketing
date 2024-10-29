@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
@@ -51,6 +52,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
@@ -688,7 +690,7 @@ public class MethodRetryHandlerService {
                 pushMarketingUserDTO.setJsonData(taskInfoDTO);
             }
         } catch (Exception e) {
-            log.error("决策重试接口类型转化失败", e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "决策重试接口类型转化失败!"), e);
         }
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
@@ -698,7 +700,8 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "调用推送决策接口失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
     /**
@@ -720,7 +723,8 @@ public class MethodRetryHandlerService {
                 pushMarketingUserDTO.setJsonData(taskInfoDTO);
             }
         } catch (Exception e) {
-            log.error("apiCode{}决策重试接口类型转化失败", apiCode, e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                    "apiCode" + apiCode + "决策重试接口类型转化失败!"), e);
         }
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
@@ -730,7 +734,8 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("apiCode:{}调用推送决策接口失败--{}", apiCode,JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "apiCode" + apiCode + "调用推送决策接口失败--" + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -753,7 +758,7 @@ public class MethodRetryHandlerService {
                 pushMarketingUserDTO.setJsonData(taskInfoDTO);
             }
         } catch (Exception e) {
-            log.error("决策重试接口类型转化失败", e.getMessage());
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "决策重试接口类型转化失败!"), e);
         }
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -762,7 +767,8 @@ public class MethodRetryHandlerService {
             dataCompareMapper.insertSelective(dataCompare);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "调用推送决策接口失败--" + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -932,7 +938,8 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "调用推送决策接口失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 

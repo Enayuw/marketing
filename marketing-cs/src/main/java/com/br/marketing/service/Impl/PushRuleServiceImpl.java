@@ -421,7 +421,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             return uuid.toString();
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
             return null;
         }
     }
@@ -898,7 +898,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             yhTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(scoreFileYhTime);
         } catch (ParseException e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), e.getMessage()), e);
         }
         Date yh = yhTime;
         long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
@@ -909,7 +909,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         Result<Integer> integerResult = checkThreekEnc(fileIds);
         if (!ResultCode.SUCCESS.getValue().equals(integerResult.getCode())) {
-            log.error(String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s", id.toString(), integerResult.getMessage()));
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                    String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s", id.toString(), integerResult.getMessage())));
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         Integer _3kEncrypt = integerResult.getData();
@@ -957,8 +958,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                 nowSum += nowNum;
             }
             if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
-                log.error("任务id：{}，分组查询和预览总数不一致，请手动处理！，分组查询的总数：{}，预览总数：{}"
-                        , customerInfoPushMain.getId(), nowSum.toString(), customerInfoPushMain.getmRealyNum().toString());
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                        "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数不一致，请手动处理！，分组查询的总数：" + nowSum.toString()
+                                + "，预览总数：" + customerInfoPushMain.getmRealyNum().toString()));
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
         }
@@ -992,7 +994,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendAlert("推送决策失败", sb.toString());
             }
         } catch (Exception ex) {
-            log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
         try {
@@ -1005,7 +1007,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
         }
 
         log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
@@ -1188,7 +1190,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         accessNumber, size);
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error("推送决策重试失败 accessNumber:{}-{}", accessNumber, JSON.toJSONString(result));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
+                                , "推送决策重试失败 accessNumber:" + accessNumber + " - " + JSON.toJSONString(result)));
             }
             result.setDate(size);
             return result;
@@ -3875,7 +3878,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             scoreSearchConditionMapper.updateByPrimaryKeySelective(updateEntity);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
-            log.error("删除规则模板报错，id={},",id,e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "删除规则模板报错，id=" + id), e);
         }
         return null;
     }
