@@ -1350,6 +1350,10 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
     public Result<GmCallBackResponse<Object>> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest
             , Integer retry) {
+        if (StringUtils.isBlank(userDataCallBackRequest.getRequestId())) {
+            userDataCallBackRequest.setRequestId("dc" + System.nanoTime() + ""
+                    + RandomStringUtils.randomAlphanumeric(15));
+        }
         return guoMeiClient.sendUserDataCallBack(userDataCallBackRequest, Object.class);
     }
 
@@ -1363,6 +1367,10 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 2, isOrNoDbRetry = true)
     public Result<GmCallBackResponse<Object>> sendMarketingResultCallBack(GmMarketingResultCallBackRequest resultCallBackRequest
             , Integer retry) {
+        if (StringUtils.isBlank(resultCallBackRequest.getRequestId())) {
+            resultCallBackRequest.setRequestId("rc" + System.nanoTime() + ""
+                    + RandomStringUtils.randomAlphanumeric(15));
+        }
         return guoMeiClient.sendMarketingResultCallBack(resultCallBackRequest, Object.class);
     }
 
