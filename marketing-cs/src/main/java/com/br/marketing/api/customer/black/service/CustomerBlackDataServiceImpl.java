@@ -15,6 +15,7 @@ import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.ResponseCustomDTO;
+import com.br.marketing.entity.CustomizeBlackData;
 import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.mapper.CustomizeBlackDataMapper;
 import com.br.marketing.mapper.CustomizeUploadDataMapper;
@@ -58,17 +59,17 @@ public class CustomerBlackDataServiceImpl implements CustomerBlackDataService {
         try {
             BaseBlackDataAdaptee adapter = null;
             CustomerResponseDTO respCustomer = null;
-            CustomizeUploadData uploadData = new CustomizeUploadData();
+            CustomizeBlackData blackData = new CustomizeBlackData();
             String decryptData = jsonData;
             if (customerBlackDataHandler.customer().getIsNeedDecrypt()) {
                 decryptData = customerBlackDataHandler.decryptJsonData(apiCode, jsonData);
-                uploadData.setExtend(jsonData);
+                blackData.setExtend(jsonData);
             }
-            uploadData.setRequestJsonData(decryptData);
-            uploadData.setReceiveDate(LocalDate.now().toString());
-            uploadData.setApiCode(apiCode);
-            uploadData.setCreateTime(new Date());
-            uploadData.setUpdateTime(new Date());
+            blackData.setRequestJsonData(decryptData);
+            blackData.setReceiveDate(LocalDate.now().toString());
+            blackData.setApiCode(apiCode);
+            blackData.setCreateTime(new Date());
+            blackData.setUpdateTime(new Date());
             String tCid = tableCreateService.getTcId(apiCode);
             if (StringUtils.isEmpty(tCid)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
@@ -78,8 +79,8 @@ public class CustomerBlackDataServiceImpl implements CustomerBlackDataService {
                 return respCustomer.getResponseCustomDTO();
             } else {
                 // 创建定制黑名单表
-                uploadData.setTCid(tCid);
-                customizeBlackDataMapper.createCustomizeBlackDataTable(uploadData.getTCid());
+                blackData.setTCid(tCid);
+                customizeBlackDataMapper.createCustomizeBlackDataTable(blackData.getTCid());
             }
             try {
                 customerBlackDataHandler.isValidJson(decryptData);
@@ -92,7 +93,7 @@ public class CustomerBlackDataServiceImpl implements CustomerBlackDataService {
             }
             if (respCustomer == null) {
                 String requestId = customerBlackDataHandler.getRequestId(apiCode, adapter);
-                uploadData.setRequestId(requestId);
+                blackData.setRequestId(requestId);
                 try {
                     customerBlackDataHandler.setSourceParam(apiCode, decryptData, adapter);
                     // 2. 有数据验证,包括字段空值及验签
@@ -100,7 +101,7 @@ public class CustomerBlackDataServiceImpl implements CustomerBlackDataService {
                     if (CustomerResponseDTO.StatusEnum.VALID.equals(respCustomer.getStatusEnum())) {
                         // 3. 计算业务数据量
                         int number = customerBlackDataHandler.countBizDataNumber(adapter);
-                        uploadData.setBizDataNumber(number);
+                        blackData.setBizDataNumber(number);
                     }
                 } catch (Exception e) {
                     respCustomer = customerBlackDataHandler.bizErrorResponse(e);
@@ -109,20 +110,20 @@ public class CustomerBlackDataServiceImpl implements CustomerBlackDataService {
 
                 }
             }
-            uploadData.setStatus(respCustomer.getStatusEnum().getValue());
-            uploadData.setResponseCode(respCustomer.getResponseCode().toString());
-            uploadData.setResponseData(JSON.toJSONString(respCustomer.getResponseCustomDTO()));
+            blackData.setStatus(respCustomer.getStatusEnum().getValue());
+            blackData.setResponseCode(respCustomer.getResponseCode().toString());
+            blackData.setResponseData(JSON.toJSONString(respCustomer.getResponseCustomDTO()));
             // 6. 保存前置数据
             try {
                 pushRuleService.mockDbOrRedisError(1, apiCode);
-                int i = customizeBlackDataMapper.insertSelective(uploadData);
+                int i = customizeBlackDataMapper.insertSelective(blackData);
                 if (i != 1) {
                     throw new RuntimeException(
                             "定制化客户".concat(customerBlackDataHandler.customer().getName()).concat("(").concat(apiCode).concat(")保存失败,入库数据量:") + i);
                 }
                 // 7.数据有效，且存储前置完成后进行数据下发（按需实现，默认不处理），
-                if (Objects.equals(uploadData.getStatus(), CustomerResponseDTO.StatusEnum.VALID.getValue())) {
-                    customerBlackDataHandler.dataDirection(tCid, uploadData.getId());
+                if (Objects.equals(blackData.getStatus(), CustomerResponseDTO.StatusEnum.VALID.getValue())) {
+                    customerBlackDataHandler.dataDirection(tCid, blackData.getId());
                 }
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "定制黑名单数据写入客户定制黑名单前置表异常"),

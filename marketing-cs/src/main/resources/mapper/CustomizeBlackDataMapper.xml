@@ -109,7 +109,7 @@
         </trim>
     </insert>
 
-    <select id="selectById" resultType="com.br.marketing.entity.CustomizeUploadData">
+    <select id="selectById" resultType="com.br.marketing.entity.CustomizeBlackData">
         select * from b_customize_black_data_${tCid} where id = #{sourceId}
     </select>
 

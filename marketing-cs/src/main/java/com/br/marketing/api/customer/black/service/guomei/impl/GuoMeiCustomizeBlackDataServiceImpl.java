@@ -172,6 +172,8 @@ public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlack
         return new CustomerResponseDTO(guoMeiBlackResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guoMeiBlackResponseDTO.getCode());
     }
 
+
+
     /**
      * 数据下发
      *
@@ -186,7 +188,7 @@ public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlack
             JSONObject json = new JSONObject();
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_DATA_CLEAN, json.toJSONString());
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN, json.toJSONString());
             log.warn("国美定制黑名单数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), e.getMessage()
