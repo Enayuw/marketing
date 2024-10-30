@@ -2,11 +2,9 @@ package com.br.marketing.service.Impl.guomei;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.GuoMeiTotalNumBO;
-import com.br.marketing.client.guomei.GmCallBackResponse;
 import com.br.marketing.client.guomei.base.AbstractUserListBase;
 import com.br.marketing.client.guomei.userdata.GmUserDataCallBack;
 import com.br.marketing.client.guomei.userdata.GmUserDataCallBackRequest;
-import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.LocalFile;
@@ -117,7 +115,6 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                     maxId = data.getId();
                     pushNumber += size;
                     futureList.add(poolExecutor.submit(() -> {
-                        Result<GmCallBackResponse<Object>> gmCallBackResponseResult = null;
                         try {
                             GmUserDataCallBackRequest request = splicingDataCallBackData(callbackDataList, apiCode, batch, planId, userType, totalNum);
                             methodRetryHandlerService.sendUserDataCallBack(request, null);
