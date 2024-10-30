@@ -115,11 +115,11 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                             GmUserDataCallBackRequest request = splicingDataCallBackData(callbackDataList, apiCode, batch, planId, userType, totalNum);
                             methodRetryHandlerService.sendUserDataCallBack(request, null);
                             pushNumber.addAndGet(size);
-                            updateCallbackData(callbackDataList, localFile);
                         } catch (Exception e) {
                             errorActualNumber.addAndGet(size);
                             log.error(e.getMessage(), e);
                         }
+                        updateCallbackData(callbackDataList, localFile);
                     });
                     if (size < limit) {
                         break;
@@ -171,15 +171,19 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
      * 更新数据状态，已推送
      */
     private void updateCallbackData(List<GuoMeiCallbackData> callbackDataList, LocalFile localFile) {
-        GuoMeiCallbackData updateCallbackData = new GuoMeiCallbackData();
-        updateCallbackData.setPushStatus(2);
-        List<Long> ids = callbackDataList.stream().map(GuoMeiCallbackData::getId).collect(Collectors.toList());
-        GuoMeiCallbackDataExample updateExample = new GuoMeiCallbackDataExample();
-        updateExample.createCriteria().andIdIn(ids).andLocalIdEqualTo(localFile.getId());
-        int i = guoMeiCallbackDataMapper.updateByExampleSelective(updateCallbackData, updateExample);
-        if (i < 1) {
-            log.warn("国美用户数据回调数据更新失败,localFile[name:{},id:{}]，ids:{}"
-                    , localFile.getFileName(), localFile.getId(), ids.toArray());
+        try {
+            GuoMeiCallbackData updateCallbackData = new GuoMeiCallbackData();
+            updateCallbackData.setPushStatus(2);
+            List<Long> ids = callbackDataList.stream().map(GuoMeiCallbackData::getId).collect(Collectors.toList());
+            GuoMeiCallbackDataExample updateExample = new GuoMeiCallbackDataExample();
+            updateExample.createCriteria().andIdIn(ids).andLocalIdEqualTo(localFile.getId());
+            int i = guoMeiCallbackDataMapper.updateByExampleSelective(updateCallbackData, updateExample);
+            if (i < 1) {
+                log.warn("国美用户数据回调数据更新失败,localFile[name:{},id:{}]，ids:{}"
+                        , localFile.getFileName(), localFile.getId(), ids.toArray());
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
