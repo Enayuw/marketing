@@ -457,7 +457,7 @@
 
     <job:simple id="【monkey】-GuoMeiDataCallbackJob"
                 class="com.br.marketing.monkey.job.guomei.GuoMeiDataCallbackJob"
-                cron="0/10 * * * * ? "
+                cron="0 0 0/1 * * ? "
                 description="国美用户数据回传"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
