@@ -1,25 +1,20 @@
-package com.br.marketing.api.customer.upload.service.guomei.impl;
-
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.rabbitmq.RabbitMqProducter;
-import java.util.Collections;
-import java.util.Set;
-
-import javax.annotation.Resource;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
+package com.br.marketing.api.customer.black.service.guomei.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
-import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
-import com.br.marketing.api.customer.upload.service.guomei.GuoMeiCustomizeUploadDataService;
-import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadJsonDTO;
-import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadResponseDTO;
+import com.br.common.log.AlertLog;
+import com.br.marketing.api.customer.black.adapter.BaseBlackDataAdaptee;
+import com.br.marketing.api.customer.black.handler.CustomerBlackHandlerEnum;
+import com.br.marketing.api.customer.black.service.guomei.GuoMeiCustomizeBlackDataService;
+import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackJsonDTO;
+import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackResponseDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.dto.CustomerResponseDTO;
-
+import com.br.marketing.rabbitmq.RabbitMqProducter;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
 
 /**
  * 国美自定义上传策略实现
@@ -29,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Service
 @Slf4j
-public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUploadDataService {
+public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlackDataService {
 
     @Resource
     private RabbitMqProducter rabbitMqProducter;
@@ -54,8 +49,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      * @return 客户枚举
      */
     @Override
-    public CustomerUploadHandlerEnum customer() {
-        return CustomerUploadHandlerEnum.U_GUME;
+    public CustomerBlackHandlerEnum customer() {
+        return CustomerBlackHandlerEnum.B_GUME;
     }
 
     /**
@@ -65,8 +60,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      * @return 转化适配者
      */
     @Override
-    public BaseUploadDataAdaptee parseObject(String jsonData) {
-        return JSONObject.parseObject(jsonData, GuMeUploadJsonDTO.class);
+    public BaseBlackDataAdaptee parseObject(String jsonData) {
+        return JSONObject.parseObject(jsonData, GuoMeiBlackJsonDTO.class);
     }
 
     /**
@@ -76,26 +71,26 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      * @return 封装了响应结果与标记客户数据的状况
      */
     @Override
-    public CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee) {
-        GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
-        GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
+    public CustomerResponseDTO verifyFields(BaseBlackDataAdaptee adaptee) {
+        GuoMeiBlackJsonDTO uploadJsonDTO = (GuoMeiBlackJsonDTO)adaptee;
+        GuoMeiBlackResponseDTO guoMeiBlackResponseDTO = new GuoMeiBlackResponseDTO();
         StringBuilder errorMessage = new StringBuilder();
         if (StringUtils.isBlank(uploadJsonDTO.getRequestId())) {
             errorMessage.append(",requestId不可为空");
         } else if (StringUtils.isBlank(uploadJsonDTO.getInstitutionCode())) {
             errorMessage.append(",institutionCode不可为空");
-        } else if (uploadJsonDTO.getProperties() == null || uploadJsonDTO.getProperties().isEmpty()) {
-            errorMessage.append(",properties不可为空");
+        } else if (uploadJsonDTO.getEndFlag() == null ) {
+            errorMessage.append(",endFlag不可为空");
         } else if (uploadJsonDTO.getUserList() == null || uploadJsonDTO.getUserList().isEmpty()) {
             errorMessage.append(",userList不可为空");
         }
         if (errorMessage.length() > 0) {
-            guMeUploadResponseDTO.failed(GuMeUploadResponseDTO.ResultEnum.FAILED_FIELD_CHECK_ERROR, errorMessage.toString());
-            return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
+            guoMeiBlackResponseDTO.failed(GuoMeiBlackResponseDTO.ResultEnum.FAILED_FIELD_CHECK_ERROR, errorMessage.toString());
+            return new CustomerResponseDTO(guoMeiBlackResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guoMeiBlackResponseDTO.getCode());
         } else {
-            guMeUploadResponseDTO.success();
+            guoMeiBlackResponseDTO.success();
         }
-        return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.VALID, guMeUploadResponseDTO.getCode());
+        return new CustomerResponseDTO(guoMeiBlackResponseDTO, CustomerResponseDTO.StatusEnum.VALID, guoMeiBlackResponseDTO.getCode());
     }
 
     /**
@@ -108,8 +103,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      * @date 2024/08/07
      */
     @Override
-    public String getRequestId(String apiCode, BaseUploadDataAdaptee adaptee) {
-        GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
+    public String getRequestId(String apiCode, BaseBlackDataAdaptee adaptee) {
+        GuoMeiBlackJsonDTO uploadJsonDTO = (GuoMeiBlackJsonDTO)adaptee;
         return uploadJsonDTO.getRequestId();
     }
 
@@ -120,22 +115,11 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      * @return 传输的业务数据量
      */
     @Override
-    public int countBizDataNumber(BaseUploadDataAdaptee adaptee) {
-        GuMeUploadJsonDTO uploadJsonDTO = (GuMeUploadJsonDTO)adaptee;
+    public int countBizDataNumber(BaseBlackDataAdaptee adaptee) {
+        GuoMeiBlackJsonDTO uploadJsonDTO = (GuoMeiBlackJsonDTO)adaptee;
         return uploadJsonDTO.getUserList() != null ? uploadJsonDTO.getUserList().size() : 0;
     }
 
-    /**
-     * 2023-10-24 19:24 获取全部的业务字段,用于检查是否有新增的字段
-     *
-     * @param jsonData 客户json字符串
-     * @return 业务中要提示的新增字段
-     */
-    @Override
-    public Set<String> getBizAllFields(String jsonData) {
-        // TODO 强总处理@zeqiang.guo
-        return Collections.emptySet();
-    }
 
     /**
      * 2023-10-24 19:17 json解析错误,对应响应
@@ -145,9 +129,9 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public CustomerResponseDTO jsonErrorResponse(Exception e) {
-        GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
-        guMeUploadResponseDTO.failed(GuMeUploadResponseDTO.ResultEnum.FAILED_JSON_ERROR);
-        return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
+        GuoMeiBlackResponseDTO guoMeiBlackResponseDTO = new GuoMeiBlackResponseDTO();
+        guoMeiBlackResponseDTO.failed(GuoMeiBlackResponseDTO.ResultEnum.FAILED_JSON_ERROR);
+        return new CustomerResponseDTO(guoMeiBlackResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guoMeiBlackResponseDTO.getCode());
     }
 
     /**
@@ -169,9 +153,9 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public CustomerResponseDTO fallbackResponse(Exception e) {
-        GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
-        guMeUploadResponseDTO.failed();
-        return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
+        GuoMeiBlackResponseDTO guoMeiBlackResponseDTO = new GuoMeiBlackResponseDTO();
+        guoMeiBlackResponseDTO.failed();
+        return new CustomerResponseDTO(guoMeiBlackResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guoMeiBlackResponseDTO.getCode());
     }
 
     /**
@@ -183,9 +167,9 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
      */
     @Override
     public CustomerResponseDTO defaultSuccessResponse() {
-        GuMeUploadResponseDTO guMeUploadResponseDTO = new GuMeUploadResponseDTO();
-        guMeUploadResponseDTO.success();
-        return new CustomerResponseDTO(guMeUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guMeUploadResponseDTO.getCode());
+        GuoMeiBlackResponseDTO guoMeiBlackResponseDTO = new GuoMeiBlackResponseDTO();
+        guoMeiBlackResponseDTO.success();
+        return new CustomerResponseDTO(guoMeiBlackResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, guoMeiBlackResponseDTO.getCode());
     }
 
     /**
@@ -203,10 +187,10 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
             rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_DATA_CLEAN, json.toJSONString());
-            log.warn("国美定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);
+            log.warn("国美定制黑名单数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), e.getMessage()
-                    , "推送国美定制数据下发消息异常！"), e);
+                    , "推送国美定制黑名单数据下发消息异常！"), e);
         }
     }
 }

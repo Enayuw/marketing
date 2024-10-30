@@ -1,61 +1,69 @@
-package com.br.marketing.api.customer.upload.handler;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
+package com.br.marketing.api.customer.black.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
+import com.br.marketing.api.customer.black.adapter.BaseBlackDataAdaptee;
+import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Set;
+
 
 /**
- * 客户上传数据处理
+ * 客户黑数据处理程序
  *
  * @author senyang.zheng
- * @date 2024/08/07
+ * @date 2024/10/30
  */
-public interface CustomerUploadDataHandler {
+public interface CustomerBlackDataHandler {
 
     /**
      * 解密jsonData
      *
-     * @param apiCode apiCode
+     * @param apiCode  apiCode
      * @param jsonData jsonData
      * @return {@link String }
      * @author senyang.zheng
-     * @date 2024/09/11
+     * @date 2024/10/30
      */
     String decryptJsonData(String apiCode, String jsonData);
 
+
     /**
-     * 2023-10-18 16:45 客户
+     * 定制策略
      *
-     * @return 客户枚举
+     * @return {@link CustomerUploadHandlerEnum }
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
-    CustomerUploadHandlerEnum customer();
+    CustomerBlackHandlerEnum customer();
 
     /**
      * 2023-10-18 16:45 反序列化客户定制数据
      *
      * @param jsonData json 字符串
-     * @return 转化适配者
+     * @return 转化适配者@author senyang.zheng
+     * @date 2024/10/30
      */
-    BaseUploadDataAdaptee parseObject(String jsonData);
+    BaseBlackDataAdaptee parseObject(String jsonData);
+
 
     /**
-     * 2023-10-23 17:37 校验字段
+     * 校验字段
      *
-     * @param adaptee 客户定制数据
-     * @return 封装了响应结果与标记客户数据的状况
+     * @param adaptee 适应者
+     * @return {@link CustomerResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
-   <T>  CustomerResponseDTO verifyFields(BaseUploadDataAdaptee<T> adaptee);
+    <T>  CustomerResponseDTO verifyFields(BaseBlackDataAdaptee<T> adaptee);
 
     /**
      * 获取requestId
@@ -63,50 +71,53 @@ public interface CustomerUploadDataHandler {
      * @param adaptee 适配器
      * @return {@link String }
      * @author senyang.zheng
-     * @date 2024/08/07
+     * @date 2024/10/30
      */
-    String getRequestId(String apiCode, BaseUploadDataAdaptee adaptee);
+    String getRequestId(String apiCode, BaseBlackDataAdaptee adaptee);
+
 
     /**
-     * 2023-10-23 17:37 获取业务数据量
+     * 获取业务数据量
      *
-     * @param adaptee 客户定制数据
-     * @return 传输的业务数据量
+     * @param adaptee 适配器
+     * @return int
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
-    int countBizDataNumber(BaseUploadDataAdaptee adaptee);
+    int countBizDataNumber(BaseBlackDataAdaptee adaptee);
+
 
     /**
-     * 2023-10-24 19:24 获取全部的业务字段,用于检查是否有新增的字段
+     * json解析错误,对应响应
      *
-     * @param jsonData 客户json字符串
-     * @return 业务中要提示的新增字段
-     */
-    Set<String> getBizAllFields(String jsonData);
-
-    /**
-     * 2023-10-24 19:17 json解析错误,对应响应
-     *
-     * @param e 业务异常
-     * @return 定制化客户响
+     * @param e e
+     * @return {@link CustomerResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
     CustomerResponseDTO jsonErrorResponse(Exception e);
 
+
     /**
-     * 2023-10-24 19:17 业务中发生异常时,对应响应
+     * 业务中发生异常时,对应响应
      *
-     * @param e 业务异常
-     * @return 定制化客户响
+     * @param e e
+     * @return {@link CustomerResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
     CustomerResponseDTO bizErrorResponse(Exception e);
 
+
     /**
-     * 2023-10-24 19:17 回退响应,未知异常时,提升客户体验
+     * 回退响应,未知异常时,提升客户体验
      *
-     * @param e 未知异常
-     * @return 定制化客户响
+     * @param e e
+     * @return {@link CustomerResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
     CustomerResponseDTO fallbackResponse(Exception e);
-
 
     /**
      * 入库异常默认成功响应
@@ -123,20 +134,23 @@ public interface CustomerUploadDataHandler {
      * @param tCid tCid
      * @param sourceId 数据源主键id
      * @author senyang.zheng
-     * @date 2024/09/25
+     * @date 2024/10/30
      */
     default void dataDirection(String tCid, Long sourceId) {
 
     }
 
+
     /**
-     * 2023-10-26 11:44 封装原始信息
+     * 封装原始信息
      *
-     * @param apiCode apiCode
-     * @param jsonData 客户json字符串
-     * @param adaptee 适配
+     * @param apiCode  API代码
+     * @param jsonData json数据
+     * @param adaptee  适应者
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
-    default void setSourceParam(String apiCode, String jsonData, BaseUploadDataAdaptee adaptee) {
+    default void setSourceParam(String apiCode, String jsonData, BaseBlackDataAdaptee adaptee) {
         if (adaptee == null) {
             return;
         }
@@ -144,10 +158,13 @@ public interface CustomerUploadDataHandler {
         adaptee.setApiCode(apiCode);
     }
 
+
     /**
-     * 2023-10-26 11:44 json结构判断
+     * json结构判断
      *
-     * @param jsonData 客户json字符串
+     * @param jsonData json数据
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
     default void isValidJson(String jsonData) {
         if (JSON.isValid(jsonData)) {
@@ -156,15 +173,18 @@ public interface CustomerUploadDataHandler {
         throw new JSONException("非json结构");
     }
 
+
     /**
-     * 2023-10-24 19:17 新增字段检查
+     * 新增字段检查
      *
-     * @param fieldSet 需要检查的字段集合
-     * @param localCacheFieldSet 本地缓存的字段集合
-     * @param redisChgService redis bean
-     * @param apiCode 客户编号
-     * @param requestId 请求流水号
-     * @return 组装的消息, 无时为null
+     * @param fieldSet           字段集
+     * @param localCacheFieldSet 本地缓存字段集
+     * @param redisChgService    Redis 更改服务
+     * @param apiCode            API代码
+     * @param requestId          请求ID
+     * @return {@link String }
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
     default String checkField(Set<String> fieldSet, final Set<String> localCacheFieldSet, final RedisChgService redisChgService, String apiCode,
         String requestId) {
@@ -192,11 +212,14 @@ public interface CustomerUploadDataHandler {
         return null;
     }
 
+
     /**
-     * 2023-10-23 17:37 获取业务数据量
+     * 获取业务数据量
      *
-     * @param jsonData 客户json字符串
-     * @return 传输的业务数据量
+     * @param jsonData json数据
+     * @return int
+     * @author senyang.zheng
+     * @date 2024/10/30
      */
     default int countBizDataNumber(String jsonData) {
         if (JSON.isValid(jsonData)) {
