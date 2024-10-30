@@ -64,7 +64,13 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
         //查询已入库文件
         example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.GUO_MEI_DATA_CALLBACK.getValue())
                 .andStatusEqualTo("2").andCompleteEqualTo("1").andApiCodeEqualTo(apiCode)
-                .andPushEndTimeIsNull().andCreateTimeGreaterThanOrEqualTo(Date.from(localDate.atStartOfDay()
+                .andPushStatusIsNull().andCreateTimeGreaterThanOrEqualTo(Date.from(localDate.atStartOfDay()
+                .atZone(ZoneId.systemDefault()).toInstant()))
+                .andCreateTimeLessThan(Date.from(localDate.plusDays(1).atStartOfDay()
+                        .atZone(ZoneId.systemDefault()).toInstant()));
+        example.or().andFileTypeEqualTo(SftpFileTypeEnum.GUO_MEI_DATA_CALLBACK.getValue())
+                .andStatusEqualTo("2").andCompleteEqualTo("1").andApiCodeEqualTo(apiCode)
+                .andPushStatusEqualTo("1").andCreateTimeGreaterThanOrEqualTo(Date.from(localDate.atStartOfDay()
                 .atZone(ZoneId.systemDefault()).toInstant()))
                 .andCreateTimeLessThan(Date.from(localDate.plusDays(1).atStartOfDay()
                         .atZone(ZoneId.systemDefault()).toInstant()));
@@ -131,6 +137,7 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                 localFileNew.setPushStatus("2");
             } else {
                 localFileNew.setErrorActualNumber(errorActualNumber.get());
+                localFileNew.setPushStatus("1");
             }
             localFileNew.setPushNumber(pushNumber.get());
             // 更新文件状态
