@@ -121,11 +121,11 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                         try {
                             GmUserDataCallBackRequest request = splicingDataCallBackData(callbackDataList, apiCode, batch, planId, userType, totalNum);
                             methodRetryHandlerService.sendUserDataCallBack(request, null);
+                            updateCallbackData(callbackDataList, localFile);
                         } catch (Exception e) {
                             errorActualNumber.addAndGet(callbackDataList.size());
                             log.error(e.getMessage(), e);
                         }
-                        updateCallbackData(callbackDataList, localFile);
                     });
                     if (size < limit) {
                         break;
@@ -135,11 +135,12 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
             localFileNew.setPushEndTime(new Date());
             if (errorActualNumber.get() == 0) {
                 localFileNew.setPushStatus("2");
+                localFileNew.setPushNumber(pushNumber);
             } else {
-                localFileNew.setErrorActualNumber(errorActualNumber.get());
                 localFileNew.setPushStatus("1");
+                localFileNew.setErrorActualNumber(errorActualNumber.get());
+                localFileNew.setPushNumber(pushNumber - errorActualNumber.get());
             }
-            localFileNew.setPushNumber(pushNumber - errorActualNumber.get());
             // 更新文件状态
             localFileMapper.updateByPrimaryKeySelective(localFileNew);
         }
@@ -181,6 +182,7 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
         try {
             GuoMeiCallbackData updateCallbackData = new GuoMeiCallbackData();
             updateCallbackData.setPushStatus(2);
+            updateCallbackData.setUpdateTime(new Date());
             List<Long> ids = callbackDataList.stream().map(GuoMeiCallbackData::getId).collect(Collectors.toList());
             GuoMeiCallbackDataExample updateExample = new GuoMeiCallbackDataExample();
             updateExample.createCriteria().andIdIn(ids).andLocalIdEqualTo(localFile.getId());

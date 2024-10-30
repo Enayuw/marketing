@@ -33,7 +33,7 @@
         </where>
     </sql>
     <select id="getBatchPlanIdUserTypeByList" resultType="com.br.marketing.bo.GuoMeiTotalNumBO">
-        select bgcd.batch, bgcd.plan_id, bgcd.user_type, count(*) as totalNum
+        select bgcd.batch, bgcd.plan_id, bgcd.user_type, count(bgcd.user_id) as totalNum
         from b_guomei_callback_data bgcd
                  inner join b_marketing_sync_${apiCode} bms
                             on bgcd.user_id = bms.cust_num and bgcd.batch = bms.cus_batch and

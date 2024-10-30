@@ -1058,7 +1058,7 @@
         left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.applet_time = b.applet_time
         where
         b.status=1 and b.is_repeat in (1, 2) and b.cus_batch='${cusBatch}'
-        and b.json_valid(reserve_field1)=1
+        and json_valid(b.reserve_field1)=1
         and b.reserve_field1->>'$.planId'='${planId}'
     </select>
 
