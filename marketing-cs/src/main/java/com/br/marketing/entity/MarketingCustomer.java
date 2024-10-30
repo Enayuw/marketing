@@ -218,6 +218,9 @@ public class MarketingCustomer {
      */
     private String mealJson;
 
+    /**
+     * 0 内部用户,1 银行,2 非银行,3 催收用户,4 保险用户,5 其他
+     */
     private String applyLoanType;
 
 

@@ -72,28 +72,45 @@ public class UserCenterHandler {
                     marketingCustomer.setFileEncryptionKey(merchantParam.getFileEncryptionKey());
                     marketingCustomer.setIsOutputDataProduct(merchantParam.getIsOutputDataProduct());
                     marketingCustomer.setMessage(merchantParam.getRemarks());
-                    MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
-                    marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid());
-                    List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
-                    if (marketingCustomers.size() == 0) {
-                        marketingCustomer.setCreateTime(new Date());
-                        marketingCustomerMapper.insertSelective(marketingCustomer);
-                    } else {
-                        marketingCustomer.setUpdateTime(new Date());
-                        marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
-                    }
+                    buildMarketingCustomer(apiCode,marketingCustomer);
                 } else {
                     log.warn("商户信息查询失败:merchantParam：{}-----，companyMsg：{}------ ", merchantParam, companyMsg);
                 }
+            }else if(apiType.equals("智能客服")){
+                String customerMsg = RpcClientProxy.getCustomerMsg(apiCode);
+                String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
+                if (StringUtils.isNotEmpty(customerMsg) && StringUtils.isNotEmpty(companyMsg)) {
+                    JSONObject customerJSONObj = JSON.parseObject(customerMsg);
+                    JSONObject companyJSONObj = JSON.parseObject(companyMsg);
+                    marketingCustomer.setCid(String.valueOf(companyJSONObj.get("COMP_ID")));
+                    marketingCustomer.setName(companyJSONObj.getString("COMP_NAME"));
+                    marketingCustomer.setShortName(companyJSONObj.getString("COMP_SHORT_NAME"));
+                    marketingCustomer.setApplyLoanType(companyJSONObj.getString("APPLY_LOAN_TYPE"));
+                    marketingCustomer.setAccountStatus(customerJSONObj.getString("account_status"));
+                    marketingCustomer.setAccountType(customerJSONObj.getInteger("account_type"));
+                    marketingCustomer.setStatus(customerJSONObj.getByte("account_status"));
+                    marketingCustomer.setApiCode(apiCode);
+                    buildMarketingCustomer(apiCode,marketingCustomer);
+                }
             }
-
         } catch (Exception e) {
             log.error("同步商户中心信息:{} 失败 -- ", mes, e);
             result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
-
     }
 
+    private void buildMarketingCustomer(String apiCode, MarketingCustomer marketingCustomer) {
+        MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
+        marketingCustomerExample.createCriteria().andApiCodeEqualTo(apiCode).andCidEqualTo(marketingCustomer.getCid());
+        List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(marketingCustomerExample);
+        if (marketingCustomers.size() == 0) {
+            marketingCustomer.setCreateTime(new Date());
+            marketingCustomerMapper.insertSelective(marketingCustomer);
+        } else {
+            marketingCustomer.setUpdateTime(new Date());
+            marketingCustomerMapper.updateByExampleSelective(marketingCustomer, marketingCustomerExample);
+        }
+    }
 
 }
