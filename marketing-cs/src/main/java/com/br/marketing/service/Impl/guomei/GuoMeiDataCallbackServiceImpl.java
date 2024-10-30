@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -78,18 +79,23 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                 , "guoMei-push-data-callback");
         int limit = 1000;
         for (LocalFile localFile : localFiles) {
+            log.warn("国美用户数据回传，开始处理{}文件，文件id:{}，apiCode:{}，localDate:{}", localFile.getFileName()
+                    , localFile.getId(), apiCode, localDate);
             LocalFile localFileNew = new LocalFile();
             localFileNew.setId(localFile.getId());
             localFileNew.setPushStartTime(new Date());
             List<GuoMeiTotalNumBO> guoMeiTotalNumBOList = guoMeiCallbackDataMapper.getBatchPlanIdUserTypeByList(apiCode
                     , localFile.getId());
-            int pushNumber = 0;
+            AtomicInteger pushNumber = new AtomicInteger();
+            AtomicInteger errorActualNumber = new AtomicInteger();
             for (GuoMeiTotalNumBO totalNumBO : guoMeiTotalNumBOList) {
                 Long maxId = null;
                 long totalNum = totalNumBO.getTotalNum();
                 Integer batch = totalNumBO.getBatch();
                 Long planId = totalNumBO.getPlanId();
                 Integer userType = totalNumBO.getUserType();
+                log.warn("国美用户数据回传，开始处理{}文件，文件id:{}，apiCode:{}，localDate:{}，batch:{}，planId:{}，userType:{}，totalNum:{}"
+                        , localFile.getFileName(), localFile.getId(), apiCode, localDate, batch, planId, userType, totalNum);
                 GuoMeiCallbackDataExample dataExample = new GuoMeiCallbackDataExample();
                 dataExample.createCriteria().andApiCodeEqualTo(apiCode).andBatchEqualTo(batch)
                         .andPlanIdEqualTo(planId).andUserTypeEqualTo(userType).andLocalIdEqualTo(localFile.getId())
@@ -102,15 +108,16 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                     if (size == 0) {
                         break;
                     }
-                    pushNumber += size;
                     GuoMeiCallbackData data = callbackDataList.get(size - 1);
                     maxId = data.getId();
                     poolExecutor.execute(() -> {
                         try {
                             GmUserDataCallBackRequest request = splicingDataCallBackData(callbackDataList, apiCode, batch, planId, userType, totalNum);
                             methodRetryHandlerService.sendUserDataCallBack(request, null);
+                            pushNumber.addAndGet(size);
                             updateCallbackData(callbackDataList, localFile);
                         } catch (Exception e) {
+                            errorActualNumber.addAndGet(size);
                             log.error(e.getMessage(), e);
                         }
                     });
@@ -120,8 +127,12 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                 }
             }
             localFileNew.setPushEndTime(new Date());
-            localFileNew.setPushStatus("2");
-            localFileNew.setPushNumber(pushNumber);
+            if (errorActualNumber.get() == 0) {
+                localFileNew.setPushStatus("2");
+            } else {
+                localFileNew.setErrorActualNumber(errorActualNumber.get());
+            }
+            localFileNew.setPushNumber(pushNumber.get());
             // 更新文件状态
             localFileMapper.updateByPrimaryKeySelective(localFileNew);
         }
@@ -166,7 +177,7 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
         GuoMeiCallbackDataExample updateExample = new GuoMeiCallbackDataExample();
         updateExample.createCriteria().andIdIn(ids).andLocalIdEqualTo(localFile.getId());
         int i = guoMeiCallbackDataMapper.updateByExampleSelective(updateCallbackData, updateExample);
-        if (i > 0) {
+        if (i < 1) {
             log.warn("国美用户数据回调数据更新失败,localFile[name:{},id:{}]，ids:{}"
                     , localFile.getFileName(), localFile.getId(), ids.toArray());
         }
