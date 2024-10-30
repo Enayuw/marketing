@@ -46,7 +46,7 @@
           and bms.status = 1
           and bms.is_repeat in (1
             , 2)
-        group by batch, plan_id, user_type
+        group by bgcd.batch, bgcd.plan_id, bgcd.user_type
     </select>
 
 
