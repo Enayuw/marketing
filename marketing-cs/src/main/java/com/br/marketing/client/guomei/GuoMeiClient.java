@@ -72,7 +72,7 @@ public class GuoMeiClient {
         userDataCallBackRequest.setInstitutionCode(institutionCode);
         Map<String, Object> guoMeiDataCallbackConfig = marketingCommonConfig.getGuoMeiDataCallbackConfig();
         if (Boolean.parseBoolean(guoMeiDataCallbackConfig.getOrDefault("mock", "false").toString())) {
-            mockConfigService.disappearTime(100, 500);
+            mockConfigService.disappearTime(500, 100);
             Map<String, String> map = new HashMap<>();
             map.put("httpcode", userDataCallBackRequest.getUserType().equals(1) ? HTTP_CODE : new Random().nextBoolean()
                     ? HTTP_CODE : "500");
