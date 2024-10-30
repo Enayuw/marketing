@@ -72,14 +72,21 @@ public class ShuHeCustomizedSyncServiceImpl implements ShuHeCustomizedSyncServic
                 syncServiceImpl.ftpFileList(resultMap, syncConfig, (FtpClient)client, syncConfig.getApiCode());
             }
             List<String> csvFiles = resultMap.get("csv");
-            for (String csvFile : csvFiles) {
-                String fileName = updatedPath.substring(lastSlashIndex + 1);
-                if (fileName.equals(csvFile)) {
-                    syncServiceImpl.copyFile(syncConfig, fileName, srcClient, targetClient);
-                    Path tempFile = Files.createTempFile(fileName, ".success");
-                    targetClient.uploadFile(Files.newInputStream(tempFile), syncConfig.getTargetPath(), fileName.concat(".success"));
-                    Files.deleteIfExists(tempFile);
+            if (csvFiles != null) {
+                for (String csvFile : csvFiles) {
+                    String fileName = updatedPath.substring(lastSlashIndex + 1);
+                    if (fileName.equals(csvFile)) {
+                        syncServiceImpl.copyFile(syncConfig, fileName, srcClient, targetClient);
+                        Path tempFile = Files.createTempFile(fileName, ".success");
+                        targetClient.uploadFile(Files.newInputStream(tempFile), syncConfig.getTargetPath(), fileName.concat(".success"));
+                        Files.deleteIfExists(tempFile);
+                    }
                 }
+            }
+            try {
+                client.disconnect();
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), e.getMessage(), "数禾促复借定制化拉取文件关闭sftp链接出错"), e);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), e.getMessage(), "数禾促复借自动化拉取文件异常"), e);
