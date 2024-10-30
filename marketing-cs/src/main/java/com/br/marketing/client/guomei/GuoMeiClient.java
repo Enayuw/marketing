@@ -11,13 +11,18 @@ import com.br.marketing.client.guomei.userdata.GmUserDataCallBackRequest;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.service.Impl.MockConfigServiceImpl;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * 国美客户端
@@ -44,6 +49,12 @@ public class GuoMeiClient {
     @Resource
     private HttpProxyClient httpProxyClient;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
+    @Resource
+    private MockConfigServiceImpl mockConfigService;
+
     private static final String HTTP_CODE = "200";
 
     /**
@@ -59,9 +70,21 @@ public class GuoMeiClient {
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public <T> Result<GmCallBackResponse<T>> sendUserDataCallBack(GmUserDataCallBackRequest userDataCallBackRequest, Class<T> responseClass) {
         userDataCallBackRequest.setInstitutionCode(institutionCode);
-        Map<String, String> map = httpProxyClient.sendByCodeWithLog(userDataCallBackRequest
-                , pushDataCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", true, false);
-        return getResponse(map, pushDataCallbackUrl, responseClass);
+        Map<String, Object> guoMeiDataCallbackConfig = marketingCommonConfig.getGuoMeiDataCallbackConfig();
+        if (Boolean.parseBoolean(guoMeiDataCallbackConfig.getOrDefault("mock", "false").toString())) {
+            mockConfigService.disappearTime(100, 500);
+            Map<String, String> map = new HashMap<>();
+            map.put("httpcode", userDataCallBackRequest.getUserType().equals(1) ? HTTP_CODE : new Random().nextBoolean()
+                    ? HTTP_CODE : "500");
+            map.put("content", "{\"data\":null,\"code\":\"200\",\"msg\":\"成功\",\"traceid\":\"unitedumg"
+                    + RandomStringUtils.randomAlphanumeric(15) + "\"}");
+            log.warn("国美用户数据回传接口挡板开启，请求：{}，响应：{}", JSON.toJSONString(userDataCallBackRequest), map);
+            return getResponse(map, pushDataCallbackUrl, responseClass);
+        } else {
+            Map<String, String> map = httpProxyClient.sendByCodeWithLog(userDataCallBackRequest
+                    , pushDataCallbackUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", true, false);
+            return getResponse(map, pushDataCallbackUrl, responseClass);
+        }
     }
 
     /**

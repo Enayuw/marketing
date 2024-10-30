@@ -15,6 +15,7 @@ import com.br.marketing.entity.guomei.GuoMeiCallbackDataExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.guomei.GuoMeiCallbackDataMapper;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,9 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
 
     @Resource
     private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public void pushDataCallback(String apiCode, LocalDate localDate) {
@@ -91,6 +95,7 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                         .andPlanIdEqualTo(planId).andUserTypeEqualTo(userType).andLocalIdEqualTo(localFile.getId())
                         .andIsDeletedEqualTo(0).andStatusEqualTo(1).andPushStatusEqualTo(0);
                 while (!Thread.interrupted()) {
+                    updatePoolSize(poolExecutor);
                     List<GuoMeiCallbackData> callbackDataList = guoMeiCallbackDataMapper.selectByMaxIdAndExample(
                             dataExample, maxId, limit);
                     int size = callbackDataList.size();
@@ -129,6 +134,23 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 2024-10-30 12:40
+     * 设置线程数据
+     */
+    private void updatePoolSize(ThreadPoolExecutor poolExecutor) {
+        Object poolSize = marketingCommonConfig.getGuoMeiDataCallbackConfig().get("poolSize");
+        if (poolSize != null) {
+            int size = Integer.parseInt(poolSize.toString());
+            if (poolExecutor.getCorePoolSize() != size) {
+                poolExecutor.setCorePoolSize(size);
+            }
+            if (poolExecutor.getMaximumPoolSize() != size) {
+                poolExecutor.setMaximumPoolSize(size);
+            }
         }
     }
 

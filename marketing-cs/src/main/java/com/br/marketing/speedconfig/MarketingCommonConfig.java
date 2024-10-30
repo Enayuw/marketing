@@ -2255,5 +2255,11 @@ public class MarketingCommonConfig {
      */
     private JSONObject guoMeiCleanFieldMappingConfig;
 
+    /**
+     * 国美用户数据回传配置
+     * eg:{"mock":"true","poolSize":"20"}
+     */
+    private Map<String, Object> guoMeiDataCallbackConfig=new HashMap<>();
+
 }
 
