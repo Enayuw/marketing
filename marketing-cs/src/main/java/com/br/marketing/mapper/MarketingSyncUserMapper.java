@@ -406,5 +406,20 @@ public interface MarketingSyncUserMapper {
     );
 
     List<MarketingSyncUser> selectByDynamicCondition(@Param("apiCode") String apiCode, @Param("sha256Cells") List<String> sha256Cells,
-                                               @Param("whereStr") String whereStr);
+                                                     @Param("whereStr") String whereStr);
+
+    /**
+     * 获取最新代运营数据
+     *
+     * @param apiCode  apiCode
+     * @param custs    案件编号集合
+     * @param cusBatch 批次号
+     * @param planId   计划号
+     * @return List
+     */
+    List<MarketingSyncUser> getSyncUserLastByCustNumsAndCusBatch(@Param("apiCode") String apiCode
+            , @Param("custNums") Set<String> custs
+            , @Param("cusBatch") Integer cusBatch
+            , @Param("planId") Long planId);
+
 }
