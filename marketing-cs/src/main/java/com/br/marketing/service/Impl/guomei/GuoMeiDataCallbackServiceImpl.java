@@ -92,8 +92,8 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
             localFileNew.setPushStartTime(new Date());
             List<GuoMeiTotalNumBO> guoMeiTotalNumBOList = guoMeiCallbackDataMapper.getBatchPlanIdUserTypeByList(apiCode
                     , localFile.getId());
-            AtomicInteger pushNumber = new AtomicInteger();
-            AtomicInteger errorActualNumber = new AtomicInteger();
+            int pushNumber = 0;
+            AtomicInteger errorActualNumber = new AtomicInteger(0);
             for (GuoMeiTotalNumBO totalNumBO : guoMeiTotalNumBOList) {
                 Long maxId = null;
                 long totalNum = totalNumBO.getTotalNum();
@@ -116,13 +116,13 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                     }
                     GuoMeiCallbackData data = callbackDataList.get(size - 1);
                     maxId = data.getId();
+                    pushNumber += size;
                     poolExecutor.execute(() -> {
                         try {
                             GmUserDataCallBackRequest request = splicingDataCallBackData(callbackDataList, apiCode, batch, planId, userType, totalNum);
                             methodRetryHandlerService.sendUserDataCallBack(request, null);
-                            pushNumber.addAndGet(size);
                         } catch (Exception e) {
-                            errorActualNumber.addAndGet(size);
+                            errorActualNumber.addAndGet(callbackDataList.size());
                             log.error(e.getMessage(), e);
                         }
                         updateCallbackData(callbackDataList, localFile);
@@ -139,7 +139,7 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                 localFileNew.setErrorActualNumber(errorActualNumber.get());
                 localFileNew.setPushStatus("1");
             }
-            localFileNew.setPushNumber(pushNumber.get());
+            localFileNew.setPushNumber(pushNumber - errorActualNumber.get());
             // 更新文件状态
             localFileMapper.updateByPrimaryKeySelective(localFileNew);
         }
