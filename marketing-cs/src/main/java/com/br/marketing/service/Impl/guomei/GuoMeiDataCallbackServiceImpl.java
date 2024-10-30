@@ -2,9 +2,11 @@ package com.br.marketing.service.Impl.guomei;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bo.GuoMeiTotalNumBO;
+import com.br.marketing.client.guomei.GmCallBackResponse;
 import com.br.marketing.client.guomei.base.AbstractUserListBase;
 import com.br.marketing.client.guomei.userdata.GmUserDataCallBack;
 import com.br.marketing.client.guomei.userdata.GmUserDataCallBackRequest;
+import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.LocalFile;
@@ -27,10 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -93,7 +92,7 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
             List<GuoMeiTotalNumBO> guoMeiTotalNumBOList = guoMeiCallbackDataMapper.getBatchPlanIdUserTypeByList(apiCode
                     , localFile.getId());
             int pushNumber = 0;
-            AtomicInteger errorActualNumber = new AtomicInteger(0);
+            List<Future<Integer>> futureList = new ArrayList<>();
             for (GuoMeiTotalNumBO totalNumBO : guoMeiTotalNumBOList) {
                 Long maxId = null;
                 long totalNum = totalNumBO.getTotalNum();
@@ -117,29 +116,40 @@ public class GuoMeiDataCallbackServiceImpl implements IGuoMeiDataCallbackService
                     GuoMeiCallbackData data = callbackDataList.get(size - 1);
                     maxId = data.getId();
                     pushNumber += size;
-                    poolExecutor.execute(() -> {
+                    futureList.add(poolExecutor.submit(() -> {
+                        Result<GmCallBackResponse<Object>> gmCallBackResponseResult = null;
                         try {
                             GmUserDataCallBackRequest request = splicingDataCallBackData(callbackDataList, apiCode, batch, planId, userType, totalNum);
                             methodRetryHandlerService.sendUserDataCallBack(request, null);
                             updateCallbackData(callbackDataList, localFile);
+                            return 0;
                         } catch (Exception e) {
-                            errorActualNumber.addAndGet(callbackDataList.size());
                             log.error(e.getMessage(), e);
+                            return callbackDataList.size();
                         }
-                    });
+                    }));
                     if (size < limit) {
                         break;
                     }
                 }
             }
+            int errorActualNumber = 0;
+            for (Future<Integer> future : futureList) {
+                try {
+                    errorActualNumber += future.get(1, TimeUnit.MINUTES);
+                } catch (InterruptedException | TimeoutException | ExecutionException e) {
+                    Thread.currentThread().interrupt();
+                    log.error(e.getMessage(), e);
+                }
+            }
             localFileNew.setPushEndTime(new Date());
-            if (errorActualNumber.get() == 0) {
+            if (errorActualNumber == 0) {
                 localFileNew.setPushStatus("2");
                 localFileNew.setPushNumber(pushNumber);
             } else {
                 localFileNew.setPushStatus("1");
-                localFileNew.setErrorActualNumber(errorActualNumber.get());
-                localFileNew.setPushNumber(pushNumber - errorActualNumber.get());
+                localFileNew.setErrorActualNumber(errorActualNumber);
+                localFileNew.setPushNumber(pushNumber - errorActualNumber);
             }
             // 更新文件状态
             localFileMapper.updateByPrimaryKeySelective(localFileNew);
