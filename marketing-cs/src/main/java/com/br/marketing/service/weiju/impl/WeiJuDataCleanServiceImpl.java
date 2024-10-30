@@ -89,7 +89,7 @@ public class WeiJuDataCleanServiceImpl implements WeiJuDataCleanService {
                 customizeUploadDataMapper.updateSyncStatusById(tCid, sourceId, 1);
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.WEIJU_SERVICEERROR.getCode(), "携程促活，主线程处理异常，前置表id：" + data.getId()), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.WEIJU_SERVICEERROR.getCode(), "微聚前置数据清洗，主线程处理异常，前置表id：" + data.getId()), e);
         }
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
