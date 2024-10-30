@@ -83,6 +83,11 @@ public class ShuHeCustomizedSyncServiceImpl implements ShuHeCustomizedSyncServic
                     }
                 }
             }
+            try {
+                client.disconnect();
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), e.getMessage(), "数禾促复借定制化拉取文件关闭sftp链接出错"), e);
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUHE_SERVICEERROR.getCode(), e.getMessage(), "数禾促复借自动化拉取文件异常"), e);
         }
