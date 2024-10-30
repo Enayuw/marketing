@@ -127,8 +127,10 @@ public class QiFuCuWanJianBatQryUserRealService {
         log.warn(TITLE + "actionDataList start, apiCode: {}, taskId: {}", apiCode, taskId);
         long start = System.currentTimeMillis();
         Result result = new Result().failure();
-        Integer threadPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("threadPoolSize")));
-        Integer partitionSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
+        Integer threadPoolSize = Integer.parseInt(String.valueOf(
+                marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("threadPoolSize")));
+        Integer partitionSize = Integer.parseInt(String.valueOf(
+                marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
         dbActionPool.setCorePoolSize(threadPoolSize);
         dbActionPool.setMaximumPoolSize(threadPoolSize);
         PARTITION_SIZE = partitionSize;
