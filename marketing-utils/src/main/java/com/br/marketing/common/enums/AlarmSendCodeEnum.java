@@ -68,7 +68,7 @@ public enum AlarmSendCodeEnum {
     //推送客服异常,阶梯推送
     PUSHING_CUSTOMERERROR("72000", "推送客服异常"),
     //推送决策异常,阶梯推送
-    PUSHING_DECISIONERROR("72000", "推送决策异常"),
+    PUSHING_DECISIONERROR("73000", "推送决策异常"),
     //推送Api异常,阶梯推送
     PUSHING_APIERROR("74000", "推送Api异常"),
     //调用有效期方法异常,立即推送
