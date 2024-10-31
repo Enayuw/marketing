@@ -20,6 +20,7 @@ public enum SftpFileTypeEnum {
     ,SUSHANG_CALLRECORD("sushang_callrecord")
     ,WUBA_COLLIDING("wuba_colliding")
     ,XIECHENG_ACTIVATE("xiecheng_activate")
-    ,DD("didi");
+    ,DD("didi")
+    , GUO_MEI_DATA_CALLBACK("guo_mei_data_callback");
    private String value;
 }

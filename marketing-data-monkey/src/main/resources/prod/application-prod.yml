@@ -258,6 +258,12 @@ api:
     baseUrl: https://callcenter.biocloo.com.cn
     blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
     isProxy: true
+  guoMei: # 国美
+    baseUrl: "https://united-umg.gomefinance.com.cn"
+    pushDataCallbackUrl: ${api.guoMei.baseUrl}/umg/api/v1/agencyOperation/pushDataCallback # 用户数据回传接口
+    pushResultCallbackUrl: ${api.guoMei.baseUrl}/umg/api/v1/agencyOperation/pushResultCallback # 营销结果数据回传接口
+    institutionCode: "bairong"
+    isProxy: true
 spring:
   rabbitmq:
     addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
