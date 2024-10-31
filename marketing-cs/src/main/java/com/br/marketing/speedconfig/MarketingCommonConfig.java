@@ -1472,7 +1472,7 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
 
     /**
-    * 携程撞库异常量级钉钉通知accessToken
+     * 携程撞库异常量级钉钉通知accessToken
      */
     private String xieChengGroupAccessToken;
 
@@ -1912,6 +1912,12 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingHighValueFiles;
 
     /**
+     * 58撞库status=-2文件id集合，J:非金融周期，Q:金融周期，K:非周期，true:开启撞库，false:关闭撞库 e.g.{"非周期":{"文件id":是否开启撞库}}
+     * {"J":{"123":true},"Q":{"456":true},"K":{"789":true}}
+     */
+    private HashMap<String, JSONObject> wubaCollidingReavedFileIds;
+
+    /**
      * 58撞库每日最大量级限制
      */
     private Integer wubaCollidingDataMaxCountLimit;
@@ -2060,7 +2066,7 @@ public class MarketingCommonConfig {
     private List<String> YiShiTransferApiCodes;
 
     /**
-         * 医时转化数据提取执行时间
+     * 医时转化数据提取执行时间
      */
     private String YiShiTransferFileExecuteTime;
 
@@ -2264,6 +2270,19 @@ public class MarketingCommonConfig {
      * 奇富AI上传数据参数配置
      */
     private JSONObject qiFuAIServerConfig;
+
+    /**
+     * 国美用户数据回传配置
+     * eg:{"mock":"true","poolSize":"20"}
+     */
+    private Map<String, Object> guoMeiDataCallbackConfig=new HashMap<>();
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化接口自定义配置apiCode
+     * eg:{"B_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
 }
 
