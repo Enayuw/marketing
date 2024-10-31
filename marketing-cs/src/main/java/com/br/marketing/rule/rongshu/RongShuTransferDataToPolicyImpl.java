@@ -19,6 +19,7 @@ import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -50,7 +51,9 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
-        MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
+        MarketingTransferSyncUser transferOld = (MarketingTransferSyncUser) transmitFact;
+        MarketingTransferSyncUser transfer = new MarketingTransferSyncUser();
+        BeanUtils.copyProperties(transferOld, transfer);
         // 情况2
         String status = null;
         String apiCode = context.getApiCode();
@@ -62,7 +65,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
         JSONObject apiCodeReplace = strategyCodeMap.get("apiCodeReplace");
         // 2024-10-28 apicode:4004643转化数据，按照规则生成后推送至4004733
-        if(null != apiCodeReplace){
+        if(null != apiCodeReplace && !apiCodeReplace.isEmpty()){
             if(StringUtils.isNotBlank(apiCodeReplace.getString(apiCode))){
                 apiCode = apiCodeReplace.getString(apiCode);
             }else{
