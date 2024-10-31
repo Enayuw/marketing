@@ -173,7 +173,7 @@ public class TaskScoreServiceImpl {
         }
         //线程池调用使用线程池监控调用类
         ThreadPoolExecutor warrningExecutor = BrMonitorExecutor.getThreadPool(customer.getThreadNum(), customer.getThreadNum(),
-                PrometheusMonitorUtils.COUNT_CORE_SCORE_API_THREAD_METRIC_NAME,apiCode);
+                PrometheusMonitorUtils.COUNT_CORE_SCORE_API_THREAD_METRIC_NAME,apiCode,task.getBatchNumber());
 
         //线程监听
         ObservedTaskObj observedTaskObj = new ObservedTaskObj(warrningExecutor, task);

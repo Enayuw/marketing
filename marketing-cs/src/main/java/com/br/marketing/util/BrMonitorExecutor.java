@@ -16,13 +16,14 @@ public class BrMonitorExecutor {
 
     /**
      * 线程池构造方法-包含监控
-     * @param initNum 核心线程数
-     * @param maxNum  最大线程数
+     *
+     * @param initNum    核心线程数
+     * @param maxNum     最大线程数
      * @param metricName 监控指标：see@class PrometheusMonitorUtils
-     * @param label 监控类别：一般为 apiCode
+     * @param label      监控类别：一般为 apiCode
      * @return
      */
-    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum, String metricName, String label) {
+    public static ThreadPoolExecutor getThreadPool(int initNum, int maxNum, String metricName, String label, String nextLabel) {
         return new ThreadPoolExecutor(initNum, maxNum, 60L, TimeUnit.SECONDS, new ArrayBlockingQueue(200),
                 new ThreadFactoryBuilder().setNameFormat("br-monitor-statistic-pool-%d").build(), new ThreadPoolExecutor.CallerRunsPolicy()) {
 
@@ -31,7 +32,7 @@ public class BrMonitorExecutor {
             protected void afterExecute(Runnable r, Throwable t) {
                 super.afterExecute(r, t);
                 try {
-                    MarketingCounter.countDec(metricName, label, "1"); // 任务执行完后，活跃线程减一
+                    MarketingCounter.countDec(metricName, label, nextLabel); // 任务执行完后，活跃线程减一
 
                 } catch (Exception e) {
                 }
@@ -42,7 +43,7 @@ public class BrMonitorExecutor {
             protected void beforeExecute(Thread t, Runnable r) {
                 super.beforeExecute(t, r);
                 try {
-                    MarketingCounter.count(metricName, label, "1"); // 任务执行完后，活跃线程加一
+                    MarketingCounter.count(metricName, label, nextLabel); // 任务执行完后，活跃线程加一
                 } catch (Exception e) {
                 }
             }
