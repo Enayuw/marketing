@@ -10,6 +10,7 @@
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
     <result column="result" property="result" jdbcType="BIT" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="is_deleted" property="isDeleted" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
@@ -74,8 +75,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, package_id, data_source_type, data_id, cell, batch_no, `result`, extend,
-    is_deleted, create_time, update_time
+    id, api_code, package_id, data_source_type, data_id, cell, batch_no, `result`, `status`,
+    extend, is_deleted, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.WubaCollidingDataLogExample" >
     select
@@ -113,12 +114,14 @@
     </selectKey>
     insert into b_wuba_colliding_data_log (api_code, package_id, data_source_type,
     data_id, cell, batch_no,
-    `result`, extend, is_deleted,
-    create_time, update_time)
+    `result`, `status`, extend,
+    is_deleted, create_time, update_time
+    )
     values (#{apiCode,jdbcType=VARCHAR}, #{packageId,jdbcType=BIGINT}, #{dataSourceType,jdbcType=VARCHAR},
     #{dataId,jdbcType=BIGINT}, #{cell,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR},
-    #{result,jdbcType=BIT}, #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER},
-    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    #{result,jdbcType=BIT}, #{status,jdbcType=VARCHAR}, #{extend,jdbcType=VARCHAR},
+    #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.WubaCollidingDataLog" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -146,6 +149,9 @@
       </if>
       <if test="result != null" >
         `result`,
+      </if>
+      <if test="status != null" >
+        `status`,
       </if>
       <if test="extend != null" >
         extend,
@@ -181,6 +187,9 @@
       </if>
       <if test="result != null" >
         #{result,jdbcType=BIT},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
       </if>
       <if test="extend != null" >
         #{extend,jdbcType=VARCHAR},
@@ -229,6 +238,9 @@
       <if test="record.result != null" >
         `result` = #{record.result,jdbcType=BIT},
       </if>
+      <if test="record.status != null" >
+        `status` = #{record.status,jdbcType=VARCHAR},
+      </if>
       <if test="record.extend != null" >
         extend = #{record.extend,jdbcType=VARCHAR},
       </if>
@@ -256,6 +268,7 @@
     cell = #{record.cell,jdbcType=VARCHAR},
     batch_no = #{record.batchNo,jdbcType=VARCHAR},
     `result` = #{record.result,jdbcType=BIT},
+    `status` = #{record.status,jdbcType=VARCHAR},
     extend = #{record.extend,jdbcType=VARCHAR},
     is_deleted = #{record.isDeleted,jdbcType=INTEGER},
     create_time = #{record.createTime,jdbcType=TIMESTAMP},
@@ -288,6 +301,9 @@
       <if test="result != null" >
         `result` = #{result,jdbcType=BIT},
       </if>
+      <if test="status != null" >
+        `status` = #{status,jdbcType=VARCHAR},
+      </if>
       <if test="extend != null" >
         extend = #{extend,jdbcType=VARCHAR},
       </if>
@@ -312,6 +328,7 @@
         cell = #{cell,jdbcType=VARCHAR},
         batch_no = #{batchNo,jdbcType=VARCHAR},
         `result` = #{result,jdbcType=BIT},
+        `status` = #{status,jdbcType=VARCHAR},
         extend = #{extend,jdbcType=VARCHAR},
         is_deleted = #{isDeleted,jdbcType=INTEGER},
         create_time = #{createTime,jdbcType=TIMESTAMP},

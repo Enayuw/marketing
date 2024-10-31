@@ -12,7 +12,7 @@ public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBa
 
     List<WubaCollidingData> selectCollidingData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode);
 
-    void batchUpdatePushTimeById(@Param("robs") List<WubaCollidingData> robs);
+    void batchUpdatePushTimeById(@Param("robs") List<WubaCollidingData> robs, @Param("sourceType") String sourceType);
 
     void batchDeleteByCell(@Param("cells") List<String> cells, @Param("apiCode") String apiCode);
 
@@ -21,4 +21,12 @@ public interface WubaCollidingDataRobMapper extends WubaCollidingDataRobMapperBa
 
     void batchSaveTrueToFalseData(@Param("cells") List<String> cells, @Param("apiCode") String apiCode,
                                   @Param("dataSourceType") String dataSourceType);
+
+    List<WubaCollidingData> selectReavedData(@Param("pageSize") Integer pageSize, @Param("apiCode") String apiCode,
+                                             @Param("pushTimeEnd") Date pushTimeEnd,
+                                             @Param("loopCycleReavedFileId") Long loopCycleReavedFileId);
+
+    void batchSaveReavedDataInToRob(@Param("cells") List<String> cells, @Param("apiCode") String apiCode,
+                                  @Param("dataSourceType") String dataSourceType, @Param("packageId") Long packageId);
+
 }
