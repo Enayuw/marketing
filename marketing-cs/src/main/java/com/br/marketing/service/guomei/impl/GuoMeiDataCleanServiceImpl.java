@@ -7,7 +7,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackJsonDTO;
 import com.br.marketing.api.customer.upload.service.guomei.dto.GuMeUploadJsonDTO;
-import com.br.marketing.api.customer.upload.service.weiju.dto.WeiJuUploadJsonDTO;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
 import com.br.marketing.common.commondto.Result;
@@ -210,6 +209,8 @@ public class GuoMeiDataCleanServiceImpl implements GuoMeiDataCleanService {
             transferDataItemDTO.setUserType("66");
             JSONObject reserveField1 = new JSONObject();
             reserveField1.put("isBlack", "1");
+            reserveField1.put("endFlag", blackJson.getEndFlag());
+            reserveField1.put("institutionCode", blackJson.getInstitutionCode());
             transferDataItemDTO.setReserveField1(reserveField1.toJSONString());
             dataItems.add(transferDataItemDTO);
         }
