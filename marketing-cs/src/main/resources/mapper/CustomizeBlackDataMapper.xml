@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.CustomizeBlackDataMapper">
+    <update id="createCustomizeBlackDataTable" parameterType="java.lang.String">
+        CREATE TABLE IF NOT EXISTS b_customize_black_data_${tCid}
+        (
+            `id`                bigint(20) NOT NULL AUTO_INCREMENT,
+            `api_code`          varchar(10)  DEFAULT '' COMMENT '用户编号',
+            `request_id`        varchar(100) DEFAULT '' COMMENT '请求流水号',
+            `request_json_data` longtext     DEFAULT NULL COMMENT '请求数据',
+            `biz_data_number`   int(9)       DEFAULT '0' COMMENT '数据量',
+            `response_code`     varchar(50)  DEFAULT '' COMMENT '响应码',
+            `response_data`     longtext     DEFAULT NULL COMMENT '响应数据',
+            `extend`            longtext     DEFAULT NULL COMMENT '扩展字段',
+            `status`            int(1)       DEFAULT '0' COMMENT '状态 0-无效、1-有效',
+            `sync_status`       int(1)       DEFAULT '0' COMMENT '同步状态 0-未同步、1-已同步',
+            `receive_date`      varchar(50)  DEFAULT '' COMMENT '接入日期yyyy-MM-dd',
+            `create_time`       timestamp    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+            `update_time`       timestamp    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+            PRIMARY KEY (`id`),
+            KEY `idx_request_id` (`request_id`),
+            KEY `idx_receive_date` (`receive_date`)
+        ) ENGINE = InnoDB
+          DEFAULT CHARSET = utf8
+          COLLATE = utf8_bin COMMENT ='定制化客户黑名单数据接收前置表'
+    </update>
+
+
+    <insert id="insertSelective" parameterType="com.br.marketing.entity.CustomizeBlackData">
+        <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into b_customize_black_data_${tCid}
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                api_code,
+            </if>
+            <if test="requestId != null">
+                request_id,
+            </if>
+            <if test="requestJsonData != null">
+                request_json_data,
+            </if>
+            <if test="bizDataNumber != null">
+                biz_data_number,
+            </if>
+            <if test="responseCode != null">
+                response_code,
+            </if>
+            <if test="responseData != null">
+                response_data,
+            </if>
+            <if test="extend != null">
+                extend,
+            </if>
+            <if test="status != null">
+                `status`,
+            </if>
+            <if test="syncStatus != null">
+                sync_status,
+            </if>
+            <if test="receiveDate != null">
+                receive_date,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="updateTime != null">
+                update_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="apiCode != null">
+                #{apiCode,jdbcType=VARCHAR},
+            </if>
+            <if test="requestId != null">
+                #{requestId,jdbcType=VARCHAR},
+            </if>
+            <if test="requestJsonData != null">
+                #{requestJsonData,jdbcType=VARCHAR},
+            </if>
+            <if test="bizDataNumber != null">
+                #{bizDataNumber,jdbcType=INTEGER},
+            </if>
+            <if test="responseCode != null">
+                #{responseCode,jdbcType=VARCHAR},
+            </if>
+            <if test="responseData != null">
+                #{responseData,jdbcType=VARCHAR},
+            </if>
+            <if test="extend != null">
+                #{extend,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=INTEGER},
+            </if>
+            <if test="syncStatus != null">
+                #{syncStatus,jdbcType=INTEGER},
+            </if>
+            <if test="receiveDate != null">
+                #{receiveDate,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null">
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="selectById" resultType="com.br.marketing.entity.CustomizeBlackData">
+        select * from b_customize_black_data_${tCid} where id = #{sourceId}
+    </select>
+
+    <update id="updateSyncStatusById">
+        update b_customize_black_data_${tCid} set sync_status = #{syncStatus} where id = #{sourceId}
+    </update>
+</mapper>

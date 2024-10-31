@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -42,9 +41,13 @@ public class QiFuCuWanJianBatQryUserRealService {
 
     private final static String TITLE = "【360促完件用户信息批量查询】";
 
-    ThreadPoolExecutor dbActionPool = BrExecutors.getThreadPool(4, 4);
+    ThreadPoolExecutor taskActionPool = BrExecutors.getThreadPool(4, 4);
+    ThreadPoolExecutor queryActionPool = BrExecutors.getThreadPool(4, 4);
 
     private Integer PARTITION_SIZE = 50;
+
+    private static final String CREATE_TIME_START = "createTimeStart";
+    private static final String CREATE_TIME_END = "createTimeEnd";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -78,11 +81,12 @@ public class QiFuCuWanJianBatQryUserRealService {
 
         log.warn(TITLE + "scanData start, apiCode: {}, bizDate: {}, paramTaskId:{}, ", apiCode, bizDate, paramTaskId);
         long start = System.currentTimeMillis();
+
         try{
             // 循环获取条件数据，每次pageSize条
             Map<String, String> marketingTimeInterval = calculateTimeInterval(bizDate);
-            String createTimeStart = marketingTimeInterval.get("createTimeStart");
-            String createTimeEnd = marketingTimeInterval.get("createTimeEnd");
+            String createTimeStart = marketingTimeInterval.get(CREATE_TIME_START);
+            String createTimeEnd = marketingTimeInterval.get(CREATE_TIME_END);
             List<MarketingSyncInfo> marketingSyncInfoList = marketingSyncInfoMapper.querySynInfoWithActiontikv_(apiCode
                     , statusList, actionDate, createTimeStart, createTimeEnd, paramTaskId, pageSize);
             if (CollectionUtils.isEmpty(marketingSyncInfoList)) {
@@ -92,51 +96,77 @@ public class QiFuCuWanJianBatQryUserRealService {
             }
             log.warn(TITLE + "scanData 获取到数据, size: {}", marketingSyncInfoList.size());
 
+            // 1个批次1个线程，因为批次要更新执行状态
+            Integer threadPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("taskActionPoolSize")));
+            taskActionPool.setCorePoolSize(threadPoolSize);
+            taskActionPool.setMaximumPoolSize(threadPoolSize);
+
+            List<CompletableFuture<Void>> futures = Lists.newArrayList();
             for(MarketingSyncInfo marketingSyncInfo : marketingSyncInfoList) {
-                Long dataId = marketingSyncInfo.getId();
-                String taskId = marketingSyncInfo.getCusBatch();
-                String requestBatch = marketingSyncInfo.getRequestBatch();
-                log.warn(TITLE + "marketingSyncInfo, dataId: {}, taskId: {}", dataId, taskId);
-
-                // saveAction
-                SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
-
-                // marketingSyncUserList
-                List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode
-                        , requestBatch, paramTaskId);
-
-                // actionDataList
-                Result<Map<String, Object>> actionResult = actionDataList(apiCode, taskId, marketingSyncUserList);
-
-                // updateActionStatus
-                if (actionResult != null && actionResult.isSuccess()) {
-                    updateActionStatus(queryAction.getId(), 2);
-                    log.warn(TITLE + "action更新成功, dataId:{}, taskId:{}", dataId, taskId);
-                }
+                futures.add(CompletableFuture.runAsync(() -> {
+                    try {
+                        actionSyncInfo(apiCode, actionDate, marketingSyncInfo);
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "taskAction异常"));
+                    }
+                }, taskActionPool));
             }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         } catch (Exception e) {
             log.warn(TITLE+ e.getMessage(), e);
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE+ e.getMessage()));
         }
+
         long end = System.currentTimeMillis();
         log.warn(TITLE + "scanData end, cost: {}, apiCode: {}, bizDate: {}, paramTaskId:{}, ", end-start, apiCode, bizDate, paramTaskId);
         return result;
     }
 
-    private Result<Map<String, Object>> actionDataList(String apiCode, String taskId, List<MarketingSyncUser> dataList) {
+    private Result actionSyncInfo(String apiCode, String actionDate, MarketingSyncInfo marketingSyncInfo) {
+        Result result = new Result().failure();
+        Long dataId = marketingSyncInfo.getId();
+        String taskId = marketingSyncInfo.getCusBatch();
+        String requestBatch = marketingSyncInfo.getRequestBatch();
+        long start = System.currentTimeMillis();
+        log.warn(TITLE + "actionSyncInfo, apiCode: {}, dataId: {}, taskId: {}", apiCode, dataId, taskId);
+
+        try {
+            // saveAction
+            SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
+
+            // marketingSyncUserList
+            List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode, requestBatch);
+
+            // actionDataList
+            Result<Map<String, Object>> actionResult = actionDetailList(apiCode, taskId, marketingSyncUserList);
+
+            // updateActionStatus
+            if (actionResult != null && actionResult.isSuccess()) {
+                updateActionStatus(queryAction.getId(), 2);
+                log.warn(TITLE + "action更新成功, dataId:{}, taskId:{}", dataId, taskId);
+            }
+        } catch (Exception e) {
+            log.warn(TITLE + e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + e.getMessage()));
+        }
+        long end = System.currentTimeMillis();
+        log.warn(TITLE + "actionSyncInfo end, cost: {}, apiCode: {}, dataId: {}, taskId: {}", end-start, apiCode, dataId, taskId);
+        return result.success();
+    }
+
+    private Result<Map<String, Object>> actionDetailList(String apiCode, String taskId, List<MarketingSyncUser> detailList) {
         log.warn(TITLE + "actionDataList start, apiCode: {}, taskId: {}", apiCode, taskId);
         long start = System.currentTimeMillis();
         Result result = new Result().failure();
-        Integer threadPoolSize = Integer.parseInt(String.valueOf(
-                marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("threadPoolSize")));
-        Integer partitionSize = Integer.parseInt(String.valueOf(
-                marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
-        dbActionPool.setCorePoolSize(threadPoolSize);
-        dbActionPool.setMaximumPoolSize(threadPoolSize);
+
+        Integer queryActionPoolSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("queryActionPoolSize")));
+        queryActionPool.setCorePoolSize(queryActionPoolSize);
+        queryActionPool.setMaximumPoolSize(queryActionPoolSize);
+        Integer partitionSize = Integer.parseInt(String.valueOf(marketingCommonConfig.getQiFuCuWanJianBatQryUserRealConfigParams().get("partitionSize")));
         PARTITION_SIZE = partitionSize;
 
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
-        List<List<MarketingSyncUser>> dataPartitions = Lists.partition(dataList, PARTITION_SIZE);
+        List<List<MarketingSyncUser>> dataPartitions = Lists.partition(detailList, PARTITION_SIZE);
         for (List<MarketingSyncUser> partition : dataPartitions) {
             futures.add(CompletableFuture.runAsync(() -> {
                 try {
@@ -146,24 +176,26 @@ public class QiFuCuWanJianBatQryUserRealService {
                     paramsDto.setPartition(partition);
                     qiFuCuWanJianBatQryUserRealTransService.actionPartition(paramsDto, 0);
                 } catch (Exception e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "分页数据处理异常"));
+                    log.warn(TITLE + "actionPartition error, apiCode: {}, taskId: {}", apiCode, taskId, e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_QIFU_ALARM.getCode(), TITLE + "actionPartition异常"));
                 }
-            }, dbActionPool));
+            }, queryActionPool));
         }
+        // 等待结束，需要获取并更新批次的执行状态
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         long end = System.currentTimeMillis();
         log.warn(TITLE + "actionDataList end, cost: {}, apiCode: {}, taskId: {}", end-start, apiCode, taskId);
         return result.success();
     }
 
-    private Map<String, String> calculateTimeInterval(String bizDate) throws ParseException {
+    private Map<String, String> calculateTimeInterval(String bizDate) {
         Map<String, String> res = new HashMap<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate bizLocalDate = LocalDate.parse(bizDate, formatter);
         LocalDate endLocalDate = bizLocalDate.plusDays(1);
 
-        res.put("createTimeStart", bizLocalDate.toString());
-        res.put("createTimeEnd", endLocalDate.toString());
+        res.put(CREATE_TIME_START, bizLocalDate.toString());
+        res.put(CREATE_TIME_END, endLocalDate.toString());
         return res;
     }
 
