@@ -53,9 +53,6 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
 
-    @ApiModelProperty(value = "评分分布规则用于前端展示文本")
-    private String mScoreConditionShow;
-
     @ApiModelProperty(value = "推送数量")
     private Integer mPlanNum;
 
@@ -210,13 +207,5 @@ public class PushCustomerDTO {
 
     public void setmScoreCondition(String mScoreCondition) {
         this.mScoreCondition = mScoreCondition;
-    }
-
-    public String getmScoreConditionShow() {
-        return mScoreConditionShow;
-    }
-
-    public void setmScoreConditionShow(String mScoreConditionShow) {
-        this.mScoreConditionShow = mScoreConditionShow;
     }
 }

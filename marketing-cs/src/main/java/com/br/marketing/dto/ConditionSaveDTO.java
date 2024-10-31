@@ -26,9 +26,6 @@ public class ConditionSaveDTO{
     @ApiModelProperty(value = "评分分布规则")
     private String mScoreCondition;
 
-    @ApiModelProperty(value = "评分分布规则用于前端展示文本")
-    private String mScoreConditionShow;
-
     @ApiModelProperty(value = "数据源类型")
     private Integer sourceType;
 
@@ -91,11 +88,4 @@ public class ConditionSaveDTO{
         this.mScoreCondition = mScoreCondition;
     }
 
-    public String getmScoreConditionShow() {
-        return mScoreConditionShow;
-    }
-
-    public void setmScoreConditionShow(String mScoreConditionShow) {
-        this.mScoreConditionShow = mScoreConditionShow;
-    }
 }

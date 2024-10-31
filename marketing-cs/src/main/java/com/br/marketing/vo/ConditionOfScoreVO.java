@@ -23,9 +23,6 @@ public class ConditionOfScoreVO {
     @ApiModelProperty(value = "评分分布条件json")
     private String scoreContent;
 
-    @ApiModelProperty(value = "评分分布条件前端文本")
-    private String scoreContentShow;
-
     @ApiModelProperty(value = "模板编号")
     private String conditionNumber;
 
@@ -88,13 +85,5 @@ public class ConditionOfScoreVO {
 
     public void setScoreContent(String scoreContent) {
         this.scoreContent = scoreContent;
-    }
-
-    public String getScoreContentShow() {
-        return scoreContentShow;
-    }
-
-    public void setScoreContentShow(String scoreContentShow) {
-        this.scoreContentShow = scoreContentShow;
     }
 }

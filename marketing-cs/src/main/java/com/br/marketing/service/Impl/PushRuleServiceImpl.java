@@ -483,7 +483,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
         customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
         customerInfoPushMain.setmScoreCondition(dto.getmScoreCondition());
-        customerInfoPushMain.setmScoreConditionShow(dto.getmScoreConditionShow());
         customerInfoPushMain.setmPercentage(dto.getmPercentage());
         customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
         customerInfoPushMain.setmRealyNum(pushNum);
@@ -3510,7 +3509,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setContent(dto.getmRuleCondition());
         searchCondition.setContentShow(dto.getmRuleConditionShow());
         searchCondition.setScoreContent(dto.getmScoreCondition());
-        searchCondition.setScoreContentShow(dto.getmScoreConditionShow());
         searchCondition.setCreateTime(date);
         searchCondition.setUpdateTime(date);
         searchCondition.setSourceType(dto.getSourceType());

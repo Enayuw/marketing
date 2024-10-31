@@ -102,11 +102,6 @@ public class CustomerInfoPushMain {
     private String mScoreCondition;
 
     /**
-     * 评分分布规则用于前端展示文本
-     */
-    private String mScoreConditionShow;
-
-    /**
      * 百分比
      */
     private BigDecimal mPercentage;
@@ -373,13 +368,5 @@ public class CustomerInfoPushMain {
 
     public void setmScoreCondition(String mScoreCondition) {
         this.mScoreCondition = mScoreCondition;
-    }
-
-    public String getmScoreConditionShow() {
-        return mScoreConditionShow;
-    }
-
-    public void setmScoreConditionShow(String mScoreConditionShow) {
-        this.mScoreConditionShow = mScoreConditionShow;
     }
 }
