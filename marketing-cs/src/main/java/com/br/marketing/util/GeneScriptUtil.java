@@ -305,7 +305,8 @@ public class GeneScriptUtil {
             String key = condition.getString("key");
             Double dValue = scoreMap.get(key);
             if (dValue == null) {
-                return false;
+                //todo 确认下es返回的condition中模型字段是否是全的
+                return true;
             }
             return valueOperate(dValue, condition);
         }

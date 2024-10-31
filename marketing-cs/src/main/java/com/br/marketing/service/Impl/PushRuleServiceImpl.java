@@ -1135,19 +1135,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (scFlag) {
                             //es处理
                             if (markWithEsFlag) {
-                                markForCell(varObject, marketingHistory.getFields(), true);
+                                markForCell(varObject, marketingHistory.getFields(), markWithEsFlag);
                             //代码处理逻辑
                             } else {
                                 List<MarketingCondition> conditions = marketingHistory.getCondition();
                                 if (!CollectionUtils.isEmpty(conditions)) {
                                     Map<String, Double> scoreMap = conditions.stream()
-                                            .filter(condition -> StringUtils.isNotEmpty(condition.getCode()))
+                                            .filter(condition -> StringUtils.isNotEmpty(condition.getCode())
+                                                    && condition.getDValue() != null)
                                             .collect(Collectors.toMap(MarketingCondition::getCode
                                                     , MarketingCondition::getDValue
                                                     , (existing, replacement) -> replacement));
                                     JSONObject fields = GeneScriptUtil.scoreLable(scoreCondition, scoreMap);
                                     if (fields != null) {
-                                        markForCell(varObject, fields, false);
+                                        markForCell(varObject, fields, markWithEsFlag);
                                     }
                                 }
                             }
@@ -1190,11 +1191,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private void markForCell(JSONObject varObject, JSONObject fields, boolean b) {
+    private void markForCell(JSONObject varObject, JSONObject fields, boolean markWithEsFlag) {
         if (fields == null) {
             return;
         }
-        if (b) {
+        if (markWithEsFlag) {
             JSONObject listValueJson = fields.getJSONObject("listValue");
             JSONObject valueTypeJson = fields.getJSONObject("valueType");
             if (listValueJson != null) {

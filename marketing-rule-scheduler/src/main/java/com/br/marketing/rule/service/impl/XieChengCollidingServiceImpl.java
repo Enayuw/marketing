@@ -302,19 +302,20 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             varObject.put("info", xieChengCollidingDataLog.getInfo());
             if (scFlag) {
                 if (markWithEsFlag) {
-                    markForCell(varObject, marketingHistory.getFields(), true);
+                    markForCell(varObject, marketingHistory.getFields(), markWithEsFlag);
                 }
             } else {
                 List<MarketingCondition> conditions = marketingHistory.getCondition();
                 if (!CollectionUtils.isEmpty(conditions)) {
                     Map<String, Double> scoreMap = conditions.stream()
-                            .filter(condition -> StringUtils.isNotEmpty(condition.getCode()))
+                            .filter(condition -> StringUtils.isNotEmpty(condition.getCode())
+                                    && condition.getDValue() != null)
                             .collect(Collectors.toMap(MarketingCondition::getCode
                                     , MarketingCondition::getDValue
                                     , (existing, replacement) -> replacement));
                     JSONObject fields = GeneScriptUtil.scoreLable(scoreCondition, scoreMap);
                     if (fields != null) {
-                        markForCell(varObject, fields, false);
+                        markForCell(varObject, fields, markWithEsFlag);
                     }
                 }
             }
