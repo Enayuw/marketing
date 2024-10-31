@@ -174,7 +174,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
             HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
             JSONObject apiCodeReplace = strategyCodeMap.get("apiCodeReplace");
             String apiCodeResult = apiCode;
-            if(null != apiCodeReplace){
+            if(null != apiCodeReplace && !apiCodeReplace.isEmpty()){
                 if(StringUtils.isNotBlank(apiCodeReplace.getString(apiCode))){
                     apiCodeResult = apiCodeReplace.getString(apiCode);
                 }else{
