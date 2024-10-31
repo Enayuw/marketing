@@ -15,7 +15,7 @@ public enum CustomerBlackHandlerEnum {
     B_ALIEN_DEFAULT("外星人黑名单", Boolean.FALSE),
 
     /** 国美黑名单 */
-    B_GUME("国美黑名单", Boolean.FALSE, "3710051", "7492805"),
+    B_GUME("国美黑名单", Boolean.FALSE,  "7492805"),
     ;
 
 
