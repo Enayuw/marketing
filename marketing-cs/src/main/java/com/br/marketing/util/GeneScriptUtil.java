@@ -314,8 +314,12 @@ public class GeneScriptUtil {
 
     private static Boolean valueOperate(Double dValue, JSONObject dataJson) {
         String operation = dataJson.getString("operation");
-        List<Double> value = Arrays.asList(dataJson.getString("value").split(","))
-                .stream().map(Double::valueOf).collect(Collectors.toList());
+        List<String> values = Arrays.asList(dataJson.getString("value").split(","));
+        if (values.size() < 2) {
+            //类型不是区间，是 = ‘null’
+            return false;
+        }
+        List<Double> value = values.stream().map(Double::valueOf).collect(Collectors.toList());
         Double valueStart = value.get(0);
         Double valueEnd = value.get(1);
         if (OPERATION_BETWEEN_OPEN.equals(operation)) {
