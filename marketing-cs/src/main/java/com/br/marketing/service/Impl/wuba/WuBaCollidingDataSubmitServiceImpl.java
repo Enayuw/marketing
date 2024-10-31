@@ -231,25 +231,13 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
     }
 
     /**
-     * 查询待撞数据，顺序为：周期场景1 → 周期场景2 → 高价值 → 手动上传 → 周期1的-2包 → 周期2的-2包 → 手动上传的-2包
+     * 查询待撞数据，顺序为：周期场景2 → 周期场景1 → 高价值 → 手动上传 → 周期1的-2包 → 周期2的-2包 → 手动上传的-2包
      * @param apiCode
      * @param limit
      * @return
      */
     private Pair<String, List<WubaCollidingData>> getCollidingDatas(String apiCode, Integer limit) {
         DateTime nowDate = DateUtil.parse(LocalDate.now().toString(), DatePattern.NORM_DATE_PATTERN);
-        // 周期场景1的数据
-        if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(T)) {
-            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
-            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
-            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
-            List<WubaCollidingData> loopCycles = wubaCollidingDataLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
-                    limit);
-            if (!CollectionUtils.isEmpty(loopCycles)) {
-                return new Pair<>(T, loopCycles);
-            }
-        }
-
         // 周期场景2的数据
         if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
             Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(S);
@@ -259,6 +247,18 @@ public class WuBaCollidingDataSubmitServiceImpl implements WuBaCollidingDataSubm
                     limit);
             if (!CollectionUtils.isEmpty(loopCycles)) {
                 return new Pair<>(S, loopCycles);
+            }
+        }
+
+        // 周期场景1的数据
+        if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(T)) {
+            Integer cycleConfig = marketingCommonConfig.getWuBaCollidingCycleDayConfig().get(T);
+            DateTime pushTimeStart = DateUtil.parse(LocalDate.now().minusDays(cycleConfig).toString(), DatePattern.NORM_DATE_PATTERN);
+            DateTime pushTimeEnd = DateUtil.parse(LocalDate.now().minusDays(cycleConfig - 1).toString(), DatePattern.NORM_DATE_PATTERN);
+            List<WubaCollidingData> loopCycles = wubaCollidingDataLoopCycleMapper.selectCollidingData(pushTimeStart, pushTimeEnd, apiCode,
+                    limit);
+            if (!CollectionUtils.isEmpty(loopCycles)) {
+                return new Pair<>(T, loopCycles);
             }
         }
 
