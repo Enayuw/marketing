@@ -62,7 +62,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
         JSONObject apiCodeReplace = strategyCodeMap.get("apiCodeReplace");
         // 2024-10-28 apicode:4004643转化数据，按照规则生成后推送至4004733
-        if(StringUtils.isNotBlank(apiCode)){
+        if(null != apiCodeReplace){
             if(StringUtils.isNotBlank(apiCodeReplace.getString(apiCode))){
                 apiCode = apiCodeReplace.getString(apiCode);
             }else{
