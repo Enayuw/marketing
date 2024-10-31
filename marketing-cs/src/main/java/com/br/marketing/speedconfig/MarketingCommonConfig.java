@@ -716,6 +716,11 @@ public class MarketingCommonConfig {
     private HashMap<String, String> apiCodeMatch;
 
     /**
+     * 转化数据推送决策TargetApiCode {(sourceapicode,targetapicode)}
+     */
+    private HashMap<String, String> targetApiCodeMatch;
+
+    /**
      * 你我贷有效期
      */
     private String youMeDValidityDayStr;
