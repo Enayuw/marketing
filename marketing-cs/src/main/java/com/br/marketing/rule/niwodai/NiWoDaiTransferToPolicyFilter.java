@@ -63,8 +63,13 @@ public class NiWoDaiTransferToPolicyFilter implements AssembleData<PushMarketing
         pushMarketingUserDetailByRuleDTO.setPhone(phone);
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         JSONObject varDto = jsonObject;
+        HashMap<String, String> targetApiCodeMatch = marketingCommonConfig.getTargetApiCodeMatch();
+        String targetApiCode = context.getApiCode();
+        if(targetApiCodeMatch!=null && targetApiCodeMatch.get(context.getApiCode())!=null){
+            targetApiCode = targetApiCodeMatch.get(context.getApiCode());
+        }
         pushMarketingUserDetailByRuleDTO.setBatchNumber(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_"
-                + transfer.getApiCode()+"_a");
+                + targetApiCode+"_a");
         pushMarketingUserDetailByRuleDTO.setVariables(varDto);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         //去重参数设置
