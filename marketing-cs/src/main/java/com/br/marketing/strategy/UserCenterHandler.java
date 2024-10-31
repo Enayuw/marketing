@@ -62,6 +62,7 @@ public class UserCenterHandler {
                     log.error(TITLE + "handleDataUserCenter获取锁失败, apiCode:{}, apiType:{}", apiCode,apiType);
                     return result;
                 }
+                Thread.sleep(5000L);
                 acquire = redisChgService.lock(key, lockValue, 10000L);
                 num ++;
             }
