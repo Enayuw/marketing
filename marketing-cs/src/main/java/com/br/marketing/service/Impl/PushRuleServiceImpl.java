@@ -1159,6 +1159,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         }
                         userDetailDTOS.add(dto1);
                     }
+                    log.warn("营销推决策组装数据展示-main.id-dtos："
+                            + customerInfoPushMain.getId().toString() + "-" + JSON.toJSONString(userDetailDTOS));
                     //推送任务基础信息
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
