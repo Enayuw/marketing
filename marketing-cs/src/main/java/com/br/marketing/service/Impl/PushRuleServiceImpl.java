@@ -1156,7 +1156,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , customerInfoPushMain.getId().toString()
                             , StringUtils.isBlank(part) ? "" : part
                             , i);
-                    log.error(error + ex.getMessage(), ex);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), error), ex);
                 }
             }
             return resList;
