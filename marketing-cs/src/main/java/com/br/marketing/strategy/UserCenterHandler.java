@@ -42,35 +42,41 @@ public class UserCenterHandler {
         Result<Boolean> result = new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(false);
         MarketingCustomer marketingCustomer = new MarketingCustomer();
         String keyPrefix = RedisKeyConstant.DELIVERY_USER_INFORMATION;
+        JSONObject jsonObject = JSON.parseObject(mes);
+        String apiCode = jsonObject.getString("apiCode");
+        String operateType = jsonObject.getString("operateType");
+        String apiType = jsonObject.getString("apiType");
+
+        if(!"智能运营".equals(apiType) && !"智能客服".equals(apiType)){
+            return result;
+        }
+
+        String key = keyPrefix.concat(String.format(":%s", apiCode));
+        log.info(TITLE + "key: {}", key);
+        String lockValue = UUID.randomUUID().toString();
+        int num = 0;
         try {
-            JSONObject jsonObject = JSON.parseObject(mes);
-            String apiCode = jsonObject.getString("apiCode");
-            String operateType = jsonObject.getString("operateType");
-            String apiType = jsonObject.getString("apiType");
-            String key = keyPrefix.concat(String.format(":%s", apiCode));
-            log.info(TITLE + "key: {}", key);
-            String lockValue = UUID.randomUUID().toString();
-            try {
-                boolean acquire = redisChgService.lock(key, lockValue, 10000L);
-                if (!acquire) {
-                    log.warn(TITLE + "handleDataUserCenter获取锁失败, {}", apiCode);
+            boolean acquire = redisChgService.lock(key, lockValue, 10000L);
+            while(!acquire){
+                if(num == 3){
+                    log.error(TITLE + "handleDataUserCenter获取锁失败, apiCode:{}, apiType:{}", apiCode,apiType);
                     return result;
                 }
-                log.warn(TITLE + "handleDataUserCenter获取锁成功, {}", apiCode);
-                // 智能运营 入库优先级高于 智能客服
-                if ("智能运营".equals(apiType)) {
-                    buildMerchant(apiCode,marketingCustomer);
-                }else if("智能客服".equals(apiType)){
-                    queryApiType(apiCode);
-                }
-                redisChgService.unlock(key, lockValue);
-                log.warn(TITLE + "handleDataUserCenter释放锁成功, {}", apiCode);
-            } catch (Exception e) {
-                redisChgService.unlock(key, lockValue);
-                log.warn(TITLE + "handleDataUserCenter error", e);
+                acquire = redisChgService.lock(key, lockValue, 10000L);
+                num ++;
             }
+            log.warn(TITLE + "handleDataUserCenter获取锁成功, {}", apiCode);
+            // 智能运营 入库优先级高于 智能客服
+            if ("智能运营".equals(apiType)) {
+                buildMerchant(apiCode,marketingCustomer);
+            }else {
+                queryApiType(apiCode);
+            }
+            redisChgService.unlock(key, lockValue);
+            log.warn(TITLE + "handleDataUserCenter释放锁成功, {}", apiCode);
         } catch (Exception e) {
-            log.error(TITLE + "{} 失败 -- ", mes, e);
+            redisChgService.unlock(key, lockValue);
+            log.warn(TITLE + "handleDataUserCenter error", e);
             result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
