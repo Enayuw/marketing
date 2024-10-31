@@ -1472,7 +1472,7 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
 
     /**
-    * 携程撞库异常量级钉钉通知accessToken
+     * 携程撞库异常量级钉钉通知accessToken
      */
     private String xieChengGroupAccessToken;
 
@@ -2060,7 +2060,7 @@ public class MarketingCommonConfig {
     private List<String> YiShiTransferApiCodes;
 
     /**
-         * 医时转化数据提取执行时间
+     * 医时转化数据提取执行时间
      */
     private String YiShiTransferFileExecuteTime;
 
@@ -2270,6 +2270,13 @@ public class MarketingCommonConfig {
      * eg:{"mock":"true","poolSize":"20"}
      */
     private Map<String, Object> guoMeiDataCallbackConfig=new HashMap<>();
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化接口自定义配置apiCode
+     * eg:{"B_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
 }
 
