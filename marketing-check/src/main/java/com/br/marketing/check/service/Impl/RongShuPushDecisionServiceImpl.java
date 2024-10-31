@@ -148,8 +148,6 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
         date = StringUtils.isNotBlank(date) ?
                 date : now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         HashMap<String, JSONObject> rsStrategyCodes = marketingCommonConfig.getRsStrategyCodes();
-        JSONObject strategyCodeObject = rsStrategyCodes.get(apiCode);
-        String strategyCode = strategyCodeObject.getString("1");
         Long minId = null;
         Boolean actionMark = Boolean.TRUE;
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -182,6 +180,8 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                 }
             }
             String finalApiCodeResult = apiCodeResult;
+            JSONObject strategyCodeObject = rsStrategyCodes.get(finalApiCodeResult);
+            String strategyCode = strategyCodeObject.getString("1");
             threadPool.submit(() ->{
                 List<PushMarketingUserDetailDTO> list = new ArrayList<>();
                 try {
