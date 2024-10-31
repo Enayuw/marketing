@@ -32,6 +32,17 @@ public class RpcClientProxy {
         return UserCenterGrpcClient.getCompanyMsg(apiCode);
     }
 
+    /**1`
+     * 查询商户名称
+     *
+     * @param apiCode
+     * @return
+     */
+    public static String getCustomerMsg(String apiCode) {
+//        log.warn(GrpcClientInitConfig.isGrpc()?"grpc:getCompanyMsg:查询商户名称":"ice:getCompanyMsg:查询商户名称");
+        return UserCenterGrpcClient.getCustomerMsg(apiCode);
+    }
+
     /**
      * 解密
      *
