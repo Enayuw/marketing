@@ -29,6 +29,7 @@ import java.util.HashMap;
 /**
  * https://c.100credit.cn/pages/viewpage.action?pageId=178192841
  * 【紧急】D20240906榕树自动化转决策v3-4004643  情况2处理
+ * 2024-10-28 apicode:4004643转化数据，按照规则生成后推送至4004733
  * <p>
  * 情况1 为调度任务  RongShuPushDecisionServiceImpl
  * <p>
@@ -58,6 +59,16 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         if (pushCellEncPolicy != null && pushCellEncPolicy.get(apiCode) != null) {
             encType = pushCellEncPolicy.get(apiCode);
         }
+        HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
+        JSONObject apiCodeReplace = strategyCodeMap.get("apiCodeReplace");
+        // 2024-10-28 apicode:4004643转化数据，按照规则生成后推送至4004733
+        if(null != apiCodeReplace){
+            if(StringUtils.isNotBlank(apiCodeReplace.getString(apiCode))){
+                apiCode = apiCodeReplace.getString(apiCode);
+            }else{
+                log.warn("未发现rs-apiCode[{}]替换配置[{}]",apiCode, strategyCodeMap);
+            }
+        }
         PushMarketingUserDetailByRuleDTO pushMarketingUserDetailByRuleDTO = new PushMarketingUserDetailByRuleDTO();
         pushMarketingUserDetailByRuleDTO.setInitId(transfer.getId());
         pushMarketingUserDetailByRuleDTO.setCaseNumber(transfer.getCustNum());
@@ -67,6 +78,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
         JSONObject variables = new JSONObject();
+        transfer.setApiCode(apiCode);
         variables.putAll((JSONObject) JSON.toJSON(transfer));
         variables.remove("reserveField1");
         variables.remove("id");
@@ -82,7 +94,6 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
             variables.putAll(jsonObject);
             String finalState = jsonObject.getString("finalState");
             if (StringUtils.isNotBlank(finalState)) {
-                HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
                 JSONObject strategyCodeObject = strategyCodeMap.get(apiCode);
                 String strategyCode = strategyCodeObject.getString(finalState);
                 if (null == strategyCode) {
@@ -110,6 +121,7 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         pushMarketingUserDetailByRuleDTO.setStatus(status);
+        pushMarketingUserDetailByRuleDTO.setPushApiCode(apiCode);
         return pushMarketingUserDetailByRuleDTO;
     }
 
