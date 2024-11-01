@@ -6,11 +6,13 @@ import com.br.marketing.service.Impl.wuba.WuBaCollidingDataSynchronismService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.base.Joiner;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -34,11 +36,11 @@ public class WuBaCollidingDataHighValueResetJob extends AbstractSimpleElasticJob
     public void process(JobExecutionMultipleShardingContext context) {
         long start = System.currentTimeMillis();
         marketingCommonConfig.getWubaCollidingApiCodes().forEach((String apiCode) -> {
-            String highValueFileIds = wuBaCollidingDataSynchronismService.getHighValueFileIds(apiCode);
-            if (Objects.equals(highValueFileIds, "(\"\")")) {
+            List<Long> highValueIdList = wuBaCollidingDataSynchronismService.getHighValueFileIds(apiCode);
+            if (Objects.isNull(highValueIdList)) {
                 return;
             }
-
+            String highValueFileIds = "(" + Joiner.on(",").join(highValueIdList) + ")";
             int updateCount;
             while (true) {
                 updateCount = wubaCollidingDataFrontMapper.updatePushStatusByHighValueFileIds(highValueFileIds);

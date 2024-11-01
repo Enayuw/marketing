@@ -22,7 +22,7 @@
             KEY `idx_receive_date` (`receive_date`)
         ) ENGINE = InnoDB
           DEFAULT CHARSET = utf8
-          COLLATE = utf8_bin COMMENT ='定制化客户转化数据接收前置表'
+          COLLATE = utf8_bin COMMENT ='定制化客户上传数据接收前置表'
     </update>
 
 
