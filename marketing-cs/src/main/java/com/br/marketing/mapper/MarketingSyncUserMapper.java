@@ -353,8 +353,7 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserByCondition(
             @Param("apiCode") String apiCode,
-            @Param("requestBatch") String requestBatch,
-            @Param("cusBatch") String cusBatch
+            @Param("requestBatch") String requestBatch
     );
 
     List<MarketingSyncUser> getSyncUserByCusBatch(@Param("apiCode") String apiCode,
@@ -399,10 +398,8 @@ public interface MarketingSyncUserMapper {
 
     int updateExtend(
             @Param("apiCode") String apiCode,
-            @Param("custNum") String custNum,
             @Param("extendList") List<Map<String, String>> extendList,
-            @Param("id") Long id,
-            @Param("idList") List<Long> idList
+            @Param("id") Long id
     );
 
     List<MarketingSyncUser> selectByDynamicCondition(@Param("apiCode") String apiCode, @Param("sha256Cells") List<String> sha256Cells,

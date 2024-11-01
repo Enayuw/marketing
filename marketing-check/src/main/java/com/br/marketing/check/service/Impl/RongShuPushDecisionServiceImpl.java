@@ -144,13 +144,10 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
         }
         LocalDate now = LocalDate.now();
         String nowDataString = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String nowDataStringForRedis = now.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         // T日站在T-1日的角度，判断该条转化数据是否在有效期内
         date = StringUtils.isNotBlank(date) ?
                 date : now.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         HashMap<String, JSONObject> rsStrategyCodes = marketingCommonConfig.getRsStrategyCodes();
-        JSONObject strategyCodeObject = rsStrategyCodes.get(apiCode);
-        String strategyCode = strategyCodeObject.getString("1");
         Long minId = null;
         Boolean actionMark = Boolean.TRUE;
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
@@ -171,6 +168,20 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
             minId = rsToPolicyData.get(rsToPolicyData.size()-1).getId();
             String finalDate = date;
             Integer finalSort = sort;
+            // 2024-10-28 apicode:4004643转化数据，按照规则生成后推送至4004733
+            HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
+            JSONObject apiCodeReplace = strategyCodeMap.get("apiCodeReplace");
+            String apiCodeResult = apiCode;
+            if(null != apiCodeReplace && !apiCodeReplace.isEmpty()){
+                if(StringUtils.isNotBlank(apiCodeReplace.getString(apiCode))){
+                    apiCodeResult = apiCodeReplace.getString(apiCode);
+                }else{
+                    log.warn("job未发现rs-apiCode[{}]替换配置[{}]",apiCode, strategyCodeMap);
+                }
+            }
+            String finalApiCodeResult = apiCodeResult;
+            JSONObject strategyCodeObject = rsStrategyCodes.get(finalApiCodeResult);
+            String strategyCode = strategyCodeObject.getString("1");
             threadPool.submit(() ->{
                 List<PushMarketingUserDetailDTO> list = new ArrayList<>();
                 try {
@@ -209,7 +220,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                          * {@link RongShuTransferDataToPolicyImpl}
                          */
                         String key = RedisKeyConstant.dributeDataSloeLock.concat(String.format(":%d:%d:%s:%s"
-                                , DistributeTypeEnum.POLICYDATA.getValue(), 1, apiCode, cell));
+                                , DistributeTypeEnum.POLICYDATA.getValue(), 1, finalApiCodeResult, cell));
                         String lockValue = UUID.randomUUID().toString();
                         if (cellSet.add(cell)) {
                             try {
@@ -217,7 +228,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                                 DataDistributeDetailLogExample example = new DataDistributeDetailLogExample();
                                 example.createCriteria()
                                         .andCellEqualTo(cell)
-                                        .andApiCodeEqualTo(apiCode)
+                                        .andApiCodeEqualTo(finalApiCodeResult)
                                         .andDistributeTypeEqualTo(DistributeTypeEnum.POLICYDATA.getValue())
                                         .andSourceTypeEqualTo(DistributeSourceTypeEnum.TRANSFER.getValue())
                                         .andDistributeDateEqualTo(nowDataString);
@@ -229,7 +240,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                                 dataDistributeDetailLogMapper.insertSelective(detailLog);
                             }catch (Exception e){
                                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RONGSHU_SERVICEERROR.getCode()
-                                        , "", String.format("apiCode[%s]custNum[%s]榕树推决策程序在加锁中异常",apiCode,custNum))
+                                        , "", String.format("apiCode[%s]custNum[%s]榕树推决策程序在加锁中异常", finalApiCodeResult,custNum))
                                         , e);
                             }finally {
                                 redisChgService.unlock(key, lockValue);
@@ -249,11 +260,11 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                     if(list.size()<1){
                         // do nothing
                     }else{
-                        callPolicy(methodRetryHandlerService, apiCode, strategyCode, time, status, finalSort, list);
+                        callPolicy(methodRetryHandlerService, finalApiCodeResult, strategyCode, time, status, finalSort, list);
                     }
                 }catch (Exception e){
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RONGSHU_SERVICEERROR.getCode()
-                            , "", String.format("apiCode[%s]榕树推决策并发执行报错",apiCode)), e);
+                            , "", String.format("apiCode4004643转4004733[%s]榕树推决策并发执行报错",apiCode)), e);
                 }
             });
         }
@@ -308,18 +319,18 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                 if (log.isInfoEnabled()) {
                     long taskCount = threadPool.getTaskCount();
                     long completedTaskCount = threadPool.getCompletedTaskCount();
-                    log.info("榕树转化数据推决策大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
+                    log.info("apiCode4004643转4004733榕树转化数据推决策大约总任务数：{}；大约已完成任务数：{}；大约剩余任务数：{}"
                             , taskCount, completedTaskCount, taskCount - completedTaskCount);
                 }
             }
         } catch (InterruptedException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RONGSHU_SERVICEERROR.getCode()
-                    , "", String.format("apiCode[%s]榕树转化数据推决策-线程终止失败",apiCode)), e);
+                    , "", String.format("apiCode4004643转4004733[%s]榕树转化数据推决策-线程终止失败",apiCode)), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
         } catch (Exception e){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.RONGSHU_SERVICEERROR.getCode()
-                    , "", String.format("apiCode[%s]榕树转化数据推决策-异常",apiCode)), e);
+                    , "", String.format("apiCode4004643转4004733[%s]榕树转化数据推决策-异常",apiCode)), e);
             threadPool.shutdownNow();
             Thread.currentThread().interrupt();
         }
