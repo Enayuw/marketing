@@ -13,13 +13,17 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.WubaCollidingData;
 import com.br.marketing.entity.WubaCollidingDataBatchNo;
+import com.br.marketing.entity.WubaCollidingDataFront;
+import com.br.marketing.entity.WubaCollidingDataFrontExample;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.entity.WubaCollidingDataSyncClean;
 import com.br.marketing.entity.WubaCollidingDataSyncCleanExample;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
+import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
+import com.br.marketing.mapper.WubaCollidingDataRobMapper;
 import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -31,13 +35,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
@@ -69,6 +77,12 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     DataCleaningAutoService cleaningAutoService;
     @Autowired
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
+    @Resource
+    WuBaCollidingDataSynchronismService wuBaCollidingDataSynchronismService;
+    @Resource
+    WubaCollidingDataFrontMapper wubaCollidingDataFrontMapper;
+    @Resource
+    WubaCollidingDataRobMapper wubaCollidingDataRobMapper;
 
     private final static int PARTATION_SIZE = 50;
 
@@ -164,8 +178,12 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
             JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(result.getData()));
 
-            // 撞得数据
+            // 撞得status=1数据
             List<WubaCollidingData> trueDatas = getTrueDatas(jsonArray);
+
+            // 撞得status=-2数据
+            List<WubaCollidingData> reavedDatas = getReavedDatas(jsonArray);
+            List<String> reavedCells = reavedDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
 
             // 撞得的非金融场景数据
             List<WubaCollidingData> nonFinancialDatas = filterNonFinancialByUserType(jsonArray);
@@ -173,12 +191,12 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             // 撞得的金融场景数据
             List<WubaCollidingData> financialDatas = filterFinancialByUserType(jsonArray);
 
-            // 更新log表撞库结果，并返回不可营销数据
-            List<String> lostCells = updateLogResultAndGetLostCells(trueDatas, batchNo, jsonArray, apiCode);
+            // 更新log表撞库结果，并返回其他不可营销数据
+            List<String> otherFalseCells = updateLogResultAndGetOtherFalseCells(trueDatas, reavedDatas, batchNo, jsonArray, apiCode);
 
             // 根据sourceType处理数据
-            List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatas, financialDatas, lostCells, apiCode,
-                    batchNo, taskId);
+            List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatas, financialDatas, reavedCells,
+                    otherFalseCells, apiCode, batchNo, taskId);
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
     }
@@ -189,10 +207,24 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         List<WubaCollidingData> trueDatas = trueDataStream.map((JSONObject t) -> {
             WubaCollidingData data = new WubaCollidingData();
             data.setCell(t.getString(MOBILE_ENCRYPT));
+            data.setStatus("1");
             data.setExtend(JSON.toJSONString(t));
             return data;
         }).collect(Collectors.toList());
         return trueDatas;
+    }
+
+    private List<WubaCollidingData> getReavedDatas(JSONArray jsonArray) {
+        Stream<JSONObject> reavedDataStream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), -2));
+        List<WubaCollidingData> reavedDatas = reavedDataStream.map((JSONObject t) -> {
+            WubaCollidingData data = new WubaCollidingData();
+            data.setCell(t.getString(MOBILE_ENCRYPT));
+            data.setStatus("-2");
+            data.setExtend(JSON.toJSONString(t));
+            return data;
+        }).collect(Collectors.toList());
+        return reavedDatas;
     }
 
     private List<WubaCollidingData> filterNonFinancialByUserType(JSONArray jsonArray) {
@@ -221,24 +253,28 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         return financialDatas;
     }
 
-    private List<String> updateLogResultAndGetLostCells(List<WubaCollidingData> trueDatas, String batchNo, JSONArray jsonArray, String apiCode) {
-        // 更新撞得log
+    private List<String> updateLogResultAndGetOtherFalseCells(List<WubaCollidingData> trueDatas, List<WubaCollidingData> reavedDatas, String batchNo,
+                                                              JSONArray jsonArray, String apiCode) {
+        // 更新status=1撞得log
         trueDatas.parallelStream().forEach((WubaCollidingData t) -> {
-            wubaCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), true, t.getExtend());
+            wubaCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), true, t.getStatus(), t.getExtend());
+        });
+        // 更新status=-2被抢占log
+        reavedDatas.parallelStream().forEach((WubaCollidingData t) -> {
+            wubaCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), false, t.getStatus(), t.getExtend());
         });
 
-        // status非1数据
-        List<WubaCollidingData> lostDatas = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
-                .filter((JSONObject t) -> !Objects.equals(t.getInteger("status"), 1)).map((JSONObject t) -> {
+        // 更新status非1且非-2数据log
+        List<WubaCollidingData> otherDatas = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                .filter((JSONObject t) -> !Objects.equals(t.getInteger("status"), 1) && !Objects.equals(t.getInteger("status"), -2)).map((JSONObject t) -> {
                     WubaCollidingData data = new WubaCollidingData();
                     data.setCell(t.getString(MOBILE_ENCRYPT));
+                    data.setStatus(String.valueOf(t.getInteger("status")));
                     data.setExtend(JSON.toJSONString(t));
                     return data;
                 }).collect(Collectors.toList());
-
-        // 更新被抢占数据log
-        lostDatas.parallelStream().forEach((WubaCollidingData t) -> {
-            wubaCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), false, t.getExtend());
+        otherDatas.parallelStream().forEach((WubaCollidingData t) -> {
+            wubaCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), false, t.getStatus(), t.getExtend());
         });
 
         List<WubaCollidingDataLog> logs = getLogs(batchNo, apiCode);
@@ -256,27 +292,29 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 logs.stream().filter((WubaCollidingDataLog t) -> !resultCells.contains(t.getCell())).collect(Collectors.toList());
         updateNoReturnResult(noReturnLogs, Boolean.FALSE);
 
-        List<String> lostCells = lostDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
+        List<String> otherCells = otherDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
         List<String> noReturnCells = noReturnLogs.stream().map(WubaCollidingDataLog::getCell).collect(Collectors.toList());
 
-        // 被抢占和未返回数据视为未撞得
-        lostCells.addAll(noReturnCells);
-        return lostCells;
+        // status非1且非2和未返回数据视为未撞得
+        otherCells.addAll(noReturnCells);
+        return otherCells;
     }
 
-    private void falseToNonFinancialBusiness(List<WubaCollidingData> nonFinancialDatas, String apiCode, String batchNo, Long taskId) {
+    private void falseToNonFinancialBusiness(List<WubaCollidingData> nonFinancialDatas, String apiCode, String batchNo, Long taskId,
+                                             String dataSourceType) {
         // 撞得非金融场景保存到非金融场景周期表，并从非周期表删除
         List<String> nonFinancialCells = nonFinancialDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
-        wuBaCollidingDataBusinessService.saveLoopAnddeleteRob(nonFinancialCells, apiCode);
+        wuBaCollidingDataBusinessService.saveLoopAnddeleteRob(nonFinancialCells, apiCode, dataSourceType);
 
         // 保存到上传清洗表
         wubaCollidingDataSyncCleanMapper.batchSaveData(nonFinancialDatas, batchNo, apiCode, taskId);
     }
 
-    private void falseToFinancialBusiness(List<WubaCollidingData> financialDatas, String apiCode, String batchNo, Long taskId) {
+    private void falseToFinancialBusiness(List<WubaCollidingData> financialDatas, String apiCode, String batchNo, Long taskId,
+                                          String dataSourceType) {
         // 撞得金融场景保存到金融场景周期表，并从非周期表删除
         List<String> nonFinancialCells = financialDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
-        wuBaCollidingDataBusinessService.saveSecondLoopAnddeleteRob(nonFinancialCells, apiCode);
+        wuBaCollidingDataBusinessService.saveSecondLoopAnddeleteRob(nonFinancialCells, apiCode, dataSourceType);
 
         // 保存到上传清洗表
         wubaCollidingDataSyncCleanMapper.batchSaveData(financialDatas, batchNo, apiCode, taskId);
@@ -344,6 +382,35 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         return wubaCollidingDataSyncCleans.size();
     }
 
+    private Long getReavedPackageIdFromSpeed(String sourceType) {
+        ArrayList<String> sourceTypeList = Lists.newArrayList("T", "S", "F");
+        if (!sourceTypeList.contains(sourceType)) {
+            return null;
+        }
+        HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
+        JSONObject hashMap = map.get(sourceType);
+        if (Objects.isNull(hashMap)) {
+            sendAlert();
+            return null;
+        }
+
+        Set<Map.Entry<String, Object>> entries = hashMap.entrySet();
+        for (Map.Entry<String, Object> entry : entries) {
+            return Long.valueOf(entry.getKey());
+        }
+
+        sendAlert();
+        return null;
+    }
+
+    private void sendAlert() {
+        String title = "58查询撞库结果作业，speed中未配置-2包id";
+        String msg = "导致数据混乱，需要关注！";
+        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                , title));
+        wuBaServiceClient.sendDingDingAlert(title, msg);
+    }
+
     private List<CompletableFuture<Void>> batchHandleBusinessAsync(List<WubaCollidingData> data,
                                                                    Consumer<List<WubaCollidingData>> businessFunction, String businessName) {
         if (CollectionUtils.isEmpty(data)) {
@@ -384,15 +451,20 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
      * 根据sourceType处理数据
      */
     private List<CompletableFuture<Void>> handleDataBySourceType(String sourceType, List<WubaCollidingData> nonFinancialDatas,
-                                                                 List<WubaCollidingData> financialDatas,
-                                                                 List<String> lostCells, String apiCode, String batchNo, Long taskId) {
+                                                                 List<WubaCollidingData> financialDatas, List<String> reavedCells,
+                                                                 List<String> otherFalseCells, String apiCode, String batchNo, Long taskId) {
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        // 根据sourceType获取-2包id，结果可为空
+        Long reavedPackageId = getReavedPackageIdFromSpeed(sourceType);
         switch (sourceType) {
             case "T":
                 futures.addAll(batchHandleBusinessAsync(financialDatas,
                         (List<WubaCollidingData> data) -> nonFinancialToFinancialBusiness(data, apiCode, batchNo, taskId),
                         "非金融场景撞得数据转为金融场景，并保存到清洗表"));
-                futures.addAll(batchHandleFalseBusinessAsync(lostCells,
+                futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
+                        (List<String> data) -> wuBaCollidingDataBusinessService.deleteLoopAndSaveReavedIntoRob(data, apiCode, reavedPackageId),
+                        "非金融场景撞回status=-2，保存到非金融-2包"));
+                futures.addAll(batchHandleFalseBusinessAsync(otherFalseCells,
                         (List<String> data) -> wuBaCollidingDataBusinessService.deleteLoopAndSaveRob(data, apiCode), "非金融场景未撞得业务"));
                 futures.addAll(batchHandleBusinessAsync(nonFinancialDatas,
                         (List<WubaCollidingData> data) -> wubaCollidingDataSyncCleanMapper.batchSaveData(data, batchNo, apiCode,
@@ -402,20 +474,39 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                 futures.addAll(batchHandleBusinessAsync(nonFinancialDatas,
                         (List<WubaCollidingData> data) -> financialToNonFinancialBusiness(data, apiCode, batchNo, taskId),
                         "金融场景撞得数据转为非金融场景，并保存到清洗表"));
-                futures.addAll(batchHandleFalseBusinessAsync(lostCells,
+                futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
+                        (List<String> data) -> wuBaCollidingDataBusinessService.deleteSecondLoopAndSaveReavedIntoRob(data, apiCode, reavedPackageId),
+                        "金融场景撞回status=-2，保存到金融-2包"));
+                futures.addAll(batchHandleFalseBusinessAsync(otherFalseCells,
                         (List<String> data) -> wuBaCollidingDataBusinessService.deleteSecondLoopAndSaveRob(data, apiCode), "金融场景未撞得业务"));
                 futures.addAll(batchHandleBusinessAsync(financialDatas,
                         (List<WubaCollidingData> data) -> wubaCollidingDataSyncCleanMapper.batchSaveData(data, batchNo, apiCode,
                                 taskId), "金融场景撞得数据保存到清洗表"));
                 break;
+            case "H":
+            case "J":
+            case "Q":
+            case "K":
+                futures.addAll(batchHandleBusinessAsync(nonFinancialDatas, (List<WubaCollidingData> data) -> falseToNonFinancialBusiness(data,
+                                apiCode,
+                                batchNo, taskId, sourceType),
+                        "非周期撞得数据转为非金融场景，并保存到清洗表"));
+                futures.addAll(batchHandleBusinessAsync(financialDatas, (List<WubaCollidingData> data) -> falseToFinancialBusiness(data, apiCode,
+                                batchNo, taskId, sourceType),
+                        "非周期撞得数据转为金融场景，并保存到清洗表"));
+                break;
             case "F":
                 futures.addAll(batchHandleBusinessAsync(nonFinancialDatas, (List<WubaCollidingData> data) -> falseToNonFinancialBusiness(data,
                                 apiCode,
-                                batchNo, taskId),
+                                batchNo, taskId, sourceType),
                         "非周期撞得数据转为非金融场景，并保存到清洗表"));
                 futures.addAll(batchHandleBusinessAsync(financialDatas, (List<WubaCollidingData> data) -> falseToFinancialBusiness(data, apiCode,
-                                batchNo, taskId),
+                                batchNo, taskId, sourceType),
                         "非周期撞得数据转为金融场景，并保存到清洗表"));
+                futures.addAll(batchHandleFalseBusinessAsync(reavedCells,
+                        (List<String> data) ->
+                                wuBaCollidingDataBusinessService.saveReavedIntoRob(data, apiCode, reavedPackageId, sourceType),
+                        "补包撞回status=-2，保存到补包-2包"));
                 break;
             default:
                 break;

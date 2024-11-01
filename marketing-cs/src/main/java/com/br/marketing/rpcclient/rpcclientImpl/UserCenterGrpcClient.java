@@ -28,6 +28,13 @@ public class UserCenterGrpcClient {
     private static final String BASE_COLUMNS = "API_CODE,REMARK,COMP_NAME,COMP_SHORT_NAME,COMP_ID,APPLY_LOAN_TYPE";
     private static final String BASE = "base";
 
+    /**
+     * 从用户中心查取客服信息
+     */
+    private static final String CUSTOMER_COLUMNS = "account_type,account_status";
+    private static final String CUSTOMER = "customer";
+
+
     @Value("${otherConfig.userCenter.appName:00}")
     public void setAppName(String appName) {
         UserCenterGrpcClient.appName = appName;
@@ -72,4 +79,25 @@ public class UserCenterGrpcClient {
         }
         return company.getResult();
     }
+
+    /**
+     * 查询客服信息
+     *
+     * @param apiCode
+     * @return
+     */
+    public static String getCustomerMsg(String apiCode) {
+        JSONObject baseJson = new JSONObject();
+        baseJson.put("appName", appName);
+        baseJson.put("appSecretKey", appSecretKey);
+        UserCenterRequest request = UserCenterRequest.newBuilder().setApiCode(apiCode).setBaseJson(baseJson.toJSONString())
+                .setColumns(CUSTOMER_COLUMNS).setTypeName(CUSTOMER).setCache(true).build();
+        UserCenterResponse company = GrpcClientInitConfig.grpcUserCenter().getInfo(request);
+        if (200 != company.getCode()) {
+            log.warn("apiCode:[{}]从用户中心[{}]查询的商户信息失败，返回错误码:[{}]，返回错误信息:[{}]",
+                    apiCode, company.getResult(), company.getCode(), company.getMessage());
+        }
+        return company.getResult();
+    }
+
 }

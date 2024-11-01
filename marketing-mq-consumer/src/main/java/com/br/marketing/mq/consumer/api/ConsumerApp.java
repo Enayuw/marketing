@@ -317,4 +317,17 @@ public class ConsumerApp {
     public void consumerGuoMeiDataClean(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, guoMeiDataCleanService::cleanData, new String(message.getBody(), StandardCharsets.UTF_8), null);
     }
+
+
+    /**
+     * 消费 国美数据清洗消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_GUOMEI_BLACK_DATA_CLEAN_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN)}, containerFactory = "concurrentContainerFactory")
+    public void consumerGuoMeiBlackDataClean(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, guoMeiDataCleanService::cleanBlackData, new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
 }
