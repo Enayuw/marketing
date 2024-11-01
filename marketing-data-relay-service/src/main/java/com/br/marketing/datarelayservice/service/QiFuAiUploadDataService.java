@@ -9,6 +9,8 @@ import com.br.marketing.client.qifu.util.AESUtil;
 import com.br.marketing.client.qifu.util.RSAUtil;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.datarelayservice.client.QiFuAiReqDTO;
+import com.br.marketing.datarelayservice.client.QiFuAiRobotReportBizDataDTO;
+import com.br.marketing.datarelayservice.enums.QiFuAiBizTypeEnum;
 import com.br.marketing.entity.DrsCustomizeUploadData;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.datarelayservice.client.QiFuAiBizDataDTO;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -96,59 +99,125 @@ public class QiFuAiUploadDataService {
             uploadData.setTCid(suffix);
             drsCustomizeUploadDataMapper.createDrsCustomizeUploadDataTable(suffix);
 
-            QiFuAiBizDataDTO qiFuAiBizDataDTO;
-            try {
-                qiFuAiBizDataDTO = JSONObject.parseObject(decryptData, QiFuAiBizDataDTO.class);
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), decryptData,
-                        "奇富AI上传数据，JSON解析失败！！！"));
-
-                String requestId =
-                        yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
-                uploadData.setRequestId(requestId);
-                uploadData.setRequestJsonData(decryptData);
-                uploadData.setBizDataNumber(0);
-                uploadData.setReceiveDate(LocalDate.now().toString());
-                uploadData.setCreateTime(new Date());
-                uploadData.setUpdateTime(new Date());
-                uploadData.setResponseCode(CodeEnum.GWS200.getCode());
-                uploadData.setResponseData(null);
-                uploadData.setExtend("JSON解析失败");
-                uploadData.setStatus(0);
-                // 保存前置数据
-                int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
-                if (i != 1) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                            "jsonData:" + decryptData, "奇富AI上传数据入库失败！！！"));
+            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String requestId =
+                    yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
+            Object classObject = QiFuAiBizTypeEnum.getClassObject(bizType);
+            if (classObject instanceof QiFuAiBizDataDTO) {
+                Pair<CodeEnum, FlagEnum> pair = uploadBiz(decryptData, bizType, uploadData, requestId);
+                if (pair != null) {
+                    return pair;
                 }
-                return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
-            }
-
-            uploadData.setRequestId(qiFuAiBizDataDTO.getFlowNo());
-            List<QiFuAiBizDataDTO.DataList> dataList = qiFuAiBizDataDTO.getDataList();
-            uploadData.setRequestJsonData(decryptData);
-            uploadData.setBizDataNumber(dataList == null ? 0 : dataList.size());
-            uploadData.setReceiveDate(LocalDate.now().toString());
-            uploadData.setCreateTime(new Date());
-            uploadData.setUpdateTime(new Date());
-
-            uploadData.setResponseCode(CodeEnum.GWS100.getCode());
-            uploadData.setResponseData(null);
-            uploadData.setExtend(null);
-            uploadData.setStatus(1);
-            // 保存前置数据
-            int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
-            if (i != 1) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                        "jsonData:" + decryptData, "奇富AI上传数据入库失败！！！"));
-                return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
+            } else if (classObject instanceof QiFuAiRobotReportBizDataDTO) {
+                Pair<CodeEnum, FlagEnum> pair = robotReportBiz(decryptData, bizType, uploadData, requestId);
+                if (pair != null) {
+                    return pair;
+                }
             }
 
             return new Pair<>(CodeEnum.GWS100, FlagEnum.S);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                    "jsonData:" + decryptData, "该apiCode:" + apiCode + "定制上传数据接入异常！！！"), e);
+                    "jsonData:" + decryptData, "该apiCode:" + apiCode + ",bizType:" + bizType + "定制上传数据接入异常！！！"), e);
             return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
         }
+    }
+
+    private Pair<CodeEnum, FlagEnum> robotReportBiz(String decryptData, String bizType, DrsCustomizeUploadData uploadData, String requestId) {
+        QiFuAiRobotReportBizDataDTO qiFuAiRobotReportBizDataDTO;
+        try {
+            qiFuAiRobotReportBizDataDTO = JSONObject.parseObject(decryptData, QiFuAiRobotReportBizDataDTO.class);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), decryptData,
+                    "奇富AI上传数据,bizType:" + bizType + "，JSON解析失败！！！"));
+
+            uploadData.setRequestId(requestId);
+            uploadData.setRequestJsonData(decryptData);
+            uploadData.setBizDataNumber(0);
+            uploadData.setReceiveDate(LocalDate.now().toString());
+            uploadData.setCreateTime(new Date());
+            uploadData.setUpdateTime(new Date());
+            uploadData.setResponseCode(CodeEnum.GWS200.getCode());
+            uploadData.setResponseData(null);
+            uploadData.setExtend("JSON解析失败");
+            uploadData.setStatus(0);
+            // 保存前置数据
+            int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+            if (i != 1) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                        "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI上传数据入库失败！！！"));
+            }
+            return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
+        }
+
+        uploadData.setRequestId(requestId);
+        List<QiFuAiRobotReportBizDataDTO.BillReportList> dataList = qiFuAiRobotReportBizDataDTO.getBillReportList();
+        uploadData.setRequestJsonData(decryptData);
+        uploadData.setBizDataNumber(dataList == null ? 0 : dataList.size());
+        uploadData.setReceiveDate(LocalDate.now().toString());
+        uploadData.setCreateTime(new Date());
+        uploadData.setUpdateTime(new Date());
+
+        uploadData.setResponseCode(CodeEnum.GWS100.getCode());
+        uploadData.setResponseData(null);
+        uploadData.setExtend(null);
+        uploadData.setStatus(1);
+        // 保存前置数据
+        int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+        if (i != 1) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI上传数据入库失败！！！"));
+            return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
+        }
+        return null;
+    }
+
+    private Pair<CodeEnum, FlagEnum> uploadBiz(String decryptData, String bizType, DrsCustomizeUploadData uploadData, String requestId) {
+        QiFuAiBizDataDTO qiFuAiBizDataDTO;
+        try {
+            qiFuAiBizDataDTO = JSONObject.parseObject(decryptData, QiFuAiBizDataDTO.class);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), decryptData,
+                    "奇富AI上传数据,bizType:" + bizType + "，JSON解析失败！！！"));
+
+            uploadData.setRequestId(requestId);
+            uploadData.setRequestJsonData(decryptData);
+            uploadData.setBizDataNumber(0);
+            uploadData.setReceiveDate(LocalDate.now().toString());
+            uploadData.setCreateTime(new Date());
+            uploadData.setUpdateTime(new Date());
+            uploadData.setResponseCode(CodeEnum.GWS200.getCode());
+            uploadData.setResponseData(null);
+            uploadData.setExtend("JSON解析失败");
+            uploadData.setStatus(0);
+            // 保存前置数据
+            int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+            if (i != 1) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                        "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI上传数据入库失败！！！"));
+            }
+            return new Pair<>(CodeEnum.GWS200, FlagEnum.F);
+        }
+
+        uploadData.setRequestId(qiFuAiBizDataDTO.getFlowNo());
+        List<QiFuAiBizDataDTO.DataList> dataList = qiFuAiBizDataDTO.getDataList();
+        uploadData.setRequestJsonData(decryptData);
+        uploadData.setBizDataNumber(dataList == null ? 0 : dataList.size());
+        uploadData.setReceiveDate(LocalDate.now().toString());
+        uploadData.setCreateTime(new Date());
+        uploadData.setUpdateTime(new Date());
+
+        uploadData.setResponseCode(CodeEnum.GWS100.getCode());
+        uploadData.setResponseData(null);
+        uploadData.setExtend(null);
+        uploadData.setStatus(1);
+        // 保存前置数据
+        int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
+        if (i != 1) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "jsonData:" + decryptData + ",bizType:" + bizType, "奇富AI上传数据入库失败！！！"));
+            return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
+        }
+        return null;
     }
 }
