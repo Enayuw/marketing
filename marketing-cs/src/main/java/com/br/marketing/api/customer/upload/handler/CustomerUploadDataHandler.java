@@ -107,6 +107,16 @@ public interface CustomerUploadDataHandler {
      */
     CustomerResponseDTO fallbackResponse(Exception e);
 
+
+    /**
+     * 入库异常默认成功响应
+     *
+     * @return {@link CustomerResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/10/30
+     */
+    CustomerResponseDTO defaultSuccessResponse();
+
     /**
      * 数据下发
      *

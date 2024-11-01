@@ -1015,17 +1015,7 @@
             '$.${extendMap.key}', '${extendMap.value}'
         </foreach>
         )
-        where api_code=#{apiCode}
-            and cust_num = #{custNum}
-            <if test="id != null">
-                and id = #{id}
-            </if>
-            <if test="idList != null and idList.size()>0">
-                and id in
-                <foreach collection="idList" item="item" open="(" close=")" separator=",">
-                    #{item}
-                </foreach>
-            </if>
+        where id = #{id}
     </update>
 
     <select id="selectByDynamicCondition" resultType="com.br.marketing.entity.MarketingSyncUser">

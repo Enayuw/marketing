@@ -173,6 +173,20 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
     }
 
     /**
+     * 入库异常默认成功响应
+     *
+     * @return {@link CustomerResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/10/30
+     */
+    @Override
+    public CustomerResponseDTO defaultSuccessResponse() {
+        WeiJuUploadResponseDTO weiJuUploadResponseDTO = new WeiJuUploadResponseDTO();
+        weiJuUploadResponseDTO.success();
+        return new CustomerResponseDTO(weiJuUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, weiJuUploadResponseDTO.getCode());
+    }
+
+    /**
      * 数据下发
      *
      * @param tCid     tCid

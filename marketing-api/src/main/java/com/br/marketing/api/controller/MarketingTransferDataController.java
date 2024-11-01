@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.marketing.api.customer.black.service.CustomerBlackDataService;
 import com.br.marketing.api.customer.transfer.service.CustomerTransferDataService;
 import com.br.marketing.aspect.LogAnnotation;
 import com.br.marketing.common.commondto.ApiNoDataResult;
@@ -47,6 +48,9 @@ public class MarketingTransferDataController {
 
     @Resource
     private CustomerTransferDataService customerTransferDataService;
+    @Resource
+    private CustomerBlackDataService customerBlackDataService;
+
 
 
     /**
@@ -128,6 +132,27 @@ public class MarketingTransferDataController {
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
         return customerTransferDataService.receiveTransferDataHandler(apiCode, jsonData);
+    }
+
+
+    /**
+     * 接收客制化黑名单数据
+     *
+     * @param apiCode apiCode
+     * @param jsonData json数据
+     * @return {@link ResponseCustomDTO }
+     * @author senyang.zheng
+     * @date 2024/08/06
+     */
+    @ApiOperation(value = "定制黑名单数据接入接口")
+    @PostMapping("/receiveCustomizeBlackData")
+    @LogAnnotation
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
+    public ResponseCustomDTO receiveCustomizeBlackData(@RequestParam("apiCode") String apiCode, @RequestParam("jsonData") String jsonData) {
+        RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_2.getType());
+        RuntimeDataContext.getData().setApiCode(apiCode);
+        RuntimeDataContext.getData().setJsonData(jsonData);
+        return customerBlackDataService.receiveCustomizeBlackData(apiCode, jsonData);
     }
 
 
