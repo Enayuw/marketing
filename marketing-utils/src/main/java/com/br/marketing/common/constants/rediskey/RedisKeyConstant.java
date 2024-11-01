@@ -261,4 +261,9 @@ public class RedisKeyConstant {
      */
     public static final String SHU_HE_CUFUJIE_MATCH_DATA_FLAG = prefix.concat("shuhe:match:data:flag");
 
+    /**
+     * 交付获取用户信息锁
+     */
+    public static final String DELIVERY_USER_INFORMATION = prefix.concat("delivery:user:information");
+
 }

@@ -8,6 +8,7 @@ import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
+import com.br.marketing.prometheus.counter.EnableMarketingCounter;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -31,6 +32,7 @@ import org.springframework.context.annotation.ImportResource;
 @EnablePrometheusTiming
 @EnableDruidPrometheus
 @EnableBrCounter(namespace = "marketing_task")
+@EnableMarketingCounter(namespace = "marketing_br_task")
 public class Scheduler {
     public static ConfigurableApplicationContext ac;
     /**
