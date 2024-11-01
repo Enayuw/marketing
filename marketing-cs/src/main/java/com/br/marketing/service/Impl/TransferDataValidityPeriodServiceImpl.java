@@ -793,9 +793,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                         , apiCode + AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getMessage()));
                 return true;
             }
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
-                    , "数据不在有效期范围;apiCode:" + apiCode
-                    , apiCode + AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getMessage()));
+            log.warn("数据不在有效期范围;apiCode:" + apiCode);
             return true;
         }
         return false;
@@ -822,9 +820,7 @@ public class TransferDataValidityPeriodServiceImpl implements TransferDataValidi
                         , apiCode + AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getMessage()));
                 return;
             }
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
-                    , "数据不在有效期范围;apiCode:" + apiCode + ";userType:" + userTypeSet
-                    , apiCode + AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getMessage()));
+            log.warn("数据不在有效期范围;apiCode:" + apiCode + ";userType:" + userTypeSet);
         }
     }
 
