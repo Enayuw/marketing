@@ -141,15 +141,7 @@ public class QiFuAiUploadDataService {
             uploadData.setExtend(null);
             uploadData.setStatus(1);
             // 保存前置数据
-            int i = 0;
-            try {
-                i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
-            } catch (DuplicateKeyException e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
-                        "jsonData:" + decryptData, "奇富AI上传数据入库失败，flowNo重复！！！"), e);
-                return new Pair<>(CodeEnum.GWS208, FlagEnum.F);
-            }
-
+            int i = drsCustomizeUploadDataMapper.insertSelective(uploadData);
             if (i != 1) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
                         "jsonData:" + decryptData, "奇富AI上传数据入库失败！！！"));
