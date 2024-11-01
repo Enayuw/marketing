@@ -174,6 +174,20 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
     }
 
     /**
+     * 入库异常默认成功响应
+     *
+     * @return {@link CustomerResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/10/30
+     */
+    @Override
+    public CustomerResponseDTO defaultSuccessResponse() {
+        XieChengActivateDataResponseDTO activateDataResponseDTO = new XieChengActivateDataResponseDTO();
+        activateDataResponseDTO.success();
+        return new CustomerResponseDTO(activateDataResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, activateDataResponseDTO.getCode());
+    }
+
+    /**
      * 数据下发
      * @param tCid     tCid
      * @param sourceId 数据源主键id

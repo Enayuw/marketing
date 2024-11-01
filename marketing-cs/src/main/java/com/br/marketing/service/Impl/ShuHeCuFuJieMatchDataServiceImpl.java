@@ -108,9 +108,9 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                 try {
                     //清洗上传数据
                     List<String> sha256Cells = shuHeCuFuJieDataList.stream().map(ShuHeCuFuJieData::getMobileSha256).collect(Collectors.toList());
-                    Map<String, ShuHeCuFuJieData> sha256MobileMap =
-                            shuHeCuFuJieDataList.stream().collect(Collectors.toMap(ShuHeCuFuJieData::getMobileSha256, data -> data, (oldValue,
-                                                                                                                                     newValue) -> newValue));
+                    Map<String, ShuHeCuFuJieData> sha256MobileMap = shuHeCuFuJieDataList.stream()
+                                    .collect(Collectors.toMap(ShuHeCuFuJieData::getMobileSha256, data -> data,
+                                            (oldValue, newValue) -> newValue));
                     List<MarketingSyncUser> marketingSyncUsers = marketingSyncUserMapper.selectByDynamicCondition(apiCode, sha256Cells, condition);
                     for (MarketingSyncUser marketingSyncUser : marketingSyncUsers) {
                         String custype = "已结清";
@@ -119,8 +119,11 @@ public class ShuHeCuFuJieMatchDataServiceImpl implements ShuHeCuFuJieMatchDataSe
                         String reserveField1 = marketingSyncUser.getReserveField1();
                         if (StringUtils.isNotEmpty(reserveField1)) {
                             JSONObject reserveField = JSONObject.parseObject(reserveField1);
-                            if (StringUtils.isNotEmpty(shuHeCuFuJieData.getAdtLmt()) && StringUtils.isNotEmpty(shuHeCuFuJieData.getAvlLmt())
-                                    && Long.parseLong(shuHeCuFuJieData.getAdtLmt()) > Long.parseLong(shuHeCuFuJieData.getAvlLmt())) {
+                            if (!"0".equals(shuHeCuFuJieData.getAvlLmt()) && (
+                                    StringUtils.isNotEmpty(shuHeCuFuJieData.getAdtLmt())
+                                            && StringUtils.isNotEmpty(shuHeCuFuJieData.getAvlLmt())
+                                    && Long.parseLong(shuHeCuFuJieData.getAdtLmt()) > Long.parseLong(shuHeCuFuJieData.getAvlLmt())
+                            )) {
                                 custype = "额度未清空";
                             }
                             reserveField.put("custype", custype);

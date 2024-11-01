@@ -1,6 +1,7 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
@@ -37,10 +38,9 @@ public class RedisController {
     UserCenterHandler userCenterHandler;
 
     @GetMapping("testM")
-    public String testM(){
-        String ms =  "{\"apiCode\":\"7479978\",\"operateType\":\"add\"}";
-        userCenterHandler.handleDataUserCenter(ms);
-        return "";
+    public String testM(String msg){
+        Result<Boolean> booleanResult = userCenterHandler.handleDataUserCenter(msg);
+        return JSONObject.toJSONString(booleanResult);
     }
 
     @GetMapping("get")

@@ -253,6 +253,9 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
         String divisorSumValue = sumValueMap.get(divisorName);
         BigDecimal dividendValue = new BigDecimal(dividendSumValue);
         BigDecimal divisorValue = new BigDecimal(divisorSumValue);
+        if(BigDecimal.ZERO.compareTo(divisorValue)==0){
+            return BigDecimal.ZERO.toString();
+        }
         BigDecimal divideValue = dividendValue.divide(divisorValue, 6, RoundingMode.HALF_UP);
         return divideValue.toString();
     }

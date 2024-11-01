@@ -98,7 +98,9 @@ public class RuleRefreshConfigServiceImpl implements IRuleRefreshConfigService {
     private void updateScoreSearch(PushDecisions pushDecisions, MarketingTaskVO marketingTaskVO) {
         // 查询是否已经更新过跑分id
         ScoreSearchConditionExample scoreSearchConditionExample = new ScoreSearchConditionExample();
-        scoreSearchConditionExample.createCriteria().andIdEqualTo(pushDecisions.getDependencyTemplateId()).andSourceConditionEqualTo(String.valueOf(marketingTaskVO.getHisFileId()));
+        scoreSearchConditionExample.createCriteria()
+                .andIdEqualTo(pushDecisions.getDependencyTemplateId())
+                .andSourceConditionEqualTo(String.valueOf(marketingTaskVO.getHisFileId()));
         int i1 = scoreSearchConditionMapper.countByExample(scoreSearchConditionExample);
         log.warn(TITLE + "查询是否已经更新过跑分:{}", i1);
         if(i1> 0){
