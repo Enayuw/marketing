@@ -1141,8 +1141,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                                 List<MarketingCondition> conditions = marketingHistory.getCondition();
                                 if (!CollectionUtils.isEmpty(conditions)) {
                                     Map<String, Double> scoreMap = conditions.stream()
-                                            .filter(condition -> StringUtils.isNotEmpty(condition.getCode())
-                                                    && condition.getDValue() != null)
+                                            .filter(condition -> condition.getDValue() != null)
                                             .collect(Collectors.toMap(MarketingCondition::getCode
                                                     , MarketingCondition::getDValue
                                                     , (existing, replacement) -> replacement));

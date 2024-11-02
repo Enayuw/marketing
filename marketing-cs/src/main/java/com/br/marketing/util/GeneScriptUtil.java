@@ -13,9 +13,7 @@ public class GeneScriptUtil {
 
     private static final String SPACE_FRAG = " ";
 
-    private static final String BRACE_FRAG_LEFT = "{";
-
-    private static final String BRACE_FRAG_RIGHT = "}";
+    private static final String SINGLE_QUOTATION = "'";
 
     private static final String PARENTHESIS_FRAG_LEFT = "(";
 
@@ -23,13 +21,15 @@ public class GeneScriptUtil {
 
     private static final String IF_FRAG_LEFT = "if (";
 
-    private static final String CONDITION_ONE = "(item['field_key'] == '";
+    private static final String CONDITION_MAP_GET_LEFT = "conditionMap.get('";
 
-    private static final String CONDITION_TWO = "' && item['d_value'] !=null && item['d_value'] ";
+    private static final String CONDITION_NULL = "') == null";
 
-    private static final String CONDITION_THR = " && item['d_value'] ";
+    private static final String CONDITION_NOT_NULL = "') != null";
 
-    private static final String FOR_FRAG = "for (item in params['_source']['condition'])";
+    private static final String MAP_CONSTRUCT_FRAG = "Map conditionMap = new HashMap();" +
+            "for (item in params['_source']['condition']){if(item['code'] != null && item['d_value'] != null)" +
+            "{conditionMap.put(item['field_key'], item['d_value']);}}";
 
     private static final String RETURN_FRAG_LEFT = " { return '";
 
@@ -127,9 +127,9 @@ public class GeneScriptUtil {
         list.sort(Comparator.comparing(ScoreLable::getOrder));
         StringBuilder listValueSource = new StringBuilder();
         StringBuilder valueTypeSource = new StringBuilder();
-        //for片段
-        listValueSource.append(FOR_FRAG).append(BRACE_FRAG_LEFT);
-        valueTypeSource.append(FOR_FRAG).append(BRACE_FRAG_LEFT);
+        //构造Map片段
+        listValueSource.append(MAP_CONSTRUCT_FRAG);
+        valueTypeSource.append(MAP_CONSTRUCT_FRAG);
         //条件片段
         for (ScoreLable scoreLable : list) {
             listValueSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT)
@@ -137,9 +137,6 @@ public class GeneScriptUtil {
             valueTypeSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT)
                     .append(scoreLable.getValueType()).append(RETURN_FRAG_RIGHT);
         }
-        //}补齐
-        listValueSource.append(BRACE_FRAG_RIGHT);
-        valueTypeSource.append(BRACE_FRAG_RIGHT);
         //未标记，return片段
         listValueSource.append(RETURN_FRAG_END);
         valueTypeSource.append(RETURN_FRAG_END);
@@ -217,13 +214,27 @@ public class GeneScriptUtil {
         //底层解析
         } else if ("operation".equals(type)) {
             String key = data.getString("key");
-            String operatorLeft = opetatorMap.get(data.getString("operation") + SECTION_IDENTIFIER_LEFT);
-            String operatorRight = opetatorMap.get(data.getString("operation") + SECTION_IDENTIFIER_RIGHT);
-            List<String> value = Arrays.asList(data.getString("value").split(","));
-            String valueLeft = value.get(0);
-            String valueRight = value.get(1);
-            conditionBuilder.append(CONDITION_ONE).append(key).append(CONDITION_TWO).append(operatorLeft).append(SPACE_FRAG).append(valueLeft)
-                    .append(CONDITION_THR).append(operatorRight).append(SPACE_FRAG).append(valueRight).append(PARENTHESIS_FRAG_RIGHT);
+            List<String> values = Arrays.asList(data.getString("value").split(","));
+            if (values.size() < 2) {
+                conditionBuilder.append(PARENTHESIS_FRAG_LEFT).append(CONDITION_MAP_GET_LEFT).append(key)
+                        .append(CONDITION_NULL).append(PARENTHESIS_FRAG_RIGHT);
+            } else {
+                String operatorLeft = opetatorMap.get(data.getString("operation") + SECTION_IDENTIFIER_LEFT);
+                String operatorRight = opetatorMap.get(data.getString("operation") + SECTION_IDENTIFIER_RIGHT);
+                String valueLeft = values.get(0);
+                String valueRight = values.get(1);
+                conditionBuilder.append(PARENTHESIS_FRAG_LEFT)
+                        .append(CONDITION_MAP_GET_LEFT).append(key).append(CONDITION_NOT_NULL)
+                        .append(SPACE_FRAG).append(LOGIC_OPERATOR_AND).append(SPACE_FRAG)
+                        .append(CONDITION_MAP_GET_LEFT).append(key).append(SINGLE_QUOTATION).append(PARENTHESIS_FRAG_RIGHT)
+                        .append(SPACE_FRAG).append(operatorLeft).append(SPACE_FRAG).append(valueLeft)
+                        .append(SPACE_FRAG).append(LOGIC_OPERATOR_AND).append(SPACE_FRAG)
+                        .append(CONDITION_MAP_GET_LEFT).append(key).append(SINGLE_QUOTATION).append(PARENTHESIS_FRAG_RIGHT)
+                        .append(SPACE_FRAG).append(operatorRight).append(SPACE_FRAG).append(valueRight)
+                        .append(PARENTHESIS_FRAG_RIGHT);
+//            conditionBuilder.append(CONDITION_ONE).append(key).append(CONDITION_TWO).append(operatorLeft).append(SPACE_FRAG).append(valueLeft)
+//                    .append(CONDITION_THR).append(operatorRight).append(SPACE_FRAG).append(valueRight).append(PARENTHESIS_FRAG_RIGHT);
+            }
         }
         if (StringUtils.isNotEmpty(logicOperator)) {
             conditionBuilder.append(logicOperator);
@@ -302,23 +313,24 @@ public class GeneScriptUtil {
             }
         //底层解析
         } else {
-            String key = condition.getString("key");
-            Double dValue = scoreMap.get(key);
-            if (dValue == null) {
-                //todo 确认下es返回的condition中模型字段是否是全的
-                return true;
-            }
-            return valueOperate(dValue, condition);
+            return valueOperate(condition, scoreMap);
         }
     }
 
-    private static Boolean valueOperate(Double dValue, JSONObject dataJson) {
+    private static Boolean valueOperate(JSONObject dataJson, Map<String, Double> scoreMap) {
+        String key = dataJson.getString("key");
         String operation = dataJson.getString("operation");
         List<String> values = Arrays.asList(dataJson.getString("value").split(","));
-        if (values.size() < 2) {
+        Double dValue = scoreMap.get(key);
+        if (dValue == null) {
             //类型不是区间，是 = ‘null’
-            return false;
+            if (values.size() < 2) {
+                return true;
+            } else {
+                return false;
+            }
         }
+        //dValue != null，一定是区间条件
         List<Double> value = values.stream().map(Double::valueOf).collect(Collectors.toList());
         Double valueStart = value.get(0);
         Double valueEnd = value.get(1);

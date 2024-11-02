@@ -92,7 +92,6 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
      */
     @Override
     public Result<Boolean> collidingDataPushPolicy(Long id) {
-
         CustomerInfoPushMain customerInfoPushMain = customerInfoPushMainMapper.selectByPrimaryKey(id);
         CustomerInfoPushBatchExample searchPushBatch = new CustomerInfoPushBatchExample();
         searchPushBatch.createCriteria().andMIdEqualTo(customerInfoPushMain.getId());
@@ -304,12 +303,12 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 if (markWithEsFlag) {
                     markForCell(varObject, marketingHistory.getFields(), markWithEsFlag);
                 }
+            //代码处理逻辑
             } else {
                 List<MarketingCondition> conditions = marketingHistory.getCondition();
                 if (!CollectionUtils.isEmpty(conditions)) {
                     Map<String, Double> scoreMap = conditions.stream()
-                            .filter(condition -> StringUtils.isNotEmpty(condition.getCode())
-                                    && condition.getDValue() != null)
+                            .filter(condition -> condition.getDValue() != null)
                             .collect(Collectors.toMap(MarketingCondition::getCode
                                     , MarketingCondition::getDValue
                                     , (existing, replacement) -> replacement));
@@ -372,7 +371,6 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
         Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.ZHIJIA_CLUEFEEDBACK_MSG.toString());
-
         DingDingMarkdownMessage.Markdown markdown = new DingDingMarkdownMessage.Markdown();
         markdown.setTitle(title);
         markdown.setText(text);
