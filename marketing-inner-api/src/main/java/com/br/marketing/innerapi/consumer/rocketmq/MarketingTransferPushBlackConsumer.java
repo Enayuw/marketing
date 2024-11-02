@@ -22,11 +22,10 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingOutsideInterfaceConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingOutsideInterfaceConstants.TOPIC,
         consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_TRANSFER_PUSH_BLACK,
         selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK)
-public class MarketingTransferPushBlackCustomer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+public class MarketingTransferPushBlackConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -45,7 +44,7 @@ public class MarketingTransferPushBlackCustomer extends BaseMqMessageListener im
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
         log.warn("Marketing_Transfer_Push_Black：获取消息成功:{}",o);
         /*消费逻辑*/
-        consumerService.consumerRun(messageExt, pushRuleService::consumerBlack, o, null);
+        consumerService.consumerRun(messageExt, pushRuleService::consumerBlack, o);
     }
 
     @Override

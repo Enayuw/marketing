@@ -22,8 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingUploadConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingUploadConstants.TOPIC,
         consumerGroup = MarketingUploadConstants.MARKETING_PRE_USER_RECEIVE,
         selectorExpression = MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)
 public class MarketingPreUserReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -45,7 +44,7 @@ public class MarketingPreUserReceiveConsumer extends BaseMqMessageListener imple
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("MARKETING_PRE_USER_RECEIVE：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o, null);
+        consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o);
     }
 
     @Override

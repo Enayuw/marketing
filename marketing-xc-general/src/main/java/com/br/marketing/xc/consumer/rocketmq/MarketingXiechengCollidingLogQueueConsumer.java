@@ -24,8 +24,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingAssistConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_XIECHENG_COLLIDING_LOG_QUEUE,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)
 public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -41,12 +40,12 @@ public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageLis
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         log.warn("MARKETING_XIECHENG_COLLIDING_LOG_QUEUE：获取消息成功:{}",bodyString);
         /*消费逻辑*/
         List<XieChengCollidingDataLog> collidingDataLogList = JSONArray.parseArray(bodyString, XieChengCollidingDataLog.class);
-        consumerService.consumerRun(messageExt, xieChengCollidingDataLogService::saveXieChengCollidingDataLog, collidingDataLogList, null);
+        consumerService.consumerRun(messageExt, xieChengCollidingDataLogService::saveXieChengCollidingDataLog, collidingDataLogList);
     }
 
     @Override

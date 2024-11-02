@@ -22,8 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingAssistConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_PUSHTASK_FILE_INITMERGE,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_INITMERGE)
 public class MarketingPushTaskFileInitMergeConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -40,12 +39,12 @@ public class MarketingPushTaskFileInitMergeConsumer extends BaseMqMessageListene
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("Marketing_PushTask_File_InitMerge：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, mergeWithMessageService::consumerInitFileMsg, o, null);
+        consumerService.consumerRun(messageExt, mergeWithMessageService::consumerInitFileMsg, o);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.br.marketing.push.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
@@ -23,8 +24,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingAssistConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_PUSHTASK_FILE_MERGE,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE)
 public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -41,12 +41,15 @@ public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener im
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("Marketing_PushTask_File_Merge：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileMsg, o, MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY);
+        consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileMsg, o
+                , MarketingDelayedConstants.TOPIC
+                , MarketingDelayedConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY
+                , 30L);
     }
 
     @Override

@@ -24,8 +24,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingUploadConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingUploadConstants.TOPIC,
         consumerGroup = MarketingUploadConstants.MARKETING_XIECHENG_COLLIDING_ACTIVATE,
         selectorExpression = MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)
 public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -48,7 +47,7 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
         XieChengActivateDTO xieChengActivateDTO = JSON.parseObject(bodyString,
                 new TypeReference<XieChengActivateDTO>() {
                 }.getType());
-        consumerService.consumerRun(messageExt, robDataCollidingService::activateDataHandle, xieChengActivateDTO, null);
+        consumerService.consumerRun(messageExt, robDataCollidingService::activateDataHandle, xieChengActivateDTO);
     }
 
     @Override

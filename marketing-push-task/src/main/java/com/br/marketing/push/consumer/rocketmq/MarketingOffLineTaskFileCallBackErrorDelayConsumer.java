@@ -24,8 +24,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingDelayedConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingDelayedConstants.TOPIC,
         consumerGroup = MarketingDelayedConstants.MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY,
         selectorExpression = MarketingDelayedConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY)
 public class MarketingOffLineTaskFileCallBackErrorDelayConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -42,12 +41,15 @@ public class MarketingOffLineTaskFileCallBackErrorDelayConsumer extends BaseMqMe
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("Marketing_OffLineTask_File_CallBack_ErrorDelay：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileCallBack, o, MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY);
+        consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileCallBack, o
+                , MarketingDelayedConstants.TOPIC
+                , MarketingDelayedConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY
+                , 30L);
     }
 
     @Override

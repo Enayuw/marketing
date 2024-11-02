@@ -24,8 +24,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingDelayedConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingDelayedConstants.TOPIC,
         consumerGroup = MarketingDelayedConstants.MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY,
         selectorExpression = MarketingDelayedConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY)
 public class MarketingPushTaskFileMergeErrorDelayConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -42,12 +41,15 @@ public class MarketingPushTaskFileMergeErrorDelayConsumer extends BaseMqMessageL
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("Marketing_PushTask_File_Merge_ErrorDelay：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileMsg, o, MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE_ERRORDELAY);
+        consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileMsg, o
+                , MarketingDelayedConstants.TOPIC
+                , MarketingDelayedConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY
+                , 30L);
     }
 
     @Override

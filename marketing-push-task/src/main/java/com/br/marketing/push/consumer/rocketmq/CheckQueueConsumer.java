@@ -22,8 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingAssistConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.CHECK_QUEUE,
         selectorExpression = MarketingAssistConstants.TAG_CHECK_QUEUE)
 public class CheckQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -40,12 +39,12 @@ public class CheckQueueConsumer extends BaseMqMessageListener implements RocketM
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("checkQueue：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, checkFileService::consumerFileCheck, o, "");
+        consumerService.consumerRun(messageExt, checkFileService::consumerFileCheck, o);
     }
 
     @Override

@@ -31,19 +31,21 @@ public class RocketMqConsumerService {
     @Autowired
     private RocketMqTemplate template;
     /**
-     * rabbitMQ消费端
+     * RocketMQ消费端
      * @param messageExt 消费消息
      * @param method 消费业务
      * @param t 消费信息
      * @param retryTag Tag（消息重试使用）
+     *                 使用时去marketing-utils/src/main/java/com/br/marketing/common/constants/rocketmq 包中核对
      * @param delayTopic 消息延时对应的延时队列
-     * @param delayTime 消息延时时间（单位：秒）
+     *                   使用时去marketing-utils/src/main/java/com/br/marketing/common/constants/rocketmq 包中核对
+     * @param delayTime 消息延时时间（单位：秒） delayTime
+     *                  delayTime>0时，发送到延时Topic下
      */
-    public <T> Boolean consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
-            , String retryTag, String delayTopic, int delayTime) {
+    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
+            , String delayTopic, String retryTag, long delayTime) {
         String message = null;
         try {
-            message = new String(messageExt.getBody(),StandardCharsets.UTF_8);
             Result<Boolean> apply = method.apply(t);
             /**
              * code 为SUCCESS 认为消费成功
@@ -51,52 +53,56 @@ public class RocketMqConsumerService {
              * code 为False 任务消费失败，重推队列
              */
             if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
-//                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
                 if (apply.getData()) {
-                    if (StringUtils.isNotBlank(retryTag)) {
-                        if(MarketingDelayedConstants.TOPIC.equalsIgnoreCase(delayTopic)){
-                            template.syncSendDelaySecond(messageExt.getTopic(), retryTag, message, delayTime);
+                    message = new String(messageExt.getBody(),StandardCharsets.UTF_8);
+                    if (StringUtils.isNotBlank(delayTopic) && StringUtils.isNotBlank(retryTag)) {
+                        if(delayTime>0){
+                            // 根据消费端配置的[延迟Topic]和[Tags]发送
+                            template.syncSendDelaySecond(delayTopic, retryTag, message, delayTime);
                         }else{
-                            template.syncSend(messageExt.getTopic(), retryTag, message);
+                            // 根据消费端配置的[普通Topic]和[Tags]发送
+                            template.syncSend(delayTopic, retryTag, message);
                         }
-//                        producter.send(retryRouteKey, new String(message.getBody(), StandardCharsets.UTF_8));
                     } else {
+                        // 消息重新入本队列
                         template.syncSend(messageExt.getTopic(), messageExt.getTags(), message);
-//                        producter.send(message.getMessageProperties().getReceivedRoutingKey(), new String(message.getBody(), StandardCharsets.UTF_8));
                     }
                 }
-                return Boolean.TRUE;
             } else {
-                throw new Exception();
-//                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
+                /**
+                 * 消息重试，默认消息重试规则：
+                 * 第几次重试	与上次重试的间隔时间	第几次重试	与上次重试的间隔时间
+                 * 1	    10秒	            9	        7分钟
+                 * 2	    30秒	            10	        8分钟
+                 * 3	    1分钟	            11	        9分钟
+                 * 4	    2分钟	            12	        10分钟
+                 * 5	    3分钟	            13	        20分钟
+                 * 6	    4分钟	            14	        30分钟
+                 * 7	    5分钟	            15	        1小时
+                 * 8	    6分钟	            16	        2小时
+                 */
+                throw new RuntimeException();
             }
         } catch (Exception e) {
-//            template.syncSend(messageView.getTopic(), messageView.getTag().get(), message);
-            String error = String.format("路由键：%s,\r\n消息内容：%s,\r\n错误信息：%s"
+            String error = String.format("Tags：%s,\r\nmessage：%s,\r\n错误信息：%s"
                     , messageExt.getTags()
                     , message
                     , e.getMessage());
             log.error(error,e);
             alarmClient.sendAlarm(error,"消费异常", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
             throw new RuntimeException();
-//            try {
-//                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
-//            } catch (IOException ioException) {
-//                ioException.printStackTrace();
-//            }
         }
     }
 
     /**
-     * rabbitMQ消费端
+     * RocketMQ消费端
      * @param messageExt 消费消息
      * @param method 消费业务
      * @param t 消费信息
-     * @param retryRouteKey 重试路由key
      * @param <T> 消费消息类型
      */
-    public <T> Boolean consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t, String retryRouteKey) {
-        return consumerRun(messageExt, method, t, retryRouteKey, null, 0);
+    public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t) {
+        consumerRun(messageExt, method, t, null, null, 0L);
     }
 
     /**

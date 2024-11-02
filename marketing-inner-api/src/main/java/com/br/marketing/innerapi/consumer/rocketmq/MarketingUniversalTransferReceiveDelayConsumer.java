@@ -23,8 +23,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingDelayedConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingDelayedConstants.TOPIC,
         consumerGroup = MarketingDelayedConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR,
         selectorExpression = MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR+"||"
                 +MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY)
@@ -42,11 +41,14 @@ public class MarketingUniversalTransferReceiveDelayConsumer extends BaseMqMessag
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         log.warn("Marketing_Universal_Transfer_Receive_Delay_HalfHour：获取消息成功:{}",bodyString);
         /*消费逻辑*/
-        consumerService.consumerRun(messageExt, interfaceHandlerService::handleDataDirection, bodyString, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_ERROR_DELAY);
+        consumerService.consumerRun(messageExt, interfaceHandlerService::handleDataDirection, bodyString
+                , MarketingDelayedConstants.TOPIC
+                , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY
+                , 300L);
     }
 
     @Override

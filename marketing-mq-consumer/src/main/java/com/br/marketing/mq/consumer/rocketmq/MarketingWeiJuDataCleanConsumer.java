@@ -22,8 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingUploadConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingUploadConstants.TOPIC,
         consumerGroup = MarketingUploadConstants.MARKETING_WEIJU_DATA_CLEAN,
         selectorExpression = MarketingUploadConstants.TAG_MARKETING_WEIJU_DATA_CLEAN)
 public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -42,7 +41,7 @@ public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener imple
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         log.warn("MARKETING_WEIJU_DATA_CLEAN：获取消息成功:{}",bodyString);
-        consumerService.consumerRun(messageExt, weiJuDataCleanService::cleanData, bodyString, null);
+        consumerService.consumerRun(messageExt, weiJuDataCleanService::cleanData, bodyString);
     }
 
     @Override

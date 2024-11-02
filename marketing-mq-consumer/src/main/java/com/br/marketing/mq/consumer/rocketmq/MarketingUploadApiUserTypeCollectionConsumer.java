@@ -20,9 +20,8 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingAssistConstants.TOPIC,
-        consumerGroup = MarketingAssistConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION,// TODO 必须验证下RoutingKey带*的数据
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
+        consumerGroup = MarketingAssistConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)
 public class MarketingUploadApiUserTypeCollectionConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
@@ -41,7 +40,7 @@ public class MarketingUploadApiUserTypeCollectionConsumer extends BaseMqMessageL
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         log.warn("Marketing_Upload_Api_UserType_Collection：获取消息成功:{}",bodyString);
-        consumerService.consumerRun(messageExt, variableDicService::batchAddUserTypeVariableDicTry, bodyString, null);
+        consumerService.consumerRun(messageExt, variableDicService::batchAddUserTypeVariableDicTry, bodyString);
     }
 
     @Override

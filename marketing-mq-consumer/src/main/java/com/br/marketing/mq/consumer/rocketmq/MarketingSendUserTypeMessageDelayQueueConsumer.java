@@ -22,8 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingDelayedConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingDelayedConstants.TOPIC,
         consumerGroup = MarketingDelayedConstants.MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,
         selectorExpression = MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)
 public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -43,7 +42,7 @@ public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessag
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         log.warn("MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE：获取消息成功:{}",bodyString);
-        consumerService.consumerRun(messageExt, variableDicService::delaySendUserTypeMessage, bodyString, null);
+        consumerService.consumerRun(messageExt, variableDicService::delaySendUserTypeMessage, bodyString);
     }
 
     @Override

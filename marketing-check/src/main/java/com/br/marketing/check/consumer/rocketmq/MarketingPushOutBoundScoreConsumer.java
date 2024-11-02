@@ -22,8 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingOutsideInterfaceConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingOutsideInterfaceConstants.TOPIC,
         consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_PUSH_OUTBOUND_SCORE,
         selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_PUSH_OUTBOUND_SCORE)
 public class MarketingPushOutBoundScoreConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -40,12 +39,12 @@ public class MarketingPushOutBoundScoreConsumer extends BaseMqMessageListener im
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("Marketing_Push_OutBound_Score：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, zhongYuanService::pushOutBoundData, o, null);
+        consumerService.consumerRun(messageExt, zhongYuanService::pushOutBoundData, o);
     }
 
     @Override

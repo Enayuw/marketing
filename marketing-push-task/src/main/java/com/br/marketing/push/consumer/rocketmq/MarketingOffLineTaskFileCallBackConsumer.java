@@ -3,6 +3,7 @@ package com.br.marketing.push.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
@@ -24,8 +25,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingAssistConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_OFFLINETASK_FILE_CALLBACK,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK)
 public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -42,13 +42,15 @@ public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListe
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("Marketing_OffLineTask_File_CallBack：获取消息成功:{}",o);
         consumerService.consumerRun(messageExt, mergeWithMessageService::consumerFileCallBack, o
-                , MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK_ERRORDELAY);
+                , MarketingDelayedConstants.TOPIC
+                , MarketingDelayedConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY
+                , 30L);
     }
 
     @Override

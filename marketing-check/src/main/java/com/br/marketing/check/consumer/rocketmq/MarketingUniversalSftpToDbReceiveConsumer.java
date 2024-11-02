@@ -22,8 +22,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(nameServer = "${rocketmq.name-server:}",
-        topic = MarketingAssistConstants.TOPIC,
+@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_UNIVERSAL_SFTPTODB_RECEIVE,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_RECEIVE)
 public class MarketingUniversalSftpToDbReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
@@ -40,12 +39,12 @@ public class MarketingUniversalSftpToDbReceiveConsumer extends BaseMqMessageList
     }
 
     @Override
-    protected void handleMessage(MessageExt messageExt) throws Exception {
+    protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
         log.warn("Marketing_Universal_SftpToDb_Receive：获取消息成功:{}",o);
-        consumerService.consumerRun(messageExt, pushDataService::pushSftpToDbData, o, "");
+        consumerService.consumerRun(messageExt, pushDataService::pushSftpToDbData, o);
     }
 
     @Override
