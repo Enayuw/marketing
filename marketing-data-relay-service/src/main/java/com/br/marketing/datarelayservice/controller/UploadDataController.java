@@ -36,7 +36,7 @@ public class UploadDataController {
     @PostMapping("/uploadData/24152")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public QiFuAiResDTO qiFuAiUploadData(@RequestBody QiFuAiReqDTO requestBody) {
-        Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody,"upload_data");
+        Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody,"original");
 
         QiFuAiResDTO qiFuAiResDTO = new QiFuAiResDTO();
         qiFuAiResDTO.setCode(pair.getKey().getCode());

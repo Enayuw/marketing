@@ -4,7 +4,7 @@ import com.br.marketing.datarelayservice.client.QiFuAiBizDataDTO;
 import com.br.marketing.datarelayservice.client.QiFuAiRobotReportBizDataDTO;
 
 public enum QiFuAiBizTypeEnum {
-    UPLOAD_DATA("upload_data", QiFuAiBizDataDTO.class),
+    UPLOAD_DATA("original", QiFuAiBizDataDTO.class),
     ROBOT_REPORT("robot_report", QiFuAiRobotReportBizDataDTO.class);
 
     private String type;
