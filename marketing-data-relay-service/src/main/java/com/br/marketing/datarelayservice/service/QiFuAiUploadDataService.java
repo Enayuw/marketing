@@ -99,9 +99,9 @@ public class QiFuAiUploadDataService {
             uploadData.setTCid(suffix);
             drsCustomizeUploadDataMapper.createDrsCustomizeUploadDataTable(suffix);
 
-            String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            String requestId =
-                    yyyyMMdd.concat("_").concat(apiCode).concat("_").concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
+            String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            String requestId = currentDate.concat("_").concat(apiCode).concat("_")
+                    .concat(UUID.randomUUID().toString().substring(0, 5)) + System.currentTimeMillis();
             Object classObject = QiFuAiBizTypeEnum.getClassObject(bizType);
             if (classObject instanceof QiFuAiBizDataDTO) {
                 Pair<CodeEnum, FlagEnum> pair = uploadBiz(decryptData, bizType, uploadData, requestId);
