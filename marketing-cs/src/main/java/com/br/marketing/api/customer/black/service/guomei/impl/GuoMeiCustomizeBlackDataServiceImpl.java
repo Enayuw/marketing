@@ -7,11 +7,16 @@ import com.br.marketing.api.customer.black.handler.CustomerBlackHandlerEnum;
 import com.br.marketing.api.customer.black.service.guomei.GuoMeiCustomizeBlackDataService;
 import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackJsonDTO;
 import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackResponseDTO;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import javax.annotation.Resource;
+
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -28,6 +33,10 @@ public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlack
 
     @Resource
     private RabbitMqProducter rabbitMqProducter;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     /**
      * 解密jsonData
@@ -188,7 +197,13 @@ public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlack
             JSONObject json = new JSONObject();
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
-            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN, json.toJSONString());
+            String msg = json.toJSONString();
+            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_GUOMEI_BLACK_DATA_CLEAN)){
+                template.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_GUOMEI_BLACK_DATA_CLEAN, msg);
+            }else{
+                rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN, msg);
+            }
             log.warn("国美定制黑名单数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.GUOMEI_SERVICEERROR.getCode(), e.getMessage()

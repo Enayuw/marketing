@@ -1,13 +1,18 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.RequestLog;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +33,10 @@ public class TestSre {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private RocketMqTemplate template;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
 
     @GetMapping("/testSre")
     public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){
@@ -74,6 +83,30 @@ public class TestSre {
             BrokerGrpcClient.sendRequestLog(requestLog);
         }
         return "success";
+    }
+
+    @RequestMapping("/testSend")
+    public SendResult testSend(@RequestParam("topic") String topic
+            , @RequestParam("tag") String tag
+            , @RequestParam("msg") Object msg
+            , @RequestParam("type") String type) {
+        if("syncSend".equalsIgnoreCase(type)){
+            return template.syncSend(topic, tag, msg);
+        }else if("syncSendDelay".equalsIgnoreCase(type)){
+            return template.syncSendDelaySecond(topic, tag, msg.toString(), 100);
+        }else if("sendSyncOrderly".equalsIgnoreCase(type)){
+            return template.sendSyncOrderly(topic, tag, msg,"orderly");
+        }
+        return null;
+    }
+
+    @RequestMapping("/testRocketMQSwitchFlag")
+    public String testRocketMQSwitchFlag(@RequestParam("tag") String tag
+            , @RequestParam("apiCode") String apiCode) {
+        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, tag)){
+            return "";
+        }
+        return null;
     }
 
 }

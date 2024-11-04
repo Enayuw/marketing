@@ -25,6 +25,10 @@ public class MarketingTransferConstants {
      * 转化数据通用处理 Tag
      */
     public static final String TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Universal.Transfer.Receive";
+    /**
+     * 国美定制黑名单数据下发 Tag
+     */
+    public static final String TAG_MARKETING_GUOMEI_BLACK_DATA_CLEAN = "Marketing.GuoMei.Black.Data.Clean";
 //    Tag 结束
 
 
@@ -45,6 +49,10 @@ public class MarketingTransferConstants {
      * 转化数据通用处理 consumerGroup
      */
     public static final String MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing_Universal_Transfer_Receive";
+    /**
+     * 国美定制黑名单数据下发 consumerGroup
+     */
+    public static final String MARKETING_GUOMEI_BLACK_DATA_CLEAN = "Marketing_GuoMei_Black_Data_Clean";
 //    consumerGroup 结束
 
 }

@@ -30,10 +30,6 @@ public class TestSre {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
-    @Autowired
-    private RocketMqTemplate template;
-    @Resource
-    private RocketMQSwitch rocketMQSwitch;
 
     @GetMapping("/testSre")
     public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){
@@ -82,33 +78,4 @@ public class TestSre {
         return "success";
     }
 
-    @RequestMapping("/testSend")
-    public SendResult testSend(@RequestParam("topic") String topic
-            , @RequestParam("tag") String tag
-            , @RequestParam("msg") Object msg
-            , @RequestParam("type") String type) {
-        if("syncSend".equalsIgnoreCase(type)){
-            return template.syncSend(topic, tag, msg);
-//        }else if("sendAsync".equalsIgnoreCase(type)){
-//            return template.sendAsync("gate_test", "test",);
-        }else if("syncSendDelay".equalsIgnoreCase(type)){
-            return template.syncSendDelaySecond(topic, tag, msg.toString(), 100);
-        }else if("sendSyncOrderly".equalsIgnoreCase(type)){
-            return template.sendSyncOrderly(topic, tag, msg,"orderly");
-        }
-//        else{
-//            return template.sendMessageInTransaction("gate_test", "test", "sendMessageInTransaction发送事务消息!!");
-//        }
-        return null;
-    }
-
-    @RequestMapping("/testRocketMQSwitchFlag")
-    public String testRocketMQSwitchFlag(@RequestParam("tag") String tag
-            , @RequestParam("apiCode") String apiCode) {
-        String a = MarketingAssistConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE;
-        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, tag)){
-            return "";
-        }
-        return null;
-    }
 }

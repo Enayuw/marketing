@@ -1,19 +1,19 @@
 datasource:
   database:
-    names: shardingmarketing,marketingTikiv,marketingTiFlash
+    names: shardingmarketing,marketingTikiv,marketingTiFlash,marketingDoris,marketingBI
     defaultSource: shardingmarketing
     shardingmarketing:
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
-      password: f9daIYUIAXQkeyVbDoOI
+      password: qTODziGYQsq11aw8Js2V
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
       filters: stat
       maxActive: 300
-      initialSize: 1
+      initialSize: 10
       maxWait: 60000
-      minIdle: 1
+      minIdle: 10
       timeBetweenEvictionRunsMillis: 60000
       minEvictableIdleTimeMillis: 300000
       validationQuery: select 'x'
@@ -26,9 +26,9 @@ datasource:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-w-marketing.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
-      password: f9daIYUIAXQkeyVbDoOI
+      password: qTODziGYQsq11aw8Js2V
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 5 # 最小连接池数量
       maxActive: 30 # 最大连接池数量
@@ -40,22 +40,21 @@ datasource:
       testOnBorrow: false # 申请连接时直接检测连接是否有效.申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
       testOnReturn: false # 归还连接时检测连接是否有效.归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
       poolPreparedStatements: true # 开启PSCache
-      maxOpenPreparedStatements: 20
       maxPoolPreparedStatementPerConnectionSize: 20 #设置PSCache值
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
-    #      removeAbandoned: true # 是否自动回收超时连接
-    #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
-    #      filters: stat,wall,log4j2
-    #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      #      removeAbandoned: true # 是否自动回收超时连接
+      #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+#      filters: stat,wall,log4j2
+#      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketingTiFlash:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8
+      url: jdbc:mysql://tidb-tiflash-marketing.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
       username: u_pd_marketing
-      password: f9daIYUIAXQkeyVbDoOI
+      password: qTODziGYQsq11aw8Js2V
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -67,22 +66,21 @@ datasource:
       testOnBorrow: false # 申请连接时直接检测连接是否有效.申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
       testOnReturn: false # 归还连接时检测连接是否有效.归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
       poolPreparedStatements: true # 开启PSCache
-      maxOpenPreparedStatements: 20
       maxPoolPreparedStatementPerConnectionSize: 20 #设置PSCache值
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
-#      removeAbandoned: true # 是否自动回收超时连接
-#      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
+      #      removeAbandoned: true # 是否自动回收超时连接
+      #      removeAbandonedTimeout: 1800 # 超时时间(以秒数为单位)
 #      filters: stat,wall,log4j2
 #      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
     marketingDoris:
       name: marketing
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
-      url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
+      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing
       username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      password: qTODziGYQsq11aw8Js2V
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -99,60 +97,56 @@ datasource:
       connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
       breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
       timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
-      replicationAllocation: tag.location.default:1
-mybatis:
-  mapper-locations: mapper/*.xml
-  configuration:
-    map-underscore-to-camel-case: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-logging:
-  level:
-    com.br.off.mapper: debug
-  file: ./logs/core.log
-  root: INFO
-otherConfig:
-  alarm:
-    secretKey: a9c57e4138807a9e18b439cd9dab275b
-    appName: marketing
-    outsideSecretKey: 71e63ead0af0a07ae4191eb14b75a541
-    outsideAppName: marketing-out
-  userCenter:
-    appName: loan-strategy
-    appSecretKey: 404be42e9ad8ce59af79f17eb51594cf
-  warning:
-    pageSize: 5000
-    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
-    path: /opt/data/inloan/download/marketing/
-    sftpHost: 10.100.123.65
-    sftpPort: 9999
-    sftpUser: BRmarketing_pre
-    sftpPwd: 72aXd79ITcMeuyPAlDYy@_2021.06.07
-  encodeMapping:
-    appName: loan-warning
-    appSecretKey: f15a1421ac95a284683688af14688b72
-  proxy:
-    proxy_host: squid-proxy-pre.brapp.com
-    proxy_port: 3128
-    proxy_username: spmarketing
-    proxy_password: ek1EIgo9
-    proxy_host_zw: 10.100.123.221
+      replicationAllocation: tag.location.default:3
+    marketingBI:
+      name: marketing_bi
+      type: com.alibaba.druid.pool.DruidDataSource
+      driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://doris-w-marketing.brapp.com:6030/marketing_bi
+      username: u_pd_m_bi
+      password: HszuiPcGOvAfCIWs+46e
+      initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
+      minIdle: 4 # 最小连接池数量
+      maxActive: 4 # 最大连接池数量
+      maxWait: 60000 # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置
+      timeBetweenEvictionRunsMillis: 60000 # 关闭空闲连接的检测时间间隔.Destroy线程会检测连接的间隔时间，如果连接空闲时间大于等于minEvictableIdleTimeMillis则关闭物理连接。
+      minEvictableIdleTimeMillis: 300000 # 连接的最小生存时间.连接保持空闲而不被驱逐的最小时间
+      validationQuery: SELECT 1 FROM DUAL # 验证数据库服务可用性的sql.用来检测连接是否有效的sql 因数据库方言而差, 例如 oracle 应该写成 SELECT 1 FROM DUAL
+      testWhileIdle: true # 申请连接时检测空闲时间，根据空闲时间再检测连接是否有效.建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRun
+      testOnBorrow: false # 申请连接时直接检测连接是否有效.申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+      testOnReturn: false # 归还连接时检测连接是否有效.归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+      poolPreparedStatements: true # 开启PSCache
+      maxOpenPreparedStatements: 20
+      maxPoolPreparedStatementPerConnectionSize: 20 #设置PSCache值
+      connectionErrorRetryAttempts: 5 # 连接出错后再尝试连接三次
+      breakAfterAcquireFailure: true # 数据库服务宕机自动重连机制
+      timeBetweenConnectErrorMillis: 300000 # 连接出错后重试时间间隔
+      replicationAllocation: tag.location.default:3
+eureka:
+  client:
+    service-url.defaultZone: http://192.168.21.20:18000/eureka/,http://192.168.21.29:18000/eureka/
 
 spring:
   rabbitmq:
     zw:
-      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      addresses: strategy-rabbitmq-zw-01.brapp.com:5672,strategy-rabbitmq-zw-02.brapp.com:5672,strategy-rabbitmq-zw-03.brapp.com:5672
       username: strategy_distribute
-      password: strategy_distribute
+      password: Rz453hoEjUb37j8v
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing_juman_01
+      virtual-host: marketing-flow
     yz:
-      addresses: delivery-rabbitmq-cluster-01.brapp.com:5672
+      addresses: strategy-rabbitmq-yz-01.brapp.com:5672,strategy-rabbitmq-yz-02.brapp.com:5672
       username: strategy_distribute
-      password: strategy_distribute
+      password: Rz453hoEjUb37j8v
       publisher-confirms: true
       publisher-returns: true
-      virtual-host: marketing_juman_01
+      virtual-host: marketing-flow
+    secondary:
+      addresses: rabbitmq2.brapp.com:5671
+      username: rabbitmq
+      password: rabbitmq
+      virtual-host: common
     listener:
       retry:
         enabled: true
@@ -161,82 +155,99 @@ spring:
       acknowledge-mode: manual
       default-requeue-rejected: false
       auto-startup: true
-
+  web:
+    interceptors.enabled: true
+  sql.source: prod
+cluster:
+  flag: ${CONF_CLUSTER}
+otherConfig:
+  huaXiangInterface:
+    getReport: http://CLOUD-HX-RIBBON/huaxiang/v1/get_report
+  sanxiangzhiliInterface:
+    sanxiang_url: http://zh-service/v1/getData
+    haina_url: http://HAINA-SERVICE/query
+  alarm:
+    secretKey: b58783d4b67f942166f2ffad298080e4
+    appName: marketing
+    outsideSecretKey: 11e6a1a63c10d2855d662a0265ea91c4
+    outsideAppName: marketing-out
+  userCenter:
+    appName: loan-strategy
+    appSecretKey: 7357430aa11febfe81d45945c02706b3
+  warning:
+    pageSize: 5000
+    apiUrl: http://compass-api.100credit.com/api/loan-warning-api/loanStrategy/v2/query
+    path: /opt/data/inloan/download/marketing/
+    sftpHost: brsftp3.brapp.com
+    sftpPort: 9999
+    sftpUser: BRmarketing
+    sftpPwd: gKjTC62qUJMKigEyvn01@_2021.06.07
+  encodeMapping:
+    appName: loan-warning
+    appSecretKey: a938d0e974746651a11ddcdbcea31404
+  proxy:
+    proxy_host: squid-proxy2.brapp.com
+    proxy_port: 3128
+    proxy_username: spmarketing
+    proxy_password: t0jI8xLw
+    proxy_host_zw: 192.168.22.169
+  mom:
+    appSecretKey: 0eccd42aceae3d2f557fad6e393d7ebe
+    appName: marketing_query_producer
+    destinationName: marketing_query_log
 api:
   intelligentCustomerService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/helios-app-api
+    baseUrl: http://pdai.brapp.com/helios-app-api
     pushUserUrl: ${api.intelligentCustomerService.baseUrl}/third/process/data  #推送智能客服接口
   robotAiApiService:
-    baseUrl: http://k8s.brapp.com/compass-api/api/robotai-api-service
+    baseUrl: http://pdai.brapp.com/robotai-api-service
     robotOutboundUrl: ${api.robotAiApiService.baseUrl}/api/robotOutbound  #转化推送智能客服
   dass:
-    baseUrl: http://testdaas.huiyunai.com
+    baseUrl: http://daas.huiyunai.com
     postHermesUserData: ${api.dass.baseUrl}/csos-daas/call/postHermesUserData
     postBlackList: ${api.dass.baseUrl}/csos-daas/call/postBlackList # 黑名单数据推送
     postRealTimeUserData: ${api.dass.baseUrl}/csos-daas/call/postRealTimeUserData # 实时单条用户名单数据推送
-    aesKey: ovksl39fcl13m9dF
-    SecretKey: MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJ4W9Hw1Kb6g0RevKSeKqriBCup3x8V2G2J63imkypbtPV+RJjq4eCqcd7s2FI/9eTSMw17675Ey9MkKndIckvpxT1iCtUnuRbg1ICtZ127t65GhOPchBzWHoC+rG56Rw4NhpsvpIGC1y4EUx26TyNop7HRekKwosAnnl6QDWBEdAgMBAAECgYAkX7W7CmRjdw8E+wlmDrK/JvnC/vJZDZa5bvnE7SSr20Qew//ezOjhLQUjbwsGIlUL8UNWjDgo2WeXBjlPycFLP8YN/+gUPR/bfftUY4cTnWzAAKKyUJBeyt3SqaeYcUhW3aUCUlaVAb8ZdyIu4WlHYHhlkSoXrDRvnqlJmyj8wQJBAMzApuvsJDZIX6qvMGR6YTvqPIsl47+qIlk7iTUfwbjGz5zlFtu4IRd+ZVdHlncg5arrl+lOw33rkHhxtnV8jO0CQQDFqGsIPk4Nnwsx9XtCCrYePvgydzEAT1nr4gBUkXbvavMyJKsQWI5AXUAInNuqxRvNfjh3GMaWstIsMQJyDj7xAkEAglL1bCEIA40ZZ1jO4oWKskorcx4Q0oQGDOn6MVgfQ+83YlPmsr+GQJ/w/RbRzM2hoaMHNDcv80wmzqMCUdGPGQJAKIHuhX73UhVRHwj3HL7DOgmfpgAFW9HnVM85UBuLq19YveMD59KuPISf1eQHpMTGgOOoQMgkEshNCF9259cBkQJBAKIlpXnTHvv2M96B7w7T1RYVvjke4LLpCbAVd8fBciOdFLmMh0+FThxGWijgfow1XYaPrU0DlfLpkfLrgk3LWUQ=
+    postTransferData: ${api.dass.baseUrl}/csos-daas/call/postDealData # 转化数据推送
+    aesKey: MgoTm8GxuxTUc6y5
+    SecretKey: MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBAKm7vv0ZdB36H8sGL2YZWAPM3sQ+tMbfoPp71KncNzOzMMqd9KiK9tPrfeoApo+xXBZFvid8f+1BxiyU7/bHrxiIFvawfzTt0PTj/gYcM9k0gMMUmomGNir9PMzV2WWBDpvSLUSoWX56yk3LhUB4rHXrj5pUIpO0pEr5b9cPQbZBAgMBAAECgYEAkSXIkdBuiCQZhBjp97m8lqNf7RpipZ8fnpS+q/NyEXgvRVYGnwsXQOqlZrLfvQnC4hkKH+JL06znt8A15SemB0NizbDmFvtsi+tQQm9qK8jvMkdo6zVeXlNjJ2kDVu98WFDK3EEukWTQXiYTdX6paKiFQnWQwV/EKlb/Bi3lfEECQQDclPdFCptoKDv52HEqs4UbsGY/yO4ZbZXTPst1w0EKjhFIn9jcoFPBoO3o4URPM8ENeBZv8bpU0djGO2nCfAGFAkEAxPymAEbUmtHH893JILrfo65O85K5MmGNR/NSdn4uBjD9E0R1cWB3SHlfDUv9+r0GtuQasLSp3cvJI5OY2sdgjQJBALmurHfx9eA3/kTTbnADrokgdPI8sjG1jenFcoAvXREFhoccB/GxBNB6J8th1Z7Wcixkan7RfYjpHRHB8cVFngECQFy0tn8s1oPiNKMtfql7qSKENz3kkGoIhRAWkHmZmplpVsFJl6f7CUg/bp94Yxgs+8r5ASKmc8chUBEBNo/IA0UCQQCt75iTugjsjbZUvoYHwZ9A7Bf7vfG7sOI3cismFzARUpSUPN6dEht4X4Z2AdC9HXXS+Mb3vFaCIK+h3WDZeZJt
     isProxy: 1
-  twoSeven:
-    baseUrl: http://8.129.19.178:8888
-    zhuangku: ${api.twoSeven.baseUrl}/zhuangku
-    isProxy: 1
-  marketing:
-    baseUrl: http://k8s.brapp.com/compass-api/api/marketing-api
-    transferUrl: ${api.marketing.baseUrl}/marketingTransferData/receiveTransferDataSync
-    uploadUrl: ${api.marketing.baseUrl}/marketingUserPre/receiveMarketingPreUser
-  xiecheng:
-    openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/outAdMonitor.do
-    appId: bairong001
-    appIdVt: test002
-    keyVt: 6b219b9e71fdb2d2
-    ivVt: 5e7b6c07d3edbc01
-    signKeyVt: b8845b4cb1f16471
-    key: f3df6f62f0527bf0
-    iv: 3b2dac323465b024
-    singKey: 95cc01ec07387a44
-    source: BaiRong_C01
-    channel: commonOutAdMonitor
-    isProxy: false
-    smsColliding:
-      openUrl: https://cgcallback-fat.ctripqa.com/nemoweb/ad/common/unionCheckUser.do
-      appId: bairong001
-      appIdVt: test002
-      keyVt: 6b219b9e71fdb2d2
-      ivVt: 5e7b6c07d3edbc01
-      signKeyVt: b8845b4cb1f16471
-      key: f3df6f62f0527bf0
-      iv: 3b2dac323465b024
-      singKey: 95cc01ec07387a44
-      channel: commonUnionCheckUser
-      isProxy: true
-
-cluster:
-  flag: k8s-prod-a
-innerSftp:
-  uploadpath: /UploadFiles/marketing/
+    ibuBaseUrl: http://ibu.pushapi.huiyunai.com
+    batchHermesUserData: ${api.dass.ibuBaseUrl}/ibu-daas/api/batchHermesUserData
+    ibuAk: d87a6e0ab4dc2903
+    ibuSk: fbd1478a51d88954
+  customerService:
+    apiCode: 4000296
+  pushTransfer:
+    robotAi:
+      baseUrl: http://robotai-api-service/api
+      robotOutboundUrl: ${api.pushTransfer.robotAi.baseUrl}/robotOutbound
+      tailor:
+        # eg: "{'apiCode':'true',apiCode:'false'}"
+        apiCodeMap: "{'3710012':'true','7410846':'true','7410787':'true','7410784':'true'}"
+  productManagement:
+    url: http://production.100credit.com/api/getProductionList.do?firstBusinessCode=A10&spreadStatus=5,2,3,4,0
+    productTypeUrl: http://production.100credit.com/api/getProductionTypes.do
+  bi:
+    baseUrl: http://script-govern.100credit.cn
+    executeTask: ${api.bi.baseUrl}/api/distribute/offlineBatch/executeTask
+  biocloo:
+    baseUrl: https://callcenter.biocloo.com.cn
+    blackList: ${api.biocloo.baseUrl}/api/middle/robotai/v1/process_data
+    isProxy: true
 #elastic-job配置
-SERVER_LISTS: speed-zk-01.brapp.com:2181,speed-zk-02.brapp.com:2181,speed-zk-03.brapp.com:2181
-NAMESPACE: marketing-local-job
+SERVER_LISTS: pd-zk-yz-01.brapp.com:2181,pd-zk-yz-02.brapp.com:2181,pd-zk-yz-03.brapp.com:2181
+NAMESPACE: marketing-job
 BASE_SLEEP_TIME_MILLISECONDS: 1000
 MAX_SLEEP_TIME_MILLISECONDS: 3000
 MAX_RETRIES: 3
 NESTED_PORT: -1
 NESTED_DATA_DIR: target/test_zk_data/
 corn:
-  closeDateAlarmJob: 00 00 10 * * ?
-  sftpDeleteMonitorJob: 00 0/2 00-23 * * ?
-  ftpDeleteMonitorJob: 00 0/2 00-23 * * ?
-  finishPutJob: 00 00 10 * * ?
-  ftpToDbJob: 00 0/2 00-23 * * ?
-  sftpToDbJob: 00 0/2 00-23 * * ?
-  monitoringExpirationAlarmJob: 00 00 10 * * ?
-  progressReportJob: 00 00 09 * * ?
-  reportJob: 00 00 18 * * ?
+  taskJob: 0 0/30 * * * ?
 
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
-  name-server: 10.100.123.171:9876;10.100.123.172:9876;10.100.123.173:9876
+  name-server: 192.168.57.11:9876;192.168.57.12:9876;192.168.57.13:9876
   producer:
     # 发送同一类消息的设置为同一个group，保证唯一
     group: Marketing_Default_Group
@@ -247,7 +258,7 @@ rocketmq:
     # 发送消息超时时间，默认3000
     sendMessageTimeout: 5000
     # 消息最大长度，默认1024 * 1024 * 4(默认4M)
-    maxMessageSize: 1048576
+    maxMessageSize: 4096
     # 压缩消息阈值，默认4k(1024 * 4)
     compressMessageBodyThreshold: 4096
     # 是否在内部发送失败时重试另一个broker，默认false
@@ -260,14 +271,13 @@ rocketmq:
     enableMsgTrace: false
     # 消息跟踪主题的名称值。如果不进行配置，可以使用默认的跟踪主题名称
     customizedTraceTopic: RMQ_SYS_TRACE_TOPIC
-    namespace: ${ROCKETMQ_NAMESPACE:dev_local}
   consumer:
-#    # 配置指定group是否启动监听器 group1.topic1 = false
-#    listeners:
-#      # key：group名称
-#      rocketmq_source_code_group:
-#        # value：{key: topic名称: value: true/false}
-#        rocketmq_source_code: true
+    #    # 配置指定group是否启动监听器 group1.topic1 = false
+    #    listeners:
+    #      # key：group名称
+    #      rocketmq_source_code_group:
+    #        # value：{key: topic名称: value: true/false}
+    #        rocketmq_source_code: true
     # 指定消费组
     group: Marketing_Default_Group
     # 指定topic，启动时就会注册
@@ -275,4 +285,3 @@ rocketmq:
     # 一次拉取消息最大值，注意是拉取消息的最大值而非消费最大值
     pull-batch-size: 10
     # 其他配置参考属性类
-    namespace: ${ROCKETMQ_NAMESPACE:dev_local}
