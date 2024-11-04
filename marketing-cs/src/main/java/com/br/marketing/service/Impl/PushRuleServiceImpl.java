@@ -962,6 +962,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
         }
+        log.warn("推送决策查询量级核对完成，任务id：{}", customerInfoPushMain.getId());
         Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain

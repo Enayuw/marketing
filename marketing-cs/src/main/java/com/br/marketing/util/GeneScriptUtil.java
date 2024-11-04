@@ -28,7 +28,7 @@ public class GeneScriptUtil {
     private static final String CONDITION_NOT_NULL = "') != null";
 
     private static final String MAP_CONSTRUCT_FRAG = "Map conditionMap = new HashMap();" +
-            "for (item in params['_source']['condition']){if(item['code'] != null && item['d_value'] != null)" +
+            "for (item in params['_source']['condition']){if(item['d_value'] != null)" +
             "{conditionMap.put(item['field_key'], item['d_value']);}}";
 
     private static final String RETURN_FRAG_LEFT = " { return '";
