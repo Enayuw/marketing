@@ -44,7 +44,7 @@ public class MarketingMqConsumerApplication {
                 MarketingMqConsumerApplication.stop();
             }
         });
-        context.registerShutdownHook();
+//        context.registerShutdownHook();
         log.warn("marketing-mq-consumer启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
