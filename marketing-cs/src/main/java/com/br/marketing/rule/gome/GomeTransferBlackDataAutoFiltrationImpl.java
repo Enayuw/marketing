@@ -1,14 +1,11 @@
 package com.br.marketing.rule.gome;
 
-import javax.annotation.Resource;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
@@ -18,8 +15,11 @@ import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.time.LocalDateTime;
@@ -50,9 +50,10 @@ public class GomeTransferBlackDataAutoFiltrationImpl implements AssembleData<Con
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
-        conversionData.setCid(transfer.getCid());
         final String apiCode = transfer.getApiCode();
         final String custNum = transfer.getCustNum();
+        final String cid = transfer.getCid();
+        conversionData.setCid(cid);
         conversionData.setCaseNum(custNum);
         conversionData.setGroupType(transfer.getUserType());
         conversionData.setPartnerProcessDate(ObjectUtils.isEmpty(transfer.getCreateTime())
@@ -61,7 +62,10 @@ public class GomeTransferBlackDataAutoFiltrationImpl implements AssembleData<Con
         conversionData.setInversionStatus(INVERSION_STATUS_2);
         MarketingSyncUser syncUser = marketingSyncInfoMapper.selectSynsUserByCustNumLast(apiCode, custNum);
         if (syncUser == null || StringUtils.isEmpty(syncUser.getCell())) {
-            log.warn("未能查询到最新的用户手机号，apiCode[{}]custNum[{}]", apiCode, custNum);
+            String message = String.format("国美黑名单自动化过滤未查询到手机号apiCode:[%s]和cid:[%s]和custNum:[%s]", apiCode,cid, custNum);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.GUOMEI_PHONENOTFUND.getCode(),
+                    message));
+            return null;
         } else {
             conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
         }
@@ -98,4 +102,5 @@ public class GomeTransferBlackDataAutoFiltrationImpl implements AssembleData<Con
     public Integer ruleDataCollection() {
         return null;
     }
+
 }
