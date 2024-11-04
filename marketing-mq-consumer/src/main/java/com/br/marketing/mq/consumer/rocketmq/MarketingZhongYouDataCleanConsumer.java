@@ -44,7 +44,10 @@ public class MarketingZhongYouDataCleanConsumer extends BaseMqMessageListener im
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        log.warn("MARKETING_ZHONGYOU_DATA_CLEAN：获取消息成功:{}",o);
+        log.warn("MARKETING_ZHONGYOU_DATA_CLEAN：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                , messageExt.getBrokerName(), messageExt.getTopic()
+                , messageExt.getTags(), o);
         consumerService.consumerRun(messageExt, zhongYouDataService::HandleZhongYouData, o);
     }
 

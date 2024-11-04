@@ -41,7 +41,11 @@ public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessag
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE：获取消息成功:{}",bodyString);
+        log.warn("MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE：" +
+                        "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                , messageExt.getBrokerName(), messageExt.getTopic()
+                , messageExt.getTags(), bodyString);
         consumerService.consumerRun(messageExt, variableDicService::delaySendUserTypeMessage, bodyString);
     }
 

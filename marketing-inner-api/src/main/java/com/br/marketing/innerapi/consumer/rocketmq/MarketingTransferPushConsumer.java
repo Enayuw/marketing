@@ -42,8 +42,10 @@ public class MarketingTransferPushConsumer extends BaseMqMessageListener impleme
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {}.getType());
-        log.warn("Marketing_Transfer_Push_Customer：获取消息成功:{}",o);
-        /*消费逻辑*/
+        log.warn("Marketing_Transfer_Push_Customer：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                , messageExt.getBrokerName(), messageExt.getTopic()
+                , messageExt.getTags(), o);
         consumerService.consumerRun(messageExt, pushRuleService::pushPersonalTransferData, o);
     }
 

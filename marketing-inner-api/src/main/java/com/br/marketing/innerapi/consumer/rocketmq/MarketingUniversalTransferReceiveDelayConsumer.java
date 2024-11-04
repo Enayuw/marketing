@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 上传、转化数据通用处理延迟消费队列
- * 代码调整时记得看看消费端 {@link MarketingUniversalTransferReceiveCustomer}
+ * 代码调整时记得看看消费端 {@link MarketingUniversalTransferReceiveConsumer}
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-08-21
  */
@@ -43,8 +43,11 @@ public class MarketingUniversalTransferReceiveDelayConsumer extends BaseMqMessag
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("Marketing_Universal_Transfer_Receive_Delay_HalfHour：获取消息成功:{}",bodyString);
-        /*消费逻辑*/
+        log.warn("Marketing_Universal_Transfer_Receive_Delay_HalfHour：" +
+                        "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                , messageExt.getBrokerName(), messageExt.getTopic()
+                , messageExt.getTags(), bodyString);
         consumerService.consumerRun(messageExt, interfaceHandlerService::handleDataDirection, bodyString
                 , MarketingDelayedConstants.TOPIC
                 , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY

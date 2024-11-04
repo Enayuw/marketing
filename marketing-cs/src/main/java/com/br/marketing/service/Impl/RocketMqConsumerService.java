@@ -84,12 +84,14 @@ public class RocketMqConsumerService {
                 throw new RuntimeException();
             }
         } catch (Exception e) {
-            String error = String.format("Tags：%s,\r\nmessage：%s,\r\n错误信息：%s"
+            String error = String.format("RocketMQ消费异常topic：%s,Tags：%s,msgId：%s,message：%s,\r\n错误信息：%s"
+                    , messageExt.getTopic()
                     , messageExt.getTags()
+                    , messageExt.getMsgId()
                     , message
                     , e.getMessage());
-            log.error(error,e);
-            alarmClient.sendAlarm(error,"消费异常", AlarmSendCodeEnum.ERROR_UNKNOWN.getCode());
+            log.warn(error,e);
+            alarmClient.sendAlarm(error,"RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
             throw new RuntimeException();
         }
     }

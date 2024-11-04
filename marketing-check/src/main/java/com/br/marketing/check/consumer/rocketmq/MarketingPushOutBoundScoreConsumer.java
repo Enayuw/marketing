@@ -43,7 +43,10 @@ public class MarketingPushOutBoundScoreConsumer extends BaseMqMessageListener im
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        log.warn("Marketing_Push_OutBound_Score：获取消息成功:{}",o);
+        log.warn("Marketing_Push_OutBound_Score：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                , messageExt.getBrokerName(), messageExt.getTopic()
+                , messageExt.getTags(), o);
         consumerService.consumerRun(messageExt, zhongYuanService::pushOutBoundData, o);
     }
 

@@ -39,7 +39,11 @@ public class MarketingTransferApiUserTypeCollectionConsumer extends BaseMqMessag
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_TRANSFER_API_USERTYPE_COLLECTION：获取消息成功:{}",bodyString);
+        log.warn("MARKETING_TRANSFER_API_USERTYPE_COLLECTION：" +
+                        "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                , messageExt.getBrokerName(), messageExt.getTopic()
+                , messageExt.getTags(), bodyString);
         consumerService.consumerRun(messageExt, variableDicService::batchAddUserTypeVariableDicTry, bodyString);
     }
 

@@ -43,7 +43,11 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_XIECHENG_COLLIDING_ACTIVATE：获取消息成功:{}",bodyString);
+        log.warn("MARKETING_XIECHENG_COLLIDING_ACTIVATE：" +
+                        "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                , messageExt.getBrokerName(), messageExt.getTopic()
+                , messageExt.getTags(), bodyString);
         XieChengActivateDTO xieChengActivateDTO = JSON.parseObject(bodyString,
                 new TypeReference<XieChengActivateDTO>() {
                 }.getType());
