@@ -9,7 +9,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.marketing.adapter.transfer.TransferSyncAdapter;
 import com.br.marketing.adapter.transfer.adaptee.CaseShuheUserAdaptee;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingTransferSmallConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMQSwitch;
@@ -287,9 +287,9 @@ public class ShuHeUserServiceImpl {
             transferInfo.setActualNum(1);
             marketingTransferInfoMapper.insertSelective(transferInfo);
             String id = String.valueOf(transferInfo.getId());
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)){
-                pushRuleService.sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
-                        , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_SYNC);
+            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)){
+                pushRuleService.sendToRocketMqByConfig(apiCode, MarketingTransferSmallConstants.TOPIC
+                        , MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_SYNC);
             }else{
                 pushRuleService.sendToMqByConfig(apiCode, MQConstants.ROUTING_KEY_MARKETING_TRANSFER_RECEIVE_SMALL, id,
                         CustomerQueueEnum.ORG_TRANSFER);

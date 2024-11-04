@@ -8,7 +8,6 @@ import com.br.marketing.api.customer.black.service.guomei.GuoMeiCustomizeBlackDa
 import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackJsonDTO;
 import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackResponseDTO;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.config.RocketMQSwitch;

@@ -14,14 +14,6 @@ public class MarketingTransferConstants {
      */
     public static final String TAG_MARKETING_TRANSFER_RECEIVE = "Marketing.Transfer.Receive";
     /**
-     * 转化数据小队列对应的 Tag
-     */
-    public static final String TAG_MARKETING_TRANSFER_RECEIVE_SMALL = "Marketing.Transfer.Receive.Small";
-    /**
-     * 转化数据应急队列对应的 Tag
-     */
-    public static final String TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY = "Marketing.Transfer.Receive.Emergency";
-    /**
      * 转化数据通用处理 Tag
      */
     public static final String TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Universal.Transfer.Receive";
@@ -37,14 +29,7 @@ public class MarketingTransferConstants {
      * 转化数据大队列对应的 consumerGroup
      */
     public static final String MARKETING_TRANSFER_RECEIVE = "Marketing_Transfer_Receive";
-    /**
-     * 转化数据小队列对应的 consumerGroup
-     */
-    public static final String MARKETING_TRANSFER_RECEIVE_SMALL = "Marketing_Transfer_Receive_Small";
-    /**
-     * 转化数据应急队列对应的 consumerGroup
-     */
-    public static final String MARKETING_TRANSFER_RECEIVE_EMERGENCY = "Marketing_Transfer_Receive_Emergency";
+
     /**
      * 转化数据通用处理 consumerGroup
      */
