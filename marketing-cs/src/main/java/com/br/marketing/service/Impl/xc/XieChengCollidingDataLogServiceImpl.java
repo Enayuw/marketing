@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
 
-import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.config.RocketMQSwitch;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import cn.hutool.core.date.DatePattern;
@@ -162,9 +162,9 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Override
     public void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
         try {
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
-                template.syncSend(MarketingAssistConstants.TOPIC
-                        , MarketingAssistConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE, JSONObject.toJSONString(collidingLogs));
+            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
+                template.syncSend(MarketingXieChengConstants.TOPIC
+                        , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE, JSONObject.toJSONString(collidingLogs));
             }else{
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));
             }

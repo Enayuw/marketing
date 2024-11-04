@@ -27,10 +27,7 @@ import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.constants.PulsarTopic;
 import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
-import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
-import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
+import com.br.marketing.common.constants.rocketmq.*;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.exception.CommonException;
@@ -1484,11 +1481,19 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (null == routingKeyConfig) {
                 template.syncSend(topic, tag, infoId);
             } else {
-                // 大队列不支持优先级
-                if (routingKeyConfig.getQueueType() == 1) {
-                    template.syncSend(topic, routingKeyConfig.getRoutingKey(), infoId);
-                } else {
-                    template.syncSend(topic, routingKeyConfig.getRoutingKey(), infoId);
+                // RocketMQ不支持优先级
+                String tagFromDb = routingKeyConfig.getRoutingKey();
+                if(MarketingUploadSmallConstants.TAG_MARKETING_PRE_USER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
+                    template.syncSend(MarketingUploadSmallConstants.TAG_MARKETING_PRE_USER_RECEIVE_SMALL, tagFromDb, infoId);
+                }else if(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
+                    template.syncSend(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY, tagFromDb, infoId);
+                }else if(MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
+                    template.syncSend(MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, tagFromDb, infoId);
+                }else if(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
+                    template.syncSend(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY, tagFromDb, infoId);
+                }else{
+                    log.warn("[{}]RocketMQ的tag（RoutingKey）配置错误-tag[{}]consumerGroup[{}]-",
+                            apiCode, tagFromDb, routingKeyConfig.getQueueName());
                 }
             }
             if (log.isInfoEnabled()) {

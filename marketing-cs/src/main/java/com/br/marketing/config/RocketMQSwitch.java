@@ -1,14 +1,11 @@
 package com.br.marketing.config;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.QifuStrategyReportData;
 import com.br.marketing.entity.rocketmq.RocketMQSwitchEntity;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.monitor.grpc.EnvUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,36 +23,14 @@ import java.util.UUID;
 @Component
 public class RocketMQSwitch {
     /**
-     * speed中配置启用RocketMQ的部署环境，多个以逗号分隔
-     * 参数从SRE的yaml配置中获取 SPEED_ENV
-     */
-    public static final String ENV_SPEED = "env";
-    /**
-     * speed中配置启用RocketMQ的服务名称
-     * 多个以逗号分隔
-     */
-    public static final String NAME_SPEED = "name";
-    /**
      * speed中配置启用RocketMQ的apiCode
      * 多个以逗号分隔
      */
     public static final String APICODES_SPEED = "apiCodes";
     /**
-     * speed中配置启用RocketMQ的tags
-     * 多个以逗号分隔
-     */
-    public static final String TAGS_SPEED = "tags";
-    /**
      * TAG对应的小开关
      */
     public static final String FLAG = "flag";
-    /**
-     *
-     */
-    public static final String TAG = "tag";
-
-    @Autowired
-    private Environment env;
 
     @Autowired
     private MarketingCommonConfig marketingCommonConfig;

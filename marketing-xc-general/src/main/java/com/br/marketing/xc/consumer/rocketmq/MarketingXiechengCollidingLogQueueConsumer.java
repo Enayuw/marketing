@@ -1,7 +1,7 @@
 package com.br.marketing.xc.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSONArray;
-import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
@@ -24,9 +24,9 @@ import java.util.List;
  */
 @Slf4j
 @Service
-@RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
-        consumerGroup = MarketingAssistConstants.MARKETING_XIECHENG_COLLIDING_LOG_QUEUE,
-        selectorExpression = MarketingAssistConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)
+@RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
+        consumerGroup = MarketingXieChengConstants.MARKETING_XIECHENG_COLLIDING_LOG_QUEUE,
+        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)
 public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired
