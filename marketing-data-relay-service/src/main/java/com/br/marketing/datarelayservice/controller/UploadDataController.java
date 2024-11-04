@@ -3,6 +3,7 @@ package com.br.marketing.datarelayservice.controller;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.marketing.aspect.LogAnnotation;
+import com.br.marketing.aspect.ReqLogAnnotation;
 import com.br.marketing.client.qifu.enums.CodeEnum;
 import com.br.marketing.client.qifu.enums.FlagEnum;
 import com.br.marketing.datarelayservice.client.QiFuAiReqDTO;
@@ -34,6 +35,7 @@ public class UploadDataController {
 
     @ApiOperation(value = "奇富AI上传数据接入接口")
     @PostMapping("/uploadData/24152")
+    @ReqLogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public QiFuAiResDTO qiFuAiUploadData(@RequestBody QiFuAiReqDTO requestBody) {
         Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody,"original");
@@ -48,6 +50,7 @@ public class UploadDataController {
 
     @ApiOperation(value = "奇富AI语音机器人当月报表数据接入接口")
     @PostMapping("/uploadData/3700226")
+    @ReqLogAnnotation
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public QiFuAiResDTO qiFuAiRobotReportUploadData(@RequestBody QiFuAiReqDTO requestBody) {
         Pair<CodeEnum, FlagEnum> pair = qiFuAiUploadDataService.handle(requestBody, "robot_report");
