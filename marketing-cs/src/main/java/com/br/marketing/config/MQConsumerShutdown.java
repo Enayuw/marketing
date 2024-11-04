@@ -40,7 +40,6 @@ public class MQConsumerShutdown {
                             (String k, DefaultRocketMQListenerContainer v) -> {
                                 v.stop();
                                 log.warn("rocketMQ消费者下线，监听器:{},信息:{}", k, v);
-                                v.destroy();
                             }));
         } catch (BeansException e) {
             log.warn(e.getMessage(), e);
