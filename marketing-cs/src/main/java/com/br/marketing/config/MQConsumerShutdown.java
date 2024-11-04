@@ -38,9 +38,10 @@ public class MQConsumerShutdown {
             Optional.ofNullable(beansOfType).ifPresent(
                     (Map<String, DefaultRocketMQListenerContainer> map) -> map.forEach(
                             (String k, DefaultRocketMQListenerContainer v) -> {
-                        v.destroy();
-                        log.warn("rocketMQ消费者下线，监听器:{},信息:{}", k, v);
-                    }));
+                                v.stop();
+                                log.warn("rocketMQ消费者下线，监听器:{},信息:{}", k, v);
+                                v.destroy();
+                            }));
         } catch (BeansException e) {
             log.warn(e.getMessage(), e);
         }
