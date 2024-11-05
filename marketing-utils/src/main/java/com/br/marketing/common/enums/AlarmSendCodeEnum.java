@@ -206,6 +206,8 @@ public enum AlarmSendCodeEnum {
     GUOMEI_SERVICEERROR("6026001", "国美业务异常"),
     //国美接口调用失败,阶梯推送
     GUOMEI_INTERFACEERROR("6026002", "国美接口调用失败"),
+    //国美黑名单自动化过滤未查询到手机号,阶梯推送
+    GUOMEI_PHONENOTFUND("6026003", "国美黑名单过滤未查询到手机号"),
 
     //中原业务异常,立即推送
     ZHONGYUAN_SERVICEERROR("6027001", "中原业务异常"),
