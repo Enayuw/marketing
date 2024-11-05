@@ -829,7 +829,7 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
-                job-parameter="2024-10-22#7410950#7410950_20241017000000_6730#true"
+                job-parameter=""
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 </beans>
