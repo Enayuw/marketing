@@ -1491,6 +1491,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                     template.syncSend(MarketingTransferSmallConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
                     template.syncSend(MarketingTransferEmergencyConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE.equalsIgnoreCase(tagFromDb)){
+                    template.syncSend(MarketingUploadConstants.TOPIC, tagFromDb, infoId);
+                }else if(MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE.equalsIgnoreCase(tagFromDb)){
+                    template.syncSend(MarketingTransferConstants.TOPIC, tagFromDb, infoId);
                 }else{
                     log.warn("[{}]RocketMQ的tag（RoutingKey）配置错误-tag[{}]consumerGroup[{}]-",
                             apiCode, tagFromDb, routingKeyConfig.getQueueName());
