@@ -41,11 +41,10 @@ public class MQConsumerShutdown {
                     (Map<String, DefaultRocketMQListenerContainer> map) -> map.forEach(
                             (String k, DefaultRocketMQListenerContainer v) -> {
                                 long startTime = System.currentTimeMillis();
-                                log.warn("rocketMQ消费者下线start[{}]，监听器:{},信息:{}", startTime, k, v);
+                                log.warn("rocketMQ消费者[{}]下线start，信息:{}", k, v);
                                 v.stop();
                                 long endTime = System.currentTimeMillis();
-                                log.warn("rocketMQ消费者下线end[{}]，耗时：{}s，监听器:{},信息:{}", endTime
-                                        , endTime - startTime, k, v);
+                                log.warn("rocketMQ消费者[{}]下线end，耗时：{}s，信息:{}", k, ((endTime - startTime) / 1000), v);
                             }));
         } catch (BeansException e) {
             log.error(e.getMessage(), e);

@@ -6,6 +6,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.MQConsumerShutdown;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -35,6 +36,10 @@ public class RuleSchedulerApplication {
         Long start = System.currentTimeMillis();
         ac = new SpringApplicationBuilder().sources(RuleSchedulerApplication.class).run(args);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
+            bean.rocketmqDestroy(ac);
+        }));
         Long end = System.currentTimeMillis();
         log.warn("marketing-rule-scheduler启动结束，耗时{}s", (end - start) / 1000);
     }

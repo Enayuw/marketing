@@ -37,11 +37,13 @@ public class MarketingXcGeneralApplication {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
-                bean.rocketmqDestroy(ac);
                 MarketingXcGeneralApplication.stop();
             }
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
+            bean.rocketmqDestroy(ac);
+        }));
         log.warn("marketing-xc-general启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
     /**
