@@ -61,7 +61,7 @@ public class QiFuAiUploadDataService {
 
             String originSign = requestBody.getSign();
             JSONObject requestJson = JSONObject.parseObject(requestStr);
-            if (!Objects.equals(requestJson.get("appId"), appId)) {
+            if (!Objects.equals(requestJson.getString("appId"), appId)) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), requestStr,
                         "奇富AI上传数据，客户提供未知appId，需要和业务方反馈！！！"));
             }
