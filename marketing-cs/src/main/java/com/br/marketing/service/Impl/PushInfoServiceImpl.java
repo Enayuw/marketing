@@ -17,12 +17,12 @@ import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.PushInfoFilterDTO;
 import com.br.marketing.dto.TransferDataDTO;
+import com.br.marketing.dto.qifu.UpLoadCleanDTO;
 import com.br.marketing.entity.CustomerInfoPushBatch;
 import com.br.marketing.entity.CustomerInfoPushBatchExample;
-import com.br.marketing.mapper.CustomerInfoPushBatchMapper;
-import com.br.marketing.mapper.CustomerInfoPushLogMapper;
-import com.br.marketing.mapper.CustomerInfoPushMainMapper;
-import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
+import com.br.marketing.entity.Log360ai;
+import com.br.marketing.entity.Log360aiExample;
+import com.br.marketing.mapper.*;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.vo.PushInfoListVO;
 import com.br.marketing.vo.RulePushLogOfStatusVO;
@@ -53,6 +53,9 @@ public class PushInfoServiceImpl implements PushInfoService {
 
     @Autowired
     private IntelligentCustomerServiceClient intelligentCustomerServiceClient;
+
+    @Resource
+    Log360aiMapper log360aiMapper;
 
     @Override
     public PageResultReturn getPushInfoList(PushInfoFilterDTO dto) {
@@ -111,6 +114,23 @@ public class PushInfoServiceImpl implements PushInfoService {
     @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
     public Result<Boolean> pushUploadByRetry(UploadDataDTO dto, Integer retry) {
         return marketingApiService.pushUpload(dto);
+    }
+
+    @Override
+    @RetryMethod(retryNowNum = 2,isOrNoDbRetry = true)
+    public Result<Boolean> pushUploadOfCleanRetry(UpLoadCleanDTO dto, Integer retry) {
+        Result<Boolean> booleanResult = marketingApiService.pushUpload(dto);
+        Log360aiExample example = new Log360aiExample();
+        example.createCriteria().andDataIdEqualTo(dto.getDataId());
+        Log360ai log360ai = new Log360ai();
+        if(!ResultCode.SUCCESS.getValue().equals(booleanResult.getCode())){
+            log360ai.setStatus(Byte.valueOf("3"));
+            log360aiMapper.updateByExampleSelective(log360ai,example);
+            return booleanResult;
+        }
+        log360ai.setStatus(Byte.valueOf("2"));
+        log360aiMapper.updateByExampleSelective(log360ai,example);
+        return booleanResult;
     }
 
     @Override

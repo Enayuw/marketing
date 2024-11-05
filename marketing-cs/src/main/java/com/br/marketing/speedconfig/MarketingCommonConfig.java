@@ -2289,5 +2289,11 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
+    /**
+     * 360ai清洗配置
+     * {"tCid":"","pageSize":10,"threadNum":10}
+     */
+    private JSONObject qifuAiCleanConfig;
+
 }
 
