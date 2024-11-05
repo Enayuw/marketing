@@ -30,17 +30,19 @@ public class MQConsumerShutdown {
      */
     public void rocketmqDestroy(@NotNull ApplicationContext context) {
         if (context == null) {
+            log.warn("rocketMQ消费者下线，ApplicationContext为null");
             return;
         }
         try {
             Map<String, DefaultRocketMQListenerContainer> beansOfType = context.getBeansOfType(
                     DefaultRocketMQListenerContainer.class);
-            Optional.ofNullable(beansOfType).ifPresent(map -> {
-                map.forEach((k, v) -> {
-                    v.destroy();
-                    log.warn("rocketMQ消费者下线，监听器:{},信息:{}", k, v);
-                });
-            });
+            log.warn("rocketMQ消费者下线，DefaultRocketMQListenerContainer：{}", beansOfType);
+            Optional.ofNullable(beansOfType).ifPresent(
+                    (Map<String, DefaultRocketMQListenerContainer> map) -> map.forEach(
+                            (String k, DefaultRocketMQListenerContainer v) -> {
+                                v.stop();
+                                log.warn("rocketMQ消费者下线，监听器:{},信息:{}", k, v);
+                            }));
         } catch (BeansException e) {
             log.warn(e.getMessage(), e);
         }

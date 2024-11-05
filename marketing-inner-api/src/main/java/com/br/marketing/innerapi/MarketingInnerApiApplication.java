@@ -60,9 +60,9 @@ public class MarketingInnerApiApplication {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                MarketingInnerApiApplication.stop();
                 MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
                 bean.rocketmqDestroy(ac);
+                MarketingInnerApiApplication.stop();
             }
         });
         log.warn("marketing-inner-api启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
