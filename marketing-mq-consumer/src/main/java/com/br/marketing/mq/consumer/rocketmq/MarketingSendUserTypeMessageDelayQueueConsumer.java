@@ -2,6 +2,7 @@ package com.br.marketing.mq.consumer.rocketmq;
 
 import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.VariableDicService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -12,6 +13,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -33,7 +35,8 @@ public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessag
 
     @Autowired
     VariableDicService variableDicService;
-
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -42,11 +45,13 @@ public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessag
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE：" +
-                        "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), bodyString);
+        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
+            log.warn("MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE：" +
+                            "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                    , messageExt.getBrokerName(), messageExt.getTopic()
+                    , messageExt.getTags(), bodyString);
+        }
         consumerService.consumerRun(messageExt, variableDicService::delaySendUserTypeMessage, bodyString);
     }
 

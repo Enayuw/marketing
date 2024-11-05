@@ -68,6 +68,12 @@ public class RocketMqConsumerService {
                     }
                 }
             } else {
+                String msg = String.format("RocketMQ消息重试topic：%s,Tags：%s,msgId：%s,message：%s"
+                        , messageExt.getTopic()
+                        , messageExt.getTags()
+                        , messageExt.getMsgId()
+                        , message);
+                log.warn(msg);
                 /**
                  * 消息重试，默认消息重试规则：
                  * 第几次重试	与上次重试的间隔时间	第几次重试	与上次重试的间隔时间

@@ -2,6 +2,7 @@ package com.br.marketing.mq.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.guomei.GuoMeiDataCleanService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -32,7 +33,8 @@ public class MarketingGuoMeiDataCleanConsumer extends BaseMqMessageListener impl
     RocketMqConsumerService consumerService;
     @Resource
     private GuoMeiDataCleanService guoMeiDataCleanService;
-
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -41,10 +43,12 @@ public class MarketingGuoMeiDataCleanConsumer extends BaseMqMessageListener impl
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_GUOMEI_DATA_CLEAN：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), bodyString);
+        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingUploadConstants.TAG_MARKETING_GUOMEI_DATA_CLEAN)){
+            log.warn("MARKETING_GUOMEI_DATA_CLEAN：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                    , messageExt.getBrokerName(), messageExt.getTopic()
+                    , messageExt.getTags(), bodyString);
+        }
         consumerService.consumerRun(messageExt, guoMeiDataCleanService::cleanData, bodyString);
     }
 

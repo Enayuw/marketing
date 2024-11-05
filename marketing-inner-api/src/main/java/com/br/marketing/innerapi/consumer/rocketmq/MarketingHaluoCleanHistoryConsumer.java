@@ -1,6 +1,7 @@
 package com.br.marketing.innerapi.consumer.rocketmq;
 
 import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.strategy.HaloCleanHistoryHandler;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -11,6 +12,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -31,7 +33,8 @@ public class MarketingHaluoCleanHistoryConsumer extends BaseMqMessageListener im
 
     @Autowired
     private HaloCleanHistoryHandler haloCleanHistoryHandler;
-
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -40,10 +43,12 @@ public class MarketingHaluoCleanHistoryConsumer extends BaseMqMessageListener im
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("Marketing_Haluo_Clean_History：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), bodyString);
+        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingOutsideInterfaceConstants.TAG_MARKETING_HALUO_CLEAN_HISTORY)){
+            log.warn("Marketing_Haluo_Clean_History：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                    , messageExt.getBrokerName(), messageExt.getTopic()
+                    , messageExt.getTags(), bodyString);
+        }
         consumerService.consumerRun(messageExt, haloCleanHistoryHandler::haluoCleanHistory, bodyString);
     }
 

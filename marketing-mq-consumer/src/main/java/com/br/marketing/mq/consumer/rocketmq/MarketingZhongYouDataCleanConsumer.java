@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.zhongyou.ZhongYouDataService;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,8 @@ public class MarketingZhongYouDataCleanConsumer extends BaseMqMessageListener im
 
     @Resource
     private ZhongYouDataService zhongYouDataService;
-
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -45,10 +47,12 @@ public class MarketingZhongYouDataCleanConsumer extends BaseMqMessageListener im
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        log.warn("MARKETING_ZHONGYOU_DATA_CLEAN：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), o);
+        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN)){
+            log.warn("MARKETING_ZHONGYOU_DATA_CLEAN：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                    , messageExt.getBrokerName(), messageExt.getTopic()
+                    , messageExt.getTags(), o);
+        }
         consumerService.consumerRun(messageExt, zhongYouDataService::HandleZhongYouData, o);
     }
 

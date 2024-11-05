@@ -102,11 +102,15 @@ public class TestSre {
 
     @RequestMapping("/testRocketMQSwitchFlag")
     public String testRocketMQSwitchFlag(@RequestParam("tag") String tag
-            , @RequestParam("apiCode") String apiCode) {
-        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, tag)){
-            return "";
+            , @RequestParam("apiCode") String apiCode
+            , @RequestParam("type") String type) {
+        if("1".equalsIgnoreCase(type) && rocketMQSwitch.rocketMQSwitchFlag(apiCode, tag)){
+            return "MQ";
         }
-        return null;
+        if("2".equalsIgnoreCase(type) && rocketMQSwitch.rocketLogSwitchFlag(tag)){
+            return "log";
+        }
+        return "null";
     }
 
 }

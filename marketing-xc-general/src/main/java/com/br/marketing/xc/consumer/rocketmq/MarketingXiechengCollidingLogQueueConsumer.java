@@ -2,6 +2,7 @@ package com.br.marketing.xc.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.entity.XieChengCollidingDataLog;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengCollidingDataLogService;
@@ -34,6 +35,8 @@ public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageLis
     RocketMqConsumerService consumerService;
     @Resource
     private XieChengCollidingDataLogService xieChengCollidingDataLogService;
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
 
     @Override
     protected String consumerName() {
@@ -43,11 +46,13 @@ public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageLis
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_XIECHENG_COLLIDING_LOG_QUEUE：" +
-                        "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), bodyString);
+        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
+            log.warn("MARKETING_XIECHENG_COLLIDING_LOG_QUEUE：" +
+                            "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                    , messageExt.getBrokerName(), messageExt.getTopic()
+                    , messageExt.getTags(), bodyString);
+        }
         List<XieChengCollidingDataLog> collidingDataLogList = JSONArray.parseArray(bodyString, XieChengCollidingDataLog.class);
         consumerService.consumerRun(messageExt, xieChengCollidingDataLogService::saveXieChengCollidingDataLog, collidingDataLogList);
     }

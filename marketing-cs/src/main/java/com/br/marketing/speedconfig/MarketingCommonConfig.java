@@ -2020,15 +2020,17 @@ public class MarketingCommonConfig {
      *     3.global=false且flag=false时， apiCodes中包含的apiCode使用RocketMQ,多个以逗号分隔
      * 结构：
      * {
-     *     "global": "true",
+     *     "global": "false",
      *     "group": {
      *         "Marketing.PreUser.Receive": {
-     *             "flag": true,
-     *             "apiCodes": "7410950,7410951"
+     *             "flag": "false",
+     *             "apiCodes": "7410950,7410951",
+     *             "printLog":"false"
      *         },
      *         "Marketing.PreUser.Receive.Small": {
-     *             "flag": true,
-     *             "apiCodes": "7410950,7410951"
+     *             "flag": "false",
+     *             "apiCodes": "7410950,7410951",
+     *             "printLog":"false"
      *         }
      *     }
      * }

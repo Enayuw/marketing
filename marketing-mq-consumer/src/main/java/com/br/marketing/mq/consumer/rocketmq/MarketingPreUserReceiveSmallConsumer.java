@@ -3,6 +3,7 @@ package com.br.marketing.mq.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadSmallConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -13,6 +14,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 
@@ -34,7 +36,8 @@ public class MarketingPreUserReceiveSmallConsumer extends BaseMqMessageListener 
 
     @Autowired
     PushRuleService pushRuleService;
-
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -45,10 +48,13 @@ public class MarketingPreUserReceiveSmallConsumer extends BaseMqMessageListener 
         String bodyString = new String(messageExt.getBody(), StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        log.warn("MARKETING_PREUSER_RECEIVE_SMALL：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), o);
+        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingUploadSmallConstants.TAG_MARKETING_PRE_USER_RECEIVE_SMALL)){
+            log.warn("MARKETING_PREUSER_RECEIVE_SMALL：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                    , messageExt.getBrokerName(), messageExt.getTopic()
+                    , messageExt.getTags(), o);
+        }
+
         consumerService.consumerRun(messageExt, pushRuleService::insertMarketingPreUserSync, o);
     }
 

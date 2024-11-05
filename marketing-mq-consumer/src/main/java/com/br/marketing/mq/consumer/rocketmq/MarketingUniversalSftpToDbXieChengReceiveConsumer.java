@@ -1,6 +1,7 @@
 package com.br.marketing.mq.consumer.rocketmq;
 
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -11,6 +12,7 @@ import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -31,7 +33,8 @@ public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMes
 
     @Autowired
     PushDataService pushDataService;
-
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -40,11 +43,13 @@ public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMes
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE：" +
-                        "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), bodyString);
+        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
+            log.warn("MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE：" +
+                            "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                    , messageExt.getBrokerName(), messageExt.getTopic()
+                    , messageExt.getTags(), bodyString);
+        }
         consumerService.consumerRun(messageExt, pushDataService::pushXieChengToDbData, bodyString);
     }
 

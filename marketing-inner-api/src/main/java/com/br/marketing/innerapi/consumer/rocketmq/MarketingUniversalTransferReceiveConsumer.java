@@ -3,6 +3,7 @@ package com.br.marketing.innerapi.consumer.rocketmq;
 import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -35,7 +36,8 @@ public class MarketingUniversalTransferReceiveConsumer extends BaseMqMessageList
 
     @Resource
     private InterfaceHandlerService interfaceHandlerService;
-
+    @Resource
+    private RocketMQSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -44,10 +46,12 @@ public class MarketingUniversalTransferReceiveConsumer extends BaseMqMessageList
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        log.warn("Marketing_Universal_Transfer_Receive：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
-                , messageExt.getStoreTimestamp(), messageExt.getMsgId()
-                , messageExt.getBrokerName(), messageExt.getTopic()
-                , messageExt.getTags(), bodyString);
+        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+            log.warn("Marketing_Universal_Transfer_Receive：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
+                    , messageExt.getStoreTimestamp(), messageExt.getMsgId()
+                    , messageExt.getBrokerName(), messageExt.getTopic()
+                    , messageExt.getTags(), bodyString);
+        }
         consumerService.consumerRun(messageExt, interfaceHandlerService::handleDataDirection, bodyString
                 , MarketingDelayedConstants.TOPIC
                 , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY

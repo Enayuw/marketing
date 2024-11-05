@@ -9,7 +9,6 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.core.env.Environment;
 
 import java.util.UUID;
 
@@ -28,16 +27,22 @@ public class RocketMQSwitch {
      */
     public static final String APICODES_SPEED = "apiCodes";
     /**
-     * TAG对应的小开关
+     * TAG对应的开关
      */
     public static final String FLAG = "flag";
+    /**
+     * 消费端日志打印开关
+     */
+    public static final String PRINT_LOG = "printLog";
 
     @Autowired
     private MarketingCommonConfig marketingCommonConfig;
 
     public Boolean rocketMQSwitchFlag(String apiCode, String tag){
         UUID uuid = UUID.randomUUID();
-        log.warn("[{}]rocketMQSwitchFlag--apiCode[{}]tag[{}]", uuid, apiCode, tag);
+        if(log.isInfoEnabled()){
+            log.info("[{}]rocketMQSwitchFlag--apiCode[{}]tag[{}]", uuid, apiCode, tag);
+        }
         String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
         if(StringUtils.isBlank(rocketMqSwitchString)){
             return Boolean.FALSE;
@@ -54,7 +59,9 @@ public class RocketMQSwitch {
                 return Boolean.FALSE;
             }else{
                 Boolean flagBoolean = tagObjet.getBoolean(FLAG);
-                log.warn("[{}]rocketMQSwitchFlag--tagObjet[{}]flagBoolean[{}]", uuid, tagObjet, flagBoolean);
+                if(log.isInfoEnabled()){
+                    log.info("[{}]rocketMQSwitchFlag--tagObjet[{}]flagBoolean[{}]", uuid, tagObjet, flagBoolean);
+                }
                 if(flagBoolean){
                     return Boolean.TRUE;
                 }else{
@@ -69,6 +76,34 @@ public class RocketMQSwitch {
             }
             return Boolean.FALSE;
         }
+    }
+
+
+    public Boolean rocketLogSwitchFlag(String tag){
+        UUID uuid = UUID.randomUUID();
+        if(log.isInfoEnabled()){
+            log.info("[{}]rocketLogSwitchFlag--tag[{}]", uuid, tag);
+        }
+        String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
+        if(StringUtils.isBlank(rocketMqSwitchString)){
+            return Boolean.FALSE;
+        }
+        RocketMQSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMQSwitchEntity>() {
+        }.getType());
+        JSONObject group = entity.getGroup();
+        JSONObject tagObjet = group.getJSONObject(tag);
+        if(null == tagObjet || tagObjet.isEmpty()){
+            return Boolean.FALSE;
+        }else{
+            Boolean logBoolean = tagObjet.getBoolean(PRINT_LOG);
+            if(log.isInfoEnabled()){
+                log.info("[{}]rocketLogSwitchFlag--tagObjet[{}]logBoolean[{}]", uuid, tagObjet, logBoolean);
+            }
+            if(null != logBoolean && logBoolean){
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
     }
 
     public static void main(String[] args) {
