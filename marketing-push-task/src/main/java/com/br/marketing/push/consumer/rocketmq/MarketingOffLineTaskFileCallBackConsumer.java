@@ -27,7 +27,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_OFFLINETASK_FILE_CALLBACK,
-        selectorExpression = MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK)
+        selectorExpression = MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK,
+        consumeThreadNumber = 1, consumeThreadMax = 1)
 public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired

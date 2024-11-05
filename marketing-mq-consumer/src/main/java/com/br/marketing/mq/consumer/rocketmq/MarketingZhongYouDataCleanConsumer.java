@@ -25,7 +25,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_ZHONGYOU_DATA_CLEAN,
-        selectorExpression = MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN)
+        selectorExpression = MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN,
+        consumeThreadNumber = 1, consumeThreadMax = 1)
 public class MarketingZhongYouDataCleanConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired

@@ -22,7 +22,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(topic = MarketingOutsideInterfaceConstants.TOPIC,
         consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER,
-        selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER)
+        selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER,
+        consumeThreadNumber = 2, consumeThreadMax = 5)
 public class MarketingXieChengSmsCollidingVtConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired

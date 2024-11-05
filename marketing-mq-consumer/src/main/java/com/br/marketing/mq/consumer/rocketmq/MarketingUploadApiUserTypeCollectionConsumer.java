@@ -22,7 +22,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_UPLOAD_API_USERTYPE_COLLECTION,
-        selectorExpression = MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)
+        selectorExpression = MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION,
+        consumeThreadNumber = 2, consumeThreadMax = 5)
 public class MarketingUploadApiUserTypeCollectionConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired

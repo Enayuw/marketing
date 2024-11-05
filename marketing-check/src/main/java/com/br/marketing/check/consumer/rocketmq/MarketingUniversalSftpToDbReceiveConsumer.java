@@ -24,7 +24,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(topic = MarketingAssistConstants.TOPIC,
         consumerGroup = MarketingAssistConstants.MARKETING_UNIVERSAL_SFTPTODB_RECEIVE,
-        selectorExpression = MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_RECEIVE)
+        selectorExpression = MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_RECEIVE,
+        consumeThreadNumber = 1, consumeThreadMax = 1)
 public class MarketingUniversalSftpToDbReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired

@@ -26,7 +26,8 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingDelayedConstants.TOPIC,
         consumerGroup = MarketingDelayedConstants.MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR,
         selectorExpression = MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR+"||"
-                +MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY)
+                +MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_ERROR_DELAY,
+        consumeThreadNumber = 1, consumeThreadMax = 1)
 public class MarketingUniversalTransferReceiveDelayConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired
