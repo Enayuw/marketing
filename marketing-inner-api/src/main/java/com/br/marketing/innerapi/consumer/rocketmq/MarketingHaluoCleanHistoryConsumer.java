@@ -22,7 +22,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 @RocketMQMessageListener(topic = MarketingOutsideInterfaceConstants.TOPIC,
         consumerGroup = MarketingOutsideInterfaceConstants.MARKETING_HALUO_CLEAN_HISTORY,
-        selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_HALUO_CLEAN_HISTORY)
+        selectorExpression = MarketingOutsideInterfaceConstants.TAG_MARKETING_HALUO_CLEAN_HISTORY,
+        consumeThreadNumber = 1, consumeThreadMax = 1)
 public class MarketingHaluoCleanHistoryConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired

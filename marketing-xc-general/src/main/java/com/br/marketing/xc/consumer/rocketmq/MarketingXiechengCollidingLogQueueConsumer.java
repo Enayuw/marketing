@@ -26,7 +26,8 @@ import java.util.List;
 @Service
 @RocketMQMessageListener(topic = MarketingXieChengConstants.TOPIC,
         consumerGroup = MarketingXieChengConstants.MARKETING_XIECHENG_COLLIDING_LOG_QUEUE,
-        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)
+        selectorExpression = MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE,
+        consumeThreadNumber = 1, consumeThreadMax = 1)
 public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
 
     @Autowired
