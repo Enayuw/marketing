@@ -111,6 +111,10 @@ public class QiFuServiceImpl implements IQiFuService {
         String taskId = "";
         String requestId = "";
         JSONObject extendKey = new JSONObject();
+        String batch = drsCustomizeUploadData.getReceiveDate().replaceAll("-", "").concat("_").concat(drsCustomizeUploadData.getApiCode());
+        extendKey.put("operateType","3");
+        extendKey.put("batchName",batch);
+        extendKey.put("batchNumber",batch);
         outerLoop:
         for (String s : jsonObject.keySet()) {
             switch (s) {
@@ -128,6 +132,7 @@ public class QiFuServiceImpl implements IQiFuService {
                         continue outerLoop;
                     }
                     requestId = String.format("%s_%s", drsCustomizeUploadData.getId(), flowNo);
+                    extendKey.put(s, jsonObject.getString(s));
                     break;
                 case "dataList":
                     break;
@@ -138,12 +143,17 @@ public class QiFuServiceImpl implements IQiFuService {
                         continue outerLoop;
                     }
                     String userType = "";
+                    String strategyCode = "";
                     if (templateStr.length() > 12) {
-                        userType = templateStr.substring(templateStr.length() - 13);
-                    } else {
+                        userType = templateStr.substring(0,templateStr.length() - 12);
+                        strategyCode = templateStr.substring(templateStr.length() - 12);
+                    }  else {
                         userType = templateStr;
-                        warnMsg.append("templateNo长度小于12");
+                        errorMsg.append("templateNo长度小于12");
+                        continue outerLoop;
                     }
+                    extendKey.put("strategyCode",strategyCode);
+                    extendKey.put("strategyName",strategyCode);
                     extendKey.put("userType", userType);
                 default:
                     extendKey.put(s, jsonObject.getString(s));
@@ -164,7 +174,7 @@ public class QiFuServiceImpl implements IQiFuService {
         if(!ObjectUtils.isEmpty(dataList)) {
             for (Object o : dataList) {
                 JSONObject reserField1 = new JSONObject();
-                BeanUtils.copyProperties(extendKey, reserField1);
+                extendKey.keySet().forEach(t->reserField1.put(t,extendKey.get(t)));
                 JSONObject o1 = (JSONObject) o;
                 MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(o1, reserField1, warnMsg);
                 list.add(marketingPreUserDetailDTO);
