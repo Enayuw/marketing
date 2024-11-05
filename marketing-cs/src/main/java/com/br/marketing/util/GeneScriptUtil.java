@@ -329,8 +329,12 @@ public class GeneScriptUtil {
             } else {
                 return false;
             }
+        } else {
+            if (values.size() < 2) {
+                return false;
+            }
         }
-        //dValue != null，一定是区间条件
+        //dValue != null && values.size() = 2
         List<Double> value = values.stream().map(Double::valueOf).collect(Collectors.toList());
         Double valueStart = value.get(0);
         Double valueEnd = value.get(1);
