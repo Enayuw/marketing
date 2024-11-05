@@ -59,12 +59,14 @@ public class MarketingInnerApiApplication {
         ac =SpringApplication.run(MarketingInnerApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
-            public void run() {
-                MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
-                bean.rocketmqDestroy(ac);
+            public void run() { ;
                 MarketingInnerApiApplication.stop();
             }
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
+            bean.rocketmqDestroy(ac);
+        }));
         log.warn("marketing-inner-api启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 

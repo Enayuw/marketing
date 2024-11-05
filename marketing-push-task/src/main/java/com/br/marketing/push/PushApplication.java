@@ -46,11 +46,13 @@ public class PushApplication {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
-                bean.rocketmqDestroy(ac);
                 PushApplication.stop();
             }
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
+            bean.rocketmqDestroy(ac);
+        }));
         Long end =System.currentTimeMillis();
         log.warn("PushApplication启动结束，耗时{}",end-start);
     }

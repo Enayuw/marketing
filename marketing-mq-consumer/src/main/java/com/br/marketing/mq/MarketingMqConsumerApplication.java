@@ -39,11 +39,13 @@ public class MarketingMqConsumerApplication {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                MQConsumerShutdown bean = context.getBean(MQConsumerShutdown.class);
-                bean.rocketmqDestroy(context);
                 MarketingMqConsumerApplication.stop();
             }
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MQConsumerShutdown bean = context.getBean(MQConsumerShutdown.class);
+            bean.rocketmqDestroy(context);
+        }));
         log.warn("marketing-mq-consumer启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
