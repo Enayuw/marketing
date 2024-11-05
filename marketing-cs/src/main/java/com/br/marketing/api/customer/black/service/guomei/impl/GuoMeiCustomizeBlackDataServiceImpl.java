@@ -72,17 +72,17 @@ public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlack
      */
     @Override
     public CustomerResponseDTO verifyFields(BaseBlackDataAdaptee adaptee) {
-        GuoMeiBlackJsonDTO uploadJsonDTO = (GuoMeiBlackJsonDTO)adaptee;
+        GuoMeiBlackJsonDTO uploadJsonDTO = (GuoMeiBlackJsonDTO) adaptee;
         GuoMeiBlackResponseDTO guoMeiBlackResponseDTO = new GuoMeiBlackResponseDTO();
         StringBuilder errorMessage = new StringBuilder();
         if (StringUtils.isBlank(uploadJsonDTO.getRequestId())) {
             errorMessage.append(",requestId不可为空");
         } else if (StringUtils.isBlank(uploadJsonDTO.getInstitutionCode())) {
             errorMessage.append(",institutionCode不可为空");
-        } else if (uploadJsonDTO.getEndFlag() == null ) {
+        } else if (uploadJsonDTO.getEndFlag() == null) {
             errorMessage.append(",endFlag不可为空");
-        } else if (uploadJsonDTO.getUserList() == null || uploadJsonDTO.getUserList().isEmpty()) {
-            errorMessage.append(",userList不可为空");
+        } else if (!uploadJsonDTO.getEndFlag() && uploadJsonDTO.getUserList() == null || uploadJsonDTO.getUserList().isEmpty()) {
+            errorMessage.append(",endFlag为").append(uploadJsonDTO.getEndFlag()).append("userList不可为空");
         }
         if (errorMessage.length() > 0) {
             guoMeiBlackResponseDTO.failed(GuoMeiBlackResponseDTO.ResultEnum.FAILED_FIELD_CHECK_ERROR, errorMessage.toString());
