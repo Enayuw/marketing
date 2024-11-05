@@ -1484,13 +1484,13 @@ public class PushRuleServiceImpl implements PushRuleService {
                 // RocketMQ不支持优先级
                 String tagFromDb = routingKeyConfig.getRoutingKey();
                 if(MarketingUploadSmallConstants.TAG_MARKETING_PRE_USER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingUploadSmallConstants.TAG_MARKETING_PRE_USER_RECEIVE_SMALL, tagFromDb, infoId);
+                    template.syncSend(MarketingUploadSmallConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY, tagFromDb, infoId);
+                    template.syncSend(MarketingUploadEmergencyConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, tagFromDb, infoId);
+                    template.syncSend(MarketingTransferSmallConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY, tagFromDb, infoId);
+                    template.syncSend(MarketingTransferEmergencyConstants.TOPIC, tagFromDb, infoId);
                 }else{
                     log.warn("[{}]RocketMQ的tag（RoutingKey）配置错误-tag[{}]consumerGroup[{}]-",
                             apiCode, tagFromDb, routingKeyConfig.getQueueName());
