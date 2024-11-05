@@ -1,5 +1,6 @@
 package com.br.marketing.config;
 
+import com.br.marketing.common.utils.BrExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer;
 import org.springframework.beans.BeansException;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.*;
 
 
 /**
@@ -36,16 +38,35 @@ public class MQConsumerShutdown {
         try {
             Map<String, DefaultRocketMQListenerContainer> beansOfType = context.getBeansOfType(
                     DefaultRocketMQListenerContainer.class);
-            log.warn("rocketMQ消费者下线All，DefaultRocketMQListenerContainer：{}", beansOfType);
+            if (log.isInfoEnabled()) {
+                log.info("rocketMQ消费者下线All，DefaultRocketMQListenerContainer：{}", beansOfType);
+            }
             Optional.ofNullable(beansOfType).ifPresent(
-                    (Map<String, DefaultRocketMQListenerContainer> map) -> map.forEach(
-                            (String k, DefaultRocketMQListenerContainer v) -> {
+                    (Map<String, DefaultRocketMQListenerContainer> map) -> {
+                        int size = map.size();
+                        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(size, size, new SynchronousQueue<>()
+                                , "RocketMQ-Consumer-Shutdown");
+                        CompletionService<DefaultRocketMQListenerContainer> completionService = new ExecutorCompletionService<>(threadPool);
+                        map.forEach((String k, DefaultRocketMQListenerContainer v) -> {
+                            completionService.submit(() -> {
                                 long startTime = System.currentTimeMillis();
                                 log.warn("rocketMQ消费者[{}]下线start，信息:{}", k, v);
                                 v.stop();
                                 long endTime = System.currentTimeMillis();
-                                log.warn("rocketMQ消费者[{}]下线end，耗时：{}s，信息:{}", k, ((endTime - startTime) / 1000), v);
-                            }));
+                                log.warn("rocketMQ消费者[{}]下线end，耗时：{}s", k, ((endTime - startTime) / 1000));
+                                return v;
+                            });
+                        });
+                        for (int i = 0; i < size; i++) {
+                            try {
+                                completionService.take().get();
+                            } catch (InterruptedException | ExecutionException e) {
+                                Thread.currentThread().interrupt();
+                                log.warn(e.getMessage(), e);
+                            }
+                        }
+                        threadPool.shutdown();
+                    });
         } catch (BeansException e) {
             log.error(e.getMessage(), e);
         }
