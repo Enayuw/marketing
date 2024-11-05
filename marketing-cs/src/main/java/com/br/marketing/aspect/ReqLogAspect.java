@@ -23,6 +23,7 @@ public class ReqLogAspect {
 
     /**
      * 方法
+     *
      * @param
      * @return
      */
@@ -33,6 +34,7 @@ public class ReqLogAspect {
 
     /**
      * 前置调用
+     *
      * @param
      * @return
      */
@@ -42,15 +44,13 @@ public class ReqLogAspect {
         String requestURI = attributes.getRequest().getRequestURI();
         final Object[] args = jp.getArgs();
         Object arg = args[0];
+        Object arg1 = args[1];
         long startTime = System.currentTimeMillis();
         Object proceed = jp.proceed();
         long endTime = System.currentTimeMillis();
         if (proceed instanceof ApiNoDataResult) {
-            Object arg1 = args[1];
             ApiNoDataResult res = (ApiNoDataResult) proceed;
             requestInterfaceLogService.saveLog(arg.toString(), requestURI, arg1, res, endTime - startTime);
-        } else {
-            requestInterfaceLogService.saveLog(null, requestURI, arg, proceed, endTime - startTime);
         }
         return proceed;
     }

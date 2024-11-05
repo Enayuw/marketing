@@ -55,11 +55,17 @@ public class QiFuAiUploadDataService {
             String qiFuPublicKey = marketingCommonConfig.getQiFuAIServerConfig().getString("qiFuPublicKey");
             // 百融侧私钥
             String brPrivateKey = marketingCommonConfig.getQiFuAIServerConfig().getString("brPrivateKey");
+            // appId配置
+            String appId = marketingCommonConfig.getQiFuAIServerConfig().getString("appId");
             String requestStr = JSON.toJSONString(requestBody);
 
-            // 服务端1. SHA256withRSA验签
             String originSign = requestBody.getSign();
             JSONObject requestJson = JSONObject.parseObject(requestStr);
+            if (!Objects.equals(requestJson.get("appId"), appId)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), requestStr,
+                        "奇富AI上传数据，客户提供未知appId，需要和业务方反馈！！！"));
+            }
+            // 服务端1. SHA256withRSA验签
             String signAgain = RSAUtil.generateContent(requestJson);
             boolean verifyResult = RSAUtil.verifySignByPublicKey(qiFuPublicKey, originSign, signAgain);
             if (!verifyResult) {
