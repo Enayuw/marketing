@@ -5,10 +5,10 @@ import org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
-import java.util.Optional;
 
 
 /**
@@ -36,15 +36,22 @@ public class MQConsumerShutdown {
         try {
             Map<String, DefaultRocketMQListenerContainer> beansOfType = context.getBeansOfType(
                     DefaultRocketMQListenerContainer.class);
-            log.warn("rocketMQ消费者下线，DefaultRocketMQListenerContainer：{}", beansOfType);
-            Optional.ofNullable(beansOfType).ifPresent(
-                    (Map<String, DefaultRocketMQListenerContainer> map) -> map.forEach(
-                            (String k, DefaultRocketMQListenerContainer v) -> {
-                                v.stop();
-                                log.warn("rocketMQ消费者下线，监听器:{},信息:{}", k, v);
-                            }));
+            log.warn("rocketMQ消费者下线，##### DefaultRocketMQListenerContainer：{}", beansOfType);
+//            Optional.ofNullable(beansOfType).ifPresent(
+//                    (Map<String, DefaultRocketMQListenerContainer> map) -> map.forEach(
+//                            (String k, DefaultRocketMQListenerContainer v) -> {
+//                                v.stop();
+//                                log.warn("rocketMQ消费者下线，监听器:{},信息:{}", k, v);
+//                            }));
+            if (CollectionUtils.isEmpty(beansOfType)) {
+                return;
+            }
+            beansOfType.forEach((String k, DefaultRocketMQListenerContainer v) -> {
+                v.stop();
+                log.warn("rocketMQ消费者下线，监听器:{},信息:{}", k, v);
+            });
         } catch (BeansException e) {
-            log.warn(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
     }
 }
