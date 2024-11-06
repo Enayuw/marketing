@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.XieChengData;
 import com.br.marketing.mapper.XieChengDataMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -28,7 +28,7 @@ public class XiechengPushImpl {
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -50,7 +50,8 @@ public class XiechengPushImpl {
                     JSONObject msg = new JSONObject();
                     msg.put("localId", xieChengDatum.getLocalId());
                     msg.put("type", 2);
-                    if(rocketMQSwitch.rocketMQSwitchFlag(xieChengDatum.getApiCode(), MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
+                    if(rocketMQSwitch.rocketMQSwitchFlag(xieChengDatum.getApiCode()
+                            , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
                         template.syncSend(MarketingAssistConstants.TOPIC
                                 , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
                     }else{

@@ -1,18 +1,13 @@
 package com.br.marketing.api.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.config.RocketMQSwitch;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.RequestLog;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.client.producer.SendResult;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;

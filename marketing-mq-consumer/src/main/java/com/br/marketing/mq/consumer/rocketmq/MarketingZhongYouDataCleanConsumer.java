@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.client.zhongyou.ZhongYouDataService;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class MarketingZhongYouDataCleanConsumer extends BaseMqMessageListener im
     @Resource
     private ZhongYouDataService zhongYouDataService;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;

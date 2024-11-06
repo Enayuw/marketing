@@ -1,7 +1,7 @@
 package com.br.marketing.innerapi.consumer.rocketmq;
 
 import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.strategy.HaloCleanHistoryHandler;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -34,7 +34,7 @@ public class MarketingHaluoCleanHistoryConsumer extends BaseMqMessageListener im
     @Autowired
     private HaloCleanHistoryHandler haloCleanHistoryHandler;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;

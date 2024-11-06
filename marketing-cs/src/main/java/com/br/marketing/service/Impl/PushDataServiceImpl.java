@@ -38,7 +38,7 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
@@ -228,7 +228,7 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

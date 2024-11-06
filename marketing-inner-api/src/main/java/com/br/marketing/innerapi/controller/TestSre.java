@@ -2,7 +2,7 @@ package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.MerchantParam;
 import com.br.marketing.entity.RequestLog;
 import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
@@ -36,7 +36,7 @@ public class TestSre {
     @Resource
     private RocketMqTemplate template;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
 
     @GetMapping("/testSre")
     public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){

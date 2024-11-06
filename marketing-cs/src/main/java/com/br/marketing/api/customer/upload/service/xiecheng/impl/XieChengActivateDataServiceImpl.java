@@ -10,7 +10,7 @@ import com.br.marketing.api.customer.upload.service.xiecheng.dto.XieChengActivat
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
@@ -34,7 +34,7 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
     /**

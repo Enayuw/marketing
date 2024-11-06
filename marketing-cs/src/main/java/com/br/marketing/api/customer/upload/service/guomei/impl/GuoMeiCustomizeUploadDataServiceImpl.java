@@ -4,7 +4,7 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import java.util.Collections;
 import java.util.Set;
@@ -38,7 +38,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

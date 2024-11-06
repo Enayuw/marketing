@@ -11,7 +11,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
@@ -56,7 +56,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
     @Autowired
     private RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

@@ -3,7 +3,7 @@ package com.br.marketing.push.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.push.service.impl.CheckFileServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -36,7 +36,7 @@ public class CheckQueueConsumer extends BaseMqMessageListener implements RocketM
     @Autowired
     CheckFileServiceImpl checkFileService;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;

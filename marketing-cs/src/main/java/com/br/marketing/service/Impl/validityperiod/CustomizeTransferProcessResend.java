@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import org.springframework.stereotype.Service;
 
@@ -53,7 +53,7 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
     @Resource

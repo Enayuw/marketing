@@ -16,7 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -72,7 +72,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private AlarmApiClient alarmClient;
     @Autowired

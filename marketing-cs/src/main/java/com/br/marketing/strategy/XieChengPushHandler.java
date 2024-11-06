@@ -10,7 +10,7 @@ import java.util.List;
 import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +37,7 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -59,7 +59,8 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
                 JSONObject msg = new JSONObject();
                 msg.put("localId", dto.getInitId());
                 msg.put("type", 2);
-                if(rocketMQSwitch.rocketMQSwitchFlag(xieChengData.getApiCode(), MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
+                if(rocketMQSwitch.rocketMQSwitchFlag(xieChengData.getApiCode()
+                        , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
                     template.syncSend(MarketingAssistConstants.TOPIC
                             , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
                 }else{

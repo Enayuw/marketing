@@ -12,7 +12,7 @@ import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferSmallConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.TransferDataDTO;
@@ -79,7 +79,7 @@ public class ShuHeUserServiceImpl {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
 
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {

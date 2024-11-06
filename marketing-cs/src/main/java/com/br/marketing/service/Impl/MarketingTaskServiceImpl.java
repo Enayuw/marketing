@@ -17,7 +17,7 @@ import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
@@ -152,7 +152,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Autowired
     RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

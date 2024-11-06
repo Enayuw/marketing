@@ -10,7 +10,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.PushShDXDTO;
 import com.br.marketing.dto.customer.CallRecordBO;
 import com.br.marketing.dto.customer.CallRecordDTO;
@@ -92,7 +92,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

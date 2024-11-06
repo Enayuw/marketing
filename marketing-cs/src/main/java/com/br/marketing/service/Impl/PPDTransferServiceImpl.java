@@ -11,7 +11,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.utils.AESUtil;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -56,7 +56,7 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
     @Autowired
     RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

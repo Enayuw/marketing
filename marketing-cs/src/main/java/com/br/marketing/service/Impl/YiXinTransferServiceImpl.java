@@ -18,7 +18,7 @@ import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
 import com.br.marketing.origin.MqFact;
@@ -82,7 +82,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     @Autowired
     RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

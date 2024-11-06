@@ -29,7 +29,7 @@ import lombok.Data;
  * @Date: 2024-08-22
  */
 @Data
-public class RocketMQSwitchEntity {
+public class RocketMqSwitchEntity {
     /**
      * 全局开关
      */

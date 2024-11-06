@@ -3,7 +3,7 @@ package com.br.marketing.mq.consumer.rocketmq;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
@@ -37,7 +37,7 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
     @Resource
     private XieChengRobDataCollidingService robDataCollidingService;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;

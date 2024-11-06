@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
@@ -60,7 +60,7 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
     @Resource
     private RabbitMqProducter producer;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -105,7 +105,7 @@ public class BatchMessageDelayHandler extends AbstractExternalInterfaceHandler<M
         if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
             template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                     , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
-                    , Integer.valueOf(expireTime)/1000);
+                    , Integer.parseInt(expireTime)/1000);
         }else{
             producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY,message,expireTime);
         }

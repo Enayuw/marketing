@@ -10,7 +10,7 @@ import com.br.marketing.api.customer.black.service.guomei.dto.GuoMeiBlackRespons
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import javax.annotation.Resource;
@@ -33,7 +33,7 @@ public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlack
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

@@ -2,7 +2,7 @@ package com.br.marketing.mq.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.guomei.GuoMeiDataCleanService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -35,7 +35,7 @@ public class MarketingGuoMeiBlackCleanConsumer extends BaseMqMessageListener imp
     @Resource
     private GuoMeiDataCleanService guoMeiDataCleanService;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
 
     @Override
     protected String consumerName() {

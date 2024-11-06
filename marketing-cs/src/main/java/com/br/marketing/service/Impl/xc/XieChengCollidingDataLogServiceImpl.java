@@ -7,7 +7,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingXieChengConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
@@ -50,7 +50,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

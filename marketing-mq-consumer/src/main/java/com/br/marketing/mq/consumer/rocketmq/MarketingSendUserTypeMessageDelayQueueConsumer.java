@@ -2,7 +2,7 @@ package com.br.marketing.mq.consumer.rocketmq;
 
 import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.VariableDicService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -36,7 +36,7 @@ public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessag
     @Autowired
     VariableDicService variableDicService;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;

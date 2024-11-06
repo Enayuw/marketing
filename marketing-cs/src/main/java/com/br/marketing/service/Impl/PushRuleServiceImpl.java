@@ -36,7 +36,7 @@ import com.br.marketing.common.utils.*;
 import com.br.marketing.common.validators.user.UserValidator;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.commonentity.StatusConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.RuntimeDataContext;
 import com.br.marketing.dto.*;
 import com.br.marketing.dto.customer.PushCustomerRequestDTO;
@@ -190,7 +190,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 

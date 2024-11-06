@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.XieChengDataDTO;
 import com.br.marketing.entity.XieChengData;
@@ -42,7 +42,7 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -94,7 +94,7 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                 if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
                     template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                             , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
-                            , Integer.valueOf(expireTime)/1000);
+                            , Integer.parseInt(expireTime)/1000);
                 }else{
                     producter.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY, message, expireTime);
                 }

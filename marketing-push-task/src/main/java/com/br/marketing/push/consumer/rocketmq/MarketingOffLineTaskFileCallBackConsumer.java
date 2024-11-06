@@ -5,7 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.constants.rocketmq.MarketingDelayedConstants;
 import com.br.marketing.common.utils.MQConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.push.service.impl.MergeWithMessageServiceImpl;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -39,7 +39,7 @@ public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListe
     @Autowired
     MergeWithMessageServiceImpl mergeWithMessageService;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;

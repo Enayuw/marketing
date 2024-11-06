@@ -13,7 +13,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.FileDbConfig;
 import com.br.marketing.entity.LocalFile;
@@ -60,7 +60,7 @@ public class SftpToDbByCommonService {
     @Resource
     private RocketMqTemplate template;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     LocalFileMapper localFileMapper;
     @Value("${api.dass.aesKey:00}")

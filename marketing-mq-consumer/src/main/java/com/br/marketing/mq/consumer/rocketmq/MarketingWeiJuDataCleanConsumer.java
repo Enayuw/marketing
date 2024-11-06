@@ -2,7 +2,7 @@ package com.br.marketing.mq.consumer.rocketmq;
 
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.weiju.WeiJuDataCleanService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
@@ -34,7 +34,7 @@ public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener imple
     @Resource
     private WeiJuDataCleanService weiJuDataCleanService;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Override
     protected String consumerName() {
         return null;

@@ -6,7 +6,7 @@ import java.util.Set;
 import javax.annotation.Resource;
 
 import com.br.marketing.common.constants.rocketmq.MarketingUploadConstants;
-import com.br.marketing.config.RocketMQSwitch;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMQSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMQSwitch;
     @Resource
     private RocketMqTemplate template;
 
