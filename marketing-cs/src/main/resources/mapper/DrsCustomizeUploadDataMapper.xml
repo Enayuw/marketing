@@ -123,4 +123,13 @@
     <update id="updateSyncStatusById">
         update b_drs_customize_upload_data${tCid} set sync_status = #{syncStatus} where id = #{sourceId}
     </update>
+
+    <update id="updateSyncStatusByIds">
+        update b_drs_customize_upload_data${tCid}
+        set sync_status = #{syncStatus}
+        where id in
+        <foreach collection="sourceIds" separator="," item="sourceId" open="(" close=")">
+            #{sourceId}
+        </foreach>
+    </update>
 </mapper>

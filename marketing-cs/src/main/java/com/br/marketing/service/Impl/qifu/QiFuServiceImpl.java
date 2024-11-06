@@ -63,15 +63,18 @@ public class QiFuServiceImpl implements IQiFuService {
                 actionMark = Boolean.FALSE;
                 continue;
             }
+            ArrayList<Long> ids = new ArrayList<>();
             StringBuilder insertLogSql = new StringBuilder();
             insertLogSql.append("insert into b_log_360ai ");
             insertLogSql.append("(data_id,status) ");
             insertLogSql.append("values ");
             for (DrsCustomizeUploadData drsCustomizeUploadData : dataOfNeedClean) {
                 insertLogSql.append(String.format("(%d,%d),", drsCustomizeUploadData.getId(), QiFuCleanStatusEnum.RUNNING.getValue()));
+                ids.add(drsCustomizeUploadData.getId());
             }
             String insertLog = insertLogSql.toString().substring(0, insertLogSql.toString().length() - 1);
             log360aiMapper.batchSaveLog(insertLog);
+            drsCustomizeUploadDataMapper.updateSyncStatusByIds(tcId, ids, 1);
             threadPool.submit(() -> {
                 try {
                     pushProcess(dataOfNeedClean);
