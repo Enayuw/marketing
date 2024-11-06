@@ -29,18 +29,24 @@ public class CloudAIAutomationToPolicy implements AssembleData<PushMarketingUser
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         PushMarketingUserDetailByRuleDTO pushData = new PushMarketingUserDetailByRuleDTO();
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
+        String apiCode = syncUser.getApiCode();
+        String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
 
         if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
-            String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber")) ? jsonObject.getString("batchNumber") : "";
+            String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber")) ? jsonObject.getString("batchNumber") : appletDate + "_" + apiCode;
             String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode")) ? jsonObject.getString("strategyCode") : "";
-            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode")) ? jsonObject.getString("strategyCode") : "";
+            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode")) ? jsonObject.getString("strategyCode") : appletDate + "_" + apiCode;
             String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName")) ? jsonObject.getString("strategyName") : "";
+            if (StringUtils.isNotEmpty(strategyCode)) {
+                pushData.setStrategyCode(strategyCode);
+            }
+            if (StringUtils.isNotEmpty(strategyCode)) {
+                jsonObject.put("strategyName", strategyName);
+            }
             pushData.setBatchNumber(batchNumber);
-            pushData.setStrategyCode(strategyCode);
             jsonObject.put("batchName", batchName);
-            jsonObject.put("strategyName", strategyName);
         }
         pushData.setCaseNumber(syncUser.getCustNum());
         pushData.setPhone(syncUser.getCellMd5());
