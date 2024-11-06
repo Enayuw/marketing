@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
@@ -16,6 +18,7 @@ import com.br.marketing.entity.Log360ai;
 import com.br.marketing.entity.Log360aiExample;
 import com.br.marketing.mapper.DrsCustomizeUploadDataMapper;
 import com.br.marketing.mapper.Log360aiMapper;
+import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
@@ -65,15 +68,15 @@ public class QiFuServiceImpl implements IQiFuService {
             insertLogSql.append("(data_id,status) ");
             insertLogSql.append("values ");
             for (DrsCustomizeUploadData drsCustomizeUploadData : dataOfNeedClean) {
-                insertLogSql.append("(").append(drsCustomizeUploadData.getId()).append(",1),");
+                insertLogSql.append(String.format("(%d,%d),", drsCustomizeUploadData.getId(), QiFuCleanStatusEnum.RUNNING.getValue()));
             }
             String insertLog = insertLogSql.toString().substring(0, insertLogSql.toString().length() - 1);
             log360aiMapper.batchSaveLog(insertLog);
             threadPool.submit(() -> {
                 try {
                     pushProcess(dataOfNeedClean);
-                }catch (Exception ex){
-                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode(),ex.getMessage()),ex);
+                } catch (Exception ex) {
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode(), ex.getMessage()), ex);
                 }
             });
 
@@ -83,24 +86,28 @@ public class QiFuServiceImpl implements IQiFuService {
 
     void pushProcess(List<DrsCustomizeUploadData> dataOfNeedClean) {
         for (DrsCustomizeUploadData drsCustomizeUploadData : dataOfNeedClean) {
-            MarketingPreUserDTO marketingPreUserDTO = buildPushDto(drsCustomizeUploadData);
-            if(marketingPreUserDTO == null){
+            // 生成推送对象
+            Result<MarketingPreUserDTO> result = buildPushDto(drsCustomizeUploadData);
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 Log360aiExample example = new Log360aiExample();
                 example.createCriteria().andDataIdEqualTo(drsCustomizeUploadData.getId());
                 Log360ai log360ai = new Log360ai();
-                log360ai.setStatus(Byte.valueOf("3"));
-                log360aiMapper.updateByExampleSelective(log360ai,example);
+                log360ai.setStatus(QiFuCleanStatusEnum.FAILDATAACTION.getValue());
+                log360ai.setErrorMsg(result.getMessage());
+                log360aiMapper.updateByExampleSelective(log360ai, example);
                 continue;
             }
+            // 推送
             UpLoadCleanDTO upLoadCleanDTO = new UpLoadCleanDTO();
             upLoadCleanDTO.setDataId(drsCustomizeUploadData.getId());
             upLoadCleanDTO.setApiCode(drsCustomizeUploadData.getApiCode());
-            upLoadCleanDTO.setJsonData(JSON.toJSONString(marketingPreUserDTO));
-            pushInfoService.pushUploadOfCleanRetry(upLoadCleanDTO,null);
+            upLoadCleanDTO.setJsonData(JSON.toJSONString(result.getData()));
+            pushInfoService.pushUploadOfCleanRetry(upLoadCleanDTO, null);
         }
     }
 
-    private MarketingPreUserDTO buildPushDto(DrsCustomizeUploadData drsCustomizeUploadData) {
+    private Result<MarketingPreUserDTO> buildPushDto(DrsCustomizeUploadData drsCustomizeUploadData) {
+        Result<MarketingPreUserDTO> res = new Result<>();
         StringBuilder errorMsg = new StringBuilder();
         StringBuilder warnMsg = new StringBuilder();
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
@@ -112,9 +119,11 @@ public class QiFuServiceImpl implements IQiFuService {
         String requestId = "";
         JSONObject extendKey = new JSONObject();
         String batch = drsCustomizeUploadData.getReceiveDate().replaceAll("-", "").concat("_").concat(drsCustomizeUploadData.getApiCode());
-        extendKey.put("operateType","3");
-        extendKey.put("batchName",batch);
-        extendKey.put("batchNumber",batch);
+        extendKey.put("operateType", "3");
+        extendKey.put("batchName", batch);
+        extendKey.put("batchNumber", batch);
+
+        //region 遍历一级字段
         outerLoop:
         for (String s : jsonObject.keySet()) {
             switch (s) {
@@ -145,36 +154,41 @@ public class QiFuServiceImpl implements IQiFuService {
                     String userType = "";
                     String strategyCode = "";
                     if (templateStr.length() > 12) {
-                        userType = templateStr.substring(0,templateStr.length() - 12);
+                        userType = templateStr.substring(0, templateStr.length() - 12);
                         strategyCode = templateStr.substring(templateStr.length() - 12);
-                    }  else {
+                    } else {
                         userType = templateStr;
                         errorMsg.append("templateNo长度小于12");
                         continue outerLoop;
                     }
-                    extendKey.put("strategyCode",strategyCode);
-                    extendKey.put("strategyName",strategyCode);
+                    extendKey.put("strategyCode", strategyCode);
+                    extendKey.put("strategyName", strategyCode);
                     extendKey.put("userType", userType);
+                    break;
+                case "operateScene":
+                    extendKey.put("customName", jsonObject.getString(s));
                 default:
                     extendKey.put(s, jsonObject.getString(s));
                     break;
             }
         }
+        //endregion
 
         if (StringUtils.isNotBlank(errorMsg.toString())) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
                     , "奇富360ai清洗数据异常[" + drsCustomizeUploadData.getId() + "]" + errorMsg.toString()));
-            return null;
+            return res.setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg.toString());
         }
 
         marketingPreUserDTO.setTaskId(taskId);
         marketingPreUserDTO.setRequestId(requestId);
 
+        //region 遍历二级字段
         JSONArray dataList = jsonObject.getJSONArray("dataList");
-        if(!ObjectUtils.isEmpty(dataList)) {
+        if (!ObjectUtils.isEmpty(dataList)) {
             for (Object o : dataList) {
                 JSONObject reserField1 = new JSONObject();
-                extendKey.keySet().forEach(t->reserField1.put(t,extendKey.get(t)));
+                extendKey.keySet().forEach(t -> reserField1.put(t, extendKey.get(t)));
                 JSONObject o1 = (JSONObject) o;
                 MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(o1, reserField1, warnMsg);
                 list.add(marketingPreUserDetailDTO);
@@ -184,8 +198,9 @@ public class QiFuServiceImpl implements IQiFuService {
                         , "奇富360ai清洗数据异常字段告警[" + drsCustomizeUploadData.getId() + "]" + warnMsg.toString()));
             }
         }
+        //endregion
 
-        return marketingPreUserDTO;
+        return res.setCode(ResultCode.SUCCESS.getValue()).setDate(marketingPreUserDTO).setMessage(warnMsg.toString());
     }
 
     private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg) {
@@ -230,11 +245,11 @@ public class QiFuServiceImpl implements IQiFuService {
     private void shutdownThreadPool(ThreadPoolExecutor executor) {
         executor.shutdown();
         Boolean b = true;
-        while (b){
-            if(executor.isTerminated()){
+        while (b) {
+            if (executor.isTerminated()) {
                 System.out.println("结束");
-                b=false;
-            }else{
+                b = false;
+            } else {
                 System.out.println("休息");
                 try {
                     Thread.sleep(3000L);

@@ -116,7 +116,7 @@
         select *
         from b_drs_customize_upload_data${tCid} a
         left join b_log_360ai b on a.id = b.data_id
-        where b.id is null
+        where a.status = 1 and b.id is null
         order by a.id limit #{pageSize}
     </select>
 

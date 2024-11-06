@@ -23,6 +23,7 @@ import com.br.marketing.entity.CustomerInfoPushBatchExample;
 import com.br.marketing.entity.Log360ai;
 import com.br.marketing.entity.Log360aiExample;
 import com.br.marketing.mapper.*;
+import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.vo.PushInfoListVO;
 import com.br.marketing.vo.RulePushLogOfStatusVO;
@@ -124,11 +125,11 @@ public class PushInfoServiceImpl implements PushInfoService {
         example.createCriteria().andDataIdEqualTo(dto.getDataId());
         Log360ai log360ai = new Log360ai();
         if(!ResultCode.SUCCESS.getValue().equals(booleanResult.getCode())){
-            log360ai.setStatus(Byte.valueOf("3"));
+            log360ai.setStatus(QiFuCleanStatusEnum.FAILPUSH.getValue());
             log360aiMapper.updateByExampleSelective(log360ai,example);
             return booleanResult;
         }
-        log360ai.setStatus(Byte.valueOf("2"));
+        log360ai.setStatus(QiFuCleanStatusEnum.SUCCESS.getValue());
         log360aiMapper.updateByExampleSelective(log360ai,example);
         return booleanResult;
     }

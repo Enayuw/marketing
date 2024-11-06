@@ -12,9 +12,14 @@ public class Log360ai {
     private Long dataId;
 
     /**
-     * 状态 1-处理中，2-处理完成
+     * 状态 1-处理中，2-处理完成，3-接口推送失败，4-数据处理失败
      */
-    private Byte status;
+    private Integer status;
+
+    /**
+     * 失败原因
+     */
+    private String errorMsg;
 
     public Long getId() {
         return id;
@@ -32,11 +37,19 @@ public class Log360ai {
         this.dataId = dataId;
     }
 
-    public Byte getStatus() {
+    public Integer getStatus() {
         return status;
     }
 
-    public void setStatus(Byte status) {
+    public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg == null ? null : errorMsg.trim();
     }
 }
