@@ -29,6 +29,9 @@ public class CloudAIAutomationToPolicy implements AssembleData<PushMarketingUser
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         PushMarketingUserDetailByRuleDTO pushData = new PushMarketingUserDetailByRuleDTO();
         MarketingSyncUser syncUser = (MarketingSyncUser) transmitFact;
+        pushData.setInitId(syncUser.getId());
+        pushData.setCaseNumber(syncUser.getCustNum());
+        pushData.setPhone(syncUser.getCellMd5());
         String apiCode = syncUser.getApiCode();
         String appletDate = syncUser.getAppletDate().replace("-", "");
         String reserveField1 = syncUser.getReserveField1();
@@ -48,8 +51,6 @@ public class CloudAIAutomationToPolicy implements AssembleData<PushMarketingUser
             pushData.setBatchNumber(batchNumber);
             jsonObject.put("batchName", batchName);
         }
-        pushData.setCaseNumber(syncUser.getCustNum());
-        pushData.setPhone(syncUser.getCellMd5());
         if (ObjectUtil.isEmpty(jsonObject)){
             jsonObject = new JSONObject();
         }
