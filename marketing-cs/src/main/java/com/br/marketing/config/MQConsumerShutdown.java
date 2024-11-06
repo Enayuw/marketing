@@ -52,10 +52,10 @@ public class MQConsumerShutdown {
                         map.forEach((String k, DefaultRocketMQListenerContainer v) -> {
                             completionService.submit(() -> {
                                 long startTime = System.currentTimeMillis();
-                                log.warn("rocketMQ消费者组[{}]-[{}]开始下线，信息:{}", v.getConsumerGroup(), k, v);
+                                log.warn("rocketMQ消费者组开始下线[{}]-[{}]，信息:{}", v.getConsumerGroup(), k, v);
                                 v.stop();
                                 long endTime = System.currentTimeMillis();
-                                log.warn("rocketMQ消费者组[{}]-[{}]下线成功，耗时：{}s", v.getConsumerGroup(), k, ((endTime - startTime) / 1000));
+                                log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s", v.getConsumerGroup(), k, ((endTime - startTime) / 1000));
                                 return v;
                             });
                         });
