@@ -103,6 +103,7 @@ public class CloudAIAutomationToPolicy implements AssembleData<PushMarketingUser
         jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
+        jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
         return jsonObject;
     }
 
