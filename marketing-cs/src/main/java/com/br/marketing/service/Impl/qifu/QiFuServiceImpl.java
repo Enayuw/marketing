@@ -123,84 +123,88 @@ public class QiFuServiceImpl implements IQiFuService {
         extendKey.put("batchName", batch);
         extendKey.put("batchNumber", batch);
 
-        //region 遍历一级字段
-        outerLoop:
-        for (String s : jsonObject.keySet()) {
-            switch (s) {
-                case "batchNo":
-                    taskId = jsonObject.getString(s);
-                    if (ObjectUtils.isEmpty(taskId)) {
-                        errorMsg.append("batchNo为空");
-                        continue outerLoop;
-                    }
-                    break;
-                case "flowNo":
-                    String flowNo = jsonObject.getString(s);
-                    if (ObjectUtils.isEmpty(flowNo)) {
-                        errorMsg.append("batchNo为空");
-                        continue outerLoop;
-                    }
-                    requestId = String.format("%s_%s", drsCustomizeUploadData.getId(), flowNo);
-                    extendKey.put(s, jsonObject.getString(s));
-                    break;
-                case "dataList":
-                    break;
-                case "templateNo":
-                    String templateStr = jsonObject.getString(s);
-                    if (ObjectUtils.isEmpty(templateStr)) {
-                        errorMsg.append("templateNo为空");
-                        continue outerLoop;
-                    }
-                    String userType = "";
-                    String strategyCode = "";
-                    if (templateStr.length() > 12) {
-                        userType = templateStr.substring(0, templateStr.length() - 12);
-                        strategyCode = templateStr.substring(templateStr.length() - 12);
-                    } else {
-                        userType = templateStr;
-                        errorMsg.append("templateNo长度小于12");
-                        continue outerLoop;
-                    }
-                    extendKey.put("strategyCode", strategyCode);
-                    extendKey.put("strategyName", strategyCode);
-                    extendKey.put("userType", userType);
-                    break;
-                case "operateScene":
-                    extendKey.put("customName", jsonObject.getString(s));
-                default:
-                    extendKey.put(s, jsonObject.getString(s));
-                    break;
+        try {
+            //region 遍历一级字段
+            outerLoop:
+            for (String s : jsonObject.keySet()) {
+                switch (s) {
+                    case "batchNo":
+                        taskId = jsonObject.getString(s);
+                        if (ObjectUtils.isEmpty(taskId)) {
+                            errorMsg.append("batchNo为空");
+                            continue outerLoop;
+                        }
+                        break;
+                    case "flowNo":
+                        String flowNo = jsonObject.getString(s);
+                        if (ObjectUtils.isEmpty(flowNo)) {
+                            errorMsg.append("batchNo为空");
+                            continue outerLoop;
+                        }
+                        requestId = String.format("%s_%s", drsCustomizeUploadData.getId(), flowNo);
+                        extendKey.put(s, jsonObject.getString(s));
+                        break;
+                    case "dataList":
+                        break;
+                    case "templateNo":
+                        String templateStr = jsonObject.getString(s);
+                        if (ObjectUtils.isEmpty(templateStr)) {
+                            errorMsg.append("templateNo为空");
+                            continue outerLoop;
+                        }
+                        String userType = "";
+                        String strategyCode = "";
+                        if (templateStr.length() > 12) {
+                            userType = templateStr.substring(0, templateStr.length() - 12);
+                            strategyCode = templateStr.substring(templateStr.length() - 12);
+                        } else {
+                            userType = templateStr;
+                            errorMsg.append("templateNo长度小于12");
+                            continue outerLoop;
+                        }
+                        extendKey.put("strategyCode", strategyCode);
+                        extendKey.put("strategyName", strategyCode);
+                        extendKey.put("userType", userType);
+                        break;
+                    case "operateScene":
+                        extendKey.put("customName", jsonObject.getString(s));
+                    default:
+                        extendKey.put(s, jsonObject.getString(s));
+                        break;
+                }
             }
-        }
-        //endregion
+            //endregion
 
-        if (StringUtils.isNotBlank(errorMsg.toString())) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
-                    , "奇富360ai清洗数据异常[" + drsCustomizeUploadData.getId() + "]" + errorMsg.toString()));
-            return res.setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg.toString());
-        }
-
-        marketingPreUserDTO.setTaskId(taskId);
-        marketingPreUserDTO.setRequestId(requestId);
-
-        //region 遍历二级字段
-        JSONArray dataList = jsonObject.getJSONArray("dataList");
-        if (!ObjectUtils.isEmpty(dataList)) {
-            for (Object o : dataList) {
-                JSONObject reserField1 = new JSONObject();
-                extendKey.keySet().forEach(t -> reserField1.put(t, extendKey.get(t)));
-                JSONObject o1 = (JSONObject) o;
-                MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(o1, reserField1, warnMsg);
-                list.add(marketingPreUserDetailDTO);
-            }
-            if (StringUtils.isNotBlank(warnMsg.toString())) {
+            if (StringUtils.isNotBlank(errorMsg.toString())) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
-                        , "奇富360ai清洗数据异常字段告警[" + drsCustomizeUploadData.getId() + "]" + warnMsg.toString()));
+                        , "奇富360ai清洗数据异常[" + drsCustomizeUploadData.getId() + "]" + errorMsg.toString()));
+                return res.setCode(ResultCode.FAIL.getValue()).setMessage(errorMsg.toString());
             }
-        }
-        //endregion
 
-        return res.setCode(ResultCode.SUCCESS.getValue()).setDate(marketingPreUserDTO).setMessage(warnMsg.toString());
+            marketingPreUserDTO.setTaskId(taskId);
+            marketingPreUserDTO.setRequestId(requestId);
+
+            //region 遍历二级字段
+            JSONArray dataList = jsonObject.getJSONArray("dataList");
+            if (!ObjectUtils.isEmpty(dataList)) {
+                for (Object o : dataList) {
+                    JSONObject reserField1 = new JSONObject();
+                    extendKey.keySet().forEach(t -> reserField1.put(t, extendKey.get(t)));
+                    JSONObject o1 = (JSONObject) o;
+                    MarketingPreUserDetailDTO marketingPreUserDetailDTO = buildListDto(o1, reserField1, warnMsg);
+                    list.add(marketingPreUserDetailDTO);
+                }
+                if (StringUtils.isNotBlank(warnMsg.toString())) {
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.QIFU_SERVICEERROR.getCode()
+                            , "奇富360ai清洗数据异常字段告警[" + drsCustomizeUploadData.getId() + "]" + warnMsg.toString()));
+                }
+            }
+            //endregion
+
+            return res.setCode(ResultCode.SUCCESS.getValue()).setDate(marketingPreUserDTO).setMessage(warnMsg.toString());
+        } catch (Exception ex) {
+            return res.setCode(ResultCode.FAIL.getValue()).setMessage(ex.getMessage());
+        }
     }
 
     private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg) {
