@@ -119,6 +119,8 @@ cluster:
   flag: ${CONF_CLUSTER}
 innerSftp:
   uploadpath: /UploadFiles/marketing/
+grpc:
+  init: true
 
 rocketmq:
   # 多个NameServer，host:port;host:port，RocketMQProperties
