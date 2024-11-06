@@ -21,6 +21,7 @@ import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
@@ -1065,9 +1066,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
             String scoreCondition = customerInfoPushMain.getmScoreCondition();
             boolean scFlag = StringUtils.isNotEmpty(scoreCondition);
-            if (markWithEsFlag && scFlag) {
-                //赋值es脚本
-                queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
+            List<ScoreLable> scoreLables = null;
+            if (scFlag) {
+                if (markWithEsFlag) {
+                    //赋值es脚本
+                    queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
+                } else {
+                    scoreLables = GeneScriptUtil.getScoreLables(scoreCondition, markWithEsFlag);
+                }
             }
             if (!isPerOrTop) {
                 queryBaseBean.setPart(part);
@@ -1136,19 +1142,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                         if (scFlag) {
                             //es处理
                             if (markWithEsFlag) {
-                                markForCell(varObject, marketingHistory.getFields(), markWithEsFlag);
+                                markForCell(varObject, marketingHistory.getFields());
                             //代码处理逻辑
                             } else {
                                 List<MarketingCondition> conditions = marketingHistory.getCondition();
                                 if (!CollectionUtils.isEmpty(conditions)) {
-                                    Map<String, Double> scoreMap = conditions.stream()
+                                    Map<String, Object> scoreMap = conditions.stream()
                                             .filter(condition -> condition.getDValue() != null)
                                             .collect(Collectors.toMap(MarketingCondition::getCode
                                                     , MarketingCondition::getDValue
                                                     , (existing, replacement) -> replacement));
-                                    JSONObject fields = GeneScriptUtil.scoreLable(scoreCondition, scoreMap);
-                                    if (fields != null) {
-                                        markForCell(varObject, fields, markWithEsFlag);
+                                    ScoreLable scoreLable = GeneScriptUtil.scoreLableWithSpel(scoreMap, scoreLables);
+                                    if (scoreLable != null) {
+                                        varObject.put("listValue", scoreLable.getListValue());
+                                        varObject.put("valueType", scoreLable.getValueType());
                                     }
                                 }
                             }
@@ -1193,22 +1200,17 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
-    private void markForCell(JSONObject varObject, JSONObject fields, boolean markWithEsFlag) {
+    private void markForCell(JSONObject varObject, JSONObject fields) {
         if (fields == null) {
             return;
         }
-        if (markWithEsFlag) {
-            JSONObject listValueJson = fields.getJSONObject("listValue");
-            JSONObject valueTypeJson = fields.getJSONObject("valueType");
-            if (listValueJson != null) {
-                varObject.put("listValue", listValueJson.getString("value"));
-            }
-            if (valueTypeJson != null) {
-                varObject.put("valueType", valueTypeJson.getString("value"));
-            }
-        } else {
-            varObject.put("listValue", fields.getString("listValue"));
-            varObject.put("valueType", fields.getString("valueType"));
+        JSONObject listValueJson = fields.getJSONObject("listValue");
+        JSONObject valueTypeJson = fields.getJSONObject("valueType");
+        if (listValueJson != null) {
+            varObject.put("listValue", listValueJson.getString("value"));
+        }
+        if (valueTypeJson != null) {
+            varObject.put("valueType", valueTypeJson.getString("value"));
         }
     }
 

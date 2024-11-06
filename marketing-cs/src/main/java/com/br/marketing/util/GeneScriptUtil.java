@@ -6,6 +6,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.utils.StringUtils;
 import com.google.common.collect.ImmutableMap;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.expression.spel.support.StandardEvaluationContext;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,6 +30,10 @@ public class GeneScriptUtil {
     private static final String CONDITION_NULL = "') == null";
 
     private static final String CONDITION_NOT_NULL = "') != null";
+
+    private static final String CONDITION_NULL_SPEL = " == null";
+
+    private static final String CONDITION_NOT_NULL_SPEL = " != null";
 
     private static final String MAP_CONSTRUCT_FRAG = "Map conditionMap = new HashMap();" +
             "for (item in params['_source']['condition']){if(item['d_value'] != null)" +
@@ -68,6 +76,8 @@ public class GeneScriptUtil {
 
     private static final String OPERATOR_GREATER_EQUAL = ">=";
 
+    private static final String PLACE_HOLDER = "#";
+
     private static Map<String, String> logicMap;
 
     private static Map<String, String> opetatorMap;
@@ -96,6 +106,34 @@ public class GeneScriptUtil {
      * @date 2024/10/26 18:32
      **/
     public static String esLableScript(String scoreLables) {
+        List<ScoreLable> list = getScoreLables(scoreLables, true);
+        StringBuilder listValueSource = new StringBuilder();
+        StringBuilder valueTypeSource = new StringBuilder();
+        //构造Map片段
+        listValueSource.append(MAP_CONSTRUCT_FRAG);
+        valueTypeSource.append(MAP_CONSTRUCT_FRAG);
+        //条件片段
+        for (ScoreLable scoreLable : list) {
+            listValueSource.append(IF_FRAG_LEFT).append(scoreLable.getConditionSource())
+                    .append(PARENTHESIS_FRAG_RIGHT).append(RETURN_FRAG_LEFT)
+                    .append(scoreLable.getListValue()).append(RETURN_FRAG_RIGHT);
+            valueTypeSource.append(IF_FRAG_LEFT).append(scoreLable.getConditionSource())
+                    .append(PARENTHESIS_FRAG_RIGHT).append(RETURN_FRAG_LEFT)
+                    .append(scoreLable.getValueType()).append(RETURN_FRAG_RIGHT);
+        }
+        //未标记，return片段
+        listValueSource.append(RETURN_FRAG_END);
+        valueTypeSource.append(RETURN_FRAG_END);
+        //生成script_fields
+        return geneScript(listValueSource.toString(), valueTypeSource.toString());
+    }
+
+    /**
+     * 将条件json转为list
+     * @param scoreLables
+     * @return
+     */
+    public static List<ScoreLable> getScoreLables(String scoreLables, Boolean markWithEsFlag) {
         JSONArray array = JSON.parseArray(scoreLables);
         //构建标签list
         List<ScoreLable> list = new ArrayList<>(array.size());
@@ -117,54 +155,40 @@ public class GeneScriptUtil {
                 }
             }
             StringBuilder sourceBuilder = new StringBuilder();
-            sourceBuilder.append(IF_FRAG_LEFT);
+//            sourceBuilder.append(IF_FRAG_LEFT);
             JSONObject condition = jsonObject.getJSONObject("condition");
-            process(sourceBuilder, condition);
-            sourceBuilder.append(PARENTHESIS_FRAG_RIGHT);
+            process(sourceBuilder, condition, markWithEsFlag);
+//            sourceBuilder.append(PARENTHESIS_FRAG_RIGHT);
             scoreLable.setConditionSource(sourceBuilder.toString());
         }
         //list排序
         list.sort(Comparator.comparing(ScoreLable::getOrder));
-        StringBuilder listValueSource = new StringBuilder();
-        StringBuilder valueTypeSource = new StringBuilder();
-        //构造Map片段
-        listValueSource.append(MAP_CONSTRUCT_FRAG);
-        valueTypeSource.append(MAP_CONSTRUCT_FRAG);
-        //条件片段
-        for (ScoreLable scoreLable : list) {
-            listValueSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT)
-                    .append(scoreLable.getListValue()).append(RETURN_FRAG_RIGHT);
-            valueTypeSource.append(scoreLable.getConditionSource()).append(RETURN_FRAG_LEFT)
-                    .append(scoreLable.getValueType()).append(RETURN_FRAG_RIGHT);
-        }
-        //未标记，return片段
-        listValueSource.append(RETURN_FRAG_END);
-        valueTypeSource.append(RETURN_FRAG_END);
-        //生成script_fields
-        return geneScript(listValueSource.toString(), valueTypeSource.toString());
+        return list;
     }
 
     /**
      * 处理一个Json{
-     *     type:"logic/operation"
-     *     logic:"or/and"
-     *     data:[{...}]
+     * type:"logic/operation"
+     * logic:"or/and"
+     * data:[{...}]
      * }
      * data[{
-     *     "type": "operation",
-     *     "key": "scorencashon58xkcsxcd",
-     *     "operation": "between_left",
-     *     "value": "75,80"
+     * "type": "operation",
+     * "key": "scorencashon58xkcsxcd",
+     * "operation": "between_left",
+     * "value": "75,80"
      * }
      * ]
+     *
      * @param sourceBuilder
      * @param condition
+     * @param markWithEsFlag
      */
-    public static void process(StringBuilder sourceBuilder, JSONObject condition) {
+    public static void process(StringBuilder sourceBuilder, JSONObject condition, Boolean markWithEsFlag) {
         JSONArray data = condition.getJSONArray("data");
         for (int i = 0; i < data.size(); i++) {
             JSONObject dataJson = JSON.parseObject(data.get(i).toString());
-            String scoreCondition = analysisData(dataJson, i == data.size() - 1 ? "" : logicMap.get(condition.getString("logic")));
+            String scoreCondition = analysisData(dataJson, i == data.size() - 1 ? "" : logicMap.get(condition.getString("logic")), markWithEsFlag);
             sourceBuilder.append(scoreCondition);
         }
     }
@@ -199,42 +223,55 @@ public class GeneScriptUtil {
 
     /**
      * 将多层深的data解析为条件脚本
+     *
      * @param data
      * @param logicOperator
+     * @param markWithEsFlag
      * @return String
      */
-    public static String analysisData(JSONObject data, String logicOperator) {
+    public static String analysisData(JSONObject data, String logicOperator, Boolean markWithEsFlag) {
         String type = data.getString("type");
         StringBuilder conditionBuilder = new StringBuilder();
         //层级无限延伸
         if ("logic".equals(type)) {
             conditionBuilder.append(PARENTHESIS_FRAG_LEFT);
-            process(conditionBuilder, data);
+            process(conditionBuilder, data, markWithEsFlag);
             conditionBuilder.append(PARENTHESIS_FRAG_RIGHT);
         //底层解析
         } else if ("operation".equals(type)) {
+            conditionBuilder.append(PARENTHESIS_FRAG_LEFT);
             String key = data.getString("key");
             List<String> values = Arrays.asList(data.getString("value").split(","));
             if (values.size() < 2) {
-                conditionBuilder.append(PARENTHESIS_FRAG_LEFT).append(CONDITION_MAP_GET_LEFT).append(key)
-                        .append(CONDITION_NULL).append(PARENTHESIS_FRAG_RIGHT);
+                if (markWithEsFlag) {
+                    conditionBuilder.append(CONDITION_MAP_GET_LEFT).append(key).append(CONDITION_NULL);
+                } else {
+                    conditionBuilder.append(PLACE_HOLDER).append(key).append(CONDITION_NULL_SPEL);
+                }
             } else {
                 String operatorLeft = opetatorMap.get(data.getString("operation") + SECTION_IDENTIFIER_LEFT);
                 String operatorRight = opetatorMap.get(data.getString("operation") + SECTION_IDENTIFIER_RIGHT);
                 String valueLeft = values.get(0);
                 String valueRight = values.get(1);
-                conditionBuilder.append(PARENTHESIS_FRAG_LEFT)
-                        .append(CONDITION_MAP_GET_LEFT).append(key).append(CONDITION_NOT_NULL)
-                        .append(SPACE_FRAG).append(LOGIC_OPERATOR_AND).append(SPACE_FRAG)
-                        .append(CONDITION_MAP_GET_LEFT).append(key).append(SINGLE_QUOTATION).append(PARENTHESIS_FRAG_RIGHT)
-                        .append(SPACE_FRAG).append(operatorLeft).append(SPACE_FRAG).append(valueLeft)
-                        .append(SPACE_FRAG).append(LOGIC_OPERATOR_AND).append(SPACE_FRAG)
-                        .append(CONDITION_MAP_GET_LEFT).append(key).append(SINGLE_QUOTATION).append(PARENTHESIS_FRAG_RIGHT)
-                        .append(SPACE_FRAG).append(operatorRight).append(SPACE_FRAG).append(valueRight)
-                        .append(PARENTHESIS_FRAG_RIGHT);
-//            conditionBuilder.append(CONDITION_ONE).append(key).append(CONDITION_TWO).append(operatorLeft).append(SPACE_FRAG).append(valueLeft)
-//                    .append(CONDITION_THR).append(operatorRight).append(SPACE_FRAG).append(valueRight).append(PARENTHESIS_FRAG_RIGHT);
+                if (markWithEsFlag) {
+                    conditionBuilder.append(CONDITION_MAP_GET_LEFT).append(key).append(CONDITION_NOT_NULL)
+                            .append(SPACE_FRAG).append(LOGIC_OPERATOR_AND).append(SPACE_FRAG)
+                            .append(CONDITION_MAP_GET_LEFT).append(key).append(SINGLE_QUOTATION).append(PARENTHESIS_FRAG_RIGHT)
+                            .append(SPACE_FRAG).append(operatorLeft).append(SPACE_FRAG).append(valueLeft)
+                            .append(SPACE_FRAG).append(LOGIC_OPERATOR_AND).append(SPACE_FRAG)
+                            .append(CONDITION_MAP_GET_LEFT).append(key).append(SINGLE_QUOTATION).append(PARENTHESIS_FRAG_RIGHT)
+                            .append(SPACE_FRAG).append(operatorRight).append(SPACE_FRAG).append(valueRight);
+                } else {
+                    conditionBuilder.append(PLACE_HOLDER).append(key).append(CONDITION_NOT_NULL_SPEL)
+                            .append(SPACE_FRAG).append(LOGIC_OPERATOR_AND).append(SPACE_FRAG)
+                            .append(PLACE_HOLDER).append(key)
+                            .append(SPACE_FRAG).append(operatorLeft).append(SPACE_FRAG).append(valueLeft)
+                            .append(SPACE_FRAG).append(LOGIC_OPERATOR_AND).append(SPACE_FRAG)
+                            .append(PLACE_HOLDER).append(key)
+                            .append(SPACE_FRAG).append(operatorRight).append(SPACE_FRAG).append(valueRight);
+                }
             }
+            conditionBuilder.append(PARENTHESIS_FRAG_RIGHT);
         }
         if (StringUtils.isNotEmpty(logicOperator)) {
             conditionBuilder.append(logicOperator);
@@ -351,4 +388,15 @@ public class GeneScriptUtil {
         }
     }
 
+    public static ScoreLable scoreLableWithSpel(Map<String, Object> scoreMap, List<ScoreLable> scoreLables) {
+        for (ScoreLable scoreLable : scoreLables) {
+            StandardEvaluationContext context = new StandardEvaluationContext();
+            context.setVariables(scoreMap);
+            ExpressionParser parser = new SpelExpressionParser();
+            if (parser.parseExpression(scoreLable.getConditionSource()).getValue(context, Boolean.class)) {
+                return scoreLable;
+            }
+        }
+        return null;
+    }
 }
