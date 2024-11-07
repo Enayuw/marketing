@@ -151,6 +151,9 @@ public class DataCleaningGeneralServiceImpl implements IDataCleaningGeneralServi
                         if (row == null) {
                             isNotFinal = Boolean.FALSE;
                         } else {
+                            if(StringUtils.isBlank(row)){
+                                continue;
+                            }
                             lineNum++;
                         }
                         if (lineNum == 0 && !isNotFinal) {
