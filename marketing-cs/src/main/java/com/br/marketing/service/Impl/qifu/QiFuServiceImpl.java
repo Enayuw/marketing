@@ -60,7 +60,7 @@ public class QiFuServiceImpl implements IQiFuService {
         String dataTimeMark = getValueOfJson(qifuAiCleanConfig, "dataTime", "-1");
         LocalDate now = LocalDate.now();
         String nowDay = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        String yesterDay = now.minusDays(-1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String yesterDay = now.minusDays(1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         List<String> receiveDates = new ArrayList<>();
         if ("-1".equals(dataTimeMark)) {
             receiveDates.add(yesterDay);
