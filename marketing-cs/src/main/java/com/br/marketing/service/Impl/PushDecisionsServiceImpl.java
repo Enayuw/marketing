@@ -3,8 +3,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -18,9 +21,11 @@ import com.br.marketing.dto.SearchConditionDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.PushDecisionsMapper;
 import com.br.marketing.mapper.ScoreSearchConditionMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.PushDecisionsService;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushDecisionsDetailVO;
+import com.br.marketing.vo.TaskTemplateVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +50,9 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
 
     @Resource
     ScoreSearchConditionMapper scoreSearchConditionMapper;
+
+    @Resource
+    StraHisFileMapper straHisFileMapper;
 
     @Autowired
     EntityOptServiceImpl entityOptService;
@@ -166,6 +174,38 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         pushDecisions.setReachStrategy(dto.getReachStrategy());
         pushDecisionsMapper.updateByPrimaryKeySelective(pushDecisions);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<List<TaskTemplateVO>> getRunTaskByTemplate(String apiCode, String templateId) {
+        if(apiCode.isEmpty() || templateId.isEmpty()){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("查询参数为空");
+        }
+        ScoreSearchCondition scoreSearchCondition = scoreSearchConditionMapper.selectByPrimaryKey(Long.valueOf(templateId));
+        if(scoreSearchCondition == null){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到规则模板：" + templateId);
+        }
+        List<String> ids = new ArrayList<>();
+        String sourceCondition = scoreSearchCondition.getSourceCondition();
+        if(sourceCondition.contains(",")){
+            ids = Arrays.stream(sourceCondition.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toList());
+        }else {
+            ids.add(sourceCondition);
+        }
+        if(CollectionUtil.isEmpty(ids)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分文件为空,文件ids：" + ids);
+        }
+        // 根据跑分文件id查询跑分配置
+        List<String> ruleNameShorts = straHisFileMapper.getFileById(ids);
+        if(CollectionUtil.isEmpty(ruleNameShorts)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分配置为空,文件ids：" + ids);
+        }
+        // 根据跑分配置 查询所有跑分文件
+        List<TaskTemplateVO> files = straHisFileMapper.getFileByruleNameShorts(ruleNameShorts,apiCode);
+
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(files);
     }
 
     String buildConditionNumber(String apiCode) {

@@ -29,13 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -106,7 +104,8 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
     }
 
     private List<PushDecisions> getPushDecisionsConfig() {
-        String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        String nowTime = LocalTime.now().format(formatter);
         PushDecisionsExample decisionsExample = new PushDecisionsExample();
         decisionsExample.createCriteria()
                 .andStatusEqualTo(Constants.STATUS_START)
@@ -114,7 +113,8 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
                 .andIsDelEqualTo(Constants.DATA_VALID);
         decisionsExample.setOrderByClause(" auto_time");
         List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(decisionsExample);
-        return pushDecisions;
+
+        return filterConfig(pushDecisions,formatter,nowTime);
     }
 
     private Result<CustomerInfoPushMain> isCanBuild(PushDecisions pushDecisions, ScoreSearchCondition scoreSearchCondition) {
@@ -149,7 +149,12 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         pushMain.setStrategyCode(pushDecisions.getReachStrategy());
         String batchName = "";
         if (StringUtils.isNotBlank(pushDecisions.getPushDatasets())) {
-            batchName = pushDecisions.getPushDatasets();
+            if(pushDecisions.getPushDatasets().contains("yyyymmdd")){
+                String formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+                batchName = pushDecisions.getPushDatasets().replace("yyyymmdd",formattedDate);
+            }else {
+                batchName = pushDecisions.getPushDatasets();
+            }
         } else {
             batchName = LocalDate.now().toString()
                     .concat("-")
@@ -176,6 +181,28 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         decisionsTaskLogMapper.insertSelective(decisionsTaskLog);
         unLockDecis(pushDecisions.getId(), uuid.toString());
         return res.setDate(pushMain).success();
+    }
+
+    private List<PushDecisions> filterConfig(List<PushDecisions> pushDecisions,
+                                             DateTimeFormatter formatter,String nowTime) {
+        // 过滤掉（今天创建并且执行时间小于当前时间的配置）
+        LocalDate today = LocalDate.now();
+        pushDecisions = pushDecisions.stream()
+                .filter(p -> {
+                    String autoTime = p.getAutoTime();
+                    Date createTime = p.getCreateTime();
+
+                    LocalDate createDate = createTime.toInstant()
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate();
+
+                    LocalTime currentTime = LocalTime.parse(nowTime, formatter);
+                    LocalTime autoTimeParsed = LocalTime.parse(autoTime, formatter);
+                    // 返回过滤条件：不是今天创建的 或者 执行时间不小于当前时间
+                    return !createDate.equals(today) || !autoTimeParsed.isBefore(currentTime);
+                })
+                .collect(Collectors.toList());
+        return pushDecisions;
     }
 
     private Boolean LockDecis(Long id, String value) {
