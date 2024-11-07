@@ -116,7 +116,7 @@
         select *
         from b_drs_customize_upload_data${tCid} a
         left join b_log_360ai b on a.id = b.data_id
-        where a.receive_date
+        where a.receive_date in
         <foreach collection="receiveDates" item="receiveDate" open="(" separator="," close=")">
             #{receiveDate}
         </foreach>
