@@ -1,5 +1,7 @@
 package com.br.marketing.entity;
 
+import java.util.Date;
+
 public class Log360ai {
     /**
      * 
@@ -20,6 +22,16 @@ public class Log360ai {
      * 失败原因
      */
     private String errorMsg;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
 
     public Long getId() {
         return id;
@@ -51,5 +63,21 @@ public class Log360ai {
 
     public void setErrorMsg(String errorMsg) {
         this.errorMsg = errorMsg == null ? null : errorMsg.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
     }
 }

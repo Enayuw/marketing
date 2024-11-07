@@ -6,6 +6,8 @@
     <result column="data_id" property="dataId" jdbcType="BIGINT" />
     <result column="status" property="status" jdbcType="INTEGER" />
     <result column="error_msg" property="errorMsg" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -66,7 +68,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, data_id, `status`, error_msg
+    id, data_id, `status`, error_msg, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.Log360aiExample" >
     select
@@ -102,10 +104,10 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_log_360ai (data_id, `status`, error_msg
-      )
-    values (#{dataId,jdbcType=BIGINT}, #{status,jdbcType=INTEGER}, #{errorMsg,jdbcType=VARCHAR}
-      )
+    insert into b_log_360ai (data_id, `status`, error_msg, 
+      create_time, update_time)
+    values (#{dataId,jdbcType=BIGINT}, #{status,jdbcType=INTEGER}, #{errorMsg,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.Log360ai" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -122,6 +124,12 @@
       <if test="errorMsg != null" >
         error_msg,
       </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="dataId != null" >
@@ -132,6 +140,12 @@
       </if>
       <if test="errorMsg != null" >
         #{errorMsg,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
       </if>
     </trim>
   </insert>
@@ -156,6 +170,12 @@
       <if test="record.errorMsg != null" >
         error_msg = #{record.errorMsg,jdbcType=VARCHAR},
       </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -166,7 +186,9 @@
     set id = #{record.id,jdbcType=BIGINT},
       data_id = #{record.dataId,jdbcType=BIGINT},
       `status` = #{record.status,jdbcType=INTEGER},
-      error_msg = #{record.errorMsg,jdbcType=VARCHAR}
+      error_msg = #{record.errorMsg,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -183,6 +205,12 @@
       <if test="errorMsg != null" >
         error_msg = #{errorMsg,jdbcType=VARCHAR},
       </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -190,7 +218,9 @@
     update b_log_360ai
     set data_id = #{dataId,jdbcType=BIGINT},
       `status` = #{status,jdbcType=INTEGER},
-      error_msg = #{errorMsg,jdbcType=VARCHAR}
+      error_msg = #{errorMsg,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
