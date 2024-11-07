@@ -2291,7 +2291,7 @@ public class MarketingCommonConfig {
 
     /**
      * 360ai清洗配置
-     * {"tCid":"","pageSize":10,"threadNum":10}
+     * {"tCid":"","pageSize":10,"threadNum":10,"isPause":false}
      */
     private JSONObject qifuAiCleanConfig;
 

@@ -58,6 +58,12 @@ public class QiFuServiceImpl implements IQiFuService {
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum, "qiAiClean", 200);
         Boolean actionMark = Boolean.TRUE;
         while (actionMark) {
+
+            Boolean b = dynamicAction(threadPool);
+            if (b) {
+                actionMark = Boolean.FALSE;
+                continue;
+            }
             List<DrsCustomizeUploadData> dataOfNeedClean = drsCustomizeUploadDataMapper.getDataOfNeedClean(tcId, pageSize);
             if (dataOfNeedClean.size() <= 0) {
                 actionMark = Boolean.FALSE;
@@ -265,5 +271,21 @@ public class QiFuServiceImpl implements IQiFuService {
                 }
             }
         }
+    }
+
+    private Boolean dynamicAction(ThreadPoolExecutor executor) {
+        JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
+        Boolean isPause = qifuAiCleanConfig.getBoolean("isPause");
+        if (isPause == null || isPause) {
+            return Boolean.TRUE;
+        }
+        if (StringUtils.isNotBlank(qifuAiCleanConfig.getString("threadNum"))) {
+            Integer threadNum = Integer.valueOf(qifuAiCleanConfig.getString("threadNum"));
+            if (executor.getCorePoolSize() != threadNum.intValue()) {
+                executor.setCorePoolSize(threadNum);
+                executor.setMaximumPoolSize(threadNum);
+            }
+        }
+        return Boolean.FALSE;
     }
 }
