@@ -194,6 +194,7 @@ public class QiFuServiceImpl implements IQiFuService {
                         break;
                     case "operateScene":
                         extendKey.put("customName", jsonObject.getString(s));
+                        extendKey.put("customNameType", jsonObject.getString(s));
                         break;
                     default:
                         extendKey.put(s, jsonObject.getString(s));
