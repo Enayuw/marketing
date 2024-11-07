@@ -27,7 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -53,6 +56,20 @@ public class QiFuServiceImpl implements IQiFuService {
 
         JSONObject qifuAiCleanConfig = marketingCommonConfig.getQifuAiCleanConfig();
         String tcId = getValueOfJson(qifuAiCleanConfig, "tCid", "");
+        List<String> apiCodes = Arrays.asList(getValueOfJson(qifuAiCleanConfig, "cleanApiCode", "3700226").split(","));
+        String dataTimeMark = getValueOfJson(qifuAiCleanConfig, "dataTime", "-1");
+        LocalDate now = LocalDate.now();
+        String nowDay = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String yesterDay = now.minusDays(-1L).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        List<String> receiveDates = new ArrayList<>();
+        if ("-1".equals(dataTimeMark)) {
+            receiveDates.add(yesterDay);
+            receiveDates.add(nowDay);
+        } else if ("1".equals(dataTimeMark)) {
+            receiveDates.add(nowDay);
+        } else {
+            receiveDates.add(dataTimeMark);
+        }
         Integer pageSize = Integer.valueOf(getValueOfJson(qifuAiCleanConfig, "pageSize", "10"));
         Integer threadNum = Integer.valueOf(getValueOfJson(qifuAiCleanConfig, "threadNum", "1"));
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum, "qiAiClean", 200);
@@ -64,7 +81,7 @@ public class QiFuServiceImpl implements IQiFuService {
                 actionMark = Boolean.FALSE;
                 continue;
             }
-            List<DrsCustomizeUploadData> dataOfNeedClean = drsCustomizeUploadDataMapper.getDataOfNeedClean(tcId, pageSize);
+            List<DrsCustomizeUploadData> dataOfNeedClean = drsCustomizeUploadDataMapper.getDataOfNeedClean(tcId, apiCodes, receiveDates, pageSize);
             if (dataOfNeedClean.size() <= 0) {
                 actionMark = Boolean.FALSE;
                 continue;
