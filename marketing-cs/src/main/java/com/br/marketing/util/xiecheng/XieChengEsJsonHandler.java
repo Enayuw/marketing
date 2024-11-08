@@ -19,7 +19,7 @@ public class XieChengEsJsonHandler {
     /**
      * 携程JsonEs条件预处理
      *
-     * @param jsonObject         json条件
+     * @param jsonObject json条件
      * @param collidingFilterDTO 撞库条件实体
      * @return
      */
@@ -62,6 +62,14 @@ public class XieChengEsJsonHandler {
                         break;
                     case "customer_group":
                         collidingFilterDTO.setCustomerGroup(jsonData.getString("value"));
+                        iterator.remove();
+                        break;
+                    case "info":
+                        collidingFilterDTO.setCustomerGroup(jsonData.getString("info"));
+                        iterator.remove();
+                        break;
+                    case "blacklist_delete":
+                        collidingFilterDTO.setCustomerGroup(jsonData.getString("blacklist_delete"));
                         iterator.remove();
                         break;
                     default:

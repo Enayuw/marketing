@@ -12,7 +12,6 @@ import com.br.marketing.entity.XiechengCollidingDataProcessTaskExample;
 import com.br.marketing.entity.XiechengCollidingTaskBatch;
 import com.br.marketing.entity.XiechengCollidingTaskBatchExample;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
-import com.br.marketing.enums.XcDeleteEnum;
 import com.br.marketing.enums.XcProcessTaskEnum;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XiechengCollidingDataProcessTaskMapper;
@@ -25,9 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -67,22 +64,22 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 return;
             }
             //3.剔除流程
-            deleteProcess(apiCode, XcDeleteEnum.DELETE_BLACKLIST, threadPool);
+            deleteProcess(apiCode, XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE, threadPool);
             threadPoolShutDown(threadPool);
         });
     }
 
     /**
      * @param apiCode
-     * @param xcDeleteEnum
+     * @param xcProcessTaskEnum
      * @param threadPool
      * @return void
      * @description 剔除流程
      * @author hedongshuo
      * @date 2024/8/7 16:57
      **/
-    private void deleteProcess(String apiCode, XcDeleteEnum xcDeleteEnum, ThreadPoolExecutor threadPool) {
-        String key = RedisKeyConstant.prefix.concat(xcDeleteEnum.getKey()).concat(":").concat(apiCode);
+    private void deleteProcess(String apiCode, XcProcessTaskEnum xcProcessTaskEnum, ThreadPoolExecutor threadPool) {
+        String key = RedisKeyConstant.prefix.concat(xcProcessTaskEnum.getDeleteRedisKey()).concat(":").concat(apiCode);
         for (; ; ) {
             String lockValue = UUID.randomUUID().toString();
             XiechengCollidingTaskBatchVo vo = null;
@@ -90,7 +87,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 //1.抢锁
                 redisChgService.lock(key, lockValue);
                 //2.查数据
-                vo = taskBatchMapper.selectEarliestBatch(apiCode, getStartOfDate(), xcDeleteEnum.getType());
+                vo = taskBatchMapper.selectEarliestBatch(apiCode, getStartOfDate(), xcProcessTaskEnum.getBatchType());
                 if (null == vo) {
                     redisChgService.unlock(key, lockValue);
                     break;

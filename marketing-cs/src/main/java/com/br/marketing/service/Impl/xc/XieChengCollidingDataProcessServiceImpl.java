@@ -9,7 +9,6 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.DingDingAlarmFunctionEnum;
-import com.br.marketing.enums.XcDeleteEnum;
 import com.br.marketing.enums.XcProcessTaskEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -70,7 +69,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             //1.创建线程池
             ThreadPoolExecutor threadPool = getThreadPoolExecutor();
             //2.剔除流程
-            deleteProcess(apiCode, XcDeleteEnum.DELETE_GENERAL, threadPool);
+            deleteProcess(apiCode, XcProcessTaskEnum.PROCESS_DELETE, threadPool);
             //3.当天所有剔除task是否全部剔除完成
             if (!queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_DELETE.getTaskType())) {
                 threadPoolShutDown(threadPool);
@@ -100,7 +99,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 return;
             }
             //3.剔除流程
-            deleteProcess(apiCode, XcDeleteEnum.DELETE_DYNAFALSE, threadPool);
+            deleteProcess(apiCode, XcProcessTaskEnum.PROCESS_DYNA_FALSE, threadPool);
             threadPoolShutDown(threadPool);
         });
     }
@@ -266,15 +265,15 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
     /**
      * @param apiCode
-     * @param xcDeleteEnum
+     * @param xcProcessTaskEnum
      * @param threadPool
      * @return void
      * @description 剔除流程
      * @author hedongshuo
      * @date 2024/8/7 16:57
      **/
-    private void deleteProcess(String apiCode, XcDeleteEnum xcDeleteEnum, ThreadPoolExecutor threadPool) {
-        String key = RedisKeyConstant.prefix.concat(xcDeleteEnum.getKey()).concat(":").concat(apiCode);
+    private void deleteProcess(String apiCode, XcProcessTaskEnum xcProcessTaskEnum, ThreadPoolExecutor threadPool) {
+        String key = RedisKeyConstant.prefix.concat(xcProcessTaskEnum.getDeleteRedisKey()).concat(":").concat(apiCode);
         for (; ; ) {
             String lockValue = UUID.randomUUID().toString();
             XiechengCollidingTaskBatchVo vo = null;
@@ -282,7 +281,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 //1.抢锁
                 redisChgService.lock(key, lockValue);
                 //2.查数据
-                vo = taskBatchMapper.selectEarliestBatch(apiCode, getStartOfDate(), xcDeleteEnum.getType());
+                vo = taskBatchMapper.selectEarliestBatch(apiCode, getStartOfDate(), xcProcessTaskEnum.getBatchType());
                 if (null == vo) {
                     redisChgService.unlock(key, lockValue);
                     break;
