@@ -12,7 +12,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Map;
 
-public interface MarketingSyncReportMapper {
+public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase {
     int uploadSyncCounttiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
                         @Param("uploadDate") String uploadDate, @Param("status") Integer status);
 
@@ -33,28 +33,6 @@ public interface MarketingSyncReportMapper {
     List<MarketingSyncReportNumVO> getReportListTotaltiflash_(Map<String, Object> params);
 
     int modifyReportById(MarketingSyncReport record);
-
-    int countByExample(MarketingSyncReportExample example);
-
-    int deleteByExample(MarketingSyncReportExample example);
-
-    int deleteByPrimaryKey(Long id);
-
-    int insert(MarketingSyncReport record);
-
-    int insertSelective(MarketingSyncReport record);
-
-    List<MarketingSyncReport> selectByExample(MarketingSyncReportExample example);
-
-    MarketingSyncReport selectByPrimaryKey(Long id);
-
-    int updateByExampleSelective(@Param("record") MarketingSyncReport record, @Param("example") MarketingSyncReportExample example);
-
-    int updateByExample(@Param("record") MarketingSyncReport record, @Param("example") MarketingSyncReportExample example);
-
-    int updateByPrimaryKeySelective(MarketingSyncReport record);
-
-    int updateByPrimaryKey(MarketingSyncReport record);
 
     int deleteByAppletDate(@Param("apiCode") String apiCode,@Param("appletDate") String appletDate);
 
@@ -93,4 +71,14 @@ public interface MarketingSyncReportMapper {
      * @return list
      */
     List<MarketingSyncReport> selectNumberByExample(MarketingSyncReportExample example);
+
+    /**
+     * 查询
+     *
+     * @param apiCode
+     *  @param userType
+     *       *  @param userType
+     * @return
+     */
+    List<String> selectUploadExtendKeystikv_(@Param("apiCode")String apiCode, @Param("userType")String userType, @Param("appletDate")String appletDate);
 }
