@@ -559,6 +559,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
+        //blacklist_delete有值时，前端控制不会做量级预览
         int total = 0;
         String querySql = "";
         JSONObject jsonObject = JSON.parseObject(mRuleCondition);
@@ -566,22 +567,40 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
+            //推决策
             if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
                 querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+                //剔除
             } else {
                 querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
             }
-        } else {
-            querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
+        } else if ("false".equals(collidingFilterDTO.getResult())) {
+            String info = jsonObject.getString("info");
+            if (StringUtils.isNotEmpty(info) && info.equalsIgnoreCase("NULL")) {
+                querySql = dynaPackageDeleteCondition(jsonObject, batchNumberList);
+            } else {
+                querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
+            }
         }
         log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
         // 查询Doris
         try {
             total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
-        } catch (Exception e) {
+        }            catch (Exception e) {
             log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
         }
         return total;
+    }
+
+    /**
+     * @description 黑名单剔除类型校验
+     * @param blacklistDelete
+     * @return boolean
+     * @author hedongshuo
+     * @date 2024/11/7 21:51
+     **/
+    private boolean checkBlacklistDelete(String blacklistDelete) {
+        return StringUtils.isNotEmpty(blacklistDelete) && blacklistDelete.equalsIgnoreCase("true");
     }
 
     private String falseDataQuery(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
@@ -591,8 +610,23 @@ public class PushRuleServiceImpl implements PushRuleService {
         return querySql.toString();
     }
 
+    /**
+     * 动态补充包与跑分数据交集量级sql
+     * @param jsonObject
+     * @param batchNumberList
+     * @return
+     */
+    private String dynaPackageDeleteCondition(JSONObject jsonObject, List<String> batchNumberList) {
+        String dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_loop_cycle where is_delete = 0 and package_id = 120007";
+        String scoreSql = scoreSql(jsonObject, batchNumberList);
+        StringBuilder condition = new StringBuilder();
+        condition.append("select score.cell,score.id from (").append(scoreSql).append(") score left join (").append(dynaDataSql)
+                .append(") dyna on score.cell = dyna.cell ").append(" where dyna.id is not null");
+        return condition.toString();
+    }
+
     private String falseDataCondition(JSONObject jsonObject, List<String> batchNumberList, String cleanTime) {
-        String cycleDataSql = "select  cell_sha256_code_list as cell,id from  b_xiecheng_colliding_data_loop_cycle where is_delete =0";
+        String cycleDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_loop_cycle where is_delete = 0";
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         StringBuilder falseAndscoreSql = new StringBuilder();
         StringBuilder whereSql = new StringBuilder();

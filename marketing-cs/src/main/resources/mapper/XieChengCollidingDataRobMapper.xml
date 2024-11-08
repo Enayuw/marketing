@@ -201,4 +201,17 @@
             #{item.id}
         </foreach>
     </select>
+
+    <select id="selectIdsOfDynaFalseDataProcessTasktikv_" resultType="java.lang.Long">
+        select a.id
+        from b_xiecheng_colliding_data_rob a
+        join ${tableName} c on a.cell_sha256_code_list = c.cell and c.is_delete = 0
+        left join ( ${queryRuleScoreDataSql} ) b on c.cell = b.cell and b.is_delete = 0
+        where a.is_delete = 0 and b.id is null
+        and a.package_id = 120007
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id limit #{pageSize};
+    </select>
 </mapper>

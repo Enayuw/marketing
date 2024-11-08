@@ -73,4 +73,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     int batchResetCollidingCountByIds(@Param("list") List<Long> list);
 
     Long selectCountByRoundPackages(@Param("list") List<XieChengCollidingDataPackage> list);
+
+    List<Long> selectIdsOfDynaFalseDataProcessTasktikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+                                                        @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
 }
