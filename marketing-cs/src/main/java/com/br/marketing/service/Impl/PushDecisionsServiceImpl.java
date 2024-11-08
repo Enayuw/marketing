@@ -205,6 +205,13 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         // 根据跑分配置 查询所有跑分文件
         List<TaskTemplateVO> files = straHisFileMapper.getFileByruleNameShorts(ruleNameShorts,apiCode);
 
+        // 筛选出fileId在ids列表中的存在的文件id
+        for (TaskTemplateVO taskTemplateVO : files) {
+            if(ids.contains(taskTemplateVO.getFileId())){
+                taskTemplateVO.setStatus(1);
+            }
+        }
+
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(files);
     }
 

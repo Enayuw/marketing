@@ -51,7 +51,7 @@
 
     <select id="getFileByruleNameShorts" resultType="com.br.marketing.vo.TaskTemplateVO">
         select
-        shf.id,
+        shf.id as fileId,
         shf.batch_number as batchNumber,
         bmtut.user_type  as userType,
         bmt.task_number  as taskNumber,

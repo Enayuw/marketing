@@ -9,9 +9,11 @@ import lombok.Data;
  */
 @Data
 public class TaskTemplateVO {
-    private Long id;
+    private String fileId;
     private String batchNumber;
     private String userType;
     private String taskNumber;
     private String taskCreateTime;
+    // 是否勾选，0-否 1-是
+    private Integer status;
 }
