@@ -53,7 +53,7 @@ public class MQConsumerShutdown {
                             completionService.submit(() -> {
                                 long startTime = System.currentTimeMillis();
                                 log.warn("rocketMQ消费者组开始下线[{}]-[{}]，信息:{}", v.getConsumerGroup(), k, v);
-                                v.stop();
+                                v.destroy();
                                 long endTime = System.currentTimeMillis();
                                 log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s", v.getConsumerGroup(), k, ((endTime - startTime) / 1000));
                                 return v;
