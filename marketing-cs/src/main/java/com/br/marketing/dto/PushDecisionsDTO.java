@@ -1,10 +1,8 @@
 package com.br.marketing.dto;
 
-import com.br.marketing.vo.TaskTemplateVO;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 /**
  * @ClassName PushDecisionsDTO
@@ -42,8 +40,8 @@ public class PushDecisionsDTO {
     @ApiModelProperty(value = "触达策略")
     private String reachStrategy;
 
-    @ApiModelProperty(value = "跑分任务")
-    private List<TaskTemplateVO> runBatches;
+    @ApiModelProperty(value = "跑分任务ids")
+    private String fileIds;
 
     @ApiModelProperty(value = "是否自动刷新 0-否，1-是")
     private Integer autoRefresh;

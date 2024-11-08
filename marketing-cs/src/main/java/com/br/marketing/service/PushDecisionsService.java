@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OptConditionDTO;
 import com.br.marketing.dto.PushDecisionsDTO;
+import com.br.marketing.dto.RunTaskDTO;
 import com.br.marketing.dto.SearchConditionDTO;
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.vo.ConditionOfScoreVO;
@@ -33,5 +34,5 @@ public interface PushDecisionsService {
 
     Result<Long> updatePushDecisions(PushDecisionsDTO dto);
 
-    Result<List<TaskTemplateVO>> getRunTaskByTemplate(String apiCode, String templateId);
+    Result<List<TaskTemplateVO>> getRunTaskByTemplate(RunTaskDTO dto);
 }

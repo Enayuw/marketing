@@ -884,6 +884,66 @@ public class PushDecisionsExample {
             addCriterion("update_time not between", value1, value2, "updateTime");
             return (Criteria) this;
         }
+
+        public Criteria andAutoRefreshIsNull() {
+            addCriterion("auto_refresh is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshIsNotNull() {
+            addCriterion("auto_refresh is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshEqualTo(Integer value) {
+            addCriterion("auto_refresh =", value, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshNotEqualTo(Integer value) {
+            addCriterion("auto_refresh <>", value, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshGreaterThan(Integer value) {
+            addCriterion("auto_refresh >", value, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshGreaterThanOrEqualTo(Integer value) {
+            addCriterion("auto_refresh >=", value, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshLessThan(Integer value) {
+            addCriterion("auto_refresh <", value, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshLessThanOrEqualTo(Integer value) {
+            addCriterion("auto_refresh <=", value, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshIn(List<Integer> values) {
+            addCriterion("auto_refresh in", values, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshNotIn(List<Integer> values) {
+            addCriterion("auto_refresh not in", values, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshBetween(Integer value1, Integer value2) {
+            addCriterion("auto_refresh between", value1, value2, "autoRefresh");
+            return (Criteria) this;
+        }
+
+        public Criteria andAutoRefreshNotBetween(Integer value1, Integer value2) {
+            addCriterion("auto_refresh not between", value1, value2, "autoRefresh");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
