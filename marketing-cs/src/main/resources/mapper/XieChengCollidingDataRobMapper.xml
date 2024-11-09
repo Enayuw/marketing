@@ -40,18 +40,18 @@
         </foreach>
     </update>
 
-    <update id = "batchUpdateBlackListData" parameterType="java.util.List">
-        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
-            update
-            b_xiecheng_colliding_data_rob
-            set
-            extend = #{extend},
-            is_delete = 1,
-            update_time = now()
-            where
-            id = #{item.id,jdbcType=BIGINT}
-            and is_delete = 0
+    <update id="batchUpdateBlackListData" parameterType="java.util.List">
+        update
+        b_xiecheng_colliding_data_rob
+        set
+        extend = #{extend},
+        is_delete = 1,
+        update_time = now()
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id,jdbcType=BIGINT}
         </foreach>
+        and is_delete = 0
     </update>
 
     <insert id="saveBatch" parameterType="list">
@@ -261,30 +261,30 @@
     </select>
 
     <update id="batchUpdateNoPublicBlackListZYData" parameterType="java.util.List">
-        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
-            update
-            b_xiecheng_colliding_data_rob
-            set
-            extend = #{extend},
-            is_delete = 1,
-            update_time = now()
-            where
-            id = #{item.id,jdbcType=BIGINT}
-            and is_delete = 0
+        update
+        b_xiecheng_colliding_data_rob
+        set
+        extend = #{extend},
+        is_delete = 1,
+        update_time = now()
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id,jdbcType=BIGINT}
         </foreach>
+        and is_delete = 0
     </update>
 
     <update id="batchUpdateNoPublicBlackListBYData" parameterType="java.util.List">
-        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
-            update
-            b_xiecheng_colliding_data_loop_cycle
-            set
-            extend = #{extend},
-            is_delete = 1,
-            update_time = now()
-            where
-            id = #{item.id,jdbcType=BIGINT}
-            and is_delete = 0
+        update
+        b_xiecheng_colliding_data_loop_cycle
+        set
+        extend = #{extend},
+        is_delete = 1,
+        update_time = now()
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item.id,jdbcType=BIGINT}
         </foreach>
+        and is_delete = 0
     </update>
 </mapper>

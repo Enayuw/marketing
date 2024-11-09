@@ -2,6 +2,8 @@ package com.br.marketing.api.controller;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.service.Impl.xc.XieChengBlackEncAndDecJobService;
+import com.br.marketing.service.Impl.xc.XieChengPreCollidingBlackListDeleteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,9 @@ public class MarketingUserPreController {
 
     @Autowired
     PushRuleService pushRuleService;
+
+    @Resource
+    XieChengPreCollidingBlackListDeleteService service;
 
     @Resource
     private IPushShuheDataService iPushShuheDataService;
@@ -192,6 +197,9 @@ public class MarketingUserPreController {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_1.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
-        return customerUploadDataService.receiveCustomizeUploadData(apiCode, jsonData);
+
+        service.process();
+        return null;
+        //return customerUploadDataService.receiveCustomizeUploadData(apiCode, jsonData);
     }
 }

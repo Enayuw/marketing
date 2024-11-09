@@ -31,5 +31,5 @@ public interface XieChengBlackListMapper {
 
     List<XieChengBlackList> selectByPage(@Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
-    void batchUpdate(List<XieChengBlackList> list);
+    void batchUpdate(@Param("list") List<XieChengBlackList> list);
 }
