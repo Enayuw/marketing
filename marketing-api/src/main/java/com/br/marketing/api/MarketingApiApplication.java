@@ -60,7 +60,7 @@ public class MarketingApiApplication {
         });
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             MQConsumerShutdown bean = context.getBean(MQConsumerShutdown.class);
-            bean.rocketmqDestroy(context);
+            bean.rocketmqDestroy();
         }));
         log.warn("marketing-api启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }

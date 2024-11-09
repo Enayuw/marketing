@@ -38,7 +38,7 @@ public class RuleSchedulerApplication {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> stop()));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
-            bean.rocketmqDestroy(ac);
+            bean.rocketmqDestroy();
         }));
         Long end = System.currentTimeMillis();
         log.warn("marketing-rule-scheduler启动结束，耗时{}s", (end - start) / 1000);

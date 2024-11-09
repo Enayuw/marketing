@@ -50,7 +50,7 @@ public class CkeckApplication {
         });
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
-            bean.rocketmqDestroy(ac);
+            bean.rocketmqDestroy();
         }));
         log.warn("marketing-check启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }

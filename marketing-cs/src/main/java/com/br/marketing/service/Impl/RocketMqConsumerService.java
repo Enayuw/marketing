@@ -49,11 +49,11 @@ public class RocketMqConsumerService {
             /**
              * 下线标识，不在消费消息
              */
-            if(ConsumerService.consumerDownStatus){
-                log.warn("服务下线，RocketMq消费者不在接收新的流量");
-                Thread.sleep(10000L);
-                log.warn("服务下线，RocketMq消费者休眠时间到");
-            }
+//            if(ConsumerService.consumerDownStatus){
+//                log.warn("服务下线，RocketMq消费者不在接收新的流量");
+//                Thread.sleep(10000L);
+//                log.warn("服务下线，RocketMq消费者休眠时间到");
+//            }
             Result<Boolean> apply = method.apply(t);
             /**
              * code 为SUCCESS 认为消费成功

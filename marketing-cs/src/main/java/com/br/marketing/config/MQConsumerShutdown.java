@@ -2,13 +2,13 @@ package com.br.marketing.config;
 
 import com.br.marketing.common.utils.BrExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.spring.support.DefaultRocketMQListenerContainer;
 import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.annotation.Order;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Resource;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.*;
@@ -22,9 +22,11 @@ import java.util.concurrent.*;
  */
 @Slf4j
 @Component
-@Order(-1)
 public class MQConsumerShutdown {
 
+
+    @Resource
+    private ConfigurableApplicationContext applicationContext;
 
     /**
      * 2024-10-12 11:16
@@ -32,31 +34,34 @@ public class MQConsumerShutdown {
      * <p>
      * 如果使用spring容器的钩子函数，可不使用该方法或自已实现监听器
      */
-    public void rocketmqDestroy(@NotNull ApplicationContext context) {
-        if (context == null) {
-            log.warn("rocketMQ消费者下线，ApplicationContext为null");
-            return;
-        }
+    public void rocketmqDestroy() {
         try {
-            Map<String, DefaultRocketMQListenerContainer> beansOfType = context.getBeansOfType(
+            Map<String, DefaultRocketMQListenerContainer> defaultRocketMQListenerContainer = applicationContext.getBeansOfType(
                     DefaultRocketMQListenerContainer.class);
+            log.warn(defaultRocketMQListenerContainer.toString());
             if (log.isInfoEnabled()) {
-                log.info("rocketMQ消费者下线All，DefaultRocketMQListenerContainer：{}", beansOfType);
+                log.info("rocketMQ消费者下线All，DefaultRocketMQListenerContainer：{}", defaultRocketMQListenerContainer);
             }
-            Optional.ofNullable(beansOfType).ifPresent(
+            Optional.ofNullable(defaultRocketMQListenerContainer).ifPresent(
                     (Map<String, DefaultRocketMQListenerContainer> map) -> {
                         int size = map.size();
                         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(size, size, new SynchronousQueue<>()
                                 , "RocketMQ-Consumer-Shutdown");
-                        CompletionService<DefaultRocketMQListenerContainer> completionService = new ExecutorCompletionService<>(threadPool);
-                        map.forEach((String k, DefaultRocketMQListenerContainer v) -> {
+                        CompletionService<DefaultMQPushConsumer> completionService = new ExecutorCompletionService<>(threadPool);
+                        map.forEach((String containerThreadName, DefaultRocketMQListenerContainer dlc) -> {
                             completionService.submit(() -> {
                                 long startTime = System.currentTimeMillis();
-                                log.warn("rocketMQ消费者组开始下线[{}]-[{}]，信息:{}", v.getConsumerGroup(), k, v);
-                                v.destroy();
+                                DefaultMQPushConsumer consumer = dlc.getConsumer();
+                                log.warn("rocketMQ消费者开始暂停订阅[{}]-[{}]，信息:{}", consumer.getConsumerGroup()
+                                        , containerThreadName, consumer);
+                                consumer.suspend();
+                                log.warn("rocketMQ消费者组开始下线[{}]-[{}]，信息:{}", dlc.getConsumerGroup()
+                                        , containerThreadName, dlc);
+                                dlc.destroy();
                                 long endTime = System.currentTimeMillis();
-                                log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s", v.getConsumerGroup(), k, ((endTime - startTime) / 1000));
-                                return v;
+                                log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s", dlc.getConsumerGroup()
+                                        , containerThreadName, ((endTime - startTime) / 1000));
+                                return consumer;
                             });
                         });
                         for (int i = 0; i < size; i++) {
