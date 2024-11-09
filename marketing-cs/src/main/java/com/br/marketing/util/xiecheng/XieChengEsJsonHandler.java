@@ -65,11 +65,11 @@ public class XieChengEsJsonHandler {
                         iterator.remove();
                         break;
                     case "info":
-                        collidingFilterDTO.setCustomerGroup(jsonData.getString("info"));
+                        collidingFilterDTO.setInfo(jsonData.getString("value"));
                         iterator.remove();
                         break;
                     case "blacklist_delete":
-                        collidingFilterDTO.setCustomerGroup(jsonData.getString("blacklist_delete"));
+                        collidingFilterDTO.setBlacklist_delete(jsonData.getString("value"));
                         iterator.remove();
                         break;
                     default:

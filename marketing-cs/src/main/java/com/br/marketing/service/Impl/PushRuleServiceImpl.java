@@ -623,7 +623,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             whereCondition = " where score.id is null";
         }
-        condition.append("select score.cell,score.id from (").append(dynaDataSql).append(") dyna left join (").append(scoreSql)
+        condition.append("select dyna.cell,dyna.id from (").append(dynaDataSql).append(") dyna left join (").append(scoreSql)
                 .append(") score on dyna.cell = score.cell ").append(whereCondition);
         return condition.toString();
     }
@@ -830,8 +830,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error("clean_time日期格式异常", e.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
         }
-        Integer taskType = getTaskType(collidingFilterDTO);
-        xiechengCollidingDataProcessTask.setTaskType(taskType);
+        XcProcessTaskEnum xcProcessTaskEnum = getTaskType(collidingFilterDTO);
+        xiechengCollidingDataProcessTask.setTaskType(xcProcessTaskEnum.getTaskType());
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
         xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime()));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
@@ -843,6 +843,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 xiechengCollidingTaskBatch.setApiCode(dto.getApiCode());
                 xiechengCollidingTaskBatch.setCollidingDataTaskId(xiechengCollidingDataProcessTask.getId());
                 xiechengCollidingTaskBatch.setBatchNumber(batchNumber);
+                xiechengCollidingTaskBatch.setType(xcProcessTaskEnum.getBatchType());
                 xiechengCollidingTaskBatch.setStatus(0);
                 xiechengCollidingTaskBatch.setCreateTime(new Date());
                 xiechengCollidingTaskBatch.setUpdateTime(new Date());
@@ -852,19 +853,19 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 
-    private Integer getTaskType(XieChengCollidingFilterDTO collidingFilterDTO) {
+    private XcProcessTaskEnum getTaskType(XieChengCollidingFilterDTO collidingFilterDTO) {
         String result = collidingFilterDTO.getResult();
         String info = collidingFilterDTO.getInfo();
         String blacklistDelete = collidingFilterDTO.getBlacklist_delete();
         if (StringUtils.isNotEmpty(result) && result.equalsIgnoreCase("true")) {
-            return XcProcessTaskEnum.PROCESS_DELETE.getTaskType();
+            return XcProcessTaskEnum.PROCESS_DELETE;
         }
         if (StringUtils.isNotEmpty(result) && result.equalsIgnoreCase("false")
                 && StringUtils.isNotEmpty(info) && info.equalsIgnoreCase("NULL")) {
-            return XcProcessTaskEnum.PROCESS_DYNA_FALSE.getTaskType();
+            return XcProcessTaskEnum.PROCESS_DYNA_FALSE;
         }
         if (StringUtils.isNotEmpty(blacklistDelete) && blacklistDelete.equalsIgnoreCase("true")) {
-            return XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE.getTaskType();
+            return XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE;
         }
         return null;
     }
