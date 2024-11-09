@@ -623,7 +623,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             whereCondition = " where score.id is null";
         }
-        condition.append("select dyna.cell,dyna.id from (").append(dynaDataSql).append(") dyna left join (").append(scoreSql)
+        condition.append("select count(0) from (").append(dynaDataSql).append(") dyna left join (").append(scoreSql)
                 .append(") score on dyna.cell = score.cell ").append(whereCondition);
         return condition.toString();
     }
@@ -907,7 +907,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     /**
-     * @description 剔除量级展示，result = true 或 blackList_delete = true（动态补充包剔除）
+     * @description 剔除量级展示，result = true 或 info = NULL（动态补充包剔除）
      * @param dto
      * @return com.br.marketing.common.commondto.Result<java.lang.Integer>
      * @author hedongshuo
@@ -920,6 +920,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         String result = collidingFilterDTO.getResult();
+        String info = collidingFilterDTO.getInfo();
         String blacklist_delete = collidingFilterDTO.getBlacklist_delete();
         if (StringUtils.isNotEmpty(result) && StringUtils.isNotEmpty(blacklist_delete)) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("result与blacklist_delete不能同时传入！");
@@ -927,11 +928,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         String deleteSql = null;
         //result = true
         if (StringUtils.isNotEmpty(result)) {
-            deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
-        }
-        //blacklist_delete = true
-        if (StringUtils.isNotEmpty(blacklist_delete) && blacklist_delete.equalsIgnoreCase("true")) {
-            deleteSql = dynaPackageDeleteCondition(jsonObject, dto.getBatchNumberList(), false);
+            if ("true".equals(result)) {
+                deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
+            }
+            if ("false".equals(result) && StringUtils.isNotEmpty(info)
+                    && info.equalsIgnoreCase("NULL")) {
+                deleteSql = dynaPackageDeleteCondition(jsonObject, dto.getBatchNumberList(), false);
+            }
         }
         // doris查询
         try {
