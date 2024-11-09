@@ -21,6 +21,7 @@ public class XieChengBlackEncAndDecJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
         long curTime = System.currentTimeMillis();
+        log.warn("携程处理撞库黑名单cell log解密转sha256加密任务开始");
         service.process();
         log.warn("携程处理撞库黑名单cell log解密转sha256加密完成, 耗时:{}s", (System.currentTimeMillis() - curTime) / 1000);
     }

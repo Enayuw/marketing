@@ -40,6 +40,20 @@
         </foreach>
     </update>
 
+    <update id = "batchUpdateBlackListData" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update
+            b_xiecheng_colliding_data_rob
+            set
+            extend = #{extend},
+            is_delete = 1,
+            update_time = now()
+            where
+            id = #{item.id,jdbcType=BIGINT}
+            and is_delete = 0
+        </foreach>
+    </update>
+
     <insert id="saveBatch" parameterType="list">
         insert into b_xiecheng_colliding_data_rob (package_id, data_source_type, cell_sha256_code_list,
                                                    create_time, update_time)values
@@ -214,4 +228,65 @@
         </if>
         order by a.id limit #{pageSize};
     </select>
+    <select id="selectCycleBlackListIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
+        select a.id from b_xiecheng_colliding_data_rob a
+        join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 0
+        where a.is_delete = 0
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id limit #{pageSize};
+    </select>
+
+    <select id="selectRobNoPublicBlackListZYIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
+        select a.id from b_xiecheng_colliding_data_rob a
+        join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
+        join ${tableName} c on a.cell_sha256_code_list = c.cell
+        left join ( ${queryRuleScoreDataSql} ) d on c.cell = d.cell
+        where a.is_delete = 0 and d.id is null
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id limit #{pageSize};
+    </select>
+
+    <select id="selectRobNoPublicBlackListBYIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
+        select a.id from b_xiecheng_colliding_data_rob a
+        join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 2
+        join ${tableName} c on a.cell_sha256_code_list = c.cell
+        left join ( ${queryRuleScoreDataSql} ) d on c.cell = d.cell
+        where a.is_delete = 0 and d.id is null
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id limit #{pageSize};
+    </select>
+
+    <update id="batchUpdateNoPublicBlackListZYData" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update
+            b_xiecheng_colliding_data_rob
+            set
+            extend = #{extend},
+            is_delete = 1,
+            update_time = now()
+            where
+            id = #{item.id,jdbcType=BIGINT}
+            and is_delete = 0
+        </foreach>
+    </update>
+
+    <update id="batchUpdateNoPublicBlackListBYData" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update
+            b_xiecheng_colliding_data_loop_cycle
+            set
+            extend = #{extend},
+            is_delete = 1,
+            update_time = now()
+            where
+            id = #{item.id,jdbcType=BIGINT}
+            and is_delete = 0
+        </foreach>
+    </update>
 </mapper>

@@ -28,6 +28,8 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
      */
     int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids, @Param("rollbackFlag") String rollbackFlag);
 
+    void batchUpdateBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);
+
     /**
      * 非周期表数据批量保存
      *
@@ -76,4 +78,16 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     List<Long> selectIdsOfDynaFalseDataProcessTasktikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                         @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
+
+    List<Long> selectCycleBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize);
+
+    List<Long> selectRobNoPublicBlackListZYIdsByPage(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+                                                        @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
+    List<Long> selectRobNoPublicBlackListBYIdsByPage(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+                                                     @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
+
+    void batchUpdateNoPublicBlackListZYData(@Param("list") List<Long> list, @Param("extend") String extend);
+
+    void batchUpdateNoPublicBlackListBYData(@Param("list") List<Long> list, @Param("extend") String extend);
+
 }
