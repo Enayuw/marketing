@@ -228,7 +228,7 @@
         </if>
         order by a.id limit #{pageSize};
     </select>
-    <select id="selectCycleBlackListIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
+    <select id="selectRobPublicBlackListIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id from b_xiecheng_colliding_data_rob a
         join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 0
         where a.is_delete = 0
@@ -239,11 +239,10 @@
     </select>
 
     <select id="selectRobNoPublicBlackListZYIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
-        select a.id from b_xiecheng_colliding_data_rob a
+        select a.id from b_xiecheng_colliding_data_loop_cycle a
         join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
-        join ${tableName} c on a.cell_sha256_code_list = c.cell
-        left join ( ${queryRuleScoreDataSql} ) d on c.cell = d.cell
-        where a.is_delete = 0 and d.id is null
+        left join ( ${queryRuleScoreDataSql} ) c on c.cell = b.cell_sha256 and c.is_delete = 0
+        where a.is_delete = 0 and c.id is null
         <if test="minId != null and minId>0">
             and a.id > #{minId}
         </if>
@@ -251,11 +250,10 @@
     </select>
 
     <select id="selectRobNoPublicBlackListBYIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
-        select a.id from b_xiecheng_colliding_data_rob a
-        join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 2
-        join ${tableName} c on a.cell_sha256_code_list = c.cell
-        left join ( ${queryRuleScoreDataSql} ) d on c.cell = d.cell
-        where a.is_delete = 0 and d.id is null
+        select a.id from b_xiecheng_colliding_data_loop_cycle a
+        join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
+        left join ( ${queryRuleScoreDataSql} ) c on c.cell = b.cell_sha256 and c.is_delete = 0
+        where a.is_delete = 0 and c.id is null
         <if test="minId != null and minId>0">
             and a.id > #{minId}
         </if>

@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl.xc;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.XieChengBlackList;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.enums.XieChengBlackListEnum;
@@ -51,21 +52,26 @@ public class XieChengBlackEncAndDecJobServiceImpl implements XieChengBlackEncAnd
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.info ("携程撞库黑名单cell log解密,sha256加密：线程池关闭");
+                log.info ("携程撞库黑名单logCell解密,sha256加密：线程池关闭");
             }
         } catch (InterruptedException ex) {
             threadPool.shutdownNow();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), ex.getMessage()
-                    , "携程撞库黑名单cell log解密,sha256加密：日志保存线程池结束异常！"), ex);
+                    , "携程撞库黑名单logCell解密,sha256加密：日志保存线程池结束异常！"), ex);
             Thread.currentThread().interrupt();
         }
 
     }
 
-    void EncryptionConversion(List<XieChengBlackList> partition){
-        partition.forEach(t->{
-            String cell = EncAndDecUtil.logTodigest(t.getPhoneNumEncoded().trim(), ThreeKeyEncryptEnum.sha256);
-            t.setCellSha256(cell);
+    void EncryptionConversion(List<XieChengBlackList> partition) {
+        partition.forEach(t -> {
+            String cell = "";
+            try {
+                cell = EncAndDecUtil.logTodigest(t.getPhoneNumEncoded().trim(), ThreeKeyEncryptEnum.sha256);
+            } catch (Exception e) {
+                log.warn("携程撞库黑名单log解密-shar256加密异常,异常logCell:{}", t.getPhoneNumEncoded().trim());
+            }
+            t.setCellSha256(StringUtils.isNotBlank(cell) ? cell : "转换异常");
             t.setStatus(1);
             t.setGroupType(XieChengBlackListEnum.getValueByDesc(t.getGroupName()));
         });

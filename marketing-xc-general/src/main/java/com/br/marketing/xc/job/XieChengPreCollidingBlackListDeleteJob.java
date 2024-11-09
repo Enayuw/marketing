@@ -9,18 +9,22 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
-* @Description:携程撞库黑名单剔除
-* @Author: Ethan.Kang
-*/
+ * @Description:携程撞库前黑名单剔除
+ * @Author: Ethan.Kang
+ */
 @Component
 @Slf4j
 public class XieChengPreCollidingBlackListDeleteJob extends AbstractSimpleElasticJob {
 
     @Resource
     XieChengPreCollidingBlackListDeleteService service;
+
     @Override
-    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext){
+    public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
+        Long start = System.currentTimeMillis();
+        log.warn("携程撞库前黑名单剔除job任务开始");
         service.process();
+        log.warn("携程撞库前黑名单剔除job任务结束, 耗时:{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
 }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 
 /**
- * @Description:携程撞库黑名单log加密转sha256加密
+ * @Description:携程撞库黑名单log解密-sha256加密
  * @Author: Ethan.Kang
  */
 @Component
