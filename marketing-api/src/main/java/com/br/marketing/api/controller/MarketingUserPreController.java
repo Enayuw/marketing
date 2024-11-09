@@ -1,8 +1,6 @@
 package com.br.marketing.api.controller;
 
 import javax.annotation.Resource;
-
-import com.br.marketing.service.Impl.xc.XieChengBlackEncAndDecJobService;
 import com.br.marketing.service.Impl.xc.XieChengPreCollidingBlackListDeleteService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,9 +195,6 @@ public class MarketingUserPreController {
         RuntimeDataContext.getData().setUploadType(MonitorTypeEnum.UPLOAD_TYPE_1.getType());
         RuntimeDataContext.getData().setApiCode(apiCode);
         RuntimeDataContext.getData().setJsonData(jsonData);
-
-        service.process();
-        return null;
-        //return customerUploadDataService.receiveCustomizeUploadData(apiCode, jsonData);
+        return customerUploadDataService.receiveCustomizeUploadData(apiCode, jsonData);
     }
 }
