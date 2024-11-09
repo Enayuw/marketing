@@ -623,7 +623,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         } else {
             whereCondition = " where score.id is null";
         }
-        condition.append("select score.cell,score.id from (").append(dynaDataSql).append(") dyna left join (").append(scoreSql)
+        condition.append("select dyna.cell,dyna.id from (").append(dynaDataSql).append(") dyna left join (").append(scoreSql)
                 .append(") score on dyna.cell = score.cell ").append(whereCondition);
         return condition.toString();
     }
