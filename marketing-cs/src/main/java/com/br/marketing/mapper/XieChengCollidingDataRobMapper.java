@@ -81,9 +81,9 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     List<Long> selectRobPublicBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize);
 
-    List<Long> selectRobNoPublicBlackListZYIdsByPage(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+    List<Long> selectRobNoPublicBlackListZYIdsByPagetikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                         @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
-    List<Long> selectRobNoPublicBlackListBYIdsByPage(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+    List<Long> selectRobNoPublicBlackListBYIdsByPagetikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                      @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
 
     void batchUpdateNoPublicBlackListZYData(@Param("list") List<Long> list, @Param("extend") String extend);

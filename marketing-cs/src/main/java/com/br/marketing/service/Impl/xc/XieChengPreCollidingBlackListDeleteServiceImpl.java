@@ -141,7 +141,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 + tableName + " where " + conditions;
         Long minId = null;
         while (true) {
-            List<Long> ids = cycleMapper.selectCycleNoPublicBlackListBYIdsByPage(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
+            List<Long> ids = cycleMapper.selectCycleNoPublicBlackListBYIdsByPagetikv_(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
             if (CollectionUtils.isEmpty(ids)) {
                 break;
             }
@@ -151,7 +151,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 threadPool.submit(() -> {
                     try {
 
-                        String extend = DateUtils.format(new Date()) + ":百应业务黑名单剔除";
+                        String extend = DateUtils.format(new Date()) + " 百应业务黑名单剔除";
                         cycleMapper.batchUpdateNoPublicBlackListBYData(cycList, extend);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
@@ -171,7 +171,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 + tableName + " where " + conditions;
         Long minId = null;
         while (true) {
-            List<Long> ids = robMapper.selectRobNoPublicBlackListBYIdsByPage(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
+            List<Long> ids = robMapper.selectRobNoPublicBlackListBYIdsByPagetikv_(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
             if (CollectionUtils.isEmpty(ids)) {
                 break;
             }
@@ -180,7 +180,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             for (List<Long> cycList : partition) {
                 threadPool.submit(() -> {
                     try {
-                        String extend = DateUtils.format(new Date()) + ":百应业务黑名单剔除";
+                        String extend = DateUtils.format(new Date()) + " 百应业务黑名单剔除";
                         robMapper.batchUpdateNoPublicBlackListBYData(cycList, extend);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
@@ -200,7 +200,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 + tableName + " where " + conditions;
         Long minId = null;
         while (true) {
-            List<Long> ids = cycleMapper.selectCycleNoPublicBlackListZYIdsByPage(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
+            List<Long> ids = cycleMapper.selectCycleNoPublicBlackListZYIdsByPagetikv_(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
             if (CollectionUtils.isEmpty(ids)) {
                 break;
             }
@@ -210,7 +210,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 threadPool.submit(() -> {
                     try {
 
-                        String extend = DateUtils.format(new Date()) + ":自研AI业务黑名单剔除";
+                        String extend = DateUtils.format(new Date()) + " 自研AI业务黑名单剔除";
                         cycleMapper.batchUpdateNoPublicBlackListZYData(cycList, extend);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
@@ -230,7 +230,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 + tableName + " where " + conditions;
         Long minId = null;
         while (true) {
-            List<Long> ids = robMapper.selectRobNoPublicBlackListZYIdsByPage(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
+            List<Long> ids = robMapper.selectRobNoPublicBlackListZYIdsByPagetikv_(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
             if (CollectionUtils.isEmpty(ids)) {
                 break;
             }
@@ -240,7 +240,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 threadPool.submit(() -> {
                     try {
 
-                        String extend = DateUtils.format(new Date()) + ":自研AI业务黑名单剔除";
+                        String extend = DateUtils.format(new Date()) + " 自研AI业务黑名单剔除";
                         robMapper.batchUpdateNoPublicBlackListZYData(cycList, extend);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
@@ -264,7 +264,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             for (List<Long> cycList : partition) {
                 threadPool.submit(() -> {
                     try {
-                        String extend = DateUtils.format(new Date()) + ":公共黑名单剔除";
+                        String extend = DateUtils.format(new Date()) + " 公共黑名单剔除";
                         cycleMapper.batchUpdateCycPublicBlackListData(cycList, extend);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
@@ -287,7 +287,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             for (List<Long> cycList : partition) {
                 threadPool.submit(() -> {
                     try {
-                        String extend = DateUtils.format(new Date()) + ":公共黑名单剔除";
+                        String extend = DateUtils.format(new Date()) + " 公共黑名单剔除";
                         robMapper.batchUpdateBlackListData(cycList, extend);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()

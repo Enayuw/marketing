@@ -87,10 +87,10 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     */
     List<Long> selectCycleBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize);
 
-    List<Long> selectCycleNoPublicBlackListZYIdsByPage(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+    List<Long> selectCycleNoPublicBlackListZYIdsByPagetikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                                               @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
 
-    List<Long> selectCycleNoPublicBlackListBYIdsByPage(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+    List<Long> selectCycleNoPublicBlackListBYIdsByPagetikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                        @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
 
     void batchUpdateCycPublicBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);

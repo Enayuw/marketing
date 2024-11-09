@@ -49,7 +49,7 @@
         update_time = now()
         where id in
         <foreach collection="list" item="item" open="(" separator="," close=")">
-            #{item.id,jdbcType=BIGINT}
+            #{item,jdbcType=BIGINT}
         </foreach>
         and is_delete = 0
     </update>
@@ -238,8 +238,8 @@
         order by a.id limit #{pageSize};
     </select>
 
-    <select id="selectRobNoPublicBlackListZYIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
-        select a.id from b_xiecheng_colliding_data_loop_cycle a
+    <select id="selectRobNoPublicBlackListZYIdsByPagetikv_" parameterType="java.lang.String" resultType="java.lang.Long">
+        select a.id from b_xiecheng_colliding_data_rob a
         join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
         left join ( ${queryRuleScoreDataSql} ) c on c.cell = b.cell_sha256 and c.is_delete = 0
         where a.is_delete = 0 and c.id is null
@@ -249,8 +249,8 @@
         order by a.id limit #{pageSize};
     </select>
 
-    <select id="selectRobNoPublicBlackListBYIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
-        select a.id from b_xiecheng_colliding_data_loop_cycle a
+    <select id="selectRobNoPublicBlackListBYIdsByPagetikv_" parameterType="java.lang.String" resultType="java.lang.Long">
+        select a.id from b_xiecheng_colliding_data_rob a
         join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
         left join ( ${queryRuleScoreDataSql} ) c on c.cell = b.cell_sha256 and c.is_delete = 0
         where a.is_delete = 0 and c.id is null
@@ -269,21 +269,21 @@
         update_time = now()
         where id in
         <foreach collection="list" item="item" open="(" separator="," close=")">
-            #{item.id,jdbcType=BIGINT}
+            #{item,jdbcType=BIGINT}
         </foreach>
         and is_delete = 0
     </update>
 
     <update id="batchUpdateNoPublicBlackListBYData" parameterType="java.util.List">
         update
-        b_xiecheng_colliding_data_loop_cycle
+        b_xiecheng_colliding_data_rob
         set
         extend = #{extend},
         is_delete = 1,
         update_time = now()
         where id in
         <foreach collection="list" item="item" open="(" separator="," close=")">
-            #{item.id,jdbcType=BIGINT}
+            #{item,jdbcType=BIGINT}
         </foreach>
         and is_delete = 0
     </update>
