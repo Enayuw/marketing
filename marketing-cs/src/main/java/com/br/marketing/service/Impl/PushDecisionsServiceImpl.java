@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -239,6 +240,15 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
 
         // 4- 根据跑分配置 查询所有跑分文件
         List<TaskTemplateVO> files = straHisFileMapper.getFileByruleNameShorts(ruleNameShorts,dto.getApiCode());
+
+        // 根据fileId去重
+        files = new ArrayList<>(files.stream()
+                .collect(Collectors.toMap(
+                        TaskTemplateVO::getFileId,
+                        Function.identity(),
+                        (existing, replacement) -> existing
+                ))
+                .values());
 
         // 筛选出规则模板中已关联的跑分id，status置为1
         for (TaskTemplateVO taskTemplateVO : files) {
