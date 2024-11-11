@@ -163,7 +163,7 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
                     createTimeStart, createTimeEnd, taskStatus, conditionType, ruleNameShort);
             if(CollectionUtil.isEmpty(marketingTaskVOS)){
                 log.warn(TITLE + "当日跑分文件未执行完成:{}", JSONObject.toJSONString(marketingTaskVOS));
-                return marketingTaskVO;
+                return null;
             }
             marketingTaskVO = marketingTaskVOS.get(0);
 
