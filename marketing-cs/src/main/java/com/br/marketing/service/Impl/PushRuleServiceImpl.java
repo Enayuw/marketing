@@ -872,7 +872,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
             return dynaPackageDeleteCondition(jsonObject, batchNumberList, false);
         }
-        return null;
+        return "";
     }
 
     private XcProcessTaskEnum getTaskType(XieChengCollidingFilterDTO collidingFilterDTO) {
