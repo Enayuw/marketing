@@ -136,8 +136,21 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             }
             //数据切分，为了兼容跑分文件重复数据，业务侧若保证撞库本次跑分文件不重复，该段逻辑去掉
             List<List<XieChengCollidingDataLoopCycle>> dataLoopCycleLists = Lists.partition(list, 1500);
+            Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
+            String scoreCondition = customerInfoPushMain.getmScoreCondition();
+            Object lableObject = null;
+            if (StringUtils.isNotEmpty(scoreCondition)) {
+                if (markWithEsFlag) {
+                    lableObject = GeneScriptUtil.esLableScript(scoreCondition);
+                } else {
+                    lableObject = GeneScriptUtil.getScoreLables(scoreCondition, markWithEsFlag);
+                }
+            }
+            Object finalLableObject = lableObject;
             dataLoopCycleLists.forEach((List dataLoopCycleList) -> {
-                resList.add(threadPool.submit(() -> pushPolicy(dataLoopCycleList, numList, fileIds, customerInfoPushMain, threeEncrypt)));
+                resList.add(threadPool.submit(
+                        () -> pushPolicy(dataLoopCycleList, numList, fileIds,
+                                customerInfoPushMain, threeEncrypt, markWithEsFlag, finalLableObject)));
             });
         }
         try {
@@ -182,7 +195,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
 
 
     private Result<Integer> pushPolicy(List<XieChengCollidingDataLoopCycle> list, List<String> numList, List<Long> fileIds,
-                                       CustomerInfoPushMain customerInfoPushMain, Integer threeEncrypt) {
+                                       CustomerInfoPushMain customerInfoPushMain, Integer threeEncrypt, Boolean markWithEsFlag, Object lableObject) {
         Result<Integer> result = new Result<>();
         try {
             List<String> cells = list.stream().map(XieChengCollidingDataLoopCycle::getCellSha256CodeList).collect(Collectors.toList());
@@ -209,15 +222,13 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(jsonRule.toString());
-            String scoreCondition = customerInfoPushMain.getmScoreCondition();
-            boolean scFlag = StringUtils.isNotEmpty(scoreCondition);
-            Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
+            boolean scFlag = !ObjectUtils.isEmpty(lableObject);
             List<ScoreLable> scoreLables = null;
             if (scFlag) {
                 if (markWithEsFlag) {
-                    queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
+                    queryBaseBean.setScriptFields(lableObject.toString());
                 } else {
-                    scoreLables = GeneScriptUtil.getScoreLables(scoreCondition, markWithEsFlag);
+                    scoreLables = (List<ScoreLable>) lableObject;
                 }
             }
             //兼容数据重复的情况

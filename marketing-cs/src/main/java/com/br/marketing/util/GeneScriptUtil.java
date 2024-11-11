@@ -101,14 +101,6 @@ public class GeneScriptUtil {
                 .put(OPERATION_BETWEEN_RIGHT + SECTION_IDENTIFIER_RIGHT, OPERATOR_LESS).build();
     }
 
-    public static Map getlableOrders(String scoreLables) {
-        JSONArray array = JSON.parseArray(scoreLables);
-        for (Object obj : array) {
-
-        }
-        return null;
-    }
-
     /**
      * @description 生成es打标脚本
      * @param scoreLables
@@ -478,7 +470,7 @@ public class GeneScriptUtil {
             List<CrossIndexBean> listGroupByX = new ArrayList<>();
             for (Map.Entry<Pair<String, String>, List<CrossIndexBean>> entry : entriesByx) {
                 List<CrossIndexBean> listByX = entry.getValue();
-                Collections.sort(listByX, Comparator.comparing(CrossIndexBean::getYLeftValue));
+                listByX.sort(Comparator.comparingInt((CrossIndexBean bean) -> compareValue(bean, true)));
                 for (int i = listByX.size() - 1; i > 0; i--) {
                     CrossIndexBean later = listByX.get(i);
                     CrossIndexBean former = listByX.get(i-1);
@@ -497,7 +489,7 @@ public class GeneScriptUtil {
             List<CrossIndexBean> listGroupByY = new ArrayList<>();
             for (Map.Entry<Pair<String, String>, List<CrossIndexBean>> entry : entriesByY) {
                 List<CrossIndexBean> listByY = entry.getValue();
-                Collections.sort(listByY, Comparator.comparing(CrossIndexBean::getXLeftValue));
+                listByY.sort(Comparator.comparingInt((CrossIndexBean bean) -> compareValue(bean, false)));
                 for (int i = listByY.size() - 1; i > 0; i--) {
                     CrossIndexBean later = listByY.get(i);
                     CrossIndexBean former = listByY.get(i-1);
@@ -527,7 +519,7 @@ public class GeneScriptUtil {
                 jsonX.put("key", xKey);
                 if (StringUtils.isEmpty(crossIndexBean.getXLeftValue())) {
                     jsonX.put("operation", "=");
-                    jsonX.put("type", "");
+                    jsonX.put("value", "");
                 } else {
                     jsonX.put("operation", "between_right");
                     jsonX.put("value", crossIndexBean.getXLeftValue() + "," + crossIndexBean.getXRightValue());
@@ -536,7 +528,7 @@ public class GeneScriptUtil {
                 jsonY.put("key", yKey);
                 if (StringUtils.isEmpty(crossIndexBean.getYLeftValue())) {
                     jsonY.put("operation", "=");
-                    jsonY.put("type", "");
+                    jsonY.put("value", "");
                 } else {
                     jsonY.put("operation", "between_right");
                     jsonY.put("value", crossIndexBean.getYLeftValue() + "," + crossIndexBean.getYRightValue());
@@ -559,7 +551,7 @@ public class GeneScriptUtil {
                 }
             }
             //排序
-            Collections.sort(list, Comparator.comparing(SingleIndexBean::getLeftValue));
+            list.sort(Comparator.comparingInt((SingleIndexBean bean) -> compareValue(bean, null)));
             for (int i = list.size() - 1; i > 0; i--) {
                 SingleIndexBean later = list.get(i);
                 SingleIndexBean former = list.get(i - 1);
@@ -579,6 +571,32 @@ public class GeneScriptUtil {
                 singleIndexJson.put("key", singleKey);
                 singleIndexJson.put("operation", "between_right");
                 singleIndexJson.put("value", singleIndexBean.getLeftValue() + "," + singleIndexBean.getRightValue());
+            }
+        }
+    }
+
+    private static int compareValue(Object bean, Boolean isX) {
+        if (isX == null) {
+            SingleIndexBean singleIndexBean = (SingleIndexBean) bean;
+            if (StringUtils.isEmpty(singleIndexBean.getLeftValue())) {
+                return -1;
+            } else {
+                return Integer.parseInt(singleIndexBean.getLeftValue());
+            }
+        } else {
+            CrossIndexBean crossIndexBean = (CrossIndexBean) bean;
+            if (isX) {
+                if (StringUtils.isEmpty(crossIndexBean.getYLeftValue())) {
+                    return -1;
+                } else {
+                    return Integer.parseInt(crossIndexBean.getYLeftValue());
+                }
+            } else {
+                if (StringUtils.isEmpty(crossIndexBean.getXLeftValue())) {
+                    return -1;
+                } else {
+                    return Integer.parseInt(crossIndexBean.getXLeftValue());
+                }
             }
         }
     }

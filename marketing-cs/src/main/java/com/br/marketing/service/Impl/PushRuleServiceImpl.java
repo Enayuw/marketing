@@ -1076,7 +1076,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
-            boolean scFlag = ObjectUtils.isEmpty(lableObject);
+            boolean scFlag = !ObjectUtils.isEmpty(lableObject);
             List<ScoreLable> scoreLables = null;
             if (scFlag) {
                 if (markWithEsFlag) {
