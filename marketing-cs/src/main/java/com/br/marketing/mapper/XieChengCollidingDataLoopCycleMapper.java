@@ -2,9 +2,11 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.entity.CustomizeUploadData;
+import com.br.marketing.entity.XieChengCollidingBlackListCount;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
+import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -115,4 +117,5 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     int updateByTrueData(XieChengCollidingDataLoopCycle record);
 
     CustomizeUploadData selectActivateData(XieChengActivateDTO xieChengActivateDTO);
+
 }

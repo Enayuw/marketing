@@ -11,6 +11,7 @@
     <result column="actual_number" property="actualNumber" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="delete_number" property="deleteNumber" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -71,7 +72,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, colliding_data_task_id, batch_number, `type`, `status`, actual_number, create_time, update_time
+    id, api_code, colliding_data_task_id, batch_number, `type`, `status`, actual_number, create_time, update_time, delete_number
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XiechengCollidingTaskBatchExample" >
     select
@@ -108,11 +109,11 @@
       SELECT LAST_INSERT_ID()
     </selectKey>
     insert into b_xiecheng_colliding_task_batch (api_code, colliding_data_task_id, batch_number,
-      `type`,`status`,actual_number, create_time, update_time
+      `type`,`status`,actual_number, create_time, update_time, delete_number
       )
     values (#{apiCode,jdbcType=VARCHAR}, #{collidingDataTaskId,jdbcType=BIGINT}, #{batchNumber,jdbcType=VARCHAR},
       #{type,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}, #{actualNumber,jdbcType=INTEGER},
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{deleteNumber, jdbcType=VARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XiechengCollidingTaskBatch" >
@@ -145,6 +146,9 @@
       <if test="updateTime != null" >
         update_time,
       </if>
+      <if test="deleteNumber != null" >
+        delete_number,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="apiCode != null" >
@@ -170,6 +174,9 @@
       </if>
       <if test="updateTime != null" >
         #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteNumber != null" >
+        #{deleteNumber,jdbcType=LONGVARCHAR},
       </if>
     </trim>
   </insert>
@@ -209,6 +216,9 @@
       <if test="record.updateTime != null" >
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.deleteNumber != null" >
+        delete_number = #{record.deleteNumber,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -224,7 +234,8 @@
       `status` = #{record.status,jdbcType=INTEGER},
       actual_number = #{record.actualNumber,jdbcType=INTEGER},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      delete_number = #{record.deleteNumber,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -242,7 +253,7 @@
         batch_number = #{batchNumber,jdbcType=VARCHAR},
       </if>
       <if test="type != null" >
-        `status` = #{type,jdbcType=INTEGER},
+        `type` = #{type,jdbcType=INTEGER},
       </if>
       <if test="status != null" >
         `status` = #{status,jdbcType=INTEGER},
@@ -255,6 +266,9 @@
       </if>
       <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteNumber != null" >
+        delete_number = #{deleteNumber,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -269,6 +283,7 @@
       actual_number = #{actualNumber,jdbcType=INTEGER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}
+    delete_number = #{deleteNumber,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <select id="selectEarliestBatch" resultType="com.br.marketing.vo.XiechengCollidingTaskBatchVo" >
@@ -279,7 +294,8 @@
            batch.colliding_data_task_id as collidingDataTaskId,
            task.task_execution_conditions as taskExecutionConditions,
            task.task_status as taskStatus,
-           batch.create_time as createTime
+           batch.create_time as createTime,
+           batch.delete_number as deleteNumber
     from b_xiecheng_colliding_task_batch batch
            inner join b_xiecheng_colliding_data_process_task task
                       on batch.colliding_data_task_id = task.id

@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 import java.util.List;
 import java.util.Map;
 
+import com.br.marketing.entity.XieChengCollidingBlackListCount;
 import com.br.marketing.entity.XieChengCollidingDataPackage;
 import com.br.marketing.entity.XieChengCollidingDataRobPriority;
 import org.apache.ibatis.annotations.Param;

@@ -79,7 +79,7 @@
             distinct
         </if>
         <include refid="Base_Column_List"/>
-        from b_xiecheng_black_list
+        from b_xiecheng_colliding_data_black_list
         <if test="_parameter != null">
             <include refid="Example_Where_Clause"/>
         </if>
@@ -90,15 +90,15 @@
     <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
         select
         <include refid="Base_Column_List"/>
-        from b_xiecheng_black_list
+        from b_xiecheng_colliding_data_black_list
         where id = #{id,jdbcType=BIGINT}
     </select>
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-        delete from b_xiecheng_black_list
+        delete from b_xiecheng_colliding_data_black_list
         where id = #{id,jdbcType=BIGINT}
     </delete>
     <delete id="deleteByExample" parameterType="com.br.marketing.entity.XieChengBlackListExample">
-        delete from b_xiecheng_black_list
+        delete from b_xiecheng_colliding_data_black_list
         <if test="_parameter != null">
             <include refid="Example_Where_Clause"/>
         </if>
@@ -107,7 +107,7 @@
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_xiecheng_black_list (phone_num_encoded, group_name, group_type,
+        insert into b_xiecheng_colliding_data_black_list (phone_num_encoded, group_name, group_type,
         cell_sha256, `status`)
         values (#{phoneNumEncoded,jdbcType=VARCHAR}, #{groupName,jdbcType=VARCHAR}, #{groupType,jdbcType=INTEGER},
         #{cellSha256,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER})
@@ -116,7 +116,7 @@
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_xiecheng_black_list
+        insert into b_xiecheng_colliding_data_black_list
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="phoneNumEncoded != null">
                 phone_num_encoded,
@@ -154,13 +154,13 @@
     </insert>
     <select id="countByExample" parameterType="com.br.marketing.entity.XieChengBlackListExample"
             resultType="java.lang.Integer">
-        select count(*) from b_xiecheng_black_list
+        select count(*) from b_xiecheng_colliding_data_black_list
         <if test="_parameter != null">
             <include refid="Example_Where_Clause"/>
         </if>
     </select>
     <update id="updateByExampleSelective" parameterType="map">
-        update b_xiecheng_black_list
+        update b_xiecheng_colliding_data_black_list
         <set>
             <if test="record.id != null">
                 id = #{record.id,jdbcType=BIGINT},
@@ -186,7 +186,7 @@
         </if>
     </update>
     <update id="updateByExample" parameterType="map">
-        update b_xiecheng_black_list
+        update b_xiecheng_colliding_data_black_list
         set id = #{record.id,jdbcType=BIGINT},
         phone_num_encoded = #{record.phoneNumEncoded,jdbcType=VARCHAR},
         group_name = #{record.groupName,jdbcType=VARCHAR},
@@ -198,7 +198,7 @@
         </if>
     </update>
     <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.XieChengBlackList">
-        update b_xiecheng_black_list
+        update b_xiecheng_colliding_data_black_list
         <set>
             <if test="phoneNumEncoded != null">
                 phone_num_encoded = #{phoneNumEncoded,jdbcType=VARCHAR},
@@ -219,7 +219,7 @@
         where id = #{id,jdbcType=BIGINT}
     </update>
     <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengBlackList">
-        update b_xiecheng_black_list
+        update b_xiecheng_colliding_data_black_list
         set phone_num_encoded = #{phoneNumEncoded,jdbcType=VARCHAR},
         group_name = #{groupName,jdbcType=VARCHAR},
         group_type = #{groupType,jdbcType=INTEGER},
@@ -231,7 +231,7 @@
     <select id="selectByPage" resultType="com.br.marketing.entity.XieChengBlackList">
         select
         <include refid="Base_Column_List"/>
-        from b_xiecheng_black_list
+        from b_xiecheng_colliding_data_black_list
         where status = 0
         <if test="minId != null and minId>0">
             and id > #{minId}
@@ -240,7 +240,7 @@
     </select>
     <update id="batchUpdate" parameterType="java.util.List">
         update
-        b_xiecheng_black_list
+        b_xiecheng_colliding_data_black_list
         set
         group_type = #{item.groupType,jdbcType=INTEGER},
         cell_sha256 = #{item.cellSha256,jdbcType=VARCHAR},

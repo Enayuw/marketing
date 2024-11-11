@@ -230,7 +230,7 @@
     </select>
     <select id="selectRobPublicBlackListIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id from b_xiecheng_colliding_data_rob a
-        join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 0
+        join b_xiecheng_colliding_data_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 0
         where a.is_delete = 0
         <if test="minId != null and minId>0">
             and a.id > #{minId}
@@ -240,8 +240,9 @@
 
     <select id="selectRobNoPublicBlackListZYIdsByPagetikv_" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id from b_xiecheng_colliding_data_rob a
-        join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
-        left join ( ${queryRuleScoreDataSql} ) c on c.cell = b.cell_sha256 and c.is_delete = 0
+        join b_xiecheng_colliding_data_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
+        join ${tableName} d on d.cell = b.cell_sha256 and d.is_delete = 0
+        left join ( ${queryRuleScoreDataSql} ) c on c.cell = d.cell and c.is_delete = 0
         where a.is_delete = 0 and c.id is null
         <if test="minId != null and minId>0">
             and a.id > #{minId}
@@ -251,8 +252,9 @@
 
     <select id="selectRobNoPublicBlackListBYIdsByPagetikv_" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id from b_xiecheng_colliding_data_rob a
-        join b_xiecheng_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
-        left join ( ${queryRuleScoreDataSql} ) c on c.cell = b.cell_sha256 and c.is_delete = 0
+        join b_xiecheng_colliding_data_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
+        join ${tableName} d on d.cell = b.cell_sha256 and d.is_delete = 0
+        left join ( ${queryRuleScoreDataSql} ) c on c.cell = d.cell and c.is_delete = 0
         where a.is_delete = 0 and c.id is null
         <if test="minId != null and minId>0">
             and a.id > #{minId}
@@ -287,4 +289,5 @@
         </foreach>
         and is_delete = 0
     </update>
+
 </mapper>
