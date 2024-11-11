@@ -241,14 +241,16 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
             if (containsDatePlaceholder) {
                 String formattedDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
                 batchName = datasets.replaceFirst("(?i)yyyymmdd|YYYYMMDD", formattedDate);
-            } else {
-                batchName = LocalDate.now().toString()
-                        .concat("-")
-                        .concat(scoreSearchCondition.getName())
-                        .concat("-")
-                        .concat(LocalTime.now().withNano(0)
-                                .toString());
+            }else {
+                batchName = datasets;
             }
+        }else {
+            batchName = LocalDate.now().toString()
+                    .concat("-")
+                    .concat(scoreSearchCondition.getName())
+                    .concat("-")
+                    .concat(LocalTime.now().withNano(0)
+                            .toString());
         }
         pushMain.setBatchName(batchName);
         pushMain.setBuildType(BuildTypeEnum.AUTOBUILD.getCode());
