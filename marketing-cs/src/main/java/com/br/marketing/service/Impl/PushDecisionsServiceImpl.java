@@ -3,9 +3,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 
 import cn.hutool.core.collection.CollectionUtil;
 import com.br.marketing.client.RedisChgService;
@@ -32,7 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -68,10 +65,15 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板未配置数据源！");
         }
 
+        String fileIds = dto.getFileIds();
+        if(fileIds.isEmpty()){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未选择跑分文件！");
+        }
+
         // 更新依赖模板中数据源字段
         ScoreSearchCondition scoreSearchCondition1 = new ScoreSearchCondition();
         scoreSearchCondition1.setId(scoreSearchCondition.getId());
-        scoreSearchCondition1.setSourceCondition(dto.getFileIds());
+        scoreSearchCondition1.setSourceCondition(handleFileId(fileIds));
         scoreSearchConditionMapper.updateByPrimaryKeySelective(scoreSearchCondition1);
         // 查询推送决策是否重复
         PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
@@ -93,6 +95,14 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         pushDecisions.setUpdateTime(new Date());
         pushDecisionsMapper.insertSelective(pushDecisions);
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushDecisions.getId());
+    }
+
+    // fileIds去重
+    private String handleFileId(String fileIds) {
+        String[] elements = fileIds.split(",");
+        Set<String> uniqueElements = new HashSet<>(Arrays.asList(elements));
+        List<String> uniqueList = new ArrayList<>(uniqueElements);
+        return String.join(",", uniqueList);
     }
 
     @Override
@@ -172,10 +182,14 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         if (StringUtils.isEmpty(dto.getId())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("id为空");
         }
+        String fileIds = dto.getFileIds();
+        if(fileIds.isEmpty()){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未选择跑分文件！");
+        }
         // 更新依赖模板中数据源字段
         ScoreSearchCondition scoreSearchCondition = new ScoreSearchCondition();
         scoreSearchCondition.setId(dto.getDependencyTemplateId());
-        scoreSearchCondition.setSourceCondition(dto.getFileIds());
+        scoreSearchCondition.setSourceCondition(handleFileId(fileIds));
         scoreSearchConditionMapper.updateByPrimaryKeySelective(scoreSearchCondition);
         // 更新推送决策配置
         PushDecisions pushDecisions = new PushDecisions();
@@ -210,7 +224,7 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
             ids.add(sourceCondition);
         }
         if(CollectionUtil.isEmpty(ids)){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分文件为空,文件ids：" + ids);
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分文件为空,对应模板id：" + scoreSearchCondition.getId());
         }
         // 3- 根据跑分文件id查询跑分配置
         List<String> ruleNameShorts = straHisFileMapper.getFileById(ids);
