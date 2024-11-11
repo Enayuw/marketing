@@ -36,34 +36,33 @@ public class MQConsumerShutdown {
      */
     public void rocketmqDestroy() {
         try {
-            Map<String, DefaultRocketMQListenerContainer> defaultRocketMQListenerContainer = applicationContext.getBeansOfType(
+            Map<String, DefaultRocketMQListenerContainer> drlcMap = applicationContext.getBeansOfType(
                     DefaultRocketMQListenerContainer.class);
-            log.warn(defaultRocketMQListenerContainer.toString());
             if (log.isInfoEnabled()) {
-                log.info("rocketMQ消费者下线All，DefaultRocketMQListenerContainer：{}", defaultRocketMQListenerContainer);
+                log.info("rocketMQ消费者下线All，DefaultRocketMQListenerContainer：{}", drlcMap);
             }
-            Optional.ofNullable(defaultRocketMQListenerContainer).ifPresent(
+            Optional.ofNullable(drlcMap).ifPresent(
                     (Map<String, DefaultRocketMQListenerContainer> map) -> {
                         int size = map.size();
                         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(size, size, new SynchronousQueue<>()
                                 , "RocketMQ-Consumer-Shutdown");
                         CompletionService<DefaultMQPushConsumer> completionService = new ExecutorCompletionService<>(threadPool);
-                        map.forEach((String containerThreadName, DefaultRocketMQListenerContainer dlc) -> {
-                            completionService.submit(() -> {
-                                long startTime = System.currentTimeMillis();
-                                DefaultMQPushConsumer consumer = dlc.getConsumer();
-                                log.warn("rocketMQ消费者开始暂停订阅[{}]-[{}]，信息:{}", consumer.getConsumerGroup()
-                                        , containerThreadName, consumer);
-                                consumer.suspend();
-                                log.warn("rocketMQ消费者组开始下线[{}]-[{}]，信息:{}", dlc.getConsumerGroup()
-                                        , containerThreadName, dlc);
-                                dlc.destroy();
-                                long endTime = System.currentTimeMillis();
-                                log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s", dlc.getConsumerGroup()
-                                        , containerThreadName, ((endTime - startTime) / 1000));
-                                return consumer;
-                            });
-                        });
+                        map.forEach((String containerThreadName, DefaultRocketMQListenerContainer dlc) ->
+                                completionService.submit(() -> {
+                                    long startTime = System.currentTimeMillis();
+                                    DefaultMQPushConsumer consumer = dlc.getConsumer();
+                                    log.warn("rocketMQ消费者开始暂停订阅[{}]-[{}]，信息:{}", consumer.getConsumerGroup()
+                                            , containerThreadName, consumer);
+                                    consumer.suspend();
+                                    consumer.setPersistConsumerOffsetInterval(500);
+                                    log.warn("rocketMQ消费者组开始下线[{}]-[{}]，信息:{}", dlc.getConsumerGroup()
+                                            , containerThreadName, dlc);
+                                    dlc.destroy();
+                                    long endTime = System.currentTimeMillis();
+                                    log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s", dlc.getConsumerGroup()
+                                            , containerThreadName, ((endTime - startTime) / 1000));
+                                    return consumer;
+                                }));
                         for (int i = 0; i < size; i++) {
                             try {
                                 completionService.take().get();
