@@ -70,8 +70,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             ThreadPoolExecutor threadPool = getThreadPoolExecutor();
             //2.剔除流程
             deleteProcess(apiCode, XcProcessTaskEnum.PROCESS_DELETE, threadPool);
-            //3.当天所有剔除task是否全部剔除完成
-            if (!queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_DELETE.getTaskType())) {
+            //3.当天所有true剔除task是否全部剔除完成
+            if (!queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_FALSE)) {
                 threadPoolShutDown(threadPool);
                 return;
             }
@@ -93,8 +93,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) -> {
             //1.创建线程池
             ThreadPoolExecutor threadPool = getThreadPoolExecutor();
-            //2.当天所有清洗task是否全部完成
-            if (!queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_FALSE.getTaskType())) {
+            //2.当天所有true剔除&清洗task是否全部完成
+            if (!queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_DYNA_FALSE)) {
                 threadPoolShutDown(threadPool);
                 return;
             }
@@ -231,18 +231,24 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
     /**
      * @param apiCode
-     * @param taskType
+     * @param xcProcessTaskEnum
      * @return void
      * @description 当天所有指定类型的task是否全部剔除完成
      * @author hedongshuo
      * @date 2024/8/8 14:33
      **/
-    private boolean queryDeletingTaskCount(String apiCode, Integer taskType) {
+    private boolean queryDeletingTaskCount(String apiCode, XcProcessTaskEnum xcProcessTaskEnum) {
+        List<Integer> taskTypes = null;
+        if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_FALSE) {
+            taskTypes = Arrays.asList(1);
+        } else if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
+            taskTypes = Arrays.asList(0, 1);
+        }
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andTaskStartTimeEqualTo(getStartOfDate())
-                .andTaskTypeEqualTo(taskType)
+                .andTaskTypeIn(taskTypes)
                 .andTaskStatusNotEqualTo(2);
         int deletingTaskCount = taskMapper.countByExample(processTaskExample);
         if (deletingTaskCount > 0) {
