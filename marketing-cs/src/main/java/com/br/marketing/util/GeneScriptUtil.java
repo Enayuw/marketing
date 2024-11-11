@@ -101,6 +101,14 @@ public class GeneScriptUtil {
                 .put(OPERATION_BETWEEN_RIGHT + SECTION_IDENTIFIER_RIGHT, OPERATOR_LESS).build();
     }
 
+    public static Map getlableOrders(String scoreLables) {
+        JSONArray array = JSON.parseArray(scoreLables);
+        for (Object obj : array) {
+
+        }
+        return null;
+    }
+
     /**
      * @description 生成es打标脚本
      * @param scoreLables
@@ -158,11 +166,9 @@ public class GeneScriptUtil {
                 }
             }
             StringBuilder sourceBuilder = new StringBuilder();
-//            sourceBuilder.append(IF_FRAG_LEFT);
             JSONObject condition = jsonObject.getJSONObject("condition");
             mergeScoreRange(condition);
             process(sourceBuilder, condition, markWithEsFlag);
-//            sourceBuilder.append(PARENTHESIS_FRAG_RIGHT);
             scoreLable.setConditionSource(sourceBuilder.toString());
         }
         //list排序
@@ -552,7 +558,28 @@ public class GeneScriptUtil {
                     singleIndexBean.setRightValue(values.get(1));
                 }
             }
+            //排序
+            Collections.sort(list, Comparator.comparing(SingleIndexBean::getLeftValue));
+            for (int i = list.size() - 1; i > 0; i--) {
+                SingleIndexBean later = list.get(i);
+                SingleIndexBean former = list.get(i - 1);
+                if (later.getLeftValue().equals(former.getRightValue())) {
+                    former.setRightValue(later.getRightValue());
+                    list.remove(i);
+                }
+            }
+            //合并完，反显为Json
+            JSONArray array = new JSONArray();
+            condition.put("data", array);
+            for (int i = 0; i < list.size(); i++) {
+                SingleIndexBean singleIndexBean = list.get(i);
+                JSONObject singleIndexJson = new JSONObject();
+                array.set(i, singleIndexJson);
+                singleIndexJson.put("type", "operation");
+                singleIndexJson.put("key", singleKey);
+                singleIndexJson.put("operation", "between_right");
+                singleIndexJson.put("value", singleIndexBean.getLeftValue() + "," + singleIndexBean.getRightValue());
+            }
         }
-        return;
     }
 }
