@@ -213,7 +213,7 @@
                 cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
             </if>
             <if test="status != null">
-                `status` = #{status,jdbcType=INTEGER},
+                status = #{status,jdbcType=INTEGER},
             </if>
         </set>
         where id = #{id,jdbcType=BIGINT}
@@ -224,7 +224,7 @@
         group_name = #{groupName,jdbcType=VARCHAR},
         group_type = #{groupType,jdbcType=INTEGER},
         cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
-        `status` = #{status,jdbcType=INTEGER}
+        status = #{status,jdbcType=INTEGER}
         where id = #{id,jdbcType=BIGINT}
     </update>
 
@@ -238,13 +238,4 @@
         </if>
         order by id limit #{pageSize};
     </select>
-    <update id="batchUpdate" parameterType="java.util.List">
-        update
-        b_xiecheng_colliding_data_black_list
-        set
-        cell_sha256 = #{item.cellSha256,jdbcType=VARCHAR},
-        status = #{item.status,jdbcType=INTEGER}
-        where
-        id =#{item.id,jdbcType=BIGINT}
-    </update>
 </mapper>
