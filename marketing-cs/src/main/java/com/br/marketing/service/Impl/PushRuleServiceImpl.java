@@ -833,7 +833,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         XcProcessTaskEnum xcProcessTaskEnum = getTaskType(collidingFilterDTO);
         xiechengCollidingDataProcessTask.setTaskType(xcProcessTaskEnum.getTaskType());
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
-        xiechengCollidingDataProcessTask.setTaskExecutionSql(cycleDataDeleteQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime()));
+        xiechengCollidingDataProcessTask.setTaskExecutionSql(
+                getExecutionSql(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime(), xcProcessTaskEnum));
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         int i = xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
@@ -851,6 +852,27 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    /**
+     * @description 生成预估量级的sql：true剔除、false动态补充包剔除、黑名单剔除
+     * @param jsonObject
+     * @param batchNumberList
+     * @param cleanTime
+     * @param xcProcessTaskEnum
+     * @return java.lang.String
+     * @author hedongshuo
+     * @date 2024/11/10 14:28
+     **/
+    private String getExecutionSql(JSONObject jsonObject, List<String> batchNumberList,
+                                   String cleanTime, XcProcessTaskEnum xcProcessTaskEnum) {
+        if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DELETE) {
+            return cycleDataDeleteQuery(jsonObject, batchNumberList, cleanTime);
+        }
+        if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
+            return dynaPackageDeleteCondition(jsonObject, batchNumberList, false);
+        }
+        return null;
     }
 
     private XcProcessTaskEnum getTaskType(XieChengCollidingFilterDTO collidingFilterDTO) {
