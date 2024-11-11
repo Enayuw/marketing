@@ -9,11 +9,11 @@ public interface WuBaCollidingDataBusinessService {
     void insertToRobAndUpdateFront(List<WubaCollidingDataFront> wubaCollidingDataFronts, LocalFile localFile);
 
     /**
-     * 非金融数据进入非周期
+     * 非周期据进入非金融
      * @param cells
      * @param apiCode
      */
-    void saveLoopAnddeleteRob(List<String> cells, String apiCode);
+    void saveLoopAnddeleteRob(List<String> cells, String apiCode, String dataSourceType);
 
     /**
      * 金融数据进入非金融
@@ -30,11 +30,11 @@ public interface WuBaCollidingDataBusinessService {
     void deleteLoopAndSaveRob(List<String> data, String apiCode);
 
     /**
-     * 金融数据进入非周期
+     * 非周期数据进入金融
      * @param cells
      * @param apiCode
      */
-    void saveSecondLoopAnddeleteRob(List<String> cells, String apiCode);
+    void saveSecondLoopAnddeleteRob(List<String> cells, String apiCode, String dataSourceType);
 
     /**
      * 非金融数据进入金融
@@ -49,4 +49,28 @@ public interface WuBaCollidingDataBusinessService {
      * @param apiCode
      */
     void deleteSecondLoopAndSaveRob(List<String> data, String apiCode);
+
+    /**
+     * 非金融数据进入非金融status=-2撞库包
+     * @param cells
+     * @param apiCode
+     * @param packageId
+     */
+    void deleteLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId);
+
+    /**
+     * 金融数据进入金融status=-2撞库包
+     * @param cells
+     * @param apiCode
+     * @param packageId
+     */
+    void deleteSecondLoopAndSaveReavedIntoRob(List<String> cells, String apiCode, Long packageId);
+
+    /**
+     * 补包数据，进入补包status=-2撞库包
+     * @param cells
+     * @param apiCode
+     * @param packageId
+     */
+    void saveReavedIntoRob(List<String> cells, String apiCode, Long packageId, String sourceType);
 }

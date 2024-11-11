@@ -22,6 +22,7 @@ public interface MarketingSyncUserMapper {
     List<MarketingSyncUser> getUserById(@Param("apiCode") String apiCode, @Param("minId") Long minId, @Param("maxId") Long maxId, @Param("dataType") Integer dataType);
 
     MarketingSyncUser selectSynsUserByCustNumLast(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
+    MarketingSyncUser selectSynsUserByCustNumLastWithStatus(@Param("apiCode") String apiCode, @Param("custNum") String custNum);
 
     MarketingSyncUser selectSynsUserByCellLast(@Param("apiCode") String apiCode, @Param("cell") String cell);
 
@@ -352,8 +353,7 @@ public interface MarketingSyncUserMapper {
 
     List<MarketingSyncUser> getSyncUserByCondition(
             @Param("apiCode") String apiCode,
-            @Param("requestBatch") String requestBatch,
-            @Param("cusBatch") String cusBatch
+            @Param("requestBatch") String requestBatch
     );
 
     List<MarketingSyncUser> getSyncUserByCusBatch(@Param("apiCode") String apiCode,
@@ -398,9 +398,25 @@ public interface MarketingSyncUserMapper {
 
     int updateExtend(
             @Param("apiCode") String apiCode,
-            @Param("custNum") String custNum,
             @Param("extendList") List<Map<String, String>> extendList,
-            @Param("id") Long id,
-            @Param("idList") List<Long> idList
+            @Param("id") Long id
     );
+
+    List<MarketingSyncUser> selectByDynamicCondition(@Param("apiCode") String apiCode, @Param("sha256Cells") List<String> sha256Cells,
+                                                     @Param("whereStr") String whereStr);
+
+    /**
+     * 获取最新代运营数据
+     *
+     * @param apiCode  apiCode
+     * @param custs    案件编号集合
+     * @param cusBatch 批次号
+     * @param planId   计划号
+     * @return List
+     */
+    List<MarketingSyncUser> getSyncUserLastByCustNumsAndCusBatch(@Param("apiCode") String apiCode
+            , @Param("custNums") Set<String> custs
+            , @Param("cusBatch") Integer cusBatch
+            , @Param("planId") Long planId);
+
 }
