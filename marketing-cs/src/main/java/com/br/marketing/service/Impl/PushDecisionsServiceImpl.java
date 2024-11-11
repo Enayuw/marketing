@@ -92,6 +92,7 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         pushDecisions.setAutoTime(dto.getAutoTime());
         pushDecisions.setPushDatasets(dto.getPushDatasets());
         pushDecisions.setReachStrategy(dto.getReachStrategy());
+        pushDecisions.setAutoRefresh(dto.getAutoRefresh());
         pushDecisions.setCreateTime(new Date());
         pushDecisions.setUpdateTime(new Date());
         pushDecisionsMapper.insertSelective(pushDecisions);
@@ -199,6 +200,7 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         pushDecisions.setAutoTime(dto.getAutoTime());
         pushDecisions.setPushDatasets(dto.getPushDatasets());
         pushDecisions.setReachStrategy(dto.getReachStrategy());
+        pushDecisions.setAutoRefresh(dto.getAutoRefresh());
         pushDecisionsMapper.updateByPrimaryKeySelective(pushDecisions);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
