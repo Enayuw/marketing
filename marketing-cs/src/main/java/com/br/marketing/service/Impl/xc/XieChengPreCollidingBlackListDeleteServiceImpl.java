@@ -65,7 +65,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             Integer threadPoolSize = marketingCommonConfig.getXieChengCollidingDataProcessThread();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
             //2.当天所有动态包剔除任务是否全部完成
-            if (!queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_DYNA_FALSE.getTaskType())) {
+            if (!queryDeletingTaskCount(apiCode)) {
                 threadPoolShutDown(threadPool);
                 return;
             }
@@ -145,7 +145,6 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         String tableName = "b_xiecheng_colliding_" + batchNumber;
         String queryRuleScoreDataSql = "select id,cell,is_delete from "
                 + tableName + " where " + conditions;
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         AtomicInteger totalCount = new AtomicInteger(0);
         Long minId = null;
         while (true) {
@@ -155,6 +154,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
                 futures.add(CompletableFuture.runAsync(() -> {
                     try {
@@ -168,9 +168,9 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     }
                 }, threadPool));
             }
-
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
 
         XieChengBlackListDeleteNumber deleteNumber;
         String numberStr = vo.getDeleteNumber();
@@ -182,9 +182,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         }
         XiechengCollidingTaskBatch entity = new XiechengCollidingTaskBatch();
         entity.setId(vo.getId());
-        deleteNumber.setCycBlackListBYCount(totalCount.get()+deleteNumber.getCycBlackListBYCount());
+        deleteNumber.setCycBlackListBYCount(totalCount.get() + deleteNumber.getCycBlackListBYCount());
         entity.setDeleteNumber(JSONObject.toJSONString(deleteNumber));
         taskBatchMapper.updateByPrimaryKeySelective(entity);
+        vo.setDeleteNumber(entity.getDeleteNumber());
     }
 
 
@@ -195,7 +196,6 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         String queryRuleScoreDataSql = "select id,cell,is_delete from "
                 + tableName + " where " + conditions;
         AtomicInteger totalCount = new AtomicInteger(0);
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
         while (true) {
             List<Long> ids = robMapper.selectRobNoPublicBlackListBYIdsByPagetikv_(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
@@ -204,10 +204,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
                 futures.add(CompletableFuture.runAsync(() -> {
                     try {
-
                         String extend = DateUtils.format(new Date()) + " 百应业务黑名单剔除";
                         robMapper.batchUpdateNoPublicBlackListBYData(cycList, extend);
                         totalCount.addAndGet(cycList.size());
@@ -217,9 +217,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     }
                 }, threadPool));
             }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
         XieChengBlackListDeleteNumber deleteNumber;
         String numberStr = vo.getDeleteNumber();
         if (StringUtils.isBlank(numberStr)) {
@@ -230,9 +229,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         }
         XiechengCollidingTaskBatch entity = new XiechengCollidingTaskBatch();
         entity.setId(vo.getId());
-        deleteNumber.setRobBlackListBYCount(totalCount.get()+deleteNumber.getRobBlackListBYCount());
+        deleteNumber.setRobBlackListBYCount(totalCount.get() + deleteNumber.getRobBlackListBYCount());
         entity.setDeleteNumber(JSONObject.toJSONString(deleteNumber));
         taskBatchMapper.updateByPrimaryKeySelective(entity);
+        vo.setDeleteNumber(entity.getDeleteNumber());
     }
 
     private void deleteCycNoPublicBlackListZY(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
@@ -242,7 +242,6 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         String queryRuleScoreDataSql = "select id,cell,is_delete from "
                 + tableName + " where " + conditions;
         AtomicInteger totalCount = new AtomicInteger(0);
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
         while (true) {
             List<Long> ids = cycleMapper.selectCycleNoPublicBlackListZYIdsByPagetikv_(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
@@ -251,6 +250,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
                 futures.add(CompletableFuture.runAsync(() -> {
                     try {
@@ -264,8 +264,9 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     }
                 }, threadPool));
             }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
 
         XieChengBlackListDeleteNumber deleteNumber;
         String numberStr = vo.getDeleteNumber();
@@ -277,9 +278,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         }
         XiechengCollidingTaskBatch entity = new XiechengCollidingTaskBatch();
         entity.setId(vo.getId());
-        deleteNumber.setCycBlackListZYCount(totalCount.get()+deleteNumber.getCycBlackListZYCount());
+        deleteNumber.setCycBlackListZYCount(totalCount.get() + deleteNumber.getCycBlackListZYCount());
         entity.setDeleteNumber(JSONObject.toJSONString(deleteNumber));
         taskBatchMapper.updateByPrimaryKeySelective(entity);
+        vo.setDeleteNumber(entity.getDeleteNumber());
     }
 
     private void deleteRobNoPublicBlackListZY(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
@@ -323,16 +325,16 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         }
         XiechengCollidingTaskBatch entity = new XiechengCollidingTaskBatch();
         entity.setId(vo.getId());
-        deleteNumber.setRobBlackListZYCount(totalCount.get()+deleteNumber.getRobBlackListZYCount());
+        deleteNumber.setRobBlackListZYCount(totalCount.get() + deleteNumber.getRobBlackListZYCount());
         entity.setDeleteNumber(JSONObject.toJSONString(deleteNumber));
         taskBatchMapper.updateByPrimaryKeySelective(entity);
+        vo.setDeleteNumber(entity.getDeleteNumber());
     }
 
 
     private void deleteCycPublicBlackList(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
         Long minId = null;
         AtomicInteger totalCount = new AtomicInteger(0);
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
             List<Long> ids = cycleMapper.selectCycleBlackListIdsByPage(minId, PAGE_SIZE);
             if (CollectionUtils.isEmpty(ids)) {
@@ -340,6 +342,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
                 futures.add(CompletableFuture.runAsync(() -> {
                     try {
@@ -352,8 +355,9 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     }
                 }, threadPool));
             }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
 
         XieChengBlackListDeleteNumber deleteNumber;
         String numberStr = vo.getDeleteNumber();
@@ -364,15 +368,15 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         }
         XiechengCollidingTaskBatch entity = new XiechengCollidingTaskBatch();
         entity.setId(vo.getId());
-        deleteNumber.setCycPublicBlackListCount(totalCount.get()+deleteNumber.getCycPublicBlackListCount());
+        deleteNumber.setCycPublicBlackListCount(totalCount.get() + deleteNumber.getCycPublicBlackListCount());
         entity.setDeleteNumber(JSONObject.toJSONString(deleteNumber));
         taskBatchMapper.updateByPrimaryKeySelective(entity);
+        vo.setDeleteNumber(entity.getDeleteNumber());
     }
 
     private void deleteRobPublicBlackList(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
         Long minId = null;
         AtomicInteger totalCount = new AtomicInteger(0);
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         while (true) {
             List<Long> ids = robMapper.selectRobPublicBlackListIdsByPage(minId, PAGE_SIZE);
             if (CollectionUtils.isEmpty(ids)) {
@@ -380,6 +384,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
                 futures.add(CompletableFuture.runAsync(() -> {
                     try {
@@ -404,10 +409,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             XiechengCollidingTaskBatch entity = new XiechengCollidingTaskBatch();
             entity.setId(vo.getId());
-            deleteNumber.setRobPublicBlackListCount(totalCount.get()+deleteNumber.getRobPublicBlackListCount());
+            deleteNumber.setRobPublicBlackListCount(totalCount.get() + deleteNumber.getRobPublicBlackListCount());
             entity.setDeleteNumber(JSONObject.toJSONString(deleteNumber));
             taskBatchMapper.updateByPrimaryKeySelective(entity);
-
+            vo.setDeleteNumber(entity.getDeleteNumber());
         }
     }
 
@@ -435,14 +440,16 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         long deletingBatchCount = batchList.stream().filter(batch -> batch.getStatus() == 0 || batch.getStatus() == 1).count();
         if (deletingBatchCount == 0) {
             for (int i = 0; i < batchList.size(); i++) {
-                XieChengBlackListDeleteNumber number = JSONObject.parseObject(batchList.get(i).getDeleteNumber(), XieChengBlackListDeleteNumber.class);
+                XieChengBlackListDeleteNumber number = JSONObject.parseObject(batchList.get(i).getDeleteNumber(),
+                        XieChengBlackListDeleteNumber.class);
                 cycPublicBlackListCount += number.getCycPublicBlackListCount();
                 robPublicBlackListCount += number.getRobPublicBlackListCount();
                 cycBlackListZYCount += number.getCycBlackListZYCount();
                 cycBlackListBYCount += number.getCycBlackListBYCount();
                 robBlackListZYCount += number.getRobBlackListZYCount();
                 robBlackListBYCount += number.getRobBlackListBYCount();
-                totalCount += (cycPublicBlackListCount + robPublicBlackListCount + cycBlackListZYCount + cycBlackListBYCount + robBlackListZYCount + robBlackListBYCount);
+                totalCount += (cycPublicBlackListCount + robPublicBlackListCount + cycBlackListZYCount +
+                        cycBlackListBYCount + robBlackListZYCount + robBlackListBYCount);
             }
 
             XiechengCollidingDataProcessTask processTask = new XiechengCollidingDataProcessTask();
@@ -454,7 +461,6 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             taskMapper.updateByPrimaryKeySelective(processTask);
 
             //3.剔除量级统计发送钉钉
-
             StringBuilder msg = new StringBuilder();
             msg.append(DateUtils.format(new Date()) + "携程撞库黑名单剔除量级统计:\n");
             msg.append("周期公共黑名单剔除量级: " + cycPublicBlackListCount + "\n");
@@ -495,18 +501,17 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
 
     /**
      * @param apiCode
-     * @param taskType
      * @return void
      * @description 当天所有指定类型的task是否全部剔除完成
      * @author KP
      * @date 2024/8/8 14:33
      **/
-    private boolean queryDeletingTaskCount(String apiCode, Integer taskType) {
+    private boolean queryDeletingTaskCount(String apiCode) {
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
                 .andApiCodeEqualTo(apiCode)
                 .andTaskStartTimeEqualTo(getStartOfDate())
-                .andTaskTypeEqualTo(taskType)
+                .andTaskTypeIn(Arrays.asList(0, 1, 3))
                 .andTaskStatusNotEqualTo(2);
         int deletingTaskCount = taskMapper.countByExample(processTaskExample);
         if (deletingTaskCount > 0) {

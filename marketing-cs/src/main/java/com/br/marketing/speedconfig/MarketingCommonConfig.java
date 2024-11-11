@@ -535,7 +535,7 @@ public class MarketingCommonConfig {
     /**
      * 携程撞库黑名单加解密线程数
      */
-    private Integer XieChengBlackEncAndDecThread;
+    private Integer xieChengBlackEncAndDecThread;
 
     /**
      * 携程短信撞库线程数重试
@@ -2293,6 +2293,7 @@ public class MarketingCommonConfig {
      * eg:{"B_GUME":["3710076", "7492805"]}
      */
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
+
 
 }
 
