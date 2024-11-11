@@ -4,7 +4,9 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.entity.XieChengBlackList;
+import com.br.marketing.entity.XieChengBlackListExample;
 import com.br.marketing.enums.ThreeKeyEncryptEnum;
 import com.br.marketing.enums.XieChengBlackListEnum;
 import com.br.marketing.mapper.XieChengBlackListMapper;
@@ -15,7 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 @Service
@@ -45,7 +49,13 @@ public class XieChengBlackEncAndDecJobServiceImpl implements XieChengBlackEncAnd
             for (List<XieChengBlackList> partition : partitions) {
                 //加密转换(log解密,sha256加密)
                 EncryptionConversion(partition);
-                threadPool.submit(() -> blackListMapper.batchUpdate(partition));
+                List<CompletableFuture<Void>> futures = new ArrayList<>();
+                partition.forEach(t -> {
+                    futures.add(CompletableFuture.runAsync(() -> {
+                        blackListMapper.updateByPrimaryKey(t);
+                    },threadPool));
+                });
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             }
         }
         // 关闭线程池
@@ -73,7 +83,6 @@ public class XieChengBlackEncAndDecJobServiceImpl implements XieChengBlackEncAnd
             }
             t.setCellSha256(StringUtils.isNotBlank(cell) ? cell : "转换异常");
             t.setStatus(1);
-            t.setGroupType(XieChengBlackListEnum.getValueByDesc(t.getGroupName()));
         });
     }
 

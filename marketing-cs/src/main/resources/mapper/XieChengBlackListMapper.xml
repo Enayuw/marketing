@@ -242,13 +242,9 @@
         update
         b_xiecheng_colliding_data_black_list
         set
-        group_type = #{item.groupType,jdbcType=INTEGER},
         cell_sha256 = #{item.cellSha256,jdbcType=VARCHAR},
-        status = #{item.groupType,jdbcType=INTEGER}
+        status = #{item.status,jdbcType=INTEGER}
         where
-        id in
-        <foreach collection="list" item="item" open="(" separator="," close=")">
-            #{item.id,jdbcType=BIGINT}
-        </foreach>
+        id =#{item.id,jdbcType=BIGINT}
     </update>
 </mapper>
