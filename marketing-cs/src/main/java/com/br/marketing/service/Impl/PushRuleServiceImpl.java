@@ -965,9 +965,18 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         log.warn("推送决策查询量级核对完成，任务id：{}", customerInfoPushMain.getId());
         Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
+        String scoreCondition = customerInfoPushMain.getmScoreCondition();
+        Object lableObject = null;
+        if (StringUtils.isNotEmpty(scoreCondition)) {
+            if (markWithEsFlag) {
+                lableObject = GeneScriptUtil.esLableScript(scoreCondition);
+            } else {
+                lableObject = GeneScriptUtil.getScoreLables(scoreCondition, markWithEsFlag);
+            }
+        }
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
-                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag)));
+                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag, lableObject)));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
         try {
@@ -1042,10 +1051,12 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         private Boolean markWithEsFlag;
 
+        private Object lableObject;
+
         public actionEs(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag, Object lableObject) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -1055,6 +1066,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             this.isPerOrTop = isPerOrTop;
             this.partDataNum = partDataNum;
             this.markWithEsFlag = markWithEsFlag;
+            this.lableObject = lableObject;
         }
 
         @Override
@@ -1064,15 +1076,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
-            String scoreCondition = customerInfoPushMain.getmScoreCondition();
-            boolean scFlag = StringUtils.isNotEmpty(scoreCondition);
+            boolean scFlag = ObjectUtils.isEmpty(lableObject);
             List<ScoreLable> scoreLables = null;
             if (scFlag) {
                 if (markWithEsFlag) {
                     //赋值es脚本
-                    queryBaseBean.setScriptFields(GeneScriptUtil.esLableScript(scoreCondition));
+                    queryBaseBean.setScriptFields(lableObject.toString());
                 } else {
-                    scoreLables = GeneScriptUtil.getScoreLables(scoreCondition, markWithEsFlag);
+                    scoreLables = (List<ScoreLable>) lableObject;
                 }
             }
             if (!isPerOrTop) {

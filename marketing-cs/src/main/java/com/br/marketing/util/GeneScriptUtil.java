@@ -3,9 +3,12 @@ package com.br.marketing.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.bean.CrossIndexBean;
 import com.br.marketing.common.bean.ScoreLable;
+import com.br.marketing.common.bean.SingleIndexBean;
 import com.br.marketing.common.utils.StringUtils;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
@@ -157,6 +160,7 @@ public class GeneScriptUtil {
             StringBuilder sourceBuilder = new StringBuilder();
 //            sourceBuilder.append(IF_FRAG_LEFT);
             JSONObject condition = jsonObject.getJSONObject("condition");
+            mergeScoreRange(condition);
             process(sourceBuilder, condition, markWithEsFlag);
 //            sourceBuilder.append(PARENTHESIS_FRAG_RIGHT);
             scoreLable.setConditionSource(sourceBuilder.toString());
@@ -398,5 +402,157 @@ public class GeneScriptUtil {
             }
         }
         return null;
+    }
+
+    public static void mergeScoreRange(JSONObject condition) {
+        if (!"logic".equals(condition.getString("type"))) {
+            return;
+        }
+        if (!"or".equals(condition.getString("logic"))) {
+            return;
+        }
+        JSONArray data = condition.getJSONArray("data");
+        if (data.size() == 0) {
+            return;
+        }
+        JSONObject sample = JSON.parseObject(data.get(0).toString());
+        if ("logic".equals(sample.getString("type"))) {
+            JSONArray crossSample = sample.getJSONArray("data");
+            JSONObject xSample = JSON.parseObject(crossSample.get(0).toString());
+            String xKey = xSample.getString("key");
+            JSONObject ySample = JSON.parseObject(crossSample.get(1).toString());
+            String yKey = ySample.getString("key");
+            List<CrossIndexBean> list = new ArrayList<>();
+            for (int i = 0; i < data.size(); i++) {
+                CrossIndexBean crossIndexBean = new CrossIndexBean();
+                list.add(crossIndexBean);
+                JSONObject dataJson = JSON.parseObject(data.get(i).toString());
+                JSONArray crossIndex = dataJson.getJSONArray("data");
+                JSONObject indexOne = JSON.parseObject(crossIndex.get(0).toString());
+                JSONObject indexTwo = JSON.parseObject(crossIndex.get(1).toString());
+                List<String> valuesOne = Arrays.asList(indexOne.getString("value").split(","));
+                List<String> valuesTwo = Arrays.asList(indexTwo.getString("value").split(","));
+                if (xKey.equals(indexOne.getString("key"))) {
+                    if (valuesOne.size() < 2) {
+                        crossIndexBean.setXLeftValue("");
+                        crossIndexBean.setXRightValue("");
+                    } else {
+                        crossIndexBean.setXLeftValue(valuesOne.get(0));
+                        crossIndexBean.setXRightValue(valuesOne.get(1));
+                    }
+                    if (valuesTwo.size() < 2) {
+                        crossIndexBean.setYLeftValue("");
+                        crossIndexBean.setYRightValue("");
+                    } else {
+                        crossIndexBean.setYLeftValue(valuesTwo.get(0));
+                        crossIndexBean.setYRightValue(valuesTwo.get(1));
+                    }
+                } else {
+                    if (valuesOne.size() < 2) {
+                        crossIndexBean.setYLeftValue("");
+                        crossIndexBean.setYRightValue("");
+                    } else {
+                        crossIndexBean.setYLeftValue(valuesOne.get(0));
+                        crossIndexBean.setYRightValue(valuesOne.get(1));
+                    }
+                    if (valuesTwo.size() < 2) {
+                        crossIndexBean.setXLeftValue("");
+                        crossIndexBean.setXRightValue("");
+                    } else {
+                        crossIndexBean.setXLeftValue(valuesTwo.get(0));
+                        crossIndexBean.setXRightValue(valuesTwo.get(1));
+                    }
+                }
+            }
+            //根据x分组，y排序，y合并
+            Map<Pair<String, String>, List<CrossIndexBean>> MapByX = list.stream()
+                    .collect(Collectors.groupingBy(
+                            p -> Pair.of(p.getXLeftValue(), p.getXRightValue())));
+            Set<Map.Entry<Pair<String, String>, List<CrossIndexBean>>> entriesByx = MapByX.entrySet();
+            List<CrossIndexBean> listGroupByX = new ArrayList<>();
+            for (Map.Entry<Pair<String, String>, List<CrossIndexBean>> entry : entriesByx) {
+                List<CrossIndexBean> listByX = entry.getValue();
+                Collections.sort(listByX, Comparator.comparing(CrossIndexBean::getYLeftValue));
+                for (int i = listByX.size() - 1; i > 0; i--) {
+                    CrossIndexBean later = listByX.get(i);
+                    CrossIndexBean former = listByX.get(i-1);
+                    if (later.getYLeftValue().equals(former.getYRightValue())) {
+                        former.setYRightValue(later.getYRightValue());
+                        listByX.remove(i);
+                    }
+                }
+                listGroupByX.addAll(listByX);
+            }
+            //根据y分组，x排序，x合并
+            Map<Pair<String, String>, List<CrossIndexBean>> MapByY = listGroupByX.stream()
+                    .collect(Collectors.groupingBy(
+                            p -> Pair.of(p.getYLeftValue(), p.getYRightValue())));
+            Set<Map.Entry<Pair<String, String>, List<CrossIndexBean>>> entriesByY = MapByY.entrySet();
+            List<CrossIndexBean> listGroupByY = new ArrayList<>();
+            for (Map.Entry<Pair<String, String>, List<CrossIndexBean>> entry : entriesByY) {
+                List<CrossIndexBean> listByY = entry.getValue();
+                Collections.sort(listByY, Comparator.comparing(CrossIndexBean::getXLeftValue));
+                for (int i = listByY.size() - 1; i > 0; i--) {
+                    CrossIndexBean later = listByY.get(i);
+                    CrossIndexBean former = listByY.get(i-1);
+                    if (later.getXLeftValue().equals(former.getXRightValue())) {
+                        former.setXRightValue(later.getXRightValue());
+                        listByY.remove(i);
+                    }
+                }
+                listGroupByY.addAll(listByY);
+            }
+            //合并完，反显为Json
+            JSONArray array = new JSONArray();
+            condition.put("data", array);
+            for (int i = 0; i < listGroupByY.size(); i++) {
+                CrossIndexBean crossIndexBean = listGroupByY.get(i);
+                JSONObject crossIndexJson = new JSONObject();
+                array.set(i, crossIndexJson);
+                crossIndexJson.put("type", "logic");
+                crossIndexJson.put("logic", "and");
+                JSONArray innerData = new JSONArray();
+                crossIndexJson.put("data", innerData);
+                JSONObject jsonX = new JSONObject();
+                JSONObject jsonY = new JSONObject();
+                innerData.set(0, jsonX);
+                innerData.set(1, jsonY);
+                jsonX.put("type", "operation");
+                jsonX.put("key", xKey);
+                if (StringUtils.isEmpty(crossIndexBean.getXLeftValue())) {
+                    jsonX.put("operation", "=");
+                    jsonX.put("type", "");
+                } else {
+                    jsonX.put("operation", "between_right");
+                    jsonX.put("value", crossIndexBean.getXLeftValue() + "," + crossIndexBean.getXRightValue());
+                }
+                jsonY.put("type", "operation");
+                jsonY.put("key", yKey);
+                if (StringUtils.isEmpty(crossIndexBean.getYLeftValue())) {
+                    jsonY.put("operation", "=");
+                    jsonY.put("type", "");
+                } else {
+                    jsonY.put("operation", "between_right");
+                    jsonY.put("value", crossIndexBean.getYLeftValue() + "," + crossIndexBean.getYRightValue());
+                }
+            }
+        } else {
+            String singleKey = sample.getString("key");
+            List<SingleIndexBean> list = new ArrayList<>();
+            for (int i = 0; i < data.size(); i++) {
+                SingleIndexBean singleIndexBean = new SingleIndexBean();
+                list.add(singleIndexBean);
+                JSONObject singleIndex = JSON.parseObject(data.get(i).toString());
+                List<String> values = Arrays.asList(singleIndex.getString("value").split(","));
+                if (values.size() < 2) {
+                    singleIndexBean.setLeftValue("");
+                    singleIndexBean.setRightValue("");
+                } else {
+                    singleIndexBean.setLeftValue(values.get(0));
+                    singleIndexBean.setRightValue(values.get(1));
+                }
+            }
+        }
+        return;
     }
 }
