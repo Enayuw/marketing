@@ -92,7 +92,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -152,9 +152,9 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                     final MqFact mqFact = new MqFact();
                     mqFact.setSourceId(callRecord.getId());
                     mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
-                    if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                    if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                         String message = JSON.toJSONString(mqFact);
-                        template.syncSend(MarketingTransferConstants.TOPIC
+                        rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                                 , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
                     }else{
                         producter.sendToUniversalTransferQueue(mqFact);

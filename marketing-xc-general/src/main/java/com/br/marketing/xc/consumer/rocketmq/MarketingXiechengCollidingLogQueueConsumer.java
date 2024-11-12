@@ -36,7 +36,7 @@ public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageLis
     @Resource
     private XieChengCollidingDataLogService xieChengCollidingDataLogService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
 
     @Override
     protected String consumerName() {
@@ -46,7 +46,7 @@ public class MarketingXiechengCollidingLogQueueConsumer extends BaseMqMessageLis
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
             log.warn("MARKETING_XIECHENG_COLLIDING_LOG_QUEUE：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

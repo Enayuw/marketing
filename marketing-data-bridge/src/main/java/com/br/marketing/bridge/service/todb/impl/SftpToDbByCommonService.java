@@ -60,7 +60,7 @@ public class SftpToDbByCommonService {
     @Resource
     private RocketMqTemplate template;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     LocalFileMapper localFileMapper;
     @Value("${api.dass.aesKey:00}")
@@ -369,8 +369,8 @@ public class SftpToDbByCommonService {
             if (StringUtils.isNotBlank(fileDbConfig.getRouteKey())) {
                 String routeKey = fileDbConfig.getRouteKey();
                 String msg = localFile.getId().toString();
-                if(rocketMQSwitch.rocketMQSwitchFlag(fileDbConfig.getApiCode(), routeKey)){
-                    template.syncSend(MarketingAssistConstants.TOPIC, routeKey, msg);
+                if(rocketMqSwitch.rocketMQSwitchFlag(fileDbConfig.getApiCode(), routeKey)){
+                    rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC, routeKey, msg);
                 }else{
                     producter.send(routeKey, msg);
                 }

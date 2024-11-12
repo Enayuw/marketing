@@ -56,7 +56,7 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
     @Autowired
     RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -122,9 +122,9 @@ public class PPDTransferServiceImpl implements IPPDTransferService {
                 mqFact.setIncludeRules(Sets.newHashSet("PPD_TransferData_ArtificialTransfer"));
                 mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
                 mqFact.setMessage(JSONObject.toJSONString(paramMessage));
-                if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                     String message = JSON.toJSONString(mqFact);
-                    template.syncSend(MarketingTransferConstants.TOPIC
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                             , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
                 }else{
                     producter.sendToUniversalTransferQueue(mqFact);

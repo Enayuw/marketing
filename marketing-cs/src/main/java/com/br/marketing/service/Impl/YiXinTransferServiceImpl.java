@@ -82,7 +82,7 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
     @Autowired
     RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -383,8 +383,8 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
                         mq.setIncludeRules(rule);
                         mq.setMessage(JSON.toJSONString(jo));
                         String mqStr = JSON.toJSONString(mq);
-                        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
-                            template.syncSend(MarketingTransferConstants.TOPIC
+                        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                            rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                                     , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
                         }else{
                             producter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqStr);
@@ -689,9 +689,9 @@ public class YiXinTransferServiceImpl implements IYiXinTransferService {
         mqFact.setIncludeRules(Sets.newHashSet("YiXin_NonRealTime_CustomerTransfer"));
         mqFact.setSource(TransferSource.TRANSFER_DATA_SET_PROCESS.getCode());
         mqFact.setMessage(JSONObject.toJSONString(paramMessage));
-        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
             String message = JSON.toJSONString(mqFact);
-            template.syncSend(MarketingTransferConstants.TOPIC
+            rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                     , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
         }else{
             producter.sendToUniversalTransferQueue(mqFact);

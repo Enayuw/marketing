@@ -72,7 +72,7 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private AlarmApiClient alarmClient;
     @Autowired
@@ -250,8 +250,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
             }
         }
         if (infoId != null) {
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE)){
-                template.syncSend(MarketingUploadConstants.TOPIC, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE)){
+                rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE
                         , infoId.toString());
             }else{
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, infoId.toString());
@@ -319,8 +319,8 @@ public class PushShuheDataServiceImpl implements IPushShuheDataService {
         }
         if (infoId != null) {
             String idString = infoId.toString();
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE)){
-                template.syncSend(MarketingUploadConstants.TOPIC, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE)){
+                rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC, MarketingUploadConstants.TAG_MARKETING_PRE_USER_SHUHE_RECEIVE
                         , idString);
             }else{
                 producter.send(MQConstants.ROUTING_KEY_MARKETING_PRE_USER_SHUHERECEIVE, idString);

@@ -38,7 +38,7 @@ public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener im
     @Autowired
     MergeWithMessageServiceImpl mergeWithMessageService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -49,7 +49,7 @@ public class MarketingPushTaskFileMergeConsumer extends BaseMqMessageListener im
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE)){
             log.warn("Marketing_PushTask_File_Merge：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()
                     , messageExt.getBrokerName(), messageExt.getTopic()

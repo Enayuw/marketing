@@ -42,7 +42,7 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -72,9 +72,9 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                     JSONObject msg = new JSONObject();
                     msg.put("localId", dto.getInitId());
                     msg.put("type", 2);
-                    if(rocketMQSwitch.rocketMQSwitchFlag(xieChengData.getApiCode()
+                    if(rocketMqSwitch.rocketMQSwitchFlag(xieChengData.getApiCode()
                             , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
-                        template.syncSend(MarketingAssistConstants.TOPIC
+                        rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC
                                 , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
                     }else{
                         producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE
@@ -91,8 +91,8 @@ public class XieChengVTPushHandler extends AbstractExternalInterfaceHandler<XieC
                 mqFact.setIncludeRules(set);
                 mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                 String message = JSON.toJSONString(mqFact);
-                if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
-                    template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
+                if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
+                    rocketMqSwitch.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                             , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
                             , Integer.parseInt(expireTime)/1000);
                 }else{

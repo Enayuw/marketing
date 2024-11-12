@@ -38,7 +38,7 @@ public class MarketingPushTaskFileMergeErrorDelayConsumer extends BaseMqMessageL
     @Autowired
     MergeWithMessageServiceImpl mergeWithMessageService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -49,7 +49,7 @@ public class MarketingPushTaskFileMergeErrorDelayConsumer extends BaseMqMessageL
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingDelayedConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingDelayedConstants.TAG_MARKETING_PUSHTASK_FILE_MERGE_ERRORDELAY)){
             log.warn("Marketing_PushTask_File_Merge_ErrorDelay：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

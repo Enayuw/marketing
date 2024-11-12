@@ -87,7 +87,7 @@ public class VariableDicServiceImpl implements VariableDicService {
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -401,8 +401,8 @@ public class VariableDicServiceImpl implements VariableDicService {
                 Boolean exists = redisChgService.exists(key);
                 if (!exists) {
                     // 不存在添加延迟队列
-                    if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
-                        template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
+                    if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
+                        rocketMqSwitch.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                                 , MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key,(int)ttl/1000);
                     }else{
                         producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key
@@ -437,8 +437,8 @@ public class VariableDicServiceImpl implements VariableDicService {
                     long ttl = ChronoUnit.MILLIS.between(localDateTime, localDateTime.toLocalDate()
                             .plusDays(day).atTime(startParse).atZone(ZoneId.systemDefault()));
                     // 不存在添加延迟队列
-                    if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
-                        template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
+                    if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
+                        rocketMqSwitch.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                                 , MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE, key,(int)ttl/1000);
                     }else{
                         producter.sendByExpiration(MQConstants.ROUTING_KEY_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE,

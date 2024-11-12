@@ -38,7 +38,7 @@ public class MarketingOffLineTaskFileCallBackErrorDelayConsumer extends BaseMqMe
     @Autowired
     MergeWithMessageServiceImpl mergeWithMessageService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -49,7 +49,7 @@ public class MarketingOffLineTaskFileCallBackErrorDelayConsumer extends BaseMqMe
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingDelayedConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingDelayedConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK_ERRORDELAY)){
             log.warn("Marketing_OffLineTask_File_CallBack_ErrorDelay：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

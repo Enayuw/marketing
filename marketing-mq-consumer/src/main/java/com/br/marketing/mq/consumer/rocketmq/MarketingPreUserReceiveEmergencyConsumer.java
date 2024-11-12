@@ -36,7 +36,7 @@ public class MarketingPreUserReceiveEmergencyConsumer extends BaseMqMessageListe
     @Autowired
     PushRuleService pushRuleService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -47,7 +47,7 @@ public class MarketingPreUserReceiveEmergencyConsumer extends BaseMqMessageListe
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY)){
             log.warn("Marketing_PreUser_Receive_Emergency：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()
                     , messageExt.getBrokerName(), messageExt.getTopic()

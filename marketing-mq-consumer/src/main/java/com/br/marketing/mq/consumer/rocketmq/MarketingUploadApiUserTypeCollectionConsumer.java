@@ -34,7 +34,7 @@ public class MarketingUploadApiUserTypeCollectionConsumer extends BaseMqMessageL
     @Autowired
     VariableDicService variableDicService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -43,7 +43,7 @@ public class MarketingUploadApiUserTypeCollectionConsumer extends BaseMqMessageL
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
             log.warn("Marketing_Upload_Api_UserType_Collection：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

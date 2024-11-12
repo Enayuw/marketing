@@ -34,7 +34,7 @@ public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMes
     @Autowired
     PushDataService pushDataService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -43,7 +43,7 @@ public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMes
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
             log.warn("MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

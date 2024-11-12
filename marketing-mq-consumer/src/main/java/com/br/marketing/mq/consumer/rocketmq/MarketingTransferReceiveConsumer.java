@@ -36,7 +36,7 @@ public class MarketingTransferReceiveConsumer extends BaseMqMessageListener impl
     @Autowired
     PushRuleService pushRuleService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -47,7 +47,7 @@ public class MarketingTransferReceiveConsumer extends BaseMqMessageListener impl
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
             log.warn("MARKETING_TRANSFER_RECEIVE：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

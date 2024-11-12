@@ -3,13 +3,18 @@ package com.br.marketing.config;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.marketing.common.utils.SnowFlakeUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.rocketmq.RocketMqSwitchEntity;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.util.UUID;
 
 
@@ -34,9 +39,16 @@ public class RocketMqSwitch {
      * 消费端日志打印开关
      */
     public static final String PRINT_LOG = "printLog";
+    /**
+     * mq消息头 生产消息的唯一标识
+     */
+    public static final String UUID_KEY = "uuid";
+    private static final SnowFlakeUtil snowFlakeUtil = new SnowFlakeUtil();
 
-    @Autowired
+    @Resource
     private MarketingCommonConfig marketingCommonConfig;
+    @Resource
+    private RocketMqTemplate template;
 
     public Boolean rocketMQSwitchFlag(String apiCode, String tag){
         UUID uuid = UUID.randomUUID();
@@ -106,5 +118,18 @@ public class RocketMqSwitch {
         return Boolean.FALSE;
     }
 
+    public SendResult syncSend(String topic, String tags, String msg){
+        Message<String> build = MessageBuilder.withPayload(msg.toString())
+                .setHeader(UUID_KEY, snowFlakeUtil.nextId(1L))
+                .build();
+        return template.syncSendMessage(topic, tags, build);
+    }
+
+    public SendResult syncSendDelaySecond(String topic, String tags, String msg, long delayTime){
+        Message<String> build = MessageBuilder.withPayload(msg.toString())
+                .setHeader(UUID_KEY, snowFlakeUtil.nextId(1L))
+                .build();
+        return template.syncSendDelaySecond(topic, tags, build, delayTime);
+    }
 
 }
