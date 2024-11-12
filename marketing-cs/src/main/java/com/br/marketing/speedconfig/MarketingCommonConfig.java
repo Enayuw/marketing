@@ -2221,11 +2221,6 @@ public class MarketingCommonConfig {
     private Boolean xieChengCollidingHitRequestNoSwitch;
 
     /**
-     * 营销推决策数据打标es使用标志
-     */
-    private Boolean pushPolicyMarkWithEsFlag;
-
-    /**
      * 奇富360-促完件-用户信息批量查询-Job开关，1-开，0-关
      */
     private String qiFuCuWanJianBatQryUserRealJobSwitch;
@@ -2299,6 +2294,11 @@ public class MarketingCommonConfig {
      * {"tCid":"_original","cleanApiCode":"3700226,7491635","dataTime":"-1/指定日期","pageSize":10,"threadNum":10,"isPause":false}
      */
     private JSONObject qifuAiCleanConfig;
+
+    /**
+     * 营销推决策数据打标es使用标志
+     */
+    private Boolean pushPolicyMarkWithEsFlag;
 
 }
 
