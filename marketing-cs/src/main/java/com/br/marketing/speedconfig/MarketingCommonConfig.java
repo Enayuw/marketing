@@ -2294,6 +2294,11 @@ public class MarketingCommonConfig {
      * {"tCid":"_original","cleanApiCode":"3700226,7491635","dataTime":"-1/指定日期","pageSize":10,"threadNum":10,"isPause":false}
      */
     private JSONObject qifuAiCleanConfig;
+    /**
+     * 同步记录线程池配置
+     * {"upload":3,"transfer":3}
+     */
+    private JSONObject syncReportThreadConfig;
 
 }
 
