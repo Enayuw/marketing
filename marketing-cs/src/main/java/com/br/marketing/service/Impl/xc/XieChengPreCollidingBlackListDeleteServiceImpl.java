@@ -332,9 +332,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
-                futures.add(CompletableFuture.runAsync(() -> {
+                CompletableFuture.runAsync(() -> {
                     try {
                         String extend = DateUtils.format(new Date()) + " 公共黑名单剔除";
                         cycleMapper.batchUpdateCycPublicBlackListData(cycList, extend);
@@ -343,9 +342,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新周期表公共黑名单状态，子线程处理异常"), e);
                     }
-                }, threadPool));
+                }, threadPool);
             }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
 
 
@@ -374,9 +372,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
-                futures.add(CompletableFuture.runAsync(() -> {
+                CompletableFuture.runAsync(() -> {
                     try {
                         String extend = DateUtils.format(new Date()) + " 公共黑名单剔除";
                         robMapper.batchUpdateBlackListData(cycList, extend);
@@ -385,9 +382,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新非周期表公共黑名单状态，子线程处理异常"), e);
                     }
-                }, threadPool));
+                }, threadPool);
             }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
             XieChengBlackListDeleteNumber deleteNumber;
             String numberStr = vo.getDeleteNumber();
