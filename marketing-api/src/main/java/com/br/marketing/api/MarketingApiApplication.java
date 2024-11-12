@@ -7,7 +7,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.MQConsumerShutdown;
+import com.br.marketing.config.MqConsumerShutdown;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
@@ -59,7 +59,7 @@ public class MarketingApiApplication {
             }
         });
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            MQConsumerShutdown bean = context.getBean(MQConsumerShutdown.class);
+            MqConsumerShutdown bean = context.getBean(MqConsumerShutdown.class);
             bean.rocketmqDestroy();
         }));
         log.warn("marketing-api启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);

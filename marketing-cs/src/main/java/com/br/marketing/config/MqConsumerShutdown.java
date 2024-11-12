@@ -22,7 +22,7 @@ import java.util.concurrent.*;
  */
 @Slf4j
 @Component
-public class MQConsumerShutdown {
+public class MqConsumerShutdown {
 
 
     @Resource
@@ -54,13 +54,10 @@ public class MQConsumerShutdown {
                                     log.warn("rocketMQ消费者开始暂停订阅[{}]-[{}]，信息:{}", consumer.getConsumerGroup()
                                             , containerThreadName, consumer);
                                     consumer.suspend();
-                                    consumer.setPersistConsumerOffsetInterval(500);
-                                    log.warn("rocketMQ消费者组开始下线[{}]-[{}]，信息:{}", dlc.getConsumerGroup()
-                                            , containerThreadName, dlc);
-                                    dlc.destroy();
+                                    dlc.stop();
                                     long endTime = System.currentTimeMillis();
-                                    log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s", dlc.getConsumerGroup()
-                                            , containerThreadName, ((endTime - startTime) / 1000));
+                                    log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s，信息:{}", dlc.getConsumerGroup()
+                                            , containerThreadName, ((endTime - startTime) / 1000), dlc);
                                     return consumer;
                                 }));
                         for (int i = 0; i < size; i++) {
@@ -73,7 +70,9 @@ public class MQConsumerShutdown {
                         }
                         threadPool.shutdown();
                     });
-        } catch (BeansException e) {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (BeansException | InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.error(e.getMessage(), e);
         }
     }

@@ -5,7 +5,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
-import com.br.marketing.config.MQConsumerShutdown;
+import com.br.marketing.config.MqConsumerShutdown;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class MarketingXcGeneralApplication {
             }
         });
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            MQConsumerShutdown bean = ac.getBean(MQConsumerShutdown.class);
+            MqConsumerShutdown bean = ac.getBean(MqConsumerShutdown.class);
             bean.rocketmqDestroy();
         }));
         log.warn("marketing-xc-general启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
