@@ -222,7 +222,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         try {
             MarketingCleanDataFileExample sumExample = new MarketingCleanDataFileExample();
             sumExample.createCriteria().andApiCodeEqualTo(dataFile.getApiCode()).andSyncConfigIdEqualTo(dataFile.getSyncConfigId())
-                    .andTargetSftpPathEqualTo(dataFile.getLocalPath());
+                    .andTargetSftpPathEqualTo(dataFile.getLocalPath()).andFileNameLike("%" + dataFile.getFileName() + "%");
             List<MarketingCleanDataFile> sumCleanDataFiles = marketingCleanDataFileMapper.selectByExample(sumExample);
             List<Long> ids = sumCleanDataFiles.stream().map(MarketingCleanDataFile::getId).collect(Collectors.toList());
             ids.add(dataFile.getId());
