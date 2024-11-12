@@ -798,6 +798,7 @@
         left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
         where  bsrc.is_del = 1
         and bmt.status !=0
+        and bmt.monitor_type = 4
         <if test="apiCode !=null and apiCode!=''">
             and bmt.api_code = #{apiCode}
         </if>

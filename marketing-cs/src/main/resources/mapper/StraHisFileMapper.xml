@@ -69,6 +69,7 @@
         <if test="apiCode!=null and apiCode!=''">
             and shf.api_code =#{apiCode}
         </if>
+        and shf.status = 2
         order by shf.create_time desc
     </select>
 

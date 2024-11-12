@@ -243,12 +243,15 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         // 4- 根据跑分配置 查询所有跑分文件
         List<TaskTemplateVO> files = straHisFileMapper.getFileByruleNameShorts(ruleNameShorts,dto.getApiCode());
 
-        // 根据fileId去重
+        // fileId多个场景，合并为一条
         files = new ArrayList<>(files.stream()
                 .collect(Collectors.toMap(
                         TaskTemplateVO::getFileId,
-                        Function.identity(),
-                        (existing, replacement) -> existing
+                        task -> task,
+                        (existing, replacement) -> {
+                            existing.setUserType(existing.getUserType() + "," + replacement.getUserType());
+                            return existing;
+                        }
                 ))
                 .values());
 
