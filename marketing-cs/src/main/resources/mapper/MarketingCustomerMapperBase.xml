@@ -33,6 +33,7 @@
     <result column="start_time" property="startTime" jdbcType="TIMESTAMP" />
     <result column="end_time" property="endTime" jdbcType="TIMESTAMP" />
     <result column="transport" property="transport" jdbcType="VARCHAR" />
+    <result column="meal_json" property="mealJson" jdbcType="VARCHAR" />
     <result column="official_time" property="officialTime" jdbcType="TIMESTAMP" />
     <result column="modify_user" property="modifyUser" jdbcType="VARCHAR" />
     <result column="encryption_key" property="encryptionKey" jdbcType="VARCHAR" />
@@ -45,9 +46,7 @@
     <result column="create_user" property="createUser" jdbcType="VARCHAR" />
     <result column="is_output_data_product" property="isOutputDataProduct" jdbcType="TINYINT" />
     <result column="apply_loan_type" property="applyLoanType" jdbcType="INTEGER" />
-  </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.br.marketing.entity.MarketingCustomer" extends="BaseResultMap" >
-    <result column="meal_json" property="mealJson" jdbcType="LONGVARCHAR" />
+    <result column="api_type" property="apiType" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -108,33 +107,14 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, cid, api_code, message, type, thread_num, task_time, finish_date, push_customer,
-    check_black_list, check_redis_number, save_log, sort, status, extend_config_info,
-    push_thread_num, push_type, push_url, name, short_name, create_time, update_time,
-    is_check, is_charging, request_code, response_code, account_type, account_status,
-    start_time, end_time, transport, official_time, modify_user, encryption_key, decrypt_key,
-    sn_ver, call_method, file_encryption_methods, file_encryption_algorithm, file_encryption_key,
-    create_user, is_output_data_product, apply_loan_type
+    id, cid, api_code, message, `type`, thread_num, task_time, finish_date, push_customer, 
+    check_black_list, check_redis_number, save_log, sort, `status`, extend_config_info, 
+    push_thread_num, push_type, push_url, `name`, short_name, create_time, update_time, 
+    is_check, is_charging, request_code, response_code, account_type, account_status, 
+    start_time, end_time, transport, meal_json, official_time, modify_user, encryption_key, 
+    decrypt_key, sn_ver, call_method, file_encryption_methods, file_encryption_algorithm, 
+    file_encryption_key, create_user, is_output_data_product, apply_loan_type, api_type
   </sql>
-  <sql id="Blob_Column_List" >
-    meal_json
-  </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.br.marketing.entity.MarketingCustomerExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
-    from b_marketing_customer
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingCustomerExample" >
     select
     <if test="distinct" >
@@ -149,11 +129,9 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Long" >
-    select
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
     <include refid="Base_Column_List" />
-    ,
-    <include refid="Blob_Column_List" />
     from b_marketing_customer
     where id = #{id,jdbcType=BIGINT}
   </select>
@@ -171,36 +149,36 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_customer (cid, api_code, message,
-    type, thread_num, task_time,
-    finish_date, push_customer, check_black_list,
-    check_redis_number, save_log, sort,
-    status, extend_config_info, push_thread_num,
-    push_type, push_url, name,
-    short_name, create_time, update_time,
-    is_check, is_charging, request_code,
-    response_code, account_type, account_status,
-    start_time, end_time, transport,
-    official_time, modify_user, encryption_key,
-    decrypt_key, sn_ver, call_method,
-    file_encryption_methods, file_encryption_algorithm,
-    file_encryption_key, create_user, is_output_data_product,
-    apply_loan_type, meal_json)
-    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR},
-    #{type,jdbcType=VARCHAR}, #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT},
-    #{finishDate,jdbcType=TINYINT}, #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT},
-    #{checkRedisNumber,jdbcType=TINYINT}, #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT},
-    #{status,jdbcType=TINYINT}, #{extendConfigInfo,jdbcType=VARCHAR}, #{pushThreadNum,jdbcType=INTEGER},
-    #{pushType,jdbcType=INTEGER}, #{pushUrl,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
-    #{shortName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
-    #{isCheck,jdbcType=TINYINT}, #{isCharging,jdbcType=TINYINT}, #{requestCode,jdbcType=VARCHAR},
-    #{responseCode,jdbcType=VARCHAR}, #{accountType,jdbcType=TINYINT}, #{accountStatus,jdbcType=TINYINT},
-    #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{transport,jdbcType=VARCHAR},
-    #{officialTime,jdbcType=TIMESTAMP}, #{modifyUser,jdbcType=VARCHAR}, #{encryptionKey,jdbcType=VARCHAR},
-    #{decryptKey,jdbcType=VARCHAR}, #{snVer,jdbcType=VARCHAR}, #{callMethod,jdbcType=INTEGER},
-    #{fileEncryptionMethods,jdbcType=INTEGER}, #{fileEncryptionAlgorithm,jdbcType=INTEGER},
-    #{fileEncryptionKey,jdbcType=VARCHAR}, #{createUser,jdbcType=VARCHAR}, #{isOutputDataProduct,jdbcType=TINYINT},
-    #{applyLoanType,jdbcType=INTEGER}, #{mealJson,jdbcType=LONGVARCHAR})
+    insert into b_marketing_customer (cid, api_code, message, 
+      `type`, thread_num, task_time, 
+      finish_date, push_customer, check_black_list, 
+      check_redis_number, save_log, sort, 
+      `status`, extend_config_info, push_thread_num, 
+      push_type, push_url, `name`, 
+      short_name, create_time, update_time, 
+      is_check, is_charging, request_code, 
+      response_code, account_type, account_status, 
+      start_time, end_time, transport, 
+      meal_json, official_time, modify_user, 
+      encryption_key, decrypt_key, sn_ver, 
+      call_method, file_encryption_methods, file_encryption_algorithm, 
+      file_encryption_key, create_user, is_output_data_product, 
+      apply_loan_type, api_type)
+    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{message,jdbcType=VARCHAR}, 
+      #{type,jdbcType=VARCHAR}, #{threadNum,jdbcType=INTEGER}, #{taskTime,jdbcType=TINYINT}, 
+      #{finishDate,jdbcType=TINYINT}, #{pushCustomer,jdbcType=TINYINT}, #{checkBlackList,jdbcType=TINYINT}, 
+      #{checkRedisNumber,jdbcType=TINYINT}, #{saveLog,jdbcType=TINYINT}, #{sort,jdbcType=TINYINT}, 
+      #{status,jdbcType=TINYINT}, #{extendConfigInfo,jdbcType=VARCHAR}, #{pushThreadNum,jdbcType=INTEGER}, 
+      #{pushType,jdbcType=INTEGER}, #{pushUrl,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
+      #{shortName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{isCheck,jdbcType=TINYINT}, #{isCharging,jdbcType=TINYINT}, #{requestCode,jdbcType=VARCHAR}, 
+      #{responseCode,jdbcType=VARCHAR}, #{accountType,jdbcType=TINYINT}, #{accountStatus,jdbcType=TINYINT}, 
+      #{startTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{transport,jdbcType=VARCHAR}, 
+      #{mealJson,jdbcType=VARCHAR}, #{officialTime,jdbcType=TIMESTAMP}, #{modifyUser,jdbcType=VARCHAR}, 
+      #{encryptionKey,jdbcType=VARCHAR}, #{decryptKey,jdbcType=VARCHAR}, #{snVer,jdbcType=VARCHAR}, 
+      #{callMethod,jdbcType=INTEGER}, #{fileEncryptionMethods,jdbcType=INTEGER}, #{fileEncryptionAlgorithm,jdbcType=INTEGER}, 
+      #{fileEncryptionKey,jdbcType=VARCHAR}, #{createUser,jdbcType=VARCHAR}, #{isOutputDataProduct,jdbcType=TINYINT}, 
+      #{applyLoanType,jdbcType=INTEGER}, #{apiType,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingCustomer" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -218,7 +196,7 @@
         message,
       </if>
       <if test="type != null" >
-        type,
+        `type`,
       </if>
       <if test="threadNum != null" >
         thread_num,
@@ -245,7 +223,7 @@
         sort,
       </if>
       <if test="status != null" >
-        status,
+        `status`,
       </if>
       <if test="extendConfigInfo != null" >
         extend_config_info,
@@ -260,7 +238,7 @@
         push_url,
       </if>
       <if test="name != null" >
-        name,
+        `name`,
       </if>
       <if test="shortName != null" >
         short_name,
@@ -298,6 +276,9 @@
       <if test="transport != null" >
         transport,
       </if>
+      <if test="mealJson != null" >
+        meal_json,
+      </if>
       <if test="officialTime != null" >
         official_time,
       </if>
@@ -334,8 +315,8 @@
       <if test="applyLoanType != null" >
         apply_loan_type,
       </if>
-      <if test="mealJson != null" >
-        meal_json,
+      <if test="apiType != null" >
+        api_type,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
@@ -429,6 +410,9 @@
       <if test="transport != null" >
         #{transport,jdbcType=VARCHAR},
       </if>
+      <if test="mealJson != null" >
+        #{mealJson,jdbcType=VARCHAR},
+      </if>
       <if test="officialTime != null" >
         #{officialTime,jdbcType=TIMESTAMP},
       </if>
@@ -465,8 +449,8 @@
       <if test="applyLoanType != null" >
         #{applyLoanType,jdbcType=INTEGER},
       </if>
-      <if test="mealJson != null" >
-        #{mealJson,jdbcType=LONGVARCHAR},
+      <if test="apiType != null" >
+        #{apiType,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -492,7 +476,7 @@
         message = #{record.message,jdbcType=VARCHAR},
       </if>
       <if test="record.type != null" >
-        type = #{record.type,jdbcType=VARCHAR},
+        `type` = #{record.type,jdbcType=VARCHAR},
       </if>
       <if test="record.threadNum != null" >
         thread_num = #{record.threadNum,jdbcType=INTEGER},
@@ -519,7 +503,7 @@
         sort = #{record.sort,jdbcType=TINYINT},
       </if>
       <if test="record.status != null" >
-        status = #{record.status,jdbcType=TINYINT},
+        `status` = #{record.status,jdbcType=TINYINT},
       </if>
       <if test="record.extendConfigInfo != null" >
         extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
@@ -534,7 +518,7 @@
         push_url = #{record.pushUrl,jdbcType=VARCHAR},
       </if>
       <if test="record.name != null" >
-        name = #{record.name,jdbcType=VARCHAR},
+        `name` = #{record.name,jdbcType=VARCHAR},
       </if>
       <if test="record.shortName != null" >
         short_name = #{record.shortName,jdbcType=VARCHAR},
@@ -572,6 +556,9 @@
       <if test="record.transport != null" >
         transport = #{record.transport,jdbcType=VARCHAR},
       </if>
+      <if test="record.mealJson != null" >
+        meal_json = #{record.mealJson,jdbcType=VARCHAR},
+      </if>
       <if test="record.officialTime != null" >
         official_time = #{record.officialTime,jdbcType=TIMESTAMP},
       </if>
@@ -608,60 +595,10 @@
       <if test="record.applyLoanType != null" >
         apply_loan_type = #{record.applyLoanType,jdbcType=INTEGER},
       </if>
-      <if test="record.mealJson != null" >
-        meal_json = #{record.mealJson,jdbcType=LONGVARCHAR},
+      <if test="record.apiType != null" >
+        api_type = #{record.apiType,jdbcType=VARCHAR},
       </if>
     </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExampleWithBLOBs" parameterType="map" >
-    update b_marketing_customer
-    set id = #{record.id,jdbcType=BIGINT},
-    cid = #{record.cid,jdbcType=VARCHAR},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    message = #{record.message,jdbcType=VARCHAR},
-    type = #{record.type,jdbcType=VARCHAR},
-    thread_num = #{record.threadNum,jdbcType=INTEGER},
-    task_time = #{record.taskTime,jdbcType=TINYINT},
-    finish_date = #{record.finishDate,jdbcType=TINYINT},
-    push_customer = #{record.pushCustomer,jdbcType=TINYINT},
-    check_black_list = #{record.checkBlackList,jdbcType=TINYINT},
-    check_redis_number = #{record.checkRedisNumber,jdbcType=TINYINT},
-    save_log = #{record.saveLog,jdbcType=TINYINT},
-    sort = #{record.sort,jdbcType=TINYINT},
-    status = #{record.status,jdbcType=TINYINT},
-    extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
-    push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
-    push_type = #{record.pushType,jdbcType=INTEGER},
-    push_url = #{record.pushUrl,jdbcType=VARCHAR},
-    name = #{record.name,jdbcType=VARCHAR},
-    short_name = #{record.shortName,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    is_check = #{record.isCheck,jdbcType=TINYINT},
-    is_charging = #{record.isCharging,jdbcType=TINYINT},
-    request_code = #{record.requestCode,jdbcType=VARCHAR},
-    response_code = #{record.responseCode,jdbcType=VARCHAR},
-    account_type = #{record.accountType,jdbcType=TINYINT},
-    account_status = #{record.accountStatus,jdbcType=TINYINT},
-    start_time = #{record.startTime,jdbcType=TIMESTAMP},
-    end_time = #{record.endTime,jdbcType=TIMESTAMP},
-    transport = #{record.transport,jdbcType=VARCHAR},
-    official_time = #{record.officialTime,jdbcType=TIMESTAMP},
-    modify_user = #{record.modifyUser,jdbcType=VARCHAR},
-    encryption_key = #{record.encryptionKey,jdbcType=VARCHAR},
-    decrypt_key = #{record.decryptKey,jdbcType=VARCHAR},
-    sn_ver = #{record.snVer,jdbcType=VARCHAR},
-    call_method = #{record.callMethod,jdbcType=INTEGER},
-    file_encryption_methods = #{record.fileEncryptionMethods,jdbcType=INTEGER},
-    file_encryption_algorithm = #{record.fileEncryptionAlgorithm,jdbcType=INTEGER},
-    file_encryption_key = #{record.fileEncryptionKey,jdbcType=VARCHAR},
-    create_user = #{record.createUser,jdbcType=VARCHAR},
-    is_output_data_product = #{record.isOutputDataProduct,jdbcType=TINYINT},
-    apply_loan_type = #{record.applyLoanType,jdbcType=INTEGER},
-    meal_json = #{record.mealJson,jdbcType=LONGVARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -669,48 +606,50 @@
   <update id="updateByExample" parameterType="map" >
     update b_marketing_customer
     set id = #{record.id,jdbcType=BIGINT},
-    cid = #{record.cid,jdbcType=VARCHAR},
-    api_code = #{record.apiCode,jdbcType=VARCHAR},
-    message = #{record.message,jdbcType=VARCHAR},
-    type = #{record.type,jdbcType=VARCHAR},
-    thread_num = #{record.threadNum,jdbcType=INTEGER},
-    task_time = #{record.taskTime,jdbcType=TINYINT},
-    finish_date = #{record.finishDate,jdbcType=TINYINT},
-    push_customer = #{record.pushCustomer,jdbcType=TINYINT},
-    check_black_list = #{record.checkBlackList,jdbcType=TINYINT},
-    check_redis_number = #{record.checkRedisNumber,jdbcType=TINYINT},
-    save_log = #{record.saveLog,jdbcType=TINYINT},
-    sort = #{record.sort,jdbcType=TINYINT},
-    status = #{record.status,jdbcType=TINYINT},
-    extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
-    push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
-    push_type = #{record.pushType,jdbcType=INTEGER},
-    push_url = #{record.pushUrl,jdbcType=VARCHAR},
-    name = #{record.name,jdbcType=VARCHAR},
-    short_name = #{record.shortName,jdbcType=VARCHAR},
-    create_time = #{record.createTime,jdbcType=TIMESTAMP},
-    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-    is_check = #{record.isCheck,jdbcType=TINYINT},
-    is_charging = #{record.isCharging,jdbcType=TINYINT},
-    request_code = #{record.requestCode,jdbcType=VARCHAR},
-    response_code = #{record.responseCode,jdbcType=VARCHAR},
-    account_type = #{record.accountType,jdbcType=TINYINT},
-    account_status = #{record.accountStatus,jdbcType=TINYINT},
-    start_time = #{record.startTime,jdbcType=TIMESTAMP},
-    end_time = #{record.endTime,jdbcType=TIMESTAMP},
-    transport = #{record.transport,jdbcType=VARCHAR},
-    official_time = #{record.officialTime,jdbcType=TIMESTAMP},
-    modify_user = #{record.modifyUser,jdbcType=VARCHAR},
-    encryption_key = #{record.encryptionKey,jdbcType=VARCHAR},
-    decrypt_key = #{record.decryptKey,jdbcType=VARCHAR},
-    sn_ver = #{record.snVer,jdbcType=VARCHAR},
-    call_method = #{record.callMethod,jdbcType=INTEGER},
-    file_encryption_methods = #{record.fileEncryptionMethods,jdbcType=INTEGER},
-    file_encryption_algorithm = #{record.fileEncryptionAlgorithm,jdbcType=INTEGER},
-    file_encryption_key = #{record.fileEncryptionKey,jdbcType=VARCHAR},
-    create_user = #{record.createUser,jdbcType=VARCHAR},
-    is_output_data_product = #{record.isOutputDataProduct,jdbcType=TINYINT},
-    apply_loan_type = #{record.applyLoanType,jdbcType=INTEGER}
+      cid = #{record.cid,jdbcType=VARCHAR},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      message = #{record.message,jdbcType=VARCHAR},
+      `type` = #{record.type,jdbcType=VARCHAR},
+      thread_num = #{record.threadNum,jdbcType=INTEGER},
+      task_time = #{record.taskTime,jdbcType=TINYINT},
+      finish_date = #{record.finishDate,jdbcType=TINYINT},
+      push_customer = #{record.pushCustomer,jdbcType=TINYINT},
+      check_black_list = #{record.checkBlackList,jdbcType=TINYINT},
+      check_redis_number = #{record.checkRedisNumber,jdbcType=TINYINT},
+      save_log = #{record.saveLog,jdbcType=TINYINT},
+      sort = #{record.sort,jdbcType=TINYINT},
+      `status` = #{record.status,jdbcType=TINYINT},
+      extend_config_info = #{record.extendConfigInfo,jdbcType=VARCHAR},
+      push_thread_num = #{record.pushThreadNum,jdbcType=INTEGER},
+      push_type = #{record.pushType,jdbcType=INTEGER},
+      push_url = #{record.pushUrl,jdbcType=VARCHAR},
+      `name` = #{record.name,jdbcType=VARCHAR},
+      short_name = #{record.shortName,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      is_check = #{record.isCheck,jdbcType=TINYINT},
+      is_charging = #{record.isCharging,jdbcType=TINYINT},
+      request_code = #{record.requestCode,jdbcType=VARCHAR},
+      response_code = #{record.responseCode,jdbcType=VARCHAR},
+      account_type = #{record.accountType,jdbcType=TINYINT},
+      account_status = #{record.accountStatus,jdbcType=TINYINT},
+      start_time = #{record.startTime,jdbcType=TIMESTAMP},
+      end_time = #{record.endTime,jdbcType=TIMESTAMP},
+      transport = #{record.transport,jdbcType=VARCHAR},
+      meal_json = #{record.mealJson,jdbcType=VARCHAR},
+      official_time = #{record.officialTime,jdbcType=TIMESTAMP},
+      modify_user = #{record.modifyUser,jdbcType=VARCHAR},
+      encryption_key = #{record.encryptionKey,jdbcType=VARCHAR},
+      decrypt_key = #{record.decryptKey,jdbcType=VARCHAR},
+      sn_ver = #{record.snVer,jdbcType=VARCHAR},
+      call_method = #{record.callMethod,jdbcType=INTEGER},
+      file_encryption_methods = #{record.fileEncryptionMethods,jdbcType=INTEGER},
+      file_encryption_algorithm = #{record.fileEncryptionAlgorithm,jdbcType=INTEGER},
+      file_encryption_key = #{record.fileEncryptionKey,jdbcType=VARCHAR},
+      create_user = #{record.createUser,jdbcType=VARCHAR},
+      is_output_data_product = #{record.isOutputDataProduct,jdbcType=TINYINT},
+      apply_loan_type = #{record.applyLoanType,jdbcType=INTEGER},
+      api_type = #{record.apiType,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -728,7 +667,7 @@
         message = #{message,jdbcType=VARCHAR},
       </if>
       <if test="type != null" >
-        type = #{type,jdbcType=VARCHAR},
+        `type` = #{type,jdbcType=VARCHAR},
       </if>
       <if test="threadNum != null" >
         thread_num = #{threadNum,jdbcType=INTEGER},
@@ -755,7 +694,7 @@
         sort = #{sort,jdbcType=TINYINT},
       </if>
       <if test="status != null" >
-        status = #{status,jdbcType=TINYINT},
+        `status` = #{status,jdbcType=TINYINT},
       </if>
       <if test="extendConfigInfo != null" >
         extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
@@ -770,7 +709,7 @@
         push_url = #{pushUrl,jdbcType=VARCHAR},
       </if>
       <if test="name != null" >
-        name = #{name,jdbcType=VARCHAR},
+        `name` = #{name,jdbcType=VARCHAR},
       </if>
       <if test="shortName != null" >
         short_name = #{shortName,jdbcType=VARCHAR},
@@ -808,6 +747,9 @@
       <if test="transport != null" >
         transport = #{transport,jdbcType=VARCHAR},
       </if>
+      <if test="mealJson != null" >
+        meal_json = #{mealJson,jdbcType=VARCHAR},
+      </if>
       <if test="officialTime != null" >
         official_time = #{officialTime,jdbcType=TIMESTAMP},
       </if>
@@ -844,103 +786,58 @@
       <if test="applyLoanType != null" >
         apply_loan_type = #{applyLoanType,jdbcType=INTEGER},
       </if>
-      <if test="mealJson != null" >
-        meal_json = #{mealJson,jdbcType=LONGVARCHAR},
+      <if test="apiType != null" >
+        api_type = #{apiType,jdbcType=VARCHAR},
       </if>
     </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.br.marketing.entity.MarketingCustomer" >
-    update b_marketing_customer
-    set cid = #{cid,jdbcType=VARCHAR},
-        api_code = #{apiCode,jdbcType=VARCHAR},
-        message = #{message,jdbcType=VARCHAR},
-        type = #{type,jdbcType=VARCHAR},
-        thread_num = #{threadNum,jdbcType=INTEGER},
-        task_time = #{taskTime,jdbcType=TINYINT},
-        finish_date = #{finishDate,jdbcType=TINYINT},
-        push_customer = #{pushCustomer,jdbcType=TINYINT},
-        check_black_list = #{checkBlackList,jdbcType=TINYINT},
-        check_redis_number = #{checkRedisNumber,jdbcType=TINYINT},
-        save_log = #{saveLog,jdbcType=TINYINT},
-        sort = #{sort,jdbcType=TINYINT},
-        status = #{status,jdbcType=TINYINT},
-        extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
-        push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
-        push_type = #{pushType,jdbcType=INTEGER},
-        push_url = #{pushUrl,jdbcType=VARCHAR},
-        name = #{name,jdbcType=VARCHAR},
-        short_name = #{shortName,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        is_check = #{isCheck,jdbcType=TINYINT},
-        is_charging = #{isCharging,jdbcType=TINYINT},
-        request_code = #{requestCode,jdbcType=VARCHAR},
-        response_code = #{responseCode,jdbcType=VARCHAR},
-        account_type = #{accountType,jdbcType=TINYINT},
-        account_status = #{accountStatus,jdbcType=TINYINT},
-        start_time = #{startTime,jdbcType=TIMESTAMP},
-        end_time = #{endTime,jdbcType=TIMESTAMP},
-        transport = #{transport,jdbcType=VARCHAR},
-        official_time = #{officialTime,jdbcType=TIMESTAMP},
-        modify_user = #{modifyUser,jdbcType=VARCHAR},
-        encryption_key = #{encryptionKey,jdbcType=VARCHAR},
-        decrypt_key = #{decryptKey,jdbcType=VARCHAR},
-        sn_ver = #{snVer,jdbcType=VARCHAR},
-        call_method = #{callMethod,jdbcType=INTEGER},
-        file_encryption_methods = #{fileEncryptionMethods,jdbcType=INTEGER},
-        file_encryption_algorithm = #{fileEncryptionAlgorithm,jdbcType=INTEGER},
-        file_encryption_key = #{fileEncryptionKey,jdbcType=VARCHAR},
-        create_user = #{createUser,jdbcType=VARCHAR},
-        is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT},
-        apply_loan_type = #{applyLoanType,jdbcType=INTEGER},
-        meal_json = #{mealJson,jdbcType=LONGVARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingCustomer" >
     update b_marketing_customer
     set cid = #{cid,jdbcType=VARCHAR},
-        api_code = #{apiCode,jdbcType=VARCHAR},
-        message = #{message,jdbcType=VARCHAR},
-        type = #{type,jdbcType=VARCHAR},
-        thread_num = #{threadNum,jdbcType=INTEGER},
-        task_time = #{taskTime,jdbcType=TINYINT},
-        finish_date = #{finishDate,jdbcType=TINYINT},
-        push_customer = #{pushCustomer,jdbcType=TINYINT},
-        check_black_list = #{checkBlackList,jdbcType=TINYINT},
-        check_redis_number = #{checkRedisNumber,jdbcType=TINYINT},
-        save_log = #{saveLog,jdbcType=TINYINT},
-        sort = #{sort,jdbcType=TINYINT},
-        status = #{status,jdbcType=TINYINT},
-        extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
-        push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
-        push_type = #{pushType,jdbcType=INTEGER},
-        push_url = #{pushUrl,jdbcType=VARCHAR},
-        name = #{name,jdbcType=VARCHAR},
-        short_name = #{shortName,jdbcType=VARCHAR},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        is_check = #{isCheck,jdbcType=TINYINT},
-        is_charging = #{isCharging,jdbcType=TINYINT},
-        request_code = #{requestCode,jdbcType=VARCHAR},
-        response_code = #{responseCode,jdbcType=VARCHAR},
-        account_type = #{accountType,jdbcType=TINYINT},
-        account_status = #{accountStatus,jdbcType=TINYINT},
-        start_time = #{startTime,jdbcType=TIMESTAMP},
-        end_time = #{endTime,jdbcType=TIMESTAMP},
-        transport = #{transport,jdbcType=VARCHAR},
-        official_time = #{officialTime,jdbcType=TIMESTAMP},
-        modify_user = #{modifyUser,jdbcType=VARCHAR},
-        encryption_key = #{encryptionKey,jdbcType=VARCHAR},
-        decrypt_key = #{decryptKey,jdbcType=VARCHAR},
-        sn_ver = #{snVer,jdbcType=VARCHAR},
-        call_method = #{callMethod,jdbcType=INTEGER},
-        file_encryption_methods = #{fileEncryptionMethods,jdbcType=INTEGER},
-        file_encryption_algorithm = #{fileEncryptionAlgorithm,jdbcType=INTEGER},
-        file_encryption_key = #{fileEncryptionKey,jdbcType=VARCHAR},
-        create_user = #{createUser,jdbcType=VARCHAR},
-        is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT},
-        apply_loan_type = #{applyLoanType,jdbcType=INTEGER}
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      message = #{message,jdbcType=VARCHAR},
+      `type` = #{type,jdbcType=VARCHAR},
+      thread_num = #{threadNum,jdbcType=INTEGER},
+      task_time = #{taskTime,jdbcType=TINYINT},
+      finish_date = #{finishDate,jdbcType=TINYINT},
+      push_customer = #{pushCustomer,jdbcType=TINYINT},
+      check_black_list = #{checkBlackList,jdbcType=TINYINT},
+      check_redis_number = #{checkRedisNumber,jdbcType=TINYINT},
+      save_log = #{saveLog,jdbcType=TINYINT},
+      sort = #{sort,jdbcType=TINYINT},
+      `status` = #{status,jdbcType=TINYINT},
+      extend_config_info = #{extendConfigInfo,jdbcType=VARCHAR},
+      push_thread_num = #{pushThreadNum,jdbcType=INTEGER},
+      push_type = #{pushType,jdbcType=INTEGER},
+      push_url = #{pushUrl,jdbcType=VARCHAR},
+      `name` = #{name,jdbcType=VARCHAR},
+      short_name = #{shortName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_check = #{isCheck,jdbcType=TINYINT},
+      is_charging = #{isCharging,jdbcType=TINYINT},
+      request_code = #{requestCode,jdbcType=VARCHAR},
+      response_code = #{responseCode,jdbcType=VARCHAR},
+      account_type = #{accountType,jdbcType=TINYINT},
+      account_status = #{accountStatus,jdbcType=TINYINT},
+      start_time = #{startTime,jdbcType=TIMESTAMP},
+      end_time = #{endTime,jdbcType=TIMESTAMP},
+      transport = #{transport,jdbcType=VARCHAR},
+      meal_json = #{mealJson,jdbcType=VARCHAR},
+      official_time = #{officialTime,jdbcType=TIMESTAMP},
+      modify_user = #{modifyUser,jdbcType=VARCHAR},
+      encryption_key = #{encryptionKey,jdbcType=VARCHAR},
+      decrypt_key = #{decryptKey,jdbcType=VARCHAR},
+      sn_ver = #{snVer,jdbcType=VARCHAR},
+      call_method = #{callMethod,jdbcType=INTEGER},
+      file_encryption_methods = #{fileEncryptionMethods,jdbcType=INTEGER},
+      file_encryption_algorithm = #{fileEncryptionAlgorithm,jdbcType=INTEGER},
+      file_encryption_key = #{fileEncryptionKey,jdbcType=VARCHAR},
+      create_user = #{createUser,jdbcType=VARCHAR},
+      is_output_data_product = #{isOutputDataProduct,jdbcType=TINYINT},
+      apply_loan_type = #{applyLoanType,jdbcType=INTEGER},
+      api_type = #{apiType,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -158,9 +158,7 @@ public class CustomerUploadDataServiceImpl implements CustomerUploadDataService 
             jsonObject.put("jsonData", jsonData);
             byte[] messageByte = JSON.toJSONString(jsonObject).getBytes();
             producer.send(messageByte);
-            GuMeUploadResponseDTO responseGuMeDTO = new GuMeUploadResponseDTO();
-            responseGuMeDTO.success();
-            return new CustomerResponseDTO(responseGuMeDTO, CustomerResponseDTO.StatusEnum.INVALID, responseGuMeDTO.getCode());
+            return customerUploadDataHandler.defaultSuccessResponse();
         } catch (PulsarClientException clientException) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "该apiCode:" + apiCode + "入pulsar容灾队列异常"),
                 clientException);

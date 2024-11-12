@@ -19,7 +19,7 @@ public class WubaCollidingDataLog {
     private Long packageId;
 
     /**
-     * 数据来源类型：T-周期，F-非周期
+     * 数据来源类型：T-周期场景1，S-周期场景2，F-非周期
      */
     private String dataSourceType;
 
@@ -42,6 +42,11 @@ public class WubaCollidingDataLog {
      * 撞库结果 0：不参与营销，1：参与营销
      */
     private Boolean result;
+
+    /**
+     * 客户返回撞库结果，1-锁定成功、-2-被其他机构占用、null-客户接口未返回
+     */
+    private String status;
 
     /**
      * 扩展字段
@@ -125,6 +130,14 @@ public class WubaCollidingDataLog {
 
     public void setResult(Boolean result) {
         this.result = result;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status == null ? null : status.trim();
     }
 
     public String getExtend() {
