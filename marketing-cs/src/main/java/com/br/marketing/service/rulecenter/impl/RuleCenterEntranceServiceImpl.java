@@ -182,8 +182,8 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         decisionsExample.setOrderByClause(" auto_time");
         List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(decisionsExample);
 
-        // 过滤掉（今天创建并且执行时间小于当前时间的配置）
-        return filterConfig(pushDecisions,formatter,nowTime);
+        // 过滤掉（今天创建 && 执行时间小于创建时间HH:mm）
+        return filterConfig(pushDecisions,formatter);
     }
 
     private Result<CustomerInfoPushMain> isCanBuild(PushDecisions pushDecisions, ScoreSearchCondition scoreSearchCondition) {
@@ -269,22 +269,18 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         return res.setDate(pushMain).success();
     }
 
-    private List<PushDecisions> filterConfig(List<PushDecisions> pushDecisions,
-                                             DateTimeFormatter formatter,String nowTime) {
+    private List<PushDecisions> filterConfig(List<PushDecisions> pushDecisions,DateTimeFormatter formatter) {
         LocalDate today = LocalDate.now();
         pushDecisions = pushDecisions.stream()
                 .filter(p -> {
-                    String autoTime = p.getAutoTime();
-                    Date createTime = p.getCreateTime();
-
-                    LocalDate createDate = createTime.toInstant()
-                            .atZone(ZoneId.systemDefault())
-                            .toLocalDate();
-
-                    LocalTime currentTime = LocalTime.parse(nowTime, formatter);
-                    LocalTime autoTimeParsed = LocalTime.parse(autoTime, formatter);
-                    // 返回过滤条件：不是今天创建的 或者 执行时间不小于当前时间
-                    return !createDate.equals(today) || !autoTimeParsed.isBefore(currentTime);
+                    // 创建日期
+                    LocalDate createDate = p.getCreateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    // 创建时间 HH:mm
+                    LocalTime createTime = LocalTime.parse(createDate.format(formatter), formatter);
+                    // 执行时间 HH:mm
+                    LocalTime autoTimeParsed = LocalTime.parse(p.getAutoTime(), formatter);
+                    // 返回过滤条件：不是今天创建的 或者 执行时间不小于创建时间
+                    return !createDate.equals(today) || !autoTimeParsed.isBefore(createTime);
                 })
                 .collect(Collectors.toList());
         return pushDecisions;
