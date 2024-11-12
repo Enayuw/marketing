@@ -522,7 +522,16 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         }
         if (!CollectionUtils.isEmpty(custNumMap)) {
             // 客服拨打记录表  callStatus≠12 12-黑名单
-            List<CallRecord> blackListSettikv_ = callRecordMapper.getBlackListSettikv_(custNumMap, apiCode);
+            List<String> bizDates = pageList.stream()
+                    .map(ZhonganRosterLockingData::getBizDate)
+                    .distinct()  // 去重
+                    .collect(Collectors.toList());
+            List<CallRecord> blackListSettikv_;
+            if (bizDates.size() == 1) {
+                blackListSettikv_ = callRecordMapper.getBlackListSetNewtikv_(custNumMap,bizDates.get(0));
+            } else {
+                blackListSettikv_ = callRecordMapper.getBlackListSettikv_(custNumMap, apiCode);
+            }
             if (!CollectionUtils.isEmpty(blackListSettikv_)) {
                 custNumBlackListSet.addAll(blackListSettikv_.stream()
                         .map(t -> t.getCaseNum() + new SimpleDateFormat("yyyy-MM-dd").format(t.getCallStartTime()))

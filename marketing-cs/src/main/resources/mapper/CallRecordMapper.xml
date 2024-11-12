@@ -67,4 +67,19 @@
             and a.api_code = #{apiCode}
         </if>
     </select>
+
+    <select id="getBlackListSetNewtikv_" resultMap="BaseResultMap">
+        select
+        case_num as caseNum,
+        call_start_time as callStartTime
+        from b_call_record
+        where call_status='12'
+        and case_num in
+        <foreach collection="custNumMap.entrySet()" open="(" close=")" index="key">
+            ${key}
+        </foreach>
+        and <![CDATA[ call_start_time >= '${bizDate} 00:00:00' ]]>
+        and <![CDATA[ call_start_time <= '${bizDate} 23:59:59' ]]>
+        group by case_num having count(*)>0
+    </select>
 </mapper>
