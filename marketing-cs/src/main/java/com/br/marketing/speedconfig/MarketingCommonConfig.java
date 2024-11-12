@@ -533,11 +533,6 @@ public class MarketingCommonConfig {
     private Integer xieChengSmsCollidingThread;
 
     /**
-     * 携程撞库黑名单加解密线程数
-     */
-    private Integer xieChengBlackEncAndDecThread;
-
-    /**
      * 携程短信撞库线程数重试
      */
     private Integer xieChengSmsCollidingRetryThread;

@@ -140,10 +140,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     }
 
     private void deleteCycNoPublicBlackListBY(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
-        String conditions = vo.getTaskExecutionConditions();
+        String conditions = StringUtils.isBlank(vo.getTaskExecutionConditions()) ? null : vo.getTaskExecutionConditions();
         String batchNumber = vo.getBatchNumber();
         String tableName = "b_xiecheng_colliding_" + batchNumber;
-        String queryRuleScoreDataSql = "select id,cell,is_delete from "
+        String queryRuleScoreDataSql = StringUtils.isBlank(conditions) ? null : "select id,cell,is_delete from "
                 + tableName + " where " + conditions;
         AtomicInteger totalCount = new AtomicInteger(0);
         Long minId = null;
@@ -154,9 +154,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
-                futures.add(CompletableFuture.runAsync(() -> {
+                CompletableFuture.runAsync(() -> {
                     try {
 
                         String extend = DateUtils.format(new Date()) + " 百应业务黑名单剔除";
@@ -166,9 +165,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新周期表百应黑名单状态，子线程处理异常"), e);
                     }
-                }, threadPool));
+                }, threadPool);
             }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
 
 
@@ -190,10 +188,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
 
 
     private void deleteRobNoPublicBlackListBY(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
-        String conditions = vo.getTaskExecutionConditions();
+        String conditions = StringUtils.isBlank(vo.getTaskExecutionConditions()) ? null : vo.getTaskExecutionConditions();
         String batchNumber = vo.getBatchNumber();
         String tableName = "b_xiecheng_colliding_" + batchNumber;
-        String queryRuleScoreDataSql = "select id,cell,is_delete from "
+        String queryRuleScoreDataSql = StringUtils.isBlank(conditions) ? null : "select id,cell,is_delete from "
                 + tableName + " where " + conditions;
         AtomicInteger totalCount = new AtomicInteger(0);
         Long minId = null;
@@ -204,9 +202,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
-                futures.add(CompletableFuture.runAsync(() -> {
+                CompletableFuture.runAsync(() -> {
                     try {
                         String extend = DateUtils.format(new Date()) + " 百应业务黑名单剔除";
                         robMapper.batchUpdateNoPublicBlackListBYData(cycList, extend);
@@ -215,9 +212,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新非周期表百应业务黑名单状态，子线程处理异常"), e);
                     }
-                }, threadPool));
+                }, threadPool);
             }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
         XieChengBlackListDeleteNumber deleteNumber;
         String numberStr = vo.getDeleteNumber();
@@ -236,10 +232,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     }
 
     private void deleteCycNoPublicBlackListZY(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
-        String conditions = vo.getTaskExecutionConditions();
+        String conditions = StringUtils.isBlank(vo.getTaskExecutionConditions()) ? null : vo.getTaskExecutionConditions();
         String batchNumber = vo.getBatchNumber();
         String tableName = "b_xiecheng_colliding_" + batchNumber;
-        String queryRuleScoreDataSql = "select id,cell,is_delete from "
+        String queryRuleScoreDataSql = StringUtils.isBlank(conditions) ? null : "select id,cell,is_delete from "
                 + tableName + " where " + conditions;
         AtomicInteger totalCount = new AtomicInteger(0);
         Long minId = null;
@@ -250,11 +246,9 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             }
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
             for (List<Long> cycList : partition) {
-                futures.add(CompletableFuture.runAsync(() -> {
+                CompletableFuture.runAsync(() -> {
                     try {
-
                         String extend = DateUtils.format(new Date()) + " 自研AI业务黑名单剔除";
                         cycleMapper.batchUpdateNoPublicBlackListZYData(cycList, extend);
                         totalCount.addAndGet(cycList.size());
@@ -262,9 +256,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新周期表自研AI黑名单状态，子线程处理异常"), e);
                     }
-                }, threadPool));
+                }, threadPool);
             }
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
 
 
@@ -285,13 +278,12 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     }
 
     private void deleteRobNoPublicBlackListZY(XiechengCollidingTaskBatchVo vo, ThreadPoolExecutor threadPool) {
-        String conditions = vo.getTaskExecutionConditions();
+        String conditions = StringUtils.isBlank(vo.getTaskExecutionConditions()) ? null : vo.getTaskExecutionConditions();
         String batchNumber = vo.getBatchNumber();
         String tableName = "b_xiecheng_colliding_" + batchNumber;
-        String queryRuleScoreDataSql = "select id,cell,is_delete from "
+        String queryRuleScoreDataSql = StringUtils.isBlank(conditions) ? null : "select id,cell,is_delete from "
                 + tableName + " where " + conditions;
         AtomicInteger totalCount = new AtomicInteger(0);
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
         while (true) {
             List<Long> ids = robMapper.selectRobNoPublicBlackListZYIdsByPagetikv_(minId, queryRuleScoreDataSql, tableName, PAGE_SIZE);
@@ -301,7 +293,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             minId = ids.get(ids.size() - 1);
             List<List<Long>> partition = Lists.partition(ids, PARTITION_SIZE);
             for (List<Long> cycList : partition) {
-                futures.add(CompletableFuture.runAsync(() -> {
+                CompletableFuture.runAsync(() -> {
                     try {
                         String extend = DateUtils.format(new Date()) + " 自研AI业务黑名单剔除";
                         robMapper.batchUpdateNoPublicBlackListZYData(cycList, extend);
@@ -310,11 +302,9 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新非周期表自研AI黑名单状态，子线程处理异常"), e);
                     }
-                }, threadPool));
+                }, threadPool);
             }
         }
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
         XieChengBlackListDeleteNumber deleteNumber;
         String numberStr = vo.getDeleteNumber();
         if (StringUtils.isBlank(numberStr)) {
