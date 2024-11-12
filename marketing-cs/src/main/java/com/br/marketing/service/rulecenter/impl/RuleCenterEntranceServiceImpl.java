@@ -273,14 +273,17 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         LocalDate today = LocalDate.now();
         pushDecisions = pushDecisions.stream()
                 .filter(p -> {
+                    Date date = p.getCreateTime();
                     // 创建日期
-                    LocalDate createDate = p.getCreateTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    LocalDate createDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                     // 创建时间 HH:mm
-                    LocalTime createTime = LocalTime.parse(createDate.format(formatter), formatter);
+                    LocalTime createTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toLocalTime();
                     // 执行时间 HH:mm
                     LocalTime autoTimeParsed = LocalTime.parse(p.getAutoTime(), formatter);
                     // 返回过滤条件：不是今天创建的 或者 执行时间不小于创建时间
-                    return !createDate.equals(today) || !autoTimeParsed.isBefore(createTime);
+                    boolean b = !createDate.equals(today);
+                    boolean b1 = !autoTimeParsed.isBefore(createTime);
+                    return b || b1;
                 })
                 .collect(Collectors.toList());
         return pushDecisions;
