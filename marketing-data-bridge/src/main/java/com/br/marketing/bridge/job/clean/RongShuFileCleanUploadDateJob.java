@@ -107,7 +107,7 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
         Instant instant = localDateTime.minusDays(1).atZone(ZoneId.systemDefault()).toInstant();
         LocalDate localDate = localDateTime.toLocalDate();
         LocalTime time = localDateTime.toLocalTime();
-        String regex = "\t";
+        String regex = marketingCommonConfig.getRongShuCleanUploadConfig().getOrDefault("regex", "\t");
         MarketingCleanCreateTaskRuleExample example = new MarketingCleanCreateTaskRuleExample();
         example.createCriteria().andApiCodeEqualTo(apiCode).andIsDelEqualTo(0).andDataTypeEqualTo(1);
         List<MarketingCleanCreateTaskRule> taskRules = marketingCleanCreateTaskRuleMapper.selectByExample(example);

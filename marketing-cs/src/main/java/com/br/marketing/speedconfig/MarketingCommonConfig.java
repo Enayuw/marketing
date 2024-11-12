@@ -2100,7 +2100,7 @@ public class MarketingCommonConfig {
     /**
      *  * 2024-08-13 15:42
      * 榕树上传数据清洗线程池配置
-     * {"poolSize":"25,50","fileHeader":"HEADER1,HEADER2"}
+     * {"poolSize":"25,50","fileHeader":"HEADER1,HEADER2","regex":"\t"}
      * eg：[25,50],25为核心线程数，50为最大线程数,核心线程数为0时程序停止
      */
     private Map<String,String> rongShuCleanUploadConfig = new HashMap<>();
