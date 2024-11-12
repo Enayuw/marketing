@@ -29,7 +29,6 @@ import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.*;
@@ -102,7 +101,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
@@ -575,7 +573,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             String info = collidingFilterDTO.getInfo();
             if (StringUtils.isNotEmpty(info) && info.equalsIgnoreCase("NULL")) {
                 //false动态包剔除
-                querySql = dynaPackageDeleteCondition(jsonObject, batchNumberList, true);
+                querySql = dynaPackageDeleteCondition(jsonObject, batchNumberList,
+                        marketingCommonConfig.getXcDynaFalsePackageIds(), true);
             } else {
                 //false包补充
                 querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
@@ -611,12 +610,19 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 动态补充包与跑分数据交集量级sql
+     *
      * @param jsonObject
      * @param batchNumberList
+     * @param xcDynaFalsePackageIds
      * @return
      */
-    private String dynaPackageDeleteCondition(JSONObject jsonObject, List<String> batchNumberList, Boolean isPreview) {
-        String dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where is_delete = 0 and package_id = 120007";
+    private String dynaPackageDeleteCondition(JSONObject jsonObject, List<String> batchNumberList, List<String> xcDynaFalsePackageIds, Boolean isPreview) {
+        if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
+            xcDynaFalsePackageIds = Arrays.asList("120007");
+        }
+        String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream().collect(Collectors.joining(",", "(", ")"));
+        String dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where is_delete = 0 and package_id in "
+                + xcDynaFalsePackageIdString;
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         StringBuilder condition = new StringBuilder();
         String whereCondition;
@@ -840,7 +846,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         xiechengCollidingDataProcessTask.setCreateTime(new Date());
         xiechengCollidingDataProcessTask.setUpdateTime(new Date());
         int i = xiechengCollidingDataProcessTaskMapper.insertSelective(xiechengCollidingDataProcessTask);
-        if (i > 0 && !CollectionUtils.isEmpty(batchNumberList)) {
+        if (i > 0 && !CollectionUtils.isEmpty(batchNumberList)
+                && (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DELETE || xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE)) {
             for (String batchNumber : batchNumberList) {
                 XiechengCollidingTaskBatch xiechengCollidingTaskBatch = new XiechengCollidingTaskBatch();
                 xiechengCollidingTaskBatch.setApiCode(dto.getApiCode());
@@ -872,7 +879,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             return cycleDataDeleteQuery(jsonObject, batchNumberList, cleanTime);
         }
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
-            return dynaPackageDeleteCondition(jsonObject, batchNumberList, false);
+            return dynaPackageDeleteCondition(jsonObject, batchNumberList,
+                    marketingCommonConfig.getXcDynaFalsePackageIds(), false);
         }
         return "";
     }
@@ -957,7 +965,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             if ("false".equals(result) && StringUtils.isNotEmpty(info)
                     && info.equalsIgnoreCase("NULL")) {
-                deleteSql = dynaPackageDeleteCondition(jsonObject, dto.getBatchNumberList(), false);
+                deleteSql = dynaPackageDeleteCondition(jsonObject, dto.getBatchNumberList(),
+                        marketingCommonConfig.getXcDynaFalsePackageIds(), false);
             }
         }
         // doris查询
