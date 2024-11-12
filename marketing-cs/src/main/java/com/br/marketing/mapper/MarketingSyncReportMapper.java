@@ -4,6 +4,7 @@ import com.br.marketing.dto.SyncUserTypeNumDTO;
 import com.br.marketing.entity.MarketingDataValidConfig;
 import com.br.marketing.entity.MarketingSyncReport;
 import com.br.marketing.entity.MarketingSyncReportExample;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.mysqlInterceptor.AddDataAuth;
 import com.br.marketing.vo.MarketingSyncReportNumVO;
 import com.br.marketing.vo.MarketingSyncReportVO;
@@ -81,4 +82,12 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
      * @return
      */
     List<String> selectUploadExtendKeystikv_(@Param("apiCode")String apiCode, @Param("userType")String userType, @Param("appletDate")String appletDate);
+
+
+    List<Map<String, Object>> selectGroupCount(@Param("sql")String toString);
+
+    List<MarketingSyncUser> selectGroupData(@Param("apiCode")String apiCode, @Param("list")List<String> appletDates, @Param("userType")String userType,
+                                            @Param("extend")String extend, @Param("indexId")Long indexId, @Param("pageSize")Integer pageSize);
+
+    void updateBatchGroupData(@Param("updateSql")String update);
 }

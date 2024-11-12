@@ -20,4 +20,6 @@ public interface DataGroupHandlerService {
     Result addOrDeleteConfig(DataGroupConfgDTO dto);
 
     void dataGroupHandler(DataGroupTask dataGroupTask);
+
+    List<String> extendField(String ids, String apiCode);
 }

@@ -49,6 +49,22 @@ public class DataGroupController {
     }
 
 
+    @GetMapping("/extendField")
+    @ApiOperation(value = "数据分组获取拓展字段", notes = "数据分组获取拓展字段")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ids", value = "上传记录Id,可传多个，分割", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "apiCode", value = "apiCode", paramType = "query", dataType = "string")
+    })
+    public ApiResult<List<String>> extendField(
+            @RequestParam(required = true) String ids,
+            @RequestParam(required = true) String apiCode
+
+    ) {
+        return new ApiResult<List<String>>().success(
+                dataGroupHandlerService.extendField(ids, apiCode));
+    }
+
+
     @ApiOperation(value = "分组配置编辑", notes = "分组配置编辑")
     @PostMapping("/editConfig")
     public Result editConfig(@RequestBody DataGroupConfgDTO dto) {

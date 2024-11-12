@@ -258,4 +258,46 @@
       and applet_date = #{appletDate}
 
   </select>
+
+  <select id="selectGroupCount" resultType="java.util.Map">
+    ${sql}
+  </select>
+
+
+  <select id="selectGroupData" resultType="com.br.marketing.entity.MarketingSyncUser">
+
+    select id,reserve_field1 from b_marketing_sync_${apiCode}
+    <where>
+      <if test="userType !=null and userType!=''">
+        user_type = #{userType}
+      </if>
+      <if test="extend !=null and extend!=''">
+        and ${extend}
+      </if>
+      <if test="list != null and list.size()>0">
+        <if test="list.size()==1">
+          and applet_date = #{list[0]}
+        </if>
+        <if test="list.size()==1">
+          and applet_date in
+          <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+          </foreach>
+        </if>
+      </if>
+      <if test="indexId != null and indexId!=''">
+        and id > #{indexId}
+      </if>
+      order by id asc limit #{pageSize};
+    </where>
+
+
+  </select>
+
+
+
+  <update id="updateBatchGroupData">
+    ${updateSql}
+
+  </update>
 </mapper>
