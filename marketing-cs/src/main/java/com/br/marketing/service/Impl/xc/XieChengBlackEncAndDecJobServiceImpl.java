@@ -40,8 +40,8 @@ public class XieChengBlackEncAndDecJobServiceImpl implements XieChengBlackEncAnd
     @Override
     public void process() {
         ThreadPoolExecutor threadPool =
-                BrExecutors.getThreadPool(marketingCommonConfig.getXieChengBlackEncAndDecThread(),
-                        marketingCommonConfig.getXieChengBlackEncAndDecThread());
+                BrExecutors.getThreadPool(marketingCommonConfig.getXieChengCollidingDataProcessThread(),
+                        marketingCommonConfig.getXieChengCollidingDataProcessThread());
         Long minId = null;
         while (true) {
             List<XieChengBlackList> backList = blackListMapper.selectByPage(minId, PAGE_SIZE);
