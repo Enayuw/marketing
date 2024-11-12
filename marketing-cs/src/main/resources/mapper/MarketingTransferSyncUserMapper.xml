@@ -140,7 +140,10 @@
         where
         <![CDATA[  request_data < #{endDate} ]]>
         and api_code = #{apiCode}
-        order by create_time desc,id desc limit #{limitStart},2000;
+        <if test="indexId != null and indexId!=''">
+            and id > #{indexId}
+        </if>
+        order by id limit #{pageSize};
     </select>
 
     <select id="getTransferNewData" resultType="com.br.marketing.entity.MarketingNewTransferData">

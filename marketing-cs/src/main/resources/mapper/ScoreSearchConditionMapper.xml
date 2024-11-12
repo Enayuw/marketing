@@ -44,7 +44,7 @@
     </select>
 
     <select id="getScoreByNameNumberList" resultType="com.br.marketing.vo.ConditionOfScoreVO">
-        select `id`,`name`,`source_type`,`content`,`content_show`,`condition_number`
+        select `id`,`name`,`source_type`,`content`,`content_show`,`score_content`,`condition_number`
         from b_score_search_condition
         where condition_type = 1
         and `status` = 1
@@ -60,7 +60,7 @@
     </select>
 
     <select id="getScoreByConditionType"  resultType="com.br.marketing.vo.ConditionOfScoreVO">
-        select a.`id`,a.`name`,a.`content`,a.`content_show`,a.`condition_number`
+        select a.`id`,a.`name`,a.`content`,a.`content_show`,a.`score_content`,a.`condition_number`
         from b_score_search_condition as a
                  join b_score_search_condition_mapping as b on a.id = b.condition_id
         where a.condition_type = #{conditionType}
