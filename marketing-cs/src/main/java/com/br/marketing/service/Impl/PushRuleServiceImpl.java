@@ -564,18 +564,20 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
-            //推决策
             if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
+                //推决策
                 querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
-                //剔除
             } else {
+                //true包剔除
                 querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
             }
         } else if ("false".equals(collidingFilterDTO.getResult())) {
             String info = collidingFilterDTO.getInfo();
             if (StringUtils.isNotEmpty(info) && info.equalsIgnoreCase("NULL")) {
+                //false动态包剔除
                 querySql = dynaPackageDeleteCondition(jsonObject, batchNumberList, true);
             } else {
+                //false包补充
                 querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
             }
         }
