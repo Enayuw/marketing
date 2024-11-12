@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.DateHelper;
@@ -73,6 +74,27 @@ public class TransferFileTaskServiceImpl implements TransferFileTaskService {
             return new ApiResult<>().fail("该条数据提取记录不存在");
         }
         transferFileTaskMapper.deleteByPrimaryKey(id.longValue());
+
+        String extend = fileTask.getExtend();
+        if(StringUtils.isEmpty(extend) || !extend.contains("mrpExtraTaskId")){
+            return new ApiResult<>().success();
+        }
+        JSONObject jo = JSONObject.parseObject(extend);
+        if(jo == null){
+            return new ApiResult<>().success();
+        }
+        String mrpExtraTaskId = jo.getString("mrpExtraTaskId");
+        if(StringUtils.isEmpty(mrpExtraTaskId)){
+            return new ApiResult<>().success();
+        }
+        String startDate = fileTask.getStartDate();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate actionLocalDate = LocalDate.parse(startDate, formatter);
+        String actionDate = actionLocalDate.toString();
+
+        transferFileTaskMapper.deleteMrpExtraTaskAction(mrpExtraTaskId, actionDate);
+        log.warn("删除MRP文件提取记录, mrpExtraTaskId: {}, actionDate: {}", mrpExtraTaskId, actionDate);
+
         /*//目前手动触发定时任务
         JobOperateAPI jobOperateAPI = JobAPIFactory.createJobOperateAPI(zkAddressList,nameSpace, Optional.absent());
         jobOperateAPI.trigger(Optional.of(TRANSFERFILEJOB),Optional.absent());

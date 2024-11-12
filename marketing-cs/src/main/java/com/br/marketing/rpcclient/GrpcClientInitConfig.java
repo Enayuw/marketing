@@ -11,6 +11,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -105,7 +106,8 @@ public class GrpcClientInitConfig {
 
     static Boolean isDomain() {
         String env = _environment.getActiveProfiles()[0];
-        return "dev".equals(env) || "pre".equals(env);
+        String grpcInitFlag = _environment.getProperty("grpc.init");
+        return "dev".equals(env) || "pre".equals(env) || Objects.equals(grpcInitFlag, "true");
     }
 
 }

@@ -255,4 +255,15 @@ public class RedisKeyConstant {
      */
     public static final String WUBA_COLLIDING_EXCEED_LIMIT = prefix.concat("wuba:colliding:exceed:limit");
 
+
+    /**
+     * 数禾促复借每日自动化匹配数据清洗位置标记
+     */
+    public static final String SHU_HE_CUFUJIE_MATCH_DATA_FLAG = prefix.concat("shuhe:match:data:flag");
+
+    /**
+     * 交付获取用户信息锁
+     */
+    public static final String DELIVERY_USER_INFORMATION = prefix.concat("delivery:user:information");
+
 }

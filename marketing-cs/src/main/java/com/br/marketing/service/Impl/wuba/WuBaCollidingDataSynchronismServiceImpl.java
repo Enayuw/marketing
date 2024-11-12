@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.wuba;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
@@ -21,8 +22,12 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -79,17 +84,29 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
                 marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
 
         // 查询高价值文件id
-        String highValueIds = getHighValueFileIds(apiCode);
+        List<Long> highValueIdList = getHighValueFileIds(apiCode);
+        String highValueIds = Objects.isNull(highValueIdList) ? "(\"\")" : "(" + Joiner.on(",").join(highValueIdList) + ")";
+        // 查询-2的文件id
+        String reavedFileIds = getWubaCollidingReavedFileIds();
+        log.warn("58撞库数据同步作业，开启撞库的status=-2文件ids：{}", reavedFileIds);
         Long minId = null;
         while (true) {
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
 
-            // local_id and status =1 and push_status =1，去重逻辑：1.该文件本身去重、2.该文件与非周期当天已同步数据或高质量数据去重、3.该文件与周期表全量去重
+            // local_id and status =1 and push_status =1，去重逻辑：
+            // 1.与该文件本身数据去重
+            // 2.与当天已上传数据去重
+            // 3.与高价值数据去重
+            // 4.与周期非金融数据去重
+            // 5.与周期金融数据去重
+            // 6.与周期非金融status=-2包去重
+            // 7.与周期金融status=-2包去重
+            // 8.与补包status=-2包去重
             Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDatetikv_(localFile.getId(),
-                    apiCode, minId, pageSize, today, tomorrow, highValueIds);
+                    apiCode, minId, pageSize, today, tomorrow, highValueIds, reavedFileIds);
             if (CollectionUtils.isEmpty(wubaCollidingDataFronts)) {
                 break;
             }
@@ -106,22 +123,39 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         threadPoolShutDown(pool);
     }
 
+    private String getWubaCollidingReavedFileIds() {
+        List<Long> reavedFileIds = new ArrayList<>();
+        HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
+        for (Map.Entry<String, JSONObject> mapEntry : map.entrySet()) {
+            for (Map.Entry<String, Object> booleanEntry : mapEntry.getValue().entrySet()) {
+                if ((Boolean) booleanEntry.getValue()) {
+                    reavedFileIds.add(Long.valueOf(booleanEntry.getKey()));
+                }
+            }
+        }
+
+        if (CollectionUtils.isEmpty(reavedFileIds)) {
+            return "(\"\")";
+        }
+        return "(" + Joiner.on(",").join(reavedFileIds) + ")";
+    }
+
     @Override
-    public String getHighValueFileIds(String apiCode) {
+    public List<Long> getHighValueFileIds(String apiCode) {
         List<String> highValueFiles = marketingCommonConfig.getWubaCollidingHighValueFiles();
         if (CollectionUtils.isEmpty(highValueFiles)) {
-            return "(\"\")";
+            return null;
         }
 
         LocalFileExample localFileExample = new LocalFileExample();
         localFileExample.createCriteria().andApiCodeEqualTo(apiCode).andFileNameIn(highValueFiles);
         List<LocalFile> localFiles = localFileMapper.selectByExample(localFileExample);
         List<Long> highValueIds = localFiles.stream().map(LocalFile::getId).collect(Collectors.toList());
-
         if (CollectionUtils.isEmpty(highValueIds)) {
-            return "(\"\")";
+            return null;
         }
-        return "(" + Joiner.on(",").join(highValueIds) + ")";
+
+        return highValueIds;
     }
 
     private void modifyThreadPool(ThreadPoolExecutor pool) {
