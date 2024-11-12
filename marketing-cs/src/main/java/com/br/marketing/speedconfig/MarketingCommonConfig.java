@@ -2289,6 +2289,11 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
+    /**
+     * 携程动态补充包Id配置
+     */
+    private List<String> XcDynaFalsePackageIds;
+
     private Integer xieChengBlackEncAndDesThread;
 
     private Integer xieChengPreCollidingBlackListDeleteThread;

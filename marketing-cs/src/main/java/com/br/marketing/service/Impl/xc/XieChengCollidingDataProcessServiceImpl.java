@@ -240,9 +240,14 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     private boolean queryDeletingTaskCount(String apiCode, XcProcessTaskEnum xcProcessTaskEnum) {
         List<Integer> taskTypes = null;
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_FALSE) {
-            taskTypes = Arrays.asList(1);
+            taskTypes = Arrays.asList(XcProcessTaskEnum.PROCESS_DELETE.getTaskType());
         } else if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_DYNA_FALSE) {
-            taskTypes = Arrays.asList(0, 1);
+            taskTypes = Arrays.asList(XcProcessTaskEnum.PROCESS_DELETE.getTaskType(),
+                    XcProcessTaskEnum.PROCESS_FALSE.getTaskType());
+        } else if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE) {
+            taskTypes = Arrays.asList(XcProcessTaskEnum.PROCESS_DELETE.getTaskType(),
+                    XcProcessTaskEnum.PROCESS_FALSE.getTaskType(),
+                    XcProcessTaskEnum.PROCESS_DYNA_FALSE.getTaskType());
         }
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
@@ -337,12 +342,12 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             processTask.setTaskEndTime(new Date());
             processTask.setUpdateTime(new Date());
             taskMapper.updateByPrimaryKeySelective(processTask);
-            if (actualNumber > 0) {
-                String msg = "携程撞库周期TRUE数据删除量级:" + actualNumber;
-                Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-                Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
-                dingDingRobotHookService.sendDingDingTextMessage(msg, map);
-            }
+//            if (actualNumber > 0) {
+//                String msg = "携程撞库周期TRUE数据删除量级:" + actualNumber;
+//                Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+//                Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
+//                dingDingRobotHookService.sendDingDingTextMessage(msg, map);
+//            }
         }
     }
 
@@ -362,11 +367,14 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         String tableName = "b_xiecheng_colliding_" + batchNumber;
         String queryRuleScoreDataSql = "select id, cell, is_delete from "
                 + tableName + " where " + conditions;
-        String extend = null;
-        if (type == 0) {
+        String extend = "";
+        String errorPrefix = "";
+        if (type == XcProcessTaskEnum.PROCESS_DELETE.getBatchType()) {
             extend = "携程撞库数据清洗任务删除，任务id：" + vo.getCollidingDataTaskId();
-        } else if (type == 1) {
+            errorPrefix = "携程撞库true数据剔除，单线程处理异常：，batchId=";
+        } else if (type == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getBatchType()) {
             extend = "携程撞库数据清洗任务动态包删除，任务id：" + vo.getCollidingDataTaskId();
+            errorPrefix = "携程撞库false动态包数据剔除，单线程处理异常：，batchId=";
         }
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
@@ -379,9 +387,9 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
         for(; ; ) {
             List<Long> longs = null;
-            if (type == 0) {
+            if (type == XcProcessTaskEnum.PROCESS_DELETE.getBatchType()) {
                 longs = cycleMapper.selectIdsOfTrueDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
-            } else if (type == 1) {
+            } else if (type == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getBatchType()) {
                 longs = robMapper.selectIdsOfDynaFalseDataProcessTasktikv_(minId, queryRuleScoreDataSql, tableName, pageSize);
             }
             if (CollectionUtils.isEmpty(longs)) {
@@ -392,6 +400,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
             List<List<Long>> partitions = Lists.partition(longs, PARTATION_SIZE);
             for (List<Long> partition : partitions) {
                 String finalExtend = extend;
+                String finalErrorPrefix = errorPrefix;
                 futures.add(CompletableFuture.runAsync(() -> {
                     try {
                         if (type == 0) {
@@ -401,7 +410,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                         }
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                                "携程撞库TRUE数据删除，单线程处理异常：，batchId=" + vo.getId() + "errorMessage=" + e.getMessage()), e);
+                                finalErrorPrefix + vo.getId() + "errorMessage=" + e.getMessage()), e);
                     }
                 }, threadPool));
             }
