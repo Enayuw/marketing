@@ -89,8 +89,8 @@ public class XieChengBlackEncAndDecJobServiceImpl implements XieChengBlackEncAnd
                 t.setCellSha256(cell);
                 t.setStatus(1);
             } catch (Exception e) {
-                log.warn("携程撞库黑名单log解密-shar256加密异常,异常id:{}", t.getId());
-
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                        "携程撞库黑名单log解密-shar256加密异常,异常id=" + t.getId()), e);
                 StringBuilder msg = new StringBuilder();
                 msg.append("携程撞库黑名单logCell解密,sha256加密：日志保存线程池结束异常,异常id:" + t.getId() + " ");
                 Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
