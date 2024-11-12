@@ -238,4 +238,20 @@
         </if>
         order by id limit #{pageSize};
     </select>
+
+    <select id="selectCellsByPage" parameterType="java.lang.String" resultType="com.br.marketing.entity.XieChengBlackList">
+        select
+        id,
+        cell_sha256
+        from b_xiecheng_colliding_data_black_list
+        where status = 1  and group_type = #{type}
+        <if test="minId != null and minId>0">
+            and id > #{minId}
+        </if>
+        order by id limit #{pageSize};
+    </select>
+
+    <select id="selectByBlackListIdsFromScoreFile" parameterType="java.lang.String" resultType="java.lang.String">
+        ${querySql}
+    </select>
 </mapper>

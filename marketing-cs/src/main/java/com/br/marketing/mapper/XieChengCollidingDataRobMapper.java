@@ -80,15 +80,14 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     List<Long> selectIdsOfDynaFalseDataProcessTasktikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                         @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
 
-    List<Long> selectRobPublicBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize);
+    List<Long> selectRobPublicBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize,
+                                                 @Param("type") Integer type);
 
     List<Long> selectRobNoPublicBlackListZYIdsByPagetikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                         @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
     List<Long> selectRobNoPublicBlackListBYIdsByPagetikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                      @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
 
-    void batchUpdateNoPublicBlackListZYData(@Param("list") List<Long> list, @Param("extend") String extend);
-
-    void batchUpdateNoPublicBlackListBYData(@Param("list") List<Long> list, @Param("extend") String extend);
+    void batchUpdateRobNoPublicBlackListData(@Param("list") List<String> list, @Param("extend") String extend);
 
 }

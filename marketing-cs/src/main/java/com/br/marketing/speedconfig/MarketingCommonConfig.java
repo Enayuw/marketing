@@ -2289,6 +2289,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
+    private Integer xieChengBlackEncAndDesThread;
+
+    private Integer xieChengPreCollidingBlackListDeleteThread;
+
 
 }
 

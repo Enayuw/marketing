@@ -48,7 +48,6 @@ public class XiechengCollidingTaskBatch {
      */
     private Date updateTime;
 
-    private String deleteNumber;
 
     public Long getId() {
         return id;
@@ -118,11 +117,4 @@ public class XiechengCollidingTaskBatch {
         this.updateTime = updateTime;
     }
 
-    public String getDeleteNumber() {
-        return deleteNumber;
-    }
-
-    public void setDeleteNumber(String deleteNumber) {
-        this.deleteNumber = deleteNumber;
-    }
 }

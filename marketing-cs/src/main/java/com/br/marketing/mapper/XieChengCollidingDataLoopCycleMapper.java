@@ -87,7 +87,8 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     * @Description: 周期表公共黑名单剔除
     * @Author: Ethan.Kang
     */
-    List<Long> selectCycleBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize);
+    List<Long> selectCycleBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize,
+                                             @Param("type") Integer type);
 
     List<Long> selectCycleNoPublicBlackListZYIdsByPagetikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                                               @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
@@ -97,9 +98,8 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     void batchUpdateCycPublicBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);
 
-    void batchUpdateNoPublicBlackListZYData(@Param("list") List<Long> list, @Param("extend") String extend);
+    void batchUpdateCycNoPublicBlackListData(@Param("list") List<String> list, @Param("extend") String extend);
 
-    void batchUpdateNoPublicBlackListBYData(@Param("list") List<Long> list, @Param("extend") String extend);
     /**
      * 更新is_delete：is_delete = 1,update_time = now()
      * @param ids
