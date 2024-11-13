@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.List;
+import java.util.Random;
 import java.util.function.Function;
 
 /**
@@ -33,9 +33,6 @@ public class RocketMqConsumerService {
 
     @Resource
     private AlarmApiClient alarmClient;
-
-//    @Autowired
-//    private RocketMqTemplate template;
 
     @Resource
     private RedisChgService redisChgService;
@@ -61,7 +58,7 @@ public class RocketMqConsumerService {
             , String delayTopic, String retryTag, long delayTime) {
         String message = null;
         StringBuilder sb = new StringBuilder();
-        String uuid = messageExt.getProperty(rocketMqSwitch.UUID_KEY);
+        String uuid = messageExt.getProperty(RocketMqSwitch.UUID_KEY);
         String topic = messageExt.getTopic();
         String tags = messageExt.getTags();
         String msgId = messageExt.getMsgId();
@@ -109,26 +106,24 @@ public class RocketMqConsumerService {
              */
             if (ResultCode.SUCCESS.getValue().equals(apply.getCode())) {
                 message = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-                if (apply.getData()) {
+                if (null != apply.getData() && apply.getData()) {
                     if (StringUtils.isNotBlank(delayTopic) && StringUtils.isNotBlank(retryTag)) {
                         if(delayTime>0){
                             // 根据消费端配置的[延迟Topic]和[Tags]发送
-//                            template.syncSendDelaySecond(delayTopic, retryTag, message, delayTime);
                             rocketMqSwitch.syncSendDelaySecond(delayTopic, retryTag, message, delayTime);
                         }else{
                             // 根据消费端配置的[普通Topic]和[Tags]发送
-//                            template.syncSend(delayTopic, retryTag, message);
                             rocketMqSwitch.syncSend(delayTopic, retryTag, message);
                         }
                     } else {
                         // 消息重新入本队列
-//                        template.syncSend(topic, tags, message);
                         rocketMqSwitch.syncSend(topic, tags, message);
                     }
                 }
                 try{
-                    redisChgService.set(redisKey,"0");
-                    redisChgService.expire(redisKey,60*15);
+                    Random random = new Random();
+                    long randomNum = 60*(random.nextInt(3*1000)+4000);
+                    redisChgService.lock(redisKey,uuid,randomNum);
                     MarketingMqMsgSole sole = new MarketingMqMsgSole();
                     sole.setTopic(topic);
                     sole.setMsgId(msgId);
