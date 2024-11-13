@@ -43,22 +43,25 @@ public class XieChengBlackEncAndDecJobServiceImpl implements XieChengBlackEncAnd
             if (backList.isEmpty()) {
                 break;
             }
-
             minId = backList.get(backList.size() - 1).getId();
-            List<List<XieChengBlackList>> partitions = Lists.partition(backList, PARTITION_SIZE);
-            for (List<XieChengBlackList> partition : partitions) {
-                //加密转换(log解密,sha256加密)
-                EncryptionConversion(partition);
-                partition.forEach(t -> {
-                    CompletableFuture.runAsync(() -> {
-                        XieChengBlackList entity = new XieChengBlackList();
+            //加密转换(log解密,sha256加密)
+            backList.forEach(t -> {
+                CompletableFuture.runAsync(() -> {
+                    String cell = "";
+                    XieChengBlackList entity = new XieChengBlackList();
+                    try {
+                        cell = EncAndDecUtil.logTodigest(t.getPhoneNumEncoded().trim(), ThreeKeyEncryptEnum.sha256);
                         entity.setId(t.getId());
-                        entity.setCellSha256(t.getCellSha256());
-                        entity.setStatus(t.getStatus());
-                        blackListMapper.updateByPrimaryKeySelective(entity);
-                    }, threadPool);
-                });
-            }
+                        entity.setCellSha256(cell);
+                        entity.setStatus(1);
+                    } catch (Exception e) {
+                        entity.setStatus(2);
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
+                                "携程撞库黑名单log解密-shar256加密异常,异常id=" + t.getId()), e);
+                    }
+                    blackListMapper.updateByPrimaryKeySelective(entity);
+                }, threadPool);
+            });
         }
         // 关闭线程池
         threadPool.shutdown();
@@ -73,20 +76,6 @@ public class XieChengBlackEncAndDecJobServiceImpl implements XieChengBlackEncAnd
             Thread.currentThread().interrupt();
         }
 
-    }
-
-    void EncryptionConversion(List<XieChengBlackList> partition) {
-        partition.forEach(t -> {
-            try {
-                String cell = EncAndDecUtil.logTodigest(t.getPhoneNumEncoded().trim(), ThreeKeyEncryptEnum.sha256);
-                t.setCellSha256(cell);
-                t.setStatus(1);
-            } catch (Exception e) {
-                t.setStatus(2);
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                        "携程撞库黑名单log解密-shar256加密异常,异常id=" + t.getId()), e);
-            }
-        });
     }
 
 }
