@@ -427,6 +427,9 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             //更新规则
             BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(config.getBaseInfo(), new TypeReference<BaseHeadConfigVO>() {
             }.getType());
+            if(Objects.isNull(baseHeadConfigVO)){
+                return;
+            }
             List<BaseHead> baseHeads = baseHeadConfigVO.getBaseHead();
             if (type.equals("0")) {
                 BaseHead baseHead = new BaseHead();
