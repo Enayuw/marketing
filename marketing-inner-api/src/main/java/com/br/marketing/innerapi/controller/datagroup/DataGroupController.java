@@ -82,14 +82,13 @@ public class DataGroupController {
     }
 
 
-
     @ApiOperation(value = "查看字段分组进度", notes = "查看字段分组进度")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "field", value = "field", required = true, dataType = "String"),
             @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")
     })
     @GetMapping("/getGroupFieldPercent")
-    public ApiResult<Map> getGroupFieldPercent(String field, Long id) {
+    public ApiResult<Map> getGroupFieldPercent(@RequestParam(required = true) String field, @RequestParam(required = true) Long id) {
         try {
             HashMap groupPercent = dataGroupHandlerService.getGroupFieldPercent(field, id);
             return new ApiResult<Map>().success(groupPercent);

@@ -300,7 +300,7 @@
   </update>
 
 
-  <select id="selectGroupUploadNum" resultType="java.util.Map">
+  <select id="selectGroupUploadNumtikv_" resultType="java.util.Map">
 
     select count(1) as num,${field} as field
     from b_marketing_sync_${apiCode}
@@ -310,8 +310,9 @@
           (applet_date = #{item.appletDate} and user_type = #{item.userType})
         </foreach>
       </if>
+      and json_valid(reserve_field1)=1
       <if test="extendField != null and extendField!=''">
-        and extendField is not null
+        and ${extendField} is not null
       </if>
       group by ${field};
     </where>
