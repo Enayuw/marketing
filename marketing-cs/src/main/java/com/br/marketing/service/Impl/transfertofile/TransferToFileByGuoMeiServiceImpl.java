@@ -236,7 +236,7 @@ public class TransferToFileByGuoMeiServiceImpl implements ITransferToFileService
                         JSONObject jsonObject = ObjectUtil.isNotEmpty(marketingSyncUser.getReserveField1())
                                 ? JSON.parseObject(marketingSyncUser.getReserveField1())
                                 : null;
-                        customName = ObjectUtil.isNotEmpty(jsonObject) ? jsonObject.getString("customName") : "";
+                        customName = ObjectUtil.isNotEmpty(jsonObject) ? jsonObject.getString("customNameType") : "";
                     }
                     String reserveField1 = transferFilterData.getReserveField1();
                     if (StringUtils.isNotBlank(reserveField1)) {
