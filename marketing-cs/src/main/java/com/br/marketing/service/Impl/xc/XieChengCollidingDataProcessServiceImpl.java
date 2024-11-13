@@ -312,6 +312,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                                 + (vo == null ? "null" : vo.getId())
                                 + "errorMessage=" + e.getMessage()), e);
                 redisChgService.unlock(key, lockValue);
+                break;
             }
         }
     }
