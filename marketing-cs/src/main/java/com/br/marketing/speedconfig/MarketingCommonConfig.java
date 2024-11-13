@@ -2302,5 +2302,10 @@ public class MarketingCommonConfig {
      */
     private Boolean pushPolicyMarkWithEsFlag;
 
+    /**
+     * 360ai的strategyCode清洗配置
+     */
+    private String qifuAiCleanStrategyCodeFlag;
+
 }
 
