@@ -34,7 +34,7 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
     /**
@@ -201,8 +201,8 @@ public class XieChengActivateDataServiceImpl implements XieChengActivateDataServ
             xieChengActivateDTO.setCId(tCid);
             xieChengActivateDTO.setDataId(sourceId);
             String msg = JSONObject.toJSONString(xieChengActivateDTO);
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)){
-                template.syncSend(MarketingUploadConstants.TOPIC
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)){
+                rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);
             }else{
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_ACTIVATE, msg);

@@ -79,7 +79,7 @@ public class ShuHeUserServiceImpl {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
 
     @Transactional(rollbackFor = Exception.class)
     public Long saveShUploadData(CaseShuheUploadData shuheUploadData, JSONObject uploadDataDTO, JSONArray listInfo) {
@@ -287,7 +287,7 @@ public class ShuHeUserServiceImpl {
             transferInfo.setActualNum(1);
             marketingTransferInfoMapper.insertSelective(transferInfo);
             String id = String.valueOf(transferInfo.getId());
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)){
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL)){
                 pushRuleService.sendToRocketMqByConfig(apiCode, MarketingTransferSmallConstants.TOPIC
                         , MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL, id, CustomerQueueEnum.ORG_SYNC);
             }else{

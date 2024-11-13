@@ -37,7 +37,7 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -59,9 +59,9 @@ public class XieChengPushHandler extends AbstractExternalInterfaceHandler<XieChe
                 JSONObject msg = new JSONObject();
                 msg.put("localId", dto.getInitId());
                 msg.put("type", 2);
-                if(rocketMQSwitch.rocketMQSwitchFlag(xieChengData.getApiCode()
+                if(rocketMqSwitch.rocketMQSwitchFlag(xieChengData.getApiCode()
                         , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
-                    template.syncSend(MarketingAssistConstants.TOPIC
+                    rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC
                             , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
                 }else{
                     producter.send(ROUTING_KEY_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());

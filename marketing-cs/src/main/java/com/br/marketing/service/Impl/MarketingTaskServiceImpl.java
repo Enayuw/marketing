@@ -152,7 +152,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Autowired
     RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -1061,8 +1061,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         straHisFileMapper.updateByPrimaryKeySelective(updateEntity);
         if (suc) {
             String idString = id.toString();
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK)){
-                template.syncSend(MarketingAssistConstants.TOPIC
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK)){
+                rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC
                         , MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK, idString);
             }else{
                 producter.send(MQConstants.ROUTING_KEY_OFFLINETASK_FILE_CALLBACK, idString);

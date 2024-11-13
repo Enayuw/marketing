@@ -37,7 +37,7 @@ public class MarketingUniversalTransferReceiveConsumer extends BaseMqMessageList
     @Resource
     private InterfaceHandlerService interfaceHandlerService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -46,7 +46,7 @@ public class MarketingUniversalTransferReceiveConsumer extends BaseMqMessageList
     @Override
     protected void handleMessage(MessageExt messageExt) {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
             log.warn("Marketing_Universal_Transfer_Receive：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()
                     , messageExt.getBrokerName(), messageExt.getTopic()

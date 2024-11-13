@@ -37,7 +37,7 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
     @Resource
     private XieChengRobDataCollidingService robDataCollidingService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -46,7 +46,7 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE)){
             log.warn("MARKETING_XIECHENG_COLLIDING_ACTIVATE：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

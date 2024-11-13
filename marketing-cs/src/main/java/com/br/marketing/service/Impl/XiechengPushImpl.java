@@ -28,7 +28,7 @@ public class XiechengPushImpl {
     @Resource
     private RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -50,9 +50,9 @@ public class XiechengPushImpl {
                     JSONObject msg = new JSONObject();
                     msg.put("localId", xieChengDatum.getLocalId());
                     msg.put("type", 2);
-                    if(rocketMQSwitch.rocketMQSwitchFlag(xieChengDatum.getApiCode()
+                    if(rocketMqSwitch.rocketMQSwitchFlag(xieChengDatum.getApiCode()
                             , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE)){
-                        template.syncSend(MarketingAssistConstants.TOPIC
+                        rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC
                                 , MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE, msg.toJSONString());
                     }else{
                         producter.send("Marketing.Universal.SftpToDb.XieChengReceive" , msg.toJSONString());

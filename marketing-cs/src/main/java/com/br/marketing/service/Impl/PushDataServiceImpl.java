@@ -228,7 +228,7 @@ public class PushDataServiceImpl implements PushDataService {
     @Autowired
     RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -1633,8 +1633,8 @@ public class PushDataServiceImpl implements PushDataService {
                 .map(XieChengSmsCollidingDataLogVt::getSha256CodeList)
                 .collect(Collectors.toList());
         String jsonString = JSON.toJSONString(sha256CodeListFalseList);
-        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER)){
-            template.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+        if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER)){
+            rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
                     , MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER, jsonString);
         }else{
             producter.send(ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER

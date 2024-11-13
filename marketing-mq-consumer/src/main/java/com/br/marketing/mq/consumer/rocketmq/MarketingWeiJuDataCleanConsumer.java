@@ -34,7 +34,7 @@ public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener imple
     @Resource
     private WeiJuDataCleanService weiJuDataCleanService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -43,7 +43,7 @@ public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener imple
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingUploadConstants.TAG_MARKETING_WEIJU_DATA_CLEAN)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingUploadConstants.TAG_MARKETING_WEIJU_DATA_CLEAN)){
             log.warn("MARKETING_WEIJU_DATA_CLEAN：storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()
                     , messageExt.getBrokerName(), messageExt.getTopic()

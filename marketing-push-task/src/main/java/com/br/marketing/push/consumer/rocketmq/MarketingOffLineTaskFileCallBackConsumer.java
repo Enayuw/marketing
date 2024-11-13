@@ -39,7 +39,7 @@ public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListe
     @Autowired
     MergeWithMessageServiceImpl mergeWithMessageService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -50,7 +50,7 @@ public class MarketingOffLineTaskFileCallBackConsumer extends BaseMqMessageListe
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
         Long o = JSON.parseObject(bodyString, new TypeReference<Long>() {
         }.getType());
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingAssistConstants.TAG_MARKETING_OFFLINETASK_FILE_CALLBACK)){
             log.warn("Marketing_OffLineTask_File_CallBack：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

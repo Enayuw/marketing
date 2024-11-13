@@ -38,7 +38,7 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -211,8 +211,8 @@ public class GuoMeiCustomizeUploadDataServiceImpl implements GuoMeiCustomizeUplo
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
             String msg = json.toJSONString();
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_GUOMEI_DATA_CLEAN)){
-                template.syncSend(MarketingUploadConstants.TOPIC
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingUploadConstants.TAG_MARKETING_GUOMEI_DATA_CLEAN)){
+                rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_GUOMEI_DATA_CLEAN, msg);
             }else{
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_DATA_CLEAN, msg);

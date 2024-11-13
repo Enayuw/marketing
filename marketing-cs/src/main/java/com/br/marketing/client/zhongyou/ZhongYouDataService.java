@@ -68,7 +68,7 @@ public class ZhongYouDataService {
     @Resource
     private RocketMqTemplate template;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -140,8 +140,8 @@ public class ZhongYouDataService {
             if (!Integer.valueOf(fileData).equals(num)) {
                 log.error("中邮文件数据量级不匹配：文件给定量级-> {},实际入库量级-> {}", fileData, num);
             }
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN)){
-                template.syncSend(MarketingAssistConstants.TOPIC
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN)){
+                rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC
                         , MarketingAssistConstants.TAG_MARKETING_ZHONGYOU_DATA_CLEAN, String.valueOf(fileId));
             }else{
                 producter.send(ROUTING_KEY_MARKETING_ZHONGYOU_DATA_CLEAN, String.valueOf(fileId));

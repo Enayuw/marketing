@@ -33,7 +33,7 @@ public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlack
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -197,8 +197,8 @@ public class GuoMeiCustomizeBlackDataServiceImpl implements GuoMeiCustomizeBlack
             json.put("tCid", tCid);
             json.put("sourceId", sourceId);
             String msg = json.toJSONString();
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_GUOMEI_BLACK_DATA_CLEAN)){
-                template.syncSend(MarketingTransferConstants.TOPIC
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_GUOMEI_BLACK_DATA_CLEAN)){
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_GUOMEI_BLACK_DATA_CLEAN, msg);
             }else{
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN, msg);

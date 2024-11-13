@@ -190,7 +190,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -378,7 +378,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     TransferFiledProcessImpl transferFiledProcess;
-
 
     @Override
     public Result<CustomerInfoPushMain> getPushTask() {
@@ -1427,7 +1426,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         //endregion
         //region 写入上传明细MQ
         if (!dbException) {
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode,MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)){
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)){
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
@@ -1479,22 +1478,22 @@ public class PushRuleServiceImpl implements PushRuleService {
             String apiCodeJointBizType = apiCode + "," + queueEnum.getValue();
             CustomerRoutingKeyConfig routingKeyConfig = caffeineCache.getRountingKey(apiCodeJointBizType);
             if (null == routingKeyConfig) {
-                template.syncSend(topic, tag, infoId);
+                rocketMqSwitch.syncSend(topic, tag, infoId);
             } else {
                 // RocketMQ不支持优先级
                 String tagFromDb = routingKeyConfig.getRoutingKey();
                 if(MarketingUploadSmallConstants.TAG_MARKETING_PRE_USER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingUploadSmallConstants.TOPIC, tagFromDb, infoId);
+                    rocketMqSwitch.syncSend(MarketingUploadSmallConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingUploadEmergencyConstants.TOPIC, tagFromDb, infoId);
+                    rocketMqSwitch.syncSend(MarketingUploadEmergencyConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingTransferSmallConstants.TAG_MARKETING_TRANSFER_RECEIVE_SMALL.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingTransferSmallConstants.TOPIC, tagFromDb, infoId);
+                    rocketMqSwitch.syncSend(MarketingTransferSmallConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingTransferEmergencyConstants.TAG_MARKETING_TRANSFER_RECEIVE_EMERGENCY.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingTransferEmergencyConstants.TOPIC, tagFromDb, infoId);
+                    rocketMqSwitch.syncSend(MarketingTransferEmergencyConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingUploadConstants.TOPIC, tagFromDb, infoId);
+                    rocketMqSwitch.syncSend(MarketingUploadConstants.TOPIC, tagFromDb, infoId);
                 }else if(MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE.equalsIgnoreCase(tagFromDb)){
-                    template.syncSend(MarketingTransferConstants.TOPIC, tagFromDb, infoId);
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC, tagFromDb, infoId);
                 }else{
                     log.warn("[{}]RocketMQ的tag（RoutingKey）配置错误-tag[{}]consumerGroup[{}]-",
                             apiCode, tagFromDb, routingKeyConfig.getQueueName());
@@ -1714,7 +1713,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         // 发送场景收集队列
-        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
+        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_UPLOAD_API_USERTYPE_COLLECTION)){
             sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 dataInfoDTO.setApiCode(apiCode);
@@ -1780,9 +1779,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(infoId);
             mqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                 String message = JSON.toJSONString(mqFact);
-                template.syncSend(MarketingTransferConstants.TOPIC
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
             }else{
                 producter.sendToUniversalTransferQueue(mqFact);
@@ -1824,7 +1823,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         String msg = "";
         try {
             msg = JSONObject.toJSONString(function.apply(localUserTypeCache));
-            template.syncSend(topic, tag, msg);
+            rocketMqSwitch.syncSend(topic, tag, msg);
         } catch (Exception e) {
             log.error("推送场景信息到队列失败,topic[{}]tag[{}]msg[{}]异常信息:",topic, tag, msg, e);
         } finally {
@@ -1917,7 +1916,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         //region 写入上传明细MQ
         if (!dbException) {
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode,MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)){
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE)){
                 sendToRocketMqByConfig(apiCode, MarketingUploadConstants.TOPIC
                         , MarketingUploadConstants.TAG_MARKETING_PRE_USER_RECEIVE, syncInfoId, CustomerQueueEnum.ORG_SYNC);
             }else{
@@ -2040,7 +2039,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         }
         if (!dbException) {
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode,MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode,MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
                 sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
             }else{
@@ -2098,7 +2097,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         if (!dbException) {
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE)){
                 sendToRocketMqByConfig(apiCode, MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_TRANSFER_RECEIVE, transferInfoId, CustomerQueueEnum.ORG_TRANSFER);
             }else{
@@ -2267,15 +2266,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                 && (updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success)
                 || updateSyncInfo.getStatus().equals(StatusConstants.MarketingPreUserStatus_success_part))) {
             if (transferInfo.getRequestId().startsWith("black_")) {
-                if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK)){
-                    template.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK)){
+                    rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
                             , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
                 }else{
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_BLACK, id.toString());
                 }
             } else {
-                if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER)){
-                    template.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER)){
+                    rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
                             , MarketingOutsideInterfaceConstants.TAG_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
                 }else{
                     producter.send(MQConstants.ROUTING_KEY_MARKETING_TRANSFER_PUSH_CUSTOMER, id.toString());
@@ -2286,9 +2285,9 @@ public class PushRuleServiceImpl implements PushRuleService {
             MqFact mqFact = new MqFact();
             mqFact.setSourceId(id);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
-            if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
                 String message = JSON.toJSONString(mqFact);
-                template.syncSend(MarketingTransferConstants.TOPIC
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                         , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
             }else{
                 producter.sendToUniversalTransferQueue(mqFact);
@@ -2300,7 +2299,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     private void transferSendUserTypeCollectionMsg(String cid, MarketingTransferInfo transferInfo
             , Map<String, UserTypeCollectionDTO> localUserTypeCache) {
         String apiCode = transferInfo.getApiCode();
-        if(rocketMQSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION)){
+        if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingAssistConstants.TAG_MARKETING_TRANSFER_API_USERTYPE_COLLECTION)){
             sendUserTypeCollectionMsg(localUserTypeCache, (Map<String, UserTypeCollectionDTO> localUserTypeCacheMap) -> {
                 ApiDataInfoDTO<UserTypeCollectionDTO> dataInfoDTO = new ApiDataInfoDTO<>();
                 List<UserTypeCollectionDTO> collections = new ArrayList<>(localUserTypeCacheMap.values());

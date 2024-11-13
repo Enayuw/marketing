@@ -53,7 +53,7 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
     @Resource
@@ -115,8 +115,8 @@ public class CustomizeTransferProcessResend implements ValidityPeriodResendStrat
             marketingCommonConfig.getUniversalTransferProcessResendThreadNum());
         data.stream().map(transferInfo -> buildMqFact(transferInfo, record)).map(JSONObject::toJSONString)
             .forEach((String mqFact) -> pool.submit(() -> {
-                if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
-                    template.syncSend(MarketingTransferConstants.TOPIC
+                if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                    rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
                             , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, mqFact);
                 }else{
                     rabbitMqProducter.send(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, mqFact);

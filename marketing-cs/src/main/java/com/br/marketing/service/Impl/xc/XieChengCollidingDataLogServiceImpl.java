@@ -50,7 +50,7 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -162,8 +162,8 @@ public class XieChengCollidingDataLogServiceImpl implements XieChengCollidingDat
     @Override
     public void pushLogMessage(List<XieChengCollidingDataLog> collidingLogs) {
         try {
-            if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
-                template.syncSend(MarketingXieChengConstants.TOPIC
+            if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE)){
+                rocketMqSwitch.syncSend(MarketingXieChengConstants.TOPIC
                         , MarketingXieChengConstants.TAG_MARKETING_XIECHENG_COLLIDING_LOG_QUEUE, JSONObject.toJSONString(collidingLogs));
             }else{
                 rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_XIECHENG_COLLIDING_LOG, JSONObject.toJSONString(collidingLogs));

@@ -54,7 +54,7 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
     @Resource
     private RabbitMqProducter producer;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -67,16 +67,16 @@ public class MessageDelayHandler extends AbstractExternalInterfaceHandler<MqFact
             String message = JSON.toJSONString(mqFact);
             if (!StringUtils.isEmpty(mqFact.getDelayTime()) && mqFact.getDelayTime() > 0) {
                 float v = mqFact.getDelayTime() * Integer.parseInt(expireTime);
-                if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
-                    template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
+                if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
+                    rocketMqSwitch.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                             , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
                             , (int)v/1000);
                 }else{
                     producer.sendByExpiration(MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALF_HOUR, message, String.valueOf((int)v));
                 }
             }else{
-                if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
-                    template.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
+                if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR)){
+                    rocketMqSwitch.syncSendDelaySecond(MarketingDelayedConstants.TOPIC
                             , MarketingDelayedConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE_DELAY_HALFHOUR, message
                             , Integer.parseInt(expireTime)/1000);
                 }else{

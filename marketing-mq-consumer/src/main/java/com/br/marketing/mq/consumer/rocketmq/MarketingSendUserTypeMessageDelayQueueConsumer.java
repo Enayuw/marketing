@@ -36,7 +36,7 @@ public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessag
     @Autowired
     VariableDicService variableDicService;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Override
     protected String consumerName() {
         return null;
@@ -45,7 +45,7 @@ public class MarketingSendUserTypeMessageDelayQueueConsumer extends BaseMqMessag
     @Override
     protected void handleMessage(MessageExt messageExt) throws Exception {
         String bodyString = new String(messageExt.getBody(),StandardCharsets.UTF_8);
-        if(rocketMQSwitch.rocketLogSwitchFlag(MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
+        if(rocketMqSwitch.rocketLogSwitchFlag(MarketingDelayedConstants.TAG_MARKETING_SEND_USERTYPE_MESSAGE_DELAY_QUEUE)){
             log.warn("MARKETING_SEND_USERTYPE_MESSAGE_DEAD_QUEUE：" +
                             "storeTimestamp[{}]msgId[{}]brokerName[{}]topic[{}]tags[{}]获取消息成功:{}"
                     , messageExt.getStoreTimestamp(), messageExt.getMsgId()

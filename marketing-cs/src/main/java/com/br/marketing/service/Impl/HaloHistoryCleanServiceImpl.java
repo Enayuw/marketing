@@ -56,7 +56,7 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
     @Autowired
     private RabbitMqProducter producter;
     @Resource
-    private RocketMqSwitch rocketMQSwitch;
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     private RocketMqTemplate template;
 
@@ -83,8 +83,8 @@ public class HaloHistoryCleanServiceImpl implements HaloHistoryCleanService {
             return new ApiResult<Boolean>().fail("入参数据异常");
         }
         redisChgService.setnx("cid-halo-button" + cid, cid, TimeUtils.getRemainSecondsOneDay(new Date()));
-        if(rocketMQSwitch.rocketMQSwitchFlag(null, MarketingOutsideInterfaceConstants.TAG_MARKETING_HALUO_CLEAN_HISTORY)){
-            template.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+        if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingOutsideInterfaceConstants.TAG_MARKETING_HALUO_CLEAN_HISTORY)){
+            rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
                     , MarketingOutsideInterfaceConstants.TAG_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
         }else{
             producter.send(MQConstants.ROUTING_KEY_MARKETING_HALUO_CLEAN_HISTORY, jsonData);
