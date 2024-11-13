@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.qifu;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -22,6 +23,7 @@ import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -188,8 +190,14 @@ public class QiFuServiceImpl implements IQiFuService {
                             errorMsg.append("templateNo长度小于12");
                             continue outerLoop;
                         }
-                        extendKey.put("strategyCode", strategyCode);
-                        extendKey.put("strategyName", strategyCode);
+                        boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
+                        if (flag) {
+                            extendKey.put("strategyCode", "");
+                            extendKey.put("strategyName", "");
+                        } else {
+                            extendKey.put("strategyCode", strategyCode);
+                            extendKey.put("strategyName", strategyCode);
+                        }
                         extendKey.put("userType", userType);
                         break;
                     case "operateScene":
