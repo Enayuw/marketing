@@ -4,8 +4,8 @@
     <resultMap id="BaseResultMap" type="com.br.marketing.entity.XieChengBlackList">
         <id column="id" property="id" jdbcType="BIGINT"/>
         <result column="phone_num_encoded" property="phoneNumEncoded" jdbcType="VARCHAR"/>
-        <result column="group_name" property="groupName" jdbcType="VARCHAR"/>
-        <result column="group_type" property="groupType" jdbcType="INTEGER"/>
+        <result column="label_name" property="labelName" jdbcType="VARCHAR"/>
+        <result column="label_type" property="labelType" jdbcType="INTEGER"/>
         <result column="cell_sha256" property="cellSha256" jdbcType="VARCHAR"/>
         <result column="status" property="status" jdbcType="INTEGER"/>
     </resultMap>
@@ -70,7 +70,7 @@
         </where>
     </sql>
     <sql id="Base_Column_List">
-        id, phone_num_encoded, group_name, group_type, cell_sha256, `status`
+        id, phone_num_encoded, label_name, label_type, cell_sha256, `status`
     </sql>
     <select id="selectByExample" resultMap="BaseResultMap"
             parameterType="com.br.marketing.entity.XieChengBlackListExample">
@@ -107,9 +107,9 @@
         <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER">
             SELECT LAST_INSERT_ID()
         </selectKey>
-        insert into b_xiecheng_colliding_data_black_list (phone_num_encoded, group_name, group_type,
+        insert into b_xiecheng_colliding_data_black_list (phone_num_encoded, label_name, label_type,
         cell_sha256, `status`)
-        values (#{phoneNumEncoded,jdbcType=VARCHAR}, #{groupName,jdbcType=VARCHAR}, #{groupType,jdbcType=INTEGER},
+        values (#{phoneNumEncoded,jdbcType=VARCHAR}, #{labelName,jdbcType=VARCHAR}, #{labelType,jdbcType=INTEGER},
         #{cellSha256,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER})
     </insert>
     <insert id="insertSelective" parameterType="com.br.marketing.entity.XieChengBlackList">
@@ -121,11 +121,11 @@
             <if test="phoneNumEncoded != null">
                 phone_num_encoded,
             </if>
-            <if test="groupName != null">
-                group_name,
+            <if test="labelName != null">
+                label_name,
             </if>
-            <if test="groupType != null">
-                group_type,
+            <if test="labelType != null">
+                label_type,
             </if>
             <if test="cellSha256 != null">
                 cell_sha256,
@@ -138,11 +138,11 @@
             <if test="phoneNumEncoded != null">
                 #{phoneNumEncoded,jdbcType=VARCHAR},
             </if>
-            <if test="groupName != null">
-                #{groupName,jdbcType=VARCHAR},
+            <if test="labelName != null">
+                #{labelName,jdbcType=VARCHAR},
             </if>
-            <if test="groupType != null">
-                #{groupType,jdbcType=INTEGER},
+            <if test="labelType != null">
+                #{labelType,jdbcType=INTEGER},
             </if>
             <if test="cellSha256 != null">
                 #{cellSha256,jdbcType=VARCHAR},
@@ -168,11 +168,11 @@
             <if test="record.phoneNumEncoded != null">
                 phone_num_encoded = #{record.phoneNumEncoded,jdbcType=VARCHAR},
             </if>
-            <if test="record.groupName != null">
-                group_name = #{record.groupName,jdbcType=VARCHAR},
+            <if test="record.labelName != null">
+                label_name = #{record.labelName,jdbcType=VARCHAR},
             </if>
-            <if test="record.groupType != null">
-                group_type = #{record.groupType,jdbcType=INTEGER},
+            <if test="record.labelType != null">
+                label_type = #{record.labelType,jdbcType=INTEGER},
             </if>
             <if test="record.cellSha256 != null">
                 cell_sha256 = #{record.cellSha256,jdbcType=VARCHAR},
@@ -189,8 +189,8 @@
         update b_xiecheng_colliding_data_black_list
         set id = #{record.id,jdbcType=BIGINT},
         phone_num_encoded = #{record.phoneNumEncoded,jdbcType=VARCHAR},
-        group_name = #{record.groupName,jdbcType=VARCHAR},
-        group_type = #{record.groupType,jdbcType=INTEGER},
+        label_name = #{record.labelName,jdbcType=VARCHAR},
+        label_type = #{record.labelType,jdbcType=INTEGER},
         cell_sha256 = #{record.cellSha256,jdbcType=VARCHAR},
         `status` = #{record.status,jdbcType=INTEGER}
         <if test="_parameter != null">
@@ -203,11 +203,11 @@
             <if test="phoneNumEncoded != null">
                 phone_num_encoded = #{phoneNumEncoded,jdbcType=VARCHAR},
             </if>
-            <if test="groupName != null">
-                group_name = #{groupName,jdbcType=VARCHAR},
+            <if test="labelName != null">
+                label_name = #{labelName,jdbcType=VARCHAR},
             </if>
-            <if test="groupType != null">
-                group_type = #{groupType,jdbcType=INTEGER},
+            <if test="labelType != null">
+                label_type = #{labelType,jdbcType=INTEGER},
             </if>
             <if test="cellSha256 != null">
                 cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
@@ -221,8 +221,8 @@
     <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XieChengBlackList">
         update b_xiecheng_colliding_data_black_list
         set phone_num_encoded = #{phoneNumEncoded,jdbcType=VARCHAR},
-        group_name = #{groupName,jdbcType=VARCHAR},
-        group_type = #{groupType,jdbcType=INTEGER},
+        label_name = #{labelName,jdbcType=VARCHAR},
+        label_type = #{labelType,jdbcType=INTEGER},
         cell_sha256 = #{cellSha256,jdbcType=VARCHAR},
         status = #{status,jdbcType=INTEGER}
         where id = #{id,jdbcType=BIGINT}
@@ -244,7 +244,7 @@
         id,
         cell_sha256
         from b_xiecheng_colliding_data_black_list
-        where status = 1  and group_type = #{type}
+        where status = 1  and label_type = #{type}
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>

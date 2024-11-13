@@ -14,12 +14,12 @@ public class XieChengBlackList {
     /**
      * 
      */
-    private String groupName;
+    private String labelName;
 
     /**
      * 0-公共黑名单,1-自研AI业务黑名单,2-百应业务黑名单
      */
-    private Integer groupType;
+    private Integer labelType;
 
     /**
      * 
@@ -47,20 +47,20 @@ public class XieChengBlackList {
         this.phoneNumEncoded = phoneNumEncoded == null ? null : phoneNumEncoded.trim();
     }
 
-    public String getGroupName() {
-        return groupName;
+    public String getLabelName() {
+        return labelName;
     }
 
-    public void setGroupName(String groupName) {
-        this.groupName = groupName == null ? null : groupName.trim();
+    public void setLabelName(String labelName) {
+        this.labelName = labelName;
     }
 
-    public Integer getGroupType() {
-        return groupType;
+    public Integer getLabelType() {
+        return labelType;
     }
 
-    public void setGroupType(Integer groupType) {
-        this.groupType = groupType;
+    public void setLabelType(Integer labelType) {
+        this.labelType = labelType;
     }
 
     public String getCellSha256() {

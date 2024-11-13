@@ -127,7 +127,7 @@
 
     <select id="selectCycleBlackListIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
         select a.id from b_xiecheng_colliding_data_black_list b
-        join b_xiecheng_colliding_data_loop_cycle a on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = #{type}
+        join b_xiecheng_colliding_data_loop_cycle a on a.cell_sha256_code_list = b.cell_sha256 and b.label_type = #{type}
         and b.status = 1
         where a.is_delete = 0
         <if test="minId != null and minId>0">
@@ -135,34 +135,6 @@
         </if>
         order by a.id limit #{pageSize};
     </select>
-    <select id="selectCycleNoPublicBlackListZYIdsByPagetikv_" parameterType="java.lang.String" resultType="java.lang.Long">
-        select a.id from b_xiecheng_colliding_data_loop_cycle a
-        join b_xiecheng_colliding_data_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 1
-        <if test="queryRuleScoreDataSql != null">
-            join ${tableName} d on d.cell = b.cell_sha256 and d.is_delete = 0
-            left join ( ${queryRuleScoreDataSql} ) c on c.cell = d.cell and c.is_delete = 0 and c.id is null
-        </if>
-        where a.is_delete = 0
-        <if test="minId != null and minId>0">
-            and a.id > #{minId}
-        </if>
-        order by a.id limit #{pageSize};
-    </select>
-
-    <select id="selectCycleNoPublicBlackListBYIdsByPagetikv_" parameterType="java.lang.String" resultType="java.lang.Long">
-        select a.id from b_xiecheng_colliding_data_loop_cycle a
-        join b_xiecheng_colliding_data_black_list b on a.cell_sha256_code_list = b.cell_sha256 and b.group_type = 2
-        join ${tableName} d on d.cell = b.cell_sha256 and d.is_delete = 0
-        <if test="queryRuleScoreDataSql != null">
-            left join ( ${queryRuleScoreDataSql} ) c on c.cell = d.cell and c.is_delete = 0 and c.id is null
-        </if>
-        where a.is_delete = 0
-        <if test="minId != null and minId>0">
-            and a.id > #{minId}
-        </if>
-        order by a.id limit #{pageSize};
-    </select>
-
 
     <update id="updateIsDeleteByIds" parameterType="java.util.List">
         update b_xiecheng_colliding_data_loop_cycle

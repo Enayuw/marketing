@@ -85,7 +85,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 //2.公共黑名单剔除
                 deleteForPublicBlacklists(threadPool);
                 //3.自研AI业务黑名单/百应业务黑名单剔除
-                deleteForNoPublicBlacklists(task, threadPool);
+                deleteForNoPublicBlacklists(task);
                 //7.更新task状态
                 processAfterDeleteForBatch(task);
             } catch (Exception e) {
@@ -113,7 +113,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
      * @Description:自研AI业务黑名单/百应业务黑名单剔除
      * @Author: Ethan.Kang
      */
-    private void deleteForNoPublicBlacklists(XiechengCollidingDataProcessTask vo, ThreadPoolExecutor threadPool) {
+    private void deleteForNoPublicBlacklists(XiechengCollidingDataProcessTask vo) {
         //非公共黑名单周期表剔除(自研AI业务黑名单)
         batchUpdateCycNoPublicBlackList(vo,DateUtils.format(new Date()) + " 自研AI业务黑名单剔除",
                 XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue());
@@ -130,7 +130,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     }
 
     private void batchUpdateCycNoPublicBlackList(XiechengCollidingDataProcessTask vo,
-                                                 String extend, Integer groupType) {
+                                                 String extend, Integer labelType) {
         //条件为空的处理
         String conditions = vo.getTaskExecutionConditions();
         if (StringUtils.isBlank(conditions)) {
@@ -144,7 +144,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         Long minId = null;
         while (true) {
             try {
-                List<XieChengBlackList> blackListCells = blackListMapper.selectCellsByPage(minId, PAGE_SIZE, groupType);
+                List<XieChengBlackList> blackListCells = blackListMapper.selectCellsByPage(minId, PAGE_SIZE, labelType);
                 if (CollectionUtils.isEmpty(blackListCells)) {
                     break;
                 }
@@ -173,15 +173,12 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 }
                 List<String> scoreCells = blackListMapper.selectByBlackListIdsFromScoreFile(querySql);
                 //全部满足 不剔除
-                if (scoreCells.size() >= blackListCells.size()) {
+                if (CollectionUtils.isEmpty(scoreCells)) {
                     continue;
                 }
-                List<String> originCell = blackListCells.stream().map(XieChengBlackList::getCellSha256).distinct().collect(Collectors.toList());
-                //获取差集(上面获取到scoreCells.size=0 本次都删)
-                List<String> differenceCells = originCell.stream().filter(element -> !scoreCells.contains(element)).collect(Collectors.toList());
-                cycleMapper.batchUpdateCycNoPublicBlackListData(differenceCells, extend);
+                cycleMapper.batchUpdateCycNoPublicBlackListData(scoreCells, extend);
             } catch (Exception e) {
-                if (groupType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
+                if (labelType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                             , "携程批量更新周期表自研AI黑名单状态，子线程处理异常"), e);
                 } else {
@@ -192,7 +189,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         }
     }
 
-    private void batchUpdateRobNoPublicBlackList(XiechengCollidingDataProcessTask vo, String extend, Integer groupType) {
+    private void batchUpdateRobNoPublicBlackList(XiechengCollidingDataProcessTask vo, String extend, Integer labelType) {
         //条件为空的处理
         String conditions = vo.getTaskExecutionConditions();
         if (StringUtils.isBlank(conditions)) {
@@ -206,7 +203,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         Long minId = null;
         while (true) {
             try {
-                List<XieChengBlackList> blackListCells = blackListMapper.selectCellsByPage(minId, PAGE_SIZE, groupType);
+                List<XieChengBlackList> blackListCells = blackListMapper.selectCellsByPage(minId, PAGE_SIZE, labelType);
                 if (CollectionUtils.isEmpty(blackListCells)) {
                     break;
                 }
@@ -234,16 +231,12 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     }
                 }
                 List<String> scoreCells = blackListMapper.selectByBlackListIdsFromScoreFile(querySql);
-                //全部满足 不剔除
-                if (scoreCells.size() >= blackListCells.size()) {
+                if(CollectionUtils.isEmpty(scoreCells)){
                     continue;
                 }
-                List<String> originCell = blackListCells.stream().map(XieChengBlackList::getCellSha256).distinct().collect(Collectors.toList());
-                //获取差集(上面获取到scoreCells.size=0 本次都删)
-                List<String> differenceCells = originCell.stream().filter(element -> !scoreCells.contains(element)).collect(Collectors.toList());
-                robMapper.batchUpdateRobNoPublicBlackListData(differenceCells, extend);
+                robMapper.batchUpdateRobNoPublicBlackListData(scoreCells, extend);
             } catch (Exception e) {
-                if (groupType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
+                if (labelType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                             , "携程批量更新非周期表自研AI黑名单状态，子线程处理异常"), e);
                 } else {
@@ -255,10 +248,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     }
 
 
-    private void deleteCycPublicBlackList(ThreadPoolExecutor threadPool, String extend, Integer groupType) {
+    private void deleteCycPublicBlackList(ThreadPoolExecutor threadPool, String extend, Integer labelType) {
         Long minId = null;
         while (true) {
-            List<Long> ids = cycleMapper.selectCycleBlackListIdsByPage(minId, PAGE_SIZE, groupType);
+            List<Long> ids = cycleMapper.selectCycleBlackListIdsByPage(minId, PAGE_SIZE, labelType);
             if (CollectionUtils.isEmpty(ids)) {
                 break;
             }
@@ -267,10 +260,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 try {
                     cycleMapper.batchUpdateCycPublicBlackListData(ids, extend);
                 } catch (Exception e) {
-                    if (groupType.equals(XieChengBlackListEnum.PUBLIC_BLACKLISTS.getValue())) {
+                    if (labelType.equals(XieChengBlackListEnum.PUBLIC_BLACKLISTS.getValue())) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新周期表公共黑名单状态，子线程处理异常"), e);
-                    } else if (groupType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
+                    } else if (labelType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新周期表自研AI业务黑名单状态，子线程处理异常"), e);
                     } else {
@@ -282,10 +275,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         }
     }
 
-    private void deleteRobPublicBlackList(ThreadPoolExecutor threadPool, String extend, Integer groupType) {
+    private void deleteRobPublicBlackList(ThreadPoolExecutor threadPool, String extend, Integer labelType) {
         Long minId = null;
         while (true) {
-            List<Long> ids = robMapper.selectRobPublicBlackListIdsByPage(minId, PAGE_SIZE, groupType);
+            List<Long> ids = robMapper.selectRobPublicBlackListIdsByPage(minId, PAGE_SIZE, labelType);
             if (CollectionUtils.isEmpty(ids)) {
                 break;
             }
@@ -294,10 +287,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 try {
                     robMapper.batchUpdateBlackListData(ids, extend);
                 } catch (Exception e) {
-                    if (groupType.equals(XieChengBlackListEnum.PUBLIC_BLACKLISTS.getValue())) {
+                    if (labelType.equals(XieChengBlackListEnum.PUBLIC_BLACKLISTS.getValue())) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新非周期表公共黑名单状态，子线程处理异常"), e);
-                    } else if (groupType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
+                    } else if (labelType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                 , "携程批量更新非周期表自研AI业务黑名单状态，子线程处理异常"), e);
                     } else {
