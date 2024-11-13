@@ -1,15 +1,14 @@
 package com.br.marketing.common.utils;
 
+import java.net.InetAddress;
+import java.security.SecureRandom;
+
 /**
  * @Author: yu.xia@brgroup.com
  * @Date: 2024-11-12
  */
-public class SnowFlakeUtil {
+public class SnowflakeIdGenerator {
 
-    /**
-     * 开始时间
-     */
-    private final long START_TIMESTAMP = 1577808000000L; //2020-01-01
     /**
      * 机器位移数据
      */
@@ -46,8 +45,15 @@ public class SnowFlakeUtil {
      */
     private long SEQUENCE_START = 0L;
 
+    // 机器ID
+    private long workerId;
 
-    public SnowFlakeUtil(){
+
+    public SnowflakeIdGenerator(){
+    }
+
+    public SnowflakeIdGenerator(Long workerId) {
+        this.workerId = workerId == null ? generateWorkerId() : workerId;
     }
 
     /**
@@ -96,9 +102,32 @@ public class SnowFlakeUtil {
         }
         //初始最新时间
         BEFORE_TIME = time;
+        /**
+         * 开始时间
+         */
+        //2020-01-01
+        long START_TIMESTAMP = 1577808000000L;
         return (time - START_TIMESTAMP) << TIME_BIT //时间戳部分
                 | workId << SEQUENCE_BIT       //机器码部分
                 | SEQUENCE_START;  //序列化部分
+    }
+
+    public synchronized long nextId() {
+        return nextId(this.workerId);
+    }
+
+    /**
+     * 2024-11-13 14:40
+     * 根据机器名称生成机器号
+     */
+    private long generateWorkerId() {
+        try {
+            String hostName = InetAddress.getLocalHost().getHostName();
+            return Math.abs(hostName.hashCode() % (WORK_ID_MAX + 1));
+        } catch (Exception e) {
+            SecureRandom secureRandom = new SecureRandom();
+            return secureRandom.nextInt((int) WORK_ID_MAX + 1);
+        }
     }
 
 //    public static void main(String arg[]){

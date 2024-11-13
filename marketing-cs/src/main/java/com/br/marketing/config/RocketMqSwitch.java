@@ -3,7 +3,7 @@ package com.br.marketing.config;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.br.marketing.common.utils.SnowFlakeUtil;
+import com.br.marketing.common.utils.SnowflakeIdGenerator;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.rocketmq.RocketMqSwitchEntity;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -43,7 +43,9 @@ public class RocketMqSwitch {
      * mq消息头 生产消息的唯一标识
      */
     public static final String UUID_KEY = "uuid";
-    private static final SnowFlakeUtil snowFlakeUtil = new SnowFlakeUtil();
+
+    @Resource
+    private SnowflakeIdGenerator snowflakeIdGenerator;
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
@@ -119,15 +121,15 @@ public class RocketMqSwitch {
     }
 
     public SendResult syncSend(String topic, String tags, String msg){
-        Message<String> build = MessageBuilder.withPayload(msg.toString())
-                .setHeader(UUID_KEY, snowFlakeUtil.nextId(1L))
+        Message<String> build = MessageBuilder.withPayload(msg)
+                .setHeader(UUID_KEY, snowflakeIdGenerator.nextId())
                 .build();
         return template.syncSendMessage(topic, tags, build);
     }
 
     public SendResult syncSendDelaySecond(String topic, String tags, String msg, long delayTime){
-        Message<String> build = MessageBuilder.withPayload(msg.toString())
-                .setHeader(UUID_KEY, snowFlakeUtil.nextId(1L))
+        Message<String> build = MessageBuilder.withPayload(msg)
+                .setHeader(UUID_KEY, snowflakeIdGenerator.nextId())
                 .build();
         return template.syncSendDelaySecond(topic, tags, build, delayTime);
     }
