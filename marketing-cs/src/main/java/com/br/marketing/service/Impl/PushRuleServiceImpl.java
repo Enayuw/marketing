@@ -616,7 +616,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param xcDynaFalsePackageIds
      * @return
      */
-    private String dynaPackageDeleteCondition(JSONObject jsonObject, List<String> batchNumberList, List<String> xcDynaFalsePackageIds, Boolean isPreview) {
+    private String dynaPackageDeleteCondition(JSONObject jsonObject, List<String> batchNumberList,
+                                              List<String> xcDynaFalsePackageIds, Boolean isPreview) {
         if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
             xcDynaFalsePackageIds = Arrays.asList("120007");
         }
@@ -826,6 +827,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         JSONObject jsonObject = JSON.parseObject(dto.getmRuleCondition());
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
+        XcProcessTaskEnum xcProcessTaskEnum = getTaskType(collidingFilterDTO);
+        if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE
+                && jsonObject.getJSONArray("data").size() == 0) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未选择剔除条件，无法剔除！");
+        }
         List<String> batchNumberList = dto.getBatchNumberList();
         XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
         xiechengCollidingDataProcessTask.setApiCode(dto.getApiCode());
@@ -838,7 +844,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.error("clean_time日期格式异常", e.getMessage());
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("clean_time日期格式异常");
         }
-        XcProcessTaskEnum xcProcessTaskEnum = getTaskType(collidingFilterDTO);
         xiechengCollidingDataProcessTask.setTaskType(xcProcessTaskEnum.getTaskType());
         xiechengCollidingDataProcessTask.setTaskExecutionConditions(EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, ""));
         xiechengCollidingDataProcessTask.setTaskExecutionSql(
