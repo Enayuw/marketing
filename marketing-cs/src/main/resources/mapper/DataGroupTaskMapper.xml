@@ -6,7 +6,7 @@
 
         select * from b_data_group_task
         where status = 0
-        mod(config_id, #{shardingTotalCount}) in
+        and mod(config_id, #{shardingTotalCount}) in
         <foreach collection='shardingItems' item='sharding' open='(' close=')' separator=','>
             #{sharding}
         </foreach>

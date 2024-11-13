@@ -2,6 +2,7 @@ package com.br.marketing.innerapi.controller.datagroup;
 
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.dto.datagroup.DataGroupConfgDTO;
 import com.br.marketing.vo.datagroup.DataGroupConfigVO;
 import io.swagger.annotations.Api;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import com.br.marketing.service.datagroup.DataGroupHandlerService;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据分组相关接口
@@ -67,15 +70,33 @@ public class DataGroupController {
 
     @ApiOperation(value = "分组配置编辑", notes = "分组配置编辑")
     @PostMapping("/editConfig")
-    public Result editConfig(@RequestBody DataGroupConfgDTO dto) {
+    public ApiResult editConfig(@RequestBody DataGroupConfgDTO dto) {
         return dataGroupHandlerService.updateConfig(dto);
 
     }
 
     @ApiOperation(value = "新增或删除配置", notes = "新增或删除配置")
     @PostMapping("/addOrDelete")
-    public Result addOrDeleteConfig(@RequestBody DataGroupConfgDTO dto) {
+    public ApiResult addOrDeleteConfig(@RequestBody DataGroupConfgDTO dto) {
         return dataGroupHandlerService.addOrDeleteConfig(dto);
+    }
+
+
+
+    @ApiOperation(value = "查看字段分组进度", notes = "查看字段分组进度")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "field", value = "field", required = true, dataType = "String"),
+            @ApiImplicitParam(name = "id", value = "id", required = true, dataType = "Long")
+    })
+    @GetMapping("/getGroupFieldPercent")
+    public ApiResult<Map> getGroupFieldPercent(String field, Long id) {
+        try {
+            HashMap groupPercent = dataGroupHandlerService.getGroupFieldPercent(field, id);
+            return new ApiResult<Map>().success(groupPercent);
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            return new ApiResult<Map>().fail(ServiceResultEnum.FAILED);
+        }
     }
 
 

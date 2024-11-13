@@ -58,6 +58,8 @@ public class DataGroupHandlerJob extends AbstractSimpleElasticJob {
         taskMap.forEach((Long configId, List<DataGroupTask> list) -> {
             for (DataGroupTask dataGroupTask : list) {
                 dataGroupHandlerService.dataGroupHandler(dataGroupTask);
+                dataGroupTask.setStatus(2);
+                dataGroupTaskMapper.updateByPrimaryKeySelective(dataGroupTask);
             }
         });
     }
@@ -76,7 +78,7 @@ public class DataGroupHandlerJob extends AbstractSimpleElasticJob {
                 dataGroupTaskExample.createCriteria().andConfigIdEqualTo(configId).andIsDelEqualTo(1);
                 List<DataGroupTask> groupTaskList = dataGroupTaskMapper.selectByExample(dataGroupTaskExample);
                 //剔除掉 非 待开始的状态
-                List<DataGroupTask> preTask = groupTaskList.stream().filter(task -> task.getStatus() != 0).collect(Collectors.toList());
+                List<DataGroupTask> preTask = groupTaskList.stream().filter(task -> task.getStatus() == 0).collect(Collectors.toList());
                 preTask.forEach((DataGroupTask groupTask) -> {
                     groupTask.setStatus(1);
                     dataGroupTaskMapper.updateByPrimaryKeySelective(groupTask);

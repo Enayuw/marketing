@@ -272,4 +272,9 @@ public class RedisKeyConstant {
      */
     public static final String DATA_GROUP_TASK_LOCK = prefix.concat("data:group:task:");
 
+    /**
+     * 数据分组同一批任务锁
+     */
+    public static final String DATA_GROUP_SCORE_CONFIG_LOCK = prefix.concat("data:group:score:config");
+
 }

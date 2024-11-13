@@ -90,4 +90,7 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
                                             @Param("extend")String extend, @Param("indexId")Long indexId, @Param("pageSize")Integer pageSize);
 
     void updateBatchGroupData(@Param("updateSql")String update);
+
+    List<Map<String, Object>> selectGroupUploadNum(@Param("apiCode")String apiCode, @Param("list")List<MarketingSyncReport> reportList,
+                                                   @Param("field")String field,@Param("extendField")String extendField);
 }

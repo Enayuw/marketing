@@ -863,4 +863,33 @@
         order by bmt.create_time desc
         limit 1
     </select>
+
+
+    <select id="queryNoFinishStatus" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select
+        bmt.id,
+        shf.id                                            as `hisFileId`,
+        bmt.api_code                                      ,
+        bmt.batch_number                                  as `batchNumber`,
+        bmt.create_time                             as createTime,
+        bmt.update_time                             as updateTime,
+        bmte.data_condition                         as dataCondition
+        from b_marketing_task bmt
+        left join stra_his_file shf on shf.batch_number = bmt.batch_number
+        left  join b_marketing_task_extend bmte on bmte.task_id = bmt.id
+        left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+        where  bsrc.is_del = 1
+        and bmt.status !=0
+        and shf.status is null or shf.status!=2
+        <if test="apiCode !=null and apiCode!=''">
+            and bmt.api_code = #{apiCode}
+        </if>
+        <if test="createTimeStart !=null and createTimeStart!=''">
+            <![CDATA[  and bmt.create_time >=#{createTimeStart} ]]>
+        </if>
+        <if test="createTimeEnd !=null and createTimeEnd!=''">
+            <![CDATA[  and bmt.create_time <#{createTimeEnd} ]]>
+        </if>
+        order by bmt.create_time desc,bmt.id desc
+    </select>
 </mapper>

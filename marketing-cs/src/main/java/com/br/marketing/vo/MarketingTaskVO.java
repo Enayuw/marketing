@@ -132,4 +132,7 @@ public class MarketingTaskVO {
     @ApiModelProperty(value = "跑分结束时间")
     private String taskUpdateTime;
 
+    @ApiModelProperty(value = "数据条件")
+    private String dataCondition;
+
 }
