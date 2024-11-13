@@ -269,14 +269,18 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             reportExample.createCriteria().andIdIn(Arrays.stream(config.getUploadReportId().split(",")).map(Long::parseLong).collect(Collectors.toList()));
             List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
             List<Map<String, Object>> groupNum = syncReportMapper.selectGroupUploadNumtikv_(config.getApiCode(), reportList, "reserve_field1->'$.".concat(field).concat("'"),
-                    StringUtils.isEmpty(rule.getExtendField())?"": "reserve_field1->'$.".concat(rule.getExtendField()).concat("'"));
+                    StringUtils.isEmpty(rule.getExtendField()) ? "" : "reserve_field1->'$.".concat(rule.getExtendField()).concat("'"));
             rule.setGroupRange("0");
             List<Map<String, Object>> groupNumTotal = dataGroupNumTransfer(rule, reportList, Boolean.FALSE);
             JSONObject totalJson = (JSONObject) groupNumTotal.get(0).get("rule");
             groupNum.forEach((Map<String, Object> map) -> {
-                String groupField = (String) map.get("field");
+                String groupField = ((String) map.get("field"));
+                if(StringUtils.isBlank(groupField)){
+                    return;
+                }
+                String fieldTrim = groupField.replace("\"", "");
                 Long num = (Long) map.get("num");
-                percentMap.put(groupField, num * 100 / (Long) totalJson.get(groupField));
+                percentMap.put(fieldTrim, num * 100 /  totalJson.getInteger(fieldTrim));
             });
         }
         return percentMap;
@@ -493,7 +497,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         }
         if (StringUtil.isNotBlank(rule.getExtendField())) {
             field.append(",reserve_field1->>'$.").append(rule.getExtendField()).append("'  as ").append(rule.getExtendField());
-            whereStr.append("and ").append("reserve_field1->'$.").append(rule.getExtendField()).append("' is not null");
+            whereStr.append("and ").append("reserve_field1->'$.").append(rule.getExtendField()).append("' is not null ");
             if (extendGroup) {
                 if (StringUtil.isBlank(groupStr)) {
                     groupStr.append(" group by reserve_field1->'$.").append(rule.getExtendField()).append("'");
@@ -535,9 +539,10 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                         entry.setValue(count - sum);
                     } else {
                         // 当前元素不是最后一个元素
-                        int num = Integer.valueOf(entry.getValue().toString()) * count;
-                        entry.setValue(num);
-                        sum += num;
+                        double num = Double.parseDouble(entry.getValue().toString().replace("%", "")) / 100 * count;
+                        int intNum = (int)num;
+                        entry.setValue(intNum);
+                        sum += intNum;
                     }
                     currentIndex++;
                 }
