@@ -403,9 +403,9 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 String finalErrorPrefix = errorPrefix;
                 futures.add(CompletableFuture.runAsync(() -> {
                     try {
-                        if (type == 0) {
+                        if (type == XcProcessTaskEnum.PROCESS_DELETE.getBatchType()) {
                             batchCount.addAndGet(cycleMapper.updateIsDeleteByIds(partition, finalExtend));
-                        } else if (type == 1) {
+                        } else if (type == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getBatchType()) {
                             batchCount.addAndGet(robMapper.updateBatchByIdToIsDeleted(partition, finalExtend));
                         }
                     } catch (Exception e) {
