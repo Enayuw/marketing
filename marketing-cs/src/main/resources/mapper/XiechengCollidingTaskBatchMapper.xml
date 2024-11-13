@@ -287,5 +287,6 @@
       and batch.status = 0
       and batch.type = #{type}
       and task.task_start_time = #{nowDate}
+    order by createTime asc limit 1
   </select>
 </mapper>
