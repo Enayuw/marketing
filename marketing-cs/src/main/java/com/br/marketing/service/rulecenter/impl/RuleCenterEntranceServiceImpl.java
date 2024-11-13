@@ -85,7 +85,8 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
             if (canBuild.isSuccess()) {
 
                 CustomerInfoPushMain data = canBuild.getData();
-                PushCustomerDTO pushCustomerDTO = ruleTaskService.buildPreviewDTO(data, scoreSearchCondition);
+                ScoreSearchCondition scoreSearchCondition1 = scoreSearchConditionMapper.selectByPrimaryKey(pushDecisions.getDependencyTemplateId());
+                PushCustomerDTO pushCustomerDTO = ruleTaskService.buildPreviewDTO(data, scoreSearchCondition1);
                 Result<PushViewVO> pushViewVOResult = ruleTaskService.pushPreview(pushCustomerDTO);
                 if (pushViewVOResult.isSuccess()
                         && pushViewVOResult.getData() != null
@@ -130,7 +131,6 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
     }
 
     private MarketingTaskVO queryMarketingTask(String apiCode, ScoreSearchCondition scoreSearchCondition) {
-        MarketingTaskVO marketingTaskVO = new MarketingTaskVO();
         List<String> ids = new ArrayList<>();
         String sourceCondition = scoreSearchCondition.getSourceCondition();
         if(sourceCondition.contains(",")){
@@ -142,33 +142,32 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         }
         if(CollectionUtil.isEmpty(ids)){
             log.warn(TITLE + "规则模板未关联跑分文件，模板名称:{}", scoreSearchCondition.getName());
-            return marketingTaskVO;
+            return null;
         }
         // 根据跑分文件id查询跑分配置
         List<String> ruleNameShorts = straHisFileMapper.getFileById(ids);
-
-        if(!CollectionUtil.isEmpty(ruleNameShorts)){
-            String ruleNameShort = ruleNameShorts.get(0);
-            // 获取今天的日期
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            LocalDate today = LocalDate.now();
-            LocalDateTime startTime = today.atStartOfDay();
-            String createTimeStart = startTime.format(formatter);
-            // 获取当前时间
-            LocalDateTime now = LocalDateTime.now();
-            String createTimeEnd = now.format(formatter);
-            Integer taskStatus = ScoreStatusEnum.FINISH.getValue();
-            Integer conditionType = ConditionTypeEnum.RUNNING.getValue();
-            List<MarketingTaskVO> marketingTaskVOS = marketingTaskMapper.queryCompletStatus(apiCode,
-                    createTimeStart, createTimeEnd, taskStatus, conditionType, ruleNameShort);
-            if(CollectionUtil.isEmpty(marketingTaskVOS)){
-                log.warn(TITLE + "当日跑分文件未执行完成:{}", JSONObject.toJSONString(marketingTaskVOS));
-                return null;
-            }
-            marketingTaskVO = marketingTaskVOS.get(0);
-
+        if(CollectionUtil.isEmpty(ruleNameShorts)){
+            log.warn(TITLE + "查询跑分配置为空，跑分文件id:{}", ids);
+            return null;
         }
-        return marketingTaskVO;
+        String ruleNameShort = ruleNameShorts.get(0);
+        // 获取今天的日期
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        LocalDate today = LocalDate.now();
+        LocalDateTime startTime = today.atStartOfDay();
+        String createTimeStart = startTime.format(formatter);
+        // 获取当前时间
+        LocalDateTime now = LocalDateTime.now();
+        String createTimeEnd = now.format(formatter);
+        Integer taskStatus = ScoreStatusEnum.FINISH.getValue();
+        Integer conditionType = ConditionTypeEnum.RUNNING.getValue();
+        List<MarketingTaskVO> marketingTaskVOS = marketingTaskMapper.queryCompletStatus(apiCode,
+                createTimeStart, createTimeEnd, taskStatus, conditionType, ruleNameShort);
+        if(CollectionUtil.isEmpty(marketingTaskVOS)){
+            log.warn(TITLE + "当日跑分文件未执行完成:{}", JSONObject.toJSONString(marketingTaskVOS));
+            return null;
+        }
+        return marketingTaskVOS.get(0);
     }
 
     private List<PushDecisions> getPushDecisionsConfig() {
