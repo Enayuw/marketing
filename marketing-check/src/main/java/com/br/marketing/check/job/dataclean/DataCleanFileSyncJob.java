@@ -97,6 +97,9 @@ public class DataCleanFileSyncJob extends AbstractSimpleElasticJob {
             String row = "";
             while (line < 2) {
                 row = br.readLine();
+                if(StringUtils.isBlank(row)){
+                    continue;
+                }
                 if (line == 0) {
                     dataFile.setFileHeader(row);
                 } else {
