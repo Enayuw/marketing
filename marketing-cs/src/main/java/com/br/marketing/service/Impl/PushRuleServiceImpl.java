@@ -3423,7 +3423,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushBlackReqDTO.setApiCode(localFile.getApiCode());
             Result result = pushCommonBlack(pushBlackReqDTO);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error(String.format("推送黑名单报错：%s", result.getData()));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                        String.format("推送黑名单报错：%s", result.getData())));
                 if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
                     RetryMainLog retryMainLog = new RetryMainLog();
                     retryMainLog.setRetryType(1);
@@ -3479,7 +3480,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<MarketingTransferSyncUser> users = marketingTransferSyncUsers.subList(start, end);
             Result result = pushBlack(users);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error(String.format("推送黑名单报错：%s", result.getData()));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                        String.format("推送黑名单报错：%s", result.getData())));
                 if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
                     RetryMainLog retryMainLog = new RetryMainLog();
                     retryMainLog.setRetryType(1);

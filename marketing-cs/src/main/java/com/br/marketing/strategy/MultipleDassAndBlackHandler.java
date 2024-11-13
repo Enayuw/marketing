@@ -3,8 +3,11 @@ package com.br.marketing.strategy;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
+import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDTO;
+import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataDTO;
 import com.br.marketing.client.robotaiapi.input.BlackDetailDTO;
 import com.br.marketing.client.robotaiapi.input.BlackPhoneDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneDTO;
@@ -15,6 +18,8 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.MultipleDassAndCustomerBlackDTO;
 import com.br.marketing.entity.PhoneSaleExtendHaluo;
+import com.br.marketing.entity.PhoneSaleExtendInfo;
+import com.br.marketing.mapper.PhoneSaleExtendInfoMapper;
 import com.br.marketing.service.Impl.PhoneSaleExtendServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.ListUtils;
@@ -22,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +37,9 @@ import java.util.stream.Collectors;
  * dass和客服黑名单接口
  */
 public class MultipleDassAndBlackHandler extends AbstractExternalInterfaceHandler<MultipleDassAndCustomerBlackDTO> {
+
+    @Resource
+    PhoneSaleExtendInfoMapper phoneSaleExtendInfoMapper;
 
     @Autowired
     PhoneSaleExtendServiceImpl phoneSaleExtendService;
