@@ -308,8 +308,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 processAfterDeleteForBatch(batchCount, vo);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
-                        "携程剔除流程出现异常，batchId=" + vo.getId() + "errorMessage=" + e.getMessage()), e);
+                        "携程剔除流程出现异常，batchId="
+                                + (vo == null ? "null" : vo.getId())
+                                + "errorMessage=" + e.getMessage()), e);
                 redisChgService.unlock(key, lockValue);
+                break;
             }
         }
     }
