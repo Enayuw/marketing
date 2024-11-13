@@ -828,10 +828,9 @@ public class PushRuleServiceImpl implements PushRuleService {
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         XcProcessTaskEnum xcProcessTaskEnum = getTaskType(collidingFilterDTO);
-        if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE) {
-            if (jsonObject.getJSONArray("data").size() == 0) {
-                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未选择剔除条件，无法剔除！");
-            }
+        if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE
+                && jsonObject.getJSONArray("data").size() == 0) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未选择剔除条件，无法剔除！");
         }
         List<String> batchNumberList = dto.getBatchNumberList();
         XiechengCollidingDataProcessTask xiechengCollidingDataProcessTask = new XiechengCollidingDataProcessTask();
