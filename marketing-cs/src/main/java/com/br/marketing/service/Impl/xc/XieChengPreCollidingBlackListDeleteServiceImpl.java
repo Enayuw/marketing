@@ -85,7 +85,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 //2.公共黑名单剔除
                 deleteForPublicBlacklists(threadPool);
                 //3.自研AI业务黑名单/百应业务黑名单剔除
-                deleteForNoPublicBlacklists(task, threadPool);
+                deleteForNoPublicBlacklists(task);
                 //7.更新task状态
                 processAfterDeleteForBatch(task);
             } catch (Exception e) {
@@ -113,7 +113,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
      * @Description:自研AI业务黑名单/百应业务黑名单剔除
      * @Author: Ethan.Kang
      */
-    private void deleteForNoPublicBlacklists(XiechengCollidingDataProcessTask vo, ThreadPoolExecutor threadPool) {
+    private void deleteForNoPublicBlacklists(XiechengCollidingDataProcessTask vo) {
         //非公共黑名单周期表剔除(自研AI业务黑名单)
         batchUpdateCycNoPublicBlackList(vo,DateUtils.format(new Date()) + " 自研AI业务黑名单剔除",
                 XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue());

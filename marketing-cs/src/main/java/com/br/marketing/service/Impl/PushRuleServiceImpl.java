@@ -616,7 +616,8 @@ public class PushRuleServiceImpl implements PushRuleService {
      * @param xcDynaFalsePackageIds
      * @return
      */
-    private String dynaPackageDeleteCondition(JSONObject jsonObject, List<String> batchNumberList, List<String> xcDynaFalsePackageIds, Boolean isPreview) {
+    private String dynaPackageDeleteCondition(JSONObject jsonObject, List<String> batchNumberList,
+                                              List<String> xcDynaFalsePackageIds, Boolean isPreview) {
         if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
             xcDynaFalsePackageIds = Arrays.asList("120007");
         }
