@@ -47,6 +47,9 @@ public class PushCustomerDTO {
     @ApiModelProperty(value = "查询规则")
     private String mRuleCondition;
 
+    @ApiModelProperty(value = "评分分布规则")
+    private String mScoreCondition;
+
     @ApiModelProperty(value = "查询规则用于前端展示文本")
     private String mRuleConditionShow;
 
@@ -196,5 +199,13 @@ public class PushCustomerDTO {
 
     public void setRuleModelName(String ruleModelName) {
         this.ruleModelName = ruleModelName;
+    }
+
+    public String getmScoreCondition() {
+        return mScoreCondition;
+    }
+
+    public void setmScoreCondition(String mScoreCondition) {
+        this.mScoreCondition = mScoreCondition;
     }
 }

@@ -49,6 +49,11 @@ public class ScoreSearchCondition {
     private String contentShow;
 
     /**
+     * 评分分布条件内容
+     */
+    private String scoreContent;
+
+    /**
      * 1-有效；9-无效
      */
     private Integer isDel;
@@ -157,5 +162,13 @@ public class ScoreSearchCondition {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getScoreContent() {
+        return scoreContent;
+    }
+
+    public void setScoreContent(String scoreContent) {
+        this.scoreContent = scoreContent;
     }
 }
