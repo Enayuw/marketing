@@ -1,5 +1,7 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.br.marketing.enums.XcProcessTaskEnum;
+
 public interface XieChengCollidingDataProcessService {
     void process();
 
@@ -10,4 +12,6 @@ public interface XieChengCollidingDataProcessService {
      * @date 2024/11/8 16:16
      **/
     void processDynaDelete();
+
+     boolean queryDeletingTaskCount(String apiCode, XcProcessTaskEnum xcProcessTaskEnum);
 }

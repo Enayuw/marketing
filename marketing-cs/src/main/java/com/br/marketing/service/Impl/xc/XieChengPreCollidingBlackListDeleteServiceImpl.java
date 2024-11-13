@@ -42,6 +42,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     XieChengCollidingDataRobMapper robMapper;
     @Resource
     XieChengBlackListMapper blackListMapper;
+    @Resource
+    XieChengCollidingDataProcessService xieChengCollidingDataProcessService;
 
     @Override
     public void process() {
@@ -51,7 +53,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             Integer threadPoolSize = marketingCommonConfig.getXieChengPreCollidingBlackListDeleteThread();
             ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
             //2.当天所有动态包剔除任务是否全部完成
-            if (!queryDeletingTaskCount(apiCode)) {
+            if (!xieChengCollidingDataProcessService.queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE)) {
                 threadPoolShutDown(threadPool);
                 return;
             }
@@ -324,27 +326,6 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         taskMapper.updateByPrimaryKeySelective(entity);
     }
 
-
-    /**
-     * @param apiCode
-     * @return void
-     * @description 当天所有指定类型的task是否全部剔除完成
-     * @author KP
-     * @date 2024/8/8 14:33
-     **/
-    private boolean queryDeletingTaskCount(String apiCode) {
-        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
-        processTaskExample.createCriteria()
-                .andApiCodeEqualTo(apiCode)
-                .andTaskStartTimeEqualTo(getStartOfDate())
-                .andTaskTypeIn(Arrays.asList(0, 1, 3))
-                .andTaskStatusNotEqualTo(2);
-        int deletingTaskCount = taskMapper.countByExample(processTaskExample);
-        if (deletingTaskCount > 0) {
-            return false;
-        }
-        return true;
-    }
 
     /**
      * @return java.util.Date

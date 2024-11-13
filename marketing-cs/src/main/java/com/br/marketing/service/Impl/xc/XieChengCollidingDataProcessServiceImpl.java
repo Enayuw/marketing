@@ -237,7 +237,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
      * @author hedongshuo
      * @date 2024/8/8 14:33
      **/
-    private boolean queryDeletingTaskCount(String apiCode, XcProcessTaskEnum xcProcessTaskEnum) {
+    @Override
+    public boolean queryDeletingTaskCount(String apiCode, XcProcessTaskEnum xcProcessTaskEnum) {
         List<Integer> taskTypes = null;
         if (xcProcessTaskEnum == XcProcessTaskEnum.PROCESS_FALSE) {
             taskTypes = Arrays.asList(XcProcessTaskEnum.PROCESS_DELETE.getTaskType());
