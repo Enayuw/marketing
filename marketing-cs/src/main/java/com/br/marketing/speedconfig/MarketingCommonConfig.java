@@ -2305,7 +2305,7 @@ public class MarketingCommonConfig {
     /**
      * 360ai的strategyCode清洗配置
      */
-    private String qifuAiCleanStrategyCodeFlag;
+    private Boolean qifuAiCleanStrategyCodeFlag;
 
 }
 

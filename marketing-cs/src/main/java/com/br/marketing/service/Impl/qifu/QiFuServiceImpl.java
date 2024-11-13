@@ -190,10 +190,10 @@ public class QiFuServiceImpl implements IQiFuService {
                             errorMsg.append("templateNo长度小于12");
                             continue outerLoop;
                         }
-                        String flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
-                        if (ObjectUtil.isEmpty(flag)) {
-                            extendKey.put("strategyCode", flag);
-                            extendKey.put("strategyName", flag);
+                        boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
+                        if (flag) {
+                            extendKey.put("strategyCode", "");
+                            extendKey.put("strategyName", "");
                         } else {
                             extendKey.put("strategyCode", strategyCode);
                             extendKey.put("strategyName", strategyCode);
