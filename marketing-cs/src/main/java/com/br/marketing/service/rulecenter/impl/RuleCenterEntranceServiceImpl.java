@@ -181,7 +181,7 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         decisionsExample.setOrderByClause(" auto_time");
         List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(decisionsExample);
 
-        // 过滤掉（今天创建 && 执行时间小于创建时间HH:mm）
+        // 过滤掉（今天更新 && 执行时间小于更新时间HH:mm）
         return filterConfig(pushDecisions,formatter);
     }
 
@@ -272,16 +272,16 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
         LocalDate today = LocalDate.now();
         pushDecisions = pushDecisions.stream()
                 .filter(p -> {
-                    Date date = p.getCreateTime();
-                    // 创建日期
-                    LocalDate createDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                    // 创建时间 HH:mm
-                    LocalTime createTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toLocalTime();
+                    Date date = p.getUpdateTime();
+                    // 更新日期
+                    LocalDate updateDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                    // 更新时间 HH:mm
+                    LocalTime updateTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toLocalTime();
                     // 执行时间 HH:mm
                     LocalTime autoTimeParsed = LocalTime.parse(p.getAutoTime(), formatter);
-                    // 返回过滤条件：不是今天创建的 或者 执行时间不小于创建时间
-                    boolean b = !createDate.equals(today);
-                    boolean b1 = !autoTimeParsed.isBefore(createTime);
+
+                    boolean b = !updateDate.equals(today);
+                    boolean b1 = !autoTimeParsed.isBefore(updateTime);
                     return b || b1;
                 })
                 .collect(Collectors.toList());
