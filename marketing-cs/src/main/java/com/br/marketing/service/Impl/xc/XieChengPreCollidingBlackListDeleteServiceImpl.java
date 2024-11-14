@@ -86,7 +86,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 deleteForPublicBlacklists(threadPool);
                 //3.自研AI业务黑名单/百应业务黑名单剔除
                 deleteForNoPublicBlacklists(task);
-                //7.更新task状态
+                //4.更新task状态及异步发送钉钉量级
                 processAfterDeleteForBatch(task);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(),
@@ -309,6 +309,17 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         processTask.setTaskEndTime(new Date());
         processTask.setUpdateTime(new Date());
         taskMapper.updateByPrimaryKeySelective(processTask);
+        //异步黑名单剔除量级发送
+        //async
+        String currDate = DateUtils.format(new Date());
+        int cycPublicBlackCount = cycleMapper.searchCycDeleteCountByExtend(currDate+" 公共黑名单剔除");
+        int cycNoPublicBlackZYCount = cycleMapper.searchCycDeleteCountByExtend(currDate+" 自研AI业务黑名单剔除");
+        int cycNoPublicBlackBYCount = cycleMapper.searchCycDeleteCountByExtend(currDate+" 百应业务黑名单剔除");
+      /*  int cycPublicBlackCount = robMapper.searchRobDeleteCountByExtend(currDate+" 公共黑名单剔除");
+        int cycNoPublicBlackZYCount = robMapper.searchRobDeleteCountByExtend(currDate+" 自研AI业务黑名单剔除");
+        int cycNoPublicBlackBYCount = robMapper.searchRobDeleteCountByExtend(currDate+" 百应业务黑名单剔除");*/
+
+
     }
 
     private void processBeforeDeleteForBatch(XiechengCollidingDataProcessTask task) {

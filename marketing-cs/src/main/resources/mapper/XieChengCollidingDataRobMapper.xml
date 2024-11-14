@@ -267,4 +267,8 @@
         and is_delete = 0
     </update>
 
+    <select id="searchRobDeleteCountByExtend" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(0) from b_xiecheng_colliding_data_rob where extend = #{extend} group by extend
+    </select>
+
 </mapper>

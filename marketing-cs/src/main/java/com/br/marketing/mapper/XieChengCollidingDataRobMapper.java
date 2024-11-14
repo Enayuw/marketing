@@ -85,4 +85,6 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     void batchUpdateRobNoPublicBlackListData(@Param("list") List<String> list, @Param("extend") String extend);
 
+    void searchRobDeleteCountByExtend(@Param("extend") String extend);
+
 }

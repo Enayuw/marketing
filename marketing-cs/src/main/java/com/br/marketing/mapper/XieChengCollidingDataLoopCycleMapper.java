@@ -112,4 +112,6 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     CustomizeUploadData selectActivateData(XieChengActivateDTO xieChengActivateDTO);
 
+    int searchCycDeleteCountByExtend(@Param("extend") String extend);
+
 }
