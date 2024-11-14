@@ -57,8 +57,13 @@ public class DataGroupHandlerJob extends AbstractSimpleElasticJob {
         Map<Long, List<DataGroupTask>> taskMap = taskGroup(taskList);
         taskMap.forEach((Long configId, List<DataGroupTask> list) -> {
             for (DataGroupTask dataGroupTask : list) {
-                dataGroupHandlerService.dataGroupHandler(dataGroupTask);
-                dataGroupTask.setStatus(2);
+                try {
+                    dataGroupHandlerService.dataGroupHandler(dataGroupTask);
+                    dataGroupTask.setStatus(2);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "分组任务执行过程异常,请关注"), e);
+                    dataGroupTask.setStatus(3);
+                }
                 dataGroupTaskMapper.updateByPrimaryKeySelective(dataGroupTask);
             }
         });

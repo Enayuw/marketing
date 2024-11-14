@@ -6,7 +6,7 @@
     <select id="selectGroupConfigList" resultType="com.br.marketing.vo.datagroup.DataGroupConfigVO">
 
         select * from b_data_group_config
-        where api_code = #{apiCode}
+        where api_code = #{apiCode} and is_del =1
         <if test="exactmatch != null">
             <choose>
                 <when test='exactmatch == "1"'>

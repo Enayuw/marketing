@@ -6,8 +6,6 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -137,7 +135,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         DataGropRuleVO update = gropRuleVOList.get(0);
         List<DataGropRuleVO> groupRule = JSON.parseObject(config.getGroupRules(), new TypeReference<List<DataGropRuleVO>>() {
         }.getType());
-        groupRule.removeIf((DataGropRuleVO rule)->rule.getGroupField().equals(update.getGroupField()));
+        groupRule.removeIf((DataGropRuleVO rule) -> rule.getGroupField().equals(update.getGroupField()));
         groupRule.add(update);
         config.setGroupRules(JSON.toJSONString(groupRule));
         dataGroupConfigMapper.updateByPrimaryKeySelective(config);
@@ -161,7 +159,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         Map<String, List<DataGropRuleVO>> gropRuleMap = gropRuleVOList.stream().collect(Collectors.groupingBy(DataGropRuleVO::getGroupField));
         DataGroupConfigExample dataGroupConfigExample = new DataGroupConfigExample();
         DataGroupConfigExample.Criteria criteria = dataGroupConfigExample.createCriteria();
-        criteria.andApiCodeEqualTo(dto.getApiCode()).andUploadReportIdEqualTo(reportId);
+        criteria.andApiCodeEqualTo(dto.getApiCode()).andUploadReportIdEqualTo(reportId).andIsDelEqualTo(1);
         List<DataGroupConfig> groupConfigList = dataGroupConfigMapper.selectByExample(dataGroupConfigExample);
         Long configId;
         if (CollectionUtils.isEmpty(groupConfigList)) {
@@ -183,11 +181,10 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             } else {
                 updateGroupRules.removeIf(rule -> gropRuleMap.keySet().contains(rule.getGroupField()));
                 //更新跑分配置 && 判断正在进行中的跑分不生成删除任务
-                String redisKey = RedisKeyConstant.DATA_GROUP_SCORE_CONFIG_LOCK.concat(dto.getApiCode());
-                String s = UUID.randomUUID().toString();
+                String value = UUID.randomUUID().toString();
                 try {
                     //加锁
-                    redisChgService.lock(redisKey, s);
+                    addLockGroupScoreConfig(dto.getApiCode(),value);
                     List<MarketingTaskVO> marketingTaskVOS = marketingTaskMapper.queryNoFinishStatus(dto.getApiCode(), LocalDate.now().minusDays(7).toString(),
                             LocalDate.now().plusDays(1).toString());
                     if (!CollectionUtils.isEmpty(marketingTaskVOS)) {
@@ -197,11 +194,12 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "分组任务编辑异常"), e);
                 } finally {
-                    redisChgService.unlock(redisKey, s);
+                    unlockGroupScoreConfig(dto.getApiCode(),value);
                 }
             }
             if (CollectionUtils.isEmpty(updateGroupRules)) {
                 update.setGroupRules(null);
+                update.setIsDel(9);
             } else {
                 update.setGroupRules(JSON.toJSONString(updateGroupRules));
             }
@@ -223,6 +221,21 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         });
         return new ApiResult<Long>().success(configId);
     }
+
+
+    public void addLockGroupScoreConfig(String apiCode,String value) {
+        String redisKey = RedisKeyConstant.DATA_GROUP_SCORE_CONFIG_LOCK.concat(apiCode);
+        //加锁
+        redisChgService.lockLoop(redisKey, value,30000L,300000L);
+    }
+
+
+    public void unlockGroupScoreConfig(String apiCode,String value) {
+        String redisKey = RedisKeyConstant.DATA_GROUP_SCORE_CONFIG_LOCK.concat(apiCode);
+        //解锁
+        redisChgService.unlock(redisKey, value);
+    }
+
 
     @Override
     public void dataGroupHandler(DataGroupTask dataGroupTask) {
@@ -562,7 +575,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     } else {
                         // 当前元素不是最后一个元素
                         double num = Double.parseDouble(entry.getValue().toString().replace("%", "")) / 100 * count;
-                        int intNum = (int) num;
+                        int intNum = (int) Math.round(num);
                         entry.setValue(intNum);
                         sum += intNum;
                     }

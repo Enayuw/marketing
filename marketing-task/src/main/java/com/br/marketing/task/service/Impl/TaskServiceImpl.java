@@ -1,11 +1,13 @@
 package com.br.marketing.task.service.Impl;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.entity.MarketingCustomerExample;
 import com.br.marketing.entity.MarketingTask;
@@ -29,6 +31,7 @@ import com.br.marketing.service.ICompatibleService;
 import com.br.marketing.service.IDynamicSqlService;
 import com.br.marketing.service.IRuleConfigService;
 import com.br.marketing.service.Impl.EntityOptServiceImpl;
+import com.br.marketing.service.Impl.datagroup.DataGroupHandlerServiceImpl;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.service.MarketingTaskOptService;
@@ -126,11 +129,14 @@ public class TaskServiceImpl implements ITaskService {
     @Autowired
     MarketingTaskOptService marketingTaskOptService;
 
+    @Resource
+    DataGroupHandlerServiceImpl dataGroupHandlerService;
+
     @Override
-    public void buildScoreTask(List<Long> scoreRuleIds,String jobNm) {
+    public void buildScoreTask(List<Long> scoreRuleIds, String jobNm) {
         Result<List<CustomerScoreRuleVO>> scoreConfigNow = iRuleConfigService.getScoreConfigNow(scoreRuleIds, null);
 //        AssertResult.assertResult(scoreConfigNow);
-        if(!ResultCode.SUCCESS.getValue().equals(scoreConfigNow.getCode())){
+        if (!ResultCode.SUCCESS.getValue().equals(scoreConfigNow.getCode())) {
             return;
         }
         List<CustomerScoreRuleVO> data = scoreConfigNow.getData();
@@ -138,19 +144,24 @@ public class TaskServiceImpl implements ITaskService {
             MarketingCustomerExample customerExample = new MarketingCustomerExample();
             customerExample.createCriteria().andApiCodeEqualTo(datum.getApiCode()).andStatusEqualTo(new Byte("1"));
             List<MarketingCustomer> marketingCustomers = marketingCustomerMapper.selectByExample(customerExample);
-            if(marketingCustomers.size()<=0){
+            if (marketingCustomers.size() <= 0) {
                 continue;
             }
             MarketingCustomer customer = marketingCustomers.get(0);
-            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobNm);
-            if(!action){
+            Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(), jobNm);
+            if (!action) {
                 continue;
             }
-//            if (datum.getParentId() <= 0) {
+            String value = UUID.randomUUID().toString();
+            try {
+                //加锁-跑分配置获取最新
+                dataGroupHandlerService.addLockGroupScoreConfig(datum.getApiCode(), value);
                 marketingTaskService.buildScoreTaskOfAutoBuild(datum);
-//            } else {
-//                buildScoreTaskOfSelect(datum);
-//            }
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "后台生成手动规则以及任务异常"), e);
+            } finally {
+                dataGroupHandlerService.unlockGroupScoreConfig(datum.getApiCode(), value);
+            }
         }
     }
 

@@ -53,6 +53,7 @@ import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IDynamicSqlService;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.IRuleConfigService;
+import com.br.marketing.service.Impl.datagroup.DataGroupHandlerServiceImpl;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -136,6 +137,8 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Resource
     MarketingTaskResultPreviewMapper marketingTaskResultPreviewMapper;
+    @Resource
+    DataGroupHandlerServiceImpl dataGroupHandlerService;
 
     static final String judgmentRegex = "<=|>=|=|>|<";
 
@@ -698,10 +701,15 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     public Result<List<Long>> saveTaskSelectV2(TaskSelectSaveDTO dto) {
         MarketingTaskServiceImpl service = (MarketingTaskServiceImpl) AopContext.currentProxy();
         Result<List<Long>> res;
+        String value = UUID.randomUUID().toString();
         try {
+            //加锁-跑分配置获取最新
+            dataGroupHandlerService.addLockGroupScoreConfig(dto.getApiCode(), value);
             res = service.saveTaskSelectByCreateMethod(dto);
         } catch (Exception e) {
             return new Result<>().failure().setMessage(e.getMessage());
+        } finally {
+            dataGroupHandlerService.unlockGroupScoreConfig(dto.getApiCode(), value);
         }
         return res;
     }
