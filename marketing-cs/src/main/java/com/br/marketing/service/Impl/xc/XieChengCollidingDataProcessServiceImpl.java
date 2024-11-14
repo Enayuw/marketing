@@ -16,6 +16,7 @@ import com.br.marketing.vo.XiechengCollidingTaskBatchVo;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import io.etcd.jetcd.api.AlarmMember;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,15 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
 
     private final static int PARTATION_SIZE = 2000;
 
+    private final static String EXTEND_DELETE_PREFIX = "携程撞库数据清洗任务删除，任务id：";
+
+    private final static String EXTEND_DYNA_DELETE_PREFIX = "携程撞库数据清洗任务动态包删除，任务id：";
+
+    private final static String ERROR_PREFIX_DELETE = "携程撞库true数据剔除，单线程处理异常：，batchId=";
+
+    private final static String ERROR_PREFIX_DYNA_DELETE = "携程撞库false动态包数据剔除，单线程处理异常：，batchId=";
+    private final static String ALARM_UNCOMPLETED_COUNT = "携程清洗流程异常，请关注！任务类型：";
+
     @Override
     public void process() {
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) -> {
@@ -75,7 +85,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                 threadPoolShutDown(threadPool);
                 return;
             }
-            //4.清洗流程
+            //4.清洗流程 极端情况，多个剔除pod处理的batch同时完成，都会进入清洗流程，所以清洗流程拿数据也需要加锁
             cleanProcess(apiCode, threadPool);
             //5.关闭线程池
             threadPoolShutDown(threadPool);
@@ -118,6 +128,7 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         try {
             boolean lock = redisChgService.lock(key, lockValue, 5000L);
             if (lock) {
+                alarmMagnitude(apiCode, XcProcessTaskEnum.PROCESS_DELETE);
                 if (queryUnCleanedTaskCount(apiCode)) {
                     //更新当日清洗task的status=1
                     updateTaskToCleaning(apiCode);
@@ -133,6 +144,29 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                     "携程清洗抢锁出现异常，" + "errorMessage=" + e.getMessage()), e);
             redisChgService.unlock(key, lockValue);
         }
+    }
+
+    private void alarmMagnitude(String apiCode, XcProcessTaskEnum xcProcessTaskEnum) {
+        //1.查询当天指定类型所有的task
+        XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
+        processTaskExample.createCriteria()
+                .andApiCodeEqualTo(apiCode)
+                .andTaskStartTimeEqualTo(getStartOfDate())
+                .andTaskTypeEqualTo(xcProcessTaskEnum.getTaskType());
+        List<XiechengCollidingDataProcessTask> taskList = taskMapper.selectByExample(processTaskExample);
+        if (taskList.size() == 0) {
+            return;
+        }
+        long unCompletedCount = taskList.stream()
+                .filter((XiechengCollidingDataProcessTask task) -> task.getTaskStatus() == 0 || task.getTaskStatus() == 1).count();
+        if (unCompletedCount != 0) {
+
+        }
+
+        String msg = "携程撞库周期TRUE数据删除量级:" + 1;
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
+        dingDingRobotHookService.sendDingDingTextMessage(msg, map);
     }
 
     /**
@@ -374,11 +408,11 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         String extend = "";
         String errorPrefix = "";
         if (type == XcProcessTaskEnum.PROCESS_DELETE.getBatchType()) {
-            extend = "携程撞库数据清洗任务删除，任务id：" + vo.getCollidingDataTaskId();
-            errorPrefix = "携程撞库true数据剔除，单线程处理异常：，batchId=";
+            extend = EXTEND_DELETE_PREFIX + vo.getCollidingDataTaskId();
+            errorPrefix = ERROR_PREFIX_DELETE;
         } else if (type == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getBatchType()) {
-            extend = "携程撞库数据清洗任务动态包删除，任务id：" + vo.getCollidingDataTaskId();
-            errorPrefix = "携程撞库false动态包数据剔除，单线程处理异常：，batchId=";
+            extend = EXTEND_DYNA_DELETE_PREFIX + vo.getCollidingDataTaskId();
+            errorPrefix = ERROR_PREFIX_DYNA_DELETE;
         }
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         Long minId = null;
