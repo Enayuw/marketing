@@ -126,7 +126,7 @@
 
     <job:simple id="XieChengBlackEncAndDecJob"
                 class="com.br.marketing.xc.job.XieChengBlackEncAndDecJob"
-                cron="0 1/30 * * * ? 2050-2050"
+                cron="0 1/30 * * * ?"
                 description="携程黑名单log解密sha256加密"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -141,7 +141,7 @@
 
     <job:simple id="XieChengPreCollidingBlackListDeleteJob"
                 class="com.br.marketing.xc.job.XieChengPreCollidingBlackListDeleteJob"
-                cron="0 1/30 * * * ? 2050-2050"
+                cron="0 0/5 * * * ?"
                 description="携程撞库前黑名单剔除"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

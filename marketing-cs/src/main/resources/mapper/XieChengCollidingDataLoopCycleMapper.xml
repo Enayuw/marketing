@@ -251,6 +251,6 @@
     </select>
 
     <select id="searchCycDeleteCountByExtend" parameterType="java.lang.String" resultType="java.lang.Integer">
-        select count(0) from b_xiecheng_colliding_data_loop_cycle where extend = #{extend} group by extend
+        select count(0) from b_xiecheng_colliding_data_loop_cycle where extend = #{extend}
     </select>
 </mapper>

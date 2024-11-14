@@ -1,10 +1,12 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.common.util.DateUtils;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.enums.XcProcessTaskEnum;
 import com.br.marketing.enums.XieChengBlackListEnum;
 import com.br.marketing.mapper.*;
@@ -262,16 +264,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 try {
                     cycleMapper.batchUpdateCycPublicBlackListData(ids, extend);
                 } catch (Exception e) {
-                    if (labelType.equals(XieChengBlackListEnum.PUBLIC_BLACKLISTS.getValue())) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                                , "携程批量更新周期表公共黑名单状态，子线程处理异常"), e);
-                    } else if (labelType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                                , "携程批量更新周期表自研AI业务黑名单状态，子线程处理异常"), e);
-                    } else {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                                , "携程批量更新周期表百应业务黑名单状态，子线程处理异常"), e);
-                    }
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                            , "携程批量更新周期表公共黑名单状态，子线程处理异常"), e);
                 }
             }, threadPool);
         }
@@ -289,16 +283,8 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 try {
                     robMapper.batchUpdateBlackListData(ids, extend);
                 } catch (Exception e) {
-                    if (labelType.equals(XieChengBlackListEnum.PUBLIC_BLACKLISTS.getValue())) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                                , "携程批量更新非周期表公共黑名单状态，子线程处理异常"), e);
-                    } else if (labelType.equals(XieChengBlackListEnum.SELF_DEVELOPED_AI_BUSINESS_BLACKLIST.getValue())) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                                , "携程批量更新非周期表自研AI业务黑名单状态，子线程处理异常"), e);
-                    } else {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                                , "携程批量更新非周期表百应业务黑名单状态，子线程处理异常"), e);
-                    }
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                            , "携程批量更新非周期表公共黑名单状态，子线程处理异常"), e);
                 }
             }, threadPool);
         }
@@ -312,16 +298,29 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         processTask.setUpdateTime(new Date());
         taskMapper.updateByPrimaryKeySelective(processTask);
         //异步黑名单剔除量级发送
-        //async
-        String currDate = DateUtils.format(new Date());
-        int cycPublicBlackCount = cycleMapper.searchCycDeleteCountByExtend(currDate+" 公共黑名单剔除");
-        int cycNoPublicBlackZYCount = cycleMapper.searchCycDeleteCountByExtend(currDate+" 自研AI业务黑名单剔除");
-        int cycNoPublicBlackBYCount = cycleMapper.searchCycDeleteCountByExtend(currDate+" 百应业务黑名单剔除");
-      /*  int cycPublicBlackCount = robMapper.searchRobDeleteCountByExtend(currDate+" 公共黑名单剔除");
-        int cycNoPublicBlackZYCount = robMapper.searchRobDeleteCountByExtend(currDate+" 自研AI业务黑名单剔除");
-        int cycNoPublicBlackBYCount = robMapper.searchRobDeleteCountByExtend(currDate+" 百应业务黑名单剔除");*/
-
-
+        CompletableFuture.runAsync(() -> {
+            String currDate = DateUtils.format(new Date());
+            int cycPublicBlackCount = cycleMapper.searchCycDeleteCountByExtend(currDate + " 公共黑名单剔除");
+            int cycNoPublicBlackZYCount = cycleMapper.searchCycDeleteCountByExtend(currDate + " 自研AI业务黑名单剔除");
+            int cycNoPublicBlackBYCount = cycleMapper.searchCycDeleteCountByExtend(currDate + " 百应业务黑名单剔除");
+            int robPublicBlackCount = robMapper.searchRobDeleteCountByExtend(currDate + " 公共黑名单剔除");
+            int robNoPublicBlackZYCount = robMapper.searchRobDeleteCountByExtend(currDate + " 自研AI业务黑名单剔除");
+            int robNoPublicBlackBYCount = robMapper.searchRobDeleteCountByExtend(currDate + " 百应业务黑名单剔除");
+            int totalCount = cycPublicBlackCount + cycNoPublicBlackZYCount + cycNoPublicBlackBYCount + robPublicBlackCount
+                    + robNoPublicBlackZYCount + robNoPublicBlackBYCount;
+            StringBuilder msg = new StringBuilder();
+            msg.append(DateUtils.format(new Date()) + "携程撞库黑名单剔除量级统计:\n");
+            msg.append("周期公共黑名单剔除量级: " + cycPublicBlackCount + "\n");
+            msg.append("周期自研AI业务黑名单剔除量级: " + cycNoPublicBlackZYCount + "\n");
+            msg.append("周期百应业务黑名单剔除量级: " + cycNoPublicBlackBYCount + "\n");
+            msg.append("非周期公共黑名单剔除量级: " + robPublicBlackCount + "\n");
+            msg.append("非周期自研AI业务黑名单剔除量级: " + robNoPublicBlackZYCount + "\n");
+            msg.append("非周期百应业务黑名单剔除量级: " + robNoPublicBlackBYCount + "\n");
+            msg.append("周期与非周期黑名单剔除量级总计: " + totalCount);
+            Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+            Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
+            dingDingRobotHookService.sendDingDingTextMessage(msg.toString(), map);
+        });
     }
 
     private void processBeforeDeleteForBatch(XiechengCollidingDataProcessTask task) {
