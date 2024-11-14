@@ -318,8 +318,24 @@
     </where>
   </select>
 
+  <select id="selectGroupDataByReport" resultType="com.br.marketing.entity.MarketingSyncUser">
+
+    select id,api_code,reserve_field1 from b_marketing_sync_${apiCode}
+    <where>
+      <if test="list != null and list.size()>0">
+        <foreach collection="list" item="item" open="(" separator="or" close=")">
+          (applet_date = #{item.appletDate} and user_type = #{item.userType})
+        </foreach>
+      </if>
+      and status =1
+      <if test="indexId != null and indexId!=''">
+        and id > #{indexId}
+      </if>
+      order by id asc limit #{pageSize};
+    </where>
 
 
+  </select>
 
 
 </mapper>

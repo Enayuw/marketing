@@ -382,9 +382,15 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 } else {
                     pageSize = total - sum;
                 }
+                List<MarketingSyncUser> marketingSyncUserList;
                 while (true) {
-                    List<MarketingSyncUser> marketingSyncUserList = syncReportMapper.selectGroupData(apiCode, appletDates, userType,
-                            extend.toString(), indexId, pageSize);
+                    //没有场景和扩展字段分组
+                    if ((StringUtils.isEmpty(userType)) && StringUtils.isEmpty(extendVaule)) {
+                        marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode,reportList, indexId, pageSize);
+                    } else {
+                        marketingSyncUserList = syncReportMapper.selectGroupData(apiCode, appletDates, userType,
+                                extend.toString(), indexId, pageSize);
+                    }
                     indexId = marketingSyncUserList.get(marketingSyncUserList.size() - 1).getId();
                     modifyCorePoolSize(pool);
                     /*pool.submit(() ->*/
@@ -431,19 +437,23 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 return;
             }
             List<BaseHead> baseHeads = baseHeadConfigVO.getBaseHead();
-            if (type.equals("0")) {
-                BaseHead baseHead = new BaseHead();
-                baseHead.setName(field);
-                baseHead.setType(2);
-                baseHeads.add(baseHead);
-            } else {
-                baseHeads.removeIf(head -> head.getName().equals(field));
+            if(!CollectionUtils.isEmpty(baseHeads)) {
+                if (type.equals("0")) {
+                    BaseHead baseHead = new BaseHead();
+                    baseHead.setName(field);
+                    baseHead.setType(2);
+                    baseHeads.add(baseHead);
+                } else {
+                    baseHeads.removeIf(head -> head.getName().equals(field));
+                }
             }
             List<String> headConfig = baseHeadConfigVO.getShowBaseHead();
-            if (type.equals("0")) {
-                headConfig.add(field);
-            } else {
-                headConfig.removeIf(head -> head.equals(field));
+            if(!CollectionUtils.isEmpty(headConfig)) {
+                if (type.equals("0")) {
+                    headConfig.add(field);
+                } else {
+                    headConfig.removeIf(head -> head.equals(field));
+                }
             }
             config.setBaseInfo(JSON.toJSONString(baseHeadConfigVO));
             scoreRuleConfigMapper.updateByPrimaryKeySelective(config);

@@ -93,4 +93,6 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
 
     List<Map<String, Object>> selectGroupUploadNumtikv_(@Param("apiCode")String apiCode, @Param("list")List<MarketingSyncReport> reportList,
                                                    @Param("field")String field,@Param("extendField")String extendField);
+
+    List<MarketingSyncUser> selectGroupDataByReport(@Param("apiCode")String apiCode,@Param("list")List<MarketingSyncReport> reportList, @Param("indexId")Long indexId,  @Param("pageSize")Integer pageSize);
 }
