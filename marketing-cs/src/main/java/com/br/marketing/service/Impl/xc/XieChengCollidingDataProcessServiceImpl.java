@@ -30,6 +30,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @Description 携程撞库数据处理作业实现类
@@ -71,6 +72,10 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     private final static String ERROR_PREFIX_DELETE = "携程撞库true数据剔除，单线程处理异常：，batchId=";
 
     private final static String ERROR_PREFIX_DYNA_DELETE = "携程撞库false动态包数据剔除，单线程处理异常：，batchId=";
+
+    private final static String ALARM_DELETE_COUNT = "携程撞库周期TRUE数据删除量级:";
+
+    private final static String ALARM_DYNA_DELETE_COUNT = "携程撞库非周期FALSE动态补充数据删除量级:";
     private final static String ALARM_UNCOMPLETED_COUNT = "携程清洗流程异常，请关注！任务类型：";
 
     @Override
@@ -146,7 +151,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         }
     }
 
-    private void alarmMagnitude(String apiCode, XcProcessTaskEnum xcProcessTaskEnum) {
+    @Override
+    public void alarmMagnitude(String apiCode, XcProcessTaskEnum xcProcessTaskEnum) {
         //1.查询当天指定类型所有的task
         XiechengCollidingDataProcessTaskExample processTaskExample = new XiechengCollidingDataProcessTaskExample();
         processTaskExample.createCriteria()
@@ -157,16 +163,45 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         if (taskList.size() == 0) {
             return;
         }
-        long unCompletedCount = taskList.stream()
-                .filter((XiechengCollidingDataProcessTask task) -> task.getTaskStatus() == 0 || task.getTaskStatus() == 1).count();
-        if (unCompletedCount != 0) {
-
-        }
-
-        String msg = "携程撞库周期TRUE数据删除量级:" + 1;
         Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
         Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
-        dingDingRobotHookService.sendDingDingTextMessage(msg, map);
+        long unCompletedCount = taskList.stream()
+                .filter((XiechengCollidingDataProcessTask task) -> task.getTaskStatus() == 0 || task.getTaskStatus() == 1).count();
+        //当天指定告警类型的task有未处理完的，证明流程有问题
+        if (unCompletedCount != 0) {
+            dingDingRobotHookService.sendDingDingTextMessage(ALARM_UNCOMPLETED_COUNT
+                    + xcProcessTaskEnum.getTaskType(), map);
+            return;
+        }
+        Integer alertCount = 0;
+        //true包剔除
+        if (xcProcessTaskEnum.getTaskType() == XcProcessTaskEnum.PROCESS_DELETE.getTaskType()) {
+            for (XiechengCollidingDataProcessTask dataProcessTask : taskList) {
+                XieChengCollidingDataLoopCycleExample loopCycleExample = new XieChengCollidingDataLoopCycleExample();
+                loopCycleExample.createCriteria()
+                        .andIsDeleteEqualTo(1)
+                        .andUpdateTimeGreaterThan(getStartOfDate())
+                        .andExtendEqualTo(EXTEND_DELETE_PREFIX + dataProcessTask.getId());
+                alertCount += cycleMapper.countByExample(loopCycleExample);
+            }
+            dingDingRobotHookService.sendDingDingTextMessage(ALARM_DELETE_COUNT + alertCount, map);
+        } else if (xcProcessTaskEnum.getTaskType() == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getTaskType()) {
+            List<String> xcDynaFalsePackageIds = marketingCommonConfig.getXcDynaFalsePackageIds();
+            if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
+                xcDynaFalsePackageIds = Arrays.asList("120007");
+            }
+            List<Long> packageIds = xcDynaFalsePackageIds.stream().map(Long::valueOf).collect(Collectors.toList());
+            for (XiechengCollidingDataProcessTask dataProcessTask : taskList) {
+                XieChengCollidingDataRobExample robExample = new XieChengCollidingDataRobExample();
+                robExample.createCriteria()
+                        .andIsDeleteEqualTo(1)
+                        .andUpdateTimeGreaterThan(getStartOfDate())
+                        .andPackageIdIn(packageIds)
+                        .andExtendEqualTo(EXTEND_DYNA_DELETE_PREFIX + dataProcessTask.getId());
+                alertCount += robMapper.countByExample(robExample);
+            }
+            dingDingRobotHookService.sendDingDingTextMessage(ALARM_DYNA_DELETE_COUNT + alertCount, map);
+        }
     }
 
     /**

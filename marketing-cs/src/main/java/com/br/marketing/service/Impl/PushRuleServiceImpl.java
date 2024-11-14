@@ -621,7 +621,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         if (CollectionUtils.isEmpty(xcDynaFalsePackageIds)) {
             xcDynaFalsePackageIds = Arrays.asList("120007");
         }
-        String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream().collect(Collectors.joining(",", "(", ")"));
+        String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream()
+                .collect(Collectors.joining(",", "(", ")"));
         String dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where is_delete = 0 and package_id in "
                 + xcDynaFalsePackageIdString;
         String scoreSql = scoreSql(jsonObject, batchNumberList);

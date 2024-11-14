@@ -57,7 +57,9 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                 threadPoolShutDown(threadPool);
                 return;
             }
-            //3.剔除流程
+            //3.动态补充包剔除量级告警
+            xieChengCollidingDataProcessService.alarmMagnitude(apiCode, XcProcessTaskEnum.PROCESS_DYNA_FALSE);
+            //4.剔除流程
             deleteProcess(apiCode, XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE, threadPool);
             threadPoolShutDown(threadPool);
         });
