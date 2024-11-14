@@ -202,7 +202,7 @@ public class RuleCenterEntranceServiceImpl implements IRuleCenterEntranceService
                 .andCreateTimeGreaterThanOrEqualTo(day);
         List<DecisionsTaskLog> decisionsTaskLogs = decisionsTaskLogMapper.selectByExample(decisionsTaskLogExample);
         if (decisionsTaskLogs.size() > 0) {
-            log.warn(TITLE + "已生成推决策任务，推决策配置id:{}", pushDecisions.getId());
+            log.warn("已生成推决策任务，推决策配置id:{}", pushDecisions.getId());
             unLockDecis(pushDecisions.getId(), uuid.toString());
             return res.failure();
         }
