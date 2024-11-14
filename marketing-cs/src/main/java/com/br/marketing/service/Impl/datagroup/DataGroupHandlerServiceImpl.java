@@ -290,8 +290,8 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
             reportExample.createCriteria().andIdIn(Arrays.stream(config.getUploadReportId().split(",")).map(Long::parseLong).collect(Collectors.toList()));
             List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
-            List<Map<String, Object>> groupNum = syncReportMapper.selectGroupUploadNumtikv_(config.getApiCode(), reportList, "reserve_field1->'$.".concat(field).concat("'"),
-                    StringUtils.isEmpty(rule.getExtendField()) ? "" : "reserve_field1->'$.".concat(rule.getExtendField()).concat("'"));
+            List<Map<String, Object>> groupNum = syncReportMapper.selectGroupUploadNumtikv_(config.getApiCode(), reportList, "reserve_field1->'$.\"".concat(field).concat("\"'"),
+                    StringUtils.isEmpty(rule.getExtendField()) ? "" : "reserve_field1->'$.\"".concat(rule.getExtendField()).concat("\"'"));
             rule.setGroupRange("0");
             List<Map<String, Object>> groupNumTotal = dataGroupNumTransfer(rule, reportList, Boolean.FALSE);
             JSONObject totalJson = (JSONObject) groupNumTotal.get(0).get("rule");
