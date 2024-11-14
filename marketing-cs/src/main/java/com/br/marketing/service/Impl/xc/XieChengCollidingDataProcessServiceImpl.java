@@ -78,6 +78,8 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
     private final static String ALARM_DYNA_DELETE_COUNT = "携程撞库非周期FALSE动态补充数据删除量级:";
     private final static String ALARM_UNCOMPLETED_COUNT = "携程清洗流程异常，请关注！任务类型：";
 
+    private final static String ALARM_INCORRECT_COUNT = "携程剔除量级统计有误，请关注！任务id：";
+
     @Override
     public void process() {
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) -> {
@@ -163,16 +165,17 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
         if (taskList.size() == 0) {
             return;
         }
-        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
-        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
+        Map<String, Object> xcDeleteAlarmMap = marketingCommonConfig.getXcDeleteAlarmConfig();
         long unCompletedCount = taskList.stream()
                 .filter((XiechengCollidingDataProcessTask task) -> task.getTaskStatus() == 0 || task.getTaskStatus() == 1).count();
-        //当天指定告警类型的task有未处理完的，证明流程有问题
+        //当天指定告警类型的task有未处理完的，证明流程有问题,通知开发人员（预发发到[测试机器人群]，生产发到[营销中台报警群]），不通知项目侧
         if (unCompletedCount != 0) {
             dingDingRobotHookService.sendDingDingTextMessage(ALARM_UNCOMPLETED_COUNT
-                    + xcProcessTaskEnum.getTaskType(), map);
+                    + xcProcessTaskEnum.getTaskType(), xcDeleteAlarmMap);
             return;
         }
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
         Integer alertCount = 0;
         //true包剔除
         if (xcProcessTaskEnum.getTaskType() == XcProcessTaskEnum.PROCESS_DELETE.getTaskType()) {
@@ -182,8 +185,16 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                         .andIsDeleteEqualTo(1)
                         .andUpdateTimeGreaterThan(getStartOfDate())
                         .andExtendEqualTo(EXTEND_DELETE_PREFIX + dataProcessTask.getId());
-                alertCount += cycleMapper.countByExample(loopCycleExample);
+                //计算实际剔除量级
+                int countForTask = cycleMapper.countByExample(loopCycleExample);
+                alertCount = alertCount + countForTask;
+                if (countForTask != dataProcessTask.getActualNumber()) {
+                    //task记录量级与实际统计量级有出入,通知开发人员（预发发到[测试机器人群]，生产发到[营销中台报警群]），不通知项目侧
+                    dingDingRobotHookService
+                            .sendDingDingTextMessage(ALARM_INCORRECT_COUNT + dataProcessTask.getId(), xcDeleteAlarmMap);
+                }
             }
+            //实际量级报警发到项目侧，预发发到[测试机器人群]，生产发到[携程金融-智能运营内部沟通群]
             dingDingRobotHookService.sendDingDingTextMessage(ALARM_DELETE_COUNT + alertCount, map);
         } else if (xcProcessTaskEnum.getTaskType() == XcProcessTaskEnum.PROCESS_DYNA_FALSE.getTaskType()) {
             List<String> xcDynaFalsePackageIds = marketingCommonConfig.getXcDynaFalsePackageIds();
@@ -198,8 +209,16 @@ public class XieChengCollidingDataProcessServiceImpl implements XieChengCollidin
                         .andUpdateTimeGreaterThan(getStartOfDate())
                         .andPackageIdIn(packageIds)
                         .andExtendEqualTo(EXTEND_DYNA_DELETE_PREFIX + dataProcessTask.getId());
-                alertCount += robMapper.countByExample(robExample);
+                //计算实际剔除量级
+                int countForTask = robMapper.countByExample(robExample);
+                alertCount = alertCount + countForTask;
+                if (countForTask != dataProcessTask.getActualNumber()) {
+                    //task记录量级与实际统计量级有出入,通知开发人员（预发发到[测试机器人群]，生产发到[营销中台报警群]），不通知项目侧
+                    dingDingRobotHookService
+                            .sendDingDingTextMessage(ALARM_INCORRECT_COUNT + dataProcessTask.getId(), xcDeleteAlarmMap);
+                }
             }
+            //实际量级报警发到项目侧，预发发到[测试机器人群]，生产发到[携程金融-智能运营内部沟通群]
             dingDingRobotHookService.sendDingDingTextMessage(ALARM_DYNA_DELETE_COUNT + alertCount, map);
         }
     }
