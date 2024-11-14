@@ -2298,11 +2298,5 @@ public class MarketingCommonConfig {
 
     private Integer xieChengPreCollidingBlackListDeleteThread;
 
-    /**
-     * 携程剔除量级告警配置
-     */
-    private Map<String, Object> xcDeleteAlarmConfig;
-
-
 }
 

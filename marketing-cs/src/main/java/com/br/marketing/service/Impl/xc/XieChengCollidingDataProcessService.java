@@ -14,6 +14,4 @@ public interface XieChengCollidingDataProcessService {
     void processDynaDelete();
 
      boolean queryDeletingTaskCount(String apiCode, XcProcessTaskEnum xcProcessTaskEnum);
-
-    void alarmMagnitude(String apiCode, XcProcessTaskEnum xcProcessTaskEnum);
 }
