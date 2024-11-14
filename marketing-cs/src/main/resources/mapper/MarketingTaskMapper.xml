@@ -880,7 +880,7 @@
         left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
         where  bsrc.is_del = 1
         and bmt.status !=0
-        and shf.status is null or shf.status!=2
+        and (shf.status is null or shf.status!=2)
         <if test="apiCode !=null and apiCode!=''">
             and bmt.api_code = #{apiCode}
         </if>

@@ -134,7 +134,12 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         }
         //更新配置
         DataGroupConfig config = dataGroupConfigMapper.selectByPrimaryKey(dto.getId());
-        config.setGroupRules(dto.getGroupRules());
+        DataGropRuleVO update = gropRuleVOList.get(0);
+        List<DataGropRuleVO> groupRule = JSON.parseObject(config.getGroupRules(), new TypeReference<List<DataGropRuleVO>>() {
+        }.getType());
+        groupRule.removeIf((DataGropRuleVO rule)->rule.getGroupField().equals(update.getGroupField()));
+        groupRule.add(update);
+        config.setGroupRules(JSON.toJSONString(groupRule));
         dataGroupConfigMapper.updateByPrimaryKeySelective(config);
         return new ApiResult<Long>().success(dto.getId());
     }
@@ -195,8 +200,12 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     redisChgService.unlock(redisKey, s);
                 }
             }
-            update.setGroupRules(JSON.toJSONString(updateGroupRules));
-            dataGroupConfigMapper.updateByPrimaryKeySelective(update);
+            if (CollectionUtils.isEmpty(updateGroupRules)) {
+                update.setGroupRules(null);
+            } else {
+                update.setGroupRules(JSON.toJSONString(updateGroupRules));
+            }
+            dataGroupConfigMapper.updateByPrimaryKey(update);
         }
         // 插入 任务表
         gropRuleMap.forEach((String field, List<DataGropRuleVO> groupRules) -> {
@@ -275,12 +284,12 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             JSONObject totalJson = (JSONObject) groupNumTotal.get(0).get("rule");
             groupNum.forEach((Map<String, Object> map) -> {
                 String groupField = ((String) map.get("field"));
-                if(StringUtils.isBlank(groupField)){
+                if (StringUtils.isBlank(groupField)) {
                     return;
                 }
                 String fieldTrim = groupField.replace("\"", "");
                 Long num = (Long) map.get("num");
-                percentMap.put(fieldTrim, num * 100 /  totalJson.getInteger(fieldTrim));
+                percentMap.put(fieldTrim, num * 100 / totalJson.getInteger(fieldTrim));
             });
         }
         return percentMap;
@@ -386,7 +395,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 while (true) {
                     //没有场景和扩展字段分组
                     if ((StringUtils.isEmpty(userType)) && StringUtils.isEmpty(extendVaule)) {
-                        marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode,reportList, indexId, pageSize);
+                        marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, reportList, indexId, pageSize);
                     } else {
                         marketingSyncUserList = syncReportMapper.selectGroupData(apiCode, appletDates, userType,
                                 extend.toString(), indexId, pageSize);
@@ -433,11 +442,11 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             //更新规则
             BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(config.getBaseInfo(), new TypeReference<BaseHeadConfigVO>() {
             }.getType());
-            if(Objects.isNull(baseHeadConfigVO)){
+            if (Objects.isNull(baseHeadConfigVO)) {
                 return;
             }
             List<BaseHead> baseHeads = baseHeadConfigVO.getBaseHead();
-            if(!CollectionUtils.isEmpty(baseHeads)) {
+            if (!CollectionUtils.isEmpty(baseHeads)) {
                 if (type.equals("0")) {
                     BaseHead baseHead = new BaseHead();
                     baseHead.setName(field);
@@ -448,7 +457,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 }
             }
             List<String> headConfig = baseHeadConfigVO.getShowBaseHead();
-            if(!CollectionUtils.isEmpty(headConfig)) {
+            if (!CollectionUtils.isEmpty(headConfig)) {
                 if (type.equals("0")) {
                     headConfig.add(field);
                 } else {
@@ -553,7 +562,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     } else {
                         // 当前元素不是最后一个元素
                         double num = Double.parseDouble(entry.getValue().toString().replace("%", "")) / 100 * count;
-                        int intNum = (int)num;
+                        int intNum = (int) num;
                         entry.setValue(intNum);
                         sum += intNum;
                     }
