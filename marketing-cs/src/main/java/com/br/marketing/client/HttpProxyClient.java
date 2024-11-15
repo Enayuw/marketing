@@ -345,6 +345,9 @@ public class HttpProxyClient {
         } catch (Exception e) {
             if (url.contains("ibu-daas")) {
                 log.error("url={} Log加密param={}", url, BrCipherMaker.getInstance().encode(param.toString()), e);
+            } else if (url.contains("https://finance-gateway-pop.diandian.com.cn/fcpGateway")) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_INTERFACEERROR.getCode(),
+                        "url=" + url + " Log加密param=" + BrCipherMaker.getInstance().encode(param.toString())), e);
             } else {
                 log.error("url={} param={}", url, param, e);
             }

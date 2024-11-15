@@ -109,6 +109,8 @@ public enum AlarmSendCodeEnum {
     ZHONGAN_SERVICEERROR("6006001", "众安业务异常"),
     //众安接口调用失败,阶梯推送
     ZHONGAN_INTERFACEERROR("6006002", "众安接口调用失败"),
+    //众安上报接口调用失败,阶梯推送
+    ZHONGAN_REPORTEERROR("6006003", "众安上报接口调用失败"),
 
     //数禾业务异常,立即推送
     SHUHE_SERVICEERROR("6007001", "数禾业务异常"),
