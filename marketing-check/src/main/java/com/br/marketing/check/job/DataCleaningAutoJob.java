@@ -71,7 +71,6 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
     private static void exampleCreateCriteria(MarketingCleanDataTaskExample example) {
         example.createCriteria()
                 .andCreateTimeLessThanOrEqualTo(new Date())
-                .andCleanStatusEqualTo(0)
                 .andCleanStatusIn(Lists.newArrayList(0, 3))
                 .andAutoCleanWayTypeEqualTo(1)
                 .andIsDelEqualTo(1);
