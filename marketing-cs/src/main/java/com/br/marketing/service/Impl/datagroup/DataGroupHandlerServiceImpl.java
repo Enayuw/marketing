@@ -386,7 +386,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         groupTask.forEach((Map<String, Object> taskMap) -> {
             JSONObject jsonRule = (JSONObject) taskMap.get("rule");
             String userType = (String) taskMap.get("userType");
-            String extendVaule = (String) taskMap.get(rule.getExtendField());
+            String extendVaule = ((String) taskMap.get(rule.getExtendField())).replace("\"", "");
             StringBuilder extend = new StringBuilder();
             if (StringUtils.isNotEmpty(rule.getExtendField())) {
                 extend.append("reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule).append("'");
@@ -531,13 +531,13 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             groupStr.append(" group by  user_type");
         }
         if (StringUtil.isNotBlank(rule.getExtendField())) {
-            field.append(",reserve_field1->>'$.").append(rule.getExtendField()).append("'  as ").append(rule.getExtendField());
-            whereStr.append("and ").append("reserve_field1->'$.").append(rule.getExtendField()).append("' is not null ");
+            field.append(",reserve_field1->'$.\"").append(rule.getExtendField()).append("\"'  as ").append(rule.getExtendField());
+            whereStr.append("and ").append("reserve_field1->'$.\"").append(rule.getExtendField()).append("\"' is not null ");
             if (extendGroup) {
                 if (StringUtil.isBlank(groupStr)) {
-                    groupStr.append(" group by reserve_field1->'$.").append(rule.getExtendField()).append("'");
+                    groupStr.append(" group by reserve_field1->'$.\"").append(rule.getExtendField()).append("\"'");
                 } else {
-                    groupStr.append(",reserve_field1->'$.").append(rule.getExtendField()).append("'");
+                    groupStr.append(",reserve_field1->'$.\"").append(rule.getExtendField()).append("\"'");
                 }
             }
         }
@@ -547,7 +547,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         });
         whereStr.replace(whereStr.length() - 3, whereStr.length(), "");
         whereStr.append(")");
-        List<Map<String, Object>> groupNumList = syncReportMapper.selectGroupCount(field.append(whereStr).append(groupStr).toString());
+        List<Map<String, Object>> groupNumList = syncReportMapper.selectGroupCounttikv_(field.append(whereStr).append(groupStr).toString());
         JSONObject ruleJson = rule.getGroupNum();
         groupNumList.forEach(map -> {
             int count = Integer.valueOf(map.get("num").toString());

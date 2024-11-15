@@ -84,7 +84,7 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
     List<String> selectUploadExtendKeystikv_(@Param("apiCode")String apiCode, @Param("userType")String userType, @Param("appletDate")String appletDate);
 
 
-    List<Map<String, Object>> selectGroupCount(@Param("sql")String toString);
+    List<Map<String, Object>> selectGroupCounttikv_(@Param("sql")String toString);
 
     List<MarketingSyncUser> selectGroupData(@Param("apiCode")String apiCode, @Param("list")List<String> appletDates, @Param("userType")String userType,
                                             @Param("extend")String extend, @Param("indexId")Long indexId, @Param("pageSize")Integer pageSize);

@@ -259,7 +259,7 @@
 
   </select>
 
-  <select id="selectGroupCount" resultType="java.util.Map">
+  <select id="selectGroupCounttikv_" resultType="java.util.Map">
     ${sql}
   </select>
 

@@ -195,7 +195,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                             HashSet<String> keySet = new HashSet<>();
                                             List<String> keysList = syncReportMapper.selectUploadExtendKeystikv_(apiCode,userType,appletDate);
                                             keysList.forEach((String key)->{
-                                                List<String> fieldList = Arrays.asList(key.substring(1,key.length()-2).split(","));
+                                                List<String> fieldList = Arrays.asList(key.trim().substring(1,key.length()-2)
+                                                        .replace("\"", "").replaceAll("\\s+", "").split(","));
                                                 keySet.addAll(fieldList);
                                             });
                                             //判断是否更新
@@ -263,13 +264,17 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             log.error("countDownLatch 线程执行异常", e);
         }
         //插入扩展字段key统计表
-        handlerDataFieldDict(uploadDate);
+        try {
+            handlerDataFieldDict(uploadDate);
+        } catch (Exception e) {
+            log.error("扩展字段添加失败", e);
+        }
 
     }
 
     private void handlerDataFieldDict(String uploadDate) {
         MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
-        reportExample.createCriteria().andAppletDateEqualTo(uploadDate);
+        reportExample.createCriteria().andAppletDateEqualTo(uploadDate).andReserveField1KeyIsNotNull();
         List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
         Map<String, List<MarketingSyncReport>> reportMap =
                 reportList.stream().collect(Collectors.groupingBy(MarketingSyncReport::getApiCode));
