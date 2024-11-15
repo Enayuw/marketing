@@ -9,6 +9,7 @@ import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -71,6 +72,7 @@ public class DataCleaningAutoJob extends AbstractSimpleElasticJob {
         example.createCriteria()
                 .andCreateTimeLessThanOrEqualTo(new Date())
                 .andCleanStatusEqualTo(0)
+                .andCleanStatusIn(Lists.newArrayList(0, 3))
                 .andAutoCleanWayTypeEqualTo(1)
                 .andIsDelEqualTo(1);
         example.setOrderByClause("create_time asc limit 1");
