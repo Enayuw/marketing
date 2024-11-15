@@ -44,9 +44,13 @@ public class CloudAIAutomationToPolicy implements AssembleData<PushMarketingUser
             String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName")) ? jsonObject.getString("strategyName") : "";
             if (StringUtils.isNotEmpty(strategyCode)) {
                 pushData.setStrategyCode(strategyCode);
+            } else {
+                pushData.setStrategyCode("");
             }
             if (StringUtils.isNotEmpty(strategyCode)) {
                 jsonObject.put("strategyName", strategyName);
+            } else {
+                jsonObject.put("strategyName", "");
             }
             pushData.setBatchNumber(batchNumber);
             jsonObject.put("batchName", batchName);
