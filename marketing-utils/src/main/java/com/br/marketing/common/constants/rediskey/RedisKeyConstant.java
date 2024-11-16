@@ -266,4 +266,9 @@ public class RedisKeyConstant {
      */
     public static final String DELIVERY_USER_INFORMATION = prefix.concat("delivery:user:information");
 
+    /**
+     * 客户标签
+     */
+    public static final String CUSTOMERTAGS = prefix.concat("customer:tags");
+
 }

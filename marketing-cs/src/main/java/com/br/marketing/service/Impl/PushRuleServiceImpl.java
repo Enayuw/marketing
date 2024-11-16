@@ -61,6 +61,9 @@ import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.service.*;
 import com.br.marketing.service.Impl.transferfieldprocess.TransferFiledProcessImpl;
+import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
+import com.br.marketing.service.customertagsprocess.IUploadCheckService;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.service.rulecenter.IRuleCenterFilterTemplateService;
 import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -94,6 +97,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -375,6 +379,9 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     @Autowired
     TransferFiledProcessImpl transferFiledProcess;
+
+    @Resource
+    CustomerTagsProcessServiceImpl customerTagsProcessService;
 
 
     @Override
@@ -700,6 +707,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     /**
      * 组装跑分筛选SQL
+     *
      * @param jsonObject      入参jsonsql
      * @param batchNumberList batchNumber集合
      * @return String
@@ -990,17 +998,17 @@ public class PushRuleServiceImpl implements PushRuleService {
                         timeOutTotalNum += pushRes.getData();
                     } else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
                         main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                        count ++;
+                        count++;
                     } else {
                         realTotalNum += pushRes.getData();
                     }
                 }
             }
-            if(count > 0){
+            if (count > 0) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("推送决策失败：\n");
-                sb.append("apiCode："+customerInfoPushMain.getmApiCode());
-                sb.append("，任务id："+customerInfoPushMain.getId());
+                sb.append("apiCode：" + customerInfoPushMain.getmApiCode());
+                sb.append("，任务id：" + customerInfoPushMain.getId());
                 sendAlert("推送决策失败", sb.toString());
             }
         } catch (Exception ex) {
@@ -1154,7 +1162,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             //es处理
                             if (markWithEsFlag) {
                                 markForCell(varObject, marketingHistory.getFields());
-                            //代码处理逻辑
+                                //代码处理逻辑
                             } else {
                                 List<MarketingCondition> conditions = marketingHistory.getCondition();
                                 if (!CollectionUtils.isEmpty(conditions)) {
@@ -1320,7 +1328,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             updateMain.setmStatus(count > 0 ? PushRuleStatusEnum.CONFIRMED_FAIL.getValue() : PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
             customerInfoPushMainMapper.updateByPrimaryKeySelective(updateMain);
             // 推决策报警
-            if(count > 0){
+            if (count > 0) {
                 List<String> pushAlarmApiCode = marketingCommonConfig.getPushAlarmApiCode();
                 if (pushAlarmApiCode.contains(customerInfoPushMain.getmApiCode())) {
                     pushDecisionsAlarm(customerInfoPushMain);
@@ -1345,7 +1353,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 String verificationReason = policyResultByTaskIdsDTO.getVerificationReason();
                 StringBuilder sb = new StringBuilder();
                 sb.append("apiCode：").append(customerInfoPushMain.getmApiCode()).append("，");
-                sb.append("【推送完成，请求批次号】："+ verification).append("，【推送结果】：" + verificationReason);
+                sb.append("【推送完成，请求批次号】：" + verification).append("，【推送结果】：" + verificationReason);
                 sendAlert("【营销自动化推决策确认失败】", sb.toString());
             }
         } else {
@@ -1562,6 +1570,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         MerchantParam merchantParam = null;
         String apiCode = marketingSyncInfo.getApiCode();
         Result<List<CustomerSoleRuleVO>> soleConfig = iRuleConfigService.getSoleConfig(apiCode);
+        CustomerTagsVO tags = customerTagsProcessService.getTags(apiCode);
+        IUploadCheckService iUploadCheckService = customerTagsProcessService.getIUploadCheckService(tags);
         try {
             merchantParam = RpcClientProxy.getMerchantParam(apiCode);
         } catch (Exception e) {
@@ -1621,9 +1631,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
                 //解密、规则校验
                 marketingPreUserDetailDTO.setStatus(MonitorTypeEnum.STATUS_1.getTypeCode());
-                encodeMapping(marketingPreUserDetailDTO, "cell", finalIsCheck);
-                encodeMapping(marketingPreUserDetailDTO, "id", finalIsCheck);
-                encodeMapping(marketingPreUserDetailDTO, "name", finalIsCheck);
+                iUploadCheckService.check3key(marketingPreUserDetailDTO, finalIsCheck);
                 Date nowData = new Date();
                 String appletDate = DateUtils.format(marketingSyncInfo.getCreateTime(), "yyyy-MM-dd");
                 MarketingSyncUser marketingSyncUser = new MarketingSyncUser();
@@ -1639,7 +1647,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setGroupType(marketingPreUserDetailDTO.getGroupType());
                 marketingSyncUser.setRegisterDate(marketingPreUserDetailDTO.getRegisterDate());
                 marketingSyncUser.setReserveField1(assembleReserveField1(finalReserveField,
-                        finalReserveFileld1Json,apiCode));
+                        finalReserveFileld1Json, apiCode));
                 marketingSyncUser.setReserveField2(marketingPreUserDetailDTO.getReserveField2());
                 marketingSyncUser.setCreateTime(nowData);
                 marketingSyncUser.setUpdateTime(nowData);
@@ -1916,7 +1924,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     finalReserveFieldObject.put(k, finalReserveFileld1Json.get(k));
                 }
             });
-            cleanData(finalReserveFieldObject,finalReserveFileld1Json,apiCode);
+            cleanData(finalReserveFieldObject, finalReserveFileld1Json, apiCode);
         }
         return JSONObject.toJSONString(finalReserveFieldObject);
     }
@@ -1926,10 +1934,10 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 定制化清洗apiCode
         HashMap<String, String> dataCleanMappingMap = marketingCommonConfig.getDataCleanMappingMap();
         String value = dataCleanMappingMap.get(apiCode);
-        if(value != null){
+        if (value != null) {
             List<String> dataCleanValue = marketingCommonConfig.getDataCleanValue();
             String customNameType = dataCleanValue != null ? dataCleanValue.get(0) : "customNameType";
-            finalReserveFieldObject.put(customNameType,finalReserveFileld1Json.get(value));
+            finalReserveFieldObject.put(customNameType, finalReserveFileld1Json.get(value));
         }
     }
 
@@ -3597,11 +3605,11 @@ public class PushRuleServiceImpl implements PushRuleService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则不存在");
         }
         // 若置为失效 则需判断该规则模板是否被推送决策配置引用
-        if(new Integer(2).equals(dto.getStatus())){
+        if (new Integer(2).equals(dto.getStatus())) {
             PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
             pushDecisionsExample.createCriteria().andDependencyTemplateIdEqualTo(dto.getId()).andIsDelEqualTo(1);
             List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
-            if(!pushDecisions.isEmpty()){
+            if (!pushDecisions.isEmpty()) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板已被引用，不能修改为失效");
             }
         }
@@ -3931,7 +3939,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
             pushDecisionsExample.createCriteria().andDependencyTemplateIdEqualTo(id).andIsDelEqualTo(Constants.DATA_VALID);
             List<PushDecisions> pushDecisions = pushDecisionsMapper.selectByExample(pushDecisionsExample);
-            if(!pushDecisions.isEmpty()){
+            if (!pushDecisions.isEmpty()) {
                 return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板已被引用，不能删除");
             }
             ScoreSearchCondition updateEntity = new ScoreSearchCondition();
@@ -3940,7 +3948,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             scoreSearchConditionMapper.updateByPrimaryKeySelective(updateEntity);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
-            log.error("删除规则模板报错，id={},",id,e);
+            log.error("删除规则模板报错，id={},", id, e);
         }
         return null;
     }

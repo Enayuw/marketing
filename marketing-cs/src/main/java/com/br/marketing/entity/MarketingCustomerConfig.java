@@ -24,6 +24,11 @@ public class MarketingCustomerConfig {
     private Integer isDel;
 
     /**
+     * 校验类型 1-校验手机号，2-不校验
+     */
+    private Integer checkType;
+
+    /**
      * 入库时间
      */
     private Date createTime;
@@ -63,6 +68,14 @@ public class MarketingCustomerConfig {
 
     public void setIsDel(Integer isDel) {
         this.isDel = isDel;
+    }
+
+    public Integer getCheckType() {
+        return checkType;
+    }
+
+    public void setCheckType(Integer checkType) {
+        this.checkType = checkType;
     }
 
     public Date getCreateTime() {
