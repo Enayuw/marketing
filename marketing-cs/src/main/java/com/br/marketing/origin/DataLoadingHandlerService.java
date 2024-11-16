@@ -1,8 +1,13 @@
 package com.br.marketing.origin;
 
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.mapper.CustomerRuleMapper;
+import com.br.marketing.rule.AssembleData;
+import com.br.marketing.rule.common.CommonRuleLabelEnum;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerService;
 import com.google.common.cache.CacheBuilder;
@@ -17,10 +22,7 @@ import org.springframework.util.Assert;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -73,6 +75,9 @@ public class DataLoadingHandlerService {
     @Autowired
     private InterfaceHandlerService interfaceHandlerService;
 
+    @Resource
+    CustomerTagsProcessServiceImpl customerTagsProcessService;
+
     public String getTcIdFromRedis(String apiCode) {
         // 1 获取分表后缀
         String key = cidKey.concat(apiCode);
@@ -92,6 +97,8 @@ public class DataLoadingHandlerService {
     }
 
     private final static Pattern PATTERN = Pattern.compile("[-+]?\\d+(\\.\\d+)?");
+
+
 
     /**
      * 2022/3/22 16:22
@@ -164,7 +171,7 @@ public class DataLoadingHandlerService {
 
 
     @PostConstruct
-    private void init(){
+    private void init() {
         ruleCache = CacheBuilder.newBuilder()
                 .maximumSize(100)
                 .expireAfterWrite(60, TimeUnit.MINUTES)
@@ -188,11 +195,10 @@ public class DataLoadingHandlerService {
     }
 
     /**
-     *
      * @param apiCode
      * @return
      */
-    public Set<String> customerRules(String apiCode){
+    public Set<String> customerRules(String apiCode) {
         try {
             return ruleCache.get(apiCode);
         } catch (ExecutionException e) {
@@ -219,6 +225,15 @@ public class DataLoadingHandlerService {
             return new BigDecimal(day).setScale(0, BigDecimal.ROUND_HALF_UP).intValue();
         } else {
             return null;
+        }
+    }
+
+    public void commonRuleContextAction(Integer source, List<AssembleData> assembleDataList, ProcessHandlerContext context) {
+        if(TransferSource.ORIGIN_DATA_UPLOAD_PROCESS.getCode().equals(source)){
+            if (assembleDataList.stream().anyMatch(t-> CommonRuleLabelEnum.TO_POLICY_COMMON.equals(t.label()))) {
+                CustomerTagsVO tags = customerTagsProcessService.getTags(context.getApiCode());
+                context.setCustomerTagsVO(tags);
+            }
         }
     }
 

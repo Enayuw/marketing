@@ -56,6 +56,7 @@ public class CustomerTagsProcessServiceImpl {
         List<MarketingCustomerConfig> configs = marketingCustomerConfigMapper.selectByExample(configExample);
         if (configs.size() <= 0) {
             customerTagsVO.setCheckType(CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue());
+            customerTagsVO.setPushJc3keyType(CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
             writeTagsOfRedis(apiCode, customerTagsVO);
             return customerTagsVO;
         }
@@ -63,6 +64,10 @@ public class CustomerTagsProcessServiceImpl {
         MarketingCustomerConfig marketingCustomerConfig = configs.get(0);
         Integer checkType = marketingCustomerConfig.getCheckType();
         customerTagsVO.setCheckType(checkType);
+        customerTagsVO.setPushJc3keyType(
+                marketingCustomerConfig.getThreeKEncryptType() == null
+                        ? CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue()
+                        : marketingCustomerConfig.getThreeKEncryptType());
         writeTagsOfRedis(apiCode, customerTagsVO);
         return customerTagsVO;
     }

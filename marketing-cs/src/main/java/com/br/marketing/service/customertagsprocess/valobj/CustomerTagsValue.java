@@ -21,6 +21,19 @@ public class CustomerTagsValue {
 
     }
 
+    @AllArgsConstructor
+    @Getter
+    public  enum PushJc3keyTypeEnum implements ValueInterace {
+
+        INIT(0,"原文"),
+        MD5_ALL(1,"3Kmd5"),
+        SHA256_ALL(2,"3Ksha256");
+
+        private Integer value;
+        private String desc;
+
+    }
+
     /**
      * 根据指定枚举获取
      * @param value
