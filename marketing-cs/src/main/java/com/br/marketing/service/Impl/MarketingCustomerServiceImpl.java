@@ -108,7 +108,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 customerListVo.setCheckType(marketingCustomerConfig == null ? new Integer("1") : marketingCustomerConfig.getCheckType());
                 customerListVos.add(customerListVo);
             }
-            return PageResultReturn.setPageResult(marketingCustomersList, page, pageSize);
+            return PageResultReturn.setPageResult(customerListVos, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
