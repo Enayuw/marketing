@@ -140,7 +140,7 @@
 
     <job:simple id="XieChengPreCollidingBlackListDeleteJob"
                 class="com.br.marketing.xc.job.XieChengPreCollidingBlackListDeleteJob"
-                cron="0 0 14 * * ?"
+                cron="0 */10 * ? * *"
                 description="携程撞库前黑名单剔除"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
