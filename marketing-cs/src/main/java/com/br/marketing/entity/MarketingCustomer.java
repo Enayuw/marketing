@@ -218,8 +218,15 @@ public class MarketingCustomer {
      */
     private String mealJson;
 
+    /**
+     * 0 内部用户,1 银行,2 非银行,3 催收用户,4 保险用户,5 其他
+     */
     private String applyLoanType;
 
+    /**
+     * 客户类型
+     */
+    private String apiType;
 
     public String getApplyLoanType() {
         return applyLoanType;
@@ -571,5 +578,14 @@ public class MarketingCustomer {
 
     public void setMealJson(String mealJson) {
         this.mealJson = mealJson == null ? null : mealJson.trim();
+    }
+
+
+    public String getApiType() {
+        return apiType;
+    }
+
+    public void setApiType(String apiType) {
+        this.apiType = apiType == null ? null : apiType.trim();
     }
 }

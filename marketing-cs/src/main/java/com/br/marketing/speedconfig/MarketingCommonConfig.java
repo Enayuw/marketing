@@ -716,6 +716,11 @@ public class MarketingCommonConfig {
     private HashMap<String, String> apiCodeMatch;
 
     /**
+     * 转化数据推送决策TargetApiCode {(sourceapicode,targetapicode)}
+     */
+    private HashMap<String, String> targetApiCodeMatch;
+
+    /**
      * 你我贷有效期
      */
     private String youMeDValidityDayStr;
@@ -1006,7 +1011,7 @@ public class MarketingCommonConfig {
     /**
      * 推送dass意向登记判断配置{"labelNm":["A","B"]}
      */
-    private HashMap<String,List<String>>  gradeOfcallToDass;
+    private HashMap<String,List<String>>    gradeOfcallToDass;
 
     /**
      * 携程vt配置信息{"adVt":{"appId":"bairong002","source":"BaiRong_CPS_C01","iv":"3b2dac323465b024","aesKey":"f3df6f62f0527bf0","singKey":"95cc01ec07387a44"}}
@@ -1472,7 +1477,7 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> shuHeUserTypeAndApiCodeMappingMap = new HashMap<>();
 
     /**
-    * 携程撞库异常量级钉钉通知accessToken
+     * 携程撞库异常量级钉钉通知accessToken
      */
     private String xieChengGroupAccessToken;
 
@@ -1912,6 +1917,12 @@ public class MarketingCommonConfig {
     private List<String> wubaCollidingHighValueFiles;
 
     /**
+     * 58撞库status=-2文件id集合，J:非金融周期，Q:金融周期，K:非周期，true:开启撞库，false:关闭撞库 e.g.{"非周期":{"文件id":是否开启撞库}}
+     * {"J":{"123":true},"Q":{"456":true},"K":{"789":true}}
+     */
+    private HashMap<String, JSONObject> wubaCollidingReavedFileIds;
+
+    /**
      * 58撞库每日最大量级限制
      */
     private Integer wubaCollidingDataMaxCountLimit;
@@ -2060,7 +2071,7 @@ public class MarketingCommonConfig {
     private List<String> YiShiTransferApiCodes;
 
     /**
-         * 医时转化数据提取执行时间
+     * 医时转化数据提取执行时间
      */
     private String YiShiTransferFileExecuteTime;
 
@@ -2088,9 +2099,11 @@ public class MarketingCommonConfig {
     private List<String> pushAlarmApiCode;
     /**
      *  * 2024-08-13 15:42
-     * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     * 榕树上传数据清洗线程池配置
+     * {"poolSize":"25,50","fileHeader":"HEADER1,HEADER2","regex":"\t"}
+     * eg：[25,50],25为核心线程数，50为最大线程数,核心线程数为0时程序停止
      */
-    private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
+    private Map<String,String> rongShuCleanUploadConfig = new HashMap<>();
 
     /**
      * 奇富360数据提取custNum对应上传字段
@@ -2239,6 +2252,60 @@ public class MarketingCommonConfig {
      * 微聚清洗字段映射配置
      */
     private JSONObject weiJuCleanFieldMappingConfig;
+
+    /**
+     * #自动刷新任务配置：apiCode \ 跑分配置规则编号 \ 推送决策规则编号
+     */
+    private Map<String, JSONObject> autoRefreshConfig;
+
+    /**
+     * 数禾促复借每日自动化匹配数据相关配置
+     */
+    private String shuHeCuFuJieMatchDataConfig;
+
+    /**
+     * 国美清洗字段映射配置
+     */
+    private JSONObject guoMeiCleanFieldMappingConfig;
+
+    /**
+     * 奇富AI上传数据apiCode
+     */
+    private String qiFuAIUploadDataApiCode;
+
+    /**
+     * 奇富AI上传数据参数配置
+     */
+    private JSONObject qiFuAIServerConfig;
+
+    /**
+     * 国美用户数据回传配置
+     * eg:{"mock":"true","poolSize":"20"}
+     */
+    private Map<String, Object> guoMeiDataCallbackConfig=new HashMap<>();
+
+    /**
+     * 2023-10-28 10:35
+     * 客户定制化接口自定义配置apiCode
+     * eg:{"B_GUME":["3710076", "7492805"]}
+     */
+    private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
+
+    /**
+     * 360ai清洗配置
+     * {"tCid":"_original","cleanApiCode":"3700226,7491635","dataTime":"-1/指定日期","pageSize":10,"threadNum":10,"isPause":false}
+     */
+    private JSONObject qifuAiCleanConfig;
+
+    /**
+     * 营销推决策数据打标es使用标志
+     */
+    private Boolean pushPolicyMarkWithEsFlag;
+
+    /**
+     * 360ai的strategyCode清洗配置
+     */
+    private Boolean qifuAiCleanStrategyCodeFlag;
 
 }
 

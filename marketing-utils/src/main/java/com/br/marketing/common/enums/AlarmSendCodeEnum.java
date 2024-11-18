@@ -35,8 +35,8 @@ public enum AlarmSendCodeEnum {
     EXCEPTION_VALIDITY_PERIOD("62005", "有效期规则提示"),
     //pulsar消费requestId冲突
     REQUESTID_CONFLICT("62006", "requestIdConflict"),
-    // 接口字段新增检查,阶梯推送，一般
-    EXCEPTION_NEW_FIELD_CHECK("62006", "接口字段新增检查"),
+    // 接口字段新增检查,立即推送，一般
+    EXCEPTION_NEW_FIELD_CHECK("62011", "接口字段新增检查"),
     // 一般通知,阶梯推送，一般
     EXCEPTION_USUAL_NOTICE("62007", "通知"),
     //众安通话明细回调
@@ -206,6 +206,8 @@ public enum AlarmSendCodeEnum {
     GUOMEI_SERVICEERROR("6026001", "国美业务异常"),
     //国美接口调用失败,阶梯推送
     GUOMEI_INTERFACEERROR("6026002", "国美接口调用失败"),
+    //国美黑名单自动化过滤未查询到手机号,阶梯推送
+    GUOMEI_PHONENOTFUND("6026003", "国美黑名单过滤未查询到手机号"),
 
     //中原业务异常,立即推送
     ZHONGYUAN_SERVICEERROR("6027001", "中原业务异常"),

@@ -4,8 +4,8 @@ datasource:
     defaultSource: shardingmarketing
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
-      username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
@@ -27,8 +27,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
-      username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 5 # 最小连接池数量
       maxActive: 200 # 最大连接池数量
@@ -53,8 +53,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
-      username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -262,6 +262,11 @@ api:
     partnerID: JSKJOGFXT05
     secret: tKkr6BqgnGHPij3E3zzJEiyhXUi2T6Xt
     aesKey: 91d23007684c45f5a750fa97d4594821
+  guoMei: # 国美
+    baseUrl: "https://united-umg-t1.gomefinance.com.cn"
+    pushDataCallbackUrl: ${api.guoMei.baseUrl}/umg/api/v1/agencyOperation/pushDataCallback # 用户数据回传接口
+    pushResultCallbackUrl: ${api.guoMei.baseUrl}/umg/api/v1/agencyOperation/pushResultCallback # 营销结果数据回传接口
+    institutionCode: "bairong"
     isProxy: true
 spring:
   rabbitmq:

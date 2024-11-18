@@ -24,20 +24,6 @@
                    nested-port="${NESTED_PORT}"
                    nested-data-dir="${NESTED_DATA_DIR}"/>
 
-<!--    <job:simple id="SftpToDbByCommonJob"-->
-<!--                class="com.br.marketing.check.job.SftpToDbByCommonJob"-->
-<!--                cron="0 0 18 29 9 ? 2050-2050"-->
-<!--                description="sftp文件数据入库"-->
-<!--                registry-center-ref="regCenter"-->
-<!--                sharding-total-count="1"-->
-<!--                sharding-item-parameters="0=A"-->
-<!--                monitor-execution="true"-->
-<!--                failover="false"-->
-<!--                misfire="false"-->
-<!--                disabled="true"-->
-<!--                overwrite="true"-->
-<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-<!--    />-->
 <!--    <job:simple id="PushHaierJob"-->
 <!--                class="com.br.marketing.check.job.PushHaierJob"-->
 <!--                cron="0 0 18 29 9 ? 2050-2050"-->
@@ -616,20 +602,6 @@
 <!--                overwrite="true"-->
 <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
 <!--    />-->
-<!--    <job:simple id="TongChengUndoListPushToCustomerJob"-->
-<!--                class="com.br.marketing.check.job.tongcheng.TongChengUndoListPushToCustomerJob"-->
-<!--                cron="0 0 18 29 9 ? 2050-2050"-->
-<!--                description="同程不运营名单推送客户JOB"-->
-<!--                registry-center-ref="regCenter"-->
-<!--                sharding-total-count="1"-->
-<!--                sharding-item-parameters="0=A"-->
-<!--                monitor-execution="true"-->
-<!--                failover="false"-->
-<!--                misfire="false"-->
-<!--                disabled="true"-->
-<!--                overwrite="true"-->
-<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-<!--    />-->
 <!--    <job:simple id="HaierCollidingDataJob"-->
 <!--                class="com.br.marketing.check.job.HaierCollidingDataJob"-->
 <!--                cron="0 0 18 29 9 ? 2050-2050"-->
@@ -651,36 +623,6 @@
 <!--                registry-center-ref="regCenter"-->
 <!--                sharding-total-count="1"-->
 <!--                sharding-item-parameters="0=A"-->
-<!--                monitor-execution="true"-->
-<!--                failover="false"-->
-<!--                misfire="false"-->
-<!--                disabled="true"-->
-<!--                overwrite="true"-->
-<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-<!--    />-->
-
-<!--    <job:simple id="ToPolicyByRuleJob"-->
-<!--                class="com.br.marketing.check.job.ruletopolicy.ToPolicyByRuleJob"-->
-<!--                cron="0 0 18 29 9 ? 2050-2050"-->
-<!--                description="规则中心推送决策任务"-->
-<!--                registry-center-ref="regCenter"-->
-<!--                sharding-total-count="4"-->
-<!--                sharding-item-parameters="0=A,1=B,2=C,3=D"-->
-<!--                monitor-execution="true"-->
-<!--                failover="false"-->
-<!--                misfire="false"-->
-<!--                disabled="true"-->
-<!--                overwrite="true"-->
-<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
-<!--    />-->
-
-<!--    <job:simple id="CustomerPushStatusQueryJob"-->
-<!--                class="com.br.marketing.check.job.ruletopolicy.CustomerPushStatusQueryJob"-->
-<!--                cron="0 0 18 29 9 ? 2050-2050"-->
-<!--                description="规则中心推送决策结果查询"-->
-<!--                registry-center-ref="regCenter"-->
-<!--                sharding-total-count="4"-->
-<!--                sharding-item-parameters="0=A,1=B,2=C,3=D"-->
 <!--                monitor-execution="true"-->
 <!--                failover="false"-->
 <!--                misfire="false"-->
@@ -787,10 +729,24 @@
 <!--                overwrite="true"-->
 <!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
 <!--    />-->
-    <job:simple id="SuShangPushCallRecordJob"
-                class="com.br.marketing.check.job.sushang.SuShangPushCallRecordJob"
+<!--    <job:simple id="SuShangPushCallRecordJob"-->
+<!--                class="com.br.marketing.check.job.sushang.SuShangPushCallRecordJob"-->
+<!--                cron="0 0 18 29 9 ? 2050-2050"-->
+<!--                description="苏商推送通话明细任务"-->
+<!--                registry-center-ref="regCenter"-->
+<!--                sharding-total-count="1"-->
+<!--                sharding-item-parameters="0=A"-->
+<!--                monitor-execution="true"-->
+<!--                failover="false"-->
+<!--                misfire="false"-->
+<!--                disabled="true"-->
+<!--                overwrite="true"-->
+<!--                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"-->
+<!--    />-->
+    <job:simple id="ShuHeCuFuJieMatchDataJob"
+                class="com.br.marketing.check.job.ShuHeCuFuJieMatchDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
-                description="苏商推送通话明细任务"
+                description="数禾促复借每日自动化匹配数据作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
                 sharding-item-parameters="0=A"
@@ -799,6 +755,23 @@
                 misfire="false"
                 disabled="true"
                 overwrite="true"
+                job-parameter="2024-10-22#7410950#7410950_20241017000000_6730#true"
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
+
+    <job:simple id="QiFuAiCleanJob"
+                class="com.br.marketing.check.job.qifu.QiFuAiCleanJob"
+                cron="0 0 18 29 9 ? 2050-2050"
+                description="奇富ai清洗"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-parameter=""
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 </beans>

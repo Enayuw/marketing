@@ -173,6 +173,20 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
     }
 
     /**
+     * 入库异常默认成功响应
+     *
+     * @return {@link CustomerResponseDTO }
+     * @author senyang.zheng
+     * @date 2024/10/30
+     */
+    @Override
+    public CustomerResponseDTO defaultSuccessResponse() {
+        WeiJuUploadResponseDTO weiJuUploadResponseDTO = new WeiJuUploadResponseDTO();
+        weiJuUploadResponseDTO.success();
+        return new CustomerResponseDTO(weiJuUploadResponseDTO, CustomerResponseDTO.StatusEnum.INVALID, weiJuUploadResponseDTO.getCode());
+    }
+
+    /**
      * 数据下发
      *
      * @param tCid     tCid
@@ -189,7 +203,7 @@ public class WeiJuCustomizeUploadDataServiceImpl implements WeiJuCustomizeUpload
             rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_WEIJU_DATA_CLEAN, json.toJSONString());
             log.warn("微聚定制数据下发 tCid:{},sourceId:{}", tCid, sourceId);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.WEIJU_SERVICEERROR.getCode(), e.getMessage()
                     , "推送微聚定制数据下发消息异常！"), e);
         }
     }
