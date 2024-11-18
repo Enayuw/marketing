@@ -75,8 +75,8 @@
         from b_call_record
         where call_status='12'
         and case_num in
-        <foreach collection="custNumMap.entrySet()" open="(" close=")" index="key">
-            ${key}
+        <foreach collection="custNumMap.keySet()" item="key" open="(" separator="," close=")">
+            #{key}
         </foreach>
         and <![CDATA[ call_start_time >= '${bizDate} 00:00:00' ]]>
         and <![CDATA[ call_start_time <= '${bizDate} 23:59:59' ]]>
