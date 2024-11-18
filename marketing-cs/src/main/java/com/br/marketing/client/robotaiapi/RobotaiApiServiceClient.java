@@ -5,6 +5,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.counter.BrCounter;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.net.ApiCaller;
 import com.br.marketing.client.net.ApiCallerUtil;
@@ -13,6 +14,7 @@ import com.br.marketing.client.robotaiapi.output.*;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
@@ -73,11 +75,11 @@ public class RobotaiApiServiceClient {
                 BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
                         dto.getJsonData().getConversionData().size());
             } catch (Exception ex) {
-                log.error("推送客服转化接口统计异常" + ex.getMessage(), ex);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服转化接口统计异常！"), ex);
             }
             return result;
         }catch (Exception ex){
-            log.warn(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             TransferRobotOutboundVO<UnsuccessfulData> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
@@ -101,13 +103,13 @@ public class RobotaiApiServiceClient {
                 BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
                         dto.getJsonData().getConversionData().size());
             } catch (Exception ex) {
-                log.error("推送客服转化接口统计异常" + ex.getMessage(), ex);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服转化接口统计异常！"), ex);
             }
             TransferRobotOutboundVO<TransferRobotDataVO> result = JSON.parseObject(transfer.getResult()
                     ,new TypeReference<TransferRobotOutboundVO<TransferRobotDataVO>>(){}.getType());
             return result;
         }catch (Exception ex){
-            log.warn(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             TransferRobotOutboundVO<TransferRobotDataVO> result = new TransferRobotOutboundVO();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
@@ -143,7 +145,7 @@ public class RobotaiApiServiceClient {
                 try {
                     interfaceLogMapper.insertSelective(interfaceLog);
                 } catch (Exception ex) {
-                    log.error(String.format("调用转化接口插入接口日志报错:%s", ex.getMessage()), ex);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "调用转化接口插入接口日志异常！"), ex);
                 }
             });
             try {
@@ -151,11 +153,11 @@ public class RobotaiApiServiceClient {
                 BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_BLACK_METRIC_NAME, dto.getApiCode(), "blackData-api",
                         parentDTO.getBlackDetailDTOList().size());
             } catch (Exception ex) {
-                log.error("推送客服黑名单接口统计异常" + ex.getMessage(), ex);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服黑名单接口统计异常！"), ex);
             }
             return result;
         }catch (Exception ex){
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             interfaceLog.setResult(ex.getMessage().length()>450? ex.getMessage().substring(0,450) : ex.getMessage());
             Long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
@@ -163,7 +165,7 @@ public class RobotaiApiServiceClient {
                 try {
                     interfaceLogMapper.insertSelective(interfaceLog);
                 } catch (Exception e) {
-                    log.error(String.format("调用转化接口插入接口日志报错:%s", e.getMessage()), e);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "调用转化接口插入接口日志异常！"), ex);
                 }
             });
             ReqBlackPhoneVO result = new ReqBlackPhoneVO();
@@ -217,7 +219,7 @@ public class RobotaiApiServiceClient {
             }
             return result.setCode(ResultCode.FAIL.getValue());
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
             return result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }

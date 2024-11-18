@@ -3,11 +3,13 @@ package com.br.marketing.innerapi.controller;
 import com.alibaba.fastjson.JSON;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.dassservice.DassServiceClient;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataAdapDTO;
 import com.br.marketing.client.dassservice.input.transfer.DassTransferDataDTO;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.customer.CallRecordDTO;
 import com.br.marketing.dto.customer.SmsRecordDTO;
 import com.br.marketing.service.ZnkfPushService;
@@ -90,7 +92,7 @@ public class ZnkfPushController {
             log.warn("调用电销返回result={}", JSON.toJSONString(result));
             return new ApiResult().success();
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), ex.getMessage()), ex);
             throw ex;
         }
     }
