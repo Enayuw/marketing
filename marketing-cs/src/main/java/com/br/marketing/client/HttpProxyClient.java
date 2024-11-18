@@ -347,7 +347,7 @@ public class HttpProxyClient {
                 log.error("url={} Log加密param={}", url, BrCipherMaker.getInstance().encode(param.toString()), e);
             } else if (url.contains("https://finance-gateway-pop.diandian.com.cn/fcpGateway")) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_INTERFACEERROR.getCode(),
-                        "url=" + url + " Log加密param=" + BrCipherMaker.getInstance().encode(param.toString())), e);
+                        "url= " + url + " param= " + param), e);
             } else {
                 log.error("url={} param={}", url, param, e);
             }
