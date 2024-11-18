@@ -95,6 +95,7 @@ public class CustomerTagsProcessServiceImpl {
     private CustomerTagsVO getTagsOfRedis(String apiCode) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {
+            //todo 上线前删除
             if(marketingCommonConfig.getMockTagsRedisError()){
                 throw new RuntimeException("模拟redis读取异常");
             }
@@ -114,6 +115,7 @@ public class CustomerTagsProcessServiceImpl {
     private void writeTagsOfRedis(String apiCode, CustomerTagsVO customerTagsVO) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {
+            //todo 上线前删除
             if(marketingCommonConfig.getMockTagsRedisError()){
                 throw new RuntimeException("模拟redis写入异常");
             }
@@ -127,6 +129,7 @@ public class CustomerTagsProcessServiceImpl {
     public void delTagsOfRedis(String apiCode) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {
+            //todo 上线前删除
             if(marketingCommonConfig.getMockTagsRedisError()){
                 throw new RuntimeException("模拟redis删除异常");
             }
