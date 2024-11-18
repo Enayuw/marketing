@@ -21,7 +21,7 @@ import org.springframework.util.DigestUtils;
 
 
 @Service
-public class ToPolicy implements AssembleData<PushMarketingUserDetailByRuleDTO> {
+public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
@@ -63,7 +63,7 @@ public class ToPolicy implements AssembleData<PushMarketingUserDetailByRuleDTO> 
         if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
         }
-        buildJson(jsonObject, syncUser);
+        buildJson(jsonObject, syncUser, customerTagsVO.getPushJc3keyType());
         pushData.setVariables(jsonObject);
         return pushData;
     }
@@ -100,7 +100,7 @@ public class ToPolicy implements AssembleData<PushMarketingUserDetailByRuleDTO> 
         return null;
     }
 
-    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser,Integer pushJc3keyType) {
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
         jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));

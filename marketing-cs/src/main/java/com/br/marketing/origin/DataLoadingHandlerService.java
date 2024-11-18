@@ -229,8 +229,8 @@ public class DataLoadingHandlerService {
     }
 
     public void commonRuleContextAction(Integer source, List<AssembleData> assembleDataList, ProcessHandlerContext context) {
-        if(TransferSource.ORIGIN_DATA_UPLOAD_PROCESS.getCode().equals(source)){
-            if (assembleDataList.stream().anyMatch(t-> CommonRuleLabelEnum.TO_POLICY_COMMON.equals(t.label()))) {
+        if(TransferSource.INIT_DATA_SET_PROCESS.getCode().equals(source)){
+            if (assembleDataList.stream().anyMatch(t-> CommonRuleLabelEnum.TO_POLICY_COMMON.getCode().equals(t.label()))) {
                 CustomerTagsVO tags = customerTagsProcessService.getTags(context.getApiCode());
                 context.setCustomerTagsVO(tags);
             }
