@@ -51,14 +51,13 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
     public void process() {
         marketingCommonConfig.getXieChengCollidingDataProcessApiCodes().forEach((String apiCode) ->
         {
-            //1.创建线程池
-            Integer threadPoolSize = marketingCommonConfig.getXieChengPreCollidingBlackListDeleteThread();
-            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
-            //2.当天所有动态包剔除任务是否全部完成
+            //1.当天所有动态包剔除任务是否全部完成
             if (!xieChengCollidingDataProcessService.queryDeletingTaskCount(apiCode, XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE)) {
-                threadPoolShutDown(threadPool);
                 return;
             }
+            //2.创建线程池
+            Integer threadPoolSize = marketingCommonConfig.getXieChengPreCollidingBlackListDeleteThread();
+            ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadPoolSize, threadPoolSize);
             //3.剔除流程
             deleteProcess(apiCode, XcProcessTaskEnum.PROCESS_BALCKLIST_DELETE, threadPool);
             threadPoolShutDown(threadPool);
