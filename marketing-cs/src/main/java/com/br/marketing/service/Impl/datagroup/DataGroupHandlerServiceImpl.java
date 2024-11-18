@@ -386,10 +386,11 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         groupTask.forEach((Map<String, Object> taskMap) -> {
             JSONObject jsonRule = (JSONObject) taskMap.get("rule");
             String userType = (String) taskMap.get("userType");
-            String extendVaule = ((String) taskMap.get(rule.getExtendField())).replace("\"", "");
+            String extendVaule = ((String) taskMap.get(rule.getExtendField()));
             StringBuilder extend = new StringBuilder();
             if (StringUtils.isNotEmpty(rule.getExtendField())) {
-                extend.append("reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule).append("'");
+                extend.append("reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule.replace("\"", "")
+                ).append("'");
             }
             Long indexId = null;
             Set<String> keySet = jsonRule.keySet();
@@ -525,7 +526,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         StringBuilder whereStr = new StringBuilder();
         StringBuilder groupStr = new StringBuilder();
         field.append("select count(1) as num");
-        whereStr.append(" from b_marketing_sync_").append(reportList.get(0).getApiCode()).append(" where status =1 ");
+        whereStr.append(" from b_marketing_sync_").append(reportList.get(0).getApiCode()).append(" where status =1 and is_repeat in (1, 2) ");
         if (rule.getGroupRange().equals("1")) {
             field.append(",user_type as userType");
             groupStr.append(" group by  user_type");
@@ -551,16 +552,18 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         JSONObject ruleJson = rule.getGroupNum();
         groupNumList.forEach(map -> {
             int count = Integer.valueOf(map.get("num").toString());
+            JSONObject ruleNew = new JSONObject();
             if (rule.getGroupType().equals("0")) {
                 int groupNum = ruleJson.values().stream().filter(num -> ((!num.equals("remain")))).map(obj -> (Integer) obj)
                         .collect(Collectors.toList()).stream().mapToInt(Integer::intValue).sum();
-                //int groupNum = ListNum.stream().mapToInt(Integer::intValue).sum();
                 ruleJson.forEach((k, v) -> {
                     if (v.equals("remain")) {
-                        ruleJson.put(k, count - groupNum);
+                        ruleNew.put(k, count - groupNum);
+                    }else {
+                        ruleNew.put(k, v);
                     }
                 });
-                map.put("rule", ruleJson);
+                map.put("rule", ruleNew);
             } else {
                 //百分比转化处理
                 Iterator<Map.Entry<String, Object>> iterator = ruleJson.entrySet().iterator();
@@ -571,17 +574,17 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     Map.Entry<String, Object> entry = iterator.next();
                     if (currentIndex == lastIndex) {
                         // 当前元素是最后一个元素
-                        entry.setValue(count - sum);
+                        ruleNew.put(entry.getKey(),count - sum);
                     } else {
                         // 当前元素不是最后一个元素
                         double num = Double.parseDouble(entry.getValue().toString().replace("%", "")) / 100 * count;
                         int intNum = (int) Math.round(num);
-                        entry.setValue(intNum);
+                        ruleNew.put(entry.getKey(),intNum);
                         sum += intNum;
                     }
                     currentIndex++;
                 }
-                map.put("rule", ruleJson);
+                map.put("rule", ruleNew);
             }
         });
 

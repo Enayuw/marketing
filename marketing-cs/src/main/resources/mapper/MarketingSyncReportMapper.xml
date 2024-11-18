@@ -285,6 +285,7 @@
           </foreach>
         </if>
       </if>
+      and status =1 and is_repeat in (1, 2)
       <if test="indexId != null and indexId!=''">
         and id > #{indexId}
       </if>
@@ -310,7 +311,7 @@
           (applet_date = #{item.appletDate} and user_type = #{item.userType})
         </foreach>
       </if>
-      and json_valid(reserve_field1)=1
+      and json_valid(reserve_field1)=1 and status =1 and is_repeat in (1, 2)
       <if test="extendField != null and extendField!=''">
         and ${extendField} is not null
       </if>
@@ -327,7 +328,7 @@
           (applet_date = #{item.appletDate} and user_type = #{item.userType})
         </foreach>
       </if>
-      and status =1
+      and status =1 and is_repeat in (1, 2)
       <if test="indexId != null and indexId!=''">
         and id > #{indexId}
       </if>

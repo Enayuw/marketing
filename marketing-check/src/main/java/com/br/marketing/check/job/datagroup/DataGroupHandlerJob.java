@@ -80,7 +80,8 @@ public class DataGroupHandlerJob extends AbstractSimpleElasticJob {
                 //处理与页面编辑任务时的并发操作
                 redisChgService.lock(redisKey, s);
                 DataGroupTaskExample dataGroupTaskExample = new DataGroupTaskExample();
-                dataGroupTaskExample.createCriteria().andConfigIdEqualTo(configId).andIsDelEqualTo(1);
+                dataGroupTaskExample.createCriteria().andConfigIdEqualTo(configId).andIsDelEqualTo(1).andStatusEqualTo(0);
+                dataGroupTaskExample.setOrderByClause("create_time asc");
                 List<DataGroupTask> groupTaskList = dataGroupTaskMapper.selectByExample(dataGroupTaskExample);
                 //剔除掉 非 待开始的状态
                 List<DataGroupTask> preTask = groupTaskList.stream().filter(task -> task.getStatus() == 0).collect(Collectors.toList());
