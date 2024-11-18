@@ -571,13 +571,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } else if ("false".equals(collidingFilterDTO.getResult())) {
             String info = collidingFilterDTO.getInfo();
-            if (StringUtils.isNotEmpty(info) && info.equalsIgnoreCase("NULL")) {
-                //false动态包剔除
-                querySql = dynaPackageDeleteCondition(jsonObject, batchNumberList,
-                        marketingCommonConfig.getXcDynaFalsePackageIds(), true);
-            } else {
+            if (Objects.isNull(info)) {
                 //false包补充
                 querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
+            } else {
+                if (info.equals("") || info.equalsIgnoreCase("NULL")) {
+                    //false动态包剔除
+                    querySql = dynaPackageDeleteCondition(jsonObject, batchNumberList,
+                            marketingCommonConfig.getXcDynaFalsePackageIds(), true);
+                }
             }
         }
         log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
@@ -969,10 +971,15 @@ public class PushRuleServiceImpl implements PushRuleService {
             if ("true".equals(result)) {
                 deleteSql = cycleDataDeleteQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO.getCleanTime());
             }
-            if ("false".equals(result) && StringUtils.isNotEmpty(info)
-                    && info.equalsIgnoreCase("NULL")) {
-                deleteSql = dynaPackageDeleteCondition(jsonObject, dto.getBatchNumberList(),
-                        marketingCommonConfig.getXcDynaFalsePackageIds(), false);
+            if ("false".equals(result)) {
+                if (Objects.isNull(info)) {
+                    return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("result=false时，info不能为空！");
+                } else {
+                    if (info.equals("") || info.equalsIgnoreCase("NULL")) {
+                        deleteSql = dynaPackageDeleteCondition(jsonObject, dto.getBatchNumberList(),
+                                marketingCommonConfig.getXcDynaFalsePackageIds(), false);
+                    }
+                }
             }
         }
         // doris查询
