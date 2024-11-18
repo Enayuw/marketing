@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.entity.CustomizeUploadData;
+import com.br.marketing.entity.XieChengBlackList;
 import com.br.marketing.entity.XieChengCollidingBlackListCount;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
@@ -92,7 +93,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     void batchUpdateCycPublicBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);
 
-    void batchUpdateCycNoPublicBlackListData(@Param("list") List<String> list, @Param("extend") String extend);
+    void batchUpdateCycNoPublicBlackListData(@Param("list") List<XieChengBlackList> list);
 
     /**
      * 更新is_delete：is_delete = 1,update_time = now()

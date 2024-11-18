@@ -163,12 +163,12 @@
         update
         b_xiecheng_colliding_data_loop_cycle
         set
-        extend = #{extend},
+        extend = CONCAT(CURDATE(),#{item.labelName}),
         is_delete = 1,
         update_time = now()
         where cell_sha256_code_list in
         <foreach collection="list" item="item" open="(" separator="," close=")">
-            #{item}
+            #{item.cellSha256}
         </foreach>
         and is_delete = 0
     </update>

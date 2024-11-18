@@ -3,12 +3,8 @@ package com.br.marketing.mapper;
 import java.util.List;
 import java.util.Map;
 
-import com.br.marketing.entity.XieChengCollidingBlackListCount;
-import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.XieChengCollidingDataRobPriority;
+import com.br.marketing.entity.*;
 import org.apache.ibatis.annotations.Param;
-
-import com.br.marketing.entity.XieChengCollidingDataRob;
 
 public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRobMapperBase {
 
@@ -29,7 +25,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
      */
     int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids, @Param("rollbackFlag") String rollbackFlag);
 
-    void batchUpdateBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);
+    void batchUpdateRobBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);
 
     /**
      * 非周期表数据批量保存
@@ -83,7 +79,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     List<Long> selectRobPublicBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize,
                                                  @Param("type") Integer type);
 
-    void batchUpdateRobNoPublicBlackListData(@Param("list") List<String> list, @Param("extend") String extend);
+    void batchUpdateRobNoPublicBlackListData(@Param("list") List<XieChengBlackList> list);
 
     int searchRobDeleteCountByExtend(@Param("extend") String extend);
 

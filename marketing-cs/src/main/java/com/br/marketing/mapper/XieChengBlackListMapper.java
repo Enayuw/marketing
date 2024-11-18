@@ -31,8 +31,7 @@ public interface XieChengBlackListMapper {
 
     List<XieChengBlackList> selectByPage(@Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
-    List<XieChengBlackList> selectCellsByPage(@Param("minId") Long minId, @Param("pageSize") Integer pageSize,
-                                   @Param("type") Integer type);
+    List<XieChengBlackList> selectCellsByPage(@Param("minId") Long minId, @Param("pageSize") Integer pageSize);
 
     List<String> selectByBlackListIdsFromScoreFile(@Param("querySql") String querySql);
 

@@ -241,10 +241,9 @@
 
     <select id="selectCellsByPage" parameterType="java.lang.String" resultType="com.br.marketing.entity.XieChengBlackList">
         select
-        id,
-        cell_sha256
+        *
         from b_xiecheng_colliding_data_black_list
-        where status = 1  and label_type = #{type}
+        where status = 1  and label_type in(1,2)
         <if test="minId != null and minId>0">
             and id > #{minId}
         </if>
