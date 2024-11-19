@@ -250,7 +250,7 @@
         order by id limit #{pageSize};
     </select>
 
-    <select id="selectByBlackListIdsFromScoreFile" parameterType="java.lang.String" resultType="java.lang.String">
+    <select id="selectByBlackListIdsFromScoreFiletikv_" parameterType="java.lang.String" resultType="java.lang.String">
         ${querySql}
     </select>
 </mapper>

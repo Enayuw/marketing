@@ -142,7 +142,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                                     .concat(" union all ");
                         }
                     }
-                    List<String> scoreCells = blackListMapper.selectByBlackListIdsFromScoreFile(querySql);
+                    List<String> scoreCells = blackListMapper.selectByBlackListIdsFromScoreFiletikv_(querySql);
                     if (!CollectionUtils.isEmpty(scoreCells)) {
                         Map<String, XieChengBlackList> backMap =
                                 blackListCells.stream().collect(Collectors.toMap(XieChengBlackList::getCellSha256, Function.identity(),
