@@ -455,6 +455,9 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         List<CustomerRule> customerRules = customerRuleMapper.selectByExample(crExample);
         customerRules.forEach((CustomerRule customerRule) -> {
             ScoreRuleConfig config = scoreRuleConfigMapper.selectByPrimaryKey(customerRule.getRuleId());
+            if (Objects.isNull(config)) {
+                return;
+            }
             //更新规则
             BaseHeadConfigVO baseHeadConfigVO = JSON.parseObject(config.getBaseInfo(), new TypeReference<BaseHeadConfigVO>() {
             }.getType());

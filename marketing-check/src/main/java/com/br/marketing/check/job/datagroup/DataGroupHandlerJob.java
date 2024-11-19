@@ -17,10 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -64,6 +61,7 @@ public class DataGroupHandlerJob extends AbstractSimpleElasticJob {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "分组任务执行过程异常,请关注"), e);
                     dataGroupTask.setStatus(3);
                 }
+                dataGroupTask.setUpdateTime(new Date());
                 dataGroupTaskMapper.updateByPrimaryKeySelective(dataGroupTask);
             }
         });
