@@ -30,5 +30,5 @@ public interface XiechengCollidingTaskBatchMapper {
 
     int updateByPrimaryKey(XiechengCollidingTaskBatch record);
 
-    XiechengCollidingTaskBatchVo selectEarliestBatch(@Param("apiCode") String apiCode, @Param("nowDate") Date nowDate);
+    XiechengCollidingTaskBatchVo selectEarliestBatch(@Param("apiCode") String apiCode, @Param("nowDate") Date nowDate, @Param("type") Integer type);
 }
