@@ -2312,5 +2312,14 @@ public class MarketingCommonConfig {
      */
     private Boolean qifuAiCleanStrategyCodeFlag;
 
+    /**
+     * 携程动态补充包Id配置
+     */
+    private List<String> XcDynaFalsePackageIds;
+
+    private Integer xieChengBlackEncAndDesThread;
+
+    private Integer xieChengPreCollidingBlackListDeleteThread;
+
 }
 
