@@ -108,21 +108,23 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         Collections.sort(idList);
         List<DataGropRuleVO> gropRuleVOList = JSON.parseObject(dto.getGroupRules(), new TypeReference<List<DataGropRuleVO>>() {
         }.getType());
-        Map<String, List<DataGropRuleVO>> gropRuleMap = gropRuleVOList.stream().collect(Collectors.groupingBy(DataGropRuleVO::getGroupField));
+        DataGropRuleVO update = gropRuleVOList.get(0);
         String redisKey = RedisKeyConstant.DATA_GROUP_TASK_LOCK.concat(dto.getId().toString());
         String s = UUID.randomUUID().toString();
         try {
             //处理与定时任务执行时的并发操作
             redisChgService.lock(redisKey, s);
             DataGroupTaskExample dataGroupTaskExample = new DataGroupTaskExample();
-            dataGroupTaskExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andConfigIdEqualTo(dto.getId()).andOperTypeEqualTo(0);
+            dataGroupTaskExample.createCriteria().andApiCodeEqualTo(dto.getApiCode()).andConfigIdEqualTo(dto.getId()).andOperTypeEqualTo(0)
+                    .andGroupFiledEqualTo(update.getGroupField());
+            dataGroupTaskExample.setOrderByClause("create_time desc limit 1");
             List<DataGroupTask> groupTaskList = dataGroupTaskMapper.selectByExample(dataGroupTaskExample);
             List<DataGroupTask> runingTask = groupTaskList.stream().filter(task -> task.getStatus() != 0).collect(Collectors.toList());
             if (!CollectionUtils.isEmpty(runingTask)) {
                 return new ApiResult().fail("分组任务已开始执行，无法进行编辑");
             }
             groupTaskList.forEach((DataGroupTask groupTask) -> {
-                groupTask.setGroupRule(JSON.toJSONString(gropRuleMap.get(groupTask.getGroupFiled()).get(0)));
+                groupTask.setGroupRule(JSON.toJSONString(update));
                 dataGroupTaskMapper.updateByPrimaryKeySelective(groupTask);
             });
         } catch (Exception e) {
@@ -132,7 +134,6 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         }
         //更新配置
         DataGroupConfig config = dataGroupConfigMapper.selectByPrimaryKey(dto.getId());
-        DataGropRuleVO update = gropRuleVOList.get(0);
         List<DataGropRuleVO> groupRule = JSON.parseObject(config.getGroupRules(), new TypeReference<List<DataGropRuleVO>>() {
         }.getType());
         groupRule.removeIf((DataGropRuleVO rule) -> rule.getGroupField().equals(update.getGroupField()));
