@@ -37,6 +37,8 @@ public class CheckCellServiceImpl implements IUploadCheckService {
             case "name":
                 content = StringUtils.isBlank(user.getName()) ? "" : user.getName();
                 break;
+            default:
+                return;
         }
         if (DecodeGrpcClient.isMd5(content)) {
             //cell md5

@@ -47,7 +47,7 @@ public class CustomerTagsValue {
                 return enumConstant;
             }
         }
-        return null; // 或抛出异常
+        return null;
     }
 
     /**

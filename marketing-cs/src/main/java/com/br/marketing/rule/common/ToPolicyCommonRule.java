@@ -43,10 +43,18 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
 
         if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
-            String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber")) ? jsonObject.getString("batchNumber") : appletDate + "_" + apiCode;
-            String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode")) ? jsonObject.getString("strategyCode") : "";
-            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode")) ? jsonObject.getString("strategyCode") : appletDate + "_" + apiCode;
-            String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName")) ? jsonObject.getString("strategyName") : "";
+            String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
+                    ? jsonObject.getString("batchNumber")
+                    : (appletDate + "_" + apiCode);
+            String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
+                    ? jsonObject.getString("strategyCode")
+                    : "";
+            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
+                    ? jsonObject.getString("strategyCode")
+                    : (appletDate + "_" + apiCode);
+            String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName"))
+                    ? jsonObject.getString("strategyName")
+                    : "";
             if (StringUtils.isNotEmpty(strategyCode)) {
                 pushData.setStrategyCode(strategyCode);
             } else {
