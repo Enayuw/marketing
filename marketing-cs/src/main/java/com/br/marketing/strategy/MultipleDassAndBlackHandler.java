@@ -2,6 +2,7 @@ package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
 import com.br.marketing.client.dassservice.input.DassImportDataDTO;
@@ -13,6 +14,7 @@ import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneDTO;
 import com.br.marketing.client.robotaiapi.input.ReqBlackPhoneParentDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.dto.MultipleDassAndCustomerBlackDTO;
 import com.br.marketing.entity.PhoneSaleExtendHaluo;
@@ -82,7 +84,8 @@ public class MultipleDassAndBlackHandler extends AbstractExternalInterfaceHandle
             parentDTO.setTransferInfoId(context.getTransferInfoId());
             Result<String> callBalckResult = methodRetryHandlerService.callCustomerBlack(parentDTO,0);
             if (!ResultCode.SUCCESS.getValue().equals(callBalckResult.getCode())) {
-                log.error(String.format("推送黑名单报错：%s", callBalckResult.getData()));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                        String.format("推送黑名单报错：%s", callBalckResult.getData())));
             }
             //endregion
         }
