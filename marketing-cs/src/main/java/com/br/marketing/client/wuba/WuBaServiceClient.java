@@ -8,6 +8,7 @@ import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
+import com.br.marketing.client.ZipFileClient;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.client.wuba.input.WuBaSubmitDTO;
 import com.br.marketing.common.commondto.Result;
@@ -24,7 +25,6 @@ import com.br.marketing.mock.custom.wuba.WuBaMockService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.webhook.dingding.msgtype.DingDingMarkdownMessage;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +37,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -78,6 +73,9 @@ public class WuBaServiceClient {
 
     @Autowired
     InterfaceLogMapper interfaceLogMapper;
+
+    @Resource
+    private ZipFileClient zipFileClient;
 
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result submitCredentialStuffingList(List<String> cells) {
@@ -207,6 +205,23 @@ public class WuBaServiceClient {
         } else {
             return new Result().setCode(ResultCode.FAIL.getValue()).setDate(JSON.toJSONString(resMap));
         }
+    }
+
+    public Result queryConversionZipResult(String collectDate, String targetPath) {
+        Result result = new Result().failure();
+        String queryConversionZipResultUrl = marketingCommonConfig.getWuBaCollidingUrlConfig().getString("queryConversionZipResultUrl");
+        queryConversionZipResultUrl = queryConversionZipResultUrl.replace("#{collectDate}", collectDate);
+        // 调用客户接口
+        try {
+            Result callResult = zipFileClient.downloadZipFile(queryConversionZipResultUrl, targetPath, true);
+            if(callResult == null || !callResult.isSuccess()){
+                return result.failure();
+            }
+        } catch (Exception e){
+            log.warn("queryConversionZipResult error", e);
+            return result.failure();
+        }
+        return result.success();
     }
 
     private HashMap<String, String> getWuBaServerQueryResult(String url, String batchNo) {
