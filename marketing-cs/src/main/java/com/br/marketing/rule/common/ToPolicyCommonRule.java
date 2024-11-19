@@ -49,8 +49,8 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
             String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
                     ? jsonObject.getString("strategyCode")
                     : "";
-            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
-                    ? jsonObject.getString("strategyCode")
+            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
+                    ? jsonObject.getString("batchName")
                     : (appletDate + "_" + apiCode);
             String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName"))
                     ? jsonObject.getString("strategyName")
