@@ -120,7 +120,6 @@ public class RuleRefreshConfigServiceImpl implements IRuleRefreshConfigService {
 
     private MarketingTaskVO queryMarketingTask(String apiCode, String ruleNameShort) {
 
-        MarketingTaskVO marketingTaskVO = new MarketingTaskVO();
         // 获取今天的日期
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         LocalDate today = LocalDate.now();
@@ -133,12 +132,11 @@ public class RuleRefreshConfigServiceImpl implements IRuleRefreshConfigService {
         Integer conditionType = ConditionTypeEnum.RUNNING.getValue();
         List<MarketingTaskVO> marketingTaskVOS = marketingTaskMapper.queryCompletStatus(apiCode,
                 createTimeStart, createTimeEnd, taskStatus, conditionType, ruleNameShort);
-        log.warn(TITLE + "查询当日跑分任务是否完成:{}", JSONObject.toJSONString(marketingTaskVOS));
         if(CollectionUtil.isEmpty(marketingTaskVOS)){
-            return marketingTaskVO;
+            log.warn(TITLE + "当日跑分任务未完成，apiCode:{}", apiCode);
+            return null;
         }
-        marketingTaskVO = marketingTaskVOS.get(0);
-        return marketingTaskVO;
+        return marketingTaskVOS.get(0);
     }
 
     private Boolean queryDecisionsTaskLog(String apiCode, PushDecisions pushDecisions) {

@@ -4,6 +4,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
+import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import java.util.List;
@@ -64,4 +65,14 @@ public interface ReportScoreRuleService {
      * @return
      */
     PageResultReturn getBiReportTaskList(BiReportTaskParam reportTaskParam);
+
+    /**
+     * @description 根据评分分布名称和跑分文件id筛选评分分布列表
+     * @param name
+     * @param ids
+     * @return List<ReportTaskVO>
+     * @author hedongshuo
+     * @date 2024/10/24 16:01
+     **/
+    List<ReportTaskVO> getReportTaskListForScore(String name, String ids);
 }

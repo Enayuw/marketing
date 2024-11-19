@@ -20,6 +20,9 @@ public class ConditionOfScoreVO {
     @ApiModelProperty(value = "条件前端文本")
     private String contentShow;
 
+    @ApiModelProperty(value = "评分分布条件json")
+    private String scoreContent;
+
     @ApiModelProperty(value = "模板编号")
     private String conditionNumber;
 
@@ -74,5 +77,13 @@ public class ConditionOfScoreVO {
 
     public void setSourceType(Integer sourceType) {
         this.sourceType = sourceType;
+    }
+
+    public String getScoreContent() {
+        return scoreContent;
+    }
+
+    public void setScoreContent(String scoreContent) {
+        this.scoreContent = scoreContent;
     }
 }

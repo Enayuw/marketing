@@ -1,9 +1,11 @@
 package com.br.marketing.strategy;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.DaasAndConversionData;
 import com.br.marketing.client.dassservice.input.userdata.RealTimeUserDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,7 @@ public class ArtificialRealTimeUserAndCustomerTransferSoleFacade extends Abstrac
                 artificialRealTimeUserDataSoleHandler.call(realTimeUserDataSoleDTOList, context);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), e.getMessage()), e);
         }
         if (conversionDataList.size() > 0) {
             customerTransferSoleHandler.call(conversionDataList, context);

@@ -154,6 +154,7 @@ public class MarketingApiService {
                     .setUrl(uploadUrl)
                     .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
                     .setRequestParam(dto)
+                    .setEncode(Boolean.TRUE)
                     .postTransferStr();
             if (Integer.valueOf(200).equals(res.getHttpCode())) {
                 JSONObject jsonObject = JSON.parseObject(res.getResult());

@@ -1,5 +1,7 @@
 package com.br.marketing.entity;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -93,6 +95,11 @@ public class CustomerInfoPushMain {
      * 查询条件前台展示
      */
     private String mRuleConditionShow;
+
+    /**
+     * 评分分布规则
+     */
+    private String mScoreCondition;
 
     /**
      * 百分比
@@ -353,5 +360,13 @@ public class CustomerInfoPushMain {
 
     public void setStrategyCode(String strategyCode) {
         this.strategyCode = strategyCode == null ? null : strategyCode.trim();
+    }
+
+    public String getmScoreCondition() {
+        return mScoreCondition;
+    }
+
+    public void setmScoreCondition(String mScoreCondition) {
+        this.mScoreCondition = mScoreCondition;
     }
 }

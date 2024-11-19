@@ -39,12 +39,16 @@ public class ToPolicyByRuleJob extends AbstractSimpleElasticJob {
             CustomerInfoPushMain pushTaskData= pushTask.getData();
             Result canPushTask = pushRuleService.isCanPushTask(pushTaskData.getId());
             if(ResultCode.SUCCESS.getValue().equals(canPushTask.getCode())){
+                log.warn("推送决策业务开始" + "start");
+                long start = System.currentTimeMillis();
                 if(pushTaskData.getFilterType().equals(0)) {
                     booleanResult = pushRuleService.consumerPushCustomer(pushTaskData.getId());
                 }else{
                     //携程撞库数据推决策
                     booleanResult = xieChengCollidingService.collidingDataPushPolicy(pushTaskData.getId());
                 }
+                long end = System.currentTimeMillis();
+                log.warn("推送决策业务结束" + "end, 耗时{}ms", end-start);
                 if(ResultCode.SUCCESS.getValue().equals(booleanResult.getCode())&&Boolean.TRUE.equals(booleanResult.getData())){
                     log.warn(pushTask.getData()+":推送决策成功");
                 }
