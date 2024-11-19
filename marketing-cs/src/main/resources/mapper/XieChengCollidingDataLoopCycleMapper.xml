@@ -159,17 +159,15 @@
         </foreach>
     </update>
 
-    <update id="batchUpdateCycNoPublicBlackListData">
+    <update id="batchUpdateCycNoPublicBlackListData" parameterType="com.br.marketing.entity.XieChengBlackList">
         update
         b_xiecheng_colliding_data_loop_cycle
         set
-        extend = CONCAT(CURDATE(),#{item.labelName}),
+        extend = CONCAT(CURDATE(),#{labelName}),
         is_delete = 1,
         update_time = now()
-        where cell_sha256_code_list in
-        <foreach collection="list" item="item" open="(" separator="," close=")">
-            #{item.cellSha256}
-        </foreach>
+        where cell_sha256_code_list =
+        #{cellSha256}
         and is_delete = 0
     </update>
 

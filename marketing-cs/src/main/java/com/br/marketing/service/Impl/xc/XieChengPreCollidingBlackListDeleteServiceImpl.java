@@ -154,8 +154,10 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                         });
 
                         if (!CollectionUtils.isEmpty(result)) {
-                            cycleMapper.batchUpdateCycNoPublicBlackListData(result);
-                            robMapper.batchUpdateRobNoPublicBlackListData(result);
+                            result.forEach(t -> {
+                                cycleMapper.batchUpdateCycNoPublicBlackListData(t);
+                                robMapper.batchUpdateRobNoPublicBlackListData(t);
+                            });
                         }
                     }
                 }, threadPool);

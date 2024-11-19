@@ -93,7 +93,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     void batchUpdateCycPublicBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);
 
-    void batchUpdateCycNoPublicBlackListData(@Param("list") List<XieChengBlackList> list);
+    void batchUpdateCycNoPublicBlackListData(@Param("obj") XieChengBlackList obj);
 
     /**
      * 更新is_delete：is_delete = 1,update_time = now()

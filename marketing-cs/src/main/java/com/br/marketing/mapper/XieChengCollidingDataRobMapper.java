@@ -79,7 +79,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     List<Long> selectRobPublicBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize,
                                                  @Param("type") Integer type);
 
-    void batchUpdateRobNoPublicBlackListData(@Param("list") List<XieChengBlackList> list);
+    void batchUpdateRobNoPublicBlackListData(@Param("obj") XieChengBlackList obj);
 
     int searchRobDeleteCountByExtend(@Param("extend") String extend);
 
