@@ -159,7 +159,7 @@
         </foreach>
     </update>
 
-    <update id="batchUpdateCycNoPublicBlackListData" parameterType="com.br.marketing.entity.XieChengBlackList">
+    <update id="batchUpdateCycNoPublicBlackListData">
         update
         b_xiecheng_colliding_data_loop_cycle
         set

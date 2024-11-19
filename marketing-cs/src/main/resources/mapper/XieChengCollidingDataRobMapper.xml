@@ -253,14 +253,14 @@
         and is_delete = 0
     </update>
 
-    <update id="batchUpdateRobNoPublicBlackListData" parameterType="com.br.marketing.entity.XieChengBlackList">
+    <update id="batchUpdateRobNoPublicBlackListData">
         update
         b_xiecheng_colliding_data_rob
         set
         extend = CONCAT(CURDATE(),#{labelName}),
         is_delete = 1,
         update_time = now()
-        where cell_sha256_code_list in
+        where cell_sha256_code_list =
         #{cellSha256}
     </update>
 

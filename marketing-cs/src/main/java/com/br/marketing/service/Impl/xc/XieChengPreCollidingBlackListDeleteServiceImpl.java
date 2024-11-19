@@ -111,14 +111,14 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
         List<String> batchNumberList = Arrays.asList(batchNumberStr.split(","));
         Long minId = null;
         while (true) {
-            try {
-                List<XieChengBlackList> blackListCells = blackListMapper.selectCellsByPage(minId, PAGE_SIZE);
-                if (CollectionUtils.isEmpty(blackListCells)) {
-                    threadPoolShutDown(threadPool);
-                    return;
-                }
-                minId = (blackListCells.get(blackListCells.size() - 1).getId());
-                CompletableFuture.runAsync(() -> {
+            List<XieChengBlackList> blackListCells = blackListMapper.selectCellsByPage(minId, PAGE_SIZE);
+            if (CollectionUtils.isEmpty(blackListCells)) {
+                threadPoolShutDown(threadPool);
+                return;
+            }
+            minId = (blackListCells.get(blackListCells.size() - 1).getId());
+            CompletableFuture.runAsync(() -> {
+                try {
                     StringBuilder builderStr = new StringBuilder();
                     for (int i = 0; i < blackListCells.size(); i++) {
                         XieChengBlackList black = blackListCells.get(i);
@@ -155,16 +155,16 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
 
                         if (!CollectionUtils.isEmpty(result)) {
                             result.forEach(t -> {
-                                cycleMapper.batchUpdateCycNoPublicBlackListData(t);
-                                robMapper.batchUpdateRobNoPublicBlackListData(t);
+                                cycleMapper.batchUpdateCycNoPublicBlackListData(t.getLabelName(), t.getCellSha256());
+                                robMapper.batchUpdateRobNoPublicBlackListData(t.getLabelName(), t.getCellSha256());
                             });
                         }
                     }
-                }, threadPool);
-            } catch (Exception e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
-                        , "携程批量更新分组黑名单剔除，子线程处理异常"), e);
-            }
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
+                            , "携程批量更新分组黑名单剔除，子线程处理异常"), e);
+                }
+            }, threadPool);
         }
     }
 
