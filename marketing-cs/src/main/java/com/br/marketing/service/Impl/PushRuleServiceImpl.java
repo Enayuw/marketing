@@ -21,6 +21,7 @@ import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.robotaiapi.output.UnsuccessfulData;
+import com.br.marketing.common.bean.ScoreLable;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.MarketingErrorInfo;
@@ -29,7 +30,6 @@ import com.br.marketing.common.constants.common.LastEnum;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.common.enums.SftpFileTypeEnum;
 import com.br.marketing.common.exception.CommonException;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.common.utils.*;
@@ -66,6 +66,7 @@ import com.br.marketing.service.rulecenter.RuleCenterBySourceTypeFactory;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.EsConditionTransferSqlUtil;
+import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.util.xiecheng.XieChengEsJsonHandler;
 import com.br.marketing.vo.*;
 import com.br.marketing.vo.xiecheng.PushViewVO;
@@ -105,7 +106,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.concurrent.*;
@@ -421,7 +421,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
             return uuid.toString();
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
             return null;
         }
     }
@@ -483,6 +483,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         customerInfoPushMain.setmApiCode(dto.getApiCode());
         customerInfoPushMain.setmRuleCondition(dto.getmRuleCondition());
         customerInfoPushMain.setmRuleConditionShow(dto.getmRuleConditionShow());
+        customerInfoPushMain.setmScoreCondition(dto.getmScoreCondition());
         customerInfoPushMain.setmPercentage(dto.getmPercentage());
         customerInfoPushMain.setmPlanNum(dto.getmPlanNum());
         customerInfoPushMain.setmRealyNum(pushNum);
@@ -898,7 +899,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         try {
             yhTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(scoreFileYhTime);
         } catch (ParseException e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), e.getMessage()), e);
         }
         Date yh = yhTime;
         long beforeCount = straHisFiles.stream().filter(t -> t.getCreateTime().compareTo(yh) <= 0).count();
@@ -909,7 +910,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         Result<Integer> integerResult = checkThreekEnc(fileIds);
         if (!ResultCode.SUCCESS.getValue().equals(integerResult.getCode())) {
-            log.error(String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s", id.toString(), integerResult.getMessage()));
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                    String.format("该推送不符合推送决策的限制条件 流水号：%s,原因：%s", id.toString(), integerResult.getMessage())));
             return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
         }
         Integer _3kEncrypt = integerResult.getData();
@@ -957,14 +959,26 @@ public class PushRuleServiceImpl implements PushRuleService {
                 nowSum += nowNum;
             }
             if (!customerInfoPushMain.getmRealyNum().equals(nowSum)) {
-                log.error("任务id：{}，分组查询和预览总数不一致，请手动处理！，分组查询的总数：{}，预览总数：{}"
-                        , customerInfoPushMain.getId(), nowSum.toString(), customerInfoPushMain.getmRealyNum().toString());
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                        "任务id：" + customerInfoPushMain.getId() + "，分组查询和预览总数不一致，请手动处理！，分组查询的总数：" + nowSum.toString()
+                                + "，预览总数：" + customerInfoPushMain.getmRealyNum().toString()));
                 return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+            }
+        }
+        log.warn("推送决策查询量级核对完成，任务id：{}", customerInfoPushMain.getId());
+        Boolean markWithEsFlag = marketingCommonConfig.getPushPolicyMarkWithEsFlag();
+        String scoreCondition = customerInfoPushMain.getmScoreCondition();
+        Object lableObject = null;
+        if (StringUtils.isNotEmpty(scoreCondition)) {
+            if (markWithEsFlag) {
+                lableObject = GeneScriptUtil.esLableScript(scoreCondition);
+            } else {
+                lableObject = GeneScriptUtil.getScoreLables(scoreCondition, markWithEsFlag);
             }
         }
         for (Integer i = 0; i < parNum; i++) {
             res.add(actionEs.submit(new actionEs(pushJc, customerInfoPushMain
-                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i))));
+                    , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag, lableObject)));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
         try {
@@ -992,7 +1006,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 sendAlert("推送决策失败", sb.toString());
             }
         } catch (Exception ex) {
-            log.error("推送决策 获取线程结果异常" + ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
             main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
         try {
@@ -1005,7 +1019,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
         }
 
         log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
@@ -1037,10 +1051,14 @@ public class PushRuleServiceImpl implements PushRuleService {
 
         private Integer partDataNum;
 
+        private Boolean markWithEsFlag;
+
+        private Object lableObject;
+
         public actionEs(ThreadPoolExecutor pushJcPool
                 , CustomerInfoPushMain customerInfoPushMain
                 , List<Long> fileIds, List<String> numList
-                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum) {
+                , String part, Integer _3kEncrypt, Boolean isPerOrTop, Integer partDataNum, Boolean markWithEsFlag, Object lableObject) {
             this.pushJcPool = pushJcPool;
             this.customerInfoPushMain = customerInfoPushMain;
             this.fileIds = fileIds;
@@ -1049,6 +1067,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             this._3kEncrypt = _3kEncrypt;
             this.isPerOrTop = isPerOrTop;
             this.partDataNum = partDataNum;
+            this.markWithEsFlag = markWithEsFlag;
+            this.lableObject = lableObject;
         }
 
         @Override
@@ -1058,6 +1078,16 @@ public class PushRuleServiceImpl implements PushRuleService {
             queryBaseBean.setBatchNumbers(Joiner.on(",").join(numList));
             queryBaseBean.setFileIds(Joiner.on(",").join(fileIds));
             queryBaseBean.setJsonData(customerInfoPushMain.getmRuleCondition());
+            boolean scFlag = !ObjectUtils.isEmpty(lableObject);
+            List<ScoreLable> scoreLables = null;
+            if (scFlag) {
+                if (markWithEsFlag) {
+                    //赋值es脚本
+                    queryBaseBean.setScriptFields(lableObject.toString());
+                } else {
+                    scoreLables = (List<ScoreLable>) lableObject;
+                }
+            }
             if (!isPerOrTop) {
                 queryBaseBean.setPart(part);
             }
@@ -1122,13 +1152,35 @@ public class PushRuleServiceImpl implements PushRuleService {
                         varObject.put("taskId", marketingHistory.getTaskId());
                         varObject.put("userType", marketingHistory.getUserType());
                         varObject.put("scoreDate", new SimpleDateFormat("yyyy-MM-dd").format(marketingHistory.getRequestTime()));
+                        if (scFlag) {
+                            //es处理
+                            if (markWithEsFlag) {
+                                markForCell(varObject, marketingHistory.getFields());
+                            //代码处理逻辑
+                            } else {
+                                List<MarketingCondition> conditions = marketingHistory.getCondition();
+                                if (!CollectionUtils.isEmpty(conditions)) {
+                                    Map<String, Object> scoreMap = conditions.stream()
+                                            .filter(condition -> condition.getDValue() != null)
+                                            .collect(Collectors.toMap(MarketingCondition::getCode
+                                                    , MarketingCondition::getDValue
+                                                    , (existing, replacement) -> replacement));
+                                    ScoreLable scoreLable = GeneScriptUtil.scoreLableWithSpel(scoreMap, scoreLables);
+                                    if (scoreLable != null) {
+                                        varObject.put("listValue", scoreLable.getListValue());
+                                        varObject.put("valueType", scoreLable.getValueType());
+                                    }
+                                }
+                            }
+                        }
                         dto1.setVariables(varObject);
                         if (StringUtils.isNotBlank(customerInfoPushMain.getStrategyCode())) {
                             dto1.setStrategyCode(customerInfoPushMain.getStrategyCode());
                         }
                         userDetailDTOS.add(dto1);
                     }
-
+//                    log.warn("营销推决策组装数据展示-main.id-dtos："
+//                            + customerInfoPushMain.getId().toString() + "-" + JSON.toJSONString(userDetailDTOS));
                     //推送任务基础信息
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
@@ -1154,10 +1206,24 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , customerInfoPushMain.getId().toString()
                             , StringUtils.isBlank(part) ? "" : part
                             , i);
-                    log.error(error + ex.getMessage(), ex);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), error), ex);
                 }
             }
             return resList;
+        }
+    }
+
+    private void markForCell(JSONObject varObject, JSONObject fields) {
+        if (fields == null) {
+            return;
+        }
+        JSONObject listValueJson = fields.getJSONObject("listValue");
+        JSONObject valueTypeJson = fields.getJSONObject("valueType");
+        if (listValueJson != null) {
+            varObject.put("listValue", listValueJson.getString("value"));
+        }
+        if (valueTypeJson != null) {
+            varObject.put("valueType", valueTypeJson.getString("value"));
         }
     }
 
@@ -1188,7 +1254,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         accessNumber, size);
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error("推送决策重试失败 accessNumber:{}-{}", accessNumber, JSON.toJSONString(result));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
+                                , "推送决策重试失败 accessNumber:" + accessNumber + " - " + JSON.toJSONString(result)));
             }
             result.setDate(size);
             return result;
@@ -2691,7 +2758,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             new Thread.UncaughtExceptionHandler() {
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
-                    log.error("推送客服任务异常：任务线程:[{}]\n{}", t.getName(), e.getMessage(), e);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                            "推送客服任务异常：任务线程:" + t.getName()), e);
                 }
             },
             // 队列模式，false 后人先出，true 先进先出
@@ -2727,8 +2795,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                     pushTransferData(info);
                     result.setDate(false);
                 } catch (Exception e) {
-                    String smg = String.format("主键[%d];apiCode[%s];requestId[%s]推送错误！\n%s", infoId, apiCode, info.getRequestId(), e.getMessage());
-                    log.error(smg, e);
+                    String smg =
+                            String.format("主键[%d];apiCode[%s];requestId[%s]推送错误！\n%s", infoId, apiCode, info.getRequestId(), e.getMessage());
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), smg), e);
                 }
                 return result;
             }
@@ -2755,7 +2824,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             } catch (Exception e) {
                 cId = tableCreateService.getTcId(apiCode);
-                log.error(e.getMessage(), e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), e.getMessage()), e);
             }
             final String tcId = cId;
             // 3 获取转化数据,
@@ -2894,7 +2963,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         }
                         break;
                     default:
-                        log.error("未知的标记:{}", transferStatus);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "未知的标记:" + transferStatus));
                 }
                 if (!b) {
                     String smg = String.format("infoId[%d];apiCode[%s];requestId[%s];tcId[%s]在[%s]中推送中线程任务失败"
@@ -2934,7 +3003,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             result.setDate(false);
             return result;
         } catch (Throwable e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), e.getMessage()), e);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(e.getMessage());
             return result;
@@ -2952,7 +3021,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (task.isCompletedAbnormally()) {
                 Throwable exception = task.getException();
                 if (exception != null) {
-                    log.error(exception.getMessage(), exception);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), exception.getMessage()), exception);
                     throw exception;
                 }
                 return false;
@@ -3043,7 +3112,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 body = "";
                 result = null;
                 code = "";
-                log.error(e.getMessage(), e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), e.getMessage()), e);
             }
             count++;
         } while ((value != 200 || !"00".equals(code)) && count <= retrySum);
@@ -3149,7 +3218,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }
         } catch (Exception e) {
             tcId = tableCreateService.getTcId(apiCode);
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), e.getMessage()), e);
         }
         // 2 获取转化数据
         MarketingTransferSyncUserExample example = new MarketingTransferSyncUserExample();
@@ -3273,7 +3342,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), e.getMessage()), e);
             outboundVO = new TransferRobotOutboundVO<>();
             outboundVO.setMessage(e.getMessage());
         }
@@ -3354,7 +3423,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             pushBlackReqDTO.setApiCode(localFile.getApiCode());
             Result result = pushCommonBlack(pushBlackReqDTO);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error(String.format("推送黑名单报错：%s", result.getData()));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                        String.format("推送黑名单报错：%s", result.getData())));
                 if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
                     RetryMainLog retryMainLog = new RetryMainLog();
                     retryMainLog.setRetryType(1);
@@ -3410,7 +3480,8 @@ public class PushRuleServiceImpl implements PushRuleService {
             List<MarketingTransferSyncUser> users = marketingTransferSyncUsers.subList(start, end);
             Result result = pushBlack(users);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                log.error(String.format("推送黑名单报错：%s", result.getData()));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                        String.format("推送黑名单报错：%s", result.getData())));
                 if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
                     RetryMainLog retryMainLog = new RetryMainLog();
                     retryMainLog.setRetryType(1);
@@ -3460,6 +3531,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         searchCondition.setConditionType(1);
         searchCondition.setContent(dto.getmRuleCondition());
         searchCondition.setContentShow(dto.getmRuleConditionShow());
+        searchCondition.setScoreContent(dto.getmScoreCondition());
         searchCondition.setCreateTime(date);
         searchCondition.setUpdateTime(date);
         searchCondition.setSourceType(dto.getSourceType());
@@ -3875,7 +3947,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             scoreSearchConditionMapper.updateByPrimaryKeySelective(updateEntity);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
-            log.error("删除规则模板报错，id={},",id,e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "删除规则模板报错，id=" + id), e);
         }
         return null;
     }

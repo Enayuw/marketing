@@ -6,6 +6,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.counter.BrCounter;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.HttpProxyClient;
 import com.br.marketing.client.dassservice.input.DassImportAdapDTO;
 import com.br.marketing.client.dassservice.input.DassImportAdapHaluoDTO;
@@ -19,6 +20,7 @@ import com.br.marketing.client.dassservice.input.userdata.DassSingleImportAdapDT
 import com.br.marketing.client.dassservice.input.userdata.DassSingleImportDataDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.InterfaceLog;
@@ -160,7 +162,8 @@ public class DassServiceClient {
         interfaceLog.setCreateTime(new Date());
         long start = System.currentTimeMillis();
         try {
-            HashMap<String, String> hashMap = httpProxyClient.sendByCode(JSON.toJSONString(requestParam), postHermesUserDataUrl, isProxy.equals("0") ? false : true);
+            HashMap<String, String> hashMap =
+                    httpProxyClient.sendByCode(JSON.toJSONString(requestParam), postHermesUserDataUrl, isProxy.equals("0") ? false : true);
             long end = System.currentTimeMillis();
             Integer code = null;
             if (StringUtils.isNotBlank(hashMap.get("httpcode"))) {
@@ -173,10 +176,10 @@ public class DassServiceClient {
             if (Integer.valueOf(200).equals(code)) {
                 //调用数量监控
                 try {
-                    BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BATCH_USERDATA_METRIC_NAME, dto.getList().get(0).getOrgname(), "batchUserData-api",
-                        dtos.size());
+                    BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BATCH_USERDATA_METRIC_NAME
+                            , dto.getList().get(0).getOrgname(), "batchUserData-api", dtos.size());
                 } catch (Exception ex) {
-                    log.error("电销批量接口统计异常" + ex.getMessage(), ex);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "电销批量接口统计异常！"), ex);
                 }
                 result.setCode(ResultCode.SUCCESS.getValue());
             } else {
@@ -186,7 +189,7 @@ public class DassServiceClient {
             long end = System.currentTimeMillis();
             interfaceLog.setExpire(String.valueOf(end - start));
             interfaceLog.setResult("程序异常：" + ex.getMessage());
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), ex.getMessage()), ex);
         }
         interfaceLogMapper.insertSelective(interfaceLog);
         return result;
@@ -234,7 +237,7 @@ public class DassServiceClient {
                         BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_BLACK_DATA_METRIC_NAME, list.get(0).getApiCode(), "blackData-api",
                             list.size());
                     } catch (Exception ex) {
-                        log.error("电销黑名单接口统计异常" + ex.getMessage(), ex);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "电销黑名单接口统计异常!"), ex);
                     }
                 } else {
                     result.setCode(ResultCode.FAIL.getValue());
@@ -245,7 +248,7 @@ public class DassServiceClient {
             }
         } catch (Exception ex) {
             interfaceLog.setResult(ex.getMessage());
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), ex.getMessage()), ex);
             result.setCode(ResultCode.FAIL.getValue());
             result.setMessage(ex.getMessage());
         } finally {
@@ -303,7 +306,8 @@ public class DassServiceClient {
         requestParam.put("ts", l);
         requestParam.put("sign", sign);
         requestParam.put("data", dassSingleImportAdapDTOList);
-        HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postRealTimeUserDataUrl, isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, dto.getExtendInfo());
+        HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postRealTimeUserDataUrl
+                , isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, dto.getExtendInfo());
         final String httpCode = hashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = hashMap.getOrDefault("content", "");
@@ -321,13 +325,15 @@ public class DassServiceClient {
                 if (resultSuccess) {
                     try {
                         //调用数量监控
-                        BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME, dassSingleImportDataDTO.getOrgname(), "DaasRealTimeData-api");
+                        BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_SINGLE_USERDATA_METRIC_NAME
+                                , dassSingleImportDataDTO.getOrgname(), "DaasRealTimeData-api");
                     } catch (Exception ex) {
-                        log.error("电销单条接口统计异常" + ex.getMessage(), ex);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "电销单条接口统计异常!"), ex);
                     }
                 }
             } catch (Exception e) {
-                log.error("单条用户数据实时推送响应结果respStr:{},转化json异常", respStr, e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                        , "单条用户数据实时推送响应结果respStr:" + respStr + ",转化json异常!"), e);
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
             }
         } else {
@@ -417,7 +423,8 @@ public class DassServiceClient {
         requestParam.put("ts", l);
         requestParam.put("sign", sign);
         requestParam.put("data", dassTransferDataDTOList);
-        HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postTransferData, isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
+        HashMap<String, String> hashMap = httpProxyClient.sendByCode(requestParam, postTransferData,
+                isProxy.equals("0") ? false : true, MediaType.APPLICATION_JSON_UTF8_VALUE, null);
         final String httpCode = hashMap.getOrDefault("httpcode", "5000");
         if (httpCode.equals("200")) {
             final String respStr = hashMap.getOrDefault("content", "");
@@ -429,10 +436,11 @@ public class DassServiceClient {
             result.setCode(ResultCode.SUCCESS.getValue()).setDate(respStr);
             try {
                 //调用数量监控
-                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME, dassTransferDataDTOList.get(0).getOrgName(), "transferData-api",
+                BrCounter.count(PrometheusMonitorUtils.COUNT_DAAS_TRANSFER_METRIC_NAME
+                        , dassTransferDataDTOList.get(0).getOrgName(), "transferData-api",
                     dassTransferDataDTOList.size());
             } catch (Exception ex) {
-                log.error("电销转化接口统计异常" + ex.getMessage(), ex);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "电销转化接口统计异常!"), ex);
             }
         } else {
             result.setCode(ResultCode.FAIL.getValue()).setMessage(hashMap.getOrDefault("content", ""));
@@ -473,16 +481,18 @@ public class DassServiceClient {
                 if (new Integer(0).equals(code)) {
                     res.setCode(ResultCode.SUCCESS.getValue());
                 } else {
-                    log.error("ibu定制接口非code成功(" + reqId.toString() + ")：" + resContent.getOrDefault("content", ""));
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                            , "ibu定制接口非code成功(" + reqId.toString() + ")：" + resContent.getOrDefault("content", "")));
                     res.setCode(ResultCode.FAIL.getValue()).setMessage(resContent.get("content"));
                 }
             } else {
-                log.error("ibu定制接口非200情况(" + reqId.toString() + ")：" + resContent.getOrDefault("content", ""));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                        , "ibu定制接口非200情况(" + reqId.toString() + ")：" + resContent.getOrDefault("content", "")));
                 res.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(resContent.get("content"));
             }
             return res;
         } catch (Exception ex) {
-            log.error("ibu定制接口错误(" + reqId.toString() + ")" + ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), "ibu定制接口错误(" + reqId.toString() + ")"), ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
 

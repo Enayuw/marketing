@@ -104,7 +104,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             result.setCode(CollectionUtils.isEmpty(listPage)
                     ? ResultCode.FAIL.getValue() : ResultCode.SUCCESS.getValue());
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(), e.getMessage()), e);
             result.setCode(ResultCode.FAIL.getValue());
         }
         return result;
@@ -161,7 +161,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             try {
                 future.get(1, TimeUnit.MINUTES);
             } catch (Exception e) {
-                log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(), e.getMessage()
                         , TITLE), e);
 //                future.cancel(true);
                 result.setCode(ResultCode.FAIL.getValue());
@@ -181,7 +181,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(), e.getMessage()
                     , TITLE), e);
             result.setCode(ResultCode.FAIL.getValue());
             Thread.currentThread().interrupt();
@@ -200,7 +200,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
                 taskCount = completedTask2Count;
             }
         } catch (InterruptedException e) {
-            log.error(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ERROR_UNKNOWN.getCode(), e.getMessage()
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(), e.getMessage()
                     , TITLE), e);
             result.setCode(ResultCode.FAIL.getValue());
             Thread.currentThread().interrupt();
@@ -332,7 +332,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
             Result<?> resultAction = resultAction(pushList, pushPool);
             result.setCode(resultAction.getCode());
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(), e.getMessage()), e);
         }
         return result;
     }
