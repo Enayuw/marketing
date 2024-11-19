@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -143,8 +144,9 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     }
                     List<String> scoreCells = blackListMapper.selectByBlackListIdsFromScoreFile(querySql);
                     if (!CollectionUtils.isEmpty(scoreCells)) {
-                        Map<String, XieChengBlackList> backMap = blackListCells.stream()
-                                .collect(Collectors.toMap(XieChengBlackList::getCellSha256, e -> e));
+                        Map<String, XieChengBlackList> backMap =
+                                blackListCells.stream().collect(Collectors.toMap(XieChengBlackList::getCellSha256, Function.identity(),
+                                        (t1, t2) -> t1));
                         //交集
                         List<XieChengBlackList> result = new ArrayList<>(scoreCells.size());
                         scoreCells.forEach(a -> {
