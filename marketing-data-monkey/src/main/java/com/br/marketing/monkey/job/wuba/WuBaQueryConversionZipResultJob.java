@@ -2,46 +2,43 @@ package com.br.marketing.monkey.job.wuba;
 
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
-import com.br.common.util.DateUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.dto.wuba.WubaQueryConversionDto;
+import com.br.marketing.dto.wuba.WuBaQueryConversionZipResultDto;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
 import com.br.marketing.service.Impl.JobManager;
-import com.br.marketing.service.Impl.wuba.WuBaChangeQueryBatchService;
+import com.br.marketing.service.Impl.wuba.WuBaQueryConversionZipResultService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * @Description 58新客修改营销名单上报批次
+ * @Description 58新客转化数据zip包清洗
  * @Author lixiang
- * @Date 2024-07-08
+ * @Date 2024-11-19
  */
 @Component
 @Slf4j
 public class WuBaQueryConversionZipResultJob extends AbstractSimpleElasticJob {
 
-    private final static String TITLE = "【58新客修改营销名单上报批次】";
-    private static final String PUSH_TIME_START = "pushTimeStart";
-    private static final String PUSH_TIME_END = "pushTimeEnd";
+    private final static String TITLE = "【58新客转化数据zip包清洗】";
 
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
-    private WuBaChangeQueryBatchService service;
+    private WuBaQueryConversionZipResultService service;
 
     @Resource
     private JobManager jobManager;
@@ -55,14 +52,11 @@ public class WuBaQueryConversionZipResultJob extends AbstractSimpleElasticJob {
                 return;
             }
 
-            // pushTimeInterval
-            Map<String, Object> pushTimeInterval = acquirePushTimeInterval();
+            // parseParameter
+            List<Map<String, String>> paramList = parseParameter();
 
             // action
-            List<String> apiCodes = marketingCommonConfig.getWuBaQueryConversionApiCodes();
-            for (String apiCode: apiCodes) {
-                actionByApiCode(apiCode, pushTimeInterval);
-            }
+            action(paramList);
 
             log.warn(TITLE + "调度结束");
         } catch (Exception e) {
@@ -71,8 +65,8 @@ public class WuBaQueryConversionZipResultJob extends AbstractSimpleElasticJob {
     }
 
     private boolean checkJobSwitch(){
-        String wuBaSubmitConversionSwitch = marketingCommonConfig.getWuBaChangeQueryBatchSwitch();
-        if ("1".equals(wuBaSubmitConversionSwitch)) {
+        String jobSwitch = marketingCommonConfig.getWuBaQueryConversionZipResultSwitch();
+        if ("1".equals(jobSwitch)) {
             log.warn(TITLE + "开关打开");
             return true;
         }
@@ -80,68 +74,78 @@ public class WuBaQueryConversionZipResultJob extends AbstractSimpleElasticJob {
         return false;
     }
 
-    private Map<String, Object> acquirePushTimeInterval(){
-        Map<String, Object> res = new HashMap<>();
-        JSONObject interval = marketingCommonConfig.getWuBaChangeQueryBatchPushTimeInterval();
-        Integer pushStart = -2;
-        Integer pushEnd = -1;
-        if(interval != null){
-            Integer pushStartSpeed = interval.getInteger("pushStart");
-            Integer pushEndSpeed = interval.getInteger("pushEnd");
-            if(pushStart != null){
-                pushStart = pushStartSpeed;
-            }
-            if(pushEnd != null){
-                pushEnd = pushEndSpeed;
-            }
+    private void action(List<Map<String, String>> paramList) {
+        // action
+        for (Map<String, String> param: paramList) {
+            action(param);
         }
-
-        LocalDate curLocalDate = LocalDate.now();
-
-        LocalDate startLocalDate = curLocalDate.plusDays(pushStart);
-        Date pushTimeStart = Date.from(startLocalDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant());
-
-        LocalDate endLocalDate = curLocalDate.plusDays(pushEnd);
-        Date pushTimeEnd = Date.from(endLocalDate.atStartOfDay(ZoneOffset.ofHours(8)).toInstant());
-
-        res.put(PUSH_TIME_START, pushTimeStart);
-        res.put(PUSH_TIME_END, pushTimeEnd);
-
-        return res;
     }
 
-    private void actionByApiCode(String apiCode, Map<String, Object> pushTimeInterval) {
+    private void action(Map<String, String> param) {
+        String apiCode = param.get("apiCode");
+        String bizDate = param.get("bizDate");
         // actionFront
-        int actionType = JobManager.ActionTypeEnum.WUBA_CHANGE_QUERY_BATCH.getActionType();
+        int actionType = JobManager.ActionTypeEnum.WUBA_QUERY_CONVERSION_ZIP_RESULT.getActionType();
 
-        String bizDate = DateUtils.format(new Date(), "yyyy-MM-dd");
-        TransferActionFront actionFront = jobManager.getFrontData(apiCode, bizDate, actionType, null);
-        if (actionFront != null) {
-            if (2 == actionFront.getStatus()) {
-                log.warn(TITLE+"今日已经更新完成, apiCode:{}, bizDate:{}", apiCode, bizDate);
-                return;
-            }
-        } else {
-            actionFront = jobManager.saveFront(apiCode, bizDate, actionType);
-            if (actionFront.getId() == null) {
-                log.warn(TITLE+ "更新失败, apiCode:{}, bizDate:{}", apiCode, bizDate);
-                return;
-            }
+        String actionDate = LocalDate.now().toString();
+        TransferActionFront action = jobManager.getFrontData(apiCode, actionDate, actionType, null);
+        if (action != null) {
+            Integer actionStatus = action.getStatus();
+            log.warn(TITLE+"任务执行记录已存在, apiCode:{}, actionDate:{}, actionStatus:{}", apiCode, actionDate, actionStatus);
+            return;
         }
 
-        WubaQueryConversionDto param = new WubaQueryConversionDto();
-        param.setBatchType(2);
-        param.setApiCode(apiCode);
-        param.setPushTimeStart((Date) pushTimeInterval.get(PUSH_TIME_START));
-        param.setPushTimeEnd((Date) pushTimeInterval.get(PUSH_TIME_END));
+        action = jobManager.saveFront(apiCode, apiCode, actionType);
+        if (action.getId() == null) {
+            log.warn(TITLE+ "新增失败, apiCode:{}, actionDate:{}", apiCode, actionDate);
+            return;
+        }
 
-        Page2Condition<WubaQueryConversionDto> condition = new Page2Condition<>();
-        condition.setParam(param);
+        WuBaQueryConversionZipResultDto conditionParam = new WuBaQueryConversionZipResultDto();
+        conditionParam.setApiCode(apiCode);
+        conditionParam.setBizDate(bizDate);
+
+        Page2Condition<WuBaQueryConversionZipResultDto> condition = new Page2Condition<>();
+        condition.setParam(conditionParam);
         Result actionResult = service.action(condition);
 
         if (actionResult!=null && actionResult.isSuccess()){
-            jobManager.updateFrontDataStatus(actionFront.getId(), 2);
-            log.warn(TITLE+"今日更新成功, apiCode:{}, bizDate:{}", apiCode, bizDate);
+            jobManager.updateFrontDataStatus(action.getId(), 2);
+            log.warn(TITLE+"今日更新成功, apiCode:{}, actionDate:{}", apiCode, actionDate);
         }
+    }
+
+    /**
+     * 解析Job参数，格式如下：
+     * e.g [{"apiCode":"3710155","bizDate":"-6"},{"apiCode":"3710155","bizDate":"-5"}]
+     */
+    private List<Map<String, String>> parseParameter() throws Exception {
+        List<Map<String, String>> paramList = new ArrayList<>();
+        List<Map<String, String>> configList = marketingCommonConfig.getWuBaQueryConversionZipResultParams();
+        LocalDate curLocalDate = LocalDate.now();
+        log.warn(TITLE + "curDate: {}", curLocalDate);
+
+        for(Map<String, String> configMap : configList){
+            Map<String, String> paramMap = new HashMap<>();
+            // apiCode
+            String apiCode = configMap.get("apiCode");
+            if(StringUtils.isEmpty(apiCode)){
+                throw new Exception("Job参数apiCode格式不正确");
+            }
+            paramMap.put("apiCode", apiCode);
+
+            // bizDate
+            String bizDateStr = configMap.get("bizDate");
+            if(StringUtils.isEmpty(bizDateStr)){
+                throw new Exception("Job参数bizDate格式不正确");
+            }
+            Long bizDateLong = Long.parseLong(bizDateStr);
+            LocalDate bizLocalDate = curLocalDate.plusDays(bizDateLong);
+            paramMap.put("bizDate", bizLocalDate.toString());
+
+            paramList.add(paramMap);
+        }
+        log.warn(TITLE + "paramList: {}", JSONObject.toJSONString(paramList));
+        return paramList;
     }
 }

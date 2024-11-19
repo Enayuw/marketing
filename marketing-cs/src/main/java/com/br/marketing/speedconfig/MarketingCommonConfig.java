@@ -2045,6 +2045,21 @@ public class MarketingCommonConfig {
     private List<String> wuBaSubmitDataToFileStartDate;
 
     /**
+     * 58新客-营销转化结果zip包查询-开关，1-开，0-关
+     */
+    private String wuBaQueryConversionZipResultSwitch;
+
+    /**
+     * 58新客-营销转化结果zip包查询-条件参数
+     */
+    private List<Map<String, String>> wuBaQueryConversionZipResultParams;
+
+    /**
+     * 58新客-营销转化结果zip包查询-文件路径
+     */
+    private String wuBaQueryConversionZipResultDownloadPath;
+
+    /**
      * 通用清洗线程池
      */
     private Integer autoCleanDataThreadNum;
