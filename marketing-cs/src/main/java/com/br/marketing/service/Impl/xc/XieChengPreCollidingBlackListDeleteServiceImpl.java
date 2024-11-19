@@ -146,7 +146,13 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
                     if (!CollectionUtils.isEmpty(scoreCells)) {
                         Map<String, XieChengBlackList> backMap =
                                 blackListCells.stream().collect(Collectors.toMap(XieChengBlackList::getCellSha256, Function.identity(),
-                                        (t1, t2) -> t1));
+                                        (t1, t2) -> {
+                                            if (t1.getLabelType() <= t2.getLabelType()) {
+                                                return t1;
+                                            } else {
+                                                return t2;
+                                            }
+                                        }));
                         //交集
                         List<XieChengBlackList> result = new ArrayList<>(scoreCells.size());
                         scoreCells.forEach(a -> {
