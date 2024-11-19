@@ -136,8 +136,7 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         }
 
         if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
-            String decode = BrCipherMaker.getInstance().decode(content);
-            return StringUtils.isNotBlank(decode) ? decode : content;
+            return content;
         }
 
         if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {

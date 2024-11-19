@@ -1,5 +1,6 @@
 package com.br.marketing.service.customertagsprocess.uploadcheck;
 
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.MonitorTypeEnum;
 import com.br.marketing.service.customertagsprocess.IUploadCheckService;
