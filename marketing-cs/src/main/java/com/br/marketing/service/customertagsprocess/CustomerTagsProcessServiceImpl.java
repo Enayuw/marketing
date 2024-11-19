@@ -107,7 +107,7 @@ public class CustomerTagsProcessServiceImpl {
                 }
             }
         } catch (Exception ex) {
-            log.error(errorMsgPrefix.concat("【redis获取客户信息失败】").concat(ex.getMessage()), ex);
+            log.error(errorMsgPrefix.concat("【redis获取客户信息失败】").concat(ex.toString()), ex);
         }
         return null;
     }
@@ -122,7 +122,7 @@ public class CustomerTagsProcessServiceImpl {
             String voStr = JSON.toJSONString(customerTagsVO);
             redisChgService.setex(key, voStr, customerExpireTime);
         } catch (Exception ex) {
-            log.error(errorMsgPrefix.concat("【redis写入客户信息失败】").concat(ex.getMessage()), ex);
+            log.error(errorMsgPrefix.concat("【redis写入客户信息失败】").concat(ex.toString()), ex);
         }
     }
 
@@ -137,7 +137,7 @@ public class CustomerTagsProcessServiceImpl {
                 redisChgService.del(key);
             }
         } catch (Exception ex) {
-            log.error(errorMsgPrefix.concat("【redis删除客户标签信息失败】").concat(ex.getMessage()), ex);
+            log.error(errorMsgPrefix.concat("【redis删除客户标签信息失败】").concat(ex.toString()), ex);
         }
     }
 
