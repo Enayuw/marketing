@@ -510,6 +510,51 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     }
 
     /**
+     * 更新报表名称
+     * @param id
+     * @param reportName
+     * @return
+     */
+    @Override
+    public ApiResult<Boolean> updateReportName(Long id, String reportName) {
+        try {
+            ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(id);
+            if(reportTask == null){
+                return new ApiResult<Boolean>().fail(false, "未找到该报表！");
+            }
+            ReportTask reportTask1 = new ReportTask();
+            reportTask1.setId(id);
+            reportTask1.setReportName(reportName);
+            reportTaskMapper.updateByPrimaryKeySelective(reportTask1);
+        }catch (Exception e){
+            log.warn("更新报表名称报错，id：{}, reportName：{}", id,reportName);
+        }
+        return new ApiResult<Boolean>().success(true);
+    }
+
+    /**
+     * 报表删除
+     * @param id
+     * @return
+     */
+    @Override
+    public ApiResult<Boolean> deleteReport(Long id) {
+        try {
+            ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(id);
+            if(reportTask == null){
+                return new ApiResult<Boolean>().fail(false, "未找到该报表！");
+            }
+            ReportTask reportTask1 = new ReportTask();
+            reportTask1.setId(id);
+            reportTask1.setIsDel(9);
+            reportTaskMapper.updateByPrimaryKeySelective(reportTask1);
+        }catch (Exception e){
+            log.warn("报表删除有误，id：{}", id);
+        }
+        return new ApiResult<Boolean>().success(true);
+    }
+
+    /**
      * 转化报表类型名称，解析reportRules
      * @param list
      */

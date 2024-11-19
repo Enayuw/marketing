@@ -75,4 +75,9 @@ public interface ReportScoreRuleService {
      * @date 2024/10/24 16:01
      **/
     List<ReportTaskVO> getReportTaskListForScore(String name, String ids);
+
+    ApiResult<Boolean> updateReportName(Long id, String reportName);
+
+    ApiResult<Boolean> deleteReport(Long id);
+
 }
