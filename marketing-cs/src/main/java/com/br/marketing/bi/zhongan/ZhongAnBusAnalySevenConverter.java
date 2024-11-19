@@ -1,5 +1,6 @@
 package com.br.marketing.bi.zhongan;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -43,10 +45,15 @@ public class ZhongAnBusAnalySevenConverter extends AbstractBiReportConverter<BiR
     @Override
     public List<ZhongAnBusAnalySevenReportDTO> fetchData(BiReportParam param) {
         String taskId = param.getCondition().getString("taskId");
+        String reportDate = param.getCondition().getString("reportDate");
 
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
-        reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
-        reportStatisticTransferExample.setOrderByClause("create_time desc");
+        if (ObjectUtil.isNotEmpty(reportDate)) {
+            reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId).andReportDateEqualTo(reportDate);
+        } else {
+            reportDate = LocalDate.now().toString();
+            reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId).andReportDateEqualTo(reportDate);
+        }
         List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
         if (reportStatisticTransfers.isEmpty()) {
             return new ArrayList<>();
