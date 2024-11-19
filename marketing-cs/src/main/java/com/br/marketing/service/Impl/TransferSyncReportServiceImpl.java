@@ -90,7 +90,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                 , shardingTotalCount, shardingItems);
         Map<String, Set<String>> userTypeMapByApiCode = getUserTypeMapByApiCode("");
         String other = "";
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
+        Integer transferThreadNum = marketingCommonConfig.getSyncReportThreadConfig().getInteger("transfer");
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(transferThreadNum, transferThreadNum);
         List<String> smyApiCodes = (marketingCommonConfig.getSaMoYeTransferFileApiCodes() == null
                 || marketingCommonConfig.getSaMoYeTransferFileApiCodes().size() <= 0)
                 ? Arrays.asList("3710013")
@@ -119,6 +120,8 @@ public class TransferSyncReportServiceImpl implements TransferSyncReportService 
                         continue;
                     }
                     for (String requestDate : requestDateList) {
+                        threadPool.setCorePoolSize(marketingCommonConfig.getSyncReportThreadConfig().getInteger("transfer"));
+                        threadPool.setMaximumPoolSize(marketingCommonConfig.getSyncReportThreadConfig().getInteger("transfer"));
                         threadPool.submit(() -> {
                             TransferSyncReport report = smy ? transferSyncReportMapper.dateTimeMinMaxCountSMYtiflash_(apiCode, requestDate, userType)
                                     : transferSyncReportMapper.dateTimeMinMaxCounttiflash_(tCid, apiCode, requestDate, userType);
