@@ -184,7 +184,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 String value = UUID.randomUUID().toString();
                 try {
                     //加锁
-                    addLockGroupScoreConfig(dto.getApiCode(),value);
+                    addLockGroupScoreConfig(dto.getApiCode(), value);
                     List<MarketingTaskVO> marketingTaskVOS = marketingTaskMapper.queryNoFinishStatus(dto.getApiCode(), LocalDate.now().minusDays(7).toString(),
                             LocalDate.now().plusDays(1).toString());
                     if (!CollectionUtils.isEmpty(marketingTaskVOS)) {
@@ -194,7 +194,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "分组任务编辑异常"), e);
                 } finally {
-                    unlockGroupScoreConfig(dto.getApiCode(),value);
+                    unlockGroupScoreConfig(dto.getApiCode(), value);
                 }
             }
             if (CollectionUtils.isEmpty(updateGroupRules)) {
@@ -223,14 +223,14 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
     }
 
 
-    public void addLockGroupScoreConfig(String apiCode,String value) {
+    public void addLockGroupScoreConfig(String apiCode, String value) {
         String redisKey = RedisKeyConstant.DATA_GROUP_SCORE_CONFIG_LOCK.concat(apiCode);
         //加锁
-        redisChgService.lockLoop(redisKey, value,30000L,300000L);
+        redisChgService.lockLoop(redisKey, value, 30000L, 300000L);
     }
 
 
-    public void unlockGroupScoreConfig(String apiCode,String value) {
+    public void unlockGroupScoreConfig(String apiCode, String value) {
         String redisKey = RedisKeyConstant.DATA_GROUP_SCORE_CONFIG_LOCK.concat(apiCode);
         //解锁
         redisChgService.unlock(redisKey, value);
@@ -399,15 +399,15 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 Integer pageSize;
                 Integer total = (int) jsonRule.get(field);
                 Integer sum = 0;
-                //差值超过2000，每页赋值2000，小于2000，取小值
-                if (total - sum >= 2000) {
-                    pageSize = 2000;
-                } else {
-                    pageSize = total - sum;
-                }
-                List<MarketingSyncUser> marketingSyncUserList;
                 while (true) {
+                    //差值超过2000，每页赋值2000，小于2000，取小值
+                    if (total - sum >= 2000) {
+                        pageSize = 2000;
+                    } else {
+                        pageSize = total - sum;
+                    }
                     //没有场景和扩展字段分组
+                    List<MarketingSyncUser> marketingSyncUserList;
                     if ((StringUtils.isEmpty(userType)) && StringUtils.isEmpty(extendVaule)) {
                         marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, reportList, indexId, pageSize);
                     } else {
@@ -416,8 +416,9 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     }
                     indexId = marketingSyncUserList.get(marketingSyncUserList.size() - 1).getId();
                     modifyCorePoolSize(pool);
-                    /*pool.submit(() ->*/
-                    updateGroupData(marketingSyncUserList, groupField, field)/*)*/;
+                    pool.submit(() -> {
+                        updateGroupData(marketingSyncUserList, groupField, field);
+                    });
                     sum += marketingSyncUserList.size();
                     //达到量级
                     if (sum.equals(total)) {
@@ -514,9 +515,11 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
     private void modifyCorePoolSize(ThreadPoolExecutor pool) {
 
         Integer threadNum =
-                marketingCommonConfig.getSuShangPushThreadNum();
-        pool.setCorePoolSize(threadNum);
-        pool.setMaximumPoolSize(threadNum);
+                marketingCommonConfig.getDataGroupThreadNum();
+        if (!Objects.isNull(threadNum)) {
+            pool.setCorePoolSize(threadNum);
+            pool.setMaximumPoolSize(threadNum);
+        }
         log.warn("数据分组处理线程数core={}，max={}", pool.getCorePoolSize(), pool.getMaximumPoolSize());
     }
 
@@ -559,11 +562,10 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 ruleJson.forEach((k, v) -> {
                     if (v.equals("remain")) {
                         ruleNew.put(k, count - groupNum);
-                    }else {
+                    } else {
                         ruleNew.put(k, v);
                     }
                 });
-                map.put("rule", ruleNew);
             } else {
                 //百分比转化处理
                 Iterator<Map.Entry<String, Object>> iterator = ruleJson.entrySet().iterator();
@@ -574,18 +576,24 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     Map.Entry<String, Object> entry = iterator.next();
                     if (currentIndex == lastIndex) {
                         // 当前元素是最后一个元素
-                        ruleNew.put(entry.getKey(),count - sum);
+                        ruleNew.put(entry.getKey(), count - sum);
                     } else {
                         // 当前元素不是最后一个元素
                         double num = Double.parseDouble(entry.getValue().toString().replace("%", "")) / 100 * count;
                         int intNum = (int) Math.round(num);
-                        ruleNew.put(entry.getKey(),intNum);
+                        ruleNew.put(entry.getKey(), intNum);
                         sum += intNum;
                     }
                     currentIndex++;
                 }
-                map.put("rule", ruleNew);
             }
+            // 遍历并删除num为0的
+            for (Map.Entry<String, Object> entry : ruleNew.entrySet()) {
+                if ((int) entry.getValue() == 0) {
+                    ruleNew.remove(entry.getKey());
+                }
+            }
+            map.put("rule", ruleNew);
         });
 
         return groupNumList;

@@ -2289,5 +2289,10 @@ public class MarketingCommonConfig {
      */
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
+    /**
+     * 数据分组线程数
+     */
+    private Integer dataGroupThreadNum;
+
 }
 
