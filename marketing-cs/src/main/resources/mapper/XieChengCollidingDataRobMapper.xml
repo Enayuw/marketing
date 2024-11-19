@@ -262,6 +262,7 @@
         update_time = now()
         where cell_sha256_code_list =
         #{cellSha256}
+        and is_delete = 0
     </update>
 
     <select id="searchRobDeleteCountByExtend" parameterType="java.lang.String" resultType="java.lang.Integer">

@@ -188,7 +188,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             minId = ids.get(ids.size() - 1);
             CompletableFuture.runAsync(() -> {
                 try {
-                    robMapper.batchUpdateRobBlackListData(ids, DateUtils.format(new Date()) + "公共黑名单剔除");
+                    robMapper.batchUpdateRobBlackListData(ids, DateUtils.format(new Date()) + "公共黑名单");
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                             , "携程批量更新非周期表公共黑名单状态，子线程处理异常"), e);
@@ -210,7 +210,7 @@ public class XieChengPreCollidingBlackListDeleteServiceImpl implements XieChengP
             minId = ids.get(ids.size() - 1);
             CompletableFuture.runAsync(() -> {
                 try {
-                    cycleMapper.batchUpdateCycPublicBlackListData(ids, DateUtils.format(new Date()) + "公共黑名单剔除");
+                    cycleMapper.batchUpdateCycPublicBlackListData(ids, DateUtils.format(new Date()) + "公共黑名单");
                 } catch (Exception e) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                             , "携程批量更新周期表公共黑名单状态，子线程处理异常"), e);
