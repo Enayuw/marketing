@@ -16,6 +16,7 @@ import com.br.marketing.mapper.MarketingCustomerConfigMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.service.MarketingCustomerService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.vo.CustomerListVo;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
@@ -105,7 +106,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 CustomerListVo customerListVo = new CustomerListVo();
                 BeanUtils.copyProperties(marketingCustomer, customerListVo);
                 MarketingCustomerConfig marketingCustomerConfig = configs.get(marketingCustomer.getApiCode());
-                customerListVo.setCheckType(marketingCustomerConfig == null ? new Integer("1") : marketingCustomerConfig.getCheckType());
+                customerListVo.setCheckType(marketingCustomerConfig == null
+                        ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
+                        : marketingCustomerConfig.getCheckType());
                 customerListVos.add(customerListVo);
             }
             return PageResultReturn.setPageResult(customerListVos, page, pageSize);
