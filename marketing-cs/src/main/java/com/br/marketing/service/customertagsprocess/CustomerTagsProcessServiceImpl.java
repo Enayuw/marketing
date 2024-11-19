@@ -95,10 +95,6 @@ public class CustomerTagsProcessServiceImpl {
     private CustomerTagsVO getTagsOfRedis(String apiCode) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {
-            //todo 上线前删除
-            if(marketingCommonConfig.getMockTagsRedisError()){
-                throw new RuntimeException("模拟redis读取异常");
-            }
             if (redisChgService.exists(key)) {
                 String s = redisChgService.get(key);
                 if (StringUtils.isNotBlank(s)) {
@@ -115,10 +111,6 @@ public class CustomerTagsProcessServiceImpl {
     private void writeTagsOfRedis(String apiCode, CustomerTagsVO customerTagsVO) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {
-            //todo 上线前删除
-            if(marketingCommonConfig.getMockTagsRedisError()){
-                throw new RuntimeException("模拟redis写入异常");
-            }
             String voStr = JSON.toJSONString(customerTagsVO);
             redisChgService.setex(key, voStr, customerExpireTime);
         } catch (Exception ex) {
@@ -129,10 +121,6 @@ public class CustomerTagsProcessServiceImpl {
     public void delTagsOfRedis(String apiCode) {
         String key = RedisKeyConstant.CUSTOMERTAGS.concat(":").concat(apiCode);
         try {
-            //todo 上线前删除
-            if(marketingCommonConfig.getMockTagsRedisError()){
-                throw new RuntimeException("模拟redis删除异常");
-            }
             if (redisChgService.exists(key)) {
                 redisChgService.del(key);
             }

@@ -114,9 +114,6 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
         jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
         jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", pushJc3keyType)));
         jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", pushJc3keyType)));
-        jsonObject.put("cell", emptyDefault(syncUser.getCell()));
-        jsonObject.put("cellMd5", emptyDefault(syncUser.getCellMd5()));
-        jsonObject.put("cellSha256", emptyDefault(syncUser.getCellSha256()));
         jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
         jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));

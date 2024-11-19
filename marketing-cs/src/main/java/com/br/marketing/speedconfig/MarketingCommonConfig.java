@@ -2307,9 +2307,5 @@ public class MarketingCommonConfig {
      */
     private Boolean qifuAiCleanStrategyCodeFlag;
 
-    /**
-     * 模拟redis异常
-     */
-    private Boolean mockTagsRedisError;
 }
 
