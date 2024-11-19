@@ -1,7 +1,9 @@
 package com.br.marketing.monkeydata.service.Impl;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.TransferActionFront;
 import com.br.marketing.entity.TransferActionFrontExample;
@@ -79,7 +81,8 @@ public class ZhongAnPushBlackDataServiceImpl implements ZhongAnPushBlackDataServ
                     Thread.sleep(3000);
                     log.warn("众安上传数据解析中，待解析完成开始推送黑名单");
                 } catch (Exception e) {
-                    log.error("众安推送黑名单，上传数据解析查询异常", e);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_SERVICEERROR.getCode(),
+                            "众安推送黑名单，上传数据解析查询异常!"), e);
                 }
             }
             MarketingSyncCondition marketingSyncCondition = new MarketingSyncCondition();

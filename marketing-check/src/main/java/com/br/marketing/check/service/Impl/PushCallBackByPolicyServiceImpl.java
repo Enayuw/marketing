@@ -2,6 +2,7 @@ package com.br.marketing.check.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.check.service.PushCallBackService;
 import com.br.marketing.check.service.PushCustomerService;
@@ -11,6 +12,7 @@ import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUse
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.CallBackScoreResourceEnum;
@@ -60,7 +62,8 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
 
         Result<Integer> integerResult = pushRuleService.checkThreekEnc(Arrays.asList(straHisFile.getId()));
         if (!ResultCode.SUCCESS.getValue().equals(integerResult.getCode())) {
-            log.error(String.format("该推送不符合推送决策的限制条件 跑批id：【%s】,原因：【%s】", straHisFile.getId(), integerResult.getMessage()));
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
+                    , String.format("该推送不符合推送决策的限制条件 跑批id：【%s】,原因：【%s】", straHisFile.getId(), integerResult.getMessage())));
             return;
         }
         Integer threeEncrypt = integerResult.getData();
@@ -101,7 +104,7 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                         try {
                             varObject = JSON.parseObject(detail.getPushJson());
                         } catch (Exception ex) {
-                            log.error(ex.getMessage(), ex);
+                            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
                             varObject = new JSONObject();
                         }
                         varObject.put("orderId", detail.getCustNum());
@@ -142,13 +145,13 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
                     }catch (Exception ex){
                         update.setPushStatus(3);
                         error.incrementAndGet();
-                        log.error("推送决策接口异常",ex);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策接口异常!"), ex);
                     }
                     pushCustomerDetailMapper.updateByExampleSelective(update, example);
                     //endregion
                 } catch (Exception e) {
                     error.incrementAndGet();
-                    log.error("推送客户线程报错" + e.getMessage(), e);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送客户线程报错!"), e);
                 }
             });
             pageIndex++;
@@ -156,7 +159,7 @@ public class PushCallBackByPolicyServiceImpl implements PushCallBackService {
         try {
             waitThreadPool(pushPool);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
         }
     }
 }

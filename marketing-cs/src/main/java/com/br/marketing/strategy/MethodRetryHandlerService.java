@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bo.SaveReachDeleteRecordReqBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.bo.ZaMarketDataBO;
@@ -55,6 +56,7 @@ import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.dto.DataJoinLogDTO;
@@ -247,7 +249,8 @@ public class MethodRetryHandlerService {
             }
             return pushBlackListResponseResult.setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用人工黑名单失败 -- {}", JSON.toJSONString(pushBlackListResponseResult));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用人工黑名单失败 -- " + JSON.toJSONString(pushBlackListResponseResult)));
         return pushBlackListResponseResult.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -267,7 +270,8 @@ public class MethodRetryHandlerService {
                     dassImportAdapDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用人工实时推送用户名单失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -295,7 +299,7 @@ public class MethodRetryHandlerService {
                 phoneSaleExtendInfoMapper.insertSelective(phoneSaleExtendInfo);
                 dassImportAdapDTO.setExtendInfo(phoneSaleExtendInfo.getId().toString());
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), e.getMessage()), e);
             }
         }
         DassSingleImportAdapDTO dassSingleImportAdapDTO = new DassSingleImportAdapDTO();
@@ -318,7 +322,8 @@ public class MethodRetryHandlerService {
         }
         info.setPStatus(3);
         phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(info);
-        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用人工实时推送用户名单失败 -- " + JSON.toJSONString(result)));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
     }
@@ -364,7 +369,8 @@ public class MethodRetryHandlerService {
                 phoneSaleExtendInfoMapper.updateByPrimaryKeySelective(update);
             }
         }
-        log.error("调用人工实时推送用户名单失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用人工实时推送用户名单失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -419,7 +425,8 @@ public class MethodRetryHandlerService {
             saveBizLog(String.join(",", set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
-        log.error("调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
+                , "调用客服接口失败 -- " + JSON.toJSONString(transferRobotOutboundVO)));
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
@@ -449,7 +456,8 @@ public class MethodRetryHandlerService {
             saveBizLog(Joiner.on(",").join(set), InterfaceHandlerEnum.CUSTOMER_TRANSFER.getCode(), robotOutboundDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
-        log.error("调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
+                , "调用客服接口失败 -- " + JSON.toJSONString(transferRobotOutboundVO)));
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
@@ -466,7 +474,8 @@ public class MethodRetryHandlerService {
             dataCompareMapper.insertSelective(dataCompare);
             return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(transferRobotOutboundVO);
         }
-        log.error("携程新场景短信撞库，调用客服接口失败 -- {}", JSON.toJSONString(transferRobotOutboundVO));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
+                , "携程新场景短信撞库，调用客服接口失败 --  -- " + JSON.toJSONString(transferRobotOutboundVO)));
         //调用客户转化接口失败，记录数据入库，定时任务重试
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(transferRobotOutboundVO);
     }
@@ -503,7 +512,8 @@ public class MethodRetryHandlerService {
             phoneSaleExtendInfoMapper.updateBatch(set);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用批量人工实时转电销失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -523,7 +533,8 @@ public class MethodRetryHandlerService {
             phoneSaleExtendInfoMapper.updateBatch(set);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("转化数据周期推送电销失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "转化数据周期推送电销失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -556,7 +567,8 @@ public class MethodRetryHandlerService {
             phoneSaleExtendHaluoMapper.updateByExampleSelective(updateEntity, updateExample);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用批量人工实时转电销失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用批量人工实时转电销失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -577,7 +589,8 @@ public class MethodRetryHandlerService {
                     dassTransferDataAdapDTO.getTransferInfoId());
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用电销转化接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用电销转化接口失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -609,7 +622,8 @@ public class MethodRetryHandlerService {
                     dassTransferDataAdapDTO.getTransferInfoId());
             return result;
         }
-        log.error("调用电销去重转化接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用电销去重转化接口失败 -- " + JSON.toJSONString(result)));
         result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         return result;
     }
@@ -629,7 +643,8 @@ public class MethodRetryHandlerService {
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("萨摩耶调用电销转化接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "萨摩耶调用电销转化接口失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -692,7 +707,7 @@ public class MethodRetryHandlerService {
                 pushMarketingUserDTO.setJsonData(taskInfoDTO);
             }
         } catch (Exception e) {
-            log.error("决策重试接口类型转化失败", e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "决策重试接口类型转化失败!"), e);
         }
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
@@ -702,7 +717,8 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "调用推送决策接口失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
     /**
@@ -724,7 +740,8 @@ public class MethodRetryHandlerService {
                 pushMarketingUserDTO.setJsonData(taskInfoDTO);
             }
         } catch (Exception e) {
-            log.error("apiCode{}决策重试接口类型转化失败", apiCode, e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                    "apiCode" + apiCode + "决策重试接口类型转化失败!"), e);
         }
         Long infoId = dto.getInfoId();
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
@@ -734,7 +751,8 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("apiCode:{}调用推送决策接口失败--{}", apiCode,JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "apiCode" + apiCode + "调用推送决策接口失败--" + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -757,7 +775,7 @@ public class MethodRetryHandlerService {
                 pushMarketingUserDTO.setJsonData(taskInfoDTO);
             }
         } catch (Exception e) {
-            log.error("决策重试接口类型转化失败", e.getMessage());
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "决策重试接口类型转化失败!"), e);
         }
         Result result = intelligentCustomerServiceClient.pushUser(pushMarketingUserDTO);
         if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
@@ -766,7 +784,8 @@ public class MethodRetryHandlerService {
             dataCompareMapper.insertSelective(dataCompare);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "调用推送决策接口失败--" + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -835,7 +854,8 @@ public class MethodRetryHandlerService {
             phoneSaleExtendInfoMapper.updateBatch(set);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                , "调用人工IBU批量接口失败  --  " +  JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
@@ -878,11 +898,12 @@ public class MethodRetryHandlerService {
                 PhoneSaleIbuExample ibuExample = new PhoneSaleIbuExample();
                 ibuExample.createCriteria().andIdIn(ids);
                 phoneSaleIbuMapper.updateByExampleSelective(updateEntity, ibuExample);
-                log.error("调用人工IBU批量接口失败 -- {}", JSON.toJSONString(result));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode()
+                        , "调用人工IBU批量接口失败  --  " +  JSON.toJSONString(result)));
                 return new Result().setCode(ResultCode.FAIL.getValue());
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(), ex.getMessage()), ex);
         }
 
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
@@ -936,7 +957,8 @@ public class MethodRetryHandlerService {
             }
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
-        log.error("调用推送决策接口失败 -- {}", JSON.toJSONString(result));
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(),
+                "调用推送决策接口失败 -- " + JSON.toJSONString(result)));
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
     }
 
