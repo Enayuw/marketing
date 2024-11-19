@@ -904,7 +904,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             return XcProcessTaskEnum.PROCESS_DELETE;
         }
         if (StringUtils.isNotEmpty(result) && result.equalsIgnoreCase("false")
-                && StringUtils.isNotEmpty(info) && info.equalsIgnoreCase("NULL")) {
+                && !Objects.isNull(info) && (info.equals("") || info.equalsIgnoreCase("NULL"))) {
             return XcProcessTaskEnum.PROCESS_DYNA_FALSE;
         }
         if (StringUtils.isNotEmpty(blacklistDelete) && blacklistDelete.equalsIgnoreCase("true")) {
