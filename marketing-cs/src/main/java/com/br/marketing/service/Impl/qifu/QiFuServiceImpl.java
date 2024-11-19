@@ -166,7 +166,7 @@ public class QiFuServiceImpl implements IQiFuService {
                     case "flowNo":
                         String flowNo = jsonObject.getString(s);
                         if (ObjectUtils.isEmpty(flowNo)) {
-                            errorMsg.append("batchNo为空");
+                            errorMsg.append("flowNo为空");
                             continue outerLoop;
                         }
                         requestId = String.format("%s_%s", drsCustomizeUploadData.getId(), flowNo);
@@ -243,6 +243,7 @@ public class QiFuServiceImpl implements IQiFuService {
         }
     }
 
+
     private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg) {
         MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
         for (String s : o1.keySet()) {
@@ -263,7 +264,7 @@ public class QiFuServiceImpl implements IQiFuService {
                     } else if ("M".equals(genderValue)) {
                         reserField1.put(s, "1");
                     } else if (!"".equals(genderValue)) {
-                        warnMsg.append("异常性别：" + genderValue);
+                        warnMsg.append("异常性别：").append(genderValue);
                     }
                     break;
                 default:
@@ -287,14 +288,13 @@ public class QiFuServiceImpl implements IQiFuService {
         Boolean b = true;
         while (b) {
             if (executor.isTerminated()) {
-                System.out.println("结束");
                 b = false;
             } else {
-                System.out.println("休息");
                 try {
                     Thread.sleep(3000L);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(),e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }
