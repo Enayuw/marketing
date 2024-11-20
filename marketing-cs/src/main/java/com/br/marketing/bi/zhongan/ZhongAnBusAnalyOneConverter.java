@@ -78,7 +78,32 @@ public class ZhongAnBusAnalyOneConverter extends AbstractBiReportConverter<BiRep
         List<ZhongAnBusAnalyOneReportDTO> sortedData = dtos.stream()
                 .sorted(Comparator.comparing(ZhongAnBusAnalyOneReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());*/
         // 构造横坐标数据
-        List<String> xAxis = sortedData.stream().map(ZhongAnBusAnalyOneReportDTO::getReportDate).collect(Collectors.toList());
+//        List<String> xAxis = sortedData.stream().map(ZhongAnBusAnalyOneReportDTO::getReportDate).collect(Collectors.toList());
+        List<String> xAxis = sortedData.stream()
+                .map(ZhongAnBusAnalyOneReportDTO::getReportDate)
+                .collect(Collectors.groupingBy(date -> {
+                    // 判断是否是单一日期还是范围日期
+                    if (date.contains("-")) {
+                        String[] dates = date.split("-");
+                        return dates[1];
+                    }
+                    return date;
+                }))
+                .entrySet()
+                .stream()
+                .flatMap(entry -> {
+                    String key = entry.getKey();
+                    List<String> dates = entry.getValue();
+                    List<String> combinedList = new ArrayList<>();
+                    combinedList.addAll(dates.stream()
+                            .filter(date -> !date.contains("-"))
+                            .collect(Collectors.toList()));
+                    combinedList.addAll(dates.stream()
+                            .filter(date -> date.contains("-"))
+                            .collect(Collectors.toList()));
+                    return combinedList.stream();
+                })
+                .collect(Collectors.toList());
         biReportVO.setXAxisName("日期");
         biReportVO.setXAxis(xAxis);
         // 构造纵坐标数据

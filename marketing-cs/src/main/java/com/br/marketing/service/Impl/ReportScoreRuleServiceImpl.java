@@ -1,5 +1,8 @@
 package com.br.marketing.service.Impl;
 
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -13,6 +16,7 @@ import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
+import com.br.marketing.service.bi.impl.ZhongAnControlGroupServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
@@ -23,6 +27,9 @@ import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
+import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
+import com.br.marketing.vo.zhongan.param.ZhongAnCustomInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +82,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Autowired
     private ZhongAnControlGroupMapper zhongAnControlGroupMapper;
+
+    @Resource
+    ZhongAnControlGroupServiceImpl zhongAnControlGroupService;
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -242,7 +252,25 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                 BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName());
 
         if (businessList.contains(reportTypeName) && (!checkBusinessReportConfig(reportTaskParam))) {
-            return new ApiResult<Boolean>().fail(false, "经营分析报表未配置报表配置，请检查");
+            ZhongAnControlGroupParam param = new ZhongAnControlGroupParam();
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                String jsonData1 = "[{\"constituencies\":1,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}," +
+                        "{\"constituencies\":2,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}]";
+                String jsonData7 = "[{\"constituencies\":3,\"payPassRate\":0,\"lendersSucAmount\":0}," +
+                        "{\"constituencies\":4,\"totalNum\":0,\"loginRate\":0,\"incomingNum\":0,\"approversNum\":0," +
+                        "\"approvalAvailable\":0,\"applyPayNum\":0,\"payPassRate\":0,\"lendersSucNum\":0,\"lendersSucAmount\":0}]";
+                String jsonData8 = "[{\"constituencies\":5,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}]";
+
+                param.setUserType1(objectMapper.readValue(jsonData1, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                param.setUserType7(objectMapper.readValue(jsonData7, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                param.setUserType8(objectMapper.readValue(jsonData8, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                zhongAnControlGroupService.saveCustomInfo(param);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                                "默认统计生成报表配置错误"), e);
+            }
+
         }
         Integer reportType = null;
         if (reportTypeName != null) {
