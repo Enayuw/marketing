@@ -253,6 +253,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
         if (businessList.contains(reportTypeName) && (!checkBusinessReportConfig(reportTaskParam))) {
             ZhongAnControlGroupParam param = new ZhongAnControlGroupParam();
+            param.setReportDate(LocalDate.now().toString());
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 String jsonData1 = "[{\"constituencies\":1,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}," +
