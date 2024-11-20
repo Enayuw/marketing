@@ -797,7 +797,7 @@
         left  join b_marketing_task_extend bmte on bmte.task_id = bmt.id
         left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
         where  bsrc.is_del = 1
-        and bmt.status !=0
+        and bmt.status = 1
         and bmt.monitor_type = 4
         <if test="apiCode !=null and apiCode!=''">
             and bmt.api_code = #{apiCode}

@@ -47,6 +47,7 @@
         <foreach collection="ids" open="(" close=")" separator="," item="id">
             #{id}
         </foreach>
+        order by shf.create_time desc
     </select>
 
     <select id="getFileByruleNameShorts" resultType="com.br.marketing.vo.TaskTemplateVO">
