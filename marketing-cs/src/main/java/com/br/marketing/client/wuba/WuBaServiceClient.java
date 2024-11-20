@@ -209,11 +209,18 @@ public class WuBaServiceClient {
 
     public Result queryConversionZipResult(String collectDate, String targetPath) {
         Result result = new Result().failure();
-        String queryConversionZipResultUrl = marketingCommonConfig.getWuBaCollidingUrlConfig().getString("queryConversionZipResultUrl");
-        queryConversionZipResultUrl = queryConversionZipResultUrl.replace("#{collectDate}", collectDate);
+        Map<String, String> urlConfig = marketingCommonConfig.getWuBaQueryConversionZipResultUrlConfig();
+        String url = urlConfig.get("url");
+        String orgCode = urlConfig.get("orgCode");
+        String password = urlConfig.get("password");
+
+        String queryUrl = url.concat("?")
+                .concat("orgCode=").concat(orgCode)
+                .concat("&collectDate=").concat(collectDate)
+                .concat("&password=").concat(password);
         // 调用客户接口
         try {
-            Result callResult = zipFileClient.downloadZipFile(queryConversionZipResultUrl, targetPath, true);
+            Result callResult = zipFileClient.downloadZipFile(queryUrl, targetPath, true);
             if(callResult == null || !callResult.isSuccess()){
                 return result.failure();
             }

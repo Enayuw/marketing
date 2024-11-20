@@ -95,9 +95,9 @@ public class WuBaQueryConversionZipResultJob extends AbstractSimpleElasticJob {
             return;
         }
 
-        action = jobManager.saveFront(apiCode, apiCode, actionType);
+        action = jobManager.saveFront(apiCode, bizDate, actionType);
         if (action.getId() == null) {
-            log.warn(TITLE+ "新增失败, apiCode:{}, actionDate:{}", apiCode, actionDate);
+            log.warn(TITLE+ "任务执行记录新增失败, apiCode:{}, actionDate:{}", apiCode, actionDate);
             return;
         }
 
@@ -111,7 +111,7 @@ public class WuBaQueryConversionZipResultJob extends AbstractSimpleElasticJob {
 
         if (actionResult!=null && actionResult.isSuccess()){
             jobManager.updateFrontDataStatus(action.getId(), 2);
-            log.warn(TITLE+"今日更新成功, apiCode:{}, actionDate:{}", apiCode, actionDate);
+            log.warn(TITLE+"任务执行记录更新成功, apiCode:{}, actionDate:{}", apiCode, actionDate);
         }
     }
 

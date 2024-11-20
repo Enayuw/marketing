@@ -2,11 +2,10 @@ package com.br.marketing.service.Impl.wuba;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.file.ZipUtils;
 import com.br.marketing.dto.wuba.WuBaQueryConversionZipResultDto;
@@ -26,7 +25,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -63,13 +62,12 @@ public class WuBaQueryConversionZipResultService {
     public Result action(Page2Condition<WuBaQueryConversionZipResultDto> condition) {
         Result result = new Result<>().failure();
         try {
-            // 扫描批次, BatchType 2-上报
             WuBaQueryConversionZipResultDto param = condition.getParam();
             String apiCode = param.getApiCode();
             String bizDate = param.getBizDate();
 
             // wuBaServiceClient
-            String dirPath = marketingCommonConfig.getWuBaQueryConversionZipResultDownloadPath();
+            String dirPath = marketingCommonConfig.getWuBaQueryConversionZipResultFilePath();
             String zipFileName = "bairongkj_" + bizDate + ".csv.zip";
             String zipFilePath = dirPath.concat(zipFileName);
             Result callResult = wuBaServiceClient.queryConversionZipResult(bizDate, zipFilePath);
@@ -86,14 +84,18 @@ public class WuBaQueryConversionZipResultService {
                 return result.failure();
             }
 
-            ZipUtils.unZip(zipFile, dirPath, "");
+            String csvDirPath = dirPath+"csv/"+bizDate+"/";
+            ZipUtils.unZip(zipFile, csvDirPath, "");
+            log.warn(TITLE + "解压zip包成功");
 
-            File dir = new File(dirPath);
-            File[] files = dir.listFiles();
+            File csvDir = new File(csvDirPath);
+            File[] files = csvDir.listFiles();
             if (files == null) {
                 log.warn(TITLE + "解压csv文件不存在");
                 return result.failure();
             }
+
+            // 文件解析入库
             for (File csvFile : files) {
                 if (!csvFile.getName().contains(".csv")) {
                     log.warn(TITLE + "解压文件不是csv文件");
@@ -101,6 +103,10 @@ public class WuBaQueryConversionZipResultService {
                 }
                 // 生成清洗任务
                 Long taskId = cleaningAutoService.saveCleanTask(apiCode, 1, "58新客_转化清洗规则勿动");
+                Map<String, String> headerMapping = marketingCommonConfig.getWuBaQueryConversionZipResultHeaderMapping();
+
+                // 文件解析入库
+                parseFile(apiCode, taskId, csvFile, headerMapping);
 
                 // 更新清洗任务表
                 MarketingCleanDataTask cleanDataTaskUpdate = new MarketingCleanDataTask();
@@ -114,22 +120,32 @@ public class WuBaQueryConversionZipResultService {
             log.warn(TITLE + "action error", e);
             return result.failure();
         }
-
-
         return result.success();
     }
 
-    public void parseFile(String apiCode, Long taskId, File csvFile, Map<String, String> headerMapping) throws Exception {
+    public Result parseFile(String apiCode, Long taskId, File csvFile, Map<String, String> headerMapping) {
+        Result result = new Result().failure();
         try (BufferedReader reader = new BufferedReader(new FileReader(csvFile))) {
             // 读取表头
             String headerLine = reader.readLine();
-            String[] headers = headerLine.split(",");
+            List<String> headers = StrUtil.split(headerLine, ',');
+
+            // 表头校验
+            Set<String> headerConfigSet = headerMapping.keySet();
+            for(String headerConfig: headerConfigSet){
+                if(!headers.contains(headerConfig)){
+                    log.warn(TITLE + "表头字段{}在文件不存在", headerConfig);
+                    return result.failure();
+                }
+            }
+            log.warn(TITLE + "表头校验成功");
 
             // 批量处理数据
             List<String> lineBuffer = new ArrayList<>();
             ThreadPoolExecutor actionPool = BrExecutors.getThreadPool(10, 10);
             List<CompletableFuture<Result>> futureList = new ArrayList<>();
             List<Long> resultList = Collections.synchronizedList(new ArrayList<>(20));
+            PARTITION_SIZE = marketingCommonConfig.getWuBaQueryConversionZipResultPartitionSize();
 
             String line;
             Long totalLine = 0L;
@@ -137,15 +153,20 @@ public class WuBaQueryConversionZipResultService {
             while ((line = reader.readLine()) != null) {
                 lineBuffer.add(line);
                 if (lineBuffer.size() >= PARTITION_SIZE) {
-                    processList(apiCode, taskId, lineBuffer, headers, headerMapping, actionPool, futureList, resultList);
+                    List<String> lineList = new ArrayList<>();
+                    lineList.addAll(lineBuffer);
                     totalLine += lineBuffer.size();
+                    processList(apiCode, taskId, lineList, headers, headerMapping, actionPool, futureList, resultList);
                     lineBuffer.clear();
                 }
             }
 
             // 处理剩余数据
             if (!lineBuffer.isEmpty()) {
-                processList(apiCode, taskId, lineBuffer, headers, headerMapping, actionPool, futureList, resultList);
+                List<String> lineList = new ArrayList<>();
+                lineList.addAll(lineBuffer);
+                totalLine += lineBuffer.size();
+                processList(apiCode, taskId, lineList, headers, headerMapping, actionPool, futureList, resultList);
             }
 
             CompletableFuture.allOf(futureList.toArray(new CompletableFuture[0])).join();
@@ -159,17 +180,18 @@ public class WuBaQueryConversionZipResultService {
             shutdownThreadPool(actionPool);
         } catch (IOException e) {
             log.error(TITLE + "parseFile error", e);
-            throw new RuntimeException(e);
+            return result.failure();
         }
+        return result.success();
     }
 
-    public Result processList(String apiCode, Long taskId, List<String> lineBuffer, String[] headers, Map<String, String> headerMapping
+    public Result processList(String apiCode, Long taskId, List<String> lineList, List<String> headers, Map<String, String> headerMapping
             , ThreadPoolExecutor actionPool, List<CompletableFuture<Result>> futureList, List<Long> resultList) {
         Result result = new Result().failure();
         actionPool.setCorePoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
         actionPool.setMaximumPoolSize(marketingCommonConfig.getWuBaQueryConversionBatDBThreadPool());
 
-        futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, taskId, lineBuffer, headers, headerMapping), actionPool)
+        futureList.add(CompletableFuture.supplyAsync(() -> processData(apiCode, taskId, lineList, headers, headerMapping), actionPool)
                 .whenComplete((processDataResult, throwable) -> {
                     if (processDataResult == null || !processDataResult.isSuccess()) {
                         resultList.add(0L);
@@ -185,10 +207,10 @@ public class WuBaQueryConversionZipResultService {
         return result.success();
     }
 
-    public Result processData(String apiCode, Long taskId, List<String> lineBuffer, String[] headers, Map<String, String> headerMapping) {
+    public Result processData(String apiCode, Long taskId, List<String> lineList, List<String> headers, Map<String, String> headerMapping) {
         Result result = new Result().failure();
         try {
-            Result processResult = processLineBuffer(apiCode, taskId, lineBuffer, headers, headerMapping);
+            Result processResult = processLineBuffer(apiCode, taskId, lineList, headers, headerMapping);
             if (processResult == null || !processResult.isSuccess() || processResult.getData() == null) {
                 return result.failure();
             }
@@ -200,27 +222,27 @@ public class WuBaQueryConversionZipResultService {
             Long successLine = Long.valueOf(dataList.size());
             return result.success().setDate(successLine);
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
-                    TITLE + "批量保存转化结果异常"));
+            log.error(TITLE + "processData error", e);
             return result.failure();
         }
     }
 
-    public Result processLineBuffer(String apiCode, Long taskId, List<String> lineBuffer, String[] headers
+    public Result processLineBuffer(String apiCode, Long taskId, List<String> lineList, List<String> headers
             , Map<String, String> headerMapping) {
         Result result = new Result().failure();
-        if (CollectionUtils.isEmpty(lineBuffer)) {
+        if (CollectionUtils.isEmpty(lineList)) {
             return result.success();
         }
 
         List<WubaSubmitConversionDataTransferClean> dataList = new ArrayList<>();
 
-        for (String line : lineBuffer) {
+        for (String line : lineList) {
             Map<String, Object> dataMap = new HashMap<>();
             JSONObject extendJo = new JSONObject();
-            String[] lineValues = line.split(",");
-            for (String header : headers) {
-                String value = lineValues[Arrays.asList(headers).indexOf(header)];
+            List<String> lineValues = StrUtil.split(line, ',');
+            for(int i=0; i<headers.size(); i++){
+                String header = headers.get(i);
+                String value = lineValues.get(i);
                 if (headerMapping.containsKey(header)) {
                     dataMap.put(headerMapping.get(header), value);
                     continue;
@@ -230,10 +252,11 @@ public class WuBaQueryConversionZipResultService {
             WubaSubmitConversionDataTransferClean data = BeanUtil.toBean(dataMap, WubaSubmitConversionDataTransferClean.class);
             data.setApiCode(apiCode);
             data.setBatchNo("");
-            Date pushTime = DateUtil.date(LocalDateTime.now().minusDays(1));
+            Date pushTime = DateUtil.parse(LocalDate.now().minusDays(1) +" 20:00:00");
             data.setPushTime(pushTime);
             data.setCleanStatus(0);
             data.setTaskId(taskId);
+            data.setExtend(extendJo.toJSONString());
             dataList.add(data);
         }
         return result.success().setDate(dataList);
@@ -263,5 +286,12 @@ public class WuBaQueryConversionZipResultService {
             log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }
         log.warn(TITLE + "shutdownThreadPool结束");
+    }
+
+    public static void main(String[] args) {
+        String str = "2024-11-19,a48a5a80ce25e66a01195c1a2298dc2d,2,2024-11-10 01:41:54,2024-11-24 23:59:59,2024-11-10 01:41:54,2024-11-18 11:53:51,,,,,,";
+        List<String> split = StrUtil.split(str, ',');
+        String[] split1 = str.split(",");
+        String[] split2 = str.split(",", -1);
     }
 }
