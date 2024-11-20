@@ -38,8 +38,9 @@ public class PolicyHandler extends AbstractExternalInterfaceHandler<PushMarketin
                         }));
                 for (String batchName : batchNameMap.keySet()) {
                     ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
+                    List<PushMarketingUserDetailByRuleDTO> value = batchNameMap.get(batchName);
                     List<Long> sourceIds = new ArrayList<>();
-                    datas.forEach(t->{
+                    value.forEach(t->{
                         PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
                         BeanUtils.copyProperties(t, entity);
                         pushs.add(entity);
