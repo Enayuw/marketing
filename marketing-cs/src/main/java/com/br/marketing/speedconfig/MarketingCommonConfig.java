@@ -2307,5 +2307,10 @@ public class MarketingCommonConfig {
      */
     private Boolean qifuAiCleanStrategyCodeFlag;
 
+    /**
+     * 顺丰获取公司信息线程数
+     */
+    private Integer shunFengCompanyThreadNum;
+
 }
 

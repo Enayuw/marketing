@@ -57,7 +57,7 @@ public class ShunfengClient {
 
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    public Result<String> getToken() {
+    public Result<JSONObject> getToken() {
         HashMap<String, String> resMap = new HashMap<>();
         TokenReqDTO req = new TokenReqDTO();
         req.setPartnerID(partnerID);
@@ -76,7 +76,7 @@ public class ShunfengClient {
         JSONObject resultJson = JSONObject.parseObject(content);
         String resultCode = resultJson.getString("apiResultCode");
         if ("A1000".equals(resultCode)) {
-            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultJson.getString("accessToken"));
+            return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(resultJson);
         } else {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(), "顺丰获取token接口异常，返回apiResultCode非A1000"));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));

@@ -2,6 +2,8 @@ package com.br.marketing.client.shunfeng.output;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @author zhen.li1
  */
@@ -115,7 +117,7 @@ public class BussinesInfoReponse {
     /**
      * 更多联系电话  加密字段
      */
-    private String more_contact;
+    private List<String> more_contact;
 
     /**
      * 地址验证时间，格式
