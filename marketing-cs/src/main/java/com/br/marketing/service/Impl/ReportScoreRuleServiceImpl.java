@@ -1,7 +1,12 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO;
+import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -38,6 +43,8 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -85,6 +92,14 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Resource
     ZhongAnControlGroupServiceImpl zhongAnControlGroupService;
+
+    @Resource
+    ReportStatisticTransferMapper reportStatisticTransferMapper;
+
+    @Resource
+    ZhongAnBiReportMapper zhongAnBiReportMapper;
+
+
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -566,4 +581,83 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
         reportTaskParam.setReportType(BiReportTypeEnum.getEnumByTypeName(reportTaskParam.getReportTypeName()).getType());
     }
+
+    /**
+     * 更新报表统计记录
+     * @param reportDate
+     * @return
+     */
+    @Override
+    public Boolean updateReportRecords(String reportDate) {
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            Date reportDateObj = dateFormat.parse(reportDate);
+
+            ReportTaskExample reportTaskExample = new ReportTaskExample();
+            reportTaskExample.createCriteria()
+                    .andCreateTimeGreaterThanOrEqualTo(reportDateObj)
+                    .andCreateTimeLessThanOrEqualTo(new Date(reportDateObj.getTime() + 24 * 60 * 60 * 1000 - 1));
+
+            ReportTask reportTask = new ReportTask();
+            reportTask.setStatus(0);
+            reportTask.setUpdateTime(new Date());
+            boolean flag = reportTaskMapper.updateByExampleSelective(reportTask, reportTaskExample) == 3;
+            if (flag) {
+                ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
+                if (ObjectUtil.isNotEmpty(reportDate)) {
+                    ReportTaskExample taskExample = new ReportTaskExample();
+                    taskExample.createCriteria().andReportTypeIn(Arrays.asList(12, 13, 14)).andCreateTimeGreaterThanOrEqualTo(customParse(reportDate));
+                    taskExample.setOrderByClause("create_time desc");
+                    List<ReportTask> reportTasks = reportTaskMapper.selectByExample(taskExample);
+                    if (ObjectUtil.isEmpty(reportTasks)) {
+                        return flag;
+                    }
+                    List<String> ids = reportTasks.stream()
+                            .map(task -> task.getId().toString())
+                            .collect(Collectors.toList());
+                    reportStatisticTransferExample.createCriteria().andReportTaskIdIn(ids).andReportDateEqualTo(reportDate);
+                    reportStatisticTransferExample.setOrderByClause("create_time desc");
+                    List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
+                    if (reportStatisticTransfers.isEmpty()) {
+                        return flag;
+                    }
+                    List<String> reportIdsOne = reportStatisticTransfers.stream()
+                            .filter(transfer -> "12".equals(transfer.getReportType()))
+                            .map(ReportStatisticTransfer::getReportId)
+                            .collect(Collectors.toList());
+
+                    List<String> reportIdsSeven = reportStatisticTransfers.stream()
+                            .filter(transfer -> "13".equals(transfer.getReportType()))
+                            .map(ReportStatisticTransfer::getReportId)
+                            .collect(Collectors.toList());
+
+                    List<String> reportIdsEight = reportStatisticTransfers.stream()
+                            .filter(transfer -> "14".equals(transfer.getReportType()))
+                            .map(ReportStatisticTransfer::getReportId)
+                            .collect(Collectors.toList());
+
+                    zhongAnBiReportMapper.deleteZaBusAnalyOneListbI_(reportIdsOne);
+                    zhongAnBiReportMapper.deleteZaBusAnalySevenListbI_(reportIdsSeven);
+                    zhongAnBiReportMapper.deleteZaBusAnalyEightListbI_(reportIdsEight);
+                }
+            }
+            return flag;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "更新报表统计记录异常"), e);
+            return false;
+        }
+
+    }
+
+    public static Date customParse(String dateString) {
+        SimpleDateFormat customFormat = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            return customFormat.parse(dateString);
+        } catch (ParseException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()), e);
+            return null;
+        }
+    }
+
 }

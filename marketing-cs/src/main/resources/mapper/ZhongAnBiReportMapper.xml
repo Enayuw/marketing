@@ -64,6 +64,33 @@
         order by score_value desc
     </select>
 
+    <update id="deleteZaBusAnalyOneListbI_">
+        UPDATE dws_za_one_business_analysis
+        SET is_delete = 1
+        WHERE report_id IN
+        <foreach collection="reportIds" item="reportId" open="(" separator="," close=")">
+            #{reportId}
+        </foreach>
+    </update>
+
+    <update id="deleteZaBusAnalySevenListbI_">
+        UPDATE dws_za_one_business_analysis
+        SET is_delete = 1
+        WHERE report_id IN
+        <foreach collection="reportIds" item="reportId" open="(" separator="," close=")">
+            #{reportId}
+        </foreach>
+    </update>
+
+    <update id="deleteZaBusAnalyEightListbI_">
+        UPDATE dws_za_one_business_analysis
+        SET is_delete = 1
+        WHERE report_id IN
+        <foreach collection="reportIds" item="reportId" open="(" separator="," close=")">
+            #{reportId}
+        </foreach>
+    </update>
+
 </mapper>
 
 

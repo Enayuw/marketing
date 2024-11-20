@@ -11,6 +11,7 @@ import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
+import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -136,4 +137,17 @@ public class ReportScoreRuleController {
         List<ReportTaskVO> list = reportScoreRuleService.getReportTaskListForScore(name, ids);
         return new ApiResult<List<ReportTaskVO>>().success(list);
     }
+
+    @ApiOperation(value = "更新报表统计记录")
+    @PostMapping("/updateReportStatisticsRecords")
+    public ApiResult<Boolean> updateReportStatisticsRecords(String reportDate) {
+        try {
+            return new ApiResult<Boolean>().success(reportScoreRuleService.updateReportRecords(reportDate));
+        } catch (Exception e) {
+            log.error("更新报表统计记录异常", e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
 }

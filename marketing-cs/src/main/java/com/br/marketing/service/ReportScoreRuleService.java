@@ -7,6 +7,8 @@ import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
+import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
+
 import java.util.List;
 import java.util.Map;
 
@@ -75,4 +77,11 @@ public interface ReportScoreRuleService {
      * @date 2024/10/24 16:01
      **/
     List<ReportTaskVO> getReportTaskListForScore(String name, String ids);
+
+    /**
+     * 更新报表统计记录
+     * @param reportDate
+     * @return
+     */
+    Boolean updateReportRecords(String reportDate);
 }
