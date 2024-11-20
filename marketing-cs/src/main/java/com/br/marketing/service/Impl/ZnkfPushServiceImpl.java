@@ -29,6 +29,7 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.MrpMqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
@@ -146,6 +147,15 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                     mqFact.setSourceId(callRecord.getId());
                     mqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                     producter.sendToUniversalTransferQueue(mqFact);
+                }
+
+                List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
+                if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())){
+                    MrpMqFact mrpMqFact = new MrpMqFact();
+                    mrpMqFact.setSourceId(callRecord.getId());
+                    mrpMqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                    producter.sendToUniversalTransferQueue(mrpMqFact);
+
                 }
 
             }

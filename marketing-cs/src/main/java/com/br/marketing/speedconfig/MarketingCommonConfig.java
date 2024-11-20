@@ -224,6 +224,11 @@ public class MarketingCommonConfig {
     private List<String> callRecordDataPushMqApiCodes;
 
     /**
+     * 拨打记录数据配置apicode推送智能规则的mq
+     */
+    private List<String> mrpCallRecordDataPushMqApiCodes;
+
+    /**
      * 玖富转化数据提取apiCode集合
      */
     private List<String> JiuFuTransferApiCodes;

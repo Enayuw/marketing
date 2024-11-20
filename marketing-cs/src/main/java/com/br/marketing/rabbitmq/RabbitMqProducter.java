@@ -4,6 +4,7 @@ package com.br.marketing.rabbitmq;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.MrpMqFact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
@@ -113,6 +114,15 @@ public class RabbitMqProducter {
      */
     public void sendToUniversalTransferQueue(MqFact mqFact) {
         String message = JSON.toJSONString(mqFact);
+        CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
+        rabbitTemplate.convertAndSend(exchange, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, message, arg0 -> {
+            arg0.getMessageProperties().setContentEncoding("UTF-8");
+            return arg0;
+        },correlationData);
+    }
+
+    public void sendToUniversalTransferQueue(MrpMqFact mrpMqFact) {
+        String message = JSON.toJSONString(mrpMqFact);
         CorrelationData correlationData = new CorrelationDataHasContent(UUID.randomUUID().toString(), message);
         rabbitTemplate.convertAndSend(exchange, MQConstants.ROUTING_KEY_UNIVERSAL_TRANSFER_RECEIVE, message, arg0 -> {
             arg0.getMessageProperties().setContentEncoding("UTF-8");
