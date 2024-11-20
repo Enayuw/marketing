@@ -71,7 +71,8 @@ public class CustomerTransferSoleHandlerForRs extends AbstractExternalInterfaceH
                 robotOutboundDTO.setTransferInfoId(context.getTransferInfoId());
                 robotOutboundDTO.setData(sendList);
                 robotOutboundDTO.setDetailLogList(logList);
-                robotOutboundDTO.setLast(sum == totalCount ? last : (last != null ? "0" : null));
+                String last0 = last != null ? "0" : null;
+                robotOutboundDTO.setLast(sum == totalCount ? last : last0);
                 //传参去重
                 //去重字段维度,根据传入值赋值，默认为cell维度去重
                 if(conversionData.getSoleField()!=null){
