@@ -2,6 +2,7 @@ package com.br.marketing.context;
 
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import lombok.Data;
 
 /**
@@ -57,5 +58,7 @@ public class ProcessHandlerContext {
      * 0:非最后一次，1:最后一次
      */
     private String last;
+
+    private CustomerTagsVO customerTagsVO;
 
 }

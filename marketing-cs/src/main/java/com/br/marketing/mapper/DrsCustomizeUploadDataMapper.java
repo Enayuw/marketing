@@ -17,5 +17,8 @@ public interface DrsCustomizeUploadDataMapper {
 
     void updateSyncStatusByIds(@Param("tCid") String tCid, @Param("sourceIds") List<Long> sourceIds, @Param("syncStatus") int syncStatus);
 
-    List<DrsCustomizeUploadData> getDataOfNeedClean(@Param("tCid") String tCid, @Param("apiCodes") List<String> apiCodes,@Param("receiveDates") List<String> receiveDates, @Param("pageSize") Integer pageSize);
+    List<DrsCustomizeUploadData> getDataOfNeedClean(@Param("tCid") String tCid
+            , @Param("apiCodes") List<String> apiCodes
+            , @Param("receiveDates") List<String> receiveDates
+            , @Param("pageSize") Integer pageSize);
 }
