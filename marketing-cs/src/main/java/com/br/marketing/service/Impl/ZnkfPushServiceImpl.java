@@ -152,7 +152,7 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                 List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
                 if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())){
                     MrpMqFact mrpMqFact = new MrpMqFact();
-                    mrpMqFact.setSourceId(callRecord.getId().toString());
+                    mrpMqFact.setSourceId(callRecord.getId());
                     mrpMqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                     mrpMqFact.setApiCode(callRecord.getApiCode());
                     producter.sendToUniversalTransferQueue(mrpMqFact);
