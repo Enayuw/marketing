@@ -67,6 +67,8 @@ public class MarketingTaskExtendServiceImpl implements MarketingTaskExtendServic
             baseHeadList.add("result");
             baseHeadList.add("release_time");
             baseHeadList.add("clean_time");
+            baseHeadList.add("info");
+            baseHeadList.add("blacklist_delete");
             baseHeadList.add("coupon_code");
             baseHeadList.add("coupon_desc");
             baseHeadList.add("customer_group");

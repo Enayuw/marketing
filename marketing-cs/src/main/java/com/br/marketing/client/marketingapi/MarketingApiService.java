@@ -2,6 +2,7 @@ package com.br.marketing.client.marketingapi;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDTO;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
@@ -11,14 +12,12 @@ import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.annoation.RetryMethod;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
-import com.br.marketing.dto.TransferDataDTO;
-import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.InterfaceLog;
 import com.br.marketing.entity.TwosevenFile;
 import com.br.marketing.entity.TwosevenFileExample;
 import com.br.marketing.mapper.InterfaceLogMapper;
-import com.br.marketing.mapper.QueryUserRealMessageMapper;
 import com.br.marketing.mapper.TwosevenFileMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +25,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -85,7 +80,7 @@ public class MarketingApiService {
                 return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
         }catch (Exception ex){
-            log.error("调用营销转化数据上传接口报错{}--",ex.getMessage(),ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode(), "调用营销转化数据上传接口报错!"), ex);
         }
         return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
     }
@@ -113,7 +108,7 @@ public class MarketingApiService {
                 try {
                     interfaceLogMapper.insertSelective(interfaceLog);
                 } catch (Exception ex) {
-                    log.error(String.format("调用转化接口插入接口日志报错:%s", ex.getMessage()), ex);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode(), "调用转化接口插入接口日志报错!"), ex);
                 }
             });
             JSONObject jsonObject = JSON.parseObject(transfer.getResult());
@@ -122,7 +117,8 @@ public class MarketingApiService {
                 return new Result().setCode(ResultCode.SUCCESS.getValue());
             }
             if (!"00".equals(code)) {
-                log.error(String.format("推送转化接口错误：%s", transfer.getResult()));
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode()
+                        , String.format("推送转化接口错误：%s", transfer.getResult())));
                 return new Result().setCode(ResultCode.FAIL.getValue()).setDate(Boolean.FALSE);
             }
             TwosevenFileExample fileExample = new TwosevenFileExample();
@@ -141,7 +137,7 @@ public class MarketingApiService {
             try {
                 interfaceLogMapper.insertSelective(interfaceLog);
             } catch (Exception ee) {
-                log.error(String.format("调用转化接口插入接口日志报错:%s", ee.getMessage()), ee);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode(), "调用转化接口插入接口日志报错!"), ee);
             }
         });
 
@@ -167,7 +163,7 @@ public class MarketingApiService {
                 return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
         }catch (Exception ex){
-            log.error("调用营销上传接口报错："+ex.getMessage(),ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode(), "调用营销上传接口报错!"), ex);
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }
@@ -191,7 +187,7 @@ public class MarketingApiService {
                 return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
             }
         }catch (Exception ex){
-            log.error("调用营销接口报错："+ex.getMessage(),ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_APIERROR.getCode(), "调用营销接口报错!"), ex);
             return new Result<>().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
     }

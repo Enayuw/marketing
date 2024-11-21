@@ -43,4 +43,6 @@ public interface CallRecordMapper extends CallRecordMapperBase {
     Integer getOutboundCounttikv_(@Param("cid") Long cid, @Param("apiCode") String apiCode,
                                   @Param("requestData") String requestData, @Param("endData") String endData,
                                   @Param("convType") String convType, @Param("lineName") String lineName);
+
+    List<CallRecord> getBlackListSetNewtikv_(@Param("custNumMap") Map<String, String> custNumMap, @Param("bizDate") String bizDate);
 }
