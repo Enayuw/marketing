@@ -2,7 +2,6 @@ package com.br.marketing.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
 import javax.validation.constraints.NotNull;
 
 /**
@@ -40,5 +39,11 @@ public class PushDecisionsDTO {
 
     @ApiModelProperty(value = "触达策略")
     private String reachStrategy;
+
+    @ApiModelProperty(value = "跑分任务ids")
+    private String fileIds;
+
+    @ApiModelProperty(value = "是否自动刷新 0-否，1-是")
+    private Integer autoRefresh;
 
 }

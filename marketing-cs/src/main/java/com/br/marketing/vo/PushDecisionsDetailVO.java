@@ -52,4 +52,7 @@ public class PushDecisionsDetailVO {
 
     @ApiModelProperty(value = "修改时间")
     private String updateTime;
+
+    @ApiModelProperty(value = "是否自动刷新 0-否，1-是")
+    private Integer autoRefresh;
 }

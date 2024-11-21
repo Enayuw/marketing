@@ -63,6 +63,11 @@ public class PushDecisions {
      */
     private Date updateTime;
 
+    /**
+     * 是否自动刷新 0-否，1-是
+     */
+    private Integer autoRefresh;
+
     public Long getId() {
         return id;
     }
@@ -157,5 +162,13 @@ public class PushDecisions {
 
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public Integer getAutoRefresh() {
+        return autoRefresh;
+    }
+
+    public void setAutoRefresh(Integer autoRefresh) {
+        this.autoRefresh = autoRefresh;
     }
 }

@@ -5,8 +5,8 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.*;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.PushDecisionsService;
-import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushDecisionsDetailVO;
+import com.br.marketing.vo.TaskTemplateVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +72,12 @@ public class PushDecisionsController {
     @PostMapping("/updateStatus")
     public ApiResult updateStatus(@RequestBody OptConditionDTO dto) {
         return new ApiResult().fromResult(pushDecisionsService.updateStatus(dto), CODE_1);
+    }
+
+    @ApiOperation(value = "根据依赖模板查询跑分任务")
+    @PostMapping("/getRunTaskByTemplate")
+    public ApiResult<List<TaskTemplateVO>> getRunTaskByTemplate(@RequestBody RunTaskDTO dto) {
+        return new ApiResult<List<TaskTemplateVO>>().fromResult(pushDecisionsService.getRunTaskByTemplate(dto), CODE_1);
     }
 
 }
