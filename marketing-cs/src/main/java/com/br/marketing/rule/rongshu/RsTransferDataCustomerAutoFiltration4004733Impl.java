@@ -156,7 +156,7 @@ public class RsTransferDataCustomerAutoFiltration4004733Impl implements Assemble
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_AUTO_FILTRATION_SOLE.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_AUTO_FILTRATION_RS.getCode();
     }
 
     @Override
