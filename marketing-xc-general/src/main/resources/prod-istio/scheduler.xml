@@ -55,7 +55,7 @@
     />
     <job:simple id="XieChengCollidingDataProcessJob"
                 class="com.br.marketing.xc.job.XieChengCollidingDataProcessJob"
-                cron="0 00 14 * * ? *"
+                cron="0 00 10 * * ? *"
                 description="携程撞库数据处理作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="5"
@@ -140,7 +140,7 @@
 
     <job:simple id="XieChengPreCollidingBlackListDeleteJob"
                 class="com.br.marketing.xc.job.XieChengPreCollidingBlackListDeleteJob"
-                cron="0 */10 * ? * *"
+                cron="0 0/5 12-13 * * ? *"
                 description="携程撞库前黑名单剔除"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
