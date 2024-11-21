@@ -6,7 +6,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.client.robotaiapi.input.ConversionDataDTO;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -29,31 +29,28 @@ import java.util.*;
 
 /**
  * 榕树转化数据自动过滤推客服
- * 需求地址：https://c.100credit.cn/pages/viewpage.action?pageId=98026532
- * @author GuangChao.Zhang
- * @version 1.0
- * @Date 2023/2/13 17:52
+ * 需求地址：https://c.100credit.cn/pages/viewpage.action?pageId=186209870
+ * 走自动化规则的 转化数据来源是  4004643 给转化接口上传的数据，
+ * 然后按照需求处理规则，填补手机号去4004643上传表找，最后传给客服过滤接口的时候把参数中的apiCode换成 4004733
+ * @Author yu.xia@brgroup.com
+ * @Date 2024/11/18 11:49
  */
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<ConversionData> {
+public class RsTransferDataCustomerAutoFiltration4004733Impl implements AssembleData<ConversionDataDTO> {
 
-    private final static String INVERSIONSTATUS="0";
     private final static String INVERSION_STATUS_2="2";
     private final static String CASE_EFFECTIVE_0="0";
-
     private final MarketingCommonConfig marketingCommonConfig;
-
     private final TableCreateServiceImpl tableCreateService;
-
     private final TransferDataValidityPeriodService transferDataValidityPeriodService;
     private final MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Override
-    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public ConversionDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        ConversionData conversionData = new ConversionData();
+        ConversionDataDTO conversionData = new ConversionDataDTO();
         String apiCode = context.getApiCode();
         conversionData.setCid(tableCreateService.getCId(apiCode));
         String custNum = transfer.getCustNum();
@@ -84,11 +81,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             PeriodOfValidityBO periodOfValidityBO = syncUserValidityPeriodsBO.getBuilders().get(0).addDateTimeString().builder();
             String enDateTimeString = periodOfValidityBO.getEnDateTimeStr();
             conversionData.setExpireDate(enDateTimeString);
-            if("4".equals(transfer.getUserType())
-                    || "5".equals(transfer.getUserType())
-                    || getUnlentAmount(transfer)){
-                conversionData.setInversionStatus(INVERSIONSTATUS);
-            }else if(isCaseEffective0(transfer)){
+            if(isCaseEffective0(transfer)){
                 conversionData.setInversionStatus(INVERSION_STATUS_2);
             }else{
                 log.warn("apiCode[{}]custNum[{}]出现rs运营自动化过滤未预期的结果", apiCode, custNum);
@@ -98,9 +91,20 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
                 conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
             }
         }
-        if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
+        if (!StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
+        HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
+        JSONObject apiCodeReplace = strategyCodeMap.get("autoFiltrationApiCodeReplace");
+        // 2024-11-18 apiCode:4004643转化数据，按照规则生成后4004733数据推送至过滤
+        if(null != apiCodeReplace && !apiCodeReplace.isEmpty()){
+            if(com.br.common.util.StringUtils.isNotBlank(apiCodeReplace.getString(apiCode))){
+                apiCode = apiCodeReplace.getString(apiCode);
+            }else{
+                log.warn("未发现rs-apiCode[{}]替换配置[{}]",apiCode, strategyCodeMap);
+            }
+        }
+        conversionData.setApiCode(apiCode);
         return conversionData;
     }
 
@@ -119,11 +123,8 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             if (marketingSyncUser == null) {
                 return false;
             }
-            //userType =4 || userType =5 || unlentAmount < 10000 || caseEffective=0
-            return "4".equals(transfer.getUserType())
-                    || "5".equals(transfer.getUserType())
-                    || getUnlentAmount(transfer)
-                    || isCaseEffective0(transfer);
+            // caseEffective=0
+            return isCaseEffective0(transfer);
         }
         return false;
     }
@@ -148,36 +149,14 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
         return false;
     }
 
-    private boolean getUnlentAmount(MarketingTransferSyncUser transfer){
-        if(StringUtils.isNotBlank(transfer.getReserveField1())){
-            Double unlentAmount  = null;
-            int rsUnlentAmount = marketingCommonConfig.getRsUnlentAmount() == null ? 1000 : marketingCommonConfig.getRsUnlentAmount();
-            try {
-                JSONObject jsonObject = JSON.parseObject(transfer.getReserveField1());
-                String unlentAmountStr = jsonObject.getString("unlentAmount");
-                if(StringUtils.isNotBlank(unlentAmountStr)){
-                    unlentAmount = Double.valueOf(unlentAmountStr);
-                }
-            }catch (Exception ex){
-                log.error(ex.getMessage(),ex);
-                return false;
-            }
-            if(unlentAmount == null){
-                return false;
-            }
-            return unlentAmount < rsUnlentAmount;
-        }
-        return false;
-    }
-
     @Override
     public String label() {
-        return "RongShu_TransferData_Customer_Auto_Filtration";
+        return "RongShu_TransferData_Customer_Auto_Filtration4004733";
     }
 
     @Override
     public Integer dataDirection() {
-        return InterfaceHandlerEnum.CUSTOMER_TRANSFER_SOLE.getCode();
+        return InterfaceHandlerEnum.CUSTOMER_AUTO_FILTRATION_RS.getCode();
     }
 
     @Override
