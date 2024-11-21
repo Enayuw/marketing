@@ -1,7 +1,9 @@
 package com.br.marketing.rule.yixin;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
@@ -16,6 +18,9 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import com.google.common.collect.Sets;
@@ -23,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
@@ -49,6 +55,9 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
     @Autowired
     private PushRuleService pushRuleService;
 
+    @Resource
+    CustomerTagsProcessServiceImpl customerTagsProcessService;
+
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
@@ -70,9 +79,15 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         pushMarketingUserDetailByRuleDTO.setPhone(cell);
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
         pushMarketingUserDetailByRuleDTO.setBatchNumber(getBatchNumber(transfer.getType()));
-        JSONObject varDto = new JSONObject();
-        varDto.put("userType", marketingSyncUser.getUserType());
-        pushMarketingUserDetailByRuleDTO.setVariables(varDto);
+
+        JSONObject jsonObject = JSONObject.parseObject(marketingSyncUser.getReserveField1());
+        jsonObject.put("cell", cell);
+        jsonObject.put("batchNumber", getBatchNumber(transfer.getType()));
+
+        CustomerTagsVO customerTagsVO = customerTagsProcessService.getTags(context.getApiCode());
+        buildJson(jsonObject, marketingSyncUser, customerTagsVO.getPushJc3keyType());
+
+        pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         //去重参数设置
         pushMarketingUserDetailByRuleDTO.setSoleField(SoleFieldEnum.CUST_NUM_STATUS_SOLE.getValue());
@@ -81,6 +96,46 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         pushMarketingUserDetailByRuleDTO.setPushApiCode(marketingCommonConfig.getYiXinToPolicyApiCode());
         return pushMarketingUserDetailByRuleDTO;
 
+    }
+
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
+        jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
+        jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
+        jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
+        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", pushJc3keyType)));
+        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", pushJc3keyType)));
+        jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
+        jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
+        jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
+        jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
+        jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    private String emptyDefault(String value) {
+        return com.br.common.util.StringUtils.isNotEmpty(value) ? value : "";
+    }
+
+    private String get3keyValue(String content, String contentType, Integer encryptionType) {
+
+        if (org.apache.commons.lang3.StringUtils.isBlank(content)) {
+            return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
+            return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return org.apache.commons.lang3.StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.SHA256_ALL.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return org.apache.commons.lang3.StringUtils.isNotBlank(decode) ? Sha256Util.getSHA256Encrypt(decode) : content;
+        }
+        return null;
     }
 
     private String getBatchNumber(String type) {
