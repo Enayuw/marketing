@@ -13,6 +13,7 @@ import com.br.marketing.entity.ReportTask;
 import com.br.marketing.entity.ReportTaskExample;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.ReportStatisticTransferMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ZhongAnBiReportMapper;
@@ -58,26 +59,16 @@ public class ZhongAnBusAnalyOneConverter extends AbstractBiReportConverter<BiRep
         String reportDate = param.getCondition().getString("reportDate");
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
         if (ObjectUtil.isNotEmpty(reportDate)) {
-            ReportTaskExample reportTaskExample = new ReportTaskExample();
-            reportTaskExample.createCriteria().andReportTypeEqualTo(12).andCreateTimeGreaterThanOrEqualTo(customParse(reportDate));
-            reportTaskExample.setOrderByClause("create_time desc");
-            List<ReportTask> reportTasks = reportTaskMapper.selectByExample(reportTaskExample);
-            if (ObjectUtil.isEmpty(reportTasks)) {
-                return new ArrayList<>();
-            }
-            String taskId = reportTasks.get(0).getId().toString();
-            reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId).andReportDateEqualTo(reportDate);
+            reportStatisticTransferExample.createCriteria()
+                    .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString())
+                    .andReportDateEqualTo(reportDate)
+                    .andReportStatusEqualTo("0");
         } else {
             reportDate = LocalDate.now().toString();
-            ReportTaskExample example = new ReportTaskExample();
-            example.createCriteria().andReportTypeEqualTo(12).andCreateTimeGreaterThanOrEqualTo(customParse(reportDate));
-            example.setOrderByClause("create_time desc");
-            List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
-            if (ObjectUtil.isEmpty(reportTasks)) {
-                return new ArrayList<>();
-            }
-            String taskId = reportTasks.get(0).getId().toString();
-            reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId).andReportDateEqualTo(reportDate);
+            reportStatisticTransferExample.createCriteria()
+                    .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString())
+                    .andReportDateEqualTo(reportDate)
+                    .andReportStatusEqualTo("0");
         }
         reportStatisticTransferExample.setOrderByClause("create_time desc");
         List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
