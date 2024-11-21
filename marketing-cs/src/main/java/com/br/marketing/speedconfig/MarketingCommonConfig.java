@@ -2292,6 +2292,11 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
     /**
+     * 数据分组线程数
+     */
+    private Integer dataGroupThreadNum;
+
+    /**
      * 360ai清洗配置
      * {"tCid":"_original","cleanApiCode":"3700226,7491635","dataTime":"-1/指定日期","pageSize":10,"threadNum":10,"isPause":false}
      */
