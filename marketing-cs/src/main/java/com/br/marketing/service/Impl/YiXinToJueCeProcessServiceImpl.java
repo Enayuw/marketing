@@ -106,7 +106,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
 
     @Resource
-    private MarketingSyncUserMapper marketingSyncInfoMapper;
+    private MarketingSyncUserMapper marketingSyncUserMapper;
 
     @Resource
     CustomerTagsProcessServiceImpl customerTagsProcessService;
@@ -625,7 +625,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
         String apiCode = marketingTransferSyncUserCell.getApiCode();
         String custNum = marketingTransferSyncUserCell.getCustNum();
-        MarketingSyncUser marketingSyncUser = marketingSyncInfoMapper.selectSynsUserByCustNumLast(apiCode, custNum);
+        MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
         JSONObject jsonObject = JSONObject.parseObject(marketingSyncUser.getReserveField1());
         CustomerTagsVO customerTagsVO = customerTagsProcessService.getTags(apiCode);
         buildJson(jsonObject, marketingSyncUser, customerTagsVO.getPushJc3keyType());
