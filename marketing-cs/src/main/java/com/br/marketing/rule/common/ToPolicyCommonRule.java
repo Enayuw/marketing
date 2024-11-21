@@ -66,6 +66,7 @@ public class ToPolicyCommonRule implements AssembleData<PushMarketingUserDetailB
                 jsonObject.put("strategyName", "");
             }
             pushData.setBatchNumber(batchNumber);
+            pushData.setBatchName(batchName);
             jsonObject.put("batchName", batchName);
         }
         if (ObjectUtil.isEmpty(jsonObject)) {

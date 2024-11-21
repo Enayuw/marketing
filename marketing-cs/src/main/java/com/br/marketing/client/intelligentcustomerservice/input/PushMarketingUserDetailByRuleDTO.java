@@ -54,5 +54,8 @@ public class PushMarketingUserDetailByRuleDTO extends SourceData {
      * 要推送的apiCode
      */
     private String pushApiCode;
-
+    /**
+     * 数据集合名称
+     */
+    private String batchName;
 }
