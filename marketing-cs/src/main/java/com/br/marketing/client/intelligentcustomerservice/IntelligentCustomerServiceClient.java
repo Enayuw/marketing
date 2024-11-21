@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.cloud.counter.BrCounter;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.client.intelligentcustomerservice.output.PolicyResultByTaskIdsDTO;
@@ -12,6 +13,7 @@ import com.br.marketing.client.net.ApiCaller;
 import com.br.marketing.client.net.ApiCallerUtil;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.entity.CustomerInfoPushLog;
 import com.br.marketing.mapper.CustomerInfoPushLogMapper;
@@ -88,7 +90,7 @@ public class IntelligentCustomerServiceClient {
                     BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
                             pushNum);
                 } catch (Exception ex) {
-                    logger.error("推送决策接口统计异常" + ex.getMessage(), ex);
+                    logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策接口统计异常!"), ex);
                 }
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
@@ -142,13 +144,13 @@ public class IntelligentCustomerServiceClient {
                     BrCounter.count(PrometheusMonitorUtils.COUNT_POLICY_API_METRIC_NAME, dto.getApiCode(), "policy-api",
                             taskInfoDTO.getData().size());
                 } catch (Exception ex) {
-                    logger.error("推送决策接口统计异常" + ex.getMessage(), ex);
+                    logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策接口异常!"), ex);
                 }
             } else {
                 result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
             }
         } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
+            logger.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
             result.setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
         return result;

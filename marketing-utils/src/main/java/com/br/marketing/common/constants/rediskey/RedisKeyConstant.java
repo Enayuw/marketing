@@ -277,4 +277,9 @@ public class RedisKeyConstant {
      */
     public static final String DATA_GROUP_SCORE_CONFIG_LOCK = prefix.concat("data:group:score:config");
 
+    /**
+     * 客户标签
+     */
+    public static final String CUSTOMERTAGS = prefix.concat("customer:tags");
+
 }

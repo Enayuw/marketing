@@ -1,8 +1,10 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.StringUtils;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.MarketingSyncReport;
@@ -123,7 +125,7 @@ public class SyncReportController {
                 return new ApiResult<Boolean>().fail(false, "操作失败！");
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(), ex.getMessage()), ex);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }

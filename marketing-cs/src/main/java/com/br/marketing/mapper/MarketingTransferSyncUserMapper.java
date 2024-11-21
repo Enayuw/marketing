@@ -110,7 +110,8 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
             , @Param("apiCode") String apiCode
             , @Param("requestDate") String requestDate);
 
-    List<MarketingTransferSyncUser> getTransferData(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate, @Param("limitStart") Integer limitStart);
+    List<MarketingTransferSyncUser> getTransferData(@Param("apiCode") String apiCode , @Param("cid") String cid, @Param("endDate") String endDate,
+                                                    @Param("pageSize") Integer pageSize, @Param("indexId") Long indexId);
 
     /**
      * 取T日apiCode的撞库数据

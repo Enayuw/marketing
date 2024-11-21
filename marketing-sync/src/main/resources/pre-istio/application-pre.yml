@@ -4,8 +4,8 @@ sharding:
       names: ds0
       ds0:
          url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=false&failOverReadOnly=false&useConfigs=maxPerformance
-         username: u_pd_marketing
-         password: M6teKbFVl1odfOCkC1JA
+         username: ENC(mysql-pre-ai-marketing-user)
+         password: ENC(mysql-pre-ai-marketing-password)
          type: com.alibaba.druid.pool.DruidDataSource
          driver-class-name: com.mysql.jdbc.Driver
          filters: stat
