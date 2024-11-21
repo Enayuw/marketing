@@ -6,7 +6,7 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.client.robotaiapi.input.ConversionDataDTO;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -23,10 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -39,7 +36,7 @@ import java.util.Set;
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class RsTransferDataCustomerAutoFiltrationSole4004733Impl implements AssembleData<ConversionData> {
+public class RsTransferDataCustomerAutoFiltrationSole4004733Impl implements AssembleData<ConversionDataDTO> {
 
     private final static String INVERSIONSTATUS="0";
 
@@ -50,9 +47,9 @@ public class RsTransferDataCustomerAutoFiltrationSole4004733Impl implements Asse
     private final TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
-    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public ConversionDataDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
-        ConversionData conversionData = new ConversionData();
+        ConversionDataDTO conversionData = new ConversionDataDTO();
         String apiCode = context.getApiCode();
         conversionData.setCid(tableCreateService.getCId(apiCode));
         String custNum = transfer.getCustNum();
@@ -85,6 +82,17 @@ public class RsTransferDataCustomerAutoFiltrationSole4004733Impl implements Asse
         if (!org.springframework.util.StringUtils.isEmpty(transfer.getCreateTime())){
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
+        HashMap<String, JSONObject> strategyCodeMap = marketingCommonConfig.getRongShuPushPolicyStrategyCode();
+        JSONObject apiCodeReplace = strategyCodeMap.get("autoFiltrationApiCodeReplace");
+        // 2024-11-21 apiCode:4004643转化数据，按照规则生成后4004733数据推送至过滤
+        if(null != apiCodeReplace && !apiCodeReplace.isEmpty()){
+            if(com.br.common.util.StringUtils.isNotBlank(apiCodeReplace.getString(apiCode))){
+                apiCode = apiCodeReplace.getString(apiCode);
+            }else{
+                log.warn("未发现rs-apiCode[{}]替换配置[{}]",apiCode, strategyCodeMap);
+            }
+        }
+        conversionData.setApiCode(apiCode);
         return conversionData;
     }
 
