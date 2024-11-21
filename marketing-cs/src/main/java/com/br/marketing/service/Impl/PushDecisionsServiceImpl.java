@@ -236,11 +236,6 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分配置为空,文件ids：" + ids);
         }
 
-        if (dto.getSize() == null) {
-            dto.setSize(10);
-        }
-        PageHelper.startPage(dto.getCurrent(), dto.getSize());
-
         // 4- 根据跑分配置 查询所有跑分文件
         List<TaskTemplateVO> files = straHisFileMapper.getFileByruleNameShorts(ruleNameShorts,dto.getApiCode());
 
@@ -262,8 +257,7 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
                 taskTemplateVO.setStatus(1);
             }
         }
-        PageResultReturn pageResultReturn = PageResultReturn.setPageResult(files, dto.getCurrent(), dto.getSize());
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(pageResultReturn);
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(files);
 
     }
 
