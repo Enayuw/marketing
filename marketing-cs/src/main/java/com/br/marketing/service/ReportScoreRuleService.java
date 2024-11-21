@@ -5,6 +5,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.bi.ReportTaskVO;
+import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
@@ -83,5 +84,5 @@ public interface ReportScoreRuleService {
      * @param reportDate
      * @return
      */
-    Boolean updateReportRecords(String reportDate);
+    Boolean updateReportRecords(BiReportStatisticTransferParam param);
 }

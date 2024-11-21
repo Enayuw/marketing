@@ -10,6 +10,7 @@ import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.vo.bi.ReportTaskVO;
+import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import org.springframework.http.HttpHeaders;
@@ -140,9 +141,9 @@ public class ReportScoreRuleController {
 
     @ApiOperation(value = "更新报表统计记录")
     @PostMapping("/updateReportStatisticsRecords")
-    public ApiResult<Boolean> updateReportStatisticsRecords(String reportDate) {
+    public ApiResult<Boolean> updateReportStatisticsRecords(BiReportStatisticTransferParam param) {
         try {
-            return new ApiResult<Boolean>().success(reportScoreRuleService.updateReportRecords(reportDate));
+            return new ApiResult<Boolean>().success(reportScoreRuleService.updateReportRecords(param));
         } catch (Exception e) {
             log.error("更新报表统计记录异常", e);
             return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
