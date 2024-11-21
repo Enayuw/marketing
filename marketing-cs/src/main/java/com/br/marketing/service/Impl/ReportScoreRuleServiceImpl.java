@@ -636,9 +636,15 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                             .map(ReportStatisticTransfer::getReportId)
                             .collect(Collectors.toList());
 
-                    zhongAnBiReportMapper.deleteZaBusAnalyOneListbI_(reportIdsOne);
-                    zhongAnBiReportMapper.deleteZaBusAnalySevenListbI_(reportIdsSeven);
-                    zhongAnBiReportMapper.deleteZaBusAnalyEightListbI_(reportIdsEight);
+                    if (reportIdsOne.size() > 0){
+                        zhongAnBiReportMapper.deleteZaBusAnalyOneListbI_(reportIdsOne);
+                    }
+                    if (reportIdsSeven.size() > 0){
+                        zhongAnBiReportMapper.deleteZaBusAnalySevenListbI_(reportIdsSeven);
+                    }
+                    if (reportIdsEight.size() > 0){
+                        zhongAnBiReportMapper.deleteZaBusAnalyEightListbI_(reportIdsEight);
+                    }
                 }
             }
             return flag;
