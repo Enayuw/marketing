@@ -26,6 +26,8 @@ public class PushInfoListVO {
 
     private String mRuleCondition;
 
+    private String mScoreCondition;
+
     @ApiModelProperty(value = "计划推送数量")
     private Integer mPlanNum;
 
@@ -170,5 +172,13 @@ public class PushInfoListVO {
 
     public void setUserType(String userType) {
         this.userType = userType;
+    }
+
+    public String getmScoreCondition() {
+        return mScoreCondition;
+    }
+
+    public void setmScoreCondition(String mScoreCondition) {
+        this.mScoreCondition = mScoreCondition;
     }
 }

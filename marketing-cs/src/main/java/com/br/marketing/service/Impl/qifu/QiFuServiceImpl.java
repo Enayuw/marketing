@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.qifu;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -22,6 +23,7 @@ import com.br.marketing.service.Impl.qifu.valobj.QiFuCleanStatusEnum;
 import com.br.marketing.service.PushInfoService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -164,7 +166,7 @@ public class QiFuServiceImpl implements IQiFuService {
                     case "flowNo":
                         String flowNo = jsonObject.getString(s);
                         if (ObjectUtils.isEmpty(flowNo)) {
-                            errorMsg.append("batchNo为空");
+                            errorMsg.append("flowNo为空");
                             continue outerLoop;
                         }
                         requestId = String.format("%s_%s", drsCustomizeUploadData.getId(), flowNo);
@@ -188,8 +190,14 @@ public class QiFuServiceImpl implements IQiFuService {
                             errorMsg.append("templateNo长度小于12");
                             continue outerLoop;
                         }
-                        extendKey.put("strategyCode", strategyCode);
-                        extendKey.put("strategyName", strategyCode);
+                        boolean flag = marketingCommonConfig.getQifuAiCleanStrategyCodeFlag();
+                        if (flag) {
+                            extendKey.put("strategyCode", "");
+                            extendKey.put("strategyName", "");
+                        } else {
+                            extendKey.put("strategyCode", strategyCode);
+                            extendKey.put("strategyName", strategyCode);
+                        }
                         extendKey.put("userType", userType);
                         break;
                     case "operateScene":
@@ -235,6 +243,7 @@ public class QiFuServiceImpl implements IQiFuService {
         }
     }
 
+
     private MarketingPreUserDetailDTO buildListDto(JSONObject o1, JSONObject reserField1, StringBuilder warnMsg) {
         MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
         for (String s : o1.keySet()) {
@@ -255,7 +264,7 @@ public class QiFuServiceImpl implements IQiFuService {
                     } else if ("M".equals(genderValue)) {
                         reserField1.put(s, "1");
                     } else if (!"".equals(genderValue)) {
-                        warnMsg.append("异常性别：" + genderValue);
+                        warnMsg.append("异常性别：").append(genderValue);
                     }
                     break;
                 default:
@@ -279,14 +288,13 @@ public class QiFuServiceImpl implements IQiFuService {
         Boolean b = true;
         while (b) {
             if (executor.isTerminated()) {
-                System.out.println("结束");
                 b = false;
             } else {
-                System.out.println("休息");
                 try {
                     Thread.sleep(3000L);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(),e);
+                    Thread.currentThread().interrupt();
                 }
             }
         }

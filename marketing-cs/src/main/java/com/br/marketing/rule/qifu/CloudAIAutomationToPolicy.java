@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
-
 @Service
 public class CloudAIAutomationToPolicy implements AssembleData<PushMarketingUserDetailByRuleDTO> {
 
@@ -38,20 +37,32 @@ public class CloudAIAutomationToPolicy implements AssembleData<PushMarketingUser
         JSONObject jsonObject = JSONObject.parseObject(syncUser.getReserveField1());
 
         if (StringUtils.isNotBlank(reserveField1) && ObjectUtil.isNotEmpty(jsonObject)) {
-            String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber")) ? jsonObject.getString("batchNumber") : appletDate + "_" + apiCode;
-            String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode")) ? jsonObject.getString("strategyCode") : "";
-            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode")) ? jsonObject.getString("strategyCode") : appletDate + "_" + apiCode;
-            String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName")) ? jsonObject.getString("strategyName") : "";
+            String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
+                    ? jsonObject.getString("batchNumber")
+                    : (appletDate + "_" + apiCode);
+            String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
+                    ? jsonObject.getString("strategyCode")
+                    : "";
+            String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
+                    ? jsonObject.getString("batchName")
+                    : (appletDate + "_" + apiCode);
+            String strategyName = ObjectUtil.isNotEmpty(jsonObject.getString("strategyName"))
+                    ? jsonObject.getString("strategyName")
+                    : "";
             if (StringUtils.isNotEmpty(strategyCode)) {
                 pushData.setStrategyCode(strategyCode);
+            } else {
+                pushData.setStrategyCode("");
             }
             if (StringUtils.isNotEmpty(strategyCode)) {
                 jsonObject.put("strategyName", strategyName);
+            } else {
+                jsonObject.put("strategyName", "");
             }
             pushData.setBatchNumber(batchNumber);
             jsonObject.put("batchName", batchName);
         }
-        if (ObjectUtil.isEmpty(jsonObject)){
+        if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
         }
         buildJson(jsonObject, syncUser);

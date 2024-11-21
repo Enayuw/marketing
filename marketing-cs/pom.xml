@@ -215,7 +215,7 @@
         <dependency>
             <groupId>com.br.marketing.es</groupId>
             <artifactId>marketing-es-core</artifactId>
-            <version>4.0.8-SNAPSHOT</version>
+            <version>4.0.9-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>ch.qos.logback</groupId>
@@ -324,6 +324,11 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.br.encrypt</groupId>
+            <artifactId>br-encrypt-starter1.x-jdk8</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
     <build>

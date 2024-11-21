@@ -24,6 +24,11 @@ public class XiechengCollidingTaskBatch {
     private String batchNumber;
 
     /**
+     * 0-一般剔除、1-动态补充包剔除、2-黑名单剔除
+     */
+    private Integer type;
+
+    /**
      * 0-未剔除，1-剔除中，2-剔除完成
      */
     private Integer status;
@@ -42,6 +47,7 @@ public class XiechengCollidingTaskBatch {
      * 
      */
     private Date updateTime;
+
 
     public Long getId() {
         return id;
@@ -75,6 +81,14 @@ public class XiechengCollidingTaskBatch {
         this.batchNumber = batchNumber == null ? null : batchNumber.trim();
     }
 
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
     public Integer getStatus() {
         return status;
     }
@@ -102,4 +116,5 @@ public class XiechengCollidingTaskBatch {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
+
 }
