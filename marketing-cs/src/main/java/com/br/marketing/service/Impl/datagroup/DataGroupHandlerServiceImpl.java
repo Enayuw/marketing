@@ -320,8 +320,8 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             Long indexId = null;
             Integer pageSize = 2000;
             while (true) {
-                List<MarketingSyncUser> marketingSyncUserList = syncReportMapper.selectGroupData(apiCode, Lists.newArrayList(report.getAppletDate()),
-                        report.getUserType(), null, indexId, pageSize);
+                List<MarketingSyncUser> marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, reportList, null
+                        , indexId, pageSize);
                 if (CollectionUtils.isEmpty(marketingSyncUserList)) {
                     break;
                 }
@@ -381,7 +381,9 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
         reportExample.createCriteria().andIdIn(Arrays.stream(uploadReportId.split(",")).map(Long::parseLong).collect(Collectors.toList()));
         List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
-        List<String> appletDates = reportList.stream().map(MarketingSyncReport::getAppletDate).distinct().collect(Collectors.toList());
+        Map<String, Set<String>> appletDateMap = reportList.stream().collect(Collectors.groupingBy(
+                MarketingSyncReport::getUserType,
+                Collectors.mapping(MarketingSyncReport::getAppletDate, Collectors.toSet())));
         List<Map<String, Object>> groupTask = dataGroupNumTransfer(rule, reportList, Boolean.TRUE);
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 100);
         groupTask.forEach((Map<String, Object> taskMap) -> {
@@ -409,10 +411,11 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     }
                     //没有场景和扩展字段分组
                     List<MarketingSyncUser> marketingSyncUserList;
-                    if ((StringUtils.isEmpty(userType)) && StringUtils.isEmpty(extendVaule)) {
-                        marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, reportList, indexId, pageSize);
+                    if ((StringUtils.isEmpty(userType))) {
+                        marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, reportList, extend.toString(), indexId, pageSize);
                     } else {
-                        marketingSyncUserList = syncReportMapper.selectGroupData(apiCode, appletDates, userType,
+                        //有场景需要获取场景属于的日期appletDate
+                        marketingSyncUserList = syncReportMapper.selectGroupData(apiCode, Lists.newArrayList(appletDateMap.get(userType)), userType,
                                 extend.toString(), indexId, pageSize);
                     }
                     indexId = marketingSyncUserList.get(marketingSyncUserList.size() - 1).getId();

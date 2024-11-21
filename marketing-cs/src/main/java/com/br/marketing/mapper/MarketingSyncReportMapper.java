@@ -12,6 +12,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase {
     int uploadSyncCounttiflash_(@Param("apiCode") String apiCode, @Param("userType") String userType,
@@ -86,7 +87,7 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
 
     List<Map<String, Object>> selectGroupCounttikv_(@Param("sql")String toString);
 
-    List<MarketingSyncUser> selectGroupData(@Param("apiCode")String apiCode, @Param("list")List<String> appletDates, @Param("userType")String userType,
+    List<MarketingSyncUser> selectGroupData(@Param("apiCode")String apiCode, @Param("list") List<String> appletDates, @Param("userType")String userType,
                                             @Param("extend")String extend, @Param("indexId")Long indexId, @Param("pageSize")Integer pageSize);
 
     void updateBatchGroupData(@Param("updateSql")String update);
@@ -94,5 +95,6 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
     List<Map<String, Object>> selectGroupUploadNumtikv_(@Param("apiCode")String apiCode, @Param("list")List<MarketingSyncReport> reportList,
                                                    @Param("field")String field,@Param("extendField")String extendField);
 
-    List<MarketingSyncUser> selectGroupDataByReport(@Param("apiCode")String apiCode,@Param("list")List<MarketingSyncReport> reportList, @Param("indexId")Long indexId,  @Param("pageSize")Integer pageSize);
+    List<MarketingSyncUser> selectGroupDataByReport(@Param("apiCode")String apiCode,@Param("list")List<MarketingSyncReport> reportList,@Param("extend")String extend,
+                                                    @Param("indexId")Long indexId,  @Param("pageSize")Integer pageSize);
 }

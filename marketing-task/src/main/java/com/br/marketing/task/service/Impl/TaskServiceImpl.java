@@ -8,15 +8,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.ZookeeperPath;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.entity.MarketingCustomerExample;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskExample;
-import com.br.marketing.entity.MerchantParam;
-import com.br.marketing.entity.StraHisFile;
-import com.br.marketing.entity.StraHisFileExample;
-import com.br.marketing.entity.TaskStatus;
-import com.br.marketing.entity.TaskStatusExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingTaskExtendMapper;
@@ -156,6 +148,8 @@ public class TaskServiceImpl implements ITaskService {
             try {
                 //加锁-跑分配置获取最新
                 dataGroupHandlerService.addLockGroupScoreConfig(datum.getApiCode(), value);
+                ScoreRuleConfig scoreRuleConfig = scoreRuleConfigMapper.selectByPrimaryKey(datum.getId());
+                datum.setBaseInfo(scoreRuleConfig.getBaseInfo());
                 marketingTaskService.buildScoreTaskOfAutoBuild(datum);
             } catch (Exception e) {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "后台生成手动规则以及任务异常"), e);

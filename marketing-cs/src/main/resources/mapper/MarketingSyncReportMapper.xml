@@ -328,6 +328,9 @@
           (applet_date = #{item.appletDate} and user_type = #{item.userType})
         </foreach>
       </if>
+      <if test="extend !=null and extend!=''">
+        and ${extend}
+      </if>
       and status =1 and is_repeat in (1, 2)
       <if test="indexId != null and indexId!=''">
         and id > #{indexId}

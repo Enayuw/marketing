@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.BrCipherMaker;
+import com.br.common.log.AlertLog;
 import com.br.common.mask.DataMask;
 import com.br.common.mask.SensitiveType;
 import com.br.common.util.DateUtils;
@@ -16,6 +17,7 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -191,17 +193,26 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                         //数据正常入库条数
                                         Integer uploadNum = getUploadNum(apiCode, userType, appletDate, Boolean.TRUE);
                                         if (uploadNum != null && uploadNum > 0) {
-                                            //统计reserve_field1的key集合
-                                            HashSet<String> keySet = new HashSet<>();
-                                            List<String> keysList = syncReportMapper.selectUploadExtendKeystikv_(apiCode,userType,appletDate);
-                                            keysList.forEach((String key)->{
-                                                List<String> fieldList = Arrays.asList(key.trim().substring(1,key.length()-2)
-                                                        .replace("\"", "").replaceAll("\\s+", "").split(","));
-                                                keySet.addAll(fieldList);
-                                            });
                                             //判断是否更新
                                             MarketingSyncReport report = selectMarketingSyncReport(apiCode, userType, appletDate);
                                             MarketingSyncReport modifyReport = new MarketingSyncReport();
+                                            //统计reserve_field1的key集合
+                                            HashSet<String> keySet = new HashSet<>();
+                                            try {
+                                                List<String> keysList = syncReportMapper.selectUploadExtendKeystikv_(apiCode, userType, appletDate);
+                                                keysList.forEach((String key) -> {
+                                                    if (StringUtils.isEmpty(key)) {
+                                                        return;
+                                                    }
+                                                    List<String> fieldList = Arrays.asList(key.trim().substring(1, key.length() - 2).replace
+                                                            ("\"", "").replaceAll("\\s+", "").split(","));
+                                                    keySet.addAll(fieldList);
+                                                });
+                                                modifyReport.setReserveField1Key(String.join(",", keySet));
+                                            } catch (Exception e) {
+                                                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                                                        "上传数据统计扩展字段key异常"), e);
+                                            }
                                             Date appletEndTime = DateHelper.parseDate(getAppletTime(apiCode, userType, appletDate, Boolean.FALSE));
                                             if (report == null) {
                                                 //新增
@@ -224,7 +235,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                             modifyReport.setNormalNum(uploadNum);
                                             //去重后数据量
                                             modifyReport.setDuplicateRemovalNum(getUploadNum(apiCode, userType, appletDate, Boolean.FALSE));
-                                            modifyReport.setReserveField1Key(String.join(",", keySet));
                                             //入库
                                             if (report == null) {
                                                 log.warn("新增上传数据统计：{}", JSON.toJSONString(modifyReport));
@@ -267,7 +277,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         try {
             handlerDataFieldDict(uploadDate);
         } catch (Exception e) {
-            log.error("扩展字段添加失败", e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "扩展字段添加失败"), e);
         }
 
     }
@@ -298,6 +309,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 uploadDataFieldDictMapper.insertSelective(dataFieldDict);
             } else {
                 UploadDataFieldDict updateField = dataFieldDictList.get(0);
+                List<String> fieldList = Arrays.asList(updateField.getReserveField1Key().split(","));
+                keySet.addAll(fieldList);
                 updateField.setReserveField1Key(String.join(",", keySet));
                 uploadDataFieldDictMapper.updateByPrimaryKeySelective(updateField);
 

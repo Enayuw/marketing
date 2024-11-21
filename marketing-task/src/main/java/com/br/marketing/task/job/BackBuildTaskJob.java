@@ -69,7 +69,6 @@ public class BackBuildTaskJob extends AbstractSimpleElasticJob {
                 datum.setStartDate(dto.getStartDate());
                 datum.setStartTime(dto.getTaskTime());
                 datum.setAutoBuild(1);
-                dataGroupHandlerService.addLockGroupScoreConfig(dto.getApiCode(), value);
                 Result<Long> result = marketingTaskService.buildScoreTaskOfSelect(datum, null);
 
             }
