@@ -33,10 +33,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -63,7 +60,6 @@ public class ShunFengServiceImpl implements ShunFengService {
 
     @Resource
     private PushInfoService pushInfoService;
-
 
 
     @Value("${api.shunfeng.aesKey:00}")
@@ -146,6 +142,10 @@ public class ShunFengServiceImpl implements ShunFengService {
         MarketingPreUserDTO marketingPreUserDTO = new MarketingPreUserDTO();
         //构造上传,转化参数
         buildParam(apiCode, companyDetailList, marketingPreUserDTO);
+        if (Objects.isNull(marketingPreUserDTO)) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "顺丰获取企业信息组装上传数据异常！"));
+            return;
+        }
         //上传接口
         UploadDataDTO uploadDataDTO = new UploadDataDTO();
         uploadDataDTO.setApiCode(apiCode);
@@ -163,10 +163,14 @@ public class ShunFengServiceImpl implements ShunFengService {
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
             String cell = AESUtil.decrypt(reponse.getContact_info(), aesKey);
             List<String> moreCellList = reponse.getMore_contact();
-            if (StringUtils.isEmpty(cell)) {
-                detailDTO.setCell("15711399935");
-            } else {
+            if (StringUtils.isEmpty(cell) && CollectionUtils.isEmpty(moreCellList)) {
+                log.warn("顺丰获取企业信息cell,morecell都为空,companyName={}", reponse.getCompany_name());
+                return;
+            }
+            if (StringUtils.isNotEmpty(cell)) {
                 detailDTO.setCell(cell);
+            } else {
+                detailDTO.setCell(AESUtil.decrypt(moreCellList.get(0), aesKey));
             }
             detailDTO.setCustNum(reponse.getCredit_code());
             JSONObject reserveField1 = new JSONObject();
