@@ -29,4 +29,8 @@ public interface ZhongAnBiReportMapper {
             @Param("dimensionValue") String dimensionValue,
             @Param("itemName") String itemName);
 
+    List<ReportStatisticField> queryReportStatisticFieldbI_(
+            @Param("reportId") String reportId,
+            @Param("itemName") String itemName);
+
 }

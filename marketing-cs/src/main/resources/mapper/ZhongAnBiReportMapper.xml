@@ -64,6 +64,15 @@
         order by score_value desc
     </select>
 
+    <select id="queryReportStatisticFieldbI_" resultType="com.br.marketing.dto.report.zhongan.ReportStatisticField">
+        select * from dws_report_statistic_transfer_detail
+        where report_id = #{reportId}
+        <if test="itemName !=null and itemName!=''">
+            <![CDATA[ and item_name = #{itemName}]]>
+        </if>
+        order by create_time desc
+    </select>
+
 </mapper>
 
 

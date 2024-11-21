@@ -1,17 +1,20 @@
 package com.br.marketing.bi.zhongan;
 
 import cn.hutool.poi.excel.ExcelWriter;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.dto.report.zhongan.ReportStatisticField;
+import com.br.marketing.dto.report.zhongan.ReportStatisticRule;
 import com.br.marketing.dto.report.zhongan.ReportStatisticTransferDetail;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.ReportFieldMapping;
+import com.br.marketing.entity.ReportFieldMappingExample;
+import com.br.marketing.entity.ReportTask;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.mapper.ReportFieldMappingMapper;
-import com.br.marketing.mapper.ReportStatisticTransferMapper;
+import com.br.marketing.mapper.ReportStatisticRuleMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.util.DataBarUtil;
@@ -24,16 +27,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @ClassName ZhongAnTransferAnalysisConverter
+ * @ClassName ZhongAnTransferConnectConverter
  * @Description 转化分析报表
  * @Author LiXiang
  * @Date 2024-09-23
@@ -41,13 +47,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @BiReportType(reportType = BiReportTypeEnum.TRANSFER_CONNECT_REPORT)
-public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<BiReportVO, ReportStatisticTransferDetail> {
+public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<BiReportVO, ReportStatisticField> {
 
     @Resource
     private ZhongAnBiReportMapper zhongAnBiReportMapper;
 
     @Resource
-    private ReportStatisticTransferMapper reportStatisticTransferMapper;
+    private ReportStatisticRuleMapper reportStatisticRuleMapper;
 
     @Resource
     private ReportFieldMappingMapper reportFieldMappingMapper;
@@ -56,75 +62,64 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
     private ReportTaskMapper reportTaskMapper;
 
     @Override
-    public List<ReportStatisticTransferDetail> fetchData(BiReportParam param) {
-        String taskId = param.getCondition().getString("taskId");
-
-        ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
-        reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
-        reportStatisticTransferExample.setOrderByClause("create_time desc");
-        List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
-        if (reportStatisticTransfers.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        ReportStatisticTransfer reportStatisticTransfer = reportStatisticTransfers.get(0);
-        String reportId = reportStatisticTransfer.getReportId();
-        String scoreField = reportStatisticTransfer.getScoreField();
-        String dimensionField = reportStatisticTransfer.getDimensionField();
-        String dimensionValue = reportStatisticTransfer.getDimensionValue();
-
-
-        param.getCondition().put("reportId", reportId);
-        param.getCondition().put("scoreField", scoreField);
-        param.getCondition().put("dimensionField", dimensionField);
-        param.getCondition().put("dimensionValue", dimensionValue);
+    public List<ReportStatisticField> fetchData(BiReportParam param) {
         return new ArrayList<>();
     }
 
     @Override
-    public List<BiReportVO> process(List<ReportStatisticTransferDetail> dataList, JSONObject extend) {
+    public List<BiReportVO> process(List<ReportStatisticField> dataList, JSONObject extend) {
         List<BiReportVO> biReportVOList = Lists.newArrayList();
 
         String taskId = extend.getString("taskId");
-        String reportId = extend.getString("reportId");
-        String scoreFieldStr = extend.getString("scoreField");
-        String dimensionField = extend.getString("dimensionField");
-        String dimensionValueStr = extend.getString("dimensionValue");
+        LocalDate curLocalDate = LocalDate.now();
+        String reportDateStart = curLocalDate.withDayOfMonth(1).toString();
+        String reportDateEnd = curLocalDate.plusDays(1).toString();
+
+        List<ReportStatisticRule> reportRuleList = reportStatisticRuleMapper.selectReportList(taskId, reportDateStart, reportDateEnd);
+        if (CollectionUtils.isEmpty(reportRuleList)) {
+            return new ArrayList<>();
+        }
+
+        // reportRuleListGroupByReportOrder
+        Map<String, List<ReportStatisticRule>> reportRuleListGroupByReportOrder = reportRuleList.stream()
+                .collect(Collectors.groupingBy(ReportStatisticRule::getReportOrder));
+        List<String> ReportOrderList = reportRuleListGroupByReportOrder.keySet().stream().sorted().collect(Collectors.toList());
+
+        // reportRuleListGroupByReportDate
+        Map<String, List<ReportStatisticRule>> reportRuleListGroupByReportDate = reportRuleList.stream()
+                .collect(Collectors.groupingBy(ReportStatisticRule::getReportDate));
+        List<String> ReportDateList = reportRuleListGroupByReportDate.keySet().stream().sorted().collect(Collectors.toList());
 
         ReportFieldMappingExample reportFieldDictExample = new ReportFieldMappingExample();
         reportFieldDictExample.createCriteria().andReportTaskIdEqualTo(taskId);
         reportFieldDictExample.setOrderByClause("item_order asc");
         List<ReportFieldMapping> reportFieldMappingList = reportFieldMappingMapper.selectByExample(reportFieldDictExample);
 
-        JSONArray scoreFieldJa = JSONObject.parseArray(scoreFieldStr);
-        JSONArray dimensionValueJa = JSONObject.parseArray(dimensionValueStr);
-        Map<String, String> sumValueMap = new HashMap<>();
-        for(Object scoreFieldObj : scoreFieldJa){
-            JSONObject scoreFieldJo = (JSONObject) scoreFieldObj;
-            String scoreField = scoreFieldJo.getString("field");
-            for(Object dimensionValueObj : dimensionValueJa) {
-                String dimensionValue = String.valueOf(dimensionValueObj);
+        for(String reportOrder : ReportOrderList){
+            BiReportVO biReportVO = new BiReportVO();
+            biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getTypeName());
+            String groupName = getGroupName(taskId, "");
+            biReportVO.setReportName(BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT.getStatName()+"-"+"12345"+"-"+groupName);
+            biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
+            biReportVO.setXAxisName("日期");
+            List<String> xAxis = new ArrayList<>();
+            biReportVO.setXAxis(xAxis);
 
-                BiReportVO biReportVO = new BiReportVO();
-                biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT.getTypeName());
-                String groupName = getGroupName(taskId, dimensionValue);
-                biReportVO.setReportName(BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT.getStatName()+"-"+scoreField+"-"+groupName);
-                biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
+            for(String reportDate : ReportDateList){
+                ReportStatisticRule reportRule = reportRuleList.stream()
+                        .filter(rule -> reportOrder.equals(rule.getReportOrder()) && reportDate.equals(rule.getReportDate()))
+                        .findFirst()
+                        .orElse(null);
+                if(reportRule == null){
+                    continue;
+                }
 
-                List<ReportStatisticTransferDetail> reportDataList = zhongAnBiReportMapper.queryReportStatisticTransferDetailbI_(reportId, "", "", "", "");
-
-                List<ReportStatisticTransferDetail> caseList = filter(reportDataList, scoreField, dimensionField, dimensionValue, "数据量");
-                caseList = caseList.stream().sorted(Comparator.comparing((ReportStatisticTransferDetail data) -> {
-                    String scoreValue = data.getScoreValue();
-                    String value = scoreValue.split(",")[0].substring(1);
-                    return Integer.parseInt(value);
-                })).collect(Collectors.toList());
+                String reportId = reportRule.getReportId();
+                List<ReportStatisticField> reportDateList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, "reportDate");
+                String reportDateValue = reportDateList.get(0).getItemValue();
 
                 // 构造横坐标数据
-                List<String> xAxis = caseList.stream().map(ReportStatisticTransferDetail::getScoreValue).distinct().collect(Collectors.toList());
-                xAxis.add("总计");
-                biReportVO.setXAxisName("分值区间");
-                biReportVO.setXAxis(xAxis);
+                xAxis.add(reportDateValue);
 
                 // 构造纵坐标数据
                 List<WrapDataVO> yAxis = Lists.newArrayList();
@@ -134,25 +129,14 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                     String itemShow = reportFieldMapping.getItemShow();
                     String formatTypeName = reportFieldMapping.getItemFormatType();
                     FormatType formatType = FormatType.getByName(formatTypeName);
-                    List<ReportStatisticTransferDetail> detailList = filter(reportDataList, scoreField, dimensionField, dimensionValue, itemName);
+                    List<ReportStatisticField> reportFieldList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, itemName);
+
                     // sort
-                    detailList = detailList.stream().sorted(Comparator.comparing((ReportStatisticTransferDetail data) -> {
-                        String scoreValue = data.getScoreValue();
-                        String value = scoreValue.split(",")[0].substring(1);
-                        return Integer.parseInt(value);
-                    })).collect(Collectors.toList());
-                    // sum
-                    String sum = calculateSum(itemName, detailList, sumValueMap);
-                    ReportStatisticTransferDetail sumDetail = new ReportStatisticTransferDetail();
-                    sumDetail.setItemValue(sum);
-                    detailList.add(sumDetail);
-                    yAxis.add(buildWrapDataVO(itemShow, detailList, ReportStatisticTransferDetail::getItemValue, formatType));
+                    yAxis.add(buildWrapDataVO(itemShow, reportFieldList, ReportStatisticField::getItemValue, formatType));
                 }
-
                 biReportVO.setYAxis(yAxis);
-                biReportVOList.add(biReportVO);
-
             }
+            biReportVOList.add(biReportVO);
         }
         return biReportVOList;
     }
@@ -238,61 +222,6 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         }).collect(Collectors.toList());
         return dataList;
     }
-
-    public String sum(List<ReportStatisticTransferDetail> reportDataList, String itemName, Map<String, String> sumValueMap) {
-        BigDecimal sumValue = reportDataList.stream().map((ReportStatisticTransferDetail data)-> {
-            BigDecimal itemValueDecimal = new BigDecimal(String.valueOf(data.getItemValue()));
-            return itemValueDecimal;
-        }).reduce(BigDecimal.ZERO, BigDecimal::add);
-        sumValueMap.put(itemName, sumValue.toString());
-        return sumValue.toString();
-    }
-
-    public String sumRate(String dividendName, String divisorName, Map<String, String> sumValueMap) {
-        String dividendSumValue = sumValueMap.get(dividendName);
-        String divisorSumValue = sumValueMap.get(divisorName);
-        BigDecimal dividendValue = new BigDecimal(dividendSumValue);
-        BigDecimal divisorValue = new BigDecimal(divisorSumValue);
-        if(BigDecimal.ZERO.compareTo(divisorValue)==0){
-            return BigDecimal.ZERO.toString();
-        }
-        BigDecimal divideValue = dividendValue.divide(divisorValue, 6, RoundingMode.HALF_UP);
-        return divideValue.toString();
-    }
-
-    public String calculateSum(String itemName, List<ReportStatisticTransferDetail> reportDataList, Map<String, String> sumValueMap) {
-        switch (itemName){
-            case "数据量":
-            case "登录量":
-            case "进件人数":
-            case "批核人数":
-            case "发起提现人数":
-            case "放款成功人数":
-                return sum(reportDataList, itemName, sumValueMap);
-            case "评分分布":
-                return sumRate("数据量", "数据量", sumValueMap);
-            case "登录率":
-                return sumRate("登录量", "数据量", sumValueMap);
-            case "进件穿透率":
-                return sumRate("进件人数", "数据量", sumValueMap);
-            case "批核通过率":
-                return sumRate("批核人数", "进件人数", sumValueMap);
-            case "批核穿透率":
-                return sumRate("批核人数", "数据量", sumValueMap);
-            case "批核转化占比":
-                return sumRate("批核人数", "批核人数", sumValueMap);
-            case "发起提现率":
-                return sumRate("发起提现人数", "批核人数", sumValueMap);
-            case "放款成功率":
-                return sumRate("放款成功人数", "发起提现人数", sumValueMap);
-            case "放款成功穿透率":
-                return sumRate("放款成功人数", "数据量", sumValueMap);
-            case "放款成功转化占比":
-                return sumRate("放款成功人数", "放款成功人数", sumValueMap);
-        }
-        return "0.00";
-    }
-
 
     public Map<String, String> formatReportRules(String taskId) {
         ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(Long.valueOf(taskId));
