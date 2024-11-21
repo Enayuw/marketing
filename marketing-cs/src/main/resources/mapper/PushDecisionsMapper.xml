@@ -13,6 +13,7 @@
         a.status as status,
         a.auto_time as autoTime,
         a.push_datasets as pushDatasets,
+        a.auto_refresh as autoRefresh,
         a.reach_strategy as reachStrategy,
         date_format(a.create_time,'%Y-%m-%d %T') as createTime,
         date_format(a.update_time,'%Y-%m-%d %T') as updateTime

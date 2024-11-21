@@ -3,6 +3,7 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.vo.TaskExtendInfoVO;
+import com.br.marketing.vo.TaskTemplateVO;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +16,8 @@ public interface StraHisFileMapper extends StraHisFileMapperBase {
 
     List<StraHisFile> getFileByRule(@Param("time") Date time, @Param("ruleNumber") String ruleNumber
             ,@Param("pushStatusList") List<Integer> pushStatusList, @Param("isOrNoStatus")Integer isOrNoStatus);
+
+    List<String> getFileById(@Param("ids") List<String> ids);
+
+    List<TaskTemplateVO> getFileByruleNameShorts(@Param("ruleNameShorts") List<String> ruleNameShorts, @Param("apiCode") String apiCode);
 }

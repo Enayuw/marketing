@@ -37,4 +37,41 @@
          and shf.status =2 and btbp.monitor_type !=2 order by shf.create_time desc limit 1
     </select>
 
+    <select id="getFileById" resultType="java.lang.String">
+        select bsrc.rule_name_short
+        from stra_his_file shf
+        left join b_marketing_task btbp on shf.batch_number = btbp.batch_number
+        left join b_marketing_task_extend bmte on btbp.id = bmte.task_id
+        left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+        where shf.id in
+        <foreach collection="ids" open="(" close=")" separator="," item="id">
+            #{id}
+        </foreach>
+        order by shf.create_time desc
+    </select>
+
+    <select id="getFileByruleNameShorts" resultType="com.br.marketing.vo.TaskTemplateVO">
+        select
+        shf.id as fileId,
+        shf.batch_number as batchNumber,
+        bmtut.user_type  as userType,
+        bmt.task_number  as taskNumber,
+        shf.create_time  as taskCreateTime
+        from stra_his_file shf
+        left join b_marketing_task bmt on shf.batch_number = bmt.batch_number
+        left join b_marketing_task_extend bmte on bmte.task_id = bmt.id
+        left join b_score_rule_config bsrc on bsrc.id = bmte.rule_id
+        left join b_marketing_task_user_type bmtut on shf.batch_number = bmtut.batch_number
+        where
+            bsrc.rule_name_short in
+        <foreach collection="ruleNameShorts" open="(" close=")" separator="," item="ruleNameShort">
+            #{ruleNameShort}
+        </foreach>
+        <if test="apiCode!=null and apiCode!=''">
+            and shf.api_code =#{apiCode}
+        </if>
+        and shf.status = 2
+        order by shf.create_time desc
+    </select>
+
 </mapper>
