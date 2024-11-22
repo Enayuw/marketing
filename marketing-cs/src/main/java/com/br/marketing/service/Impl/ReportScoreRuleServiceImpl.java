@@ -631,7 +631,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                         reportStatisticTransferExample.createCriteria()
                                 .andReportDateEqualTo(reportDate)
                                 .andReportStatusEqualTo("0")
-                                .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue().toString());
+                                .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue().toString());
                         ReportStatisticTransfer statisticTransfer = new ReportStatisticTransfer();
                         statisticTransfer.setReportStatus("2");
                         statisticTransfer.setUpdateTime(new Date());
