@@ -3,8 +3,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+import java.util.*;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -14,20 +15,22 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OptConditionDTO;
 import com.br.marketing.dto.PushDecisionsDTO;
+import com.br.marketing.dto.RunTaskDTO;
 import com.br.marketing.dto.SearchConditionDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.PushDecisionsMapper;
 import com.br.marketing.mapper.ScoreSearchConditionMapper;
+import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.PushDecisionsService;
-import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushDecisionsDetailVO;
+import com.br.marketing.vo.TaskTemplateVO;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +49,9 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
     @Resource
     ScoreSearchConditionMapper scoreSearchConditionMapper;
 
+    @Resource
+    StraHisFileMapper straHisFileMapper;
+
     @Autowired
     EntityOptServiceImpl entityOptService;
 
@@ -60,6 +66,17 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("该规则模板未配置数据源！");
         }
 
+        String fileIds = dto.getFileIds();
+        if(fileIds.isEmpty()){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未选择跑分文件！");
+        }
+
+        // 更新依赖模板中数据源字段
+        ScoreSearchCondition scoreSearchCondition1 = new ScoreSearchCondition();
+        scoreSearchCondition1.setId(scoreSearchCondition.getId());
+        scoreSearchCondition1.setSourceCondition(handleFileId(fileIds));
+        scoreSearchConditionMapper.updateByPrimaryKeySelective(scoreSearchCondition1);
+        // 查询推送决策是否重复
         PushDecisionsExample pushDecisionsExample = new PushDecisionsExample();
         pushDecisionsExample.createCriteria().andRuleNameEqualTo(dto.getRuleName()).andApiCodeEqualTo(dto.getApiCode()).andIsDelEqualTo(1);
         int i = pushDecisionsMapper.countByExample(pushDecisionsExample);
@@ -75,10 +92,19 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         pushDecisions.setAutoTime(dto.getAutoTime());
         pushDecisions.setPushDatasets(dto.getPushDatasets());
         pushDecisions.setReachStrategy(dto.getReachStrategy());
+        pushDecisions.setAutoRefresh(dto.getAutoRefresh());
         pushDecisions.setCreateTime(new Date());
         pushDecisions.setUpdateTime(new Date());
         pushDecisionsMapper.insertSelective(pushDecisions);
         return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(pushDecisions.getId());
+    }
+
+    // fileIds去重
+    private String handleFileId(String fileIds) {
+        String[] elements = fileIds.split(",");
+        Set<String> uniqueElements = new HashSet<>(Arrays.asList(elements));
+        List<String> uniqueList = new ArrayList<>(uniqueElements);
+        return String.join(",", uniqueList);
     }
 
     @Override
@@ -158,14 +184,81 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
         if (StringUtils.isEmpty(dto.getId())) {
             return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("id为空");
         }
+        String fileIds = dto.getFileIds();
+        if(fileIds.isEmpty()){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未选择跑分文件！");
+        }
+        // 更新依赖模板中数据源字段
+        ScoreSearchCondition scoreSearchCondition = new ScoreSearchCondition();
+        scoreSearchCondition.setId(dto.getDependencyTemplateId());
+        scoreSearchCondition.setSourceCondition(handleFileId(fileIds));
+        scoreSearchConditionMapper.updateByPrimaryKeySelective(scoreSearchCondition);
+        // 更新推送决策配置
         PushDecisions pushDecisions = new PushDecisions();
         pushDecisions.setId(dto.getId());
         pushDecisions.setRuleName(dto.getRuleName());
         pushDecisions.setAutoTime(dto.getAutoTime());
         pushDecisions.setPushDatasets(dto.getPushDatasets());
         pushDecisions.setReachStrategy(dto.getReachStrategy());
+        pushDecisions.setAutoRefresh(dto.getAutoRefresh());
+        pushDecisions.setUpdateTime(new Date());
         pushDecisionsMapper.updateByPrimaryKeySelective(pushDecisions);
         return new Result().setCode(ResultCode.SUCCESS.getValue());
+    }
+
+    @Override
+    public Result<List<TaskTemplateVO>> getRunTaskByTemplate(RunTaskDTO dto) {
+        if(dto == null){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("查询参数为空");
+        }
+        // 1- 查询规则模板
+        ScoreSearchCondition scoreSearchCondition = scoreSearchConditionMapper.selectByPrimaryKey(Long.valueOf(dto.getTemplateId()));
+        if(scoreSearchCondition == null){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("未查询到规则模板,模板id：" + dto.getTemplateId());
+        }
+
+        // 2- 获取所有跑分id
+        List<String> ids = new ArrayList<>();
+        String sourceCondition = scoreSearchCondition.getSourceCondition();
+        if(sourceCondition.contains(",")){
+            ids = Arrays.stream(sourceCondition.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toList());
+        }else {
+            ids.add(sourceCondition);
+        }
+        if(CollectionUtil.isEmpty(ids)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分文件为空,对应模板id：" + scoreSearchCondition.getId());
+        }
+        // 3- 根据跑分文件id查询跑分配置
+        List<String> ruleNameShorts = straHisFileMapper.getFileById(ids);
+        if(CollectionUtil.isEmpty(ruleNameShorts)){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("跑分配置为空,文件ids：" + ids);
+        }
+
+        // 4- 根据跑分配置 查询所有跑分文件
+        List<TaskTemplateVO> files = straHisFileMapper.getFileByruleNameShorts(ruleNameShorts,dto.getApiCode());
+
+        // fileId多个场景，合并为一条
+        files = new ArrayList<>(files.stream()
+                .collect(Collectors.toMap(
+                        TaskTemplateVO::getFileId,
+                        task -> task,
+                        (existing, replacement) -> {
+                            existing.setUserType(existing.getUserType() + "," + replacement.getUserType());
+                            return existing;
+                        }
+                ))
+                .values());
+
+        // 筛选出规则模板中已关联的跑分id，status置为1
+        for (TaskTemplateVO taskTemplateVO : files) {
+            if(ids.contains(taskTemplateVO.getFileId())){
+                taskTemplateVO.setStatus(1);
+            }
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(files);
+
     }
 
     String buildConditionNumber(String apiCode) {

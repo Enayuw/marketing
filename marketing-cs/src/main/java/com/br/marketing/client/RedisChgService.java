@@ -7,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * redis客户端
@@ -445,6 +442,27 @@ public class RedisChgService {
 
         while (System.currentTimeMillis() - begin < LOCK_WAIT_THRESHOLD) {
             boolean acquire = this.lock(lockKey, value, 3000L);
+            if (acquire) {
+                return;
+            }
+
+            try {
+                Thread.sleep(500L);
+            } catch (InterruptedException var7) {
+                var7.printStackTrace();
+            }
+        }
+
+        throw new NullPointerException("获取锁失败");
+    }
+
+    public void lockLoop(String lockKey, String value,Long milliseconds,Long waitMilliseconds) {
+        long begin = System.currentTimeMillis();
+        if(Objects.isNull(waitMilliseconds)){
+            waitMilliseconds = LOCK_WAIT_THRESHOLD;
+        }
+        while (System.currentTimeMillis() - begin < waitMilliseconds) {
+            boolean acquire = this.lock(lockKey, value, milliseconds);
             if (acquire) {
                 return;
             }

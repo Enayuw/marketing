@@ -958,6 +958,22 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="DataGroupHandlerJob"
+                class="com.br.marketing.check.job.datagroup.DataGroupHandlerJob"
+                cron="0 0/10 * * * ?"
+                description="数据分组流程处理"
+                registry-center-ref="regCenter"
+                sharding-total-count="4"
+                sharding-item-parameters="0=A,1=B,2=C,3=D"
+                monitor-execution="true"
+                failover="true"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-parameter=""
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
     <job:simple id="QiFuAiCleanJob"
                 class="com.br.marketing.check.job.qifu.QiFuAiCleanJob"
                 cron="0 1/5 * * * ?"

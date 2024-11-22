@@ -12,7 +12,7 @@ public class MarketingSyncReportExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingSyncReportExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingSyncReportExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -755,6 +755,76 @@ public class MarketingSyncReportExample {
             return (Criteria) this;
         }
 
+        public Criteria andReserveField1KeyIsNull() {
+            addCriterion("reserve_field1_key is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyIsNotNull() {
+            addCriterion("reserve_field1_key is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyEqualTo(String value) {
+            addCriterion("reserve_field1_key =", value, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyNotEqualTo(String value) {
+            addCriterion("reserve_field1_key <>", value, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyGreaterThan(String value) {
+            addCriterion("reserve_field1_key >", value, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyGreaterThanOrEqualTo(String value) {
+            addCriterion("reserve_field1_key >=", value, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyLessThan(String value) {
+            addCriterion("reserve_field1_key <", value, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyLessThanOrEqualTo(String value) {
+            addCriterion("reserve_field1_key <=", value, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyLike(String value) {
+            addCriterion("reserve_field1_key like", value, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyNotLike(String value) {
+            addCriterion("reserve_field1_key not like", value, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyIn(List<String> values) {
+            addCriterion("reserve_field1_key in", values, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyNotIn(List<String> values) {
+            addCriterion("reserve_field1_key not in", values, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyBetween(String value1, String value2) {
+            addCriterion("reserve_field1_key between", value1, value2, "reserveField1Key");
+            return (Criteria) this;
+        }
+
+        public Criteria andReserveField1KeyNotBetween(String value1, String value2) {
+            addCriterion("reserve_field1_key not between", value1, value2, "reserveField1Key");
+            return (Criteria) this;
+        }
+
         public Criteria andRemarkIsNull() {
             addCriterion("remark is null");
             return (Criteria) this;
@@ -946,8 +1016,9 @@ public class MarketingSyncReportExample {
         }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }
