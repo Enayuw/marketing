@@ -501,6 +501,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
             marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
             marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
+            marketingTransferSyncUserCell.setMarketingSyncUser(marketingSyncUser);
             return marketingTransferSyncUserCell;
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
@@ -623,12 +624,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     private JSONObject variablesInit(MarketingTransferSyncUserCell marketingTransferSyncUserCell, String cell, String actionType) {
 
-        String apiCode = marketingTransferSyncUserCell.getApiCode();
-        String custNum = marketingTransferSyncUserCell.getCustNum();
-        MarketingSyncUser marketingSyncUser = marketingSyncUserMapper.selectSynsUserByCustNumLast(apiCode, custNum);
+        MarketingSyncUser marketingSyncUser = marketingTransferSyncUserCell.getMarketingSyncUser();
         JSONObject jsonObject = JSONObject.parseObject(marketingSyncUser.getReserveField1());
-        CustomerTagsVO customerTagsVO = customerTagsProcessService.getTags(apiCode);
-        buildJson(jsonObject, marketingSyncUser, customerTagsVO.getPushJc3keyType());
+        buildJson(jsonObject, marketingSyncUser);
 
         jsonObject.put("custNum", marketingTransferSyncUserCell.getCustNum());
         jsonObject.put("cell", cell);
@@ -659,11 +657,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         return jsonObject;
     }
 
-    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
-        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", pushJc3keyType)));
-        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", pushJc3keyType)));
+        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue())));
+        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue())));
         jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
@@ -681,19 +679,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             return content;
         }
 
-        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
-            return content;
-        }
-
         if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
             String decode = BrCipherMaker.getInstance().decode(content);
             return org.apache.commons.lang3.StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
         }
 
-        if (CustomerTagsValue.PushJc3keyTypeEnum.SHA256_ALL.getValue().equals(encryptionType)) {
-            String decode = BrCipherMaker.getInstance().decode(content);
-            return org.apache.commons.lang3.StringUtils.isNotBlank(decode) ? Sha256Util.getSHA256Encrypt(decode) : content;
-        }
         return null;
     }
 }

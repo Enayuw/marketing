@@ -114,19 +114,18 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
             return null;
         }
         jsonObject.put("cell", cell);
-        CustomerTagsVO customerTagsVO = customerTagsProcessService.getTags(context.getApiCode());
-        buildJson(jsonObject, marketingSyncUser, customerTagsVO.getPushJc3keyType());
+        buildJson(jsonObject, marketingSyncUser);
 
         pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         return pushMarketingUserDetailByRuleDTO;
 
     }
-    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
         jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
-        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", pushJc3keyType)));
-        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", pushJc3keyType)));
+        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue())));
+        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue())));
         jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
         jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
@@ -145,19 +144,11 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
             return content;
         }
 
-        if (CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)) {
-            return content;
-        }
-
         if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
             String decode = BrCipherMaker.getInstance().decode(content);
             return org.apache.commons.lang3.StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
         }
 
-        if (CustomerTagsValue.PushJc3keyTypeEnum.SHA256_ALL.getValue().equals(encryptionType)) {
-            String decode = BrCipherMaker.getInstance().decode(content);
-            return org.apache.commons.lang3.StringUtils.isNotBlank(decode) ? Sha256Util.getSHA256Encrypt(decode) : content;
-        }
         return null;
     }
 
