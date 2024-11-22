@@ -60,6 +60,7 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+        log.warn("开始组装推决策参数 YiXin_NonRealTime_Policy ");
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
         Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
@@ -95,7 +96,6 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         pushMarketingUserDetailByRuleDTO.setSoleType(30);
         pushMarketingUserDetailByRuleDTO.setPushApiCode(marketingCommonConfig.getYiXinToPolicyApiCode());
         return pushMarketingUserDetailByRuleDTO;
-
     }
 
     private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser, Integer pushJc3keyType) {
