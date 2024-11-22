@@ -203,6 +203,7 @@ public class ShunFengServiceImpl implements ShunFengService {
             reserveField1.put("district", reponse.getDistrict());
             reserveField1.put("address_verification_flag", reponse.getAddress_verification_flag());
             reserveField1.put("aoi_type", reponse.getAoi_type());
+            reserveField1.put("credit_code", reponse.getCredit_code());
             if (!CollectionUtils.isEmpty(moreCellList)) {
                 for (int i = 0; i < moreCellList.size(); i++) {
                     reserveField1.put("cell".concat(String.valueOf(i + 1)), AESUtil.decrypt(moreCellList.get(i), aesKey));
