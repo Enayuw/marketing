@@ -2312,5 +2312,11 @@ public class MarketingCommonConfig {
      */
     private Integer shunFengCompanyThreadNum;
 
+
+    /**
+     * 顺丰接口mock
+     */
+    private Boolean shunFengInterMock;
+
 }
 

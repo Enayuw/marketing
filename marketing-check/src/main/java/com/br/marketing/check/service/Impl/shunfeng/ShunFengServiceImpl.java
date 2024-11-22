@@ -161,10 +161,15 @@ public class ShunFengServiceImpl implements ShunFengService {
         List<MarketingPreUserDetailDTO> dataItems = new ArrayList<>();
         companyDetailList.forEach((BussinesInfoReponse reponse) -> {
             MarketingPreUserDetailDTO detailDTO = new MarketingPreUserDetailDTO();
+            //mock联系方式
+            if(marketingCommonConfig.getShunFengInterMock()){
+                reponse.setContact_info("ybHca/NCwfC6pzUOs0w+6g==");
+            }
             String cell = AESUtil.decrypt(reponse.getContact_info(), aesKey);
             List<String> moreCellList = reponse.getMore_contact();
             if (StringUtils.isEmpty(cell) && CollectionUtils.isEmpty(moreCellList)) {
-                log.warn("顺丰获取企业信息cell,morecell都为空,companyName={}", reponse.getCompany_name());
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(),
+                        "顺丰获取企业信息cell,morecell都为空,companyName=".concat(reponse.getCompany_name())));
                 return;
             }
             if (StringUtils.isNotEmpty(cell)) {
