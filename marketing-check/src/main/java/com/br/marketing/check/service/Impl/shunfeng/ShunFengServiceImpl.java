@@ -96,7 +96,7 @@ public class ShunFengServiceImpl implements ShunFengService {
                     try {
                         getCompanyInfo(companyData, localFile.getApiCode());
                     } catch (Exception ex) {
-                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "顺丰获取企业信息异常！"), ex);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(), "顺丰获取企业信息异常！"), ex);
 
                     }
                 });
@@ -108,7 +108,7 @@ public class ShunFengServiceImpl implements ShunFengService {
                     log.info("等待线程池结束");
                 }
             } catch (InterruptedException ex) {
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "顺丰获取企业信息线程池停止异常！"), ex);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(), "顺丰获取企业信息线程池停止异常！"), ex);
                 Thread.currentThread().interrupt();
             }
             localFile.setPushEndTime(new Date());
@@ -143,7 +143,7 @@ public class ShunFengServiceImpl implements ShunFengService {
         //构造上传,转化参数
         buildParam(apiCode, companyDetailList, marketingPreUserDTO);
         if (Objects.isNull(marketingPreUserDTO)) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(), "顺丰获取企业信息组装上传数据异常！"));
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(), "顺丰获取企业信息组装上传数据异常！"));
             return;
         }
         //上传接口
@@ -168,7 +168,7 @@ public class ShunFengServiceImpl implements ShunFengService {
             String cell = AESUtil.decrypt(reponse.getContact_info(), aesKey);
             List<String> moreCellList = reponse.getMore_contact();
             if (StringUtils.isEmpty(cell) && CollectionUtils.isEmpty(moreCellList)) {
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SUNING_SERVICEERROR.getCode(),
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(),
                         "顺丰获取企业信息cell,morecell都为空,companyName=".concat(reponse.getCompany_name())));
                 return;
             }
