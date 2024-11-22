@@ -992,4 +992,20 @@
                 job-parameter=""
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
+
+    <job:simple id="check】-ZhongAnReportStatisticJob"
+                class="com.br.marketing.check.job.zhongan.ZhongAnReportStatisticJob"
+                cron="0 0 1 * * ?"
+                description="众安经营分析报表每日定时生成任务"
+                registry-center-ref="regCenter"
+                sharding-total-count="1"
+                sharding-item-parameters="0=A"
+                monitor-execution="true"
+                failover="false"
+                misfire="false"
+                disabled="true"
+                overwrite="true"
+                job-parameter=""
+                job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
+    />
 </beans>
