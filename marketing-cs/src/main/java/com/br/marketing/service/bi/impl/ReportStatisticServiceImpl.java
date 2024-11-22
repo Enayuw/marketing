@@ -3,6 +3,7 @@ package com.br.marketing.service.bi.impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO;
 import com.br.marketing.entity.ReportTask;
 import com.br.marketing.entity.ReportTaskAction;
 import com.br.marketing.entity.ReportTaskActionExample;
@@ -10,8 +11,12 @@ import com.br.marketing.entity.ReportTaskExample;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.ReportTaskActionMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
+import com.br.marketing.mapper.ZhongAnControlGroupMapper;
 import com.br.marketing.service.bi.ReportStatisticService;
+import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
+import com.br.marketing.vo.zhongan.param.ZhongAnCustomInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,6 +26,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *  众安经营分析报表每日定时生成任务
@@ -34,6 +40,12 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
 
     @Resource
     ReportTaskActionMapper reportTaskActionMapper;
+
+    @Resource
+    ZhongAnControlGroupMapper zhongAnControlGroupMapper;
+
+    @Resource
+    ZhongAnControlGroupServiceImpl zhongAnControlGroupService;
 
     @Override
     public void action(String actionDate) {
@@ -94,6 +106,54 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                 log.warn("众安报表类型为空");
                 return;
             }
+
+            LocalDate today = LocalDate.now();
+            String resultDate = today.minusDays(1).toString();
+
+            List<Integer> userTypes = zhongAnReportType.stream()
+                    .map(reportType -> {
+                        switch (reportType) {
+                            case "12":
+                                return 1;
+                            case "13":
+                                return 7;
+                            case "14":
+                                return 8;
+                            default:
+                                log.warn("未匹配到报表类型");
+                                return null;
+                        }
+                    })
+                    .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(userTypes)) {
+                log.warn("报表类型为空");
+                return;
+            }
+            List<ZhongAnControlGroupDTO> zhongAnControlGroupDTOS = zhongAnControlGroupMapper.selectConfigTypeAndDatebI_(userTypes, resultDate);
+            if ((ObjectUtil.isEmpty(zhongAnControlGroupDTOS) || zhongAnControlGroupDTOS.size() < 1)) {
+                log.warn("众安报表配置为空");
+                ZhongAnControlGroupParam param = new ZhongAnControlGroupParam();
+                param.setReportDate(LocalDate.now().toString());
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    String jsonData1 = "[{\"constituencies\":1,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}," +
+                            "{\"constituencies\":2,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}]";
+                    String jsonData7 = "[{\"constituencies\":3,\"payPassRate\":0,\"lendersSucAmount\":0}," +
+                            "{\"constituencies\":4,\"totalNum\":0,\"loginRate\":0,\"incomingNum\":0,\"approversNum\":0," +
+                            "\"approvalAvailable\":0,\"applyPayNum\":0,\"payPassRate\":0,\"lendersSucNum\":0,\"lendersSucAmount\":0}]";
+                    String jsonData8 = "[{\"constituencies\":5,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}]";
+
+                    param.setUserType1(objectMapper.readValue(jsonData1, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                    param.setUserType7(objectMapper.readValue(jsonData7, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                    param.setUserType8(objectMapper.readValue(jsonData8, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                    zhongAnControlGroupService.saveCustomInfo(param);
+                } catch (Exception e) {
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                            "默认统计生成报表配置错误"), e);
+                }
+
+            }
+
             for (String reportType : zhongAnReportType) {
                 if (!sqlProcessing(reportType)) {
                     log.warn("众安经营分析报表任务生成失败");

@@ -43,6 +43,22 @@
         order by report_date asc
     </select>
 
+    <select id="selectConfigTypeAndDatebI_" resultType="com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO">
+        select * from
+        dws_za_control_group_config
+        where
+        user_type in
+        <foreach collection="list" item="userType" open="(" separator="," close=")">
+            #{userType}
+        </foreach>
+        <if test="reportDate !=null and reportDate !=''">
+            <![CDATA[ report_date <=#{reportDate} and ]]>
+        </if>
+        is_delete =0
+        group by report_date
+        order by report_date asc
+    </select>
+
     <select id="selectConfigByGroupbI_" resultType="com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO">
         select * from dws_za_control_group_config
         where user_type = #{userType} and

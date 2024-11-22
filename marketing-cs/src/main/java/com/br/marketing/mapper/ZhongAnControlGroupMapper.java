@@ -16,6 +16,9 @@ public interface ZhongAnControlGroupMapper {
 
     List<String> selectConfigStatusbI_(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
+    List<ZhongAnControlGroupDTO> selectConfigTypeAndDatebI_(@Param("userType") List<Integer> userTypes,
+                                            @Param("reportDate") String reportDate);
+
 
     List<ZhongAnCustomInfoVO> selectConfigByGroupbI_(@Param("list") List<String> reportDateList,
                                                    @Param("userType") String userType,@Param("constituencies") String constituencies);
