@@ -133,7 +133,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             if ((ObjectUtil.isEmpty(zhongAnControlGroupDTOS) || zhongAnControlGroupDTOS.size() < 1)) {
                 log.warn("众安报表配置为空");
                 ZhongAnControlGroupParam param = new ZhongAnControlGroupParam();
-                param.setReportDate(LocalDate.now().toString());
+                param.setReportDate(resultDate);
                 ObjectMapper objectMapper = new ObjectMapper();
                 try {
                     String jsonData1 = "[{\"constituencies\":1,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}," +

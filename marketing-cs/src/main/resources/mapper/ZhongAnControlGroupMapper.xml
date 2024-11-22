@@ -48,15 +48,14 @@
         dws_za_control_group_config
         where
         user_type in
-        <foreach collection="list" item="userType" open="(" separator="," close=")">
+        <foreach collection="userTypes" item="userType" open="(" separator="," close=")">
             #{userType}
         </foreach>
         <if test="reportDate !=null and reportDate !=''">
-            <![CDATA[ report_date <=#{reportDate} and ]]>
+            <![CDATA[ and report_date =#{reportDate} and ]]>
         </if>
         is_delete =0
-        group by report_date
-        order by report_date asc
+        order by user_type asc
     </select>
 
     <select id="selectConfigByGroupbI_" resultType="com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO">
