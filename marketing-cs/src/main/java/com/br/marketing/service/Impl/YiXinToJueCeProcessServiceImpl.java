@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
@@ -15,6 +16,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUserCell;
 import com.br.marketing.entity.TransferActionFront;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.MarketingTransferInfoMapper;
 import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.service.Impl.yixin.YiXinProcessExcludeRuleData;
@@ -22,6 +24,9 @@ import com.br.marketing.service.Impl.yixin.YiXinProcessGetBaseDataService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.br.marketing.service.ZnkfPushService;
+import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
@@ -99,6 +104,12 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
     @Resource
     private MarketingTransferSyncUserMapper marketingTransferSyncUserMapper;
+
+    @Resource
+    private MarketingSyncUserMapper marketingSyncUserMapper;
+
+    @Resource
+    CustomerTagsProcessServiceImpl customerTagsProcessService;
 
     private static final Integer PARTITION = 2000;
 
@@ -490,6 +501,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
             marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
             marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
+            marketingTransferSyncUserCell.setMarketingSyncUser(marketingSyncUser);
             return marketingTransferSyncUserCell;
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
@@ -611,7 +623,11 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     }
 
     private JSONObject variablesInit(MarketingTransferSyncUserCell marketingTransferSyncUserCell, String cell, String actionType) {
-        JSONObject jsonObject = new JSONObject();
+
+        MarketingSyncUser marketingSyncUser = marketingTransferSyncUserCell.getMarketingSyncUser();
+        JSONObject jsonObject = JSONObject.parseObject(marketingSyncUser.getReserveField1());
+        buildJson(jsonObject, marketingSyncUser);
+
         jsonObject.put("custNum", marketingTransferSyncUserCell.getCustNum());
         jsonObject.put("cell", cell);
         jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
@@ -641,4 +657,33 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         return jsonObject;
     }
 
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
+        jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
+        jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
+        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue())));
+        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue())));
+        jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
+        jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
+        jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
+        jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    private String emptyDefault(String value) {
+        return com.br.common.util.StringUtils.isNotEmpty(value) ? value : "";
+    }
+
+    private String get3keyValue(String content, String contentType, Integer encryptionType) {
+
+        if (org.apache.commons.lang3.StringUtils.isBlank(content)) {
+            return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return org.apache.commons.lang3.StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
+        }
+
+        return null;
+    }
 }

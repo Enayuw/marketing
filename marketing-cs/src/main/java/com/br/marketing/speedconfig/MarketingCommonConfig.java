@@ -2292,10 +2292,20 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
     /**
+     * 数据分组线程数
+     */
+    private Integer dataGroupThreadNum;
+
+    /**
      * 360ai清洗配置
      * {"tCid":"_original","cleanApiCode":"3700226,7491635","dataTime":"-1/指定日期","pageSize":10,"threadNum":10,"isPause":false}
      */
     private JSONObject qifuAiCleanConfig;
+    /**
+     * 同步记录线程池配置
+     * {"upload":3,"transfer":3}
+     */
+    private JSONObject syncReportThreadConfig;
 
     /**
      * 营销推决策数据打标es使用标志
@@ -2306,6 +2316,15 @@ public class MarketingCommonConfig {
      * 360ai的strategyCode清洗配置
      */
     private Boolean qifuAiCleanStrategyCodeFlag;
+
+    /**
+     * 携程动态补充包Id配置
+     */
+    private List<String> XcDynaFalsePackageIds;
+
+    private Integer xieChengBlackEncAndDesThread;
+
+    private Integer xieChengPreCollidingBlackListDeleteThread;
 
 }
 

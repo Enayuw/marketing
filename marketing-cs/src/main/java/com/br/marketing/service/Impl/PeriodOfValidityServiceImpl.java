@@ -2,9 +2,11 @@ package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.MarketingCustomizeDataValidConfigMapper;
 import com.br.marketing.mapper.MarketingDataValidConfigDefaultMapper;
@@ -394,8 +396,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         // 将默认有效期内容持久化到db
         int i = marketingDataValidConfigMapper.insertSelective(newDataValidConfig);
         if (i < 1) {
-            log.error("生成默认有效期入库失败！apiCode:{},userType:{},appletDate:{}"
-                    , syncUser.getApiCode(), syncUser.getUserType(), appletDate);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                    "生成默认有效期入库失败！apiCode:" + syncUser.getApiCode()
+                            + ",userType:" + syncUser.getUserType() + ",appletDate:" + appletDate));
             result.setDate(true);
         }
         return result;
@@ -422,8 +425,9 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                         getMarketingCustomizeDataValidConfig(syncUser);
                 int j = marketingCustomizeDataValidConfigMapper.insertSelective(marketingCustomizeDataValidConfig);
                 if (j < 1) {
-                    log.error("生成默认定制有效期入库失败！apiCode:{},userType:{},taskId:{}"
-                            , syncUser.getApiCode(), syncUser.getUserType(), syncUser.getCusBatch());
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                            "生成默认定制有效期入库失败！apiCode:" + syncUser.getApiCode() + ",userType:" + syncUser.getUserType()
+                                    + ",taskId:" + syncUser.getCusBatch()));
                 }else {
                     try {
                     //  更新通用有效期配置表
@@ -437,7 +441,8 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                                     .andIsDelEqualTo(1);
                         marketingDataValidConfigMapper.updateByExampleSelective(mc,mcExample);
                     }catch (Exception e){
-                        log.error("奇富360 有效期变更 更新通用表数据失败，不影响业务使用，研发人员需要关注。{}",e);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                                "奇富360 有效期变更 更新通用表数据失败，不影响业务使用，研发人员需要关注!"), e);
                     }
 
                 }
@@ -469,16 +474,16 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
             marketingCustomizeDataValidConfig.setValidStartDate(DateFormat(effectiveDate));
             marketingCustomizeDataValidConfig.setValidEndDate(DateFormat(expireDate));
             if(StringUtils.isEmpty(effectiveDate) || StringUtils.isEmpty(expireDate)){
-                log.error("奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：" +
-                                "上传数据的api_code:{},id:{},taskId(cus_batch):{},reserve_field1:{},{}",
-                        marketingSyncByCusBatch.getApiCode(),marketingSyncByCusBatch.getId(),
-                        marketingSyncByCusBatch.getCusBatch(),marketingSyncByCusBatch.getReserveField1());
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                        "奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：上传数据的api_code:" + marketingSyncByCusBatch.getApiCode()
+                                + ",id:" + marketingSyncByCusBatch.getId() + ",taskId(cus_batch):" + marketingSyncByCusBatch.getCusBatch()
+                                + ",reserve_field1:" + marketingSyncByCusBatch.getReserveField1()));
             }
         }catch (Exception e){
-            log.error("奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：" +
-                    "上传数据的api_code:{},id:{},taskId(cus_batch):{},reserve_field1:{},{}",
-                    marketingSyncByCusBatch.getApiCode(),marketingSyncByCusBatch.getId(),
-                    marketingSyncByCusBatch.getCusBatch(),marketingSyncByCusBatch.getReserveField1(),e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                    "奇富360生成有效期时，解析reserve_field1 并获取开始时间和结束时间失败：上传数据的api_code:" + marketingSyncByCusBatch.getApiCode()
+                            + ",id:" + marketingSyncByCusBatch.getId() + ",taskId(cus_batch):" + marketingSyncByCusBatch.getCusBatch()
+                            + ",reserve_field1:" + marketingSyncByCusBatch.getReserveField1()), e);
         }
         marketingCustomizeDataValidConfig.setUserType(syncUser.getUserType());
         marketingCustomizeDataValidConfig.setCreateTime(new Date());
