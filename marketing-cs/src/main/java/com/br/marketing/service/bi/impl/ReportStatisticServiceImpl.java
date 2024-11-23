@@ -160,7 +160,10 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                     return;
                 }
             }
-
+            ReportTaskAction reportTaskAction = new ReportTaskAction();
+            reportTaskAction.setReportTaskId(reportTaskId);
+            reportTaskAction.setActionStatus(2);
+            reportTaskActionMapper.updateByPrimaryKeySelective(reportTaskAction);
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(),
                             "众安报表定时统计新增任务发生错误！"), e);
