@@ -10,9 +10,14 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
+import com.br.common.encryption.Sha256Util;
+import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
+import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
 import com.alibaba.fastjson.JSON;
@@ -62,9 +67,12 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
 
     @Autowired
     PushRuleService pushRuleService;
+    @Resource
+    CustomerTagsProcessServiceImpl customerTagsProcessService;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
+        log.warn("开始组装推决策参数 YiXin_NonRealTime_Policy ");
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
         Integer encType = ScoreThreeKeyEncryptEnum.md5.getValue();
@@ -92,22 +100,56 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         JSONObject parseObject = JSON.parseObject(transfer.getReserveField1());
         String liveType = parseObject.getString("liveType");
-
+        JSONObject jsonObject = JSONObject.parseObject(marketingSyncUser.getReserveField1());
         if ("1".equals(liveType) || "2".equals(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg8_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             pushMarketingUserDetailByRuleDTO.setStatus(liveType);
+            jsonObject.put("batchNumber", "rg8_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         } else if ("3".equals(liveType) || "8".equals(liveType)){
             pushMarketingUserDetailByRuleDTO.setBatchNumber("rg9_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             pushMarketingUserDetailByRuleDTO.setStatus(liveType);
+            jsonObject.put("batchNumber", "rg9_" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
         } else {
             log.warn("宜信实时推决策liveType字段非(1、2、3、8 )，liveType：{}，custNum：{}", liveType, transfer.getCustNum());
             return null;
         }
-        JSONObject variables = new JSONObject();
-        variables.put("userType", marketingSyncUser.getUserType());
-        pushMarketingUserDetailByRuleDTO.setVariables(variables);
+        jsonObject.put("cell", cell);
+        buildJson(jsonObject, marketingSyncUser);
+
+        pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         return pushMarketingUserDetailByRuleDTO;
 
+    }
+    private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
+        jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
+        jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
+        jsonObject.put("custNum", emptyDefault(syncUser.getCustNum()));
+        jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue())));
+        jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue())));
+        jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
+        jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
+        jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
+        jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
+        jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    private String emptyDefault(String value) {
+        return com.br.common.util.StringUtils.isNotEmpty(value) ? value : "";
+    }
+
+    private String get3keyValue(String content, String contentType, Integer encryptionType) {
+
+        if (org.apache.commons.lang3.StringUtils.isBlank(content)) {
+            return content;
+        }
+
+        if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
+            String decode = BrCipherMaker.getInstance().decode(content);
+            return org.apache.commons.lang3.StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
+        }
+
+        return null;
     }
 
     @Override
