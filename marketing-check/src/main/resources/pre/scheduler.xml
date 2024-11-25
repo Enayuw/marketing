@@ -1009,7 +1009,7 @@
 
     <job:simple id="ZhongAnReportStatisticJob"
                 class="com.br.marketing.check.job.zhongan.ZhongAnReportStatisticJob"
-                cron="0 0 1 * * ?"
+                cron="0 0 12 * * ?"
                 description="众安经营分析报表每日定时生成任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
