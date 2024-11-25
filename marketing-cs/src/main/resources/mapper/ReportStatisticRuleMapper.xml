@@ -4,7 +4,7 @@
 
     <select id="selectReportList" resultType="com.br.marketing.dto.report.zhongan.ReportStatisticRule">
         select * from b_report_statistic_rule
-            where report_task_id = #{reportTaskId}
+            where report_type = #{reportType}
             <![CDATA[ and report_date >= #{reportDateStart} and report_date <  #{reportDateEnd}]]>
         order by report_date asc, report_order asc
     </select>

@@ -65,7 +65,7 @@
     </select>
 
     <select id="queryReportStatisticFieldbI_" resultType="com.br.marketing.dto.report.zhongan.ReportStatisticField">
-        select * from dws_report_statistic_transfer_detail
+        select * from dws_report_statistic_field
         where report_id = #{reportId}
         <if test="itemName !=null and itemName!=''">
             <![CDATA[ and item_name = #{itemName}]]>

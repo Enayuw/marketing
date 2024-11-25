@@ -8,7 +8,7 @@ import java.util.List;
 public interface ReportStatisticRuleMapper {
 
     List<ReportStatisticRule> selectReportList(
-            @Param("reportTaskId") String reportTaskId,
+            @Param("reportType") String reportType,
             @Param("reportDateStart") String reportDateStart,
             @Param("reportDateEnd") String reportDateEnd
     );

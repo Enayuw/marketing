@@ -8,15 +8,10 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.report.zhongan.ReportStatisticField;
 import com.br.marketing.dto.report.zhongan.ReportStatisticRule;
 import com.br.marketing.dto.report.zhongan.ReportStatisticTransferDetail;
-import com.br.marketing.entity.ReportFieldMapping;
-import com.br.marketing.entity.ReportFieldMappingExample;
-import com.br.marketing.entity.ReportTask;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
-import com.br.marketing.mapper.ReportFieldMappingMapper;
-import com.br.marketing.mapper.ReportStatisticRuleMapper;
-import com.br.marketing.mapper.ReportTaskMapper;
-import com.br.marketing.mapper.ZhongAnBiReportMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.util.DataBarUtil;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
@@ -56,7 +51,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
     private ReportStatisticRuleMapper reportStatisticRuleMapper;
 
     @Resource
-    private ReportFieldMappingMapper reportFieldMappingMapper;
+    private ReportFieldDictMapper reportFieldDictMapper;
 
     @Resource
     private ReportTaskMapper reportTaskMapper;
@@ -70,12 +65,12 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
     public List<BiReportVO> process(List<ReportStatisticField> dataList, JSONObject extend) {
         List<BiReportVO> biReportVOList = Lists.newArrayList();
 
-        String taskId = extend.getString("taskId");
+        String reportType = "17";
         LocalDate curLocalDate = LocalDate.now();
         String reportDateStart = curLocalDate.withDayOfMonth(1).toString();
         String reportDateEnd = curLocalDate.plusDays(1).toString();
 
-        List<ReportStatisticRule> reportRuleList = reportStatisticRuleMapper.selectReportList(taskId, reportDateStart, reportDateEnd);
+        List<ReportStatisticRule> reportRuleList = reportStatisticRuleMapper.selectReportList(reportType, reportDateStart, reportDateEnd);
         if (CollectionUtils.isEmpty(reportRuleList)) {
             return new ArrayList<>();
         }
@@ -90,15 +85,10 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                 .collect(Collectors.groupingBy(ReportStatisticRule::getReportDate));
         List<String> ReportDateList = reportRuleListGroupByReportDate.keySet().stream().sorted().collect(Collectors.toList());
 
-        ReportFieldMappingExample reportFieldDictExample = new ReportFieldMappingExample();
-        reportFieldDictExample.createCriteria().andReportTaskIdEqualTo(taskId);
-        reportFieldDictExample.setOrderByClause("item_order asc");
-        List<ReportFieldMapping> reportFieldMappingList = reportFieldMappingMapper.selectByExample(reportFieldDictExample);
-
         for(String reportOrder : ReportOrderList){
             BiReportVO biReportVO = new BiReportVO();
             biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getTypeName());
-            String groupName = getGroupName(taskId, "");
+            String groupName = getGroupName(reportType, "");
             biReportVO.setReportName(BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT.getStatName()+"-"+"12345"+"-"+groupName);
             biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
             biReportVO.setXAxisName("日期");
@@ -116,18 +106,23 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
 
                 String reportId = reportRule.getReportId();
                 List<ReportStatisticField> reportDateList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, "reportDate");
-                String reportDateValue = reportDateList.get(0).getItemValue();
+                List<String> reportDateValueList = reportDateList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
 
                 // 构造横坐标数据
-                xAxis.add(reportDateValue);
+                xAxis.addAll(reportDateValueList);
 
                 // 构造纵坐标数据
                 List<WrapDataVO> yAxis = Lists.newArrayList();
 
-                for(ReportFieldMapping reportFieldMapping: reportFieldMappingList){
-                    String itemName = reportFieldMapping.getItemName();
-                    String itemShow = reportFieldMapping.getItemShow();
-                    String formatTypeName = reportFieldMapping.getItemFormatType();
+                ReportFieldDictExample reportFieldDictExample = new ReportFieldDictExample();
+                reportFieldDictExample.createCriteria().andReportTypeEqualTo("17").andUserTypeEqualTo(reportOrderToUserType(reportOrder));
+                reportFieldDictExample.setOrderByClause("item_order asc");
+                List<ReportFieldDict> reportFieldDictList = reportFieldDictMapper.selectByExample(reportFieldDictExample);
+
+                for(ReportFieldDict reportFieldDict: reportFieldDictList){
+                    String itemName = reportFieldDict.getItemName();
+                    String itemShow = reportFieldDict.getItemShow();
+                    String formatTypeName = reportFieldDict.getItemFormatType();
                     FormatType formatType = FormatType.getByName(formatTypeName);
                     List<ReportStatisticField> reportFieldList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, itemName);
 
@@ -258,5 +253,15 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
             return "";
         }
         return groupName;
+    }
+
+    public String reportOrderToUserType(String reportOrder){
+        String userType = "";
+        switch (reportOrder){
+            case "1": userType="1";break;
+            case "2": userType="7";break;
+            case "3": userType="8";break;
+        }
+        return userType;
     }
 }
