@@ -16,7 +16,7 @@ public class BiReportStatisticTransferParam {
     @ApiModelProperty(value = "统计日期")
     private String reportDate;
 
-    @ApiModelProperty(value = "统计日期")
+    @ApiModelProperty(value = "客户编号")
     private String apiCode;
 
 
