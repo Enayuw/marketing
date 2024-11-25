@@ -95,7 +95,7 @@ public class WuBaQueryConversionZipResultJob extends AbstractSimpleElasticJob {
             return;
         }
 
-        action = jobManager.saveFront(apiCode, bizDate, actionType);
+        action = jobManager.saveFront(apiCode, actionDate, actionType);
         if (action.getId() == null) {
             log.warn(TITLE+ "任务执行记录新增失败, apiCode:{}, actionDate:{}", apiCode, actionDate);
             return;
