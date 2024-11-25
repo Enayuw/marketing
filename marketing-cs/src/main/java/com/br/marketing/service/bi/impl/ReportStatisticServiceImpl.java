@@ -24,7 +24,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,9 +48,9 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
     ZhongAnControlGroupServiceImpl zhongAnControlGroupService;
 
     @Override
-    public void action(String actionDate) {
+    public void action(LocalDateTime actionDateTime) {
 
-        String curLocalTime = LocalTime.now().toString();
+        String curLocalTime = actionDateTime.toLocalTime().toString();
 
         ReportTaskExample reportTaskExample = new ReportTaskExample();
         reportTaskExample.createCriteria()
@@ -66,14 +66,15 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         }
 
         for (ReportTask reportTask : reportTasks) {
-            processReportTask(reportTask, actionDate);
+            processReportTask(reportTask, actionDateTime);
         }
     }
 
 
-    private void processReportTask(ReportTask reportTaskPO, String actionDate){
+    private void processReportTask(ReportTask reportTaskPO, LocalDateTime actionDateTime){
 
         Long reportTaskId = reportTaskPO.getId();
+        String actionDate = actionDateTime.toLocalDate().toString();
         try {
             ReportTaskActionExample taskActionExample = new ReportTaskActionExample();
             taskActionExample.createCriteria()
@@ -107,7 +108,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                 return;
             }
 
-            LocalDate today = LocalDate.now();
+            LocalDate today = actionDateTime.toLocalDate();
             String resultDate = today.minusDays(1).toString();
 
             List<Integer> userTypes = zhongAnReportType.stream()
@@ -155,7 +156,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             }
 
             for (String reportType : zhongAnReportType) {
-                if (!sqlProcessing(reportType)) {
+                if (!sqlProcessing(reportType, today)) {
                     log.warn("众安经营分析报表任务生成失败");
                     return;
                 }
@@ -178,7 +179,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         }
     }
 
-    private boolean sqlProcessing(String reportType) {
+    private boolean sqlProcessing(String reportType, LocalDate actionDate) {
 
         if (ObjectUtil.isEmpty(reportType)) {
             log.warn("reportType不能为空");
@@ -196,11 +197,10 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         // 创建 transfer 对象
         transfer.put("isSplit", "1");
         // 获取当前日期
-        LocalDate today = LocalDate.now();
-        String resultDate = today.minusDays(1).toString();
+        String resultDate = actionDate.minusDays(1).toString();
 
         transfer.put("statisticDate", resultDate);
-        transfer.put("requestStartDate", today.withDayOfMonth(1).toString());
+        transfer.put("requestStartDate", actionDate.withDayOfMonth(1).toString());
         transfer.put("requestEndDate", resultDate);
         String reportName = "";
         Integer type = null;
@@ -220,7 +220,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         Map<String, Object> jsonObject = new HashMap<>();
 
         if ("12".equals(reportType)) {
-            reportName = "场景一日统计" + today.toString();
+            reportName = "场景一日统计" + actionDate.toString();
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue();
 
             upload.put("dimensionsField", "defaultNone");
@@ -232,7 +232,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             jsonObject.put("apiCode", "3710048");
             jsonObject.put("statisticsScene", "报表统计_众安(3710048)_1场景经营分析报表");
         } else if ("13".equals(reportType)) {
-            reportName = "场景七日统计" + today.toString();
+            reportName = "场景七日统计" + actionDate.toString();
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue();
 
             upload.put("dimensionsField", "defaultNone");
@@ -244,7 +244,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             jsonObject.put("apiCode", "3710048");
             jsonObject.put("statisticsScene", "报表统计_众安(3710048)_7场景经营分析报表");
         } else if ("14".equals(reportType)) {
-            reportName = "场景八日统计" + today.toString();
+            reportName = "场景八日统计" + actionDate.toString();
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue();
 
             upload.put("dimensionsField", "defaultNone");

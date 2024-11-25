@@ -1,5 +1,6 @@
 package com.br.marketing.check.job.zhongan;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.service.bi.ReportStatisticService;
@@ -9,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 
 /**
@@ -25,11 +28,29 @@ public class ZhongAnReportStatisticJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         try {
-            String actionDate = LocalDate.now().toString();
-            reportStatisticService.action(actionDate);
+            if (ObjectUtil.isNotEmpty(context)){
+                String jobParameter = context.getJobParameter();
+                LocalDateTime myParam = isMyParam(jobParameter);
+                log.info("jobParameter={}", myParam);
+                reportStatisticService.action(myParam);
+            } else {
+                LocalDateTime actionDateTime = LocalDateTime.now();
+                reportStatisticService.action(actionDateTime);
+            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(), "众安报表定时统计发生错误！"), e);
         }
+    }
+
+    public LocalDateTime isMyParam(String jobParameter) {
+        if (ObjectUtil.isNotEmpty(jobParameter)) {
+            String string = LocalTime.now().toString();
+            String dateNow = jobParameter + " " + string;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+            LocalDateTime localDateTime = LocalDateTime.parse(dateNow, formatter);
+            return localDateTime;
+        }
+        return LocalDateTime.now();
     }
 
 }

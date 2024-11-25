@@ -1,5 +1,7 @@
 package com.br.marketing.service.bi;
 
+import java.time.LocalDateTime;
+
 /**
  * BI报表相关Service
  *
@@ -8,5 +10,5 @@ package com.br.marketing.service.bi;
  */
 public interface ReportStatisticService {
 
-    void action(String actionDate);
+    void action(LocalDateTime actionDateTime);
 }
