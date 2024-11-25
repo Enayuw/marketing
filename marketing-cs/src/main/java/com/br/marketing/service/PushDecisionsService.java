@@ -4,9 +4,12 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OptConditionDTO;
 import com.br.marketing.dto.PushDecisionsDTO;
+import com.br.marketing.dto.RunTaskDTO;
 import com.br.marketing.dto.SearchConditionDTO;
+import com.br.marketing.entity.StraHisFile;
 import com.br.marketing.vo.ConditionOfScoreVO;
 import com.br.marketing.vo.PushDecisionsDetailVO;
+import com.br.marketing.vo.TaskTemplateVO;
 
 import java.util.List;
 
@@ -30,4 +33,6 @@ public interface PushDecisionsService {
     Result<List<PushDecisionsDetailVO>> getDecisionsByRule(String apiCode);
 
     Result<Long> updatePushDecisions(PushDecisionsDTO dto);
+
+    Result<List<TaskTemplateVO>> getRunTaskByTemplate(RunTaskDTO dto);
 }

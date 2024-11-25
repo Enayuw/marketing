@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.datagroup.DataGroupTaskMapper">
+
+    <select id="selectByShardConfigId" resultType="com.br.marketing.entity.DataGroupTask">
+
+        select * from b_data_group_task
+        where status = 0
+        and mod(config_id, #{shardingTotalCount}) in
+        <foreach collection='shardingItems' item='sharding' open='(' close=')' separator=','>
+            #{sharding}
+        </foreach>
+
+    </select>
+</mapper>

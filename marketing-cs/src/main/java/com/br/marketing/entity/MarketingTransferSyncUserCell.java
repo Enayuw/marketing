@@ -7,6 +7,8 @@ public class MarketingTransferSyncUserCell extends MarketingTransferSyncUser{
 
     private String taskId;
 
+    private MarketingSyncUser marketingSyncUser;
+
     public String getCell() {
         return cell;
     }
@@ -21,5 +23,13 @@ public class MarketingTransferSyncUserCell extends MarketingTransferSyncUser{
 
     public void setTaskId(String taskId) {
         this.taskId = taskId;
+    }
+
+    public MarketingSyncUser getMarketingSyncUser() {
+        return marketingSyncUser;
+    }
+
+    public void setMarketingSyncUser(MarketingSyncUser marketingSyncUser) {
+        this.marketingSyncUser = marketingSyncUser;
     }
 }

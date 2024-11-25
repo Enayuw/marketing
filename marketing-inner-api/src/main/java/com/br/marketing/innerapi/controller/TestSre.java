@@ -7,7 +7,9 @@ import com.br.marketing.rpcclient.rpcclientImpl.BrokerGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.InterfaceHandlerService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +30,14 @@ public class TestSre {
 
     @Resource
     MarketingCommonConfig marketingCommonConfig;
+
+    @Autowired
+    InterfaceHandlerService interfaceHandlerService;
+
+    @GetMapping("/testToPolicy")
+    public void testToPolicy(String msg){
+        interfaceHandlerService.handleDataDirection(msg);
+    }
 
     @GetMapping("/testSre")
     public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){

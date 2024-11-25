@@ -44,4 +44,14 @@ public class XieChengCollidingFilterDTO {
      */
     private String customerGroup;
 
+    /**
+     * 动态补充包剔除标识
+     */
+    private String info;
+
+    /**
+     * 黑名单剔除标识
+     */
+    private String blacklist_delete;
+
 }

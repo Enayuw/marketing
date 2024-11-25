@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.AlarmApiClient;
 import com.br.marketing.client.robotaiapi.input.TransferRobotOutboundDTO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
@@ -106,7 +107,7 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                 if (robotaiLog.getServiceCode().equals("00")) {
                     JSONObject object = JSON.parseObject(robotaiLog.getResponseBody());
                     if (StringUtils.isEmpty(object)) {
-                        log.error("应答消息为空：{}", robotaiLog);
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "应答消息为空：" + robotaiLog));
                         continue;
                     }
                     Object unsuccessfulData = object.get("unsuccessfulData");
@@ -186,7 +187,7 @@ public class TaskPushTransferToRobotaiJob extends AbstractSimpleElasticJob {
                 updateLog.setServiceCode(outboundVO.getCode());
                 pushTransferRobotaiLogMapper.updateByPrimaryKeySelective(updateLog);
             } catch (Exception e) {
-                log.error(e.getMessage(), e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), e.getMessage()), e);
                 String smg = String.format("**apiCode:[%s];requestId:[%s]补偿任务异常！记录主键[%d]" +
                         "\n异常信息[%s];", robotaiLog.getApiCode(), robotaiLog.getRequestId(), robotaiLog.getId(), e.getMessage());
                 sendAlarm(smg);

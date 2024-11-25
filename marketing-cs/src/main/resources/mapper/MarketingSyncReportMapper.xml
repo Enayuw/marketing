@@ -1,40 +1,41 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingSyncReportMapper" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSyncReport" >
-    <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="cid" property="cid" jdbcType="VARCHAR" />
-    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="short_name" property="shortName" jdbcType="VARCHAR" />
-    <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
-    <result column="user_type" property="userType" jdbcType="VARCHAR" />
-    <result column="normal_num" property="normalNum" jdbcType="INTEGER" />
-    <result column="duplicate_removal_num" property="duplicateRemovalNum" jdbcType="INTEGER" />
-    <result column="applet_begin_time" property="appletBeginTime" jdbcType="TIMESTAMP" />
-    <result column="applet_end_time" property="appletEndTime" jdbcType="TIMESTAMP" />
-    <result column="remark" property="remark" jdbcType="VARCHAR" />
-    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
-    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingSyncReport">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="cid" jdbcType="VARCHAR" property="cid" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="short_name" jdbcType="VARCHAR" property="shortName" />
+    <result column="applet_date" jdbcType="VARCHAR" property="appletDate" />
+    <result column="user_type" jdbcType="VARCHAR" property="userType" />
+    <result column="normal_num" jdbcType="INTEGER" property="normalNum" />
+    <result column="duplicate_removal_num" jdbcType="INTEGER" property="duplicateRemovalNum" />
+    <result column="applet_begin_time" jdbcType="TIMESTAMP" property="appletBeginTime" />
+    <result column="applet_end_time" jdbcType="TIMESTAMP" property="appletEndTime" />
+    <result column="reserve_field1_key" jdbcType="VARCHAR" property="reserveField1Key" />
+    <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
-  <sql id="Example_Where_Clause" >
-    <where >
-      <foreach collection="oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue" >
+                <when test="criterion.singleValue">
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue" >
+                <when test="criterion.betweenValue">
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue" >
+                <when test="criterion.listValue">
                   and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
                     #{listItem}
                   </foreach>
                 </when>
@@ -45,296 +46,6 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause" >
-    <where >
-      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue" >
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue" >
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue" >
-                  and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
-            </foreach>
-          </trim>
-        </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Base_Column_List" >
-    id, cid, api_code, short_name, applet_date, user_type, normal_num, duplicate_removal_num, 
-    applet_begin_time, applet_end_time, remark, create_time, update_time
-  </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingSyncReportExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    <include refid="Base_Column_List" />
-    from b_marketing_sync_report
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select
-    <include refid="Base_Column_List" />
-    from b_marketing_sync_report
-    where id = #{id,jdbcType=BIGINT}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from b_marketing_sync_report
-    where id = #{id,jdbcType=BIGINT}
-  </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingSyncReportExample" >
-    delete from b_marketing_sync_report
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-  </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingSyncReport" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
-    insert into b_marketing_sync_report (cid, api_code, short_name,
-      applet_date, user_type, normal_num,
-      duplicate_removal_num, applet_begin_time,
-      applet_end_time, remark, create_time,
-      update_time)
-    values (#{cid,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{shortName,jdbcType=VARCHAR},
-      #{appletDate,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{normalNum,jdbcType=INTEGER},
-      #{duplicateRemovalNum,jdbcType=INTEGER}, #{appletBeginTime,jdbcType=TIMESTAMP},
-      #{appletEndTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP},
-      #{updateTime,jdbcType=TIMESTAMP})
-  </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingSyncReport" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
-    insert into b_marketing_sync_report
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="cid != null" >
-        cid,
-      </if>
-      <if test="apiCode != null" >
-        api_code,
-      </if>
-      <if test="shortName != null" >
-        short_name,
-      </if>
-      <if test="appletDate != null" >
-        applet_date,
-      </if>
-      <if test="userType != null" >
-        user_type,
-      </if>
-      <if test="normalNum != null" >
-        normal_num,
-      </if>
-      <if test="duplicateRemovalNum != null" >
-        duplicate_removal_num,
-      </if>
-      <if test="appletBeginTime != null" >
-        applet_begin_time,
-      </if>
-      <if test="appletEndTime != null" >
-        applet_end_time,
-      </if>
-      <if test="remark != null" >
-        remark,
-      </if>
-      <if test="createTime != null" >
-        create_time,
-      </if>
-      <if test="updateTime != null" >
-        update_time,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="cid != null" >
-        #{cid,jdbcType=VARCHAR},
-      </if>
-      <if test="apiCode != null" >
-        #{apiCode,jdbcType=VARCHAR},
-      </if>
-      <if test="shortName != null" >
-        #{shortName,jdbcType=VARCHAR},
-      </if>
-      <if test="appletDate != null" >
-        #{appletDate,jdbcType=VARCHAR},
-      </if>
-      <if test="userType != null" >
-        #{userType,jdbcType=VARCHAR},
-      </if>
-      <if test="normalNum != null" >
-        #{normalNum,jdbcType=INTEGER},
-      </if>
-      <if test="duplicateRemovalNum != null" >
-        #{duplicateRemovalNum,jdbcType=INTEGER},
-      </if>
-      <if test="appletBeginTime != null" >
-        #{appletBeginTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="appletEndTime != null" >
-        #{appletEndTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="remark != null" >
-        #{remark,jdbcType=VARCHAR},
-      </if>
-      <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-    </trim>
-  </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingSyncReportExample" resultType="java.lang.Integer" >
-    select count(*) from b_marketing_sync_report
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-  </select>
-  <update id="updateByExampleSelective" parameterType="map" >
-    update b_marketing_sync_report
-    <set >
-      <if test="record.id != null" >
-        id = #{record.id,jdbcType=BIGINT},
-      </if>
-      <if test="record.cid != null" >
-        cid = #{record.cid,jdbcType=VARCHAR},
-      </if>
-      <if test="record.apiCode != null" >
-        api_code = #{record.apiCode,jdbcType=VARCHAR},
-      </if>
-      <if test="record.shortName != null" >
-        short_name = #{record.shortName,jdbcType=VARCHAR},
-      </if>
-      <if test="record.appletDate != null" >
-        applet_date = #{record.appletDate,jdbcType=VARCHAR},
-      </if>
-      <if test="record.userType != null" >
-        user_type = #{record.userType,jdbcType=VARCHAR},
-      </if>
-      <if test="record.normalNum != null" >
-        normal_num = #{record.normalNum,jdbcType=INTEGER},
-      </if>
-      <if test="record.duplicateRemovalNum != null" >
-        duplicate_removal_num = #{record.duplicateRemovalNum,jdbcType=INTEGER},
-      </if>
-      <if test="record.appletBeginTime != null" >
-        applet_begin_time = #{record.appletBeginTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.appletEndTime != null" >
-        applet_end_time = #{record.appletEndTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.remark != null" >
-        remark = #{record.remark,jdbcType=VARCHAR},
-      </if>
-      <if test="record.createTime != null" >
-        create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.updateTime != null" >
-        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExample" parameterType="map" >
-    update b_marketing_sync_report
-    set id = #{record.id,jdbcType=BIGINT},
-      cid = #{record.cid,jdbcType=VARCHAR},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      short_name = #{record.shortName,jdbcType=VARCHAR},
-      applet_date = #{record.appletDate,jdbcType=VARCHAR},
-      user_type = #{record.userType,jdbcType=VARCHAR},
-      normal_num = #{record.normalNum,jdbcType=INTEGER},
-      duplicate_removal_num = #{record.duplicateRemovalNum,jdbcType=INTEGER},
-      applet_begin_time = #{record.appletBeginTime,jdbcType=TIMESTAMP},
-      applet_end_time = #{record.appletEndTime,jdbcType=TIMESTAMP},
-      remark = #{record.remark,jdbcType=VARCHAR},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingSyncReport" >
-    update b_marketing_sync_report
-    <set >
-      <if test="cid != null" >
-        cid = #{cid,jdbcType=VARCHAR},
-      </if>
-      <if test="apiCode != null" >
-        api_code = #{apiCode,jdbcType=VARCHAR},
-      </if>
-      <if test="shortName != null" >
-        short_name = #{shortName,jdbcType=VARCHAR},
-      </if>
-      <if test="appletDate != null" >
-        applet_date = #{appletDate,jdbcType=VARCHAR},
-      </if>
-      <if test="userType != null" >
-        user_type = #{userType,jdbcType=VARCHAR},
-      </if>
-      <if test="normalNum != null" >
-        normal_num = #{normalNum,jdbcType=INTEGER},
-      </if>
-      <if test="duplicateRemovalNum != null" >
-        duplicate_removal_num = #{duplicateRemovalNum,jdbcType=INTEGER},
-      </if>
-      <if test="appletBeginTime != null" >
-        applet_begin_time = #{appletBeginTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="appletEndTime != null" >
-        applet_end_time = #{appletEndTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="remark != null" >
-        remark = #{remark,jdbcType=VARCHAR},
-      </if>
-      <if test="createTime != null" >
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingSyncReport" >
-    update b_marketing_sync_report
-    set cid = #{cid,jdbcType=VARCHAR},
-      api_code = #{apiCode,jdbcType=VARCHAR},
-      short_name = #{shortName,jdbcType=VARCHAR},
-      applet_date = #{appletDate,jdbcType=VARCHAR},
-      user_type = #{userType,jdbcType=VARCHAR},
-      normal_num = #{normalNum,jdbcType=INTEGER},
-      duplicate_removal_num = #{duplicateRemovalNum,jdbcType=INTEGER},
-      applet_begin_time = #{appletBeginTime,jdbcType=TIMESTAMP},
-      applet_end_time = #{appletEndTime,jdbcType=TIMESTAMP},
-      remark = #{remark,jdbcType=VARCHAR},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
-    where id = #{id,jdbcType=BIGINT}
-  </update>
 
   <select id="uploadSyncCounttiflash_" resultType="java.lang.Integer">
     select count(1) from b_marketing_sync_${apiCode}
@@ -383,7 +94,8 @@
     update b_marketing_sync_report
     set normal_num = #{normalNum,jdbcType=INTEGER},
       duplicate_removal_num = #{duplicateRemovalNum,jdbcType=INTEGER},
-      applet_end_time = #{appletEndTime,jdbcType=TIMESTAMP}
+      applet_end_time = #{appletEndTime,jdbcType=TIMESTAMP},
+      reserve_field1_key =#{reserveField1Key,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 
@@ -536,4 +248,98 @@
       order by ${orderByClause}
     </if>
   </select>
+
+
+  <select id="selectUploadExtendKeystikv_" resultType="java.lang.String">
+
+    select distinct(json_keys(reserve_field1))
+    from b_marketing_sync_${apiCode}
+    where user_type = #{userType}
+      and applet_date = #{appletDate}
+
+  </select>
+
+  <select id="selectGroupCounttikv_" resultType="java.util.Map">
+    ${sql}
+  </select>
+
+
+  <select id="selectGroupData" resultType="com.br.marketing.entity.MarketingSyncUser">
+
+    select id,api_code,reserve_field1 from b_marketing_sync_${apiCode}
+    <where>
+      <if test="userType !=null and userType!=''">
+        user_type = #{userType}
+      </if>
+      <if test="extend !=null and extend!=''">
+        and ${extend}
+      </if>
+      <if test="list != null and list.size()>0">
+        <if test="list.size()==1">
+          and applet_date = #{list[0]}
+        </if>
+        <if test="list.size()>1">
+          and applet_date in
+          <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+          </foreach>
+        </if>
+      </if>
+      and status =1 and is_repeat in (1, 2)
+      <if test="indexId != null and indexId!=''">
+        and id > #{indexId}
+      </if>
+      order by id asc limit #{pageSize};
+    </where>
+
+
+  </select>
+
+  <update id="updateBatchGroupData">
+    ${updateSql}
+
+  </update>
+
+
+  <select id="selectGroupUploadNumtikv_" resultType="java.util.Map">
+
+    select count(1) as num,${field} as field
+    from b_marketing_sync_${apiCode}
+    <where>
+      <if test="list != null and list.size()>0">
+        <foreach collection="list" item="item" open="(" separator="or" close=")">
+          (applet_date = #{item.appletDate} and user_type = #{item.userType})
+        </foreach>
+      </if>
+      and json_valid(reserve_field1)=1 and status =1 and is_repeat in (1, 2)
+      <if test="extendField != null and extendField!=''">
+        and ${extendField} is not null
+      </if>
+      group by ${field};
+    </where>
+  </select>
+
+  <select id="selectGroupDataByReport" resultType="com.br.marketing.entity.MarketingSyncUser">
+
+    select id,api_code,reserve_field1 from b_marketing_sync_${apiCode}
+    <where>
+      <if test="list != null and list.size()>0">
+        <foreach collection="list" item="item" open="(" separator="or" close=")">
+          (applet_date = #{item.appletDate} and user_type = #{item.userType})
+        </foreach>
+      </if>
+      <if test="extend !=null and extend!=''">
+        and ${extend}
+      </if>
+      and status =1 and is_repeat in (1, 2)
+      <if test="indexId != null and indexId!=''">
+        and id > #{indexId}
+      </if>
+      order by id asc limit #{pageSize};
+    </where>
+
+
+  </select>
+
+
 </mapper>

@@ -7,14 +7,17 @@ import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TableCodeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.commonentity.PageResultReturn;
-import com.br.marketing.entity.EntityOptLog;
-import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.entity.MarketingCustomerExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.mapper.EntityOptLogMapper;
+import com.br.marketing.mapper.MarketingCustomerConfigMapper;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.service.MarketingCustomerService;
+import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
+import com.br.marketing.vo.CustomerListVo;
 import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
 import com.br.marketing.vo.MarketingCustomerVO;
@@ -28,9 +31,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -52,6 +54,13 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     @Resource
     private RedisChgService redisChgService;
 
+    @Resource
+    private MarketingCustomerConfigMapper marketingCustomerConfigMapper;
+
+    @Resource
+    CustomerTagsProcessServiceImpl customerTagsProcessService;
+
+
     @Override
     public List<CustomerSelectVO> getCidOrApiCodeList(String cid) {
         List<CustomerSelectVO> cidOrApiCodeList = marketingCustomerMapper.getCidOrApiCodeList(cid);
@@ -62,26 +71,49 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     }
 
     @Override
-    public PageResultReturn getCustomerList(int page, int pageSize, String name, String apiCode,String accountType,String accountStatus) {
+    public PageResultReturn getCustomerList(int page, int pageSize, String name, String apiCode, String accountType, String accountStatus) {
         PageHelper.startPage(page, pageSize);
         try {
             MarketingCustomerExample marketingCustomerExample = new MarketingCustomerExample();
             MarketingCustomerExample.Criteria criteria = marketingCustomerExample.createCriteria();
-            if(apiCode!=null){
+            if (apiCode != null) {
                 criteria.andApiCodeEqualTo(apiCode);
             }
-            if(name!=null){
-                criteria.andNameLike("%"+name+"%");
+            if (name != null) {
+                criteria.andNameLike("%" + name + "%");
             }
-            if(accountType!=null){
+            if (accountType != null) {
                 criteria.andAccountTypeEqualTo(Byte.valueOf(accountType));
             }
-            if(accountStatus!=null){
+            if (accountStatus != null) {
                 criteria.andAccountStatusEqualTo(Byte.valueOf(accountStatus));
             }
             marketingCustomerExample.setOrderByClause("create_time desc, update_time desc");
             List<MarketingCustomer> marketingCustomersList = marketingCustomerMapper.selectByExample(marketingCustomerExample);
-            return PageResultReturn.setPageResult(marketingCustomersList, page, pageSize);
+
+            List<String> apiCodes = marketingCustomersList.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
+            HashMap<String, MarketingCustomerConfig> configs = new HashMap();
+            if (!CollectionUtils.isEmpty(apiCodes)) {
+                MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
+                configExample.createCriteria().andApiCodeIn(apiCodes)
+                        .andIsDelEqualTo(Constants.DATA_VALID);
+                List<MarketingCustomerConfig> marketingCustomerConfigs = marketingCustomerConfigMapper.selectByExample(configExample);
+                for (MarketingCustomerConfig marketingCustomerConfig : marketingCustomerConfigs) {
+                    configs.put(marketingCustomerConfig.getApiCode(), marketingCustomerConfig);
+                }
+            }
+
+            ArrayList<CustomerListVo> customerListVos = new ArrayList<>();
+            for (MarketingCustomer marketingCustomer : marketingCustomersList) {
+                CustomerListVo customerListVo = new CustomerListVo();
+                BeanUtils.copyProperties(marketingCustomer, customerListVo);
+                MarketingCustomerConfig marketingCustomerConfig = configs.get(marketingCustomer.getApiCode());
+                customerListVo.setCheckType(marketingCustomerConfig == null
+                        ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
+                        : marketingCustomerConfig.getCheckType());
+                customerListVos.add(customerListVo);
+            }
+            return PageResultReturn.setPageResult(customerListVos, page, pageSize);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -91,9 +123,12 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ApiResult<Boolean> saveOrUpdateCustomer(MarketingCustomerListVO vo, MarketingUserDetail user) {
+
+        Date date = new Date();
+
         //新增、变更，还需要记录变更日志，加个日志表
         MarketingCustomer marketingCustomer = new MarketingCustomer();
-        marketingCustomer.setMessage(vo.getMessage()!=null?vo.getMessage():"");
+        marketingCustomer.setMessage(vo.getMessage() != null ? vo.getMessage() : "");
         marketingCustomer.setThreadNum(vo.getThreadNum());
         marketingCustomer.setSort(vo.getSort());
         marketingCustomer.setStatus(vo.getStatus());
@@ -101,19 +136,28 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
         marketingCustomer.setExtendConfigInfo(vo.getExtendConfigInfo());
         marketingCustomer.setType("all,once");
         //push_type如果为1,push_url、push_thread_num必须不为空
-        marketingCustomer.setPushType(vo.getPushType()!=null?vo.getPushType():0);
-        marketingCustomer.setPushThreadNum(vo.getPushThreadNum()!=null?vo.getPushThreadNum():0);
-        marketingCustomer.setPushUrl(vo.getPushUrl()!=null?vo.getPushUrl():"");
+        marketingCustomer.setPushType(vo.getPushType() != null ? vo.getPushType() : 0);
+        marketingCustomer.setPushThreadNum(vo.getPushThreadNum() != null ? vo.getPushThreadNum() : 0);
+        marketingCustomer.setPushUrl(vo.getPushUrl() != null ? vo.getPushUrl() : "");
         marketingCustomer.setName(vo.getName());
         marketingCustomer.setShortName(vo.getShortName());
-        marketingCustomer.setUpdateTime(new Date());
-        if(StringUtils.isEmpty(vo.getId())){
+        marketingCustomer.setUpdateTime(date);
+
+        if (StringUtils.isEmpty(vo.getId())) {
             //新增
             marketingCustomer.setCid(vo.getCid());
             marketingCustomer.setApiCode(vo.getApiCode());
-            marketingCustomer.setCreateTime(new Date());
+            marketingCustomer.setCreateTime(date);
             marketingCustomerMapper.insertSelective(marketingCustomer);
-        }else {
+
+            MarketingCustomerConfig marketingCustomerConfig = new MarketingCustomerConfig();
+            marketingCustomerConfig.setApiCode(vo.getApiCode());
+            marketingCustomerConfig.setCreateTime(date);
+            marketingCustomerConfig.setUpdateTime(date);
+            marketingCustomerConfig.setCheckType(vo.getCheckType());
+            marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
+
+        } else {
             //更新记录到日志表
             EntityOptLog entityOptLog = new EntityOptLog();
             entityOptLog.setSourceObj(TableCodeEnum.MARKETING_CUSTOMER.getTableName());
@@ -123,52 +167,72 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             StringBuilder content = new StringBuilder();
             MarketingCustomer customerOld = marketingCustomerMapper.selectByPrimaryKey(vo.getId());
 
-            content.append("【message】=【"+customerOld.getMessage()+"】"+"->【"+marketingCustomer.getMessage()+"】,");
-            content.append("【threadNum】=【"+customerOld.getThreadNum()+"】"+"->【"+marketingCustomer.getThreadNum()+"】,");
-            content.append("【sort】=【"+customerOld.getSort()+"】"+"->【"+marketingCustomer.getSort()+"】,");
-            content.append("【status】=【"+customerOld.getStatus()+"】"+"->【"+marketingCustomer.getStatus()+"】,");
-            content.append("【extendConfigInfo】=【"+customerOld.getExtendConfigInfo()+"】"+"->【"+marketingCustomer.getExtendConfigInfo()+"】,");
-            content.append("【pushType】=【"+customerOld.getPushType()+"】"+"->【"+marketingCustomer.getPushType()+"】,");
-            content.append("【pushThreadNum】=【"+customerOld.getPushThreadNum()+"】"+"->【"+marketingCustomer.getPushThreadNum()+"】,");
-            content.append("【pushUrl】=【"+customerOld.getPushUrl()+"】"+"->【"+marketingCustomer.getPushUrl()+"】,");
-            content.append("【name】=【"+customerOld.getName()+"】"+"->【"+marketingCustomer.getName()+"】,");
-            content.append("【shortName】=【"+customerOld.getShortName()+"】"+"->【"+marketingCustomer.getShortName()+"】,");
+            MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
+            configExample.createCriteria()
+                    .andIsDelEqualTo(Constants.DATA_VALID)
+                    .andApiCodeEqualTo(customerOld.getApiCode());
+            List<MarketingCustomerConfig> marketingCustomerConfigs = marketingCustomerConfigMapper.selectByExample(configExample);
+            if (marketingCustomerConfigs.size() <= 0) {
+                MarketingCustomerConfig marketingCustomerConfig = new MarketingCustomerConfig();
+                marketingCustomerConfig.setApiCode(vo.getApiCode());
+                marketingCustomerConfig.setCreateTime(date);
+                marketingCustomerConfig.setUpdateTime(date);
+                marketingCustomerConfig.setCheckType(vo.getCheckType());
+                marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
+            } else {
+                MarketingCustomerConfig marketingCustomerConfig = marketingCustomerConfigs.get(0);
+                MarketingCustomerConfig updateEntity = new MarketingCustomerConfig();
+                updateEntity.setId(marketingCustomerConfig.getId());
+                updateEntity.setCheckType(vo.getCheckType());
+                marketingCustomerConfigMapper.updateByPrimaryKeySelective(updateEntity);
+                content.append("【checkType】=【" + marketingCustomerConfig.getCheckType() + "】" + "->【" + vo.getCheckType() + "】,");
+            }
+
+            content.append("【message】=【" + customerOld.getMessage() + "】" + "->【" + marketingCustomer.getMessage() + "】,");
+            content.append("【threadNum】=【" + customerOld.getThreadNum() + "】" + "->【" + marketingCustomer.getThreadNum() + "】,");
+            content.append("【sort】=【" + customerOld.getSort() + "】" + "->【" + marketingCustomer.getSort() + "】,");
+            content.append("【status】=【" + customerOld.getStatus() + "】" + "->【" + marketingCustomer.getStatus() + "】,");
+            content.append("【extendConfigInfo】=【" + customerOld.getExtendConfigInfo() + "】" + "->【" + marketingCustomer.getExtendConfigInfo() + "】,");
+            content.append("【pushType】=【" + customerOld.getPushType() + "】" + "->【" + marketingCustomer.getPushType() + "】,");
+            content.append("【pushThreadNum】=【" + customerOld.getPushThreadNum() + "】" + "->【" + marketingCustomer.getPushThreadNum() + "】,");
+            content.append("【pushUrl】=【" + customerOld.getPushUrl() + "】" + "->【" + marketingCustomer.getPushUrl() + "】,");
+            content.append("【name】=【" + customerOld.getName() + "】" + "->【" + marketingCustomer.getName() + "】,");
+            content.append("【shortName】=【" + customerOld.getShortName() + "】" + "->【" + marketingCustomer.getShortName() + "】,");
 
             entityOptLog.setContent(content.toString());
             entityOptLog.setOptUserId(String.valueOf(user.getId()));
             entityOptLog.setOptUserName(user.getUserName());
             /*entityOptLog.setOptUserId("xxx");
             entityOptLog.setOptUserName("xxxx");*/
-            entityOptLog.setCreateTime(new Date());
+            entityOptLog.setCreateTime(date);
             int i = entityOptLogMapper.insertSelective(entityOptLog);
-            if (StringUtils.isEmpty(i)){
+            if (StringUtils.isEmpty(i)) {
                 log.error("插入日志表 b_entity_opt_log 失败!");
             }
             //编辑
             marketingCustomer.setId(vo.getId());
             marketingCustomerMapper.updateByPrimaryKeySelective(marketingCustomer);
-
         }
-
+        customerTagsProcessService.delTagsOfRedis(vo.getApiCode());
         return new ApiResult<Boolean>().success(true);
     }
 
     @Override
-    public ApiResult<Boolean> apiCodeOnly(String id,String apiCode) {
+    public ApiResult<Boolean> apiCodeOnly(String id, String apiCode) {
         MarketingCustomerExample example = new MarketingCustomerExample();
         example.createCriteria().andApiCodeEqualTo(apiCode);
         List<MarketingCustomer> select = marketingCustomerMapper.selectByExample(example);
-        if (select != null && select.size()>0){
-            if(StringUtils.isEmpty(id)){
-                return new ApiResult<Boolean>().success(false,"apicode已存在！");
+        if (select != null && select.size() > 0) {
+            if (StringUtils.isEmpty(id)) {
+                return new ApiResult<Boolean>().success(false, "apicode已存在！");
             }
-            for(MarketingCustomer single:select){
-                if(id.equals(single.getId().toString())){
+            for (MarketingCustomer single : select) {
+                if (id.equals(single.getId().toString())) {
                     return new ApiResult<Boolean>().success(true);
                 }
             }
-            return new ApiResult<Boolean>().success(false,"apicode已存在！");
-        }else {
+            return new ApiResult<Boolean>().success(false, "apicode已存在！");
+        } else {
             return new ApiResult<Boolean>().success(true);
         }
 
@@ -177,9 +241,9 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
     @Override
     public List<MarketingCustomerVO> getApiCodeList(String apiCode) {
         MarketingCustomerExample example = new MarketingCustomerExample();
-        if(apiCode != null && !"".equals(apiCode)){
-            example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeLike("%"+apiCode+"%");
-        }else{
+        if (apiCode != null && !"".equals(apiCode)) {
+            example.createCriteria().andStatusEqualTo((byte) 1).andApiCodeLike("%" + apiCode + "%");
+        } else {
             example.createCriteria().andStatusEqualTo((byte) 1);
         }
         List<MarketingCustomer> list = marketingCustomerMapper.selectByExample(example);

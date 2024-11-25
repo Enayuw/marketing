@@ -135,7 +135,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             }
             return PageResultReturn.setPageResult(list, page, pageSize);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(), e.getMessage()), e);
         }
         return null;
     }
@@ -174,7 +174,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             List<MarketingDataValidConfigDefault> validConfigDefaultList = validConfigDefaultMapper.selectByExample(exampleConfig);
             if (!CollectionUtils.isEmpty(validConfigDefaultList)) {
                 if (validConfigDefaultList.size() > 1) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
                             , "默认有效期配置表存在多条配置;apiCode:" + apiCode));
                 }
                 validConfigDefault.setId(validConfigDefaultList.get(0).getId());
@@ -200,7 +200,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             List<MarketingDataValidConfigDefault> validConfigDefaultList = validConfigDefaultMapper.selectByExample(exampleConfig);
             if (!CollectionUtils.isEmpty(validConfigDefaultList)) {
                 if (validConfigDefaultList.size() > 1) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_VALIDITY_PERIOD.getCode()
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
                             , "默认有效期配置表存在多条配置;apiCode:" + apiCode));
                 }
                 validConfigDefault.setId(validConfigDefaultList.get(0).getId());
@@ -271,7 +271,8 @@ public class VariableDicServiceImpl implements VariableDicService {
                     }.getType());
             String apiCode = apiDataInfoDTO.getApiCode();
             if (StringUtils.isEmpty(apiCode)) {
-                log.error("未获取到apiCode，消息内容：{}", msgStr);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
+                        , "未获取到apiCode，消息内容："+ msgStr));
                 return result;
             }
             if (CollectionUtils.isEmpty(apiDataInfoDTO.getArgList())) {
@@ -281,7 +282,8 @@ public class VariableDicServiceImpl implements VariableDicService {
             String cId = StringUtils.hasText(apiDataInfoDTO.getCid()) ? apiDataInfoDTO.getCid()
                     : tableCreateService.getCId(apiCode);
             if (StringUtils.isEmpty(cId)) {
-                log.error("未获取到cid，消息内容：{}", msgStr);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode()
+                        , "未获取到cid，消息内容："+ msgStr));
                 return result;
             }
             String key = RedisKeyConstant.USERTYPE_DICT + cId.concat(":").concat(apiCode);
@@ -298,7 +300,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                             3600 * 24 * 3 * 1000L, 3600 * 24 * 7 * 1000L));
                 } catch (Exception e) {
                     isError = true;
-                    log.error(e.getMessage(), e);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(), e.getMessage()), e);
                 }
                 if (exists) {
                     // 缓存不存在，检查db中是否存在
@@ -334,9 +336,9 @@ public class VariableDicServiceImpl implements VariableDicService {
                             // 发送告警通知
                             sendUserTypeAddDingDingMgs(localDateTime, apiCode, userType, String.valueOf(dic.getId()));
                         } else {
-                            log.error("自动化场景维护入库失败,cid:{},apiCode:{},userType:{},上传时间:{},数据来源:{}"
-                                    , cId, apiCode, userType, apiDataInfoDTO.getRawDataSaveTimeStr()
-                                    , apiDataInfoDTO.getMsgSource());
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                                    "自动化场景维护入库失败,cid:" + cId + ",apiCode:" + apiCode + ",userType:" + userType
+                                            + ",上传时间:" + apiDataInfoDTO.getRawDataSaveTimeStr() + ",数据来源:" + apiDataInfoDTO.getMsgSource()));
                         }
                     }
                 }
@@ -344,7 +346,7 @@ public class VariableDicServiceImpl implements VariableDicService {
                 createValidDateConfig(apiDataInfoDTO, collectionDTO, apiCode, userType);
             }
         } catch (Exception e) {
-            log.error(e.getMessage() + "\n" + msgStr, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(), e.getMessage() + "\n" + msgStr), e);
         }
         return result;
     }
@@ -433,7 +435,8 @@ public class VariableDicServiceImpl implements VariableDicService {
                 redisChgService.unlock(key.concat(":lock"), id);
             }
         } catch (Exception e) {
-            log.error(e.getMessage() + "\napiCode:" + apiCode + ";userType:" + userType, e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                    e.getMessage() + "\napiCode:" + apiCode + ";userType:" + userType), e);
         }
     }
 
@@ -504,14 +507,14 @@ public class VariableDicServiceImpl implements VariableDicService {
             } catch (Exception e) {
                 lock = true;
                 syncUser.setStatus(MonitorTypeEnum.STATUS_2.getTypeCode());
-                log.error("设置默认有效期,上锁失败key:" + key + e.getMessage(), e);
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(), "设置默认有效期,上锁失败key:" + key), e);
             }
             if (lock) {
                 function.apply(syncUser);
             }
         } catch (Exception e) {
-            log.error(e.getMessage() + "\nApiCode:" + syncUser.getApiCode() + ";UserType:"
-                    + syncUser.getUserType() + ";TaskId:" + syncUser.getCusBatch(), e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                    "ApiCode:" + syncUser.getApiCode() + ";UserType:" + syncUser.getUserType() + ";TaskId:" + syncUser.getCusBatch()), e);
         }
     }
 
@@ -553,7 +556,7 @@ public class VariableDicServiceImpl implements VariableDicService {
             // 清理
             redisChgService.delBigSet(redisKey, 500);
         } catch (Exception e) {
-            log.error(e.getMessage() + "\n" + redisKey, e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(), "redisKey:" + redisKey), e);
         }
         return result;
     }

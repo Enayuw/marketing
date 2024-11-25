@@ -2,9 +2,12 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.dto.xiecheng.XieChengActivateDTO;
 import com.br.marketing.entity.CustomizeUploadData;
+import com.br.marketing.entity.XieChengBlackList;
+import com.br.marketing.entity.XieChengCollidingBlackListCount;
 import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
+import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
@@ -82,6 +85,17 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
                                                    @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
 
     /**
+    * @Description: 周期表公共黑名单剔除
+    * @Author: Ethan.Kang
+    */
+    List<Long> selectCycleBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize,
+                                             @Param("type") Integer type);
+
+    void batchUpdateCycPublicBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);
+
+    void batchUpdateCycNoPublicBlackListData(@Param("labelName") String labelName,@Param("cellSha256") String cellSha256);
+
+    /**
      * 更新is_delete：is_delete = 1,update_time = now()
      * @param ids
      * @return
@@ -98,4 +112,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
     int updateByTrueData(XieChengCollidingDataLoopCycle record);
 
     CustomizeUploadData selectActivateData(XieChengActivateDTO xieChengActivateDTO);
+
+    int searchCycDeleteCountByExtend(@Param("extend") String extend);
+
 }

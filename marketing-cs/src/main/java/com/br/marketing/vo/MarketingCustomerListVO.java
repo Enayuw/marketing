@@ -235,4 +235,7 @@ public class MarketingCustomerListVO {
     @ApiModelProperty(value = "是否输出数据产品 0 否 1 是")
     private Integer isOutputDataProduct;
 
+    @ApiModelProperty(value = "校验类型 1-通用校验；2-不校验")
+    private Integer checkType;
+
 }
