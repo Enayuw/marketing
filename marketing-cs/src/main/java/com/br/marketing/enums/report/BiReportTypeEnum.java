@@ -103,7 +103,7 @@ public enum BiReportTypeEnum {
      * 转化分析报表
      */
     TRANSFER_CONNECT_REPORT(116, ReportTaskTypeEnum.TRANSFER_CONNECT_TYPE.getValue()
-            , "transferAnalysisReport", "转化分析报表"),
+            , "transferConnectReport", "接通转化报表"),
     ;
 
 
