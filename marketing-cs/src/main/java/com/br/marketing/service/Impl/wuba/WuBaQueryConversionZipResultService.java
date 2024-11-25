@@ -19,6 +19,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 import java.io.BufferedReader;
@@ -250,6 +251,14 @@ public class WuBaQueryConversionZipResultService {
                 extendJo.put(header, value);
             }
             WubaSubmitConversionDataTransferClean data = BeanUtil.toBean(dataMap, WubaSubmitConversionDataTransferClean.class);
+            //
+            boolean a = (StringUtils.isEmpty(data.getLastLoginTime()) && StringUtils.isEmpty(data.getFinanceApplyTime()));
+            boolean b = (StringUtils.isEmpty(data.getFinanceCreditStatus()) && StringUtils.isEmpty(data.getFinanceCreditFinishTime()));
+            boolean c = (StringUtils.isEmpty(data.getDebtTime()) && StringUtils.isEmpty(data.getDebtPassTime()));
+            boolean d = (StringUtils.isEmpty(data.getLoanAmt()));
+            if (a && b && c && d) {
+                continue;
+            }
             data.setApiCode(apiCode);
             data.setBatchNo("");
             Date pushTime = DateUtil.parse(LocalDate.now().minusDays(1) +" 20:00:00");
