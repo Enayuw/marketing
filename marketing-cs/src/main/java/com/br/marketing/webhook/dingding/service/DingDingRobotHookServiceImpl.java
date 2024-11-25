@@ -59,7 +59,7 @@ public class DingDingRobotHookServiceImpl implements DingDingRobotHookService {
     @Override
     public ApiResult<String> sendMessageGroup(String accessToken, String secret
             , AbstractRobotSendRequest robotSendRequest) {
-        return sendMessageGroup(accessToken, secret, robotSendRequest, false);
+        return sendMessageGroup(accessToken, secret, robotSendRequest, true);
     }
 
     @Override
