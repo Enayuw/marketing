@@ -591,6 +591,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
     @Override
     public Boolean updateReportRecords(BiReportStatisticTransferParam param) {
         String reportDate = param.getReportDate();
+        if (StringUtils.isEmpty(reportDate)) {
+            reportDate = LocalDate.now().toString();
+        }
         String reportTypeName = param.getReportTypeName();
         Integer reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
         try {
