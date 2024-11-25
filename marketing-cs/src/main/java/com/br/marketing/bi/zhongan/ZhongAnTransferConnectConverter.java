@@ -88,8 +88,8 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         for(String reportOrder : ReportOrderList){
             BiReportVO biReportVO = new BiReportVO();
             biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getTypeName());
-            String groupName = getGroupName(reportType, "");
-            biReportVO.setReportName(BiReportTypeEnum.TRANSFER_ANALYSIS_REPORT.getStatName()+"-"+"12345"+"-"+groupName);
+            String reportName = getReportName(reportOrder);
+            biReportVO.setReportName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getStatName()+"-"+reportName);
             biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
             biReportVO.setXAxisName("日期");
             List<String> xAxis = new ArrayList<>();
@@ -246,13 +246,14 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         return resultMap;
     }
 
-    public String getGroupName(String taskId, String groupCode) {
-        Map<String, String> groupMap = formatReportRules(taskId);
-        String groupName = groupMap.get(groupCode);
-        if(StringUtils.isEmpty(groupName)){
-            return "";
+    public String getReportName(String reportOrder) {
+        String reportName = "";
+        switch (reportOrder){
+            case "1": reportName="注册未授信";break;
+            case "2": reportName="拒件重申";break;
+            case "3": reportName="保险转信贷";break;
         }
-        return groupName;
+        return reportName;
     }
 
     public String reportOrderToUserType(String reportOrder){
