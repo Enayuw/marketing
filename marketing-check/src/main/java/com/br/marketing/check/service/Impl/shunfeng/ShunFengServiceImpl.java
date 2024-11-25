@@ -178,6 +178,7 @@ public class ShunFengServiceImpl implements ShunFengService {
                 detailDTO.setCell(AESUtil.decrypt(moreCellList.get(0), aesKey));
             }
             detailDTO.setCustNum(reponse.getCredit_code());
+            detailDTO.setName(reponse.getLegal_person_name());
             JSONObject reserveField1 = new JSONObject();
             reserveField1.put("userType", 1001);
             reserveField1.put("company_type", reponse.getCompany_type());
@@ -198,7 +199,7 @@ public class ShunFengServiceImpl implements ShunFengService {
             reserveField1.put("industry2", reponse.getIndustry2());
             reserveField1.put("paid_in_capital", reponse.getPaid_in_capital());
             reserveField1.put("registered_capital", reponse.getRegistered_capital());
-            reserveField1.put("name", reponse.getLegal_person_name());
+            //reserveField1.put("name", reponse.getLegal_person_name());
             reserveField1.put("company_name", reponse.getCompany_name());
             reserveField1.put("district", reponse.getDistrict());
             reserveField1.put("address_verification_flag", reponse.getAddress_verification_flag());
