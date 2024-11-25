@@ -81,7 +81,7 @@ public interface ReportScoreRuleService {
 
     /**
      * 更新报表统计记录
-     * @param reportDate
+     * @param param
      * @return
      */
     Boolean updateReportRecords(BiReportStatisticTransferParam param);

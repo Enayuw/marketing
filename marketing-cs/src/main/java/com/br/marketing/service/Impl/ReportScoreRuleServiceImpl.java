@@ -585,7 +585,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     /**
      * 更新报表统计记录
-     * @param reportDate
+     * @param param
      * @return
      */
     @Override

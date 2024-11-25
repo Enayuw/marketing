@@ -141,7 +141,7 @@ public class ReportScoreRuleController {
 
     @ApiOperation(value = "更新报表统计记录")
     @PostMapping("/updateReportStatisticsRecords")
-    public ApiResult<Boolean> updateReportStatisticsRecords(BiReportStatisticTransferParam param) {
+    public ApiResult<Boolean> updateReportStatisticsRecords(@RequestBody(required = false) BiReportStatisticTransferParam param) {
         try {
             return new ApiResult<Boolean>().success(reportScoreRuleService.updateReportRecords(param));
         } catch (Exception e) {

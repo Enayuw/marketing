@@ -13,11 +13,11 @@ public class BiReportStatisticTransferParam {
     @ApiModelProperty(value = "报表类型，必填字段")
     private String reportTypeName;
 
-    @NotNull(message = "报表日期不能为空")
     @ApiModelProperty(value = "统计日期")
     private String reportDate;
 
-
+    @ApiModelProperty(value = "统计日期")
+    private String apiCode;
 
 
 }
