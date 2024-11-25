@@ -27,8 +27,6 @@ public class BiReportVO {
     private String type;
     @ApiModelProperty(value = "分组")
     private String group;
-    @ApiModelProperty(value = "维度")
-    private String dimension;
     @ApiModelProperty(value = "X轴名称")
     @JsonProperty(value = "xAxisName")
     private String xAxisName;

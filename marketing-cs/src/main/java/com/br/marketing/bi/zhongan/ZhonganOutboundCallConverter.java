@@ -60,8 +60,7 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
         } else {
             userTypes.add(Integer.valueOf(userType));
         }
-        List<ZhonganOutboundCallReportDTO> zhonganOutboundCallReportDTOS = zhongAnBiReportMapper.selectZaOutboundCallListbI_(reportDateStart, reportDateEnd, userTypes);
-        return zhonganOutboundCallReportDTOS;
+        return zhongAnBiReportMapper.selectZaOutboundCallListbI_(reportDateStart, reportDateEnd, userTypes);
     }
 
     @Override
@@ -72,48 +71,35 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
 
         List<BiReportVO> biReportVOList = Lists.newArrayList();
         for (Map.Entry<String, List<ZhonganOutboundCallReportDTO>> entry : scoreMap.entrySet()) {
-            if("1".equals(entry.getKey())){
-                Map<String, List<ZhonganOutboundCallReportDTO>> dimensionMap = entry.getValue().stream().collect(Collectors.groupingBy(ZhonganOutboundCallReportDTO::getDimension));
-                for (Map.Entry<String, List<ZhonganOutboundCallReportDTO>> entry1 : dimensionMap.entrySet()) {
-                    buildbiReportList(biReportVOList,entry1);
-                }
-            }else {
-                buildbiReportList(biReportVOList,entry);
-            }
+            BiReportVO biReportVO = new BiReportVO();
+            biReportVO.setReportTypeName(BiReportTypeEnum.OUTBOUND_STAT_REPORT.getTypeName());
+            biReportVO.setReportName("外呼统计报表");
+            biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
+            biReportVO.setGroup(entry.getValue().get(0).getUserType());
+            // 根据时间排序
+            List<ZhonganOutboundCallReportDTO> sortedData = entry.getValue().stream()
+                    .sorted(Comparator.comparing(ZhonganOutboundCallReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
+            // 构造横坐标数据
+            List<String> xAxis = sortedData.stream().map(ZhonganOutboundCallReportDTO::getReportDate).collect(Collectors.toList());
+            biReportVO.setXAxisName("日期");
+            biReportVO.setXAxis(xAxis);
+            // 构造纵坐标数据
+            List<WrapDataVO> yAxis = Lists.newArrayList();
+            yAxis.add(buildWrapDataVO("组别", sortedData, ZhonganOutboundCallReportDTO::getDimension, FormatType.DEFAULT));
+            yAxis.add(buildWrapDataVO("实际外呼量", sortedData, ZhonganOutboundCallReportDTO::getActualOutboundNum, FormatType.THOUSAND_SEPARATOR));
+            yAxis.add(buildWrapDataVO("接通量", sortedData, ZhonganOutboundCallReportDTO::getThroughputNum, FormatType.THOUSAND_SEPARATOR));
+            yAxis.add(buildWrapDataVO("通话总时长(分钟)", sortedData, ZhonganOutboundCallReportDTO::getDurationTotal, FormatType.THOUSAND_SEPARATOR));
+            yAxis.add(buildWrapDataVO("短信触发量", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggersNum, FormatType.THOUSAND_SEPARATOR));
+            yAxis.add(buildWrapDataVO("短信成功发送量", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendNum, FormatType.THOUSAND_SEPARATOR));
+            yAxis.add(buildWrapDataVO("接通率", sortedData, ZhonganOutboundCallReportDTO::getContinuityRatio, FormatType.PERCENT_SCALE2));
+            yAxis.add(buildWrapDataVO("接通短信触发率", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggerRatio, FormatType.PERCENT_SCALE2));
+            yAxis.add(buildWrapDataVO("短信成功发送率", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendRatio, FormatType.PERCENT_SCALE2));
+            yAxis.add(buildWrapDataVO("成本", sortedData, ZhonganOutboundCallReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
+            biReportVO.setYAxis(yAxis);
+            biReportVOList.add(biReportVO);
         }
         return biReportVOList;
     }
-
-    private List<BiReportVO> buildbiReportList(List<BiReportVO> biReportVOList, Map.Entry<String, List<ZhonganOutboundCallReportDTO>> entry) {
-        BiReportVO biReportVO = new BiReportVO();
-        biReportVO.setReportTypeName(BiReportTypeEnum.OUTBOUND_STAT_REPORT.getTypeName());
-        biReportVO.setReportName("外呼统计报表");
-        biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
-        biReportVO.setGroup(entry.getValue().get(0).getUserType());
-        biReportVO.setDimension(entry.getValue().get(0).getDimension());
-        // 根据时间排序
-        List<ZhonganOutboundCallReportDTO> sortedData = entry.getValue().stream()
-                .sorted(Comparator.comparing(ZhonganOutboundCallReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
-        // 构造横坐标数据
-        List<String> xAxis = sortedData.stream().map(ZhonganOutboundCallReportDTO::getReportDate).distinct().collect(Collectors.toList());
-        biReportVO.setXAxisName("日期");
-        biReportVO.setXAxis(xAxis);
-        // 构造纵坐标数据
-        List<WrapDataVO> yAxis = Lists.newArrayList();
-        yAxis.add(buildWrapDataVO("实际外呼量", sortedData, ZhonganOutboundCallReportDTO::getActualOutboundNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("接通量", sortedData, ZhonganOutboundCallReportDTO::getThroughputNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("通话总时长(分钟)", sortedData, ZhonganOutboundCallReportDTO::getDurationTotal, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("短信触发量", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggersNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("短信成功发送量", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("接通率", sortedData, ZhonganOutboundCallReportDTO::getContinuityRatio, FormatType.PERCENT_SCALE2));
-        yAxis.add(buildWrapDataVO("接通短信触发率", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggerRatio, FormatType.PERCENT_SCALE2));
-        yAxis.add(buildWrapDataVO("短信成功发送率", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendRatio, FormatType.PERCENT_SCALE2));
-        yAxis.add(buildWrapDataVO("成本", sortedData, ZhonganOutboundCallReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
-        biReportVO.setYAxis(yAxis);
-        biReportVOList.add(biReportVO);
-        return biReportVOList;
-    }
-
 
     /**
      * 导出数据
