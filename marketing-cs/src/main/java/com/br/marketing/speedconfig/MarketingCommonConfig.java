@@ -2318,6 +2318,16 @@ public class MarketingCommonConfig {
     private Boolean qifuAiCleanStrategyCodeFlag;
 
     /**
+     * 顺丰获取公司信息线程数
+     */
+    private Integer shunFengCompanyThreadNum;
+
+
+    /**
+     * 顺丰接口mock
+     */
+    private Boolean shunFengInterMock;
+    /**
      * 携程动态补充包Id配置
      */
     private List<String> XcDynaFalsePackageIds;
