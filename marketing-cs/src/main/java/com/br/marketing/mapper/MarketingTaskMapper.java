@@ -251,4 +251,12 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
      * @date 2024/10/21
      */
     MarketingTaskVO queryLastNonValidationTask(@Param("apiCode") String apiCode, @Param("batchNumber") String batchNumber);
+
+
+
+    List<MarketingTaskVO> queryNoFinishStatus(@Param("apiCode")String apiCode, @Param("createTimeStart")String createTimeStart,
+                                             @Param("createTimeEnd")String createTimeEnd);
+
+
+
 }
