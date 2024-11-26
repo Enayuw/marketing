@@ -67,6 +67,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
 
         String reportType = "17";
         LocalDate curLocalDate = LocalDate.now();
+        String curDate = curLocalDate.toString();
         String reportDateStart = curLocalDate.withDayOfMonth(1).toString();
         String reportDateEnd = curLocalDate.plusDays(1).toString();
 
@@ -105,11 +106,21 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                 }
 
                 String reportId = reportRule.getReportId();
-                List<ReportStatisticField> reportDateList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, "reportDate");
-                List<String> reportDateValueList = reportDateList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
+
+                List<String> fieldYTList = reportOrderToFieldYList(reportOrder, reportDate, "T");
+                List<ReportStatisticField> reportDateTList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYTList, "reportDate", "");
+                List<String> reportDateTValueList = reportDateTList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
 
                 // 构造横坐标数据
-                xAxis.addAll(reportDateValueList);
+                xAxis.addAll(reportDateTValueList);
+
+                // 构建M
+                if(curDate.equals(reportDate)){
+                    List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
+                    List<ReportStatisticField> reportDateMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, "reportDate", "");
+                    List<String> reportDateMValueList = reportDateMList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
+                    xAxis.addAll(reportDateMValueList);
+                }
 
                 // 构造纵坐标数据
                 List<WrapDataVO> yAxis = Lists.newArrayList();
@@ -124,8 +135,13 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                     String itemShow = reportFieldDict.getItemShow();
                     String formatTypeName = reportFieldDict.getItemFormatType();
                     FormatType formatType = FormatType.getByName(formatTypeName);
-                    List<ReportStatisticField> reportFieldList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, itemName);
+                    List<ReportStatisticField> reportFieldList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYTList, itemName, "");
 
+                    if(curDate.equals(reportDate)){
+                        List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
+                        List<ReportStatisticField> reportFieldMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, itemName, "");
+                        reportFieldList.addAll(reportFieldMList);
+                    }
                     // sort
                     yAxis.add(buildWrapDataVO(itemShow, reportFieldList, ReportStatisticField::getItemValue, formatType));
                 }
@@ -264,5 +280,17 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
             case "3": userType="8";break;
         }
         return userType;
+    }
+
+    public List<String> reportOrderToFieldYList(String reportOrder, String reportDate, String type){
+        List<String> fieldYList = new ArrayList<>();
+        String fieldDate = LocalDate.parse(reportDate).minusDays(1).toString();
+        if("1".equals(reportOrder)){
+            fieldYList.add(fieldDate+"_"+type+"_首登");
+            fieldYList.add(fieldDate+"_"+type+"_非首登");
+        } else {
+            fieldYList.add(fieldDate+"_"+type);
+        }
+        return fieldYList;
     }
 }

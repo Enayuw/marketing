@@ -67,10 +67,18 @@
     <select id="queryReportStatisticFieldbI_" resultType="com.br.marketing.dto.report.zhongan.ReportStatisticField">
         select * from dws_report_statistic_field
         where report_id = #{reportId}
+        <if test="fieldYList !=null">
+            and field_y in
+            <foreach collection="fieldYList" item="fieldY" open="(" separator="," close=")">
+                #{fieldY}
+            </foreach>
+        </if>
         <if test="itemName !=null and itemName!=''">
             <![CDATA[ and item_name = #{itemName}]]>
         </if>
-        order by create_time desc
+        <if test="orderFragment !=null and orderFragment!=''">
+            ${orderFragment}
+        </if>
     </select>
 
 </mapper>

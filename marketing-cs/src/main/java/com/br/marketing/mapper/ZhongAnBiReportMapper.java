@@ -31,6 +31,9 @@ public interface ZhongAnBiReportMapper {
 
     List<ReportStatisticField> queryReportStatisticFieldbI_(
             @Param("reportId") String reportId,
-            @Param("itemName") String itemName);
+            @Param("fieldYList") List<String> fieldYList,
+            @Param("itemName") String itemName,
+            @Param("orderFragment") String orderFragment
+    );
 
 }
