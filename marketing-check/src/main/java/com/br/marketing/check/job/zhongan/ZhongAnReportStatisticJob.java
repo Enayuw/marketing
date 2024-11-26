@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 
@@ -44,7 +43,7 @@ public class ZhongAnReportStatisticJob extends AbstractSimpleElasticJob {
 
     public LocalDateTime isMyParam(String jobParameter) {
         if (ObjectUtil.isNotEmpty(jobParameter)) {
-            String string = LocalTime.now().toString();
+            String string = "23:59:59.999";
             String dateNow = jobParameter + " " + string;
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
             LocalDateTime localDateTime = LocalDateTime.parse(dateNow, formatter);

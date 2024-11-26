@@ -59,7 +59,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             example.createCriteria()
                     .andReportTypeIn(Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue(),
                     ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
-                    ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue())).andReportNameLike(today.toString());
+                    ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue())).andReportNameLike("%" + today.toString());
             List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
             if (ObjectUtil.isNotEmpty(reportTasks)) {
                 log.warn("众安日新增报表任务已存在！");

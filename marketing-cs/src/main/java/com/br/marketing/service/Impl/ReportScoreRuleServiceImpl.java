@@ -610,7 +610,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                                 .andReportStatusEqualTo("0")
                                 .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString());
                         ReportStatisticTransfer statisticTransfer = new ReportStatisticTransfer();
-                        statisticTransfer.setReportStatus("2");
+                        statisticTransfer.setReportStatus("3");
                         statisticTransfer.setUpdateTime(new Date());
                         boolean b = reportStatisticTransferMapper.updateByExampleSelective(statisticTransfer,
                                 reportStatisticTransferExample) == 1;
@@ -626,7 +626,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                                 .andReportStatusEqualTo("0")
                                 .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue().toString());
                         ReportStatisticTransfer statisticTransfer = new ReportStatisticTransfer();
-                        statisticTransfer.setReportStatus("2");
+                        statisticTransfer.setReportStatus("3");
                         statisticTransfer.setUpdateTime(new Date());
                         boolean b = reportStatisticTransferMapper.updateByExampleSelective(statisticTransfer,
                                 reportStatisticTransferExample) == 1;
@@ -643,7 +643,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                                 .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue().toString());
                         reportStatisticTransferExample.setOrderByClause("create_time desc");
                         ReportStatisticTransfer statisticTransfer = new ReportStatisticTransfer();
-                        statisticTransfer.setReportStatus("2");
+                        statisticTransfer.setReportStatus("3");
                         statisticTransfer.setUpdateTime(new Date());
                         boolean b = reportStatisticTransferMapper.updateByExampleSelective(statisticTransfer,
                                 reportStatisticTransferExample) == 1;
