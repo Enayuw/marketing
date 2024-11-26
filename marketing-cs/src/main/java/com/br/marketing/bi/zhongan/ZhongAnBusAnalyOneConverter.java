@@ -2,21 +2,15 @@ package com.br.marketing.bi.zhongan;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO;
 import com.br.marketing.entity.ReportStatisticTransfer;
 import com.br.marketing.entity.ReportStatisticTransferExample;
-import com.br.marketing.entity.ReportTask;
-import com.br.marketing.entity.ReportTaskExample;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.ReportStatisticTransferMapper;
-import com.br.marketing.mapper.ReportTaskMapper;
-import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.proxy.ZhongAnBiReportService;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
@@ -26,12 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,17 +31,10 @@ import java.util.stream.Collectors;
 public class ZhongAnBusAnalyOneConverter extends AbstractBiReportConverter<BiReportVO, ZhongAnBusAnalyOneReportDTO> {
 
     @Autowired
-    ZhongAnBiReportMapper zhongAnBiReportMapper;
-
-    @Autowired
     ZhongAnBiReportService zhongAnBiReportService;
 
     @Autowired
     ReportStatisticTransferMapper reportStatisticTransferMapper;
-
-    @Resource
-    ReportTaskMapper reportTaskMapper;
-
 
 
     @Override
@@ -116,15 +99,5 @@ public class ZhongAnBusAnalyOneConverter extends AbstractBiReportConverter<BiRep
         biReportVO.setYAxis(yAxis);
         biReportVOList.add(biReportVO);
         return biReportVOList;
-    }
-
-    public static Date customParse(String dateString) {
-        SimpleDateFormat customFormat = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            return customFormat.parse(dateString);
-        } catch (ParseException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()), e);
-            return null;
-        }
     }
 }

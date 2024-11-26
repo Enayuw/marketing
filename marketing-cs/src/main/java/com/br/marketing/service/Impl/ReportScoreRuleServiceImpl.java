@@ -1,13 +1,9 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
-import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -44,7 +40,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
@@ -96,11 +91,6 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Resource
     ReportStatisticTransferMapper reportStatisticTransferMapper;
-
-    @Resource
-    ZhongAnBiReportMapper zhongAnBiReportMapper;
-
-
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -673,15 +663,4 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
 
     }
-
-    public static Date customParse(String dateString) {
-        SimpleDateFormat customFormat = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            return customFormat.parse(dateString);
-        } catch (ParseException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), e.getMessage()), e);
-            return null;
-        }
-    }
-
 }

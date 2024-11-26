@@ -5,11 +5,8 @@ import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.report.zhongan.ZhongAnControlGroupDTO;
 import com.br.marketing.entity.ReportTask;
-import com.br.marketing.entity.ReportTaskAction;
-import com.br.marketing.entity.ReportTaskActionExample;
 import com.br.marketing.entity.ReportTaskExample;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
-import com.br.marketing.mapper.ReportTaskActionMapper;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ZhongAnControlGroupMapper;
 import com.br.marketing.service.bi.ReportStatisticService;
@@ -38,8 +35,6 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
     @Resource
     ReportTaskMapper reportTaskMapper;
 
-    @Resource
-    ReportTaskActionMapper reportTaskActionMapper;
 
     @Resource
     ZhongAnControlGroupMapper zhongAnControlGroupMapper;
@@ -49,55 +44,8 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
 
     @Override
     public void action(LocalDateTime actionDateTime) {
-
-        String curLocalTime = actionDateTime.toLocalTime().toString();
-
-        ReportTaskExample reportTaskExample = new ReportTaskExample();
-        reportTaskExample.createCriteria()
-                .andReportTypeEqualTo(18)
-                .andStatisticsTypeEqualTo(2)
-                .andIsDelEqualTo(1)
-                .andStatisticsTimeLessThan(curLocalTime);
-        reportTaskExample.setOrderByClause("id desc");
-        List<ReportTask> reportTasks = reportTaskMapper.selectByExample(reportTaskExample);
-        if(CollectionUtils.isEmpty(reportTasks)){
-            log.warn("未获取到报表任务");
-            return;
-        }
-
-        for (ReportTask reportTask : reportTasks) {
-            processReportTask(reportTask, actionDateTime);
-        }
-    }
-
-
-    private void processReportTask(ReportTask reportTaskPO, LocalDateTime actionDateTime){
-
-        Long reportTaskId = reportTaskPO.getId();
-        String actionDate = actionDateTime.toLocalDate().toString();
         try {
-            ReportTaskActionExample taskActionExample = new ReportTaskActionExample();
-            taskActionExample.createCriteria()
-                    .andReportTaskIdEqualTo(reportTaskId)
-                    .andActionDateEqualTo(actionDate)
-                    .andDeleteFlagEqualTo(0);
-            taskActionExample.setOrderByClause("create_time desc");
-            List<ReportTaskAction> taskActions = reportTaskActionMapper.selectByExample(taskActionExample);
-            if (ObjectUtil.isNotEmpty(taskActions)) {
-                log.warn("任务执行记录已存在, reportTaskId:{}, actionDate:{}", reportTaskId, actionDate);
-                return;
-            }
-            ReportTaskAction action = new ReportTaskAction();
-            action.setReportTaskId(reportTaskId);
-            action.setActionStatus(1);
-            action.setActionDate(actionDate);
-            action.setCreateTime(new Date());
-            action.setUpdateTime(new Date());
-            int i = reportTaskActionMapper.insertSelective(action);
-            if (i < 1) {
-                log.warn("新增失败, reportTaskId:{}, actionDate:{}", reportTaskId, actionDate);
-                return;
-            }
+            LocalDate today = actionDateTime.toLocalDate();
 
             List<String> zhongAnReportType =
                     Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString(),
@@ -107,8 +55,17 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                 log.warn("众安报表类型为空");
                 return;
             }
+            ReportTaskExample example = new ReportTaskExample();
+            example.createCriteria()
+                    .andReportTypeIn(Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue(),
+                    ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
+                    ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue())).andReportNameLike(today.toString());
+            List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
+            if (ObjectUtil.isNotEmpty(reportTasks)) {
+                log.warn("众安日新增报表任务已存在！");
+                return;
+            }
 
-            LocalDate today = actionDateTime.toLocalDate();
             String resultDate = today.minusDays(1).toString();
 
             List<Integer> userTypes = zhongAnReportType.stream()
@@ -161,21 +118,9 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                     return;
                 }
             }
-            ReportTaskActionExample actionExample = new ReportTaskActionExample();
-            actionExample.createCriteria()
-                    .andReportTaskIdEqualTo(reportTaskId)
-                    .andActionDateEqualTo(actionDate)
-                    .andDeleteFlagEqualTo(0)
-                    .andActionStatusEqualTo(1);
-            List<ReportTaskAction> reportTaskActions = reportTaskActionMapper.selectByExample(actionExample);
-            for (ReportTaskAction taskAction : reportTaskActions) {
-                taskAction.setId(taskAction.getId());
-                taskAction.setActionStatus(2);
-                reportTaskActionMapper.updateByPrimaryKeySelective(taskAction);
-            }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(),
-                            "众安报表定时统计新增任务发生错误！"), e);
+                    "众安报表定时统计新增任务发生错误！"), e);
         }
     }
 

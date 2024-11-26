@@ -5,12 +5,10 @@ import com.br.marketing.common.annoation.PercentConvertor;
 import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyEightReportDTO;
 import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO;
 import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalySevenReportDTO;
-import com.br.marketing.entity.SourceStatisticDict;
 import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

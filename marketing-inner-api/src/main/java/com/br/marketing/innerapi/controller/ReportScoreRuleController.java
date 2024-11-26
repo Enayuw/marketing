@@ -12,7 +12,6 @@ import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
-import com.br.marketing.vo.xiecheng.param.UpdateCollidingSwitchParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

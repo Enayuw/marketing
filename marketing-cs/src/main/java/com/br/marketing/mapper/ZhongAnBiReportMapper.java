@@ -29,11 +29,4 @@ public interface ZhongAnBiReportMapper {
             @Param("dimensionValue") String dimensionValue,
             @Param("itemName") String itemName);
 
-    void deleteZaBusAnalyOneListbI_(List<String> reportIds);
-
-    void deleteZaBusAnalySevenListbI_(List<String> reportIds);
-
-    void deleteZaBusAnalyEightListbI_(List<String> reportIds);
-
-
 }
