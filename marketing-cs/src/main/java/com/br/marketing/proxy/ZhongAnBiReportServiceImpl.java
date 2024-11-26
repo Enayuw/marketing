@@ -142,9 +142,44 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 zhongAnBusAnalyOneReportList.addAll(totalList);
             }
         }
-
-        return zhongAnBusAnalyOneReportList;
+        List<ZhongAnBusAnalyOneReportDTO> zhongAnBusAnalyOneReportDTOS = traverseDatesOne(zhongAnBusAnalyOneReportList);
+        return zhongAnBusAnalyOneReportDTOS;
     }
+
+    public static List<ZhongAnBusAnalyOneReportDTO> traverseDatesOne(List<ZhongAnBusAnalyOneReportDTO> zhongAnBusAnalyEightReportList) {
+        List<ZhongAnBusAnalyOneReportDTO> result = new ArrayList<>();
+
+        // 获取今天的日期
+        LocalDate now = LocalDate.now();
+        String oneDay = LocalDate.now().withDayOfMonth(1).toString();
+        String oneDayToOneDay = oneDay + "-" + oneDay;
+        // 判断今天是否是1号
+        if (now.getDayOfMonth() == 1) {
+            zhongAnBusAnalyEightReportList.stream()
+                    .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                    .forEach(result::add);
+        } else {
+            zhongAnBusAnalyEightReportList.stream()
+                    .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                    .forEach(result::add);
+            // 如果不是1号，从2号到今天遍历
+            LocalDate firstDayOfMonth = now.withDayOfMonth(2);
+            LocalDate currentDay = firstDayOfMonth;
+
+            // 遍历从1号到今天的日期
+            while (!currentDay.isAfter(now)) {
+                String dateStr = currentDay.toString();
+                zhongAnBusAnalyEightReportList.stream()
+                        .filter(date -> date.getReportDate().contains(dateStr))
+                        .forEach(result::add);
+
+                currentDay = currentDay.plusDays(1);
+            }
+        }
+
+        return result;
+    }
+
 
     @Override
     public List<ZhongAnBusAnalyEightReportDTO> selectZaBusAnalyEightListbI_(String reportId) {
@@ -237,7 +272,6 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
 
     public static List<ZhongAnBusAnalyEightReportDTO> traverseDates(List<ZhongAnBusAnalyEightReportDTO> zhongAnBusAnalyEightReportList) {
         List<ZhongAnBusAnalyEightReportDTO> result = new ArrayList<>();
-
 
         // 获取今天的日期
         LocalDate now = LocalDate.now();
@@ -413,7 +447,41 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 zhongAnBusAnalySevenReportList.addAll(totalList);
             }
         }
+        List<ZhongAnBusAnalySevenReportDTO> zhongAnBusAnalySevenReportDTOS = traverseDatesSeven(zhongAnBusAnalySevenReportList);
+        return zhongAnBusAnalySevenReportDTOS;
+    }
 
-        return zhongAnBusAnalySevenReportList;
+    public static List<ZhongAnBusAnalySevenReportDTO> traverseDatesSeven(List<ZhongAnBusAnalySevenReportDTO> zhongAnBusAnalyEightReportList) {
+        List<ZhongAnBusAnalySevenReportDTO> result = new ArrayList<>();
+
+        // 获取今天的日期
+        LocalDate now = LocalDate.now();
+        String oneDay = LocalDate.now().withDayOfMonth(1).toString();
+        String oneDayToOneDay = oneDay + "-" + oneDay;
+        // 判断今天是否是1号
+        if (now.getDayOfMonth() == 1) {
+            zhongAnBusAnalyEightReportList.stream()
+                    .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                    .forEach(result::add);
+        } else {
+            zhongAnBusAnalyEightReportList.stream()
+                    .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                    .forEach(result::add);
+            // 如果不是1号，从2号到今天遍历
+            LocalDate firstDayOfMonth = now.withDayOfMonth(2);
+            LocalDate currentDay = firstDayOfMonth;
+
+            // 遍历从1号到今天的日期
+            while (!currentDay.isAfter(now)) {
+                String dateStr = currentDay.toString();
+                zhongAnBusAnalyEightReportList.stream()
+                        .filter(date -> date.getReportDate().contains(dateStr))
+                        .forEach(result::add);
+
+                currentDay = currentDay.plusDays(1);
+            }
+        }
+
+        return result;
     }
 }
