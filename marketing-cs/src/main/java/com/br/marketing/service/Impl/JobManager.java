@@ -178,6 +178,7 @@ public class JobManager {
 
         WUBA_CHANGE_QUERY_BATCH(1, "3710155", "7491580"),
         WUBA_CHANGE_SUBMIT_DATA_BATCH(2, "3710155", "7491580"),
+        WUBA_QUERY_CONVERSION_ZIP_RESULT(3, "3710155", "7491580"),
         ;
 
         /**
