@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl.auth;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.br.common.encryption.Sm3Util;
 import com.br.marketing.client.RedisAuthService;
@@ -12,6 +13,8 @@ import com.br.marketing.mapper.auth.MarketingRoleMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoMapper;
 import com.br.marketing.mapper.auth.MarketingUserInfoRoleMapper;
 import com.br.marketing.service.auth.MarketingUserInfoService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.util.IpAddressUtil;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.*;
 
@@ -48,6 +52,9 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
     @Resource
     private MarketingRoleMapper marketingRoleMapper;
 
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
+
     @Override
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
 
@@ -61,7 +68,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
             if (!pwdError(reqObj, marketingUserInfo)) {
                 return new ApiResult<MarketingUserDetail>().fail().fail(ServiceResultEnum.AUTH_LOGIN_PASS_ERROR);
             }
-            if(marketingUserInfo.getPasswordEditFlag()==0){
+            if (marketingUserInfo.getPasswordEditFlag() == 0) {
                 return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.EDIT_PASSWORD);
             }
             // 查询当前用户所有角色
@@ -72,12 +79,39 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
             marketingUserDetail.setSessionId(reqObj.getSessionId());
             marketingUserDetail.setPassword(null);
             redisAuthService.set(reqObj.getSessionId(), JSON.toJSONString(marketingUserDetail), "app_session_prefix");
-            redisAuthService.expire(reqObj.getSessionId(),"app_session_prefix", 1800);
+            redisAuthService.expire(reqObj.getSessionId(), "app_session_prefix", 1800);
             //过期时间
             return new ApiResult<MarketingUserDetail>().success(marketingUserDetail);
         }
         return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_FAILED_ERROR_PARAM);
 
+    }
+
+    @Override
+    public ApiResult<MarketingUserDetail> loginAutoTest(HttpSession httpSession, HttpServletRequest request, LoginReqObj reqObj) {
+        log.warn("httpSession:{}",httpSession.getId());
+        List<String> ipAddr = IpAddressUtil.getIpAddr(request);
+        log.warn("IP:{}",ipAddr);
+        List<String> speedTestIp = marketingCommonConfig.getAutoTestIp();
+        if(CollectionUtil.containsAny(ipAddr,speedTestIp)){
+            MarketingUserInfoExample marketingUserInfoExample = new MarketingUserInfoExample();
+            marketingUserInfoExample.createCriteria().andUserNameEqualTo(reqObj.getUsername()).andStatusEqualTo(1);
+            MarketingUserInfo marketingUserInfo = marketingUserInfoMapper.selectUserInfo(marketingUserInfoExample);
+
+            // 查询当前用户所有角色
+            List<MarketingRole> marketingRoles = marketingUserInfoRoleMapper.getRolesByUid(marketingUserInfo.getId());
+            // 查询当前角色的资源
+            List<MarketingResource> marketingResources = marketingUserInfoRoleMapper.getResourcesByUid(marketingUserInfo.getId());
+            MarketingUserDetail marketingUserDetail = new MarketingUserDetail(marketingUserInfo, marketingRoles, marketingResources, new HashMap<>(16));
+            marketingUserDetail.setSessionId(httpSession.getId());
+            marketingUserDetail.setPassword(null);
+            redisAuthService.set(httpSession.getId(), JSON.toJSONString(marketingUserDetail), "app_session_prefix");
+            redisAuthService.expire(httpSession.getId(), "app_session_prefix", 1800);
+            //过期时间
+            return new ApiResult<MarketingUserDetail>().success(marketingUserDetail);
+        }
+
+        return new ApiResult<MarketingUserDetail>().fail(ServiceResultEnum.AUTH_LOGIN_NO_PERMISSION);
     }
 
     @Override
@@ -93,13 +127,14 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
      * 密码校验
      */
     private boolean pwdError(LoginReqObj reqObj, MarketingUserInfo user) {
-        if(user == null) {
+        if (user == null) {
             return false;
         }
         String secPass = getSecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
         String md5SecPass = getMd5SecPass(user.getUserName(), user.getPassword(), reqObj.getCaptcha());
         return secPass.equals(reqObj.getPassword()) || md5SecPass.equals(reqObj.getMd5Password());
     }
+
     /**
      * md5转换
      */
@@ -235,6 +270,7 @@ public class MarketingUserInfoServiceImpl implements MarketingUserInfoService {
         marketingUserInfoMapper.updateByPrimaryKeySelective(marketingUserInfo);
         return new ApiResult<Boolean>().success();
     }
+
     @Override
     public ApiResult<Boolean> updateMarketingUserInfoApiCodes(MarketingUserInfo marketingUserInfo) {
         marketingUserInfoMapper.updateByPrimaryKeySelective(marketingUserInfo);
