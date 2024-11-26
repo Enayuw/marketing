@@ -30,11 +30,7 @@ public class ZhongAnReportStatisticJob extends AbstractSimpleElasticJob {
             if (ObjectUtil.isNotEmpty(context)){
                 String jobParameter = context.getJobParameter();
                 LocalDateTime myParam = isMyParam(jobParameter);
-                log.info("jobParameter={}", myParam);
                 reportStatisticService.action(myParam);
-            } else {
-                LocalDateTime actionDateTime = LocalDateTime.now();
-                reportStatisticService.action(actionDateTime);
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ZHONGAN_REPORTEERROR.getCode(), "众安报表定时统计发生错误！"), e);

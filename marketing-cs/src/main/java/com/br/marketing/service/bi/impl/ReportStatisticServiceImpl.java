@@ -10,6 +10,7 @@ import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ZhongAnControlGroupMapper;
 import com.br.marketing.service.bi.ReportStatisticService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
 import com.br.marketing.vo.zhongan.param.ZhongAnCustomInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,7 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- *  众安经营分析报表每日定时生成任务
+ * 众安经营分析报表每日定时生成任务
  */
 @Service
 @Slf4j
@@ -35,6 +36,8 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
     @Resource
     ReportTaskMapper reportTaskMapper;
 
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     ZhongAnControlGroupMapper zhongAnControlGroupMapper;
@@ -58,8 +61,8 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             ReportTaskExample example = new ReportTaskExample();
             example.createCriteria()
                     .andReportTypeIn(Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue(),
-                    ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
-                    ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue())).andReportNameLike("%" + today.toString());
+                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
+                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue())).andReportNameLike("%" + today.toString());
             List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
             if (ObjectUtil.isNotEmpty(reportTasks)) {
                 log.warn("众安日新增报表任务已存在！");
@@ -101,9 +104,12 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                             "\"approvalAvailable\":0,\"applyPayNum\":0,\"payPassRate\":0,\"lendersSucNum\":0,\"lendersSucAmount\":0}]";
                     String jsonData8 = "[{\"constituencies\":5,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}]";
 
-                    param.setUserType1(objectMapper.readValue(jsonData1, new TypeReference<List<ZhongAnCustomInfo>>() {}));
-                    param.setUserType7(objectMapper.readValue(jsonData7, new TypeReference<List<ZhongAnCustomInfo>>() {}));
-                    param.setUserType8(objectMapper.readValue(jsonData8, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                    param.setUserType1(objectMapper.readValue(jsonData1, new TypeReference<List<ZhongAnCustomInfo>>() {
+                    }));
+                    param.setUserType7(objectMapper.readValue(jsonData7, new TypeReference<List<ZhongAnCustomInfo>>() {
+                    }));
+                    param.setUserType8(objectMapper.readValue(jsonData8, new TypeReference<List<ZhongAnCustomInfo>>() {
+                    }));
                     zhongAnControlGroupService.saveCustomInfo(param);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
@@ -163,19 +169,20 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
 
         // 创建最终 JSON 对象
         Map<String, Object> jsonObject = new HashMap<>();
+        String apiCode = marketingCommonConfig.getZhongAnReportStatisticApiCode();
+        String statisticsScene = "报表统计_众安(".concat(apiCode);
 
         if ("12".equals(reportType)) {
             reportName = "场景一日统计" + actionDate.toString();
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue();
-
             upload.put("dimensionsField", "defaultNone");
             upload.put("userType", "1");
 
             jsonObject.put("score", score);
             jsonObject.put("transfer", transfer);
             jsonObject.put("upload", upload);
-            jsonObject.put("apiCode", "3710048");
-            jsonObject.put("statisticsScene", "报表统计_众安(3710048)_1场景经营分析报表");
+            jsonObject.put("apiCode", apiCode);
+            jsonObject.put("statisticsScene", statisticsScene.concat(")_1场景经营分析报表"));
         } else if ("13".equals(reportType)) {
             reportName = "场景七日统计" + actionDate.toString();
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue();
@@ -186,8 +193,8 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             jsonObject.put("score", score);
             jsonObject.put("transfer", transfer);
             jsonObject.put("upload", upload);
-            jsonObject.put("apiCode", "3710048");
-            jsonObject.put("statisticsScene", "报表统计_众安(3710048)_7场景经营分析报表");
+            jsonObject.put("apiCode", apiCode);
+            jsonObject.put("statisticsScene", statisticsScene.concat(")_7场景经营分析报表"));
         } else if ("14".equals(reportType)) {
             reportName = "场景八日统计" + actionDate.toString();
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue();
@@ -198,8 +205,8 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             jsonObject.put("score", score);
             jsonObject.put("transfer", transfer);
             jsonObject.put("upload", upload);
-            jsonObject.put("apiCode", "3710048");
-            jsonObject.put("statisticsScene", "报表统计_众安(3710048)_8场景经营分析报表");
+            jsonObject.put("apiCode", apiCode);
+            jsonObject.put("statisticsScene", statisticsScene.concat(")_8场景经营分析报表"));
         }
 
         try {
@@ -224,7 +231,6 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
 
         reportTaskMapper.insertSelective(reportTask);
     }
-
 
 
 }
