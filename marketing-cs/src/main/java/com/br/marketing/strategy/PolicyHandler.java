@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.context.ProcessHandlerContext;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -32,30 +31,41 @@ public class PolicyHandler extends AbstractExternalInterfaceHandler<PushMarketin
             Map<String, List<PushMarketingUserDetailByRuleDTO>> strategyMap = ruleLists.stream().collect(Collectors.groupingBy(PushMarketingUserDetailByRuleDTO::getStrategyCode));
             for (String strategy : strategyMap.keySet()) {
                 List<PushMarketingUserDetailByRuleDTO> datas = strategyMap.get(strategy);
-                ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
-                List<Long> sourceIds = new ArrayList<>();
-                datas.forEach(t->{
-                    PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
-                    BeanUtils.copyProperties(t, entity);
-                    pushs.add(entity);
-                    sourceIds.add(t.getInitId());
-                });
-                PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
-                taskInfoDTO.setData(pushs);
-                taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
-                taskInfoDTO.setMethod("caseAdd");
-                taskInfoDTO.setBatchNumber(batch);
-                taskInfoDTO.setStrategyCode(strategy);
+                Map<String, List<PushMarketingUserDetailByRuleDTO>> batchNameMap = datas.stream()
+                        .collect(Collectors.groupingBy(dto -> {
+                            String batchName = dto.getBatchName();
+                            return batchName != null ? batchName : ""; // 判空并返回默认值
+                        }));
+                for (String batchName : batchNameMap.keySet()) {
+                    ArrayList<PushMarketingUserDetailDTO> pushs = new ArrayList<>();
+                    List<PushMarketingUserDetailByRuleDTO> value = batchNameMap.get(batchName);
+                    List<Long> sourceIds = new ArrayList<>();
+                    value.forEach(t->{
+                        PushMarketingUserDetailDTO entity = new PushMarketingUserDetailDTO();
+                        BeanUtils.copyProperties(t, entity);
+                        pushs.add(entity);
+                        sourceIds.add(t.getInitId());
+                    });
 
-                PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
-                pushMarketingUserDTO.setApiCode(context.getApiCode());
-                pushMarketingUserDTO.setJsonData(taskInfoDTO);
+                    PushMarketingUserTaskInfoDTO taskInfoDTO = new PushMarketingUserTaskInfoDTO();
+                    taskInfoDTO.setData(pushs);
+                    taskInfoDTO.setAccessNumber(UUID.randomUUID().toString());
+                    taskInfoDTO.setMethod("caseAdd");
+                    taskInfoDTO.setBatchNumber(batch);
+                    taskInfoDTO.setStrategyCode(strategy);
+                    if(!batchName.isEmpty()){
+                        taskInfoDTO.setBatchName(batchName);
+                    }
+                    PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+                    pushMarketingUserDTO.setApiCode(context.getApiCode());
+                    pushMarketingUserDTO.setJsonData(taskInfoDTO);
 
-                PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
-                retryByRuleDTO.setIds(sourceIds);
-                retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
-                retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
-                methodRetryHandlerService.callPolicyData(retryByRuleDTO,null);
+                    PolicyRetryByRuleDTO retryByRuleDTO = new PolicyRetryByRuleDTO();
+                    retryByRuleDTO.setIds(sourceIds);
+                    retryByRuleDTO.setInfoId(context.getMqFact().getSourceId());
+                    retryByRuleDTO.setPushMarketingUserDTO(pushMarketingUserDTO);
+                    methodRetryHandlerService.callPolicyData(retryByRuleDTO,null);
+                }
             }
         }
         return null;

@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.BrCipherMaker;
+import com.br.common.log.AlertLog;
 import com.br.common.mask.DataMask;
 import com.br.common.mask.SensitiveType;
 import com.br.common.util.DateUtils;
@@ -16,12 +17,14 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
+import com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.eventtrack.EventTrackingCellReport;
@@ -40,6 +43,7 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -117,6 +121,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     private EventTrackService eventTrackService;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private UploadDataFieldDictMapper uploadDataFieldDictMapper;
+
+
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
         this.doSyncReportProcess(uploadDate, null, jobName);
@@ -189,6 +200,23 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                             //判断是否更新
                                             MarketingSyncReport report = selectMarketingSyncReport(apiCode, userType, appletDate);
                                             MarketingSyncReport modifyReport = new MarketingSyncReport();
+                                            //统计reserve_field1的key集合
+                                            HashSet<String> keySet = new HashSet<>();
+                                            try {
+                                                List<String> keysList = syncReportMapper.selectUploadExtendKeystikv_(apiCode, userType, appletDate);
+                                                keysList.forEach((String key) -> {
+                                                    if (StringUtils.isEmpty(key)) {
+                                                        return;
+                                                    }
+                                                    List<String> fieldList = Arrays.asList(key.trim().substring(1, key.length() - 2).replace
+                                                            ("\"", "").replaceAll("\\s+", "").split(","));
+                                                    keySet.addAll(fieldList);
+                                                });
+                                                modifyReport.setReserveField1Key(String.join(",", keySet));
+                                            } catch (Exception e) {
+                                                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                                                        "上传数据统计扩展字段key异常"), e);
+                                            }
                                             Date appletEndTime = DateHelper.parseDate(getAppletTime(apiCode, userType, appletDate, Boolean.FALSE));
                                             if (report == null) {
                                                 //新增
@@ -249,6 +277,50 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         } catch (InterruptedException e) {
             log.error("countDownLatch 线程执行异常", e);
         }
+        //插入扩展字段key统计表
+        try {
+            handlerDataFieldDict(uploadDate);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "扩展字段添加失败"), e);
+        }
+
+    }
+
+    private void handlerDataFieldDict(String uploadDate) {
+        MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
+        reportExample.createCriteria().andAppletDateEqualTo(uploadDate).andReserveField1KeyIsNotNull();
+        List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
+        Map<String, List<MarketingSyncReport>> reportMap =
+                reportList.stream().collect(Collectors.groupingBy(MarketingSyncReport::getApiCode));
+        reportMap.forEach((String apiCode, List<MarketingSyncReport> reports) -> {
+            String cId = tableCreateService.getCId(apiCode);
+            Set<String> keySet = new HashSet<>();
+            reports.forEach((MarketingSyncReport report) -> {
+                List<String> fieldList = Arrays.asList(report.getReserveField1Key().split(","));
+                keySet.addAll(fieldList);
+            });
+            UploadDataFieldDictExample dictExample = new UploadDataFieldDictExample();
+            dictExample.createCriteria().andApiCodeEqualTo(apiCode);
+            List<UploadDataFieldDict> dataFieldDictList = uploadDataFieldDictMapper.selectByExample(dictExample);
+            if (CollectionUtils.isEmpty(dataFieldDictList)) {
+                UploadDataFieldDict dataFieldDict = new UploadDataFieldDict();
+                dataFieldDict.setApiCode(apiCode);
+                dataFieldDict.setCid(cId);
+                dataFieldDict.setReserveField1Key(String.join(",", keySet));
+                dataFieldDict.setCreateTime(new Date());
+                dataFieldDict.setUpdateTime(new Date());
+                uploadDataFieldDictMapper.insertSelective(dataFieldDict);
+            } else {
+                UploadDataFieldDict updateField = dataFieldDictList.get(0);
+                List<String> fieldList = Arrays.asList(updateField.getReserveField1Key().split(","));
+                keySet.addAll(fieldList);
+                updateField.setReserveField1Key(String.join(",", keySet));
+                uploadDataFieldDictMapper.updateByPrimaryKeySelective(updateField);
+
+            }
+        });
+
     }
 
     /**

@@ -2322,6 +2322,11 @@ public class MarketingCommonConfig {
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
 
     /**
+     * 数据分组线程数
+     */
+    private Integer dataGroupThreadNum;
+
+    /**
      * 360ai清洗配置
      * {"tCid":"_original","cleanApiCode":"3700226,7491635","dataTime":"-1/指定日期","pageSize":10,"threadNum":10,"isPause":false}
      */
@@ -2342,6 +2347,16 @@ public class MarketingCommonConfig {
      */
     private Boolean qifuAiCleanStrategyCodeFlag;
 
+    /**
+     * 顺丰获取公司信息线程数
+     */
+    private Integer shunFengCompanyThreadNum;
+
+
+    /**
+     * 顺丰接口mock
+     */
+    private Boolean shunFengInterMock;
     /**
      * 携程动态补充包Id配置
      */

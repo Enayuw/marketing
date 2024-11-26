@@ -92,15 +92,17 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             List<MarketingCustomer> marketingCustomersList = marketingCustomerMapper.selectByExample(marketingCustomerExample);
 
             List<String> apiCodes = marketingCustomersList.stream().map(t -> t.getApiCode()).collect(Collectors.toList());
-
-            MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
-            configExample.createCriteria().andApiCodeIn(apiCodes)
-                    .andIsDelEqualTo(Constants.DATA_VALID);
-            List<MarketingCustomerConfig> marketingCustomerConfigs = marketingCustomerConfigMapper.selectByExample(configExample);
             HashMap<String, MarketingCustomerConfig> configs = new HashMap();
-            for (MarketingCustomerConfig marketingCustomerConfig : marketingCustomerConfigs) {
-                configs.put(marketingCustomerConfig.getApiCode(), marketingCustomerConfig);
+            if (!CollectionUtils.isEmpty(apiCodes)) {
+                MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
+                configExample.createCriteria().andApiCodeIn(apiCodes)
+                        .andIsDelEqualTo(Constants.DATA_VALID);
+                List<MarketingCustomerConfig> marketingCustomerConfigs = marketingCustomerConfigMapper.selectByExample(configExample);
+                for (MarketingCustomerConfig marketingCustomerConfig : marketingCustomerConfigs) {
+                    configs.put(marketingCustomerConfig.getApiCode(), marketingCustomerConfig);
+                }
             }
+
             ArrayList<CustomerListVo> customerListVos = new ArrayList<>();
             for (MarketingCustomer marketingCustomer : marketingCustomersList) {
                 CustomerListVo customerListVo = new CustomerListVo();

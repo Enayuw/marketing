@@ -267,6 +267,26 @@ public class RedisKeyConstant {
     public static final String DELIVERY_USER_INFORMATION = prefix.concat("delivery:user:information");
 
     /**
+     * 顺丰获取token
+     */
+    public static final String SHUNFENG_GET_TOKEN_KEY = prefix.concat("shunfeng:get:token");
+
+    /**
+     * 顺丰获取token加锁key
+     */
+    public static final String SHUNFENG_GET_TOKEN_KEY_LOCK = prefix.concat("shunfeng:get:token:lock");
+
+    /**
+     * 数据分组同一批任务锁
+     */
+    public static final String DATA_GROUP_TASK_LOCK = prefix.concat("data:group:task:");
+
+    /**
+     * 数据分组跑分配置锁
+     */
+    public static final String DATA_GROUP_SCORE_CONFIG_LOCK = prefix.concat("data:group:score:config");
+
+    /**
      * 客户标签
      */
     public static final String CUSTOMERTAGS = prefix.concat("customer:tags");

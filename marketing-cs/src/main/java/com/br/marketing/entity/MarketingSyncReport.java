@@ -1,11 +1,13 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class MarketingSyncReport {
-    /**
-     * 
-     */
+/**
+ * b_marketing_sync_report
+ * @author 
+ */
+public class MarketingSyncReport implements Serializable {
     private Long id;
 
     /**
@@ -54,6 +56,11 @@ public class MarketingSyncReport {
     private Date appletEndTime;
 
     /**
+     * 扩展字段中key的集合
+     */
+    private String reserveField1Key;
+
+    /**
      * 备注
      */
     private String remark;
@@ -68,6 +75,8 @@ public class MarketingSyncReport {
      */
     private Date updateTime;
 
+    private static final long serialVersionUID = 1L;
+
     public Long getId() {
         return id;
     }
@@ -81,7 +90,7 @@ public class MarketingSyncReport {
     }
 
     public void setCid(String cid) {
-        this.cid = cid == null ? null : cid.trim();
+        this.cid = cid;
     }
 
     public String getApiCode() {
@@ -89,7 +98,7 @@ public class MarketingSyncReport {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
+        this.apiCode = apiCode;
     }
 
     public String getShortName() {
@@ -97,7 +106,7 @@ public class MarketingSyncReport {
     }
 
     public void setShortName(String shortName) {
-        this.shortName = shortName == null ? null : shortName.trim();
+        this.shortName = shortName;
     }
 
     public String getAppletDate() {
@@ -105,7 +114,7 @@ public class MarketingSyncReport {
     }
 
     public void setAppletDate(String appletDate) {
-        this.appletDate = appletDate == null ? null : appletDate.trim();
+        this.appletDate = appletDate;
     }
 
     public String getUserType() {
@@ -113,7 +122,7 @@ public class MarketingSyncReport {
     }
 
     public void setUserType(String userType) {
-        this.userType = userType == null ? null : userType.trim();
+        this.userType = userType;
     }
 
     public Integer getNormalNum() {
@@ -148,12 +157,20 @@ public class MarketingSyncReport {
         this.appletEndTime = appletEndTime;
     }
 
+    public String getReserveField1Key() {
+        return reserveField1Key;
+    }
+
+    public void setReserveField1Key(String reserveField1Key) {
+        this.reserveField1Key = reserveField1Key;
+    }
+
     public String getRemark() {
         return remark;
     }
 
     public void setRemark(String remark) {
-        this.remark = remark == null ? null : remark.trim();
+        this.remark = remark;
     }
 
     public Date getCreateTime() {
