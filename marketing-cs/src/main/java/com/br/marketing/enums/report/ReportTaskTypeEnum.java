@@ -24,7 +24,7 @@ public enum ReportTaskTypeEnum {
     BUSINESS_ANALYSIS_EIGHT_TYPE(14, "经营分析8场景"),
     XIECHENG_MONTH_TRANSFER_CALL_TYPE(15, "携程月接通转化报表"),
     XIECHENG_DAY_TRANSFER_CALL_TYPE(16, "携程月接通转化报表"),
-    TRANSFER_CONNECT_TYPE(8, "转化分析"),
+    TRANSFER_CONNECT_TYPE(17, "转化接通转化"),
     ;
 
 

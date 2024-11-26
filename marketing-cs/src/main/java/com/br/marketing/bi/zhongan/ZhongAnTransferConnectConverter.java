@@ -11,6 +11,7 @@ import com.br.marketing.dto.report.zhongan.ReportStatisticTransferDetail;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.util.DataBarUtil;
 import com.br.marketing.vo.bi.BiReportVO;
@@ -65,7 +66,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
     public List<BiReportVO> process(List<ReportStatisticField> dataList, JSONObject extend) {
         List<BiReportVO> biReportVOList = Lists.newArrayList();
 
-        String reportType = "17";
+        String reportType = ReportTaskTypeEnum.TRANSFER_CONNECT_TYPE.getValue().toString();
         LocalDate curLocalDate = LocalDate.now();
         String curDate = curLocalDate.toString();
         String reportDateStart = curLocalDate.withDayOfMonth(1).toString();
