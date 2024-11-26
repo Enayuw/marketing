@@ -160,7 +160,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         zhongAnBusAnalyEightReportList.forEach(result -> result.setQueryDate("T"));
         for (LocalDate date = endDate; !date.isBefore(beginDate); date = date.minusDays(1)) {
             String reportDate = beginDate + "-" + date;
-            List<String> reportDateList = zhongAnBusAnalyEightReportList.stream().map(ZhongAnBusAnalyEightReportDTO::getReportDate).distinct()
+            List<String> reportDateList = zhongAnBusAnalyEightReportList.stream()
+                    .map(ZhongAnBusAnalyEightReportDTO::getReportDate)
                     .collect(Collectors.toList());
             List<String> groupList = Lists.newArrayList(BR_MARKETING, ZHONGAN_MARKETING);
             List<ZhongAnBusAnalyEightReportDTO> totalList = new ArrayList<>();
@@ -229,8 +230,47 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
             }
 
         }
-        return zhongAnBusAnalyEightReportList;
+        List<ZhongAnBusAnalyEightReportDTO> zhongAnBusAnalyEightReportDTOS = traverseDates(zhongAnBusAnalyEightReportList);
+
+        return zhongAnBusAnalyEightReportDTOS;
     }
+
+    public static List<ZhongAnBusAnalyEightReportDTO> traverseDates(List<ZhongAnBusAnalyEightReportDTO> zhongAnBusAnalyEightReportList) {
+        List<ZhongAnBusAnalyEightReportDTO> result = new ArrayList<>();
+
+
+        // 获取今天的日期
+        LocalDate now = LocalDate.now();
+        String oneDay = LocalDate.now().withDayOfMonth(1).toString();
+        String oneDayToOneDay = oneDay + "-" + oneDay;
+        // 判断今天是否是1号
+        if (now.getDayOfMonth() == 1) {
+            zhongAnBusAnalyEightReportList.stream()
+                    .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                    .forEach(result::add);
+        } else {
+            zhongAnBusAnalyEightReportList.stream()
+                    .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                    .forEach(result::add);
+            // 如果不是1号，从2号到今天遍历
+            LocalDate firstDayOfMonth = now.withDayOfMonth(2);
+            LocalDate currentDay = firstDayOfMonth;
+
+            // 遍历从1号到今天的日期
+            while (!currentDay.isAfter(now)) {
+                String dateStr = currentDay.toString();
+                zhongAnBusAnalyEightReportList.stream()
+                        .filter(date -> date.getReportDate().contains(dateStr))
+                        .forEach(result::add);
+
+                currentDay = currentDay.plusDays(1);
+            }
+        }
+
+        return result;
+    }
+
+
 
     @Override
     public List<ZhongAnBusAnalySevenReportDTO> selectZaBusAnalySeveListbI_(String reportId) {
