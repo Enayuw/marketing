@@ -2058,8 +2058,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             });
             cleanData(finalReserveFieldObject, finalReserveFileld1Json, apiCode);
         }
-        //扩展字段添加appletDate
-        finalReserveFieldObject.put("appletDate",appletDate);
         return JSONObject.toJSONString(finalReserveFieldObject);
     }
 
