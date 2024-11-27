@@ -48,7 +48,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     List<XieChengCollidingDataRob> selectRobByRetryCount(@Param("minId") Long minId, @Param("isLast") Boolean isLast,
         @Param("pageSize") Integer pageSize);
 
-    int countByCollidingCount(@Param("packageId") Long packageId, @Param("collidingTimes") Integer collidingTimes);
+    int countByCollidingCounttiflash_(@Param("packageId") Long packageId, @Param("collidingTimes") Integer collidingTimes);
 
     List<XieChengCollidingDataRobPriority> selectRobDataByRuleScoreData(@Param("cells") List<String> cells);
     List<XieChengCollidingDataRobPriority> selectMaxCollidingEndTimeGroupByCell(@Param("cells") List<String> cells);

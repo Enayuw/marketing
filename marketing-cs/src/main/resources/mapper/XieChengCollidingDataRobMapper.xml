@@ -78,7 +78,7 @@
         order by id asc limit #{pageSize};
     </select>
 
-    <select id="countByCollidingCount" resultType="java.lang.Integer">
+    <select id="countByCollidingCounttiflash_" resultType="java.lang.Integer">
         SELECT count(*)
         FROM b_xiecheng_colliding_data_rob
         WHERE package_id = #{packageId,jdbcType=BIGINT}
