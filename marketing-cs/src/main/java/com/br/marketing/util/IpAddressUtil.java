@@ -50,6 +50,6 @@ public class IpAddressUtil {
             ip = request.getRemoteAddr();
         }
         ip = "0:0:0:0:0:0:0:1".equals(ip) ? "127.0.0.1" : ip;
-        return Arrays.asList(ip.split(","));
+        return Arrays.asList(ip.replaceAll(" ","").split(","));
     }
 }
