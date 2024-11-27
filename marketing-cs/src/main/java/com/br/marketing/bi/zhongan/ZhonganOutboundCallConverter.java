@@ -48,9 +48,8 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
     @Override
     public List<ZhonganOutboundCallReportDTO> fetchData(BiReportParam param) {
         JSONObject condition = param.getCondition();
-        String reportDateStart = condition.getString("startDate");
-        String reportDateEnd = condition.getString("endDate");
         String userType = condition.getString("userType");
+        String month = condition.getString("month");
         if (StringUtils.isEmpty(userType)) {
             return new ArrayList<>();
         }
@@ -60,7 +59,7 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
         } else {
             userTypes.add(Integer.valueOf(userType));
         }
-        return zhongAnBiReportMapper.selectZaOutboundCallListbI_(reportDateStart, reportDateEnd, userTypes);
+        return zhongAnBiReportMapper.selectZaOutboundCallListbI_(month, userTypes);
     }
 
     @Override
