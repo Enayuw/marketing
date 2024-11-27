@@ -5,7 +5,7 @@
         select * from dws_za_outbound_call_statistics
         where is_delete = 0
         <if test="month !=null and month!=''">
-            <![CDATA[ and report_date = #{month}]]>
+            and report_date like concat("%", #{month},"%")
         </if>
         <if test="userTypes !=null">
             and user_type in
