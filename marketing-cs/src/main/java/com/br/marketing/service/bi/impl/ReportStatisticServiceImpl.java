@@ -49,6 +49,18 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
     public void action(LocalDateTime actionDateTime) {
         try {
             LocalDate today = actionDateTime.toLocalDate();
+            // 查询是否已存在统计记录
+            ReportTaskExample example = new ReportTaskExample();
+            example.createCriteria()
+                    .andReportTypeIn(Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue(),
+                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
+                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue()))
+                    .andReportNameLike("%" + today.toString());
+            List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
+            if (reportTasks.size() == 3) {
+                log.warn("众安日新增报表任务已存在！");
+                return;
+            }
 
             List<String> zhongAnReportType =
                     Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString(),
@@ -58,17 +70,6 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                 log.warn("众安报表类型为空");
                 return;
             }
-            ReportTaskExample example = new ReportTaskExample();
-            example.createCriteria()
-                    .andReportTypeIn(Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue(),
-                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
-                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue())).andReportNameLike("%" + today.toString());
-            List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
-            if (ObjectUtil.isNotEmpty(reportTasks)) {
-                log.warn("众安日新增报表任务已存在！");
-                return;
-            }
-
             String resultDate = today.minusDays(1).toString();
 
             List<Integer> userTypes = zhongAnReportType.stream()
@@ -91,6 +92,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                 return;
             }
             List<ZhongAnControlGroupDTO> zhongAnControlGroupDTOS = zhongAnControlGroupMapper.selectConfigTypeAndDatebI_(userTypes, resultDate);
+            // 为填写报表配置，生成默认配置
             if ((ObjectUtil.isEmpty(zhongAnControlGroupDTOS) || zhongAnControlGroupDTOS.size() < 1)) {
                 log.warn("众安报表配置为空");
                 ZhongAnControlGroupParam param = new ZhongAnControlGroupParam();
@@ -138,16 +140,14 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         }
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // 创建 score 对象
         Map<String, Object> score = new HashMap<>();
         score.put("field", Collections.emptyList());
         score.put("multiHeadField", Collections.emptyList());
         score.put("batchNumber", "");
 
         Map<String, String> transfer = new HashMap<>();
-        // 创建 transfer 对象
         transfer.put("isSplit", "1");
-        // 获取当前日期
+        // 获取统计日期
         String resultDate = actionDate.minusDays(1).toString();
 
         transfer.put("statisticDate", resultDate);
@@ -156,10 +156,8 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         String reportName = "";
         Integer type = null;
 
-        // 创建 upload 对象
         Map<String, Object> upload = new HashMap<>();
 
-        // 创建 dimensionsValue 列表
         List<Map<String, String>> dimensionsValue = new ArrayList<>();
         Map<String, String> dimensionsValueItem = new HashMap<>();
         dimensionsValueItem.put("code", "0");
@@ -167,7 +165,6 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         dimensionsValue.add(dimensionsValueItem);
         upload.put("dimensionsValue", dimensionsValue);
 
-        // 创建最终 JSON 对象
         Map<String, Object> jsonObject = new HashMap<>();
         String apiCode = marketingCommonConfig.getZhongAnReportStatisticApiCode();
         String statisticsScene = "报表统计_众安(".concat(apiCode);
@@ -221,6 +218,18 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
     }
 
     public void addReportTask(String jsonString, Integer reportType, String reportName) {
+        // 判断是否已有统计任务
+        ReportTaskExample example = new ReportTaskExample();
+        example.createCriteria()
+                .andReportTypeEqualTo(reportType)
+                .andReportNameEqualTo(reportName)
+                .andReportRulesEqualTo(jsonString);
+        List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
+        if (!reportTasks.isEmpty()) {
+            log.warn("众安日统计任务已存在");
+            return;
+        }
+        // 新增统计任务
         ReportTask reportTask = new ReportTask();
         reportTask.setReportName(reportName);
         reportTask.setReportRules(jsonString);
