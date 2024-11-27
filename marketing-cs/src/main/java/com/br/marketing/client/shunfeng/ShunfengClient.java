@@ -114,7 +114,7 @@ public class ShunfengClient {
             return new Result<BussinesInfoReponse>().setCode(ResultCode.SUCCESS.getValue()).setDate(bussinesInfoReponse);
         } else {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(),
-                    "顺丰获取企业信息接口异常，返回apiResultCode 非A1000或 errorCode非0"));
+                    "顺丰获取企业信息接口异常，返回apiResultCode 非A1000或 errorCode非0,返回结果=".concat(JSON.toJSONString(resMap))));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
         }
     }
