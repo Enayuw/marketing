@@ -6,7 +6,7 @@
         select * from b_report_statistic_rule
             where report_type = #{reportType}
             <![CDATA[ and report_date >= #{reportDateStart} and report_date <  #{reportDateEnd}]]>
-        order by report_date asc, report_order asc
+        order by report_date asc, create_time desc, report_order asc
     </select>
 
 </mapper>

@@ -80,29 +80,29 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         // reportRuleListGroupByReportOrder
         Map<String, List<ReportStatisticRule>> reportRuleListGroupByReportOrder = reportRuleList.stream()
                 .collect(Collectors.groupingBy(ReportStatisticRule::getReportOrder));
-        List<String> ReportOrderList = reportRuleListGroupByReportOrder.keySet().stream().sorted().collect(Collectors.toList());
+        List<String> reportOrderList = reportRuleListGroupByReportOrder.keySet().stream().sorted().collect(Collectors.toList());
 
         // reportRuleListGroupByReportDate
         Map<String, List<ReportStatisticRule>> reportRuleListGroupByReportDate = reportRuleList.stream()
                 .collect(Collectors.groupingBy(ReportStatisticRule::getReportDate));
-        List<String> ReportDateList = reportRuleListGroupByReportDate.keySet().stream().sorted().collect(Collectors.toList());
+        List<String> reportDateList = reportRuleListGroupByReportDate.keySet().stream().sorted().collect(Collectors.toList());
 
-        for(String reportOrder : ReportOrderList){
+        for (String reportOrder : reportOrderList) {
             BiReportVO biReportVO = new BiReportVO();
             biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getTypeName());
             String reportName = getReportName(reportOrder);
-            biReportVO.setReportName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getStatName()+"-"+reportName);
+            biReportVO.setReportName(reportName + BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getStatName());
             biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
             biReportVO.setXAxisName("日期");
             List<String> xAxis = new ArrayList<>();
             biReportVO.setXAxis(xAxis);
 
-            for(String reportDate : ReportDateList){
+            for (String reportDate : reportDateList) {
                 ReportStatisticRule reportRule = reportRuleList.stream()
                         .filter(rule -> reportOrder.equals(rule.getReportOrder()) && reportDate.equals(rule.getReportDate()))
                         .findFirst()
                         .orElse(null);
-                if(reportRule == null){
+                if (reportRule == null) {
                     continue;
                 }
 
@@ -110,13 +110,17 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
 
                 List<String> fieldYTList = reportOrderToFieldYList(reportOrder, reportDate, "T");
                 List<ReportStatisticField> reportDateTList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYTList, "reportDate", "");
+                if (CollectionUtils.isEmpty(reportDateTList)) {
+                    continue;
+                }
+
                 List<String> reportDateTValueList = reportDateTList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
 
                 // 构造横坐标数据
                 xAxis.addAll(reportDateTValueList);
 
                 // 构建M
-                if(curDate.equals(reportDate)){
+                if (curDate.equals(reportDate)) {
                     List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
                     List<ReportStatisticField> reportDateMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, "reportDate", "");
                     List<String> reportDateMValueList = reportDateMList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
@@ -131,14 +135,14 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                 reportFieldDictExample.setOrderByClause("item_order asc");
                 List<ReportFieldDict> reportFieldDictList = reportFieldDictMapper.selectByExample(reportFieldDictExample);
 
-                for(ReportFieldDict reportFieldDict: reportFieldDictList){
+                for (ReportFieldDict reportFieldDict : reportFieldDictList) {
                     String itemName = reportFieldDict.getItemName();
                     String itemShow = reportFieldDict.getItemShow();
                     String formatTypeName = reportFieldDict.getItemFormatType();
                     FormatType formatType = FormatType.getByName(formatTypeName);
                     List<ReportStatisticField> reportFieldList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYTList, itemName, "");
 
-                    if(curDate.equals(reportDate)){
+                    if (curDate.equals(reportDate)) {
                         List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
                         List<ReportStatisticField> reportFieldMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, itemName, "");
                         reportFieldList.addAll(reportFieldMList);
@@ -163,18 +167,23 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
      * 导出数据
      *
      * @param excelWriter excelWriter
-     * @param params 参数
+     * @param params      参数
      * @author senyang.zheng
      * @date 2024/08/29
      */
     @Override
     public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
-        // excel sheet名称最大长度31，超出31截取前31位
-        String name = params.get(0).getReportName();
-        String sheetName = name.length() > 31 ? name.substring(0, 31) : name;
-        excelWriter.setSheet(sheetName);
-        // 数据写入
-        writeData(excelWriter, params);
+        for (BiReportDownLoadParam param : params) {
+            String reportName = param.getReportName();
+            // excel sheet名称最大长度31，超出31截取前31位
+            String name = reportName;
+            String sheetName = name.length() > 31 ? name.substring(0, 31) : name;
+            excelWriter.setSheet(sheetName);
+            // 数据写入
+            List<BiReportDownLoadParam> list = Lists.newArrayList();
+            list.add(param);
+            writeData(excelWriter, list);
+        }
         // 剔除默认生成的第一个sheet
         excelWriter.getWorkbook().removeSheetAt(0);
     }
@@ -226,8 +235,8 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
     public List<ReportStatisticTransferDetail> filter(List<ReportStatisticTransferDetail> reportDataList, String scoreField
             , String dimensionField, String dimensionValue, String itemName) {
         List<ReportStatisticTransferDetail> dataList = reportDataList.stream().filter(data -> {
-            if(scoreField.equals(data.getScoreField()) && dimensionField.equals(data.getDimensionField())
-                    && dimensionValue.equals(data.getDimensionValue()) && itemName.equals(data.getItemName())){
+            if (scoreField.equals(data.getScoreField()) && dimensionField.equals(data.getDimensionField())
+                    && dimensionValue.equals(data.getDimensionValue()) && itemName.equals(data.getItemName())) {
                 return true;
             }
             return false;
@@ -265,32 +274,44 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
 
     public String getReportName(String reportOrder) {
         String reportName = "";
-        switch (reportOrder){
-            case "1": reportName="注册未授信";break;
-            case "2": reportName="拒件重申";break;
-            case "3": reportName="保险转信贷";break;
+        switch (reportOrder) {
+            case "1":
+                reportName = "场景1";
+                break;
+            case "2":
+                reportName = "场景7";
+                break;
+            case "3":
+                reportName = "场景8";
+                break;
         }
         return reportName;
     }
 
-    public String reportOrderToUserType(String reportOrder){
+    public String reportOrderToUserType(String reportOrder) {
         String userType = "";
-        switch (reportOrder){
-            case "1": userType="1";break;
-            case "2": userType="7";break;
-            case "3": userType="8";break;
+        switch (reportOrder) {
+            case "1":
+                userType = "1";
+                break;
+            case "2":
+                userType = "7";
+                break;
+            case "3":
+                userType = "8";
+                break;
         }
         return userType;
     }
 
-    public List<String> reportOrderToFieldYList(String reportOrder, String reportDate, String type){
+    public List<String> reportOrderToFieldYList(String reportOrder, String reportDate, String type) {
         List<String> fieldYList = new ArrayList<>();
         String fieldDate = LocalDate.parse(reportDate).minusDays(1).toString();
-        if("1".equals(reportOrder)){
-            fieldYList.add(fieldDate+"_"+type+"_首登");
-            fieldYList.add(fieldDate+"_"+type+"_非首登");
+        if ("1".equals(reportOrder)) {
+            fieldYList.add(fieldDate + "_" + type + "_首登");
+            fieldYList.add(fieldDate + "_" + type + "_非首登");
         } else {
-            fieldYList.add(fieldDate+"_"+type);
+            fieldYList.add(fieldDate + "_" + type);
         }
         return fieldYList;
     }
