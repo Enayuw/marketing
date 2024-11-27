@@ -49,9 +49,10 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 .min(Comparator.naturalOrder())
                 .orElse(LocalDate.now());
         zhongAnBusAnalyOneReportList.forEach(result -> result.setQueryDate("T"));
-        for (LocalDate date = endDate; !date.isBefore(beginDate); date = date.minusDays(1)) {
+        for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             String reportDate = beginDate + "-" + date;
-            List<String> reportDateList = zhongAnBusAnalyOneReportList.stream().map(ZhongAnBusAnalyOneReportDTO::getReportDate).distinct()
+            List<String> reportDateList = zhongAnBusAnalyOneReportList.stream()
+                    .map(ZhongAnBusAnalyOneReportDTO::getReportDate)
                     .collect(Collectors.toList());
             List<String> groupList = Lists.newArrayList(MARKETING_IFLOGIN, ZHONGAN_IFLOGIN, MARKETING_IFNOTLOGIN, ZHONGAN_IFNOTLOGIN);
             List<ZhongAnBusAnalyOneReportDTO> totalList = new ArrayList<>();
@@ -193,7 +194,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 .min(Comparator.naturalOrder())
                 .orElse(LocalDate.now());
         zhongAnBusAnalyEightReportList.forEach(result -> result.setQueryDate("T"));
-        for (LocalDate date = endDate; !date.isBefore(beginDate); date = date.minusDays(1)) {
+        for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             String reportDate = beginDate + "-" + date;
             List<String> reportDateList = zhongAnBusAnalyEightReportList.stream()
                     .map(ZhongAnBusAnalyEightReportDTO::getReportDate)
@@ -318,9 +319,10 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 .min(Comparator.naturalOrder())
                 .orElse(LocalDate.now());
         zhongAnBusAnalySevenReportList.forEach(result -> result.setQueryDate("T"));
-        for (LocalDate date = endDate; !date.isBefore(beginDate); date = date.minusDays(1)) {
+        for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             String reportDate = beginDate + "-" + date;
-            List<String> reportDateList = zhongAnBusAnalySevenReportList.stream().map(ZhongAnBusAnalySevenReportDTO::getReportDate).distinct()
+            List<String> reportDateList = zhongAnBusAnalySevenReportList.stream()
+                    .map(ZhongAnBusAnalySevenReportDTO::getReportDate)
                     .collect(Collectors.toList());
             List<String> groupList = Lists.newArrayList(BR_MARKETING, ZHONGAN_MARKETING);
             List<ZhongAnBusAnalySevenReportDTO> totalList = new ArrayList<>();
