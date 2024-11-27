@@ -87,35 +87,40 @@ public class ShunfengClient {
     @RetryMethod(retryNowNum = 3)
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result<BussinesInfoReponse> getBussinessDetailInfo(BussinessInfoReq bussinessInfoReq, String token) {
-        HashMap<String, String> resMap = new HashMap<>();
-        BussinesInfoReqDTO bussinesInfoReqDTO = new BussinesInfoReqDTO();
-        bussinesInfoReqDTO.setPartnerID(partnerID);
-        bussinesInfoReqDTO.setServiceCode("COM_RECE_FEC_GET_COMPANY_PUBLIC_INFO");
-        bussinesInfoReqDTO.setAccessToken(token);
-        bussinesInfoReqDTO.setRequestID(UUID.randomUUID().toString());
-        bussinesInfoReqDTO.setMsgData(JSON.toJSONString(bussinessInfoReq));
-        bussinesInfoReqDTO.setTimestamp(System.currentTimeMillis());
-        resMap = httpProxyClient.sendByCodeWithLog(bussinesInfoReqDTO, businessInfoUrl, isProxy,
-                MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-                JSON.toJSONString(bussinesInfoReqDTO), true, true);
-        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(),
-                    "顺丰获取企业信息接口异常-请求参数:" + JSON.toJSONString(bussinesInfoReqDTO) + ";返回:" + JSON.toJSONString(resMap)));
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
-        }
-        String content = resMap.get("content");
-        JSONObject resultJson = JSONObject.parseObject(content);
-        String resultCode = resultJson.getString("apiResultCode");
-        JSONObject resultData = JSON.parseObject(resultJson.getString("apiResultData"));
-        String errorCode = resultData.getString("errorCode");
-        BussinesInfoReponse bussinesInfoReponse = JSON.parseObject(resultData.getString("data"), new TypeReference<BussinesInfoReponse>() {
-        }.getType());
-        if ("A1000".equals(resultCode) && ("0".equals(errorCode))) {
-            return new Result<BussinesInfoReponse>().setCode(ResultCode.SUCCESS.getValue()).setDate(bussinesInfoReponse);
-        } else {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(),
-                    "顺丰获取企业信息接口异常，返回apiResultCode 非A1000或 errorCode非0,返回结果=".concat(JSON.toJSONString(resMap))));
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+        try {
+            HashMap<String, String> resMap = new HashMap<>();
+            BussinesInfoReqDTO bussinesInfoReqDTO = new BussinesInfoReqDTO();
+            bussinesInfoReqDTO.setPartnerID(partnerID);
+            bussinesInfoReqDTO.setServiceCode("COM_RECE_FEC_GET_COMPANY_PUBLIC_INFO");
+            bussinesInfoReqDTO.setAccessToken(token);
+            bussinesInfoReqDTO.setRequestID(UUID.randomUUID().toString());
+            bussinesInfoReqDTO.setMsgData(JSON.toJSONString(bussinessInfoReq));
+            bussinesInfoReqDTO.setTimestamp(System.currentTimeMillis());
+            resMap = httpProxyClient.sendByCodeWithLog(bussinesInfoReqDTO, businessInfoUrl, isProxy,
+                    MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                    JSON.toJSONString(bussinesInfoReqDTO), true, true);
+            if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(),
+                        "顺丰获取企业信息接口异常-请求参数:" + JSON.toJSONString(bussinesInfoReqDTO) + ";返回:" + JSON.toJSONString(resMap)));
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+            }
+            String content = resMap.get("content");
+            JSONObject resultJson = JSONObject.parseObject(content);
+            String resultCode = resultJson.getString("apiResultCode");
+            JSONObject resultData = JSON.parseObject(resultJson.getString("apiResultData"));
+            String errorCode = resultData.getString("errorCode");
+            BussinesInfoReponse bussinesInfoReponse = JSON.parseObject(resultData.getString("data"), new TypeReference<BussinesInfoReponse>() {
+            }.getType());
+            if ("A1000".equals(resultCode) && ("0".equals(errorCode))) {
+                return new Result<BussinesInfoReponse>().setCode(ResultCode.SUCCESS.getValue()).setDate(bussinesInfoReponse);
+            } else {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(),
+                        "顺丰获取企业信息接口异常，返回apiResultCode 非A1000或 errorCode非0,返回结果=".concat(JSON.toJSONString(resMap))));
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(JSON.toJSONString(resMap));
+            }
+        }catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(), "顺丰获取企业信息程序异常！"), ex);
+            return new Result().setCode(ResultCode.FAIL.getValue());
         }
     }
 
