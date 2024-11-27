@@ -1,6 +1,7 @@
 package com.br.marketing.proxy;
 
 
+import cn.hutool.core.util.ObjectUtil;
 import com.br.marketing.common.annoation.PercentConvertor;
 import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyEightReportDTO;
 import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO;
@@ -63,33 +64,43 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                     oneReportDTO.setReportDate(reportDate);
                     oneReportDTO.setQueryDate("T" + finalEndDate.getDayOfMonth());
                     oneReportDTO.setConstituencies(group);
-                    oneReportDTO.setTotalNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    oneReportDTO.setTotalNum(zhongAnBusAnalyOneReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyOneReportDTO::getTotalNum).findFirst().orElse(null));
-                    oneReportDTO.setIncomingNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    oneReportDTO.setIncomingNum(zhongAnBusAnalyOneReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalyOneReportDTO::getIncomingNum).sum());
-                    oneReportDTO.setApproversNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    oneReportDTO.setApproversNum(zhongAnBusAnalyOneReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalyOneReportDTO::getApproversNum).sum());
-                    oneReportDTO.setCompositeIncrNum(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    oneReportDTO.setCompositeIncrNum(zhongAnBusAnalyOneReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyOneReportDTO::getCompositeIncrNum).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    oneReportDTO.setIncome(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    oneReportDTO.setIncome(zhongAnBusAnalyOneReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyOneReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    oneReportDTO.setCost(zhongAnBusAnalyOneReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    oneReportDTO.setCost(zhongAnBusAnalyOneReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyOneReportDTO::getCost).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    oneReportDTO.setIncomingTotalRate(new BigDecimal((0)));
-                    oneReportDTO.setApproversRate(new BigDecimal((0)));
-                    oneReportDTO.setApproversTotalRate(new BigDecimal((0)));
                     oneReportDTO.setRoi(new BigDecimal((0)));
-                    if (!oneReportDTO.getTotalNum().equals(0L)) {
-                        oneReportDTO.setIncomingTotalRate(new BigDecimal(oneReportDTO.getIncomingNum()).divide(new BigDecimal(oneReportDTO.getTotalNum())
-                                , 6, BigDecimal.ROUND_HALF_UP));
-                        oneReportDTO.setApproversTotalRate(new BigDecimal(oneReportDTO.getApproversNum()).divide(new BigDecimal(oneReportDTO.getTotalNum())
-                                , 6, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (!oneReportDTO.getIncomingNum().equals(0L)) {
-                        oneReportDTO.setApproversRate(new BigDecimal(oneReportDTO.getApproversNum()).divide(new BigDecimal(oneReportDTO.getIncomingNum())
-                                , 6, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (oneReportDTO.getCost().compareTo(BigDecimal.ZERO) != 0) {
+
+                    oneReportDTO.setIncomingTotalRate(calculateRate(oneReportDTO.getIncomingNum(), oneReportDTO.getTotalNum()));
+                    oneReportDTO.setApproversTotalRate(calculateRate(oneReportDTO.getApproversNum(), oneReportDTO.getTotalNum()));
+                    oneReportDTO.setApproversRate(calculateRate(oneReportDTO.getApproversNum(), oneReportDTO.getIncomingNum()));
+
+                    if (ObjectUtil.isNotEmpty(oneReportDTO.getCost()) && oneReportDTO.getIncome().compareTo(BigDecimal.ZERO) != 0) {
                         oneReportDTO.setRoi(oneReportDTO.getIncome().divide(oneReportDTO.getCost(), 6, BigDecimal.ROUND_HALF_UP));
                     }
                     totalList.add(oneReportDTO);
@@ -98,46 +109,26 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 //营销首登组,众安对照首登组
                 ZhongAnBusAnalyOneReportDTO brReportDTO = totalList.get(0);
                 ZhongAnBusAnalyOneReportDTO zhongAnReportDTO = totalList.get(1);
-                brReportDTO.setIncomingIncreaseRate(new BigDecimal((0)));
-                if ((zhongAnReportDTO.getTotalNum() != 0L) && (((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                        zhongAnReportDTO.getIncomingNum()) != 0L)) {
-                    brReportDTO.setIncomingIncreaseRate(new BigDecimal(brReportDTO.getIncomingNum() - ((double) brReportDTO.getTotalNum() /
-                            zhongAnReportDTO.getTotalNum() * zhongAnReportDTO.getIncomingNum()))
-                            .divide(new BigDecimal((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                                    zhongAnReportDTO.getIncomingNum()), 6, BigDecimal.ROUND_HALF_UP));
+                brReportDTO.setIncomingIncreaseRate(calculateIncomingIncreaseRate(brReportDTO.getTotalNum(),
+                        brReportDTO.getIncomingNum(), zhongAnReportDTO.getTotalNum(),
+                        zhongAnReportDTO.getIncomingNum()));
+                brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brReportDTO.getTotalNum(),
+                        brReportDTO.getApproversNum(), zhongAnReportDTO.getTotalNum(),
+                        zhongAnReportDTO.getApproversNum()));
 
-                }
-                brReportDTO.setApproversIncreaseRate(new BigDecimal((0)));
-                if ((zhongAnReportDTO.getTotalNum() != 0L) && (((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                        zhongAnReportDTO.getApproversNum()) != 0L)) {
-                    brReportDTO.setApproversIncreaseRate(new BigDecimal(brReportDTO.getApproversNum() - ((double) brReportDTO.getTotalNum() /
-                            zhongAnReportDTO.getTotalNum() * zhongAnReportDTO.getApproversNum()))
-                            .divide(new BigDecimal((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                                    zhongAnReportDTO.getApproversNum()), 6, BigDecimal.ROUND_HALF_UP));
-
-                }
                 zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
                 zhongAnReportDTO.setApproversIncreaseRate(brReportDTO.getApproversIncreaseRate());
+
                 //营销非首登组,众安对照非首登组
                 ZhongAnBusAnalyOneReportDTO brNoLoginReportDTO = totalList.get(2);
                 ZhongAnBusAnalyOneReportDTO zhongAnNoLoginReportDTO = totalList.get(3);
-                brNoLoginReportDTO.setIncomingIncreaseRate(new BigDecimal((0)));
-                if ((zhongAnNoLoginReportDTO.getTotalNum() != 0L) && (((double) brNoLoginReportDTO.getTotalNum() / zhongAnNoLoginReportDTO.getTotalNum()
-                        * zhongAnNoLoginReportDTO.getIncomingNum()) != 0L)) {
-                    brNoLoginReportDTO.setIncomingIncreaseRate(new BigDecimal(brNoLoginReportDTO.getIncomingNum() - ((double) brNoLoginReportDTO
-                            .getTotalNum() / zhongAnNoLoginReportDTO.getTotalNum() * zhongAnNoLoginReportDTO.getIncomingNum()))
-                            .divide(new BigDecimal((double) brNoLoginReportDTO.getTotalNum() / zhongAnNoLoginReportDTO.getTotalNum() *
-                                    zhongAnNoLoginReportDTO.getIncomingNum()), 6, BigDecimal.ROUND_HALF_UP));
+                brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
+                        brNoLoginReportDTO.getIncomingNum(), zhongAnNoLoginReportDTO.getTotalNum(),
+                        zhongAnNoLoginReportDTO.getApproversNum()));
+                brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
+                        brNoLoginReportDTO.getTotalNum(), zhongAnNoLoginReportDTO.getTotalNum(),
+                        zhongAnNoLoginReportDTO.getApproversNum()));
 
-                }
-                brNoLoginReportDTO.setApproversIncreaseRate(new BigDecimal((0)));
-                if ((zhongAnNoLoginReportDTO.getTotalNum() != 0L) && (((double) brNoLoginReportDTO.getTotalNum() / zhongAnNoLoginReportDTO.getTotalNum() *
-                        zhongAnNoLoginReportDTO.getApproversNum()) != 0L)) {
-                    brNoLoginReportDTO.setApproversIncreaseRate(new BigDecimal(brNoLoginReportDTO.getApproversNum() - ((double) brNoLoginReportDTO
-                            .getTotalNum() / zhongAnNoLoginReportDTO.getTotalNum() * zhongAnNoLoginReportDTO.getApproversNum()))
-                            .divide(new BigDecimal((double) brNoLoginReportDTO.getTotalNum() / zhongAnNoLoginReportDTO.getTotalNum() *
-                                    zhongAnNoLoginReportDTO.getApproversNum()), 6, BigDecimal.ROUND_HALF_UP));
-                }
                 zhongAnNoLoginReportDTO.setIncomingIncreaseRate(brNoLoginReportDTO.getIncomingIncreaseRate());
                 zhongAnNoLoginReportDTO.setApproversIncreaseRate(brNoLoginReportDTO.getApproversIncreaseRate());
                 zhongAnBusAnalyOneReportList.addAll(totalList);
@@ -193,13 +184,15 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 .map(item -> LocalDate.parse(item.getReportDate()))
                 .min(Comparator.naturalOrder())
                 .orElse(LocalDate.now());
+
         zhongAnBusAnalyEightReportList.forEach(result -> result.setQueryDate("T"));
+
+        List<String> groupList = Lists.newArrayList(BR_MARKETING, ZHONGAN_MARKETING);
         for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             String reportDate = beginDate + "-" + date;
             List<String> reportDateList = zhongAnBusAnalyEightReportList.stream()
                     .map(ZhongAnBusAnalyEightReportDTO::getReportDate)
                     .collect(Collectors.toList());
-            List<String> groupList = Lists.newArrayList(BR_MARKETING, ZHONGAN_MARKETING);
             List<ZhongAnBusAnalyEightReportDTO> totalList = new ArrayList<>();
             if (reportDateList.size() > 1) {
                 LocalDate finalDate = date;
@@ -208,33 +201,44 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                     eightReportDTO.setReportDate(reportDate);
                     eightReportDTO.setQueryDate("T" + finalDate.getDayOfMonth());
                     eightReportDTO.setConstituencies(group);
-                    eightReportDTO.setTotalNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    eightReportDTO.setTotalNum(zhongAnBusAnalyEightReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyEightReportDTO::getTotalNum).findFirst().orElse(null));
-                    eightReportDTO.setIncomingNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalyEightReportDTO::getIncomingNum).sum());
-                    eightReportDTO.setApproversNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    zhongAnBusAnalyEightReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
+                            .mapToLong(ZhongAnBusAnalyEightReportDTO::getIncomingNum)
+                            .sum();
+                    eightReportDTO.setApproversNum(zhongAnBusAnalyEightReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalyEightReportDTO::getApproversNum).sum());
-                    eightReportDTO.setCompositeIncrNum(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    eightReportDTO.setCompositeIncrNum(zhongAnBusAnalyEightReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyEightReportDTO::getCompositeIncrNum).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    eightReportDTO.setIncome(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    eightReportDTO.setIncome(zhongAnBusAnalyEightReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyEightReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    eightReportDTO.setCost(zhongAnBusAnalyEightReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    eightReportDTO.setCost(zhongAnBusAnalyEightReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyEightReportDTO::getCost).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    eightReportDTO.setIncomingTotalRate(new BigDecimal((0)));
-                    eightReportDTO.setApproversRate(new BigDecimal((0)));
-                    eightReportDTO.setApproversTotalRate(new BigDecimal((0)));
                     eightReportDTO.setRoi(new BigDecimal((0)));
-                    if (!eightReportDTO.getTotalNum().equals(0L)) {
-                        eightReportDTO.setIncomingTotalRate(new BigDecimal(eightReportDTO.getIncomingNum()).divide(new BigDecimal(eightReportDTO.
-                                getTotalNum()), 6, BigDecimal.ROUND_HALF_UP));
-                        eightReportDTO.setApproversTotalRate(new BigDecimal(eightReportDTO.getApproversNum()).divide(new BigDecimal(eightReportDTO.
-                                getTotalNum()), 6, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (!eightReportDTO.getIncomingNum().equals(0L)) {
-                        eightReportDTO.setApproversRate(new BigDecimal(eightReportDTO.getApproversNum()).divide(new BigDecimal(eightReportDTO.
-                                getIncomingNum()), 6, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (eightReportDTO.getCost().compareTo(BigDecimal.ZERO) != 0) {
+                    eightReportDTO.setIncomingTotalRate(calculateRate(eightReportDTO.getIncomingNum(), eightReportDTO.getTotalNum()));
+
+                    eightReportDTO.setApproversTotalRate(calculateRate(eightReportDTO.getApproversNum(), eightReportDTO.getTotalNum()));
+                    eightReportDTO.setApproversRate(calculateRate(eightReportDTO.getApproversNum(), eightReportDTO.getIncomingNum()));
+
+                    if (ObjectUtil.isNotEmpty(eightReportDTO.getCost()) && eightReportDTO.getIncome().compareTo(BigDecimal.ZERO)!= 0) {
                         eightReportDTO.setRoi(eightReportDTO.getIncome().divide(eightReportDTO.getCost(), 6, BigDecimal.ROUND_HALF_UP));
                     }
                     totalList.add(eightReportDTO);
@@ -242,30 +246,19 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 });
                 ZhongAnBusAnalyEightReportDTO brReportDTO = totalList.get(0);
                 ZhongAnBusAnalyEightReportDTO zhongAnReportDTO = totalList.get(1);
-                brReportDTO.setIncomingIncreaseRate(new BigDecimal((0)));
-                if ((zhongAnReportDTO.getTotalNum() != 0L) && (((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                        zhongAnReportDTO.getIncomingNum()) != 0L)) {
-                    brReportDTO.setIncomingIncreaseRate(new BigDecimal(brReportDTO.getIncomingNum() - ((double) brReportDTO.getTotalNum() /
-                            zhongAnReportDTO.getTotalNum()
-                            * zhongAnReportDTO.getIncomingNum()))
-                            .divide(new BigDecimal((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                                    zhongAnReportDTO.getIncomingNum()), 6, BigDecimal.ROUND_HALF_UP));
-                }
-                brReportDTO.setApproversIncreaseRate(new BigDecimal((0)));
-                if ((zhongAnReportDTO.getTotalNum() != 0L) && (((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                        zhongAnReportDTO.getApproversNum()) != 0L)) {
-                    brReportDTO.setApproversIncreaseRate(new BigDecimal(brReportDTO.getApproversNum() - ((double) brReportDTO.getTotalNum() /
-                            zhongAnReportDTO.getTotalNum() * zhongAnReportDTO.getApproversNum()))
-                            .divide(new BigDecimal((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                                    zhongAnReportDTO.getApproversNum()), 6, BigDecimal.ROUND_HALF_UP));
-
-                }
+                brReportDTO.setIncomingIncreaseRate(
+                        calculateIncomingIncreaseRate(brReportDTO.getTotalNum(), brReportDTO.getIncomingNum(),
+                                zhongAnReportDTO.getTotalNum(), zhongAnReportDTO.getIncomingNum()));
+                brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brReportDTO.getTotalNum(),
+                        brReportDTO.getApproversNum(), zhongAnReportDTO.getTotalNum(),
+                                zhongAnReportDTO.getApproversNum()));
                 zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
                 zhongAnReportDTO.setApproversIncreaseRate(brReportDTO.getApproversIncreaseRate());
                 zhongAnBusAnalyEightReportList.addAll(totalList);
             }
 
         }
+
         List<ZhongAnBusAnalyEightReportDTO> zhongAnBusAnalyEightReportDTOS = traverseDates(zhongAnBusAnalyEightReportList);
 
         return zhongAnBusAnalyEightReportDTOS;
@@ -333,113 +326,105 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                     sevenReportDTO.setReportDate(reportDate);
                     sevenReportDTO.setQueryDate("T" + finalDate.getDayOfMonth());
                     sevenReportDTO.setConstituencies(group);
-                    sevenReportDTO.setTotalNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    sevenReportDTO.setTotalNum(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalySevenReportDTO::getTotalNum).findFirst().orElse(null));
-                    sevenReportDTO.setLoginNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    sevenReportDTO.setLoginNum(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalySevenReportDTO::getLoginNum).sum());
-                    sevenReportDTO.setIncomingNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    sevenReportDTO.setIncomingNum(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalySevenReportDTO::getIncomingNum).sum());
-                    sevenReportDTO.setApproversNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    sevenReportDTO.setApproversNum(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalySevenReportDTO::getApproversNum).sum());
-                    sevenReportDTO.setApplyPayNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    sevenReportDTO.setApplyPayNum(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalySevenReportDTO::getApplyPayNum).sum());
-                    sevenReportDTO.setApplyPaySuccessNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    sevenReportDTO.setApplyPaySuccessNum(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalySevenReportDTO::getApplyPaySuccessNum).sum());
-                    sevenReportDTO.setLendersSucNum(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    sevenReportDTO.setLendersSucNum(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalySevenReportDTO::getLendersSucNum).sum());
-                    sevenReportDTO.setLendersSucAmount(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group)).
+                    sevenReportDTO.setLendersSucAmount(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalySevenReportDTO::getLendersSucAmount).sum());
-                    sevenReportDTO.setIncome(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    sevenReportDTO.setIncome(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalySevenReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    sevenReportDTO.setCost(zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    sevenReportDTO.setCost(zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalySevenReportDTO::getCost).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    Long totalApprovalCost = zhongAnBusAnalySevenReportList.stream().filter(t -> t.getConstituencies().equals(group))
+                    Long totalApprovalCost = zhongAnBusAnalySevenReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
+                            .filter(t -> t.getConstituencies().equals(group))
                             .map(report-> report.getApprovalsAvgNum()*report.getApproversNum()).reduce(0L, Long::sum);
                     sevenReportDTO.setApprovalsAvgNum(0L);
                     sevenReportDTO.setLendersSucAvgAmount(0L);
                     sevenReportDTO.setRoi(new BigDecimal((0)));
-                    sevenReportDTO.setProductCapacity(new BigDecimal((0)));
-                    sevenReportDTO.setApplyPaySuccessRate(new BigDecimal((0)));
-                    sevenReportDTO.setLoginRate(new BigDecimal((0)));
-                    sevenReportDTO.setIncomingTotalRate(new BigDecimal((0)));
-                    sevenReportDTO.setApproversRate(new BigDecimal((0)));
-                    sevenReportDTO.setApproversTotalRate(new BigDecimal((0)));
-                    sevenReportDTO.setApplyPayRate(new BigDecimal((0)));
-                    sevenReportDTO.setLendersSucRate(new BigDecimal((0)));
-                    sevenReportDTO.setLendersSucTotalRate(new BigDecimal((0)));
-                    if (!sevenReportDTO.getTotalNum().equals(0L)) {
-                        sevenReportDTO.setLoginRate(new BigDecimal(sevenReportDTO.getLoginNum()).divide(new BigDecimal(sevenReportDTO.getTotalNum())
-                                , 6, BigDecimal.ROUND_HALF_UP));
-                        sevenReportDTO.setIncomingTotalRate(new BigDecimal(sevenReportDTO.getIncomingNum()).divide(new BigDecimal(sevenReportDTO.
-                                getTotalNum()), 6, BigDecimal.ROUND_HALF_UP));
-                        sevenReportDTO.setApproversTotalRate(new BigDecimal(sevenReportDTO.getApproversNum()).divide(new BigDecimal(sevenReportDTO.
-                                getTotalNum()), 6, BigDecimal.ROUND_HALF_UP));
-                        sevenReportDTO.setLendersSucTotalRate(new BigDecimal(sevenReportDTO.getLendersSucNum()).divide(new BigDecimal(sevenReportDTO.
-                                getTotalNum()), 6, BigDecimal.ROUND_HALF_UP));
-                        sevenReportDTO.setProductCapacity(new BigDecimal(sevenReportDTO.getLendersSucAmount()).divide(new BigDecimal(sevenReportDTO.
-                                getTotalNum()), 6, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (!sevenReportDTO.getIncomingNum().equals(0L)) {
-                        sevenReportDTO.setApproversRate(new BigDecimal(sevenReportDTO.getApproversNum()).divide(new BigDecimal(sevenReportDTO.
-                                getIncomingNum()), 6, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (!sevenReportDTO.getApproversNum().equals(0L)) {
-                        sevenReportDTO.setApplyPayRate(new BigDecimal(sevenReportDTO.getApplyPayNum()).divide(new BigDecimal(sevenReportDTO.
-                                getApproversNum()), 6, BigDecimal.ROUND_HALF_UP));
+
+                    sevenReportDTO.setLoginRate(calculateRate(sevenReportDTO.getLoginNum(), sevenReportDTO.getTotalNum()));
+                    sevenReportDTO.setIncomingTotalRate(calculateRate(sevenReportDTO.getIncomingNum(), sevenReportDTO.getTotalNum()));
+                    sevenReportDTO.setApproversTotalRate(calculateRate(sevenReportDTO.getApproversNum(), sevenReportDTO.getTotalNum()));
+                    sevenReportDTO.setLendersSucTotalRate(calculateRate(sevenReportDTO.getLendersSucNum(), sevenReportDTO.getTotalNum()));
+                    sevenReportDTO.setProductCapacity(calculateRate(sevenReportDTO.getLendersSucAmount(), sevenReportDTO.getTotalNum()));
+                    sevenReportDTO.setApproversRate(calculateRate(sevenReportDTO.getApproversNum(), sevenReportDTO.getIncomingNum()));
+                    sevenReportDTO.setApplyPayRate(calculateRate(sevenReportDTO.getApplyPayNum(), sevenReportDTO.getApproversNum()));
+                    sevenReportDTO.setLendersSucRate(calculateRate(sevenReportDTO.getLendersSucNum(), sevenReportDTO.getApplyPaySuccessNum()));
+                    sevenReportDTO.setApplyPaySuccessRate(calculateRate(sevenReportDTO.getApplyPaySuccessNum(), sevenReportDTO.getApplyPayNum()));
+
+                    if (ObjectUtil.isNotEmpty(sevenReportDTO.getApproversNum()) && !sevenReportDTO.getApproversNum().equals(0L)) {
                         sevenReportDTO.setApprovalsAvgNum(Math.round(totalApprovalCost / (double) sevenReportDTO.getApproversNum()));
                     }
-                    if (!sevenReportDTO.getApplyPaySuccessNum().equals(0L)) {
-                        sevenReportDTO.setLendersSucRate(new BigDecimal(sevenReportDTO.getLendersSucNum()).divide(new BigDecimal(sevenReportDTO.
-                                getApplyPaySuccessNum()), 6, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (!sevenReportDTO.getApplyPayNum().equals(0L)) {
-                        sevenReportDTO.setApplyPaySuccessRate(new BigDecimal(sevenReportDTO.getApplyPaySuccessNum()).divide(new BigDecimal(sevenReportDTO
-                                .getApplyPayNum()), 6, BigDecimal.ROUND_HALF_UP));
-                    }
-                    if (!sevenReportDTO.getLendersSucNum().equals(0L)) {
+
+                    if (ObjectUtil.isNotEmpty(sevenReportDTO.getLendersSucNum()) && !sevenReportDTO.getLendersSucNum().equals(0L)) {
                         sevenReportDTO.setLendersSucAvgAmount(Math.round(sevenReportDTO.getLendersSucAmount() /
                                 (double) sevenReportDTO.getLendersSucNum()));
                     }
-                    if (sevenReportDTO.getCost().compareTo(BigDecimal.ZERO) != 0) {
+                    if (ObjectUtil.isNotEmpty(sevenReportDTO.getCost()) && sevenReportDTO.getCost().compareTo(BigDecimal.ZERO) != 0) {
                         sevenReportDTO.setRoi(sevenReportDTO.getIncome().divide(sevenReportDTO.getCost(), 6, BigDecimal.ROUND_HALF_UP));
                     }
                     sevenReportDTO.setLendersApproversRate(sevenReportDTO.getApproversRate().multiply(sevenReportDTO.getApplyPaySuccessRate()).
                             multiply(sevenReportDTO.getLendersSucRate()).setScale(6, BigDecimal.ROUND_HALF_UP));
                     totalList.add(sevenReportDTO);
                 });
+
                 ZhongAnBusAnalySevenReportDTO brReportDTO = totalList.get(0);
                 ZhongAnBusAnalySevenReportDTO zhongAnReportDTO = totalList.get(1);
-                brReportDTO.setIncomingIncreaseRate(new BigDecimal((0)));
-                if ((zhongAnReportDTO.getTotalNum() != 0L) && (((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                        zhongAnReportDTO.getIncomingNum()) != 0L)) {
-                    brReportDTO.setIncomingIncreaseRate(new BigDecimal(brReportDTO.getIncomingNum() - ((double) brReportDTO.getTotalNum() /
-                            zhongAnReportDTO.getTotalNum() * zhongAnReportDTO.getIncomingNum()))
-                            .divide(new BigDecimal((double) brReportDTO.getTotalNum() / zhongAnReportDTO.getTotalNum() *
-                                    zhongAnReportDTO.getIncomingNum()), 6, BigDecimal.ROUND_HALF_UP));
-                }
-                brReportDTO.setApproversIncreaseRate(new BigDecimal((0)));
-                if (zhongAnReportDTO.getApproversTotalRate().compareTo(BigDecimal.ZERO) != 0) {
-                    brReportDTO.setApproversIncreaseRate((brReportDTO.getApproversTotalRate().subtract(zhongAnReportDTO.getApproversTotalRate()).
-                            divide(zhongAnReportDTO.getApproversTotalRate(), 6, BigDecimal.ROUND_HALF_UP)));
-                }
-                brReportDTO.setApproversIncrNum(0L);
-                brReportDTO.setLendersSucIncrAmount(0L);
-                if (zhongAnReportDTO.getTotalNum() != 0L) {
-                    brReportDTO.setApproversIncrNum(Math.round(brReportDTO.getApproversNum() - zhongAnReportDTO.getApproversNum() *
-                            (brReportDTO.getTotalNum() / (double) zhongAnReportDTO.getTotalNum())));
-                    brReportDTO.setLendersSucIncrAmount(Math.round(brReportDTO.getLendersSucAmount() - zhongAnReportDTO.getLendersSucAmount() *
-                            (brReportDTO.getTotalNum() / (double) zhongAnReportDTO.getTotalNum())));
-                }
-                brReportDTO.setApplyPayIncrRate(new BigDecimal((0)));
-                if (zhongAnReportDTO.getApplyPayRate().compareTo(BigDecimal.ZERO) != 0) {
-                    brReportDTO.setApplyPayIncrRate((brReportDTO.getApplyPayRate().subtract(zhongAnReportDTO.getApplyPayRate()).
-                            divide(zhongAnReportDTO.getApplyPayRate(), 6, BigDecimal.ROUND_HALF_UP)));
-                }
-                brReportDTO.setLendersSucIncrRate(new BigDecimal((0)));
-                if (zhongAnReportDTO.getLendersSucTotalRate().compareTo(BigDecimal.ZERO) != 0) {
-                    brReportDTO.setLendersSucIncrRate((brReportDTO.getLendersSucTotalRate().subtract(zhongAnReportDTO.getLendersSucTotalRate()).
-                            divide(zhongAnReportDTO.getLendersSucTotalRate(), 6, BigDecimal.ROUND_HALF_UP)));
-                }
+                brReportDTO.setIncomingIncreaseRate(calculateIncomingIncreaseRate(brReportDTO.getTotalNum(),
+                        brReportDTO.getIncomingNum(), zhongAnReportDTO.getTotalNum(), zhongAnReportDTO.getIncomingNum()));
+                brReportDTO.setApproversIncreaseRate(calculateApproversIncreaseRate(brReportDTO.getApproversTotalRate(), zhongAnReportDTO.getApproversTotalRate()));
+
+                brReportDTO.setApproversIncrNum(calculateApproversIncrNum(brReportDTO.getApproversNum(),
+                        zhongAnReportDTO.getApproversNum(), brReportDTO.getTotalNum(), zhongAnReportDTO.getTotalNum()));
+                brReportDTO.setApproversIncrNum(calculateApproversIncrNum(brReportDTO.getLendersSucAmount(),
+                        zhongAnReportDTO.getLendersSucAmount(), brReportDTO.getTotalNum(), zhongAnReportDTO.getTotalNum()));
+
+                brReportDTO.setApplyPayIncrRate(calculateApproversIncreaseRate(brReportDTO.getApplyPayRate(), zhongAnReportDTO.getApplyPayRate()));
+                brReportDTO.setLendersSucIncrRate(calculateApproversIncreaseRate(brReportDTO.getLendersSucTotalRate(), zhongAnReportDTO.getLendersSucTotalRate()));
+
                 zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
                 zhongAnReportDTO.setApproversIncreaseRate(brReportDTO.getApproversIncreaseRate());
                 zhongAnReportDTO.setApproversIncrNum(brReportDTO.getApproversIncrNum());
@@ -485,5 +470,59 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         }
 
         return result;
+    }
+
+    public static BigDecimal calculateRate(Long numerator, Long denominator) {
+        if (numerator != null && numerator != 0L && denominator != null && denominator != 0L) {
+            return new BigDecimal(numerator).divide(new BigDecimal(denominator), 6, BigDecimal.ROUND_HALF_UP);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    public static BigDecimal calculateIncomingIncreaseRate(Long brTotalNum, Long brIncomingNum, Long zhongAnTotalNum, Long zhongAnIncomingNum) {
+        if (ObjectUtil.isEmpty(zhongAnTotalNum) || ObjectUtil.isEmpty(zhongAnIncomingNum) || zhongAnTotalNum == 0L || zhongAnIncomingNum == 0L) {
+            return BigDecimal.ZERO;
+        }
+
+        if (ObjectUtil.isEmpty(brTotalNum) || brTotalNum == 0L) {
+            return BigDecimal.ZERO;
+        }
+        double numerator = brIncomingNum - ((double) brTotalNum / zhongAnTotalNum * zhongAnIncomingNum);
+
+        double denominator = (double) brTotalNum / zhongAnTotalNum * zhongAnIncomingNum;
+
+        if (denominator == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return new BigDecimal(numerator)
+                .divide(new BigDecimal(denominator), 6, BigDecimal.ROUND_HALF_UP);
+    }
+
+    public static BigDecimal calculateApproversIncreaseRate(BigDecimal brApproversTotalRate, BigDecimal zhongAnApproversTotalRate) {
+        if (brApproversTotalRate == null || zhongAnApproversTotalRate == null) {
+            return BigDecimal.ZERO;
+        }
+
+        if (zhongAnApproversTotalRate.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        return brApproversTotalRate.subtract(zhongAnApproversTotalRate)
+                .divide(zhongAnApproversTotalRate, 6, BigDecimal.ROUND_HALF_UP);
+    }
+
+    public static long calculateApproversIncrNum(Long brApproversNum, Long zhongAnApproversNum, Long brTotalNum, Long zhongAnTotalNum) {
+        if (brApproversNum == null || zhongAnApproversNum == null || brTotalNum == null || zhongAnTotalNum == null) {
+            return 0L;
+        }
+
+        if (zhongAnTotalNum == 0) {
+            return 0L;
+        }
+
+        // 执行计算
+        double result = brApproversNum - zhongAnApproversNum * (brTotalNum / (double) zhongAnTotalNum);
+        return Math.round(result);
     }
 }
