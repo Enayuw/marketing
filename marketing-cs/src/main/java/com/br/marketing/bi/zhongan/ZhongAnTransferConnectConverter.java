@@ -67,6 +67,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         List<BiReportVO> biReportVOList = Lists.newArrayList();
 
         String reportType = ReportTaskTypeEnum.TRANSFER_CONNECT_TYPE.getValue().toString();
+        String month = extend.getString("month");
         LocalDate curLocalDate = LocalDate.now();
         String curDate = curLocalDate.toString();
         String reportDateStart = curLocalDate.withDayOfMonth(1).toString();
@@ -126,32 +127,44 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                     List<String> reportDateMValueList = reportDateMList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
                     xAxis.addAll(reportDateMValueList);
                 }
+            }
 
+            ReportFieldDictExample reportFieldDictExample = new ReportFieldDictExample();
+            reportFieldDictExample.createCriteria().andReportTypeEqualTo("17").andUserTypeEqualTo(reportOrderToUserType(reportOrder));
+            reportFieldDictExample.setOrderByClause("item_order asc");
+            List<ReportFieldDict> reportFieldDictList = reportFieldDictMapper.selectByExample(reportFieldDictExample);
+
+            List<WrapDataVO> yAxis = Lists.newArrayList();
+            for (ReportFieldDict reportFieldDict : reportFieldDictList) {
+                String itemName = reportFieldDict.getItemName();
+                String itemShow = reportFieldDict.getItemShow();
+                String formatTypeName = reportFieldDict.getItemFormatType();
+                FormatType formatType = FormatType.getByName(formatTypeName);
                 // 构造纵坐标数据
-                List<WrapDataVO> yAxis = Lists.newArrayList();
+                List<ReportStatisticField> reportFieldList = new ArrayList<>();
 
-                ReportFieldDictExample reportFieldDictExample = new ReportFieldDictExample();
-                reportFieldDictExample.createCriteria().andReportTypeEqualTo("17").andUserTypeEqualTo(reportOrderToUserType(reportOrder));
-                reportFieldDictExample.setOrderByClause("item_order asc");
-                List<ReportFieldDict> reportFieldDictList = reportFieldDictMapper.selectByExample(reportFieldDictExample);
+                for (String reportDate : reportDateList) {
+                    ReportStatisticRule reportRule = reportRuleList.stream()
+                            .filter(rule -> reportOrder.equals(rule.getReportOrder()) && reportDate.equals(rule.getReportDate()))
+                            .findFirst()
+                            .orElse(null);
+                    if (reportRule == null) {
+                        continue;
+                    }
+                    String reportId = reportRule.getReportId();
 
-                for (ReportFieldDict reportFieldDict : reportFieldDictList) {
-                    String itemName = reportFieldDict.getItemName();
-                    String itemShow = reportFieldDict.getItemShow();
-                    String formatTypeName = reportFieldDict.getItemFormatType();
-                    FormatType formatType = FormatType.getByName(formatTypeName);
-                    List<ReportStatisticField> reportFieldList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYTList, itemName, "");
-
+                    List<String> fieldYTList = reportOrderToFieldYList(reportOrder, reportDate, "T");
+                    List<ReportStatisticField> reportFieldTList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYTList, itemName, "");
+                    reportFieldList.addAll(reportFieldTList);
                     if (curDate.equals(reportDate)) {
                         List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
                         List<ReportStatisticField> reportFieldMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, itemName, "");
                         reportFieldList.addAll(reportFieldMList);
                     }
-                    // sort
-                    yAxis.add(buildWrapDataVO(itemShow, reportFieldList, ReportStatisticField::getItemValue, formatType));
                 }
-                biReportVO.setYAxis(yAxis);
+                yAxis.add(buildWrapDataVO(itemShow, reportFieldList, ReportStatisticField::getItemValue, formatType));
             }
+            biReportVO.setYAxis(yAxis);
             biReportVOList.add(biReportVO);
         }
         return biReportVOList;
