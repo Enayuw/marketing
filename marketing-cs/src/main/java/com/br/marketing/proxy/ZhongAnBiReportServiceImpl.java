@@ -51,58 +51,55 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 .orElse(LocalDate.now());
         zhongAnBusAnalyOneReportList.forEach(result -> result.setQueryDate("T"));
         for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            String reportDate = beginDate + "-" + date;
+            String reportDate = beginDate + "--" + date;
             List<String> reportDateList = zhongAnBusAnalyOneReportList.stream()
                     .map(ZhongAnBusAnalyOneReportDTO::getReportDate)
                     .collect(Collectors.toList());
             List<String> groupList = Lists.newArrayList(MARKETING_IFLOGIN, ZHONGAN_IFLOGIN, MARKETING_IFNOTLOGIN, ZHONGAN_IFNOTLOGIN);
             List<ZhongAnBusAnalyOneReportDTO> totalList = new ArrayList<>();
             if (reportDateList.size() > 1) {
-                LocalDate finalEndDate = date;
+                LocalDate finalDate = date;
                 groupList.forEach((String group) -> {
                     ZhongAnBusAnalyOneReportDTO oneReportDTO = new ZhongAnBusAnalyOneReportDTO();
                     oneReportDTO.setReportDate(reportDate);
-                    oneReportDTO.setQueryDate("T" + finalEndDate.getDayOfMonth());
+                    oneReportDTO.setQueryDate("T" + finalDate.getDayOfMonth());
                     oneReportDTO.setConstituencies(group);
                     oneReportDTO.setTotalNum(zhongAnBusAnalyOneReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
-                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> !t.getReportDate().contains("--"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyOneReportDTO::getTotalNum).findFirst().orElse(null));
                     oneReportDTO.setIncomingNum(zhongAnBusAnalyOneReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
-                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> !t.getReportDate().contains("--"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalyOneReportDTO::getIncomingNum).sum());
                     oneReportDTO.setApproversNum(zhongAnBusAnalyOneReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
-                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> !t.getReportDate().contains("--"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
                             mapToLong(ZhongAnBusAnalyOneReportDTO::getApproversNum).sum());
                     oneReportDTO.setCompositeIncrNum(zhongAnBusAnalyOneReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
-                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> !t.getReportDate().contains("--"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyOneReportDTO::getCompositeIncrNum).reduce(BigDecimal.ZERO, BigDecimal::add));
                     oneReportDTO.setIncome(zhongAnBusAnalyOneReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
-                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> !t.getReportDate().contains("--"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyOneReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
                     oneReportDTO.setCost(zhongAnBusAnalyOneReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
-                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalEndDate.plusDays(1)))
+                            .filter(t -> !t.getReportDate().contains("--"))
+                            .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalyOneReportDTO::getCost).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    oneReportDTO.setRoi(new BigDecimal((0)));
 
                     oneReportDTO.setIncomingTotalRate(calculateRate(oneReportDTO.getIncomingNum(), oneReportDTO.getTotalNum()));
                     oneReportDTO.setApproversTotalRate(calculateRate(oneReportDTO.getApproversNum(), oneReportDTO.getTotalNum()));
                     oneReportDTO.setApproversRate(calculateRate(oneReportDTO.getApproversNum(), oneReportDTO.getIncomingNum()));
+                    oneReportDTO.setRoi(calculateRoi(oneReportDTO.getIncome(), oneReportDTO.getCost()));
 
-                    if (ObjectUtil.isNotEmpty(oneReportDTO.getCost()) && oneReportDTO.getIncome().compareTo(BigDecimal.ZERO) != 0) {
-                        oneReportDTO.setRoi(oneReportDTO.getIncome().divide(oneReportDTO.getCost(), 6, BigDecimal.ROUND_HALF_UP));
-                    }
                     totalList.add(oneReportDTO);
 
                 });
@@ -189,7 +186,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
 
         List<String> groupList = Lists.newArrayList(BR_MARKETING, ZHONGAN_MARKETING);
         for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            String reportDate = beginDate + "-" + date;
+            String reportDate = beginDate + "--" + date;
             List<String> reportDateList = zhongAnBusAnalyEightReportList.stream()
                     .map(ZhongAnBusAnalyEightReportDTO::getReportDate)
                     .collect(Collectors.toList());
@@ -202,45 +199,47 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                     eightReportDTO.setQueryDate("T" + finalDate.getDayOfMonth());
                     eightReportDTO.setConstituencies(group);
                     eightReportDTO.setTotalNum(zhongAnBusAnalyEightReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .map(ZhongAnBusAnalyEightReportDTO::getTotalNum).findFirst().orElse(null));
-                    zhongAnBusAnalyEightReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .map(ZhongAnBusAnalyEightReportDTO::getTotalNum)
+                            .findFirst()
+                            .orElse(null));
+                    eightReportDTO.setIncomingNum(zhongAnBusAnalyEightReportList.stream()
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
                             .mapToLong(ZhongAnBusAnalyEightReportDTO::getIncomingNum)
-                            .sum();
+                            .sum());
                     eightReportDTO.setApproversNum(zhongAnBusAnalyEightReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalyEightReportDTO::getApproversNum).sum());
+                            mapToLong(ZhongAnBusAnalyEightReportDTO::getApproversNum)
+                            .sum());
                     eightReportDTO.setCompositeIncrNum(zhongAnBusAnalyEightReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .map(ZhongAnBusAnalyEightReportDTO::getCompositeIncrNum).reduce(BigDecimal.ZERO, BigDecimal::add));
+                            .map(ZhongAnBusAnalyEightReportDTO::getCompositeIncrNum)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
                     eightReportDTO.setIncome(zhongAnBusAnalyEightReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .map(ZhongAnBusAnalyEightReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
+                            .map(ZhongAnBusAnalyEightReportDTO::getIncome)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
                     eightReportDTO.setCost(zhongAnBusAnalyEightReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .map(ZhongAnBusAnalyEightReportDTO::getCost).reduce(BigDecimal.ZERO, BigDecimal::add));
-                    eightReportDTO.setRoi(new BigDecimal((0)));
+                            .map(ZhongAnBusAnalyEightReportDTO::getCost)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
                     eightReportDTO.setIncomingTotalRate(calculateRate(eightReportDTO.getIncomingNum(), eightReportDTO.getTotalNum()));
 
                     eightReportDTO.setApproversTotalRate(calculateRate(eightReportDTO.getApproversNum(), eightReportDTO.getTotalNum()));
                     eightReportDTO.setApproversRate(calculateRate(eightReportDTO.getApproversNum(), eightReportDTO.getIncomingNum()));
-
-                    if (ObjectUtil.isNotEmpty(eightReportDTO.getCost()) && eightReportDTO.getIncome().compareTo(BigDecimal.ZERO)!= 0) {
-                        eightReportDTO.setRoi(eightReportDTO.getIncome().divide(eightReportDTO.getCost(), 6, BigDecimal.ROUND_HALF_UP));
-                    }
+                    eightReportDTO.setRoi(calculateRoi(eightReportDTO.getIncome(), eightReportDTO.getCost()));
                     totalList.add(eightReportDTO);
 
                 });
@@ -313,7 +312,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 .orElse(LocalDate.now());
         zhongAnBusAnalySevenReportList.forEach(result -> result.setQueryDate("T"));
         for (LocalDate date = beginDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            String reportDate = beginDate + "-" + date;
+            String reportDate = beginDate + "--" + date;
             List<String> reportDateList = zhongAnBusAnalySevenReportList.stream()
                     .map(ZhongAnBusAnalySevenReportDTO::getReportDate)
                     .collect(Collectors.toList());
@@ -327,63 +326,72 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                     sevenReportDTO.setQueryDate("T" + finalDate.getDayOfMonth());
                     sevenReportDTO.setConstituencies(group);
                     sevenReportDTO.setTotalNum(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
                             .map(ZhongAnBusAnalySevenReportDTO::getTotalNum).findFirst().orElse(null));
                     sevenReportDTO.setLoginNum(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalySevenReportDTO::getLoginNum).sum());
+                            mapToLong(ZhongAnBusAnalySevenReportDTO::getLoginNum)
+                            .sum());
                     sevenReportDTO.setIncomingNum(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalySevenReportDTO::getIncomingNum).sum());
+                            mapToLong(ZhongAnBusAnalySevenReportDTO::getIncomingNum)
+                            .sum());
                     sevenReportDTO.setApproversNum(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalySevenReportDTO::getApproversNum).sum());
+                            mapToLong(ZhongAnBusAnalySevenReportDTO::getApproversNum)
+                            .sum());
                     sevenReportDTO.setApplyPayNum(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalySevenReportDTO::getApplyPayNum).sum());
+                            mapToLong(ZhongAnBusAnalySevenReportDTO::getApplyPayNum)
+                            .sum());
                     sevenReportDTO.setApplyPaySuccessNum(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalySevenReportDTO::getApplyPaySuccessNum).sum());
+                            mapToLong(ZhongAnBusAnalySevenReportDTO::getApplyPaySuccessNum)
+                            .sum());
                     sevenReportDTO.setLendersSucNum(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalySevenReportDTO::getLendersSucNum).sum());
+                            mapToLong(ZhongAnBusAnalySevenReportDTO::getLendersSucNum)
+                            .sum());
                     sevenReportDTO.setLendersSucAmount(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group)).
-                            mapToLong(ZhongAnBusAnalySevenReportDTO::getLendersSucAmount).sum());
+                            mapToLong(ZhongAnBusAnalySevenReportDTO::getLendersSucAmount)
+                            .sum());
                     sevenReportDTO.setIncome(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .map(ZhongAnBusAnalySevenReportDTO::getIncome).reduce(BigDecimal.ZERO, BigDecimal::add));
+                            .map(ZhongAnBusAnalySevenReportDTO::getIncome)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
                     sevenReportDTO.setCost(zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .map(ZhongAnBusAnalySevenReportDTO::getCost).reduce(BigDecimal.ZERO, BigDecimal::add));
+                            .map(ZhongAnBusAnalySevenReportDTO::getCost)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add));
                     Long totalApprovalCost = zhongAnBusAnalySevenReportList.stream()
-                            .filter(t -> !t.getReportDate().contains("-"))
+                            .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .map(report-> report.getApprovalsAvgNum()*report.getApproversNum()).reduce(0L, Long::sum);
+                            .map(report-> report.getApprovalsAvgNum()*report.getApproversNum())
+                            .reduce(0L, Long::sum);
                     sevenReportDTO.setApprovalsAvgNum(0L);
                     sevenReportDTO.setLendersSucAvgAmount(0L);
-                    sevenReportDTO.setRoi(new BigDecimal((0)));
 
                     sevenReportDTO.setLoginRate(calculateRate(sevenReportDTO.getLoginNum(), sevenReportDTO.getTotalNum()));
                     sevenReportDTO.setIncomingTotalRate(calculateRate(sevenReportDTO.getIncomingNum(), sevenReportDTO.getTotalNum()));
@@ -403,9 +411,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                         sevenReportDTO.setLendersSucAvgAmount(Math.round(sevenReportDTO.getLendersSucAmount() /
                                 (double) sevenReportDTO.getLendersSucNum()));
                     }
-                    if (ObjectUtil.isNotEmpty(sevenReportDTO.getCost()) && sevenReportDTO.getCost().compareTo(BigDecimal.ZERO) != 0) {
-                        sevenReportDTO.setRoi(sevenReportDTO.getIncome().divide(sevenReportDTO.getCost(), 6, BigDecimal.ROUND_HALF_UP));
-                    }
+                    sevenReportDTO.setRoi(calculateRoi(sevenReportDTO.getIncome(), sevenReportDTO.getCost()));
+
                     sevenReportDTO.setLendersApproversRate(sevenReportDTO.getApproversRate().multiply(sevenReportDTO.getApplyPaySuccessRate()).
                             multiply(sevenReportDTO.getLendersSucRate()).setScale(6, BigDecimal.ROUND_HALF_UP));
                     totalList.add(sevenReportDTO);
@@ -524,5 +531,12 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         // 执行计算
         double result = brApproversNum - zhongAnApproversNum * (brTotalNum / (double) zhongAnTotalNum);
         return Math.round(result);
+    }
+
+    public static BigDecimal calculateRoi(BigDecimal income, BigDecimal cost) {
+        if (income == null || cost == null || cost.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        return income.divide(cost, 6, BigDecimal.ROUND_HALF_UP);
     }
 }
