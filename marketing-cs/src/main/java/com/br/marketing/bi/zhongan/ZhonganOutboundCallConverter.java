@@ -6,7 +6,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.br.marketing.vo.bi.param.BiReportDownLoadParam;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -70,12 +69,13 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
             dtos.stream().collect(Collectors.groupingBy(ZhonganOutboundCallReportDTO::getUserType));
 
         List<BiReportVO> biReportVOList = Lists.newArrayList();
+        checkEmpty(scoreMap);
         for (Map.Entry<String, List<ZhonganOutboundCallReportDTO>> entry : scoreMap.entrySet()) {
             BiReportVO biReportVO = new BiReportVO();
             biReportVO.setReportTypeName(BiReportTypeEnum.OUTBOUND_STAT_REPORT.getTypeName());
             biReportVO.setReportName("外呼统计报表");
             biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
-            biReportVO.setGroup(entry.getValue().get(0).getUserType());
+            biReportVO.setGroup(entry.getKey());
             // 根据时间排序
             List<ZhonganOutboundCallReportDTO> sortedData = entry.getValue().stream()
                     .sorted(Comparator.comparing(ZhonganOutboundCallReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
@@ -98,37 +98,17 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
             biReportVO.setYAxis(yAxis);
             biReportVOList.add(biReportVO);
         }
-        if(CollectionUtils.isEmpty(biReportVOList)){
-            biReportVOList.add(getBiReportVO());
-        }
         return biReportVOList;
     }
 
-    private BiReportVO getBiReportVO() {
-        BiReportVO biReportVO = new BiReportVO();
-        biReportVO.setReportTypeName(BiReportTypeEnum.OUTBOUND_STAT_REPORT.getTypeName());
-        biReportVO.setReportName("外呼统计报表");
-        biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
-        biReportVO.setGroup("1");
-        // 构造横坐标数据
-        List<ZhonganOutboundCallReportDTO> sortedData = Lists.newArrayList();
-        biReportVO.setXAxisName("日期");
-        biReportVO.setXAxis(Lists.newArrayList());
-        // 构造纵坐标数据
-        List<WrapDataVO> yAxis = Lists.newArrayList();
-        yAxis.add(buildWrapDataVO("组别", sortedData, ZhonganOutboundCallReportDTO::getDimension, FormatType.DEFAULT));
-        yAxis.add(buildWrapDataVO("实际外呼量", sortedData, ZhonganOutboundCallReportDTO::getActualOutboundNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("接通量", sortedData, ZhonganOutboundCallReportDTO::getThroughputNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("通话总时长(分钟)", sortedData, ZhonganOutboundCallReportDTO::getDurationTotal, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("短信触发量", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggersNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("短信成功发送量", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendNum, FormatType.THOUSAND_SEPARATOR));
-        yAxis.add(buildWrapDataVO("接通率", sortedData, ZhonganOutboundCallReportDTO::getContinuityRatio, FormatType.PERCENT_SCALE2));
-        yAxis.add(buildWrapDataVO("接通短信触发率", sortedData, ZhonganOutboundCallReportDTO::getSmsTriggerRatio, FormatType.PERCENT_SCALE2));
-        yAxis.add(buildWrapDataVO("短信成功发送率", sortedData, ZhonganOutboundCallReportDTO::getSmsSucSendRatio, FormatType.PERCENT_SCALE2));
-        yAxis.add(buildWrapDataVO("成本", sortedData, ZhonganOutboundCallReportDTO::getCost, FormatType.THOUSAND_SEPARATOR_DECIMAL));
-        biReportVO.setYAxis(yAxis);
-        return biReportVO;
+    private void checkEmpty(Map<String, List<ZhonganOutboundCallReportDTO>> scoreMap) {
+        if(scoreMap.isEmpty()){
+            scoreMap.put("1",new ArrayList<>());
+            scoreMap.put("7",new ArrayList<>());
+            scoreMap.put("8",new ArrayList<>());
+        }
     }
+
 
     /**
      * 导出数据
