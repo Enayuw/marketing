@@ -257,7 +257,13 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
                 taskTemplateVO.setStatus(1);
             }
         }
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(files);
+
+        // 倒叙排序
+        List<TaskTemplateVO> sortedFiles = files.stream()
+                .sorted(Comparator.comparing(TaskTemplateVO::getTaskCreateTime).reversed())
+                .collect(Collectors.toList());
+
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(sortedFiles);
 
     }
 
