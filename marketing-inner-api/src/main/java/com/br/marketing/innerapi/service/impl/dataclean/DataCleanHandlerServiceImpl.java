@@ -74,7 +74,7 @@ public class DataCleanHandlerServiceImpl implements DataCleanHandlerService {
     @Resource
     IDataCleaningGeneralService dataCleaningGeneralService;
 
-    public static final List<String> UPLOAD_FIELD = Lists.newArrayList("custNum", "cell", "id", "name", "userType");
+    public static final List<String> UPLOAD_FIELD = Lists.newArrayList("custNum", "cell", "id", "name", "userType", "operateType");
     public static final List<String> TRANSFER_FIELD = Lists.newArrayList("custNum", "userType");
 
 

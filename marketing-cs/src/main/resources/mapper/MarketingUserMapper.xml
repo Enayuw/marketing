@@ -396,6 +396,7 @@
 			`cus_batch` varchar(100) NOT NULL COMMENT '客户批次号',
 			`request_batch` varchar(255) DEFAULT NULL COMMENT '请求批次',
 			`cust_num` varchar(100) DEFAULT NULL COMMENT '用户唯一编号',
+			`operate_type` varchar(100) DEFAULT NULL COMMENT '操作类型',
 			`id_card` varchar(255) DEFAULT NULL COMMENT '身份证号',
 			`name` varchar(255) DEFAULT NULL COMMENT '姓名',
 			`cell` varchar(255) DEFAULT NULL COMMENT '电话',

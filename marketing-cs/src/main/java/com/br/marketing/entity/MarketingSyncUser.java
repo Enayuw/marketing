@@ -29,6 +29,11 @@ public class MarketingSyncUser {
     private String custNum;
 
     /**
+     * 操作类型
+     */
+    private String operateType;
+
+    /**
      * 身份证号
      */
     private String idCard;
@@ -313,5 +318,13 @@ public class MarketingSyncUser {
 
     public void setReserveField2(String reserveField2) {
         this.reserveField2 = reserveField2 == null ? null : reserveField2.trim();
+    }
+
+    public String getOperateType() {
+        return operateType;
+    }
+
+    public void setOperateType(String operateType) {
+        this.operateType = operateType;
     }
 }
