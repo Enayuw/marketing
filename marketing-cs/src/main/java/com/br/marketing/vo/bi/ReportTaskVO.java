@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.List;
+
 /**
  * 报告任务vo
  *
@@ -18,4 +20,6 @@ public class ReportTaskVO extends ReportTask {
     private String apiCodes;
     @ApiModelProperty(value = "跑分文件")
     private String batchNumbers;
+    @ApiModelProperty(value = "报表模型")
+    private List<AxisWrapVO> axisWrapVOS;
 }

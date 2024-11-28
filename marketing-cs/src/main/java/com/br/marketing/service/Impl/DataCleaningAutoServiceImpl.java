@@ -102,7 +102,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             Integer cleanType = marketingDataFileConfig.getCleanType();
             Set<Object> collect = cleanDataMapList.stream().map(map -> map.get(autoDuplicateColumn)).collect(Collectors.toSet());
             marketingDataFileConfigMapper.updateCleanDataStatus(autoTableName, CLEAN_STATUS_1, autoDuplicateColumn, collect);
-            threadPool.submit(()->{
+            threadPool.submit(() -> {
                 if (cleanType == CLEAN_TYPE_UPLOAD) {
                     doProcessUploadDataClean(cleanDataMapList, marketingDataFileConfig, apiCode, collect);
                 }
@@ -160,7 +160,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             PushTransferDataDetailDTO pushTransferDataDetailDTO = initTransferData(transferDataItemDTOS, apiCode);
             // 转化数据异步推送
             pushAsyncTransferData(pushTransferDataDetailDTO, collect, marketingDataFileConfig);
-        } catch (IOException  | IllegalAccessException e) {
+        } catch (IOException | IllegalAccessException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(),
                     "转化数据清洗数据异常！！"), e);
         }
@@ -261,10 +261,9 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             FileToMarketingFieldVO fileToMarketingFieldVO) throws IOException {
         Object fieldValue;
         // 处理默认值
-        if (StringUtils.isNotBlank(fileToMarketingFieldVO.getDefaultValue())) {
+        fieldValue = cleanDataMap.get(fileToMarketingFieldVO.getHeadField());
+        if (fieldValue == null) {
             fieldValue = fileToMarketingFieldVO.getDefaultValue();
-        } else {
-            fieldValue = cleanDataMap.get(fileToMarketingFieldVO.getHeadField());
         }
         // 时间格式转换
         if (fileToMarketingFieldVO.getIsDateTransform()) {
@@ -281,7 +280,7 @@ public class DataCleaningAutoServiceImpl implements DataCleaningAutoService {
             );
             if (!genderMappings.isEmpty()) {
                 Map<String, String> genderMapping = genderMappings.get(0);
-                if(fieldValue != null){
+                if (fieldValue != null) {
                     fieldValue = genderMapping.get(fieldValue);
                 }
             }

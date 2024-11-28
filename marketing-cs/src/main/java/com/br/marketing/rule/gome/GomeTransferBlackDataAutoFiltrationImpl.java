@@ -60,7 +60,7 @@ public class GomeTransferBlackDataAutoFiltrationImpl implements AssembleData<Con
                 ? LocalDateTime.now().format(DATE_TIME_FORMATTER) : DateUtils.format(transfer.getCreateTime()
                 , DateHelper.LINE_DATE_COLON_TIME_FORMAT));
         conversionData.setInversionStatus(INVERSION_STATUS_2);
-        MarketingSyncUser syncUser = marketingSyncInfoMapper.selectSynsUserByCustNumLast(apiCode, custNum);
+        MarketingSyncUser syncUser = marketingSyncInfoMapper.selectSynsUserByCustNumLastWithStatus(apiCode, custNum);
         if (syncUser == null || StringUtils.isEmpty(syncUser.getCell())) {
             String message = String.format("国美黑名单自动化过滤未查询到手机号apiCode:[%s]和cid:[%s]和custNum:[%s]", apiCode,cid, custNum);
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.GUOMEI_PHONENOTFUND.getCode(),
