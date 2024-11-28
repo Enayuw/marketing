@@ -438,7 +438,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
 
                 brReportDTO.setApproversIncrNum(calculateApproversIncrNum(brReportDTO.getApproversNum(),
                         zhongAnReportDTO.getApproversNum(), brReportDTO.getTotalNum(), zhongAnReportDTO.getTotalNum()));
-                brReportDTO.setApproversIncrNum(calculateApproversIncrNum(brReportDTO.getLendersSucAmount(),
+                brReportDTO.setLendersSucIncrAmount(calculateApproversIncrNum(brReportDTO.getLendersSucAmount(),
                         zhongAnReportDTO.getLendersSucAmount(), brReportDTO.getTotalNum(), zhongAnReportDTO.getTotalNum()));
 
                 brReportDTO.setApplyPayIncrRate(calculateApproversIncreaseRate(brReportDTO.getApplyPayRate(), zhongAnReportDTO.getApplyPayRate()));
