@@ -1,4 +1,9 @@
 package com.br.marketing.mapper;
 
-public interface ThirdPartnerUploadDataCleanMapper extends ThirdPartnerUploadDataCleanMapperBase{
+import com.br.marketing.entity.ThirdPartnerUploadDataClean;
+
+import java.util.List;
+
+public interface ThirdPartnerUploadDataCleanMapper extends ThirdPartnerUploadDataCleanMapperBase {
+    void batchSaveByTaskId(List<ThirdPartnerUploadDataClean> list);
 }

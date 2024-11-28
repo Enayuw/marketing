@@ -366,6 +366,9 @@ public interface MarketingSyncUserMapper {
                                @Param("cusBatch") String cusBatch,
                                @Param("userType") String userType,
                                @Param("appletDate") String appletDate);
+    MarketingSyncUser getMarketingSyncByAppletDateAndUserType(@Param("apiCode") String apiCode,
+                               @Param("userType") String userType,
+                               @Param("appletDate") String appletDate);
 
     Set<String> getCustNumSetByAppletDateInterval(
             @Param("apiCode") String apiCode,
