@@ -68,8 +68,10 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                             .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .mapToLong(ZhongAnBusAnalyOneReportDTO::getTotalNum)
-                            .sum());
+                            .map(ZhongAnBusAnalyOneReportDTO::getTotalNum)
+                            .distinct()
+                            .reduce((a, b) -> 0L)
+                            .orElse(0L));
                     oneReportDTO.setIncomingNum(zhongAnBusAnalyOneReportList.stream()
                             .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
@@ -147,7 +149,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         // 获取今天的日期
         LocalDate now = LocalDate.now();
         String oneDay = LocalDate.now().withDayOfMonth(1).toString();
-        String oneDayToOneDay = oneDay + "-" + oneDay;
+        String oneDayToOneDay = oneDay + "--" + oneDay;
         // 判断今天是否是1号
         if (now.getDayOfMonth() == 1) {
             zhongAnBusAnalyEightReportList.stream()
@@ -208,8 +210,10 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                             .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .mapToLong(ZhongAnBusAnalyEightReportDTO::getTotalNum)
-                            .sum());
+                            .map(ZhongAnBusAnalyEightReportDTO::getTotalNum)
+                            .distinct()
+                            .reduce((a, b) -> 0L)
+                            .orElse(0L));
                     eightReportDTO.setIncomingNum(zhongAnBusAnalyEightReportList.stream()
                             .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
@@ -274,7 +278,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         // 获取今天的日期
         LocalDate now = LocalDate.now();
         String oneDay = LocalDate.now().withDayOfMonth(1).toString();
-        String oneDayToOneDay = oneDay + "-" + oneDay;
+        String oneDayToOneDay = oneDay + "--" + oneDay;
         // 判断今天是否是1号
         if (now.getDayOfMonth() == 1) {
             zhongAnBusAnalyEightReportList.stream()
@@ -334,8 +338,10 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                             .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .mapToLong(ZhongAnBusAnalySevenReportDTO::getTotalNum)
-                            .sum());
+                            .map(ZhongAnBusAnalySevenReportDTO::getTotalNum)
+                            .distinct()
+                            .reduce((a, b) -> 0L)
+                            .orElse(0L));
                     sevenReportDTO.setLoginNum(zhongAnBusAnalySevenReportList.stream()
                             .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
@@ -457,7 +463,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         // 获取今天的日期
         LocalDate now = LocalDate.now();
         String oneDay = LocalDate.now().withDayOfMonth(1).toString();
-        String oneDayToOneDay = oneDay + "-" + oneDay;
+        String oneDayToOneDay = oneDay + "--" + oneDay;
         // 判断今天是否是1号
         if (now.getDayOfMonth() == 1) {
             zhongAnBusAnalyEightReportList.stream()
