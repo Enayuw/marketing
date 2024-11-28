@@ -604,6 +604,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
             LocalDateTime localDateTime = LocalDateTime.parse(dateNow, formatter);
             reportStatisticService.action(localDateTime);
+            return true;
         }
 
         // 更新逻辑
