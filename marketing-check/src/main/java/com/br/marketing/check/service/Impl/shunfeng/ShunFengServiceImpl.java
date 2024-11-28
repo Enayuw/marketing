@@ -101,22 +101,22 @@ public class ShunFengServiceImpl implements ShunFengService {
                     }
                 });
             });
-            // 关闭线程池
-            pool.shutdown();
-            try {
-                while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.info("等待线程池结束");
-                }
-            } catch (InterruptedException ex) {
-                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(), "顺丰获取企业信息线程池停止异常！"), ex);
-                Thread.currentThread().interrupt();
-            }
-            localFile.setPushEndTime(new Date());
-            localFile.setPushStatus("2");
-            localFileMapper.updateByPrimaryKeySelective(localFile);
-            log.warn("顺丰获取企业信息运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
 
         }
+        // 关闭线程池
+        pool.shutdown();
+        try {
+            while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.info("等待线程池结束");
+            }
+        } catch (InterruptedException ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SHUNFENG_SERVICEERROR.getCode(), "顺丰获取企业信息线程池停止异常！"), ex);
+            Thread.currentThread().interrupt();
+        }
+        localFile.setPushEndTime(new Date());
+        localFile.setPushStatus("2");
+        localFileMapper.updateByPrimaryKeySelective(localFile);
+        log.warn("顺丰获取企业信息运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
     private void getCompanyInfo(List<ShunfengCompanyData> companyDataList, String apiCode) {

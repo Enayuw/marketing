@@ -224,6 +224,11 @@ public class MarketingCommonConfig {
     private List<String> callRecordDataPushMqApiCodes;
 
     /**
+     * 拨打记录数据配置apicode推送智能规则的mq
+     */
+    private List<String> mrpCallRecordDataPushMqApiCodes;
+
+    /**
      * 玖富转化数据提取apiCode集合
      */
     private List<String> JiuFuTransferApiCodes;
@@ -2043,6 +2048,36 @@ public class MarketingCommonConfig {
      * 58新客-营销名单上报-数据提取-StartDate, 例：20240814
      */
     private List<String> wuBaSubmitDataToFileStartDate;
+
+    /**
+     * 58新客-营销转化结果zip包查询-开关，1-开，0-关
+     */
+    private String wuBaQueryConversionZipResultSwitch;
+
+    /**
+     * 58新客-营销转化结果zip包查询-条件参数
+     */
+    private List<Map<String, String>> wuBaQueryConversionZipResultParams;
+
+    /**
+     * 58新客-营销转化结果zip包查询-查询URL
+     */
+    private Map<String, String> wuBaQueryConversionZipResultUrlConfig;
+
+    /**
+     * 58新客-营销转化结果zip包查询-文件路径
+     */
+    private String wuBaQueryConversionZipResultFilePath;
+
+    /**
+     * 58新客-营销转化结果zip包查询-表头映射配置
+     */
+    private Map<String, String> wuBaQueryConversionZipResultHeaderMapping;
+
+    /**
+     * 58新客-营销转化结果zip包查询-分页配置
+     */
+    private Integer wuBaQueryConversionZipResultPartitionSize;
 
     /**
      * 通用清洗线程池
