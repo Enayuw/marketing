@@ -2371,5 +2371,11 @@ public class MarketingCommonConfig {
 
     private Integer xieChengPreCollidingBlackListDeleteThread;
 
+
+    /**
+     * 自动化测试免密登陆ip
+     */
+    private List<String> autoTestIp;
+
 }
 
