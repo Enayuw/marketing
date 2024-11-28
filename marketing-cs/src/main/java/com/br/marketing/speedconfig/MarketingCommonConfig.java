@@ -2371,5 +2371,10 @@ public class MarketingCommonConfig {
 
     private Integer xieChengPreCollidingBlackListDeleteThread;
 
+    /**
+     * 三方apiCode映射配置
+     */
+    private HashMap<String, List<String>> thirdPartnerApiCodeMappingConfig;
+
 }
 
