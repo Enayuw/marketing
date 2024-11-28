@@ -427,7 +427,7 @@
     />
     <job:simple id="【monkey】-WuBaQueryConversionZipResultJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaQueryConversionZipResultJob"
-                cron="0 10 10 * * ? *"
+                cron="0 10 9 * * ?"
                 description="58新客提交营销名单zip包结果查询"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"

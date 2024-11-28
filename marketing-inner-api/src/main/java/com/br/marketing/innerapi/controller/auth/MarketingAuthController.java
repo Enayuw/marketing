@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * -------------------------------
@@ -37,6 +38,13 @@ public class MarketingAuthController {
     public ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj) {
         return marketingUserInfoService.login(request,reqObj);
     }
+
+
+    @PostMapping(value = "/loginAutoTest")
+    public ApiResult<MarketingUserDetail> loginAutoTest(HttpSession session, HttpServletRequest request, LoginReqObj reqObj) {
+        return marketingUserInfoService.loginAutoTest(session,request,reqObj);
+    }
+
     @PostMapping("/updatePassword")
     public ApiResult<Boolean> updatePassword(HttpServletRequest request, PasswordReq passwordReq) {
         return  marketingUserInfoService.updatePassword(passwordReq);
