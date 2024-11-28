@@ -83,7 +83,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         String curDate = curLocalDate.toString();
         String reportDateStart = curLocalDate.withDayOfMonth(1).toString();
         String reportDateEnd = curLocalDate.plusDays(1).toString();
-        if(monthLocalDate.compareTo(curMonthLocalDate)<0){
+        if(monthLocalDate.compareTo(curMonthLocalDate)!=0){
             reportDateStart = monthLocalDate.withDayOfMonth(1).toString();
             reportDateEnd = monthLocalDate.plusMonths(1).toString();
         }
@@ -107,9 +107,10 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         for (String reportOrder : reportOrderList) {
             BiReportVO biReportVO = new BiReportVO();
             biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getTypeName());
-            String reportName = getReportName(reportOrder);
-            biReportVO.setReportName(reportName + BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getStatName());
+            // String reportName = getReportName(reportOrder);
+            biReportVO.setReportName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getStatName());
             biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
+            biReportVO.setGroup(reportOrderToUserType(reportOrder));
             biReportVO.setXAxisName("日期");
             List<String> xAxis = new ArrayList<>();
             biReportVO.setXAxis(xAxis);
@@ -203,13 +204,13 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
     @Override
     public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
         for (BiReportDownLoadParam param : params) {
-            String reportName = param.getReportName();
+            String name = "场景" + param.getGroup()+ param.getReportName();
             // excel sheet名称最大长度31，超出31截取前31位
-            String name = reportName;
             String sheetName = name.length() > 31 ? name.substring(0, 31) : name;
             excelWriter.setSheet(sheetName);
             // 数据写入
             List<BiReportDownLoadParam> list = Lists.newArrayList();
+            param.setReportName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getStatName());
             list.add(param);
             writeData(excelWriter, list);
         }
@@ -231,11 +232,11 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         for (BiReportDownLoadParam param : params) {
             List<String> xAxis = param.getXAxis();
             List<WrapDataVO> yAxis = param.getYAxis();
-            String reportName = param.getReportName();
+            // String reportName = param.getReportName();
 
             // 写入报表名称
-            writer.writeCellValue(0, rowIndex, reportName);
-            rowIndex++;
+            // writer.writeCellValue(0, rowIndex, reportName);
+            // rowIndex++;
             // 写入X轴名称
             writer.writeCellValue(0, rowIndex, param.getXAxisName());
             // 写X轴数据
@@ -271,10 +272,11 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         for (String reportOrder : reportOrderList) {
             BiReportVO biReportVO = new BiReportVO();
             biReportVO.setReportTypeName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getTypeName());
-            String reportName = getReportName(reportOrder);
-            biReportVO.setReportName(reportName + BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getStatName());
+            // String reportName = getReportName(reportOrder);
+            biReportVO.setReportName(BiReportTypeEnum.TRANSFER_CONNECT_REPORT.getStatName());
             biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
             biReportVO.setXAxisName("日期");
+            biReportVO.setGroup(reportOrderToUserType(reportOrder));
             List<String> xAxis = new ArrayList<>();
             biReportVO.setXAxis(xAxis);
 
