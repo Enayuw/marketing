@@ -6,10 +6,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.KnowException;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
@@ -521,6 +523,14 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(id);
             if(reportTask == null){
                 return new ApiResult<Boolean>().fail(false, "未找到该报表！");
+            }
+            ReportTaskExample taskExample = new ReportTaskExample();
+            taskExample.createCriteria()
+                    .andReportNameEqualTo(reportName)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
+            long l = reportTaskMapper.countByExample(taskExample);
+            if(l>0){
+                return new ApiResult<Boolean>().fail(false, "报表名称重复，请重新输入");
             }
             ReportTask reportTask1 = new ReportTask();
             reportTask1.setId(id);
