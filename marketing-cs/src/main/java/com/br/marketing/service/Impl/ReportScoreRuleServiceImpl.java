@@ -3,6 +3,7 @@ package com.br.marketing.service.Impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.service.bi.ReportStatisticService;
 import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.alibaba.fastjson.JSON;
@@ -42,6 +43,8 @@ import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -91,6 +94,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Resource
     ReportStatisticTransferMapper reportStatisticTransferMapper;
+
+    @Resource
+    ReportStatisticService reportStatisticService;
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -586,6 +592,21 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
         String reportTypeName = param.getReportTypeName();
         Integer reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
+
+        // 众安上线后刷记录
+        ReportTaskExample example = new ReportTaskExample();
+        String reportDateStr = "%" + reportDate;
+        example.createCriteria().andReportNameLike(reportDateStr).andReportTypeEqualTo(reportType);
+        List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
+        if (ObjectUtil.isEmpty(reportTasks)) {
+            String string = "23:59:59.999";
+            String dateNow = reportDate + " " + string;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+            LocalDateTime localDateTime = LocalDateTime.parse(dateNow, formatter);
+            reportStatisticService.action(localDateTime);
+        }
+
+        // 更新逻辑
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             Date reportDateObj = dateFormat.parse(reportDate);
