@@ -1,17 +1,18 @@
 package com.br.marketing.innerapi.controller;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
-import com.br.marketing.entity.ThirdPartnerUploadDataClean;
 import com.br.marketing.service.Impl.MarketingCustomertestImpl;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.thirdpartner.ThirdPartnerDataService;
+import com.br.marketing.service.thirdpartner.dto.ThirdPartnerDataDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -76,15 +77,14 @@ public class BackEndController {
         if (StringUtils.isEmpty(data)) {
             return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
         }
-        List<ThirdPartnerUploadDataClean> dataList = JSON.parseObject(data,
-                new TypeReference<List<ThirdPartnerUploadDataClean>>() {
-        });
+        List<ThirdPartnerDataDTO> dataList = JSON.parseObject(data,
+                new TypeReference<List<ThirdPartnerDataDTO>>() {
+                });
         if (CollectionUtils.isEmpty(dataList)) {
             return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
         }
         if (dataList.size() > 5000) {
-            // todo 告警
-//            log.warn();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), data, "外呼推送三方上传数据接口，外呼推送量级超限"));
             return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
         }
 

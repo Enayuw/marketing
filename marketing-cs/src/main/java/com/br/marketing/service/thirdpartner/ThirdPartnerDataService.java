@@ -3,6 +3,7 @@ package com.br.marketing.service.thirdpartner;
 import com.alibaba.fastjson.JSONArray;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.ThirdPartnerUploadDataClean;
+import com.br.marketing.service.thirdpartner.dto.ThirdPartnerDataDTO;
 
 import java.util.List;
 
@@ -12,5 +13,5 @@ import java.util.List;
  * @CreateTime 2024/11/28
  */
 public interface ThirdPartnerDataService {
-    Result saveData(List<ThirdPartnerUploadDataClean> dataList);
+    Result saveData(List<ThirdPartnerDataDTO> dataList);
 }
