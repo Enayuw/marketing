@@ -472,7 +472,7 @@ public class VariableDicServiceImpl implements VariableDicService {
         String basicDate = parseTime.format(DateTimeFormatter.BASIC_ISO_DATE);
 
         HashMap<String, String> mappingConfig = marketingCommonConfig.getThirdPartnerApiCodeMappingConfig();
-        if (mappingConfig.values().contains(apiCode)) {
+        if (mappingConfig.containsValue(apiCode)) {
             configValidDateDefault(marketingSyncUser
                     , syncUser -> apiCode.concat(":" + userType).concat(":" + basicDate)
                     , syncUser -> periodOfValidityService.generateConfigValidByStartAndEndDate(syncUser));

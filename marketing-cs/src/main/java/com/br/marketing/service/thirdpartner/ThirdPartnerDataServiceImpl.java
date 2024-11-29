@@ -21,6 +21,7 @@ import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -55,10 +56,18 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                 String apiCode = mappingConfig.get(orgApiCode);
                 Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "三方数据_上传清洗规则勿动");
                 value.forEach(data -> {
+                    String validStartDate = data.getValidStartDate();
+                    String validEndDate = data.getValidEndDate();
+                    if (Objects.isNull(validStartDate) || Objects.isNull(validEndDate)) {
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), JSON.toJSONString(dataList),
+                                "外呼推送三方上传数据接口，参数异常"));
+                        return;
+                    }
+
                     data.setApiCode(apiCode);
                     data.setOrgApiCode(orgApiCode);
-                    data.setValidStartDate(data.getValidStartDate().substring(1, 10));
-                    data.setValidEndDate(data.getValidEndDate().substring(1, 10));
+                    data.setValidStartDate(validStartDate.substring(1, 10));
+                    data.setValidEndDate(validEndDate.substring(1, 10));
                     data.setTaskId(taskId);
                 });
 

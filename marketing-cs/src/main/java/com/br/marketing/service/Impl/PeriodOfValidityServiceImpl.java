@@ -472,6 +472,11 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
                 syncUser.getUserType(),
                 syncUser.getAppletDate());
 
+        if (Objects.isNull(marketingSyncByCusBatch)) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                    "根据有效期开始和结束时间生成有效期范围，没有查到上传数据，研发人员需要排查!"));
+            return result;
+        }
         JSONObject json = JSON.parseObject(marketingSyncByCusBatch.getReserveField1());
         String validStartDate = json.getString("validStartDate");
         String validEndDate = json.getString("validEndDate");
