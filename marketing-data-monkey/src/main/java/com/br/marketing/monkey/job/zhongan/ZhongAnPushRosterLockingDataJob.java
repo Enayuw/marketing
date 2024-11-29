@@ -152,6 +152,7 @@ public class ZhongAnPushRosterLockingDataJob extends AbstractSimpleElasticJob {
                 actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 1, "1", isConnect));
                 actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 2, "7", isConnect));
                 actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 2, "8", isConnect));
+                actions.add(new ZhonganRosterLockingDataActionBO(apiCode, bizDate, "MG", 2, "4", isConnect));
             }
             List<Boolean> results = actions.stream()
                 .map(actionBO -> ResultCode.SUCCESS.getValue().equals(action(actionBO,data).getCode()))
