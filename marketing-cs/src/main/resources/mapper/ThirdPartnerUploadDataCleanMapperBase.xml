@@ -8,7 +8,7 @@
     <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="user_type" property="userType" jdbcType="VARCHAR" />
-    <result column="custom_name" property="customName" jdbcType="VARCHAR" />
+    <result column="custom_name_type" property="customNameType" jdbcType="VARCHAR" />
     <result column="resource_channel" property="resourceChannel" jdbcType="INTEGER" />
     <result column="valid_start_date" property="validStartDate" jdbcType="VARCHAR" />
     <result column="valid_end_date" property="validEndDate" jdbcType="VARCHAR" />
@@ -78,8 +78,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, org_api_code, cust_num, cell, user_type, custom_name, resource_channel, 
-    valid_start_date, valid_end_date, clean_status, task_id, extend, is_deleted, create_time, 
+    id, api_code, org_api_code, cust_num, cell, user_type, custom_name_type, resource_channel,
+    valid_start_date, valid_end_date, clean_status, task_id, extend, is_deleted, create_time,
     update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ThirdPartnerUploadDataCleanExample" >
@@ -97,7 +97,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_third_partner_upload_data_clean
     where id = #{id,jdbcType=BIGINT}
@@ -116,18 +116,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_third_partner_upload_data_clean (api_code, org_api_code, cust_num, 
-      cell, user_type, custom_name, 
-      resource_channel, valid_start_date, valid_end_date, 
-      clean_status, task_id, extend, 
-      is_deleted, create_time, update_time
-      )
-    values (#{apiCode,jdbcType=VARCHAR}, #{orgApiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR}, 
-      #{cell,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{customName,jdbcType=VARCHAR}, 
-      #{resourceChannel,jdbcType=INTEGER}, #{validStartDate,jdbcType=VARCHAR}, #{validEndDate,jdbcType=VARCHAR}, 
-      #{cleanStatus,jdbcType=INTEGER}, #{taskId,jdbcType=BIGINT}, #{extend,jdbcType=VARCHAR}, 
-      #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-      )
+    insert into b_third_partner_upload_data_clean (api_code, org_api_code, cust_num,
+    cell, user_type, custom_name_type,
+    resource_channel, valid_start_date, valid_end_date,
+    clean_status, task_id, extend,
+    is_deleted, create_time, update_time
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{orgApiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR},
+    #{cell,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{customNameType,jdbcType=VARCHAR},
+    #{resourceChannel,jdbcType=INTEGER}, #{validStartDate,jdbcType=VARCHAR}, #{validEndDate,jdbcType=VARCHAR},
+    #{cleanStatus,jdbcType=INTEGER}, #{taskId,jdbcType=BIGINT}, #{extend,jdbcType=VARCHAR},
+    #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ThirdPartnerUploadDataClean" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -150,8 +150,8 @@
       <if test="userType != null" >
         user_type,
       </if>
-      <if test="customName != null" >
-        custom_name,
+      <if test="customNameType != null" >
+        custom_name_type,
       </if>
       <if test="resourceChannel != null" >
         resource_channel,
@@ -197,8 +197,8 @@
       <if test="userType != null" >
         #{userType,jdbcType=VARCHAR},
       </if>
-      <if test="customName != null" >
-        #{customName,jdbcType=VARCHAR},
+      <if test="customNameType != null" >
+        #{customNameType,jdbcType=VARCHAR},
       </if>
       <if test="resourceChannel != null" >
         #{resourceChannel,jdbcType=INTEGER},
@@ -256,8 +256,8 @@
       <if test="record.userType != null" >
         user_type = #{record.userType,jdbcType=VARCHAR},
       </if>
-      <if test="record.customName != null" >
-        custom_name = #{record.customName,jdbcType=VARCHAR},
+      <if test="record.customNameType != null" >
+        custom_name_type = #{record.customNameType,jdbcType=VARCHAR},
       </if>
       <if test="record.resourceChannel != null" >
         resource_channel = #{record.resourceChannel,jdbcType=INTEGER},
@@ -294,21 +294,21 @@
   <update id="updateByExample" parameterType="map" >
     update b_third_partner_upload_data_clean
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      org_api_code = #{record.orgApiCode,jdbcType=VARCHAR},
-      cust_num = #{record.custNum,jdbcType=VARCHAR},
-      cell = #{record.cell,jdbcType=VARCHAR},
-      user_type = #{record.userType,jdbcType=VARCHAR},
-      custom_name = #{record.customName,jdbcType=VARCHAR},
-      resource_channel = #{record.resourceChannel,jdbcType=INTEGER},
-      valid_start_date = #{record.validStartDate,jdbcType=VARCHAR},
-      valid_end_date = #{record.validEndDate,jdbcType=VARCHAR},
-      clean_status = #{record.cleanStatus,jdbcType=INTEGER},
-      task_id = #{record.taskId,jdbcType=BIGINT},
-      extend = #{record.extend,jdbcType=VARCHAR},
-      is_deleted = #{record.isDeleted,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    org_api_code = #{record.orgApiCode,jdbcType=VARCHAR},
+    cust_num = #{record.custNum,jdbcType=VARCHAR},
+    cell = #{record.cell,jdbcType=VARCHAR},
+    user_type = #{record.userType,jdbcType=VARCHAR},
+    custom_name_type = #{record.customNameType,jdbcType=VARCHAR},
+    resource_channel = #{record.resourceChannel,jdbcType=INTEGER},
+    valid_start_date = #{record.validStartDate,jdbcType=VARCHAR},
+    valid_end_date = #{record.validEndDate,jdbcType=VARCHAR},
+    clean_status = #{record.cleanStatus,jdbcType=INTEGER},
+    task_id = #{record.taskId,jdbcType=BIGINT},
+    extend = #{record.extend,jdbcType=VARCHAR},
+    is_deleted = #{record.isDeleted,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -331,8 +331,8 @@
       <if test="userType != null" >
         user_type = #{userType,jdbcType=VARCHAR},
       </if>
-      <if test="customName != null" >
-        custom_name = #{customName,jdbcType=VARCHAR},
+      <if test="customNameType != null" >
+        custom_name_type = #{customNameType,jdbcType=VARCHAR},
       </if>
       <if test="resourceChannel != null" >
         resource_channel = #{resourceChannel,jdbcType=INTEGER},
@@ -367,20 +367,20 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ThirdPartnerUploadDataClean" >
     update b_third_partner_upload_data_clean
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      org_api_code = #{orgApiCode,jdbcType=VARCHAR},
-      cust_num = #{custNum,jdbcType=VARCHAR},
-      cell = #{cell,jdbcType=VARCHAR},
-      user_type = #{userType,jdbcType=VARCHAR},
-      custom_name = #{customName,jdbcType=VARCHAR},
-      resource_channel = #{resourceChannel,jdbcType=INTEGER},
-      valid_start_date = #{validStartDate,jdbcType=VARCHAR},
-      valid_end_date = #{validEndDate,jdbcType=VARCHAR},
-      clean_status = #{cleanStatus,jdbcType=INTEGER},
-      task_id = #{taskId,jdbcType=BIGINT},
-      extend = #{extend,jdbcType=VARCHAR},
-      is_deleted = #{isDeleted,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP}
+        org_api_code = #{orgApiCode,jdbcType=VARCHAR},
+        cust_num = #{custNum,jdbcType=VARCHAR},
+        cell = #{cell,jdbcType=VARCHAR},
+        user_type = #{userType,jdbcType=VARCHAR},
+        custom_name_type = #{customNameType,jdbcType=VARCHAR},
+        resource_channel = #{resourceChannel,jdbcType=INTEGER},
+        valid_start_date = #{validStartDate,jdbcType=VARCHAR},
+        valid_end_date = #{validEndDate,jdbcType=VARCHAR},
+        clean_status = #{cleanStatus,jdbcType=INTEGER},
+        task_id = #{taskId,jdbcType=BIGINT},
+        extend = #{extend,jdbcType=VARCHAR},
+        is_deleted = #{isDeleted,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

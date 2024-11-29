@@ -36,7 +36,7 @@ public class ThirdPartnerUploadDataClean {
     /**
      * 子场景
      */
-    private String customName;
+    private String customNameType;
 
     /**
      * 三方类型 1-百应、2-百可录
@@ -131,12 +131,12 @@ public class ThirdPartnerUploadDataClean {
         this.userType = userType == null ? null : userType.trim();
     }
 
-    public String getCustomName() {
-        return customName;
+    public String getCustomNameType() {
+        return customNameType;
     }
 
-    public void setCustomName(String customName) {
-        this.customName = customName == null ? null : customName.trim();
+    public void setCustomNameType(String customNameType) {
+        this.customNameType = customNameType == null ? null : customNameType.trim();
     }
 
     public Integer getResourceChannel() {

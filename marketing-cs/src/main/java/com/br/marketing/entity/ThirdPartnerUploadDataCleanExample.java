@@ -515,73 +515,73 @@ public class ThirdPartnerUploadDataCleanExample {
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameIsNull() {
-            addCriterion("custom_name is null");
+        public Criteria andCustomNameTypeIsNull() {
+            addCriterion("custom_name_type is null");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameIsNotNull() {
-            addCriterion("custom_name is not null");
+        public Criteria andCustomNameTypeIsNotNull() {
+            addCriterion("custom_name_type is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameEqualTo(String value) {
-            addCriterion("custom_name =", value, "customName");
+        public Criteria andCustomNameTypeEqualTo(String value) {
+            addCriterion("custom_name_type =", value, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameNotEqualTo(String value) {
-            addCriterion("custom_name <>", value, "customName");
+        public Criteria andCustomNameTypeNotEqualTo(String value) {
+            addCriterion("custom_name_type <>", value, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameGreaterThan(String value) {
-            addCriterion("custom_name >", value, "customName");
+        public Criteria andCustomNameTypeGreaterThan(String value) {
+            addCriterion("custom_name_type >", value, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameGreaterThanOrEqualTo(String value) {
-            addCriterion("custom_name >=", value, "customName");
+        public Criteria andCustomNameTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("custom_name_type >=", value, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameLessThan(String value) {
-            addCriterion("custom_name <", value, "customName");
+        public Criteria andCustomNameTypeLessThan(String value) {
+            addCriterion("custom_name_type <", value, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameLessThanOrEqualTo(String value) {
-            addCriterion("custom_name <=", value, "customName");
+        public Criteria andCustomNameTypeLessThanOrEqualTo(String value) {
+            addCriterion("custom_name_type <=", value, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameLike(String value) {
-            addCriterion("custom_name like", value, "customName");
+        public Criteria andCustomNameTypeLike(String value) {
+            addCriterion("custom_name_type like", value, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameNotLike(String value) {
-            addCriterion("custom_name not like", value, "customName");
+        public Criteria andCustomNameTypeNotLike(String value) {
+            addCriterion("custom_name_type not like", value, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameIn(List<String> values) {
-            addCriterion("custom_name in", values, "customName");
+        public Criteria andCustomNameTypeIn(List<String> values) {
+            addCriterion("custom_name_type in", values, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameNotIn(List<String> values) {
-            addCriterion("custom_name not in", values, "customName");
+        public Criteria andCustomNameTypeNotIn(List<String> values) {
+            addCriterion("custom_name_type not in", values, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameBetween(String value1, String value2) {
-            addCriterion("custom_name between", value1, value2, "customName");
+        public Criteria andCustomNameTypeBetween(String value1, String value2) {
+            addCriterion("custom_name_type between", value1, value2, "customNameType");
             return (Criteria) this;
         }
 
-        public Criteria andCustomNameNotBetween(String value1, String value2) {
-            addCriterion("custom_name not between", value1, value2, "customName");
+        public Criteria andCustomNameTypeNotBetween(String value1, String value2) {
+            addCriterion("custom_name_type not between", value1, value2, "customNameType");
             return (Criteria) this;
         }
 
