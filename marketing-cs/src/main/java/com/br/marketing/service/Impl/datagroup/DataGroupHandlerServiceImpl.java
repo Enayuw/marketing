@@ -469,19 +469,25 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             }
             List<BaseHead> baseHeads = baseHeadConfigVO.getBaseHead();
             if (!CollectionUtils.isEmpty(baseHeads)) {
-                if (type.equals("0")) {
-                    BaseHead baseHead = new BaseHead();
-                    baseHead.setName(field);
-                    baseHead.setType(2);
-                    baseHeads.add(baseHead);
-                } else {
-                    baseHeads.removeIf(head -> head.getName().equals(field));
-                }
+                List<BaseHead> exist =baseHeads.stream().filter(baseHead -> field.equals(baseHead.getName())).collect(Collectors.toList());
+                    if (type.equals("0")) {
+                        //不存在该字段再添加
+                        if(CollectionUtils.isEmpty(exist)) {
+                            BaseHead baseHead = new BaseHead();
+                            baseHead.setName(field);
+                            baseHead.setType(2);
+                            baseHeads.add(baseHead);
+                        }
+                    } else {
+                        baseHeads.removeIf(head -> head.getName().equals(field));
+                    }
             }
             List<String> headConfig = baseHeadConfigVO.getShowBaseHead();
             if (!CollectionUtils.isEmpty(headConfig)) {
                 if (type.equals("0")) {
-                    headConfig.add(field);
+                    if(!headConfig.contains(field)) {
+                        headConfig.add(field);
+                    }
                 } else {
                     headConfig.removeIf(head -> head.equals(field));
                 }
