@@ -136,7 +136,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                 xAxis.addAll(reportDateTValueList);
 
                 // 构建M
-                if (queryLocalDateEnd.toString().equals(reportDate)) {
+                if (queryLocalDateEnd.minusDays(1).toString().equals(reportDate)) {
                     List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
                     List<ReportStatisticField> reportDateMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, "reportDate", "");
                     List<String> reportDateMValueList = reportDateMList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
@@ -171,7 +171,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                     List<String> fieldYTList = reportOrderToFieldYList(reportOrder, reportDate, "T");
                     List<ReportStatisticField> reportFieldTList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYTList, itemName, "");
                     reportFieldList.addAll(reportFieldTList);
-                    if (queryLocalDateEnd.toString().equals(reportDate)) {
+                    if (queryLocalDateEnd.minusDays(1).toString().equals(reportDate)) {
                         List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
                         List<ReportStatisticField> reportFieldMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, itemName, "");
                         reportFieldList.addAll(reportFieldMList);
