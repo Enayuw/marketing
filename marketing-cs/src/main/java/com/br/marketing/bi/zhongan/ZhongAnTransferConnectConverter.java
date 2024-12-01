@@ -16,7 +16,6 @@ import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.ReportFieldDictMapper;
 import com.br.marketing.mapper.ReportStatisticRuleMapper;
-import com.br.marketing.mapper.ReportTaskMapper;
 import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.util.DataBarUtil;
 import com.br.marketing.vo.bi.BiReportVO;
@@ -58,9 +57,6 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
     @Resource
     private ReportFieldDictMapper reportFieldDictMapper;
 
-    @Resource
-    private ReportTaskMapper reportTaskMapper;
-
     @Override
     public List<ReportStatisticField> fetchData(BiReportParam param) {
         return new ArrayList<>();
@@ -75,20 +71,22 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
         if(StringUtils.isEmpty(month)){
             month = DateUtil.format(LocalDateTime.now(), "yyyy-MM");
         }
-        String monthDay = month+"-01";
-        LocalDate monthLocalDate = LocalDate.parse(monthDay, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        String queryMonthDay = month+"-01";
+        LocalDate queryMonthLocalDate = LocalDate.parse(queryMonthDay, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
         LocalDate curLocalDate = LocalDate.now();
+        String curDate = curLocalDate.toString();
         LocalDate curMonthLocalDate = curLocalDate.withDayOfMonth(1);
 
-        String curDate = curLocalDate.toString();
-        String reportDateStart = curLocalDate.withDayOfMonth(1).toString();
-        String reportDateEnd = curLocalDate.plusDays(1).toString();
-        if(monthLocalDate.compareTo(curMonthLocalDate)!=0){
-            reportDateStart = monthLocalDate.withDayOfMonth(1).toString();
-            reportDateEnd = monthLocalDate.plusMonths(1).toString();
+        LocalDate queryLocalDateStart = queryMonthLocalDate.plusDays(1);
+        LocalDate queryLocalDateEnd = queryMonthLocalDate.plusMonths(1).plusDays(1);
+        if(queryMonthLocalDate.compareTo(curMonthLocalDate)==0){
+            queryLocalDateEnd = curLocalDate.plusDays(1);
         }
 
-        List<ReportStatisticRule> reportRuleList = reportStatisticRuleMapper.selectReportList(reportType, reportDateStart, reportDateEnd);
+        List<ReportStatisticRule> reportRuleList = reportStatisticRuleMapper.selectReportList(reportType
+                , queryLocalDateStart.toString(), queryLocalDateEnd.toString());
         if (CollectionUtils.isEmpty(reportRuleList)) {
             List<BiReportVO> formatReportList = formatEmptyReport();
             return formatReportList;
@@ -138,7 +136,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                 xAxis.addAll(reportDateTValueList);
 
                 // 构建M
-                if (curDate.equals(reportDate)) {
+                if (queryLocalDateEnd.toString().equals(reportDate)) {
                     List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
                     List<ReportStatisticField> reportDateMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, "reportDate", "");
                     List<String> reportDateMValueList = reportDateMList.stream().map((data -> data.getItemValue())).collect(Collectors.toList());
@@ -173,7 +171,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
                     List<String> fieldYTList = reportOrderToFieldYList(reportOrder, reportDate, "T");
                     List<ReportStatisticField> reportFieldTList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYTList, itemName, "");
                     reportFieldList.addAll(reportFieldTList);
-                    if (curDate.equals(reportDate)) {
+                    if (queryLocalDateEnd.toString().equals(reportDate)) {
                         List<String> fieldYMList = reportOrderToFieldYList(reportOrder, reportDate, "M");
                         List<ReportStatisticField> reportFieldMList = zhongAnBiReportMapper.queryReportStatisticFieldbI_(reportId, fieldYMList, itemName, "");
                         reportFieldList.addAll(reportFieldMList);
@@ -287,7 +285,7 @@ public class ZhongAnTransferConnectConverter extends AbstractBiReportConverter<B
 
             List<WrapDataVO> yAxis = Lists.newArrayList();
             for (ReportFieldDict reportFieldDict : reportFieldDictList) {
-                String itemName = reportFieldDict.getItemName();
+                // String itemName = reportFieldDict.getItemName();
                 String itemShow = reportFieldDict.getItemShow();
                 String formatTypeName = reportFieldDict.getItemFormatType();
                 FormatType formatType = FormatType.getByName(formatTypeName);
