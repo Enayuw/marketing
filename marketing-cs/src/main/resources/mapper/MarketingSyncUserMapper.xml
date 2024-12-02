@@ -520,6 +520,26 @@
         </where>
     </select>
 
+    <select id="getCustNumByAppletDateAndUserType" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select cust_num as custNum,
+               cell,
+               reserve_field1 -> '$.api_code' as apiCode
+        from b_marketing_sync_${api_code}
+        <where>
+            <if test="apiCode != null">
+                AND api_code =#{apiCode}
+            </if>
+            <if test="minId != null and minId >0">
+                AND id >=#{minId}
+            </if>
+            AND applet_date = #{appletDate}
+            And user_type = #{userType}
+            AND (reserve_field1 -> '$.api_code') != null
+            AND (reserve_field1 -> '$.api_code') != ''
+            order by id asc limit #{pageSize};
+        </where>
+    </select>
+
 
     <select id="getAppletDateByUserType" resultType="java.lang.String">
         select applet_date from b_marketing_sync_${apiCode}

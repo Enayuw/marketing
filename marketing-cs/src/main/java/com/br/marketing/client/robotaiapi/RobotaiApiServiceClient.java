@@ -224,4 +224,46 @@ public class RobotaiApiServiceClient {
         }
     }
 
+    /**
+     * @param dto
+     * @param method
+     * @return com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO<com.br.marketing.client.robotaiapi.output.TransferRobotDataVO>
+     * @description 外呼接口
+     * @author hedongshuo
+     * @date 2024/12/2 11:38
+     **/
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    @RetryMethod(isOrNoDbRetry = true)
+    public RobotOutboundVo pushRobotOutbound(RobotOutboundGeneralDTO dto, String method){
+        try{
+            ThirdApiResultTransfer thirdApiResult = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
+                    .setUrl(robotOutboundUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setRequestParam(dto).postTransferStr();
+            if(!Integer.valueOf(200).equals(thirdApiResult.getHttpCode())){
+                throw new RuntimeException("客服中心-method：".concat(method).concat("，httpCode：")
+                        .concat(String.valueOf(thirdApiResult.getHttpCode())));
+            }
+            //TODO:需要大盘监控么
+//            try {
+//                //调用数量监控
+//                BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
+//                        dto.getJsonData().getConversionData().size());
+//            } catch (Exception ex) {
+//                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服转化接口统计异常！"), ex);
+//            }
+            RobotOutboundVo result = JSON.parseObject(thirdApiResult.getResult()
+                    , new TypeReference<RobotOutboundVo>() {}.getType());
+            return result;
+        }catch (Exception ex){
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
+            RobotOutboundVo result = new RobotOutboundVo();
+            result.setCode("9999");
+            result.setMessage(ex.getMessage());
+            return result;
+        }
+    }
+
+
+
 }

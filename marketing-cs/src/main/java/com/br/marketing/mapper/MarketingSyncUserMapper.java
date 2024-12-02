@@ -1,6 +1,7 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.bo.CellValidityPeriodBO;
+import com.br.marketing.client.robotaiapi.input.CaseNumDTO;
 import com.br.marketing.entity.*;
 import org.apache.ibatis.annotations.Param;
 
@@ -421,5 +422,18 @@ public interface MarketingSyncUserMapper {
             , @Param("custNums") Set<String> custs
             , @Param("cusBatch") Integer cusBatch
             , @Param("planId") Long planId);
+
+    /**
+     * @param apiCode
+     * @param appletDate
+     * @param userType
+     * @param minId
+     * @return
+     */
+    List<MarketingSyncUser> getCustNumByAppletDateAndUserType(@Param("apiCode") String apiCode,
+                                                       @Param("appletDate") String appletDate,
+                                                       @Param("userType") String userType,
+                                                       @Param("minId") Long minId,
+                                                       @Param("pageSize") Integer pageSize);
 
 }

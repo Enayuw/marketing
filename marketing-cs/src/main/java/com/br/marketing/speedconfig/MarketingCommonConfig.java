@@ -2376,5 +2376,10 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, String> thirdPartnerApiCodeMappingConfig;
 
+    /**
+     * 三方接口方法参数配置
+     */
+    private HashMap<String, JSONObject> thirdPartnerApiMethodConfig;
+
 }
 

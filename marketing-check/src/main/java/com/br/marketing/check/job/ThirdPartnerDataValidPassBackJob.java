@@ -1,11 +1,10 @@
 package com.br.marketing.check.job;
 
-import com.br.marketing.service.thirdpartner.ThirdPartnerDataService;
+import com.br.marketing.service.thirdpartner.ThirdPartnerDataBackService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.Resource;
 
 /**
@@ -18,12 +17,12 @@ import javax.annotation.Resource;
 public class ThirdPartnerDataValidPassBackJob extends AbstractSimpleElasticJob {
 
     @Resource
-    ThirdPartnerDataService thirdPartnerDataService;
+    ThirdPartnerDataBackService thirdPartnerDataBackService;
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
         long start = System.currentTimeMillis();
-        thirdPartnerDataService.validChangeDataBack();
+        thirdPartnerDataBackService.validChangeDataBack();
         log.warn("三方数据有效期变更回传任务，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }

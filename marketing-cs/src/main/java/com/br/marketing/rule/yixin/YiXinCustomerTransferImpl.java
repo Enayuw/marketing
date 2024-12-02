@@ -52,7 +52,6 @@ public class YiXinCustomerTransferImpl implements AssembleData<ConversionData> {
             conversionData.setPartnerProcessDate(DateUtils.format(transfer.getCreateTime(), "yyyy-MM-dd HH:mm:ss"));
         }
         TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
-        BeanUtils.copyProperties(transfer, vo);
         conversionData.setInversionInfo(JSON.toJSONString(vo));
         return conversionData;
     }
