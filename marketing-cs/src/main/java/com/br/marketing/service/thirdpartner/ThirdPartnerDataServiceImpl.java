@@ -54,6 +54,12 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                     }).collect(Collectors.groupingBy(ThirdPartnerUploadDataClean::getApiCode));
             map.forEach((orgApiCode, value) -> {
                 String apiCode = mappingConfig.get(orgApiCode);
+                if (Objects.isNull(apiCode)) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "入参apiCode：" + apiCode,
+                            "外呼推送三方上传数据接口，入参apiCode没有映射关系。数据不落库，需要关注"));
+                    return;
+                }
+
                 Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "三方数据_上传清洗规则勿动");
                 value.forEach(data -> {
                     String validStartDate = data.getValidStartDate();
@@ -66,8 +72,8 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
 
                     data.setApiCode(apiCode);
                     data.setOrgApiCode(orgApiCode);
-                    data.setValidStartDate(validStartDate.substring(1, 10));
-                    data.setValidEndDate(validEndDate.substring(1, 10));
+                    data.setValidStartDate(validStartDate.substring(0, 10));
+                    data.setValidEndDate(validEndDate.substring(0, 10));
                     data.setTaskId(taskId);
                 });
 
