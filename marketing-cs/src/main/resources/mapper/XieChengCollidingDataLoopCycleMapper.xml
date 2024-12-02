@@ -39,7 +39,7 @@
         order by DATE_FORMAT(release_time, '%Y-%m-%d %H:%i');
     </select>
 
-    <select id="selectTodayCycleCount" resultType="java.lang.Integer">
+    <select id="selectTodayCycleCounttiflash_" resultType="java.lang.Integer">
         select count(*) as counts
         from b_xiecheng_colliding_data_loop_cycle
         where (DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
@@ -194,7 +194,7 @@
         </foreach>
     </update>
 
-    <select id="selectCycleCountOfStack" resultType="java.lang.Integer">
+    <select id="selectCycleCountOfStacktiflash_" resultType="java.lang.Integer">
         SELECT count(*) as count
         FROM b_xiecheng_colliding_data_loop_cycle
         WHERE is_delete = 0
