@@ -106,12 +106,9 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                             "\"approvalAvailable\":0,\"applyPayNum\":0,\"payPassRate\":0,\"lendersSucNum\":0,\"lendersSucAmount\":0}]";
                     String jsonData8 = "[{\"constituencies\":5,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}]";
 
-                    param.setUserType1(objectMapper.readValue(jsonData1, new TypeReference<List<ZhongAnCustomInfo>>() {
-                    }));
-                    param.setUserType7(objectMapper.readValue(jsonData7, new TypeReference<List<ZhongAnCustomInfo>>() {
-                    }));
-                    param.setUserType8(objectMapper.readValue(jsonData8, new TypeReference<List<ZhongAnCustomInfo>>() {
-                    }));
+                    param.setUserType1(objectMapper.readValue(jsonData1, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                    param.setUserType7(objectMapper.readValue(jsonData7, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                    param.setUserType8(objectMapper.readValue(jsonData8, new TypeReference<List<ZhongAnCustomInfo>>() {}));
                     zhongAnControlGroupService.saveCustomInfo(param);
                 } catch (Exception e) {
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),

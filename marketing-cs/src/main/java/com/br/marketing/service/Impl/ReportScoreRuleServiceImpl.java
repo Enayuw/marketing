@@ -624,14 +624,10 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
         // 更新逻辑
         try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-            Date reportDateObj = dateFormat.parse(reportDate);
-
             ReportTaskExample reportTaskExample = new ReportTaskExample();
             reportTaskExample.createCriteria()
-                    .andCreateTimeGreaterThanOrEqualTo(reportDateObj)
-                    .andReportTypeEqualTo(reportType)
-                    .andCreateTimeLessThanOrEqualTo(new Date(reportDateObj.getTime() + 24 * 60 * 60 * 1000 - 1));
+                    .andReportNameEqualTo(reportDateStr)
+                    .andReportTypeEqualTo(reportType);
 
             ReportTask reportTask = new ReportTask();
             reportTask.setStatus(0);
