@@ -8,6 +8,8 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Resource;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.constants.rocketmq.MarketingTransferConstants;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
@@ -86,7 +88,8 @@ public class UniversalTransferProcessOffsetDayResend extends ValidityPeriodResen
         Map<String, String> validPeriodRange = marketingDataValidConfigMapper.
             getValidPeriodRangeByApiCodeAndUserTypeAndOffsetDay(record.getValidityPeriodId(), offsetDay);
         if (ObjectUtil.isEmpty(validPeriodRange)) {
-            log.error("转化数据(T-N有效)有效期变更重推失败，未存在有效的有效期，record:{}", record);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                    "转化数据(T-N有效)有效期变更重推失败，未存在有效的有效期，record:" + record));
             return Lists.newArrayList();
         }
         // 开始结束时间范围外扩一天
@@ -129,7 +132,8 @@ public class UniversalTransferProcessOffsetDayResend extends ValidityPeriodResen
             }
         } catch (Exception e) {
             pool.shutdownNow();
-            log.error("UniversalTransferProcessResend 线程池关闭异常,直接关闭线程池", e);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                    "UniversalTransferProcessResend 线程池关闭异常,直接关闭线程池"), e);
         }
     }
 }

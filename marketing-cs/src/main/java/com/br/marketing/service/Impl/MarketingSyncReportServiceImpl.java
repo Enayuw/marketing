@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.BrCipherMaker;
+import com.br.common.log.AlertLog;
 import com.br.common.mask.DataMask;
 import com.br.common.mask.SensitiveType;
 import com.br.common.util.DateUtils;
@@ -16,12 +17,14 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.auth.AuthShowProductor;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.context.ThreadContextInfo;
 import com.br.marketing.dto.msg.mq.ApiDataInfoDTO;
 import com.br.marketing.dto.msg.mq.UserTypeCollectionDTO;
+import com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.eventtrack.EventTrackingCellReport;
@@ -40,6 +43,7 @@ import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.base.Splitter;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -117,6 +121,13 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Resource
     private EventTrackService eventTrackService;
 
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
+
+    @Resource
+    private UploadDataFieldDictMapper uploadDataFieldDictMapper;
+
+
     @Override
     public void syncReportProcess(String uploadDate, String jobName) {
         this.doSyncReportProcess(uploadDate, null, jobName);
@@ -130,16 +141,18 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
      */
     @Override
     public void syncReportProcess(String uploadDate) {
-        this.doSyncReportProcess(uploadDate,null,null);
-    }
-    @Override
-    public void syncReportProcessByApiCode(String uploadDate,String apiCode) {
-        this.doSyncReportProcess(uploadDate,apiCode,null);
+        this.doSyncReportProcess(uploadDate, null, null);
     }
 
-    public void doSyncReportProcess(String uploadDate, String apiCodes,String jobName) {
+    @Override
+    public void syncReportProcessByApiCode(String uploadDate, String apiCode) {
+        this.doSyncReportProcess(uploadDate, apiCode, null);
+    }
+
+    public void doSyncReportProcess(String uploadDate, String apiCodes, String jobName) {
         long l = System.currentTimeMillis();
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(50, 50);
+        Integer uploadThreadNum = marketingCommonConfig.getSyncReportThreadConfig().getInteger("upload");
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(uploadThreadNum, uploadThreadNum);
         List<Customer> customers = new ArrayList<>();
         if (apiCodes != null) {
             //1.获取所有客户
@@ -150,13 +163,15 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         Map<String, Set<String>> userTypeMap = getUserTypeMap();
         CountDownLatch countDownLatch = new CountDownLatch(customers.size());
         for (Customer customer : customers) {
-            if(StringUtils.isNoneBlank(jobName)){
-                Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(),jobName);
-                if(!action){
+            if (StringUtils.isNoneBlank(jobName)) {
+                Boolean action = iCompatibleService.isAction(customer.getExtendConfigInfo(), jobName);
+                if (!action) {
                     countDownLatch.countDown();
                     continue;
                 }
             }
+            threadPool.setCorePoolSize(marketingCommonConfig.getSyncReportThreadConfig().getInteger("upload"));
+            threadPool.setMaximumPoolSize(marketingCommonConfig.getSyncReportThreadConfig().getInteger("upload"));
             threadPool.submit(() -> {
                 try {
                     if (AuthShowProductor.NORMAL.getCode().equals(customer.getStatus())) {
@@ -185,6 +200,23 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                             //判断是否更新
                                             MarketingSyncReport report = selectMarketingSyncReport(apiCode, userType, appletDate);
                                             MarketingSyncReport modifyReport = new MarketingSyncReport();
+                                            //统计reserve_field1的key集合
+                                            HashSet<String> keySet = new HashSet<>();
+                                            try {
+                                                List<String> keysList = syncReportMapper.selectUploadExtendKeystikv_(apiCode, userType, appletDate);
+                                                keysList.forEach((String key) -> {
+                                                    if (StringUtils.isEmpty(key)) {
+                                                        return;
+                                                    }
+                                                    List<String> fieldList = Arrays.asList(key.trim().substring(1, key.length() - 2).replace
+                                                            ("\"", "").replaceAll("\\s+", "").split(","));
+                                                    keySet.addAll(fieldList);
+                                                });
+                                                modifyReport.setReserveField1Key(String.join(",", keySet));
+                                            } catch (Exception e) {
+                                                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                                                        "上传数据统计扩展字段key异常"), e);
+                                            }
                                             Date appletEndTime = DateHelper.parseDate(getAppletTime(apiCode, userType, appletDate, Boolean.FALSE));
                                             if (report == null) {
                                                 //新增
@@ -226,7 +258,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                                 }
 
                             }
-                            log.warn("上传记录更新耗时：{}s" ,(System.currentTimeMillis() - start) / 1000);
+                            log.warn("上传记录更新耗时：{}s", (System.currentTimeMillis() - start) / 1000);
                         }
                     }
                 } catch (Exception e) {
@@ -241,11 +273,56 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             countDownLatch.await();
             //关闭线程池
             threadPool.shutdown();
-            log.warn("上传记录-同步记录操作执行完成，耗时{}s", (System.currentTimeMillis() - l)/1000);
+            log.warn("上传记录-同步记录操作执行完成，耗时{}s", (System.currentTimeMillis() - l) / 1000);
         } catch (InterruptedException e) {
             log.error("countDownLatch 线程执行异常", e);
         }
+        //插入扩展字段key统计表
+        try {
+            handlerDataFieldDict(uploadDate);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "扩展字段添加失败"), e);
+        }
+
     }
+
+    private void handlerDataFieldDict(String uploadDate) {
+        MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
+        reportExample.createCriteria().andAppletDateEqualTo(uploadDate).andReserveField1KeyIsNotNull();
+        List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
+        Map<String, List<MarketingSyncReport>> reportMap =
+                reportList.stream().collect(Collectors.groupingBy(MarketingSyncReport::getApiCode));
+        reportMap.forEach((String apiCode, List<MarketingSyncReport> reports) -> {
+            String cId = tableCreateService.getCId(apiCode);
+            Set<String> keySet = new HashSet<>();
+            reports.forEach((MarketingSyncReport report) -> {
+                List<String> fieldList = Arrays.asList(report.getReserveField1Key().split(","));
+                keySet.addAll(fieldList);
+            });
+            UploadDataFieldDictExample dictExample = new UploadDataFieldDictExample();
+            dictExample.createCriteria().andApiCodeEqualTo(apiCode);
+            List<UploadDataFieldDict> dataFieldDictList = uploadDataFieldDictMapper.selectByExample(dictExample);
+            if (CollectionUtils.isEmpty(dataFieldDictList)) {
+                UploadDataFieldDict dataFieldDict = new UploadDataFieldDict();
+                dataFieldDict.setApiCode(apiCode);
+                dataFieldDict.setCid(cId);
+                dataFieldDict.setReserveField1Key(String.join(",", keySet));
+                dataFieldDict.setCreateTime(new Date());
+                dataFieldDict.setUpdateTime(new Date());
+                uploadDataFieldDictMapper.insertSelective(dataFieldDict);
+            } else {
+                UploadDataFieldDict updateField = dataFieldDictList.get(0);
+                List<String> fieldList = Arrays.asList(updateField.getReserveField1Key().split(","));
+                keySet.addAll(fieldList);
+                updateField.setReserveField1Key(String.join(",", keySet));
+                uploadDataFieldDictMapper.updateByPrimaryKeySelective(updateField);
+
+            }
+        });
+
+    }
+
     /**
      * 根据参数获取上传统计数据
      *
@@ -296,8 +373,10 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             return syncReportMapper.uploadSyncCounttiflash_(apiCode, userType, uploadDate, AuthShowProductor.NORMAL.getCode());
         }
     }
+
     /**
      * 获取所有场景
+     *
      * @return
      */
     private Map<String, Set<String>> getUserTypeMap() {
@@ -307,8 +386,6 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         return dicList.parallelStream().collect(Collectors.groupingBy(VariableDic::getApiCode
                 , Collectors.mapping(VariableDic::getFieldValue, Collectors.toSet())));
     }
-
-
 
 
     /**
@@ -329,36 +406,37 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     }
 
     @Override
-    public PageResultReturn getReportList(int current, int size, String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes) {
+    public PageResultReturn getReportList(int current, int size, String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes,
+                                          String userTypes) {
 
-        if (StringUtils.isNotEmpty(appletTimeEnd)){
+        if (StringUtils.isNotEmpty(appletTimeEnd)) {
             appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
 
-        if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")){
+        if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")) {
             cidOrName = cidOrName.replace("_", "\\_");
         }
 
         List<String> apiCodeList = new ArrayList<>();
         List<String> userTypeList = new ArrayList<>();
-        if(apiCodes != null && !"".equals(apiCodes)){
+        if (apiCodes != null && !"".equals(apiCodes)) {
             String[] split = apiCodes.split(",");
-            for(String item : split){
+            for (String item : split) {
                 apiCodeList.add(item);
             }
         }
-        if(userTypes != null && !"".equals(userTypes)){
+        if (userTypes != null && !"".equals(userTypes)) {
             String[] split = userTypes.split(",");
-            for(String item : split){
+            for (String item : split) {
                 userTypeList.add(item);
             }
         }
         Map params = new HashMap();
-        params.put("cidOrName",cidOrName);
-        params.put("appletTimeStart",appletTimeStart);
-        params.put("appletTimeEnd",appletTimeEnd);
-        params.put("apiCodeList",apiCodeList);
-        params.put("userTypeList",userTypeList);
+        params.put("cidOrName", cidOrName);
+        params.put("appletTimeStart", appletTimeStart);
+        params.put("appletTimeEnd", appletTimeEnd);
+        params.put("apiCodeList", apiCodeList);
+        params.put("userTypeList", userTypeList);
 
         PageHelper.startPage(current, size);
         List<MarketingSyncReportVO> list = syncReportMapper.selectList(params);
@@ -367,7 +445,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             String userType = marketingSyncReportVO.getUserType();
             String appletDate = marketingSyncReportVO.getAppletDate();
             MarketingDataValidConfig validDate = changeMapper.getValidDate(apiCode, userType, appletDate);
-            if (ObjectUtil.isNotEmpty(validDate)){
+            if (ObjectUtil.isNotEmpty(validDate)) {
                 marketingSyncReportVO.setValidStartDate(validDate.getValidStartDate());
                 marketingSyncReportVO.setValidEndDate(validDate.getValidEndDate());
             } else {
@@ -376,39 +454,39 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
         }
 
-        return PageResultReturn.setPageResult(list, current,size);
+        return PageResultReturn.setPageResult(list, current, size);
     }
 
     @Override
     public Map getReportListTotal(String cidOrName, String appletTimeStart, String appletTimeEnd, String apiCodes, String userTypes) {
-        if (StringUtils.isNotEmpty(appletTimeEnd)){
+        if (StringUtils.isNotEmpty(appletTimeEnd)) {
             appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
 
-        if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")){
+        if (StringUtils.isNotEmpty(cidOrName) && cidOrName.contains("_")) {
             cidOrName = cidOrName.replace("_", "\\_");
         }
 
         List<String> apiCodeList = new ArrayList<>();
         List<String> userTypeList = new ArrayList<>();
-        if(apiCodes != null && !"".equals(apiCodes)){
+        if (apiCodes != null && !"".equals(apiCodes)) {
             String[] split = apiCodes.split(",");
-            for(String item : split){
+            for (String item : split) {
                 apiCodeList.add(item);
             }
         }
-        if(userTypes != null && !"".equals(userTypes)){
+        if (userTypes != null && !"".equals(userTypes)) {
             String[] split = userTypes.split(",");
-            for(String item : split){
+            for (String item : split) {
                 userTypeList.add(item);
             }
         }
         Map params = new HashMap();
-        params.put("cidOrName",cidOrName);
-        params.put("appletTimeStart",appletTimeStart);
-        params.put("appletTimeEnd",appletTimeEnd);
-        params.put("apiCodeList",apiCodeList);
-        params.put("userTypeList",userTypeList);
+        params.put("cidOrName", cidOrName);
+        params.put("appletTimeStart", appletTimeStart);
+        params.put("appletTimeEnd", appletTimeEnd);
+        params.put("apiCodeList", apiCodeList);
+        params.put("userTypeList", userTypeList);
 
         Map map = new HashMap();
         Long normalNumTotal = 0L;
@@ -427,21 +505,21 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     @Override
     public JSONObject getReportByCell(String cidOrName, String appletTimeStart, String appletTimeEnd
-            , String apiCodes, String userTypes, String cell, String orderField, String descField){
-        if (StringUtils.isNotEmpty(appletTimeEnd)){
+            , String apiCodes, String userTypes, String cell, String orderField, String descField) {
+        if (StringUtils.isNotEmpty(appletTimeEnd)) {
             appletTimeEnd = DateUtils.format(addDay(appletTimeEnd, 1, "yyyy-MM-dd"), "yyyy-MM-dd");
         }
-        String decodeCell="";
+        String decodeCell = "";
         decodeCell = BrCipherMaker.getInstance().decode(cell);
         // 1. 明文 cell 需要log加密
-        if(CellUtils.isValidateCell(decodeCell)){
+        if (CellUtils.isValidateCell(decodeCell)) {
             // do nothing
-        }else if(DecodeGrpcClient.isMd5(decodeCell)){
+        } else if (DecodeGrpcClient.isMd5(decodeCell)) {
             decodeCell = RpcClientProxy.decode(decodeCell, "cell", "md5", "");
-        }else{
+        } else {
             decodeCell = RpcClientProxy.decode(decodeCell, "cell", "sha", "");
         }
-        if(StringUtils.isBlank(decodeCell)){
+        if (StringUtils.isBlank(decodeCell)) {
             decodeCell = cell;
         }
         decodeCell = DataMask.mask(decodeCell, SensitiveType.LogMask, "");
@@ -461,23 +539,23 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         List<MarketingSyncUserCell> syncUserListAllApiCode = new ArrayList<>();
         for (int i = 0; i < apiCodeList.size(); i++) {
             String apiCode = apiCodeList.get(i);
-            try{
+            try {
                 List<MarketingSyncUserCell> syncUsersList = marketingSyncUserMapper.selectSyncUserByCelltikv_(appletTimeStart
                         , appletTimeEnd, apiCode, userTypeList, decodeCell, orderField, descField);
                 syncUserListAllApiCode.addAll(syncUsersList);
-            }catch (Exception e){
-                if(e.getMessage().contains("doesn't exist")){
+            } catch (Exception e) {
+                if (e.getMessage().contains("doesn't exist")) {
                     log.warn("手机号查询表不存在cidOrName:{}-appletTimeStart:{}-appletTimeEnd:{}-apiCode:{}" +
                                     "-userTypes:{}-cell:{}-orderField:{}-descField:{}"
                             , cidOrName, appletTimeStart, appletTimeEnd, apiCode, userTypes, cell, orderField, descField);
-                }else{
+                } else {
                     log.error("cidOrName:{}-appletTimeStart:{}-appletTimeEnd:{}-apiCode:{}" +
-                            "-userTypes:{}-cell:{}-orderField:{}-descField:{}-手机号查询异常--"
+                                    "-userTypes:{}-cell:{}-orderField:{}-descField:{}-手机号查询异常--"
                             , cidOrName, appletTimeStart, appletTimeEnd, apiCode, userTypes, cell, orderField, descField, e);
                 }
             }
         }
-        syncUserListAllApiCode.stream().forEach((MarketingSyncUserCell c) ->{
+        syncUserListAllApiCode.stream().forEach((MarketingSyncUserCell c) -> {
             String apiCode = c.getApiCode();
             MarketingCustomer marketingCustomer = customerMap.get(apiCode);
             c.setCid(marketingCustomer.getCid());
@@ -491,24 +569,25 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
         // 单独计算全部数据的统计总数
         Long normalNumTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getNormalNum).sum();
         Long duplicateRemovalNumTotal = syncUserListAllApiCode.stream().mapToLong(MarketingSyncUserCell::getDuplicateRemovalNum).sum();
-        countObject.put("normalNumTotal",normalNumTotal);
-        countObject.put("duplicateRemovalNumTotal",duplicateRemovalNumTotal);
+        countObject.put("normalNumTotal", normalNumTotal);
+        countObject.put("duplicateRemovalNumTotal", duplicateRemovalNumTotal);
         result.put("totals", countObject);
         return result;
     }
 
     /**
      * 对含有逗号的String类型进行分割转换成List<String>
-     * @Author yu.xia@brgroup.com
-     * @Date 2024/4/18 10:37
+     *
      * @param params 含有逗号的String参数
      * @return List<String>
+     * @Author yu.xia@brgroup.com
+     * @Date 2024/4/18 10:37
      */
-    public List<String> transformStringToListByComma(String params){
+    public List<String> transformStringToListByComma(String params) {
         List<String> list = new ArrayList<>();
-        if(StringUtils.isNotBlank(params)){
+        if (StringUtils.isNotBlank(params)) {
             String[] split = params.split(",");
-            for(String item : split){
+            for (String item : split) {
                 list.add(item);
             }
         }
@@ -516,8 +595,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     }
 
     public void packageAndSendEventTrack(String cidOrName, String appletTimeStart, String appletTimeEnd
-            , String apiCodes, String userTypes, String cell, Map<String, MarketingCustomer> customerMap, List<String> apiCodeList){
-        try{
+            , String apiCodes, String userTypes, String cell, Map<String, MarketingCustomer> customerMap, List<String> apiCodeList) {
+        try {
             MarketingUserDetail userDetail = ThreadContextInfo.getUser();
             EventTrackingCellReport cellReport = new EventTrackingCellReport();
             cellReport.setCell(cell);
@@ -530,7 +609,7 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             JSONObject param = new JSONObject();
             param.put("cidOrName", cidOrName);
             MarketingCustomer marketingCustomer = customerMap.get(apiCodeList.get(0));
-            if(null != marketingCustomer){
+            if (null != marketingCustomer) {
                 param.put("cid", marketingCustomer.getCid());
                 param.put("shortName", marketingCustomer.getShortName());
             }
@@ -541,9 +620,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             param.put("cell", cell);
             cellReport.setRequestParam(param.toJSONString());
             eventTrackService.insertSync(cellReport);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("cidOrName[{}]appletTimeStart[{}]appletTimeEnd[{}]apiCodes[{}]userTypes[{}]cell[{}]--"
-                    ,cidOrName,appletTimeStart,appletTimeEnd,apiCodes,userTypes,cell,e);
+                    , cidOrName, appletTimeStart, appletTimeEnd, apiCodes, userTypes, cell, e);
         }
     }
 
@@ -579,20 +658,20 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
     @Override
     public boolean updateById(List<Long> ids, String validStartDate, String validEndDate) {
         try {
-            if(ids.isEmpty()){
+            if (ids.isEmpty()) {
                 return true;
             }
             List<String> list = new ArrayList<>();
             List<Long> validIds = new ArrayList<>();
             String str = "";
-            for(Long id : ids){
-                MarketingSyncReportVO reportVO= syncReportMapper.selectById(id);
+            for (Long id : ids) {
+                MarketingSyncReportVO reportVO = syncReportMapper.selectById(id);
                 String apiCode = reportVO.getApiCode();
                 String userType = reportVO.getUserType();
                 String appletDate = reportVO.getAppletDate();
                 MarketingDataValidConfig data = syncReportMapper.selectValidData(apiCode, userType, appletDate);
-                if (ObjectUtil.isEmpty(data)){
-                    log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据",apiCode, userType, appletDate);
+                if (ObjectUtil.isEmpty(data)) {
+                    log.warn("apiCode={},userType={},appletDate={}没有相应的有效期数据", apiCode, userType, appletDate);
                     continue;
                 }
                 validIds.add(data.getId());
@@ -603,17 +682,17 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                 entityOptService.writeOptLog(data.getId(), newData, data);
 
                 str = apiCode + userType;
-                if (!list.contains(str)){
+                if (!list.contains(str)) {
                     list.add(str);
                     log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, data.getId());
                     recordService.saveRecord(apiCode, userType, data.getId());
                 }
             }
             log.warn("更新有效期的ids, validIds={}", validIds);
-            if(!validIds.isEmpty()){
+            if (!validIds.isEmpty()) {
                 validStartDate = DateUtils.format(addDay(validStartDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
                 validEndDate = DateUtils.format(addDay(validEndDate, 0, "yyyy-MM-dd"), "yyyy-MM-dd");
-                marketingDataValidConfigMapper.updateBatchById(validIds,validStartDate,validEndDate);
+                marketingDataValidConfigMapper.updateBatchById(validIds, validStartDate, validEndDate);
             }
             return true;
         } catch (Exception e) {

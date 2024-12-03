@@ -355,6 +355,66 @@ public class MarketingCustomerConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andCheckTypeIsNull() {
+            addCriterion("check_type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeIsNotNull() {
+            addCriterion("check_type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeEqualTo(Integer value) {
+            addCriterion("check_type =", value, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeNotEqualTo(Integer value) {
+            addCriterion("check_type <>", value, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeGreaterThan(Integer value) {
+            addCriterion("check_type >", value, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeGreaterThanOrEqualTo(Integer value) {
+            addCriterion("check_type >=", value, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeLessThan(Integer value) {
+            addCriterion("check_type <", value, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeLessThanOrEqualTo(Integer value) {
+            addCriterion("check_type <=", value, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeIn(List<Integer> values) {
+            addCriterion("check_type in", values, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeNotIn(List<Integer> values) {
+            addCriterion("check_type not in", values, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeBetween(Integer value1, Integer value2) {
+            addCriterion("check_type between", value1, value2, "checkType");
+            return (Criteria) this;
+        }
+
+        public Criteria andCheckTypeNotBetween(Integer value1, Integer value2) {
+            addCriterion("check_type not between", value1, value2, "checkType");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;

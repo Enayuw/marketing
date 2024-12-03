@@ -8,7 +8,7 @@ import com.br.marketing.tools.rpcclient.RpcClientProxy;
 import com.br.marketing.tools.util.EncAndDecUtil;
 import com.br.marketing.tools.util.ThreeKeyEncryptEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.DigestUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -163,32 +163,9 @@ public class FileController {
                     Integer threaNum = rownum;
                     mergeExecutor.submit(()->{
                         try {
-//                            if(new Integer(1).equals(threaNum)){
-////                                String[] split = content.split(",");
-//                                StringBuilder sb = new StringBuilder();
-//                                sb.append(content.trim());
-//                                sb.append("\r\n");
-//                                writer.append(sb.toString());
-//                            }else{
-//                                if(!"".equals(content.trim())||!"\"\"".equals(content.trim())){
-//                                    String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
-//                                    if(StringUtils.isBlank(cell)){
-//                                        error.incrementAndGet();
-//                                    }else{
-//                                        String[] split = content.split(",");
-//                                        StringBuilder sb = new StringBuilder();
-//                                        sb.append(BrCipherMaker.getInstance().encode(cell));
-//                                        sb.append("\r\n");
-//                                        writer.append(sb.toString());
-//                                        success.incrementAndGet();
-//                                    }
-////
-//                                }
-//                            }
-
                             if(!"".equals(content.trim())||!"\"\"".equals(content.trim())){
-                                String cell = RpcClientProxy.decode(content.trim(), "cell", "sha", "");
-                                if(StringUtils.isBlank(cell)){
+                                String trim = content.trim();
+                                if(StringUtils.isBlank(trim)){
                                     log.warn(content.trim());
                                     error.incrementAndGet();
                                     StringBuilder sb = new StringBuilder();
@@ -196,9 +173,19 @@ public class FileController {
                                     sb.append("\r\n");
                                     writer.append(sb);
                                 }else{
-                                    String[] split = content.split(",");
+                                    String[] split = trim.split("\t");
                                     StringBuilder sb = new StringBuilder();
-                                    sb.append(BrCipherMaker.getInstance().encode(cell));
+                                    sb.append(split[0]);
+                                    sb.append(",");
+                                    sb.append(split[1]);
+                                    sb.append(",");
+                                    if(!new String("NULL").equals(split[2])){
+                                        String decode = BrCipherMaker.getInstance().decode(split[2]);
+                                        sb.append(DigestUtils.md5Hex(decode));
+                                        sb.append(",");
+                                    }else{
+                                        sb.append(",");
+                                    }
                                     sb.append("\r\n");
                                     writer.append(sb.toString());
                                     success.incrementAndGet();

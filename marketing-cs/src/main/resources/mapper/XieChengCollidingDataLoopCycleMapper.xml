@@ -39,7 +39,7 @@
         order by DATE_FORMAT(release_time, '%Y-%m-%d %H:%i');
     </select>
 
-    <select id="selectTodayCycleCount" resultType="java.lang.Integer">
+    <select id="selectTodayCycleCounttiflash_" resultType="java.lang.Integer">
         select count(*) as counts
         from b_xiecheng_colliding_data_loop_cycle
         where (DATE_FORMAT(release_time, '%Y-%m-%d') = curdate()
@@ -125,6 +125,17 @@
         order by a.id limit #{pageSize};
     </select>
 
+    <select id="selectCycleBlackListIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
+        select a.id from b_xiecheng_colliding_data_black_list b
+        join b_xiecheng_colliding_data_loop_cycle a on a.cell_sha256_code_list = b.cell_sha256 and b.label_type = #{type}
+        and b.status = 1
+        where a.is_delete = 0
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id limit #{pageSize};
+    </select>
+
     <update id="updateIsDeleteByIds" parameterType="java.util.List">
         update b_xiecheng_colliding_data_loop_cycle
         set is_delete = 1, update_time = now(), extend = #{extend}
@@ -133,6 +144,31 @@
         <foreach collection="ids" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </update>
+
+    <update id="batchUpdateCycPublicBlackListData" parameterType="java.util.List">
+        update
+        b_xiecheng_colliding_data_loop_cycle
+        set
+        extend = #{extend},
+        is_delete = 1,
+        update_time = now()
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item,jdbcType=BIGINT}
+        </foreach>
+    </update>
+
+    <update id="batchUpdateCycNoPublicBlackListData">
+        update
+        b_xiecheng_colliding_data_loop_cycle
+        set
+        extend = CONCAT(CURDATE(),#{labelName}),
+        is_delete = 1,
+        update_time = now()
+        where cell_sha256_code_list =
+        #{cellSha256}
+        and is_delete = 0
     </update>
 
     <select id="selectCycleDataByCondition" resultType="com.br.marketing.entity.XieChengCollidingDataLoopCycle">
@@ -158,7 +194,7 @@
         </foreach>
     </update>
 
-    <select id="selectCycleCountOfStack" resultType="java.lang.Integer">
+    <select id="selectCycleCountOfStacktiflash_" resultType="java.lang.Integer">
         SELECT count(*) as count
         FROM b_xiecheng_colliding_data_loop_cycle
         WHERE is_delete = 0
@@ -210,5 +246,9 @@
 
     <select id="selectActivateData" parameterType="com.br.marketing.dto.xiecheng.XieChengActivateDTO" resultType="com.br.marketing.entity.CustomizeUploadData">
         select id, request_json_data, sync_status from b_customize_upload_data_${cId} where id = #{dataId}
+    </select>
+
+    <select id="searchCycDeleteCountByExtend" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(0) from b_xiecheng_colliding_data_loop_cycle where extend = #{extend}
     </select>
 </mapper>

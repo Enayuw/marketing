@@ -224,6 +224,11 @@ public class MarketingCommonConfig {
     private List<String> callRecordDataPushMqApiCodes;
 
     /**
+     * 拨打记录数据配置apicode推送智能规则的mq
+     */
+    private List<String> mrpCallRecordDataPushMqApiCodes;
+
+    /**
      * 玖富转化数据提取apiCode集合
      */
     private List<String> JiuFuTransferApiCodes;
@@ -2073,6 +2078,36 @@ public class MarketingCommonConfig {
     private List<String> wuBaSubmitDataToFileStartDate;
 
     /**
+     * 58新客-营销转化结果zip包查询-开关，1-开，0-关
+     */
+    private String wuBaQueryConversionZipResultSwitch;
+
+    /**
+     * 58新客-营销转化结果zip包查询-条件参数
+     */
+    private List<Map<String, String>> wuBaQueryConversionZipResultParams;
+
+    /**
+     * 58新客-营销转化结果zip包查询-查询URL
+     */
+    private Map<String, String> wuBaQueryConversionZipResultUrlConfig;
+
+    /**
+     * 58新客-营销转化结果zip包查询-文件路径
+     */
+    private String wuBaQueryConversionZipResultFilePath;
+
+    /**
+     * 58新客-营销转化结果zip包查询-表头映射配置
+     */
+    private Map<String, String> wuBaQueryConversionZipResultHeaderMapping;
+
+    /**
+     * 58新客-营销转化结果zip包查询-分页配置
+     */
+    private Integer wuBaQueryConversionZipResultPartitionSize;
+
+    /**
      * 通用清洗线程池
      */
     private Integer autoCleanDataThreadNum;
@@ -2127,9 +2162,11 @@ public class MarketingCommonConfig {
     private List<String> pushAlarmApiCode;
     /**
      *  * 2024-08-13 15:42
-     * 榕树上传数据清洗线程池配置,eg：[25,50],25为核心线程数，50为最大线程数
+     * 榕树上传数据清洗线程池配置
+     * {"poolSize":"25,50","fileHeader":"HEADER1,HEADER2","regex":"\t"}
+     * eg：[25,50],25为核心线程数，50为最大线程数,核心线程数为0时程序停止
      */
-    private List<Integer> rongShuCleanUploadTreadPoolSize = new ArrayList<>(Arrays.asList(2, 5));
+    private Map<String,String> rongShuCleanUploadConfig = new HashMap<>();
 
     /**
      * 奇富360数据提取custNum对应上传字段
@@ -2316,6 +2353,57 @@ public class MarketingCommonConfig {
      * eg:{"B_GUME":["3710076", "7492805"]}
      */
     private Map<String, List<String>> customerBlackHandlerEnumConfigMap;
+
+    /**
+     * 数据分组线程数
+     */
+    private Integer dataGroupThreadNum;
+
+    /**
+     * 360ai清洗配置
+     * {"tCid":"_original","cleanApiCode":"3700226,7491635","dataTime":"-1/指定日期","pageSize":10,"threadNum":10,"isPause":false}
+     */
+    private JSONObject qifuAiCleanConfig;
+    /**
+     * 同步记录线程池配置
+     * {"upload":3,"transfer":3}
+     */
+    private JSONObject syncReportThreadConfig;
+
+    /**
+     * 营销推决策数据打标es使用标志
+     */
+    private Boolean pushPolicyMarkWithEsFlag;
+
+    /**
+     * 360ai的strategyCode清洗配置
+     */
+    private Boolean qifuAiCleanStrategyCodeFlag;
+
+    /**
+     * 顺丰获取公司信息线程数
+     */
+    private Integer shunFengCompanyThreadNum;
+
+
+    /**
+     * 顺丰接口mock
+     */
+    private Boolean shunFengInterMock;
+    /**
+     * 携程动态补充包Id配置
+     */
+    private List<String> XcDynaFalsePackageIds;
+
+    private Integer xieChengBlackEncAndDesThread;
+
+    private Integer xieChengPreCollidingBlackListDeleteThread;
+
+
+    /**
+     * 自动化测试免密登陆ip
+     */
+    private List<String> autoTestIp;
 
 }
 

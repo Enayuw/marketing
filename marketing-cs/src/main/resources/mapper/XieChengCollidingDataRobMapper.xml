@@ -40,6 +40,20 @@
         </foreach>
     </update>
 
+    <update id="batchUpdateRobBlackListData" parameterType="java.util.List">
+        update
+        b_xiecheng_colliding_data_rob
+        set
+        extend = #{extend},
+        is_delete = 1,
+        update_time = now()
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item,jdbcType=BIGINT}
+        </foreach>
+        and is_delete = 0
+    </update>
+
     <insert id="saveBatch" parameterType="list">
         insert into b_xiecheng_colliding_data_rob (package_id, data_source_type, cell_sha256_code_list,
                                                    create_time, update_time)values
@@ -78,7 +92,7 @@
         order by id asc limit #{pageSize};
     </select>
 
-    <select id="countByCollidingCount" resultType="java.lang.Integer">
+    <select id="countByCollidingCounttiflash_" resultType="java.lang.Integer">
         SELECT count(*)
         FROM b_xiecheng_colliding_data_rob
         WHERE package_id = #{packageId,jdbcType=BIGINT}
@@ -201,4 +215,58 @@
             #{item.id}
         </foreach>
     </select>
+
+    <select id="selectIdsOfDynaFalseDataProcessTasktikv_" resultType="java.lang.Long">
+        select a.id
+        from b_xiecheng_colliding_data_rob a
+        join ${tableName} c on a.cell_sha256_code_list = c.cell and c.is_delete = 0
+        left join ( ${queryRuleScoreDataSql} ) b on c.cell = b.cell and b.is_delete = 0
+        where a.is_delete = 0 and b.id is null
+        and a.package_id = 120007
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id limit #{pageSize};
+    </select>
+    <select id="selectRobPublicBlackListIdsByPage" parameterType="java.lang.String" resultType="java.lang.Long">
+        select a.id from b_xiecheng_colliding_data_black_list b
+        join b_xiecheng_colliding_data_rob a on a.cell_sha256_code_list = b.cell_sha256 and b.label_type = #{type}
+        and b.status = 1
+        where a.is_delete = 0
+        <if test="minId != null and minId>0">
+            and a.id > #{minId}
+        </if>
+        order by a.id limit #{pageSize};
+    </select>
+    
+    <update id="batchUpdateNoPublicBlackListZYData" parameterType="java.util.List">
+        update
+        b_xiecheng_colliding_data_rob
+        set
+        extend = #{extend},
+        is_delete = 1,
+        update_time = now()
+        where id in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item,jdbcType=BIGINT}
+        </foreach>
+        and is_delete = 0
+    </update>
+
+    <update id="batchUpdateRobNoPublicBlackListData">
+        update
+        b_xiecheng_colliding_data_rob
+        set
+        extend = CONCAT(CURDATE(),#{labelName}),
+        is_delete = 1,
+        update_time = now()
+        where cell_sha256_code_list =
+        #{cellSha256}
+        and is_delete = 0
+    </update>
+
+    <select id="searchRobDeleteCountByExtend" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(0) from b_xiecheng_colliding_data_rob where extend = #{extend}
+    </select>
+
 </mapper>

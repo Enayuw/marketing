@@ -13,11 +13,13 @@ import com.br.marketing.enums.report.BiReportTypeEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
+import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.br.marketing.vo.TaskInfoVO;
+import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.BiReportTaskVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
@@ -75,6 +77,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Autowired
     private ZhongAnControlGroupMapper zhongAnControlGroupMapper;
+
+    @Resource
+    private AnalysisReportService analysisReportService;
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -481,6 +486,42 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             log.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    /**
+     * @description 根据评分分布名称和跑分文件id筛选评分分布列表
+     * @param name
+     * @param ids
+     * @return List<ReportTaskVO>
+     * @author hedongshuo
+     * @date 2024/10/24 16:01
+     **/
+    @Override
+    public List<ReportTaskVO> getReportTaskListForScore(String name, String ids) {
+        List<Long> fileIds = Arrays.stream(ids.split(",")).map(t->Long.valueOf(t)).collect(Collectors.toList());
+        StraHisFileExample straHisFileExample = new StraHisFileExample();
+        straHisFileExample.createCriteria().andIdIn(fileIds);
+        List<StraHisFile> straHisFiles = straHisFileMapper.selectByExample(straHisFileExample);
+        List<String> batchNumbers = straHisFiles.stream().map(t -> t.getBatchNumber()).collect(Collectors.toList());
+        if (batchNumbers.size() == 0) {
+            return null;
+        }
+        List<Map<String, Object>> reportIdData =  reportTaskScoreSourceMapper.selectReportIdByBatchNumberstikv_(batchNumbers, batchNumbers.size());
+        if (reportIdData.size() == 0) {
+            return null;
+        }
+        List<String> reportIds = reportIdData.stream().map((Map each) -> each.get("reportId").toString()).collect(Collectors.toList());
+        List<ReportTaskVO> reportTaskVOS = reportTaskMapper.selectDataByIds(reportIds, name);
+        return buildReportTask(reportTaskVOS);
+    }
+
+    private List<ReportTaskVO> buildReportTask(List<ReportTaskVO> reportTaskVOS) {
+        return reportTaskVOS.stream()
+                .peek(reportTaskVO -> {
+                    List<AxisWrapVO> reportDetailsByTaskId = analysisReportService.getReportDetailsByTaskId(reportTaskVO.getId());
+                    reportTaskVO.setAxisWrapVOS(reportDetailsByTaskId);
+                })
+                .collect(Collectors.toList());
     }
 
     /**

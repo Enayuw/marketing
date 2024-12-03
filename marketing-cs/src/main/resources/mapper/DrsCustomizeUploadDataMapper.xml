@@ -112,8 +112,35 @@
     <select id="selectById" resultType="com.br.marketing.entity.DrsCustomizeUploadData">
         select * from b_drs_customize_upload_data${tCid} where id = #{sourceId}
     </select>
+    <select id="getDataOfNeedClean" resultType="com.br.marketing.entity.DrsCustomizeUploadData">
+        select *
+        from b_drs_customize_upload_data${tCid} a
+        left join b_log_360ai b on a.id = b.data_id
+        where a.receive_date in
+        <foreach collection="receiveDates" item="receiveDate" open="(" separator="," close=")">
+            #{receiveDate}
+        </foreach>
+        and a.api_code in
+        <foreach collection="apiCodes" item="apiCode" open="(" separator="," close=")">
+            #{apiCode}
+        </foreach>
+        and a.status = 1
+        and a.sync_status = 0
+        and b.id is null
+        order by a.id
+        limit #{pageSize}
+    </select>
 
     <update id="updateSyncStatusById">
         update b_drs_customize_upload_data${tCid} set sync_status = #{syncStatus} where id = #{sourceId}
+    </update>
+
+    <update id="updateSyncStatusByIds">
+        update b_drs_customize_upload_data${tCid}
+        set sync_status = #{syncStatus}
+        where id in
+        <foreach collection="sourceIds" separator="," item="sourceId" open="(" close=")">
+            #{sourceId}
+        </foreach>
     </update>
 </mapper>

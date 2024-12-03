@@ -216,6 +216,9 @@ public class InterfaceHandlerFactory implements ApplicationContextAware {
         Collection<AssembleData> values = assembleDataMap.values();
         List<AssembleData> assembleDataList = values.stream().filter(data->execRules.contains(data.label()))
                 .sorted(Comparator.comparing(AssembleData::label)).collect(Collectors.toList());
+
+        dataLoadingHandlerService.commonRuleContextAction(source,assembleDataList,context);
+
         /**
          * 3、获取规则配置的上下文加载处理方法,set中值应不大于1
          */

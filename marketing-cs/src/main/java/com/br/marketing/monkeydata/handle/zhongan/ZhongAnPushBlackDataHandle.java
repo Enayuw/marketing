@@ -1,6 +1,7 @@
 package com.br.marketing.monkeydata.handle.zhongan;
 
 import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.client.RedisChgService;
@@ -12,6 +13,7 @@ import com.br.marketing.client.zhongan.utils.Md5OfZanUtils;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -136,7 +138,8 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             }*/
             List<MarketingDataValidConfig> configList = findConfigByBetweenDate(inputData.getApiCode(), date,usertype);
             if (CollectionUtils.isEmpty(configList)) {
-                log.error("众安撞库未配置有效期，请检查");
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_SERVICEERROR.getCode(),
+                        "众安撞库未配置有效期，请检查"));
                 return;
             }
             List<String> appletDateList = configList.stream().map(marketingDataValidConfig -> marketingDataValidConfig.getAppletDate()).collect(Collectors.toList());
@@ -170,7 +173,8 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
             while (!pool.awaitTermination(10L, TimeUnit.SECONDS)) {
             }
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_SERVICEERROR.getCode(),
+                    ex.getMessage()), ex);
         }
         return res;
     }
@@ -221,7 +225,8 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
                     return;
                 }
             } catch (Exception e) {
-                log.error("众安撞库cell存入redis失败，key={}", redisKey, e.getMessage());
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_SERVICEERROR.getCode(),
+                        "众安撞库cell存入redis失败，key=" + redisKey), e);
             }
             String decodeCell = BrCipherMaker.getInstance().decode(t.getCell());
             ZkReqDTO xd = new ZkReqDTO();
@@ -236,7 +241,8 @@ public class ZhongAnPushBlackDataHandle extends IMonkeyDataHandle<MarketingSyncU
                         redisChgService.del(redisKey);
                     }
                 }catch(Exception e){
-                    log.warn("众安撞库redis删除key失败,key={}", redisKey);
+                    log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.ZHONGAN_SERVICEERROR.getCode(),
+                            "众安撞库cell存入redis失败，key=" + redisKey), e);
                 }
                 retryDataList.add(t);
             }

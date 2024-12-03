@@ -37,6 +37,8 @@ public enum InterfaceHandlerEnum {
     CUSTOMER_TRANSFER_SOLE_USE_STATUS(32, "客服转化去重+状态自定义"),
 
     BIOCLOO_BLACK_LIST(33, "百可录黑名单"),
+    CUSTOMER_AUTO_FILTRATION_RS(34, "榕树自动化过滤不去重(分发到多个apiCode)"),
+    CUSTOMER_AUTO_FILTRATION_SOLE_RS(35, "榕树自动化过滤去重(分发到多个apiCode)"),
     ;
 
 

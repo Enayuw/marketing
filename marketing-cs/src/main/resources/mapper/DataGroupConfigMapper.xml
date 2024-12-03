@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.datagroup.DataGroupConfigMapper">
+
+
+    <select id="selectGroupConfigList" resultType="com.br.marketing.vo.datagroup.DataGroupConfigVO">
+
+        select * from b_data_group_config
+        where api_code = #{apiCode} and is_del =1
+        <if test="exactmatch != null">
+            <choose>
+                <when test='exactmatch == "1"'>
+                    and upload_report_id= #{ids}
+                </when>
+                <otherwise>
+                    and FIND_IN_SET(#{ids},upload_report_id)
+                </otherwise>
+            </choose>
+        </if>
+
+
+    </select>
+
+</mapper>

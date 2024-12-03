@@ -33,6 +33,7 @@
         <poi.version>5.2.5</poi.version>
         <log4j.version>2.23.1</log4j.version>
         <rocketmq5x.version>1.0.1</rocketmq5x.version>
+        <br-encrypt.version>1.0.0</br-encrypt.version>
     </properties>
     <dependencies>
         <dependency>
@@ -269,6 +270,11 @@
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-core</artifactId>
                 <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.br.encrypt</groupId>
+                <artifactId>br-encrypt-starter1.x-jdk8</artifactId>
+                <version>${br-encrypt.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

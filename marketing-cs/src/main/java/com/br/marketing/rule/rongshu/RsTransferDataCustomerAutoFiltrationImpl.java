@@ -66,7 +66,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             if(null != marketingSyncUser && StringUtils.isNotBlank(marketingSyncUser.getCell())){
                 conversionData.setPhone(BrCipherMaker.getInstance().decode(marketingSyncUser.getCell()));
             }else{
-                log.error("apiCode[{}]custNum[{}]榕树转化数据自动过滤推客服isBlack=1未发现手机号"
+                log.warn("apiCode[{}]custNum[{}]榕树转化数据自动过滤推客服isBlack=1未发现手机号"
                         , apiCode, custNum);
                 return null;
             }
@@ -119,7 +119,7 @@ public class RsTransferDataCustomerAutoFiltrationImpl implements AssembleData<Co
             if (marketingSyncUser == null) {
                 return false;
             }
-            //userType =4 || userType =5 || unlentAmount < 10000
+            //userType =4 || userType =5 || unlentAmount < 10000 || caseEffective=0
             return "4".equals(transfer.getUserType())
                     || "5".equals(transfer.getUserType())
                     || getUnlentAmount(transfer)

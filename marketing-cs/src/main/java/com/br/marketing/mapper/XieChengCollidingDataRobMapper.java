@@ -3,11 +3,8 @@ package com.br.marketing.mapper;
 import java.util.List;
 import java.util.Map;
 
-import com.br.marketing.entity.XieChengCollidingDataPackage;
-import com.br.marketing.entity.XieChengCollidingDataRobPriority;
+import com.br.marketing.entity.*;
 import org.apache.ibatis.annotations.Param;
-
-import com.br.marketing.entity.XieChengCollidingDataRob;
 
 public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRobMapperBase {
 
@@ -27,6 +24,8 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
      * @param ids
      */
     int updateBatchByIdToIsDeleted(@Param("ids") List<Long> ids, @Param("rollbackFlag") String rollbackFlag);
+
+    void batchUpdateRobBlackListData(@Param("list") List<Long> list, @Param("extend") String extend);
 
     /**
      * 非周期表数据批量保存
@@ -48,7 +47,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     List<XieChengCollidingDataRob> selectRobByRetryCount(@Param("minId") Long minId, @Param("isLast") Boolean isLast,
         @Param("pageSize") Integer pageSize);
 
-    int countByCollidingCount(@Param("packageId") Long packageId, @Param("collidingTimes") Integer collidingTimes);
+    int countByCollidingCounttiflash_(@Param("packageId") Long packageId, @Param("collidingTimes") Integer collidingTimes);
 
     List<XieChengCollidingDataRobPriority> selectRobDataByRuleScoreData(@Param("cells") List<String> cells);
     List<XieChengCollidingDataRobPriority> selectMaxCollidingEndTimeGroupByCell(@Param("cells") List<String> cells);
@@ -73,4 +72,15 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     int batchResetCollidingCountByIds(@Param("list") List<Long> list);
 
     Long selectCountByRoundPackages(@Param("list") List<XieChengCollidingDataPackage> list);
+
+    List<Long> selectIdsOfDynaFalseDataProcessTasktikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
+                                                        @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
+
+    List<Long> selectRobPublicBlackListIdsByPage(@Param("minId") Long minId,@Param("pageSize") Integer pageSize,
+                                                 @Param("type") Integer type);
+
+    void batchUpdateRobNoPublicBlackListData(@Param("labelName") String labelName,@Param("cellSha256") String cellSha256);
+
+    int searchRobDeleteCountByExtend(@Param("extend") String extend);
+
 }

@@ -21,6 +21,7 @@ public enum SftpFileTypeEnum {
     ,WUBA_COLLIDING("wuba_colliding")
     ,XIECHENG_ACTIVATE("xiecheng_activate")
     ,DD("didi")
-    , GUO_MEI_DATA_CALLBACK("guo_mei_data_callback");
+    , GUO_MEI_DATA_CALLBACK("guo_mei_data_callback")
+    ,SHUNFENG_COMPANY("shunfeng_company");
    private String value;
 }

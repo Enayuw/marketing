@@ -4,8 +4,8 @@ datasource:
     defaultSource: shardingmarketing
     shardingmarketing:
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
-      username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
       type: com.alibaba.druid.pool.DruidDataSource
       driver-class-name: com.mysql.jdbc.Driver
       isSharding: true
@@ -27,8 +27,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:4000/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
-      username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
       initialSize: 5 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 5 # 最小连接池数量
       maxActive: 30 # 最大连接池数量
@@ -53,8 +53,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:4020/marketing?useUnicode=true&characterEncoding=UTF-8&connectTimeout=3000&socketTimeout=300000&autoReconnect=true&failOverReadOnly=false&useConfigs=maxPerformance
-      username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -79,8 +79,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
-      username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -103,8 +103,8 @@ datasource:
       type: com.alibaba.druid.pool.DruidDataSource
       driverClassName: com.mysql.jdbc.Driver
       url: jdbc:mysql://tidb-pre.brapp.com:9030/marketing
-      username: u_pd_marketing
-      password: M6teKbFVl1odfOCkC1JA
+      username: ENC(mysql-pre-ai-marketing-user)
+      password: ENC(mysql-pre-ai-marketing-password)
       initialSize: 4 # 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
       minIdle: 4 # 最小连接池数量
       maxActive: 4 # 最大连接池数量
@@ -314,6 +314,14 @@ api:
   tongcheng:
     baseUrl: https://mns.qa.lylend.com
     address: ${api.tongcheng.baseUrl}/api/cep/agent/ret/baiRong
+    isProxy: true
+  shunfeng:
+    baseUri: https://sfapi-sbox.sf-express.com
+    getTokenUrl: ${api.shunfeng.baseUri}/oauth2/accessToken
+    businessInfoUrl: ${api.shunfeng.baseUri}/std/service
+    partnerID: JSKJOGFXT05
+    secret: tKkr6BqgnGHPij3E3zzJEiyhXUi2T6Xt
+    aesKey: 91d23007684c45f5a750fa97d4594821
     isProxy: true
 
 spring:

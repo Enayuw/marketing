@@ -8,6 +8,7 @@ import com.br.marketing.entity.auth.MarketingUserInfo;
 import com.br.marketing.entity.auth.PasswordReq;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 /**
  * -------------------------------
@@ -26,7 +27,13 @@ public interface MarketingUserInfoService {
      */
     ApiResult<MarketingUserDetail> login(HttpServletRequest request, LoginReqObj reqObj);
 
-
+    /**
+     * 用户登录
+     * @param request 请求流
+     * @param reqObj 用户入参
+     * @return 返回用户登录情况 session + MarketingUserDetail
+     */
+    ApiResult<MarketingUserDetail> loginAutoTest(HttpSession httpSession, HttpServletRequest request, LoginReqObj reqObj);
     /**
      * 用户退出
      * @param request 请求流

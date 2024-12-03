@@ -204,17 +204,18 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         Long start = System.currentTimeMillis();
         String tcId = tableCreateService.getTcId(apiCode);
         LocalDate date = LocalDate.now();
-        Integer page = 0;
-        Boolean mark = Boolean.TRUE;
         int totalSize = 0;
-        while (mark) {
-            Result<List<MarketingTransferSyncUser>> transferData = getOrderTransferData(apiCode, tcId, date.toString(), page);
-            if (!ResultCode.SUCCESS.getValue().equals(transferData.getCode())) {
-                mark = Boolean.FALSE;
-                continue;
+        Long indexId = null;
+        Integer pageSize = 2000;
+        while (true) {
+            List<MarketingTransferSyncUser> data = marketingTransferSyncUserMapper.getTransferData(apiCode, tcId,
+                    date.toString(), pageSize, indexId);
+            if (CollectionUtils.isEmpty(data)) {
+                break;
             }
-            page++;
-            List<MarketingTransferSyncUser> data = transferData.getData();
+
+            indexId = data.get(data.size() - 1).getId();
+
             //cell,convType
             for (MarketingTransferSyncUser transferFilterData : data) {
                 String cell = transferFilterData.getCustNum();
@@ -423,24 +424,6 @@ public class TransferToFileByXieChengTwoServiceImpl implements ITransferToFileSe
         String yyyyMMdd = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String concat = apiCode.concat("_").concat(yyyyMMdd).concat("_").concat(contextId.toString());
         return concat;
-    }
-
-    /**
-     * 获取转化数据
-     * 按照inserttime排序
-     *
-     * @param tcId
-     * @param endDate
-     * @param pageIndex
-     * @return
-     */
-    private Result<List<MarketingTransferSyncUser>> getOrderTransferData(String apiCode, String tcId, String endDate, Integer pageIndex) {
-        Integer limitStart = pageIndex * 2000;
-        List<MarketingTransferSyncUser> transferOrderInsertTime = marketingTransferSyncUserMapper.getTransferData(apiCode, tcId, endDate, limitStart);
-        if (transferOrderInsertTime.size() <= 0) {
-            return new Result<>().setCode(ResultCode.FAIL.getValue());
-        }
-        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(transferOrderInsertTime);
     }
 
     /**

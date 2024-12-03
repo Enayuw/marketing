@@ -68,7 +68,7 @@ public enum AlarmSendCodeEnum {
     //推送客服异常,阶梯推送
     PUSHING_CUSTOMERERROR("72000", "推送客服异常"),
     //推送决策异常,阶梯推送
-    PUSHING_DECISIONERROR("72000", "推送决策异常"),
+    PUSHING_DECISIONERROR("73000", "推送决策异常"),
     //推送Api异常,阶梯推送
     PUSHING_APIERROR("74000", "推送Api异常"),
     //调用有效期方法异常,立即推送
@@ -110,6 +110,8 @@ public enum AlarmSendCodeEnum {
     ZHONGAN_SERVICEERROR("6006001", "众安业务异常"),
     //众安接口调用失败,阶梯推送
     ZHONGAN_INTERFACEERROR("6006002", "众安接口调用失败"),
+    //众安上报业务发生错误,立即推送
+    ZHONGAN_REPORTEERROR("6006003", "众安上报业务发生错误"),
 
     //数禾业务异常,立即推送
     SHUHE_SERVICEERROR("6007001", "数禾业务异常"),
@@ -265,6 +267,9 @@ public enum AlarmSendCodeEnum {
 
     //微聚业务异常,立即推送
     WEIJU_SERVICEERROR("6038001", "微聚业务异常"),
+
+    //顺丰业务异常,立即推送
+    SHUNFENG_SERVICEERROR("6039001", "顺丰业务异常"),
 
     ;
 

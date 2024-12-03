@@ -95,12 +95,12 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
         // 周期积压量级
         Date startDate = Date.from(LocalDate.now().minusDays(1).atTime(23, 0, 0).atZone(ZoneId.systemDefault()).toInstant());
         Date endDate = new Date();
-        if (loopCycleMapper.selectCycleCountOfStack(startDate, endDate) >= 200000) {
+        if (loopCycleMapper.selectCycleCountOfStacktiflash_(startDate, endDate) >= 200000) {
             return;
         }
 
         Integer perMinuteCounts = getPerMinuteCounts();
-        Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCount();
+        Integer todayTrueTotalCounts = xieChengCollidingDataLoopCycleMapper.selectTodayCycleCounttiflash_();
         Integer totalThreshold = variableAllocationService.getVariableAllocation().getNormalQuantity();
         int limit = Math.min(perMinuteCounts, totalThreshold - todayTrueTotalCounts);
         // 强制开关开启强制撞库，强制开关关闭且条件开关打开开始撞库
@@ -144,7 +144,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
     private Boolean checkPackageRule(XiechengCollidingDataPackageRule packageRule) {
         Integer collidingBackNumber = packageRule.getCollidingBackNumber();
         // 根据撞库次数获取待撞量级
-        int count = xieChengCollidingDataRobMapper.countByCollidingCount(packageRule.getPackageId(), packageRule.getCollidingTimes());
+        int count = xieChengCollidingDataRobMapper.countByCollidingCounttiflash_(packageRule.getPackageId(), packageRule.getCollidingTimes());
         if (collidingBackNumber == null) {
             // 如果不需要判断撞得量级，则只需判断是否有满足撞库次数的记录
             return count == 0;

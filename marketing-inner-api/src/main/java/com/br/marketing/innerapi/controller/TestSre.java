@@ -38,6 +38,14 @@ public class TestSre {
     @Resource
     private RocketMqSwitch rocketMqSwitch;
 
+    @Autowired
+    InterfaceHandlerService interfaceHandlerService;
+
+    @GetMapping("/testToPolicy")
+    public void testToPolicy(String msg){
+        interfaceHandlerService.handleDataDirection(msg);
+    }
+
     @GetMapping("/testSre")
     public String testApiToDb(@RequestParam("all") String all,@RequestParam("key") String key){
         boolean allFlag = false;

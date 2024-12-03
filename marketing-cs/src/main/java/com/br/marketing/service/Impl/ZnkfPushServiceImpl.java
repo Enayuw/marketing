@@ -33,6 +33,7 @@ import com.br.marketing.mapper.MarketingTransferSyncUserMapper;
 import com.br.marketing.mapper.RoboAIBlackPhoneMarkMapperBase;
 import com.br.marketing.origin.DataLoadingHandlerService;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.MrpMqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IMarketingSyncUserService;
@@ -160,6 +161,17 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                         producter.sendToUniversalTransferQueue(mqFact);
                     }
                 }
+
+                List<String> mrpApiCodes = marketingCommonConfig.getMrpCallRecordDataPushMqApiCodes();
+                if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(callRecord.getApiCode())){
+                    MrpMqFact mrpMqFact = new MrpMqFact();
+                    mrpMqFact.setSourceId(callRecord.getId());
+                    mrpMqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
+                    mrpMqFact.setApiCode(callRecord.getApiCode());
+                    producter.sendToUniversalTransferQueue(mrpMqFact);
+
+                }
+
             }
         } catch (Exception ex) {
             log.error("taskId={},caseNum={},sessionId={}的客服拨打数据落库失败！错误信息为{}", dto.getTaskId(), dto.getCaseNum(), dto.getDetail().getSessionId(), ex);
