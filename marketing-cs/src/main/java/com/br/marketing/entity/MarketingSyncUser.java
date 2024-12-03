@@ -29,11 +29,6 @@ public class MarketingSyncUser {
     private String custNum;
 
     /**
-     * 操作类型
-     */
-    private String operateType;
-
-    /**
      * 身份证号
      */
     private String idCard;
@@ -67,6 +62,11 @@ public class MarketingSyncUser {
      * 新场景-替代group_type
      */
     private String userType;
+
+    /**
+     * 操作类型
+     */
+    private String operateType;
 
     /**
      * 日期
