@@ -62,15 +62,15 @@ public class MqConsumerShutdown {
                                 }));
                         for (int i = 0; i < size; i++) {
                             try {
-                                completionService.take().get();
-                            } catch (InterruptedException | ExecutionException e) {
+                                completionService.take();
+                            } catch (InterruptedException e) {
                                 Thread.currentThread().interrupt();
                                 log.warn(e.getMessage(), e);
                             }
                         }
                         threadPool.shutdown();
                     });
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.SECONDS.sleep(5);
         } catch (BeansException | InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error(e.getMessage(), e);

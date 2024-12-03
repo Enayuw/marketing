@@ -120,16 +120,30 @@ public class RocketMqSwitch {
         return Boolean.FALSE;
     }
 
+    public Boolean consumerStopFlag(){
+        String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
+        if(StringUtils.isBlank(rocketMqSwitchString)){
+            return Boolean.FALSE;
+        }
+        RocketMqSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMqSwitchEntity>() {
+        }.getType());
+        Boolean stopFlag = entity.getConsumerStopFlag();
+        if(null != stopFlag && stopFlag){
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+    }
+
     public SendResult syncSend(String topic, String tags, String msg){
         Message<String> build = MessageBuilder.withPayload(msg)
-                .setHeader(UUID_KEY, snowflakeIdGenerator.nextId())
+                .setHeader(UUID_KEY, snowflakeIdGenerator.nextIdString())
                 .build();
         return template.syncSendMessage(topic, tags, build);
     }
 
     public SendResult syncSendDelaySecond(String topic, String tags, String msg, long delayTime){
         Message<String> build = MessageBuilder.withPayload(msg)
-                .setHeader(UUID_KEY, snowflakeIdGenerator.nextId())
+                .setHeader(UUID_KEY, snowflakeIdGenerator.nextIdString())
                 .build();
         return template.syncSendDelaySecond(topic, tags, build, delayTime);
     }

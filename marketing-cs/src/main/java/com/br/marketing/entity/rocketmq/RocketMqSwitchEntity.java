@@ -49,4 +49,10 @@ public class RocketMqSwitchEntity {
      */
     private JSONObject group;
 
+    /**
+     * 停止消费开关
+     * true：停止消费
+     */
+    private Boolean consumerStopFlag;
+
 }

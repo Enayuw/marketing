@@ -47,13 +47,17 @@ public class SnowflakeIdGenerator {
 
     // 机器ID
     private long workerId;
+    // 机器IP
+    private String podIp;
 
 
-    public SnowflakeIdGenerator(){
+    private SnowflakeIdGenerator(){
     }
 
     public SnowflakeIdGenerator(Long workerId) {
         this.workerId = workerId == null ? generateWorkerId() : workerId;
+        IpAddrUtils ipAddrUtils = new IpAddrUtils();
+        this.podIp = ipAddrUtils.getLocalHostIpHex();
     }
 
     /**
@@ -116,6 +120,10 @@ public class SnowflakeIdGenerator {
         return nextId(this.workerId);
     }
 
+    public synchronized String nextIdString() {
+        return nextId(this.workerId)+podIp;
+    }
+
     /**
      * 2024-11-13 14:40
      * 根据机器名称生成机器号
@@ -130,10 +138,10 @@ public class SnowflakeIdGenerator {
         }
     }
 
-//    public static void main(String arg[]){
-//        SnowFlakeUtil snowFlakeUtil = new SnowFlakeUtil();
-//        for(int i=0;i<2000;i++) {
-//            System.out.println(snowFlakeUtil.nextId(1L));
-//        }
-//    }
+    public static void main(String arg[]){
+        SnowflakeIdGenerator snowFlakeUtil = new SnowflakeIdGenerator();
+        for(int i=0;i<2000;i++) {
+            System.out.println(snowFlakeUtil.nextIdString());
+        }
+    }
 }
