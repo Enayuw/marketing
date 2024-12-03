@@ -168,10 +168,10 @@ public class ZnkfPushServiceImpl implements ZnkfPushService {
                     mrpMqFact.setSourceId(callRecord.getId());
                     mrpMqFact.setSource(TransferSource.CUSTOMER_CALL_RECORD.getCode());
                     mrpMqFact.setApiCode(callRecord.getApiCode());
-                    if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE)){
+                    if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
                         String message = JSON.toJSONString(mrpMqFact);
                         rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
-                                , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
+                                , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
                     }else{
                         producter.sendToUniversalTransferQueue(mrpMqFact);
                     }

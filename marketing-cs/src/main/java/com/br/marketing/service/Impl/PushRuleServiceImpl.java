@@ -54,6 +54,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.MrpMqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -1994,6 +1995,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                 producter.sendToUniversalTransferQueue(mqFact);
             }
         }
+        List<String> mrpApiCodes = marketingCommonConfig.getMrpUploadDataPushMqApiCodes();
+        if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)){
+            MrpMqFact mrpMqFact = new MrpMqFact();
+            mrpMqFact.setSourceId(infoId);
+            mrpMqFact.setSource(TransferSource.INIT_DATA_SET_PROCESS.getCode());
+            mrpMqFact.setApiCode(apiCode);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mrpMqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mrpMqFact);
+            }
+        }
         List<String> apiCodeOfRecordTaskTime = marketingCommonConfig.getApiCodeOfRecordTaskTime();
         if (apiCodeOfRecordTaskTime.contains(apiCode)) {
             String concat = apiCode.concat(":").concat(marketingSyncInfo.getCusBatch());
@@ -2498,6 +2513,20 @@ public class PushRuleServiceImpl implements PushRuleService {
                         , MarketingTransferConstants.TAG_MARKETING_UNIVERSAL_TRANSFER_RECEIVE, message);
             }else{
                 producter.sendToUniversalTransferQueue(mqFact);
+            }
+        }
+        List<String> mrpApiCodes = marketingCommonConfig.getMrpTransferDataPushMqApiCodes();
+        if(!CollectionUtils.isEmpty(mrpApiCodes) && mrpApiCodes.contains(apiCode)){
+            MrpMqFact mrpMqFact = new MrpMqFact();
+            mrpMqFact.setSourceId(id);
+            mrpMqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            mrpMqFact.setApiCode(apiCode);
+            if(rocketMqSwitch.rocketMQSwitchFlag(apiCode, MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE)){
+                String message = JSON.toJSONString(mrpMqFact);
+                rocketMqSwitch.syncSend(MarketingTransferConstants.TOPIC
+                        , MarketingTransferConstants.TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE, message);
+            }else{
+                producter.sendToUniversalTransferQueue(mrpMqFact);
             }
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");

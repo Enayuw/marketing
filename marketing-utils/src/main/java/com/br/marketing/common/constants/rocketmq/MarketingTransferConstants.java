@@ -21,6 +21,10 @@ public class MarketingTransferConstants {
      * 国美定制黑名单数据下发 Tag
      */
     public static final String TAG_MARKETING_GUOMEI_BLACK_DATA_CLEAN = "Marketing.GuoMei.Black.Data.Clean";
+    /**
+     * Mrp定制 Tag
+     */
+    public static final String TAG_MARKETING_MRP_UNIVERSAL_TRANSFER_RECEIVE = "Marketing.Mrp.Universal.Transfer.Receive";
 //    Tag 结束
 
 
