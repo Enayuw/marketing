@@ -1,32 +1,39 @@
 package com.br.marketing.service.thirdpartner;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.CaseNumDTO;
 import com.br.marketing.client.robotaiapi.input.RobotOutboundGeneralDTO;
 import com.br.marketing.client.robotaiapi.input.ValidityChangeDTO;
-import com.br.marketing.client.robotaiapi.output.RobotOutboundVo;
+import com.br.marketing.common.commondto.Result;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.ThirdPartnerDataPassBackLog;
 import com.br.marketing.entity.ThirdPartnerDataPassBackTask;
 import com.br.marketing.entity.ThirdPartnerDataPassBackTaskExample;
 import com.br.marketing.enums.ThirdPartnerDataPassBackTaskPushStatusEnum;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.mapper.ThirdPartnerDataPassBackLogMapper;
 import com.br.marketing.mapper.ThirdPartnerDataPassBackTaskMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
+@Service
+@Slf4j
 public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackService{
     @Resource
     ThirdPartnerDataPassBackTaskMapper thirdPartnerDataPassBackTaskMapper;
@@ -39,6 +46,12 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
 
     @Autowired
     RobotaiApiServiceClient robotaiApiServiceClient;
+
+    @Resource
+    private MethodRetryHandlerService methodRetryHandlerService;
+
+    @Resource
+    ThirdPartnerDataPassBackLogMapper thirdPartnerDataPassBackLogMapper;
 
     private final String METHOD_NAME = "updateBlackDateTime";
 
@@ -64,13 +77,19 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
      * @date 2024/11/28 21:39
      **/
     private void processTask(ThirdPartnerDataPassBackTask task) {
-        //1.获取参数
+        //1.更新task的状态 = 1-执行中
+        ThirdPartnerDataPassBackTask taskForUpdate = new ThirdPartnerDataPassBackTask();
+        taskForUpdate.setId(task.getId());
+        taskForUpdate.setPushStatus(ThirdPartnerDataPassBackTaskPushStatusEnum.EXECUTING.getPushStatus());
+        taskForUpdate.setUpdateTime(new Date());
+        thirdPartnerDataPassBackTaskMapper.updateByPrimaryKeySelective(taskForUpdate);
+        //2.获取参数
         String apiCode = task.getApiCode();
         String userType = task.getUserType();
         String appletDate = task.getAppletDate();
         String validStartDate = task.getValidStartDate();
         String validEndDate = task.getValidEndDate();
-        //2.循环查询数据，分页2000，且一批2000调用接口
+        //3.循环查询数据，分页2000，且一批2000调用接口
         HashMap<String, JSONObject> thirdPartnerApiMethodConfig = marketingCommonConfig.getThirdPartnerApiMethodConfig();
         JSONObject methodJson = thirdPartnerApiMethodConfig.get(METHOD_NAME);
         Integer pageSize = methodJson.getInteger("pageSize");
@@ -95,14 +114,16 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
             List<CaseNumDTO> caseNumDTOS = list.stream().map(item -> {
                 CaseNumDTO caseNumDTO = new CaseNumDTO();
                 BeanUtils.copyProperties(item, caseNumDTO);
+                caseNumDTO.setCaseNum(item.getCustNum());
                 return caseNumDTO;
             }).collect(Collectors.toList());
-            pushData(dto, validityChangeDTO, caseNumDTOS, transferSize, threadPool, futures);
+            pushData(dto, validityChangeDTO, caseNumDTOS, transferSize, threadPool, futures, task.getId());
         }
-
-
-
-
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        //4.更新task的状态 = 2-已完成
+        taskForUpdate.setPushStatus(ThirdPartnerDataPassBackTaskPushStatusEnum.FINISHED.getPushStatus());
+        taskForUpdate.setUpdateTime(new Date());
+        thirdPartnerDataPassBackTaskMapper.updateByPrimaryKeySelective(taskForUpdate);
     }
 
     /**
@@ -114,21 +135,41 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
      * @param transferSize
      * @param threadPool
      * @param futures
+     * @param taskId
      */
     private void pushData(RobotOutboundGeneralDTO<ValidityChangeDTO> dto,
-                          ValidityChangeDTO validityChangeDTO, List<CaseNumDTO> caseNumDTOS,
+                          ValidityChangeDTO validityChangeDTO,
+                          List<CaseNumDTO> caseNumDTOS,
                           Integer transferSize,
-                          ThreadPoolExecutor threadPool, List<CompletableFuture<Void>> futures) {
+                          ThreadPoolExecutor threadPool,
+                          List<CompletableFuture<Void>> futures,
+                          Long taskId) {
         Lists.partition(caseNumDTOS, transferSize).forEach(caseNumDTOList -> {
             futures.add(CompletableFuture.runAsync(() -> {
                 dto.setJsonData(validityChangeDTO);
-                validityChangeDTO.setAccessNumber(UUID.randomUUID().toString());
+                String accessNumber = UUID.randomUUID().toString();
+                validityChangeDTO.setAccessNumber(accessNumber);
                 validityChangeDTO.setData(caseNumDTOList);
-                RobotOutboundVo robotOutboundVo = robotaiApiServiceClient.pushRobotOutbound(dto, validityChangeDTO.getMethod());
-
+                Result<String> result = methodRetryHandlerService.callRobotOutbound(dto, validityChangeDTO.getMethod());
+                if (result.isSuccess()) {
+                    try{
+                        List<ThirdPartnerDataPassBackLog> logs = caseNumDTOList.stream().map((CaseNumDTO caseNumDTO) -> {
+                            ThirdPartnerDataPassBackLog backLog = new ThirdPartnerDataPassBackLog();
+                            backLog.setOrgApiCode(caseNumDTO.getApiCode());
+                            backLog.setCustNum(caseNumDTO.getCaseNum());
+                            backLog.setCell(caseNumDTO.getCell());
+                            backLog.setTaskId(taskId);
+                            backLog.setExtend("");
+                            return backLog;
+                        }).collect(Collectors.toList());
+                        thirdPartnerDataPassBackLogMapper.saveBatch(logs);
+                    }catch (Exception e){
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
+                                , "客服接口保存日志失败，method：" + validityChangeDTO.getMethod() + " -- " + JSON.toJSONString(caseNumDTOList)));
+                    }
+                }
             }, threadPool));
         });
-
     }
 
     /**

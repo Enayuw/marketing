@@ -46,6 +46,7 @@ import com.br.marketing.client.qifu.SaveReachDeleteRecordResp;
 import com.br.marketing.client.robotaiapi.RobotaiApiServiceClient;
 import com.br.marketing.client.robotaiapi.input.*;
 import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
+import com.br.marketing.client.robotaiapi.output.RobotOutboundVo;
 import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
 import com.br.marketing.client.zbank.ZbankClient;
@@ -405,6 +406,21 @@ public class MethodRetryHandlerService {
 //                    .setDate("9999".equals(reqBlackPhoneVO.getCode()) ? "9999" : "部分成功");
 //        }
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(reqBlackPhoneVO.getCode());
+    }
+
+    @RetryMethod(isOrNoDbRetry = true)
+    public Result<String> callRobotOutbound(RobotOutboundGeneralDTO dto, String method) {
+        RobotOutboundVo robotOutboundVo = robotaiApiServiceClient.pushRobotOutbound(dto, method);
+        String code = robotOutboundVo.getCode();
+        if ("00".equals(code)) {
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
+                , "调用客服接口失败，method：" + method + " -- " + JSON.toJSONString(dto)));
+        if ("900001".equals(code)) {
+            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+        }
+        return new Result().setCode(ResultCode.FAIL.getValue());
     }
 
     /**

@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.ThirdPartnerDataPassBackLogMapper" >
+    <insert id="saveBatch" parameterType="list">
+        insert into b_third_partner_data_pass_back_log (org_api_code, cust_num, cell, task_id, extend)
+            values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.orgApiCode}, #{data.custNum}, #{data.cell}, #{data.taskId}, #{data.extend})
+        </foreach>
+    </insert>
 </mapper>
