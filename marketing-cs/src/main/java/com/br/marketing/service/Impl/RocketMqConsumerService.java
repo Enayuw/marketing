@@ -1,25 +1,17 @@
 package com.br.marketing.service.Impl;
 
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.config.RocketMqSwitch;
-import com.br.marketing.entity.rocketmq.MarketingMqMsgSole;
-import com.br.marketing.entity.rocketmq.MarketingMqMsgSoleExample;
-import com.br.marketing.mapper.rocketmq.MarketingMqMsgSoleMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.Random;
 import java.util.function.Function;
 
 /**
@@ -34,11 +26,6 @@ public class RocketMqConsumerService {
     @Resource
     private AlarmApiClient alarmClient;
 
-    @Resource
-    private RedisChgService redisChgService;
-
-    @Resource
-    private MarketingMqMsgSoleMapper marketingMqMsgSoleMapper;
     @Resource
     private RocketMqSwitch rocketMqSwitch;
 
@@ -57,47 +44,11 @@ public class RocketMqConsumerService {
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
             , String delayTopic, String retryTag, long delayTime) {
         String message = null;
-        StringBuilder sb = new StringBuilder();
         String uuid = messageExt.getProperty(RocketMqSwitch.UUID_KEY);
         String topic = messageExt.getTopic();
         String tags = messageExt.getTags();
         String msgId = messageExt.getMsgId();
-        sb.append("pd_marketing_")
-                .append(topic).append("_")
-                .append(tags).append("_")
-//                .append(messageExt.getConsumerGroup)
-                .append(uuid);
-        String redisKey = sb.toString();
         try {
-            /**
-             * 下线标识，不在消费消息
-             */
-//            if(ConsumerService.consumerDownStatus){
-//                log.warn("服务下线，RocketMq消费者不在接收新的流量");
-//                Thread.sleep(10000L);
-//                log.warn("服务下线，RocketMq消费者休眠时间到");
-//            }
-            String value = null;
-            try {
-                value = redisChgService.get(redisKey);
-            } catch (Exception e){
-                // 查询数据库
-                LocalDateTime now = LocalDateTime.now();
-                Date endTime = Date.from(now.atZone(ZoneId.systemDefault()).toInstant());
-                LocalDateTime nowMinus2Hours = now.minusHours(2);
-                Date startTime = Date.from(nowMinus2Hours.atZone(ZoneId.systemDefault()).toInstant());
-                MarketingMqMsgSoleExample example = new MarketingMqMsgSoleExample();
-                MarketingMqMsgSoleExample.Criteria criteria = example.createCriteria();
-                criteria.andCreateTimeBetween(startTime,endTime).andIsDelEqualTo(1).andMsgProductIdEqualTo(uuid);
-                int count = marketingMqMsgSoleMapper.countByExample(example);
-                if(count > 0){
-                    value = "0";
-                }
-            }
-            if(StringUtils.isNotBlank(value)){
-                log.warn("消息重复消费[{}]topic[{}]tags[{}]msgId[{}]", uuid, topic, tags, msgId);
-                return;
-            }
             Result<Boolean> apply = method.apply(t);
             /**
              * code 为SUCCESS 认为消费成功
@@ -120,25 +71,9 @@ public class RocketMqConsumerService {
                         rocketMqSwitch.syncSend(topic, tags, message);
                     }
                 }
-                try{
-                    Random random = new Random();
-                    long randomNum = 60*(random.nextInt(3*1000)+4000);
-                    redisChgService.lock(redisKey,uuid,randomNum);
-                    MarketingMqMsgSole sole = new MarketingMqMsgSole();
-                    sole.setTopic(topic);
-                    sole.setMsgId(msgId);
-                    sole.setMsgProductId(uuid);
-                    sole.setTags(tags);
-                    sole.setCreateTime(new Date());
-                    sole.setMessage(message);
-                    marketingMqMsgSoleMapper.insertSelective(sole);
-                } catch (Exception e){
-                    log.warn("消息写入redis或TIDB异常[{}]topic[{}]tags[{}]msgId[{}]--", uuid
-                            , topic, tags, msgId, e);
-                }
             } else {
-                String msg = String.format("RocketMQ消息重试topic：%s,Tags：%s,msgId：%s,message：%s"
-                        , topic, tags, msgId, message);
+                String msg = String.format("RocketMQ消息重试topic：%s,Tags：%s,uuid：%s,msgId：%s,message：%s"
+                        , topic, tags, uuid, msgId, message);
                 log.warn(msg);
                 /**
                  * 消息重试，默认消息重试规则：
@@ -155,8 +90,8 @@ public class RocketMqConsumerService {
                 throw new RuntimeException();
             }
         } catch (Exception e) {
-            String error = String.format("RocketMQ消费异常topic：%s,Tags：%s,msgId：%s,message：%s,\r\n错误信息：%s"
-                    , topic, tags, msgId, message, e.getMessage());
+            String error = String.format("RocketMQ消费异常topic：%s,Tags：%s,uuid：%s,msgId：%s,message：%s,\r\n错误信息：%s"
+                    , topic, tags, uuid, msgId, message, e.getMessage());
             log.warn(error,e);
             alarmClient.sendAlarm(error,"RocketMQ消费异常", AlarmSendCodeEnum.ROCKETMQ_CONSUMER_ERROR.getCode());
             throw new RuntimeException();

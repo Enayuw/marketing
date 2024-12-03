@@ -1,6 +1,5 @@
 package com.br.marketing.innerapi.controller;
 
-import org.springframework.messaging.Message;
 import com.alibaba.fastjson.JSON;
 import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.entity.MerchantParam;
@@ -10,9 +9,10 @@ import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
 import com.br.marketing.rpcclient.rpcclientImpl.UserCenterGrpcClient;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
+import com.br.marketing.strategy.InterfaceHandlerService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.apache.rocketmq.client.producer.SendResult;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
