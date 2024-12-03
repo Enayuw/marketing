@@ -77,9 +77,17 @@ public class BackEndController {
         if (StringUtils.isEmpty(data)) {
             return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
         }
-        List<ThirdPartnerDataDTO> dataList = JSON.parseObject(data,
-                new TypeReference<List<ThirdPartnerDataDTO>>() {
-                });
+
+        List<ThirdPartnerDataDTO> dataList;
+        try {
+            dataList = JSON.parseObject(data,
+                    new TypeReference<List<ThirdPartnerDataDTO>>() {
+                    });
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), data, "外呼推送三方上传数据接口，参数JSON解析异常"));
+            return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
+        }
+
         if (CollectionUtils.isEmpty(dataList)) {
             return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
         }
