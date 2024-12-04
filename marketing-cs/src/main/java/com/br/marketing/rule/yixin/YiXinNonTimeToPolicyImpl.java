@@ -86,6 +86,11 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         jsonObject.put("batchNumber", getBatchNumber(transfer.getType()));
         buildJson(jsonObject, marketingSyncUser);
 
+        String reserveField1 = transfer.getReserveField1();
+        if (ObjectUtil.isNotEmpty(reserveField1)) {
+            JSONObject jsonObject1 = JSONObject.parseObject(reserveField1);
+            mergeJSONObjects(jsonObject, jsonObject1);
+        }
         pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         //去重参数设置
@@ -107,6 +112,23 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    public static JSONObject mergeJSONObjects(JSONObject jsonObject, JSONObject jsonObject1) {
+        if (jsonObject == null) {
+            return jsonObject1 == null ? new JSONObject() : jsonObject1;
+        }
+        if (jsonObject1 == null) {
+            return jsonObject;
+        }
+
+        for (String key : jsonObject1.keySet()) {
+            if (!jsonObject.keySet().contains(key)) {
+                jsonObject.put(key, jsonObject1.get(key));
+            }
+        }
+
         return jsonObject;
     }
 

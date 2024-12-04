@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
@@ -631,6 +632,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         jsonObject.put("custNum", marketingTransferSyncUserCell.getCustNum());
         jsonObject.put("cell", cell);
         jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
+
+        String reserveField1 = marketingTransferSyncUserCell.getReserveField1();
+        if (ObjectUtil.isNotEmpty(reserveField1)) {
+            JSONObject jsonObject1 = JSONObject.parseObject(reserveField1);
+            mergeJSONObjects(jsonObject, jsonObject1);
+        }
+
         switch (actionType) {
             case "D":
                 jsonObject.put("unlentAmount", marketingTransferSyncUserCell.getUnlentAmount());
@@ -666,6 +674,23 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    public static JSONObject mergeJSONObjects(JSONObject jsonObject, JSONObject jsonObject1) {
+        if (jsonObject == null) {
+            return jsonObject1 == null ? new JSONObject() : jsonObject1;
+        }
+        if (jsonObject1 == null) {
+            return jsonObject;
+        }
+
+        for (String key : jsonObject1.keySet()) {
+            if (!jsonObject.keySet().contains(key)) {
+                jsonObject.put(key, jsonObject1.get(key));
+            }
+        }
+
         return jsonObject;
     }
 

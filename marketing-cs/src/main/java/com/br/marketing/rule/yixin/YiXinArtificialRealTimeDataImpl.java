@@ -10,6 +10,7 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.br.common.encryption.Sha256Util;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
@@ -116,6 +117,10 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         jsonObject.put("cell", cell);
         buildJson(jsonObject, marketingSyncUser);
 
+        if (ObjectUtil.isNotEmpty(parseObject)) {
+            mergeJSONObjects(jsonObject, parseObject);
+        }
+
         pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         return pushMarketingUserDetailByRuleDTO;
 
@@ -131,6 +136,23 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    public static JSONObject mergeJSONObjects(JSONObject jsonObject, JSONObject jsonObject1) {
+        if (jsonObject == null) {
+            return jsonObject1 == null ? new JSONObject() : jsonObject1;
+        }
+        if (jsonObject1 == null) {
+            return jsonObject;
+        }
+
+        for (String key : jsonObject1.keySet()) {
+            if (!jsonObject.keySet().contains(key)) {
+                jsonObject.put(key, jsonObject1.get(key));
+            }
+        }
+
         return jsonObject;
     }
 
