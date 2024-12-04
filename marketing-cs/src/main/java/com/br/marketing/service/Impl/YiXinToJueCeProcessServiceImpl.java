@@ -503,6 +503,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
             marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
             marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
             marketingTransferSyncUserCell.setMarketingSyncUser(marketingSyncUser);
+            marketingTransferSyncUserCell.setMarketingTransferSyncUser(t);
             return marketingTransferSyncUserCell;
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
@@ -626,6 +627,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private JSONObject variablesInit(MarketingTransferSyncUserCell marketingTransferSyncUserCell, String cell, String actionType) {
 
         MarketingSyncUser marketingSyncUser = marketingTransferSyncUserCell.getMarketingSyncUser();
+        MarketingTransferSyncUser transferSyncUser = marketingTransferSyncUserCell.getMarketingTransferSyncUser();
         JSONObject jsonObject = JSONObject.parseObject(marketingSyncUser.getReserveField1());
         buildJson(jsonObject, marketingSyncUser);
 
@@ -634,7 +636,7 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
 
         try {
-            JSONObject jsonObject1 = entityToJSONObject(marketingTransferSyncUserCell);
+            JSONObject jsonObject1 = entityToJSONObject(transferSyncUser);
             mergeJSONObjects(jsonObject, jsonObject1);
         } catch (IllegalAccessException e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YIXIN_SERVICEERROR.getCode()
