@@ -165,6 +165,66 @@ public class ThirdPartnerDataPassBackLogExample {
             return (Criteria) this;
         }
 
+        public Criteria andSyncUserIdIsNull() {
+            addCriterion("sync_user_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdIsNotNull() {
+            addCriterion("sync_user_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdEqualTo(Long value) {
+            addCriterion("sync_user_id =", value, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdNotEqualTo(Long value) {
+            addCriterion("sync_user_id <>", value, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdGreaterThan(Long value) {
+            addCriterion("sync_user_id >", value, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("sync_user_id >=", value, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdLessThan(Long value) {
+            addCriterion("sync_user_id <", value, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdLessThanOrEqualTo(Long value) {
+            addCriterion("sync_user_id <=", value, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdIn(List<Long> values) {
+            addCriterion("sync_user_id in", values, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdNotIn(List<Long> values) {
+            addCriterion("sync_user_id not in", values, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdBetween(Long value1, Long value2) {
+            addCriterion("sync_user_id between", value1, value2, "syncUserId");
+            return (Criteria) this;
+        }
+
+        public Criteria andSyncUserIdNotBetween(Long value1, Long value2) {
+            addCriterion("sync_user_id not between", value1, value2, "syncUserId");
+            return (Criteria) this;
+        }
+
         public Criteria andOrgApiCodeIsNull() {
             addCriterion("org_api_code is null");
             return (Criteria) this;
@@ -432,6 +492,66 @@ public class ThirdPartnerDataPassBackLogExample {
 
         public Criteria andTaskIdNotBetween(Long value1, Long value2) {
             addCriterion("task_id not between", value1, value2, "taskId");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIsNull() {
+            addCriterion("`status` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIsNotNull() {
+            addCriterion("`status` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusEqualTo(Integer value) {
+            addCriterion("`status` =", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotEqualTo(Integer value) {
+            addCriterion("`status` <>", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusGreaterThan(Integer value) {
+            addCriterion("`status` >", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("`status` >=", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusLessThan(Integer value) {
+            addCriterion("`status` <", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("`status` <=", value, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusIn(List<Integer> values) {
+            addCriterion("`status` in", values, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotIn(List<Integer> values) {
+            addCriterion("`status` not in", values, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusBetween(Integer value1, Integer value2) {
+            addCriterion("`status` between", value1, value2, "status");
+            return (Criteria) this;
+        }
+
+        public Criteria andStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("`status` not between", value1, value2, "status");
             return (Criteria) this;
         }
 

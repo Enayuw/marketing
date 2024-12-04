@@ -233,7 +233,6 @@ public class RobotaiApiServiceClient {
      * @date 2024/12/2 11:38
      **/
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
-    @RetryMethod(isOrNoDbRetry = true)
     public RobotOutboundVo pushRobotOutbound(RobotOutboundGeneralDTO dto, String method){
         try{
             ThirdApiResultTransfer thirdApiResult = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)

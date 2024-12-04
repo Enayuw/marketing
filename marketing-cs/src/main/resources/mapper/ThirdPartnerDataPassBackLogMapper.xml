@@ -8,4 +8,14 @@
             (#{data.orgApiCode}, #{data.custNum}, #{data.cell}, #{data.taskId}, #{data.extend})
         </foreach>
     </insert>
+
+    <update id="updateStatusByIds" parameterType="java.util.List">
+        update b_third_partner_data_pass_back_log
+        set status = #{status}, update_time = now()
+        where
+        and id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>

@@ -9,6 +9,11 @@ public class ThirdPartnerDataPassBackLog {
     private Long id;
 
     /**
+     * 上传明细id
+     */
+    private Long syncUserId;
+
+    /**
      * 原始客户编号
      */
     private String orgApiCode;
@@ -27,6 +32,11 @@ public class ThirdPartnerDataPassBackLog {
      * 推送任务id
      */
     private Long taskId;
+
+    /**
+     * 状态 0-推送中、1-推送成功、3-推送失败
+     */
+    private Integer status;
 
     /**
      * 扩展字段
@@ -54,6 +64,14 @@ public class ThirdPartnerDataPassBackLog {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getSyncUserId() {
+        return syncUserId;
+    }
+
+    public void setSyncUserId(Long syncUserId) {
+        this.syncUserId = syncUserId;
     }
 
     public String getOrgApiCode() {
@@ -86,6 +104,14 @@ public class ThirdPartnerDataPassBackLog {
 
     public void setTaskId(Long taskId) {
         this.taskId = taskId;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     public String getExtend() {
