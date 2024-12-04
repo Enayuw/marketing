@@ -180,7 +180,7 @@ public abstract class AbstractBiReportConverter<V, T> {
                 case THOUSAND_SCALE2:
                     return value == null ? "0" :NumberUtil.decimalFormat(",###.00", new BigDecimal(String.valueOf(value)).doubleValue());
                 case THOUSAND_SEPARATOR_SCALE2:
-                    return value == null ? "0" :NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf(value)).doubleValue());
+                    return value == null ? "0" :NumberUtil.decimalFormat(",##0.00", NumberUtil.round(String.valueOf(value), 2));
                 case PERCENT_SCALE2:
                     return value == null ? "0%" :NumberUtil.decimalFormat("#0.00%", new BigDecimal(String.valueOf(value)));
                 case PERCENT_SCALE3:
@@ -308,6 +308,26 @@ public abstract class AbstractBiReportConverter<V, T> {
         }
         cellStyle.setDataFormat(formatIndex);
         return cellStyle;
+    }
+
+    public static void main(String[] args) {
+        String s1 = NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf("220.945000")).doubleValue());
+        String s2 = NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf("123.455000")).doubleValue());
+        String s3 = NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf("220.945000")));
+        String s4 = NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf("123.455000")));
+
+        String s5 = NumberUtil.decimalFormat(",##0.00", NumberUtil.round("12345220.945000", 2));
+        String s6 = NumberUtil.decimalFormat(",##0.00", NumberUtil.round("123123123.455000", 2));
+        String s7 = NumberUtil.decimalFormat(",##0.00", NumberUtil.round("0", 2));
+        String s8 = NumberUtil.decimalFormat(",##0.00", NumberUtil.round("0.000000", 2));
+        log.warn(s1);
+        log.warn(s2);
+        log.warn(s3);
+        log.warn(s4);
+        log.warn(s5);
+        log.warn(s6);
+        log.warn(s7);
+        log.warn(s8);
     }
 
 }
