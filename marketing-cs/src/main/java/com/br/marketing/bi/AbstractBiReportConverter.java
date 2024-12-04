@@ -181,6 +181,8 @@ public abstract class AbstractBiReportConverter<V, T> {
                     return value == null ? "0" :NumberUtil.decimalFormat(",###.00", new BigDecimal(String.valueOf(value)).doubleValue());
                 case THOUSAND_SEPARATOR_SCALE2:
                     return value == null ? "0" :NumberUtil.decimalFormat(",##0.00", NumberUtil.round(String.valueOf(value), 2));
+                case PERCENT_SCALE1:
+                    return value == null ? "0%" :NumberUtil.decimalFormat("#0.0%", new BigDecimal(String.valueOf(value)));
                 case PERCENT_SCALE2:
                     return value == null ? "0%" :NumberUtil.decimalFormat("#0.00%", new BigDecimal(String.valueOf(value)));
                 case PERCENT_SCALE3:
@@ -203,6 +205,7 @@ public abstract class AbstractBiReportConverter<V, T> {
         THOUSAND_INTEGER("THOUSAND_INTEGER"),
         THOUSAND_SCALE2("THOUSAND_SCALE2"),
         THOUSAND_SEPARATOR_SCALE2("THOUSAND_SEPARATOR_SCALE2"),
+        PERCENT_SCALE1("PERCENT_SCALE1"),
         PERCENT_SCALE2("PERCENT_SCALE2"),
         PERCENT_SCALE3("PERCENT_SCALE3"),
         PERCENT_SCALE4("PERCENT_SCALE4"),
