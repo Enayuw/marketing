@@ -10,11 +10,8 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
-import cn.hutool.core.util.ObjectUtil;
-import com.br.common.encryption.Sha256Util;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
-import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -117,9 +114,8 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         jsonObject.put("cell", cell);
         buildJson(jsonObject, marketingSyncUser);
 
-        if (ObjectUtil.isNotEmpty(parseObject)) {
-            mergeJSONObjects(jsonObject, parseObject);
-        }
+        addJson(parseObject, transfer);
+        mergeJSONObjects(jsonObject, parseObject);
 
         pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         return pushMarketingUserDetailByRuleDTO;
@@ -138,6 +134,45 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
         return jsonObject;
     }
+
+    private JSONObject addJson(JSONObject jsonObject, MarketingTransferSyncUser transfer) {
+        jsonObject.put("cid", emptyDefault(transfer.getCid()));
+        jsonObject.put("tCid", emptyDefault(transfer.gettCid()));
+        jsonObject.put("apiCode", emptyDefault(transfer.getApiCode()));
+        jsonObject.put("requestId", emptyDefault(transfer.getRequestId()));
+        jsonObject.put("orgName", emptyDefault(transfer.getOrgName()));
+        jsonObject.put("custNum", emptyDefault(transfer.getCustNum()));
+        jsonObject.put("source", emptyDefault(transfer.getSource()));
+        jsonObject.put("userType", emptyDefault(transfer.getUserType()));
+        jsonObject.put("type", emptyDefault(transfer.getType()));
+        jsonObject.put("customName", emptyDefault(transfer.getCustomName()));
+        jsonObject.put("ifRegister", emptyDefault(transfer.getIfRegister()));
+        jsonObject.put("registerTime", emptyDefault(transfer.getRegisterTime()));
+        jsonObject.put("ifLogin", emptyDefault(transfer.getIfLogin()));
+        jsonObject.put("loginTime", emptyDefault(transfer.getLoginTime()));
+        jsonObject.put("ifApply", emptyDefault(transfer.getIfApply()));
+        jsonObject.put("applyDt", emptyDefault(transfer.getApplyDt()));
+        jsonObject.put("applyTime", emptyDefault(transfer.getApplyTime()));
+        jsonObject.put("applyResult", emptyDefault(transfer.getApplyResult()));
+        jsonObject.put("refuseTime", emptyDefault(transfer.getRefuseTime()));
+        jsonObject.put("auditTime", emptyDefault(transfer.getAuditTime()));
+        jsonObject.put("auditAmount", emptyDefault(transfer.getAuditAmount()));
+        jsonObject.put("ifLent", emptyDefault(transfer.getIfLent()));
+        jsonObject.put("lentTime", emptyDefault(transfer.getLentTime()));
+        jsonObject.put("lentAmount", emptyDefault(transfer.getLentAmount()));
+        jsonObject.put("unlentAmount", emptyDefault(transfer.getUnlentAmount()));
+        jsonObject.put("ifSettle", emptyDefault(transfer.getIfSettle()));
+        jsonObject.put("settleTime", emptyDefault(transfer.getSettleTime()));
+        jsonObject.put("activity", emptyDefault(transfer.getActivity()));
+        jsonObject.put("caseStatus", emptyDefault(transfer.getCaseStatus()));
+        jsonObject.put("caseEffective", emptyDefault(transfer.getCaseEffective()));
+        jsonObject.put("ifTransform", emptyDefault(transfer.getIfTransform()));
+        jsonObject.put("transformTime", emptyDefault(transfer.getTransformTime()));
+        jsonObject.put("requestData", emptyDefault(transfer.getRequestData()));
+        jsonObject.put("requestTime", emptyDefault(transfer.getRequestTime()));
+        return jsonObject;
+    }
+
 
     public static JSONObject mergeJSONObjects(JSONObject jsonObject, JSONObject jsonObject1) {
         if (jsonObject == null) {

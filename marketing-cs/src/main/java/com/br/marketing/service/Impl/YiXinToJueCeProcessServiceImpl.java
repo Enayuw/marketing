@@ -1,8 +1,6 @@
 package com.br.marketing.service.Impl;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
@@ -27,7 +25,6 @@ import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
-import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
@@ -634,10 +631,9 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
 
         String reserveField1 = marketingTransferSyncUserCell.getReserveField1();
-        if (ObjectUtil.isNotEmpty(reserveField1)) {
-            JSONObject jsonObject1 = JSONObject.parseObject(reserveField1);
-            mergeJSONObjects(jsonObject, jsonObject1);
-        }
+        JSONObject jsonObject1 = JSONObject.parseObject(reserveField1);
+        addJson(jsonObject1, marketingTransferSyncUserCell);
+        mergeJSONObjects(jsonObject, jsonObject1);
 
         switch (actionType) {
             case "D":
@@ -674,6 +670,45 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+
+    private JSONObject addJson(JSONObject jsonObject, MarketingTransferSyncUser transferSyncUser) {
+        jsonObject.put("cid", emptyDefault(transferSyncUser.getCid()));
+        jsonObject.put("tCid", emptyDefault(transferSyncUser.gettCid()));
+        jsonObject.put("apiCode", emptyDefault(transferSyncUser.getApiCode()));
+        jsonObject.put("requestId", emptyDefault(transferSyncUser.getRequestId()));
+        jsonObject.put("orgName", emptyDefault(transferSyncUser.getOrgName()));
+        jsonObject.put("custNum", emptyDefault(transferSyncUser.getCustNum()));
+        jsonObject.put("source", emptyDefault(transferSyncUser.getSource()));
+        jsonObject.put("userType", emptyDefault(transferSyncUser.getUserType()));
+        jsonObject.put("type", emptyDefault(transferSyncUser.getType()));
+        jsonObject.put("customName", emptyDefault(transferSyncUser.getCustomName()));
+        jsonObject.put("ifRegister", emptyDefault(transferSyncUser.getIfRegister()));
+        jsonObject.put("registerTime", emptyDefault(transferSyncUser.getRegisterTime()));
+        jsonObject.put("ifLogin", emptyDefault(transferSyncUser.getIfLogin()));
+        jsonObject.put("loginTime", emptyDefault(transferSyncUser.getLoginTime()));
+        jsonObject.put("ifApply", emptyDefault(transferSyncUser.getIfApply()));
+        jsonObject.put("applyDt", emptyDefault(transferSyncUser.getApplyDt()));
+        jsonObject.put("applyTime", emptyDefault(transferSyncUser.getApplyTime()));
+        jsonObject.put("applyResult", emptyDefault(transferSyncUser.getApplyResult()));
+        jsonObject.put("refuseTime", emptyDefault(transferSyncUser.getRefuseTime()));
+        jsonObject.put("auditTime", emptyDefault(transferSyncUser.getAuditTime()));
+        jsonObject.put("auditAmount", emptyDefault(transferSyncUser.getAuditAmount()));
+        jsonObject.put("ifLent", emptyDefault(transferSyncUser.getIfLent()));
+        jsonObject.put("lentTime", emptyDefault(transferSyncUser.getLentTime()));
+        jsonObject.put("lentAmount", emptyDefault(transferSyncUser.getLentAmount()));
+        jsonObject.put("unlentAmount", emptyDefault(transferSyncUser.getUnlentAmount()));
+        jsonObject.put("ifSettle", emptyDefault(transferSyncUser.getIfSettle()));
+        jsonObject.put("settleTime", emptyDefault(transferSyncUser.getSettleTime()));
+        jsonObject.put("activity", emptyDefault(transferSyncUser.getActivity()));
+        jsonObject.put("caseStatus", emptyDefault(transferSyncUser.getCaseStatus()));
+        jsonObject.put("caseEffective", emptyDefault(transferSyncUser.getCaseEffective()));
+        jsonObject.put("ifTransform", emptyDefault(transferSyncUser.getIfTransform()));
+        jsonObject.put("transformTime", emptyDefault(transferSyncUser.getTransformTime()));
+        jsonObject.put("requestData", emptyDefault(transferSyncUser.getRequestData()));
+        jsonObject.put("requestTime", emptyDefault(transferSyncUser.getRequestTime()));
         return jsonObject;
     }
 
