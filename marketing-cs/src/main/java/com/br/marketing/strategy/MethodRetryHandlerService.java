@@ -408,7 +408,7 @@ public class MethodRetryHandlerService {
         return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setDate(reqBlackPhoneVO.getCode());
     }
 
-    @RetryMethod(isOrNoDbRetry = true)
+    @RetryMethod(retryNowNum = 3)
     public Result<String> callRobotOutbound(RobotOutboundGeneralDTO dto, String method) {
         RobotOutboundVo robotOutboundVo = robotaiApiServiceClient.pushRobotOutbound(dto, method);
         String code = robotOutboundVo.getCode();

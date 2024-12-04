@@ -521,25 +521,22 @@
     </select>
 
     <select id="getCustNumByAppletDateAndUserType" resultType="com.br.marketing.entity.MarketingSyncUser">
-        select id,
-               cust_num as custNum,
-               cell,
-               reserve_field1 ->> '$.orgApiCode' as apiCode
-        from b_marketing_sync_${apiCode}
+        select sync.id as id,
+               sync.cust_num as custNum,
+               sync.cell as cell,
+               reserve_field1
+        from b_marketing_sync_${apiCode} sync
+        left join b_third_partner_data_pass_back_log passLog on sync.id = log.sync_user_id
+        AND passLog.task_id = #{taskId}
+        AND passLog.status in (0,1)
         <where>
-            <if test="apiCode != null">
-                AND api_code =#{apiCode}
-            </if>
-            <if test="minId != null and minId >0">
-                AND id > #{minId}
-            </if>
-            AND applet_date = #{appletDate}
-            AND user_type = #{userType}
-            AND status = 1
-            AND is_repeat in (1,2)
-            AND (reserve_field1 ->> '$.orgApiCode') is not null
-            AND (reserve_field1 ->> '$.orgApiCode') != ''
-            order by id asc limit #{pageSize};
+            sync.api_code =#{apiCode}
+            AND sync.applet_date = #{appletDate}
+            AND sync.user_type = #{userType}
+            AND sync.status = 1
+            AND sync.is_repeat in (1,2)
+            AND passLog.id is null
+            limit #{pageSize}
         </where>
     </select>
 

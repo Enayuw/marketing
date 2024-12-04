@@ -427,13 +427,13 @@ public interface MarketingSyncUserMapper {
      * @param apiCode
      * @param appletDate
      * @param userType
-     * @param minId
+     * @param taskId
      * @return
      */
     List<MarketingSyncUser> getCustNumByAppletDateAndUserType(@Param("apiCode") String apiCode,
                                                        @Param("appletDate") String appletDate,
                                                        @Param("userType") String userType,
-                                                       @Param("minId") Long minId,
+                                                       @Param("minId") Long taskId,
                                                        @Param("pageSize") Integer pageSize);
 
 }
