@@ -192,7 +192,8 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
         long executingCount = thirdPartnerDataPassBackTasks.stream()
                 .filter(task -> task.getPushStatus() == ThirdPartnerDataPassBackTaskPushStatusEnum.EXECUTING.getPushStatus()).count();
         if (executingCount > 0) {
-//            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.EXCEPTION_URGENT.getCode(), "三方数据有效期变更回传任务，有处理中的任务，请关注！"));
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(),
+                    "三方数据有效期变更回传任务，有处理中的任务，请关注！"));
         }
         return thirdPartnerDataPassBackTasks.stream()
                 .filter(task -> task.getPushStatus() == ThirdPartnerDataPassBackTaskPushStatusEnum.WAITED_EXECUTE.getPushStatus())
