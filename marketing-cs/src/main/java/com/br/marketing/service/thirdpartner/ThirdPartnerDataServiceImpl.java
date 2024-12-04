@@ -65,7 +65,7 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                     String validStartDate = data.getValidStartDate();
                     String validEndDate = data.getValidEndDate();
                     if (Objects.isNull(validStartDate) || Objects.isNull(validEndDate)) {
-                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), JSON.toJSONString(dataList),
+                        log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), JSON.toJSONString(data),
                                 "外呼推送三方上传数据接口，参数异常"));
                         return;
                     }
