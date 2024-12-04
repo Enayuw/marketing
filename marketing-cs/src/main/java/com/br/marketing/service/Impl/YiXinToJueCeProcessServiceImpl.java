@@ -699,6 +699,12 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
                 continue;
             }
 
+            // 忽略工具生成字段（如 $jacocoData）
+            if (field.getName().startsWith("$")) {
+                continue;
+            }
+
+
             if (field.getName().equals("reserveField1") || field.getName().equals("reserveField2")) {
                 // 如果是 reserveField1 或 reserveField2，尝试解析为 JSONObject
                 try {
