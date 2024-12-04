@@ -55,7 +55,7 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
             map.forEach((orgApiCode, value) -> {
                 String apiCode = mappingConfig.get(orgApiCode);
                 if (Objects.isNull(apiCode)) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "入参apiCode：" + apiCode,
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "入参apiCode：" + orgApiCode,
                             "外呼推送三方上传数据接口，入参apiCode没有映射关系。数据不落库，需要关注"));
                     return;
                 }
