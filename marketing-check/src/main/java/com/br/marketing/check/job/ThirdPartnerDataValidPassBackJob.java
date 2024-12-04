@@ -21,8 +21,6 @@ public class ThirdPartnerDataValidPassBackJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext shardingContext) {
-        long start = System.currentTimeMillis();
         thirdPartnerDataBackService.validChangeDataBack();
-        log.warn("三方数据有效期变更回传任务，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }

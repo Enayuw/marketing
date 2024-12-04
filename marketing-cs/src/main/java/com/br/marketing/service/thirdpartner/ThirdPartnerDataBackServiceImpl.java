@@ -59,13 +59,8 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
     public void validChangeDataBack() {
         //1.查询【b_third_partner_data_pass_back_task】
         List<ThirdPartnerDataPassBackTask> taskList = queryTask();
-        if(taskList.isEmpty()){
-            return;
-        }
         //2.遍历处理task
-        taskList.forEach(task -> {
-            processTask(task);
-        });
+        taskList.forEach( task ->  processTask(task));
     }
 
     /**
@@ -134,7 +129,6 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         //4.更新task的状态 = 2-已完成
         taskForUpdate.setPushStatus(ThirdPartnerDataPassBackTaskPushStatusEnum.FINISHED.getPushStatus());
-        taskForUpdate.setUpdateTime(new Date());
         thirdPartnerDataPassBackTaskMapper.updateByPrimaryKeySelective(taskForUpdate);
     }
 
@@ -155,6 +149,7 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
                           List<CompletableFuture<Void>> futures,
                           List<Long> passLogIds) {
         futures.add(CompletableFuture.runAsync(() -> {
+            try{
             dto.setJsonData(validityChangeDTO);
             String accessNumber = UUID.randomUUID().toString();
             validityChangeDTO.setAccessNumber(accessNumber);
@@ -166,7 +161,7 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
             } else {
                 status = ThirdPartnerDataPassBackLogStatusEnum.PUSH_FAIL.getStatus();
             }
-            try{
+
                 thirdPartnerDataPassBackLogMapper.updateStatusByIds(passLogIds, status);
             } catch (Exception e) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()

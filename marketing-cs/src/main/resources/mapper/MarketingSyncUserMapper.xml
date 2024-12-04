@@ -527,14 +527,14 @@
                reserve_field1
         from b_marketing_sync_${apiCode} sync
         left join b_third_partner_data_pass_back_log passLog on sync.id = log.sync_user_id
+        AND passLog.task_id = #{taskId}
+        AND passLog.status in (0,1)
         <where>
             sync.api_code =#{apiCode}
             AND sync.applet_date = #{appletDate}
             AND sync.user_type = #{userType}
             AND sync.status = 1
             AND sync.is_repeat in (1,2)
-            AND passLog.task_id = #{taskId}
-            AND passLog.status != 2
             AND passLog.id is null
             limit #{pageSize}
         </where>
