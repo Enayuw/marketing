@@ -2,9 +2,11 @@ package com.br.marketing.rule.yixin;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -29,6 +31,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
+import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -83,10 +86,13 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         jsonObject.put("batchNumber", getBatchNumber(transfer.getType()));
         buildJson(jsonObject, marketingSyncUser);
 
-        String reserveField1 = transfer.getReserveField1();
-        JSONObject jsonObject1 = JSONObject.parseObject(reserveField1);
-        addJson(jsonObject1, transfer);
-        mergeJSONObjects(jsonObject, jsonObject1);
+        try {
+            JSONObject jsonObject1 = entityToJSONObject(transfer);
+            mergeJSONObjects(jsonObject, jsonObject1);
+        } catch (IllegalAccessException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YIXIN_SERVICEERROR.getCode()
+                    , "宜信数据解析错误！"), e);
+        }
         pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         //去重参数设置
@@ -111,44 +117,48 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         return jsonObject;
     }
 
-    private JSONObject addJson(JSONObject jsonObject, MarketingTransferSyncUser transfer) {
-        jsonObject.put("cid", emptyDefault(transfer.getCid()));
-        jsonObject.put("tCid", emptyDefault(transfer.gettCid()));
-        jsonObject.put("apiCode", emptyDefault(transfer.getApiCode()));
-        jsonObject.put("requestId", emptyDefault(transfer.getRequestId()));
-        jsonObject.put("orgName", emptyDefault(transfer.getOrgName()));
-        jsonObject.put("custNum", emptyDefault(transfer.getCustNum()));
-        jsonObject.put("source", emptyDefault(transfer.getSource()));
-        jsonObject.put("userType", emptyDefault(transfer.getUserType()));
-        jsonObject.put("type", emptyDefault(transfer.getType()));
-        jsonObject.put("customName", emptyDefault(transfer.getCustomName()));
-        jsonObject.put("ifRegister", emptyDefault(transfer.getIfRegister()));
-        jsonObject.put("registerTime", emptyDefault(transfer.getRegisterTime()));
-        jsonObject.put("ifLogin", emptyDefault(transfer.getIfLogin()));
-        jsonObject.put("loginTime", emptyDefault(transfer.getLoginTime()));
-        jsonObject.put("ifApply", emptyDefault(transfer.getIfApply()));
-        jsonObject.put("applyDt", emptyDefault(transfer.getApplyDt()));
-        jsonObject.put("applyTime", emptyDefault(transfer.getApplyTime()));
-        jsonObject.put("applyResult", emptyDefault(transfer.getApplyResult()));
-        jsonObject.put("refuseTime", emptyDefault(transfer.getRefuseTime()));
-        jsonObject.put("auditTime", emptyDefault(transfer.getAuditTime()));
-        jsonObject.put("auditAmount", emptyDefault(transfer.getAuditAmount()));
-        jsonObject.put("ifLent", emptyDefault(transfer.getIfLent()));
-        jsonObject.put("lentTime", emptyDefault(transfer.getLentTime()));
-        jsonObject.put("lentAmount", emptyDefault(transfer.getLentAmount()));
-        jsonObject.put("unlentAmount", emptyDefault(transfer.getUnlentAmount()));
-        jsonObject.put("ifSettle", emptyDefault(transfer.getIfSettle()));
-        jsonObject.put("settleTime", emptyDefault(transfer.getSettleTime()));
-        jsonObject.put("activity", emptyDefault(transfer.getActivity()));
-        jsonObject.put("caseStatus", emptyDefault(transfer.getCaseStatus()));
-        jsonObject.put("caseEffective", emptyDefault(transfer.getCaseEffective()));
-        jsonObject.put("ifTransform", emptyDefault(transfer.getIfTransform()));
-        jsonObject.put("transformTime", emptyDefault(transfer.getTransformTime()));
-        jsonObject.put("requestData", emptyDefault(transfer.getRequestData()));
-        jsonObject.put("requestTime", emptyDefault(transfer.getRequestTime()));
+    public JSONObject entityToJSONObject(Object entity) throws IllegalAccessException {
+        if (entity == null) {
+            return new JSONObject();
+        }
+
+        JSONObject jsonObject = new JSONObject();
+
+        // 获取实体类的所有字段（包括私有字段）
+        Field[] fields = entity.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+            Object value = field.get(entity);
+            // 如果值为空，跳过当前字段
+            if (value == null || field.getName().equals("id") || field.getName().equals("createTime") || field.getName().equals("updateTime")) {
+                continue;
+            }
+
+            if (field.getName().equals("reserveField1") || field.getName().equals("reserveField2")) {
+                // 如果是 reserveField1 或 reserveField2，尝试解析为 JSONObject
+                try {
+                    JSONObject nestedJson = JSONObject.parseObject(value.toString());
+                    if (nestedJson != null) {
+                        for (String nestedKey : nestedJson.keySet()) {
+                            Object nestedValue = nestedJson.get(nestedKey);
+                            if (nestedValue != null) {
+                                jsonObject.put(nestedKey, nestedValue);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // 如果解析失败，保留原始字符串值
+                    jsonObject.put(field.getName(), value);
+                }
+            } else {
+                jsonObject.put(field.getName(), value);
+            }
+        }
+
         return jsonObject;
     }
-    
+
     
     public static JSONObject mergeJSONObjects(JSONObject jsonObject, JSONObject jsonObject1) {
         if (jsonObject == null) {

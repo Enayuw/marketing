@@ -1,11 +1,13 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -37,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -630,10 +633,13 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         jsonObject.put("cell", cell);
         jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
 
-        String reserveField1 = marketingTransferSyncUserCell.getReserveField1();
-        JSONObject jsonObject1 = JSONObject.parseObject(reserveField1);
-        addJson(jsonObject1, marketingTransferSyncUserCell);
-        mergeJSONObjects(jsonObject, jsonObject1);
+        try {
+            JSONObject jsonObject1 = entityToJSONObject(marketingTransferSyncUserCell);
+            mergeJSONObjects(jsonObject, jsonObject1);
+        } catch (IllegalAccessException e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YIXIN_SERVICEERROR.getCode()
+                    , "宜信数据解析错误！"), e);
+        }
 
         switch (actionType) {
             case "D":
@@ -673,44 +679,48 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         return jsonObject;
     }
 
+    public JSONObject entityToJSONObject(Object entity) throws IllegalAccessException {
+        if (entity == null) {
+            return new JSONObject();
+        }
 
-    private JSONObject addJson(JSONObject jsonObject, MarketingTransferSyncUser transferSyncUser) {
-        jsonObject.put("cid", emptyDefault(transferSyncUser.getCid()));
-        jsonObject.put("tCid", emptyDefault(transferSyncUser.gettCid()));
-        jsonObject.put("apiCode", emptyDefault(transferSyncUser.getApiCode()));
-        jsonObject.put("requestId", emptyDefault(transferSyncUser.getRequestId()));
-        jsonObject.put("orgName", emptyDefault(transferSyncUser.getOrgName()));
-        jsonObject.put("custNum", emptyDefault(transferSyncUser.getCustNum()));
-        jsonObject.put("source", emptyDefault(transferSyncUser.getSource()));
-        jsonObject.put("userType", emptyDefault(transferSyncUser.getUserType()));
-        jsonObject.put("type", emptyDefault(transferSyncUser.getType()));
-        jsonObject.put("customName", emptyDefault(transferSyncUser.getCustomName()));
-        jsonObject.put("ifRegister", emptyDefault(transferSyncUser.getIfRegister()));
-        jsonObject.put("registerTime", emptyDefault(transferSyncUser.getRegisterTime()));
-        jsonObject.put("ifLogin", emptyDefault(transferSyncUser.getIfLogin()));
-        jsonObject.put("loginTime", emptyDefault(transferSyncUser.getLoginTime()));
-        jsonObject.put("ifApply", emptyDefault(transferSyncUser.getIfApply()));
-        jsonObject.put("applyDt", emptyDefault(transferSyncUser.getApplyDt()));
-        jsonObject.put("applyTime", emptyDefault(transferSyncUser.getApplyTime()));
-        jsonObject.put("applyResult", emptyDefault(transferSyncUser.getApplyResult()));
-        jsonObject.put("refuseTime", emptyDefault(transferSyncUser.getRefuseTime()));
-        jsonObject.put("auditTime", emptyDefault(transferSyncUser.getAuditTime()));
-        jsonObject.put("auditAmount", emptyDefault(transferSyncUser.getAuditAmount()));
-        jsonObject.put("ifLent", emptyDefault(transferSyncUser.getIfLent()));
-        jsonObject.put("lentTime", emptyDefault(transferSyncUser.getLentTime()));
-        jsonObject.put("lentAmount", emptyDefault(transferSyncUser.getLentAmount()));
-        jsonObject.put("unlentAmount", emptyDefault(transferSyncUser.getUnlentAmount()));
-        jsonObject.put("ifSettle", emptyDefault(transferSyncUser.getIfSettle()));
-        jsonObject.put("settleTime", emptyDefault(transferSyncUser.getSettleTime()));
-        jsonObject.put("activity", emptyDefault(transferSyncUser.getActivity()));
-        jsonObject.put("caseStatus", emptyDefault(transferSyncUser.getCaseStatus()));
-        jsonObject.put("caseEffective", emptyDefault(transferSyncUser.getCaseEffective()));
-        jsonObject.put("ifTransform", emptyDefault(transferSyncUser.getIfTransform()));
-        jsonObject.put("transformTime", emptyDefault(transferSyncUser.getTransformTime()));
-        jsonObject.put("requestData", emptyDefault(transferSyncUser.getRequestData()));
-        jsonObject.put("requestTime", emptyDefault(transferSyncUser.getRequestTime()));
+        JSONObject jsonObject = new JSONObject();
+
+        // 获取实体类的所有字段（包括私有字段）
+        Field[] fields = entity.getClass().getDeclaredFields();
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+            Object value = field.get(entity);
+            // 如果值为空，跳过当前字段
+            if (value == null || field.getName().equals("id") || field.getName().equals("createTime") || field.getName().equals("updateTime")) {
+                continue;
+            }
+
+            if (field.getName().equals("reserveField1") || field.getName().equals("reserveField2")) {
+                // 如果是 reserveField1 或 reserveField2，尝试解析为 JSONObject
+                try {
+                    JSONObject nestedJson = JSONObject.parseObject(value.toString());
+                    if (nestedJson != null) {
+                        for (String nestedKey : nestedJson.keySet()) {
+                            Object nestedValue = nestedJson.get(nestedKey);
+                            if (nestedValue != null) {
+                                jsonObject.put(nestedKey, nestedValue);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // 如果解析失败，保留原始字符串值
+                    jsonObject.put(field.getName(), value);
+                }
+            } else {
+                jsonObject.put(field.getName(), value);
+            }
+        }
+
         return jsonObject;
     }
+
 
     public static JSONObject mergeJSONObjects(JSONObject jsonObject, JSONObject jsonObject1) {
         if (jsonObject == null) {
