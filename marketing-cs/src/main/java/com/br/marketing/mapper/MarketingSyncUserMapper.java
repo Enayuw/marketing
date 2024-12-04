@@ -430,10 +430,10 @@ public interface MarketingSyncUserMapper {
      * @param taskId
      * @return
      */
-    List<MarketingSyncUser> getCustNumByAppletDateAndUserType(@Param("apiCode") String apiCode,
+    List<MarketingSyncUser> getCustNumByAppletDateAndUserTypetikv_(@Param("apiCode") String apiCode,
                                                        @Param("appletDate") String appletDate,
                                                        @Param("userType") String userType,
-                                                       @Param("minId") Long taskId,
+                                                       @Param("taskId") Long taskId,
                                                        @Param("pageSize") Integer pageSize);
 
 }

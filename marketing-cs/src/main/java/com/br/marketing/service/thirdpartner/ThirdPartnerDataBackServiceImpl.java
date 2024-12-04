@@ -30,6 +30,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,7 +61,7 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
         //1.查询【b_third_partner_data_pass_back_task】
         List<ThirdPartnerDataPassBackTask> taskList = queryTask();
         //2.遍历处理task
-        taskList.forEach( task ->  processTask(task));
+        taskList.forEach(task -> processTask(task));
     }
 
     /**
@@ -87,12 +88,14 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
         validityChangeDTO.setMethod(METHOD_NAME);
         validityChangeDTO.setValidStartDate(task.getValidStartDate().concat(" 00:00:00"));
         validityChangeDTO.setValidEndDate(task.getValidEndDate().concat(" 23:59:59"));
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(methodJson.getInteger("threadSoleNum"), methodJson.getInteger("threadSoleNum"));
+        ThreadPoolExecutor threadPool = BrExecutors
+                .getThreadPool(methodJson.getInteger("threadSoleNum"), methodJson.getInteger("threadSoleNum"));
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (; ; ) {
             //2.1查询数据
             List<MarketingSyncUser> list = marketingSyncUserMapper
-                    .getCustNumByAppletDateAndUserType(task.getApiCode(), task.getAppletDate(), task.getUserType(), task.getId(), methodJson.getInteger("pageSize"));
+                    .getCustNumByAppletDateAndUserTypetikv_(
+                            task.getApiCode(), task.getAppletDate(), task.getUserType(), task.getId(), methodJson.getInteger("pageSize"));
             if (CollectionUtils.isEmpty(list)) {
                 break;
             }
@@ -130,6 +133,17 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
         //4.更新task的状态 = 2-已完成
         taskForUpdate.setPushStatus(ThirdPartnerDataPassBackTaskPushStatusEnum.FINISHED.getPushStatus());
         thirdPartnerDataPassBackTaskMapper.updateByPrimaryKeySelective(taskForUpdate);
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn("三方数据有效期变更回传：线程池关闭");
+            }
+        } catch (InterruptedException e) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), e.getMessage()
+                    , "三方数据有效期变更回传任务：线程池关闭结束异常！"), e);
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
@@ -150,18 +164,17 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
                           List<Long> passLogIds) {
         futures.add(CompletableFuture.runAsync(() -> {
             try{
-            dto.setJsonData(validityChangeDTO);
-            String accessNumber = UUID.randomUUID().toString();
-            validityChangeDTO.setAccessNumber(accessNumber);
-            validityChangeDTO.setData(caseNumDTOS);
-            Result<String> result = methodRetryHandlerService.callRobotOutbound(dto, validityChangeDTO.getMethod());
-            Integer status;
-            if (result.isSuccess()) {
-                status = ThirdPartnerDataPassBackLogStatusEnum.PUSH_SUCCESS.getStatus();
-            } else {
-                status = ThirdPartnerDataPassBackLogStatusEnum.PUSH_FAIL.getStatus();
-            }
-
+                dto.setJsonData(validityChangeDTO);
+                String accessNumber = UUID.randomUUID().toString();
+                validityChangeDTO.setAccessNumber(accessNumber);
+                validityChangeDTO.setData(caseNumDTOS);
+                Result<String> result = methodRetryHandlerService.callRobotOutbound(dto, validityChangeDTO.getMethod());
+                Integer status;
+                if (result.isSuccess()) {
+                    status = ThirdPartnerDataPassBackLogStatusEnum.PUSH_SUCCESS.getStatus();
+                } else {
+                    status = ThirdPartnerDataPassBackLogStatusEnum.PUSH_FAIL.getStatus();
+                }
                 thirdPartnerDataPassBackLogMapper.updateStatusByIds(passLogIds, status);
             } catch (Exception e) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()

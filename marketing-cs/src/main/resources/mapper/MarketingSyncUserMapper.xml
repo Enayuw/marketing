@@ -520,17 +520,17 @@
         </where>
     </select>
 
-    <select id="getCustNumByAppletDateAndUserType" resultType="com.br.marketing.entity.MarketingSyncUser">
+    <select id="getCustNumByAppletDateAndUserTypetikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
         select sync.id as id,
                sync.cust_num as custNum,
                sync.cell as cell,
                reserve_field1
         from b_marketing_sync_${apiCode} sync
-        left join b_third_partner_data_pass_back_log passLog on sync.id = log.sync_user_id
-        AND passLog.task_id = #{taskId}
-        AND passLog.status in (0,1)
+        left join b_third_partner_data_pass_back_log passLog on sync.id = passLog.sync_user_id
+            AND passLog.task_id = #{taskId}
+            AND passLog.status in (0,1)
         <where>
-            sync.api_code =#{apiCode}
+            sync.api_code = #{apiCode}
             AND sync.applet_date = #{appletDate}
             AND sync.user_type = #{userType}
             AND sync.status = 1
