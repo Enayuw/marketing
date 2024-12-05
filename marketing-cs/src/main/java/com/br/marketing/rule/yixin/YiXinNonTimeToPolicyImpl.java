@@ -2,11 +2,9 @@ package com.br.marketing.rule.yixin;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
@@ -34,7 +32,6 @@ import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -62,7 +59,7 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
     CustomerTagsProcessServiceImpl customerTagsProcessService;
 
     @Override
-    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         log.warn("开始组装推决策参数 YiXin_NonRealTime_Policy ");
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();

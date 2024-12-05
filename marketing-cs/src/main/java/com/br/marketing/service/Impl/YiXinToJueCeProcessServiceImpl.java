@@ -1,13 +1,11 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.DistributeSourceTypeEnum;
 import com.br.marketing.common.enums.DistributeTypeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
@@ -42,7 +40,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
