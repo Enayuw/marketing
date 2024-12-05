@@ -6,10 +6,12 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.exception.KnowException;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
@@ -522,6 +524,59 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                     reportTaskVO.setAxisWrapVOS(reportDetailsByTaskId);
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 更新报表名称
+     * @param id
+     * @param reportName
+     * @return
+     */
+    @Override
+    public ApiResult<Boolean> updateReportName(Long id, String reportName) {
+        try {
+            ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(id);
+            if(reportTask == null){
+                return new ApiResult<Boolean>().fail(false, "未找到该报表！");
+            }
+            ReportTaskExample taskExample = new ReportTaskExample();
+            taskExample.createCriteria()
+                    .andReportNameEqualTo(reportName)
+                    .andIsDelEqualTo(Constants.DATA_VALID);
+            long l = reportTaskMapper.countByExample(taskExample);
+            if(l>0){
+                return new ApiResult<Boolean>().fail(false, "报表名称重复，请重新输入");
+            }
+            ReportTask reportTask1 = new ReportTask();
+            reportTask1.setId(id);
+            reportTask1.setReportName(reportName);
+            reportTaskMapper.updateByPrimaryKeySelective(reportTask1);
+        }catch (Exception e){
+            log.warn("更新报表名称报错，id：{}, reportName：{}", id,reportName);
+        }
+        return new ApiResult<Boolean>().success(true);
+    }
+
+    /**
+     * 报表删除
+     * @param id
+     * @return
+     */
+    @Override
+    public ApiResult<Boolean> deleteReport(Long id) {
+        try {
+            ReportTask reportTask = reportTaskMapper.selectByPrimaryKey(id);
+            if(reportTask == null){
+                return new ApiResult<Boolean>().fail(false, "未找到该报表！");
+            }
+            ReportTask reportTask1 = new ReportTask();
+            reportTask1.setId(id);
+            reportTask1.setIsDel(9);
+            reportTaskMapper.updateByPrimaryKeySelective(reportTask1);
+        }catch (Exception e){
+            log.warn("报表删除有误，id：{}", id);
+        }
+        return new ApiResult<Boolean>().success(true);
     }
 
     /**

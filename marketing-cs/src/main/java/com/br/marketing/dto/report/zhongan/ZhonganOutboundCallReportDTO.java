@@ -39,5 +39,7 @@ public class ZhonganOutboundCallReportDTO {
     private BigDecimal smsSucSendRatio;
     @ApiModelProperty("成本")
     private BigDecimal cost;
+    @ApiModelProperty("维度,0-总计 1-首登 2-非首登")
+    private String dimension;
 
 }
