@@ -145,7 +145,8 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
             String key = keyObj.toString();
             Object value = beanMap.get(keyObj);
 
-            if ("id".equals(key) || "createTime".equals(key) || "updateTime".equals(key) || "insertTime".equals(key)) {
+            if ("id".equals(key) || "createTime".equals(key) || "updateTime".equals(key)
+                    || "insertTime".equals(key) || "tcid".equals(key) || "cid".equals(key)) {
                 continue;
             }
 
