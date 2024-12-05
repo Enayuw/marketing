@@ -76,9 +76,12 @@ public class ZhonganOutboundCallConverter extends AbstractBiReportConverter<BiRe
             biReportVO.setReportName("外呼统计报表");
             biReportVO.setType(BiReportChartTypeEnum.TABLE.getType());
             biReportVO.setGroup(entry.getKey());
-            // 根据时间排序
+            // 根据时间和维度排序
             List<ZhonganOutboundCallReportDTO> sortedData = entry.getValue().stream()
-                    .sorted(Comparator.comparing(ZhonganOutboundCallReportDTO::getReportDate, Comparator.naturalOrder())).collect(Collectors.toList());
+                    .sorted(Comparator.comparing(ZhonganOutboundCallReportDTO::getReportDate, Comparator.naturalOrder())
+                            .thenComparing(ZhonganOutboundCallReportDTO::getDimension, Comparator.naturalOrder()))
+                    .collect(Collectors.toList());
+
             // 构造横坐标数据
             List<String> xAxis = sortedData.stream().map(ZhonganOutboundCallReportDTO::getReportDate).collect(Collectors.toList());
             biReportVO.setXAxisName("日期");
