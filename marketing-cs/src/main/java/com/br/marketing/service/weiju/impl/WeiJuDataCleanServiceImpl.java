@@ -104,9 +104,10 @@ public class WeiJuDataCleanServiceImpl implements WeiJuDataCleanService {
             marketingPreUserDetailDTO.setCell(item.getString("mobile"));
             marketingPreUserDetailDTO.setCustNum(item.getString("mobile"));
             JSONObject reserveField1 = new JSONObject();
-            reserveField1.put("customNameType", uploadJson.getOperationUserType());
+            reserveField1.put("customNameType", uploadJson.getSettleGroup());
             reserveField1.put("userType", fieldMapping.getString(uploadJson.getScene()));
             reserveField1.put("sleepGroup", JSONArray.parse(uploadJson.getSilenceDaysGroup()));
+            reserveField1.put("operateGroup", JSONArray.parse(uploadJson.getOperateGroup()));
             if (StringUtils.isNotEmpty(item.getString("registedTime"))) {
                 reserveField1.put("registerTime", item.getString("registedTime"));
             }

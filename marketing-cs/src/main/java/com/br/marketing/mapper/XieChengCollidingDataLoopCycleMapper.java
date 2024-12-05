@@ -17,7 +17,7 @@ import java.util.Map;
 public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingDataLoopCycleMapperBase {
     List<Map<String, Object>> selectPerMinuteCountstiflash_();
 
-    Integer selectTodayCycleCount();
+    Integer selectTodayCycleCounttiflash_();
 
     List<XieChengCollidingDataLoopCycle> selectDeleteData(@Param("startTime") String startTime, @Param("size") int size);
 
@@ -107,7 +107,7 @@ public interface XieChengCollidingDataLoopCycleMapper extends XieChengCollidingD
 
     void batchDeleteExcludeCollidingData(@Param("excludeData") List<String> excludeData, @Param("extend")String extend);
 
-    int selectCycleCountOfStack(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
+    int selectCycleCountOfStacktiflash_(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
     int updateByTrueData(XieChengCollidingDataLoopCycle record);
 

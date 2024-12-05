@@ -15,11 +15,13 @@ import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
+import com.br.marketing.service.bi.AnalysisReportService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.StrategyProductDetailVO;
 import com.br.marketing.vo.TaskInfoVO;
+import com.br.marketing.vo.bi.AxisWrapVO;
 import com.br.marketing.vo.bi.BiReportTaskVO;
 import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
@@ -77,6 +79,9 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Autowired
     private ZhongAnControlGroupMapper zhongAnControlGroupMapper;
+
+    @Resource
+    private AnalysisReportService analysisReportService;
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -508,7 +513,17 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             return null;
         }
         List<String> reportIds = reportIdData.stream().map((Map each) -> each.get("reportId").toString()).collect(Collectors.toList());
-        return reportTaskMapper.selectDataByIds(reportIds, name);
+        List<ReportTaskVO> reportTaskVOS = reportTaskMapper.selectDataByIds(reportIds, name);
+        return buildReportTask(reportTaskVOS);
+    }
+
+    private List<ReportTaskVO> buildReportTask(List<ReportTaskVO> reportTaskVOS) {
+        return reportTaskVOS.stream()
+                .peek(reportTaskVO -> {
+                    List<AxisWrapVO> reportDetailsByTaskId = analysisReportService.getReportDetailsByTaskId(reportTaskVO.getId());
+                    reportTaskVO.setAxisWrapVOS(reportDetailsByTaskId);
+                })
+                .collect(Collectors.toList());
     }
 
     /**
