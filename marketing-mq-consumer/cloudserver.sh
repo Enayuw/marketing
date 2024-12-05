@@ -178,7 +178,7 @@ function stop() {
         cd /opt/SpringCloud/logs/${NAME}/  &&  mv ${POD_NAME} ${POD_NAME}_$(date +%Y%m%d)
     fi
     kill `cat "$CLOUDSERVER_PID_FILE"`
-    sleep 5
+    sleep 20
     kill -9 `cat "$CLOUDSERVER_PID_FILE"`
 }
 

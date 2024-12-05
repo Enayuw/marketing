@@ -11,7 +11,10 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 /**
@@ -70,9 +73,7 @@ public class MqConsumerShutdown {
                         }
                         threadPool.shutdown();
                     });
-            TimeUnit.SECONDS.sleep(5);
-        } catch (BeansException | InterruptedException e) {
-            Thread.currentThread().interrupt();
+        } catch (BeansException e) {
             log.error(e.getMessage(), e);
         }
     }
