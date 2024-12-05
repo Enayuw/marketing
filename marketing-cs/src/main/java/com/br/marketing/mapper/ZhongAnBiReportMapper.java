@@ -6,8 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 public interface ZhongAnBiReportMapper {
-    List<ZhonganOutboundCallReportDTO> selectZaOutboundCallListbI_(@Param("reportDateStart") String reportDateStart,
-                                                                   @Param("reportDateEnd") String reportDateEnd,
+    List<ZhonganOutboundCallReportDTO> selectZaOutboundCallListbI_(@Param("month") String month,
                                                                    @Param("userTypes") List<Integer> userTypes);
 
     List<ZhongAnDistributionStatisticDTO> selectZaMultiHeadGroupListbI_(@Param("reportId") String reportId,

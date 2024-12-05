@@ -4,11 +4,8 @@
     <select id="selectZaOutboundCallListbI_" resultType="com.br.marketing.dto.report.zhongan.ZhonganOutboundCallReportDTO">
         select * from dws_za_outbound_call_statistics
         where is_delete = 0
-        <if test="reportDateStart !=null and reportDateStart!=''">
-            <![CDATA[ and report_date >= #{reportDateStart}]]>
-        </if>
-        <if test="reportDateEnd !=null and reportDateEnd!=''">
-            <![CDATA[ and report_date <= #{reportDateEnd}]]>
+        <if test="month !=null and month!=''">
+            and report_date like concat("%", #{month},"%")
         </if>
         <if test="userTypes !=null">
             and user_type in
