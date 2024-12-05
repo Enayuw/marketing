@@ -338,10 +338,23 @@ public abstract class AbstractBiReportConverter<V, T> {
         log.warn(s7);
         log.warn(s8);
 
-        String v1 = NumberUtil.decimalFormat(",###", new BigDecimal(String.valueOf("0.66666666667")).doubleValue());
 
-        String v2 = NumberUtil.decimalFormat("#0.00%", NumberUtil.round(String.valueOf("0.66666666667"), 4));
+        String v1 = NumberUtil.decimalFormat("#0.0%",    NumberUtil.round(String.valueOf("0.666666"), 3));
+        String v2 = NumberUtil.decimalFormat("#0.00%",   NumberUtil.round(String.valueOf("0.666666"), 4));
+        String v3 = NumberUtil.decimalFormat("#0.000%",  NumberUtil.round(String.valueOf("0.666666"), 5));
+        String v4 = NumberUtil.decimalFormat("#0.0000%", NumberUtil.round(String.valueOf("0.666666"), 6));
+        String v11 = NumberUtil.decimalFormat("#0.0%",    NumberUtil.round(String.valueOf("0"), 3));
+        String v12 = NumberUtil.decimalFormat("#0.00%",   NumberUtil.round(String.valueOf("0"), 4));
+        String v13 = NumberUtil.decimalFormat("#0.000%",  NumberUtil.round(String.valueOf("0"), 5));
+        String v14 = NumberUtil.decimalFormat("#0.0000%", NumberUtil.round(String.valueOf("0"), 6));
+        log.warn(v1);
         log.warn(v2);
+        log.warn(v3);
+        log.warn(v4);
+        log.warn(v11);
+        log.warn(v12);
+        log.warn(v13);
+        log.warn(v14);
     }
 
 }
