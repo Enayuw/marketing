@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ThirdPartnerDataPassBackLogMapper extends ThirdPartnerDataPassBackLogMapperBase{
 
-    int saveBatch(List<ThirdPartnerDataPassBackLog> ThirdPartnerDataPassBackLogList);
+    int saveBatch(@Param("list") List<ThirdPartnerDataPassBackLog> passLogs);
 
     int updateStatusByIds(@Param("ids") List<Long> ids, @Param("status") Integer status);
 }

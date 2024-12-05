@@ -91,14 +91,21 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
         ThreadPoolExecutor threadPool = BrExecutors
                 .getThreadPool(methodJson.getInteger("threadSoleNum"), methodJson.getInteger("threadSoleNum"));
         List<CompletableFuture<Void>> futures = new ArrayList<>();
+        Boolean isFirstQuery = true;
         for (; ; ) {
             //2.1查询数据
             List<MarketingSyncUser> list = marketingSyncUserMapper
                     .getCustNumByAppletDateAndUserTypetikv_(
                             task.getApiCode(), task.getAppletDate(), task.getUserType(), task.getId(), methodJson.getInteger("pageSize"));
             if (CollectionUtils.isEmpty(list)) {
+                if (isFirstQuery) {
+                    //如果第一次查询就为空，则更新task的状态 = 2-执行成功
+                    taskForUpdate.setPushStatus(ThirdPartnerDataPassBackTaskPushStatusEnum.FINISHED.getPushStatus());
+                    thirdPartnerDataPassBackTaskMapper.updateByPrimaryKeySelective(taskForUpdate);
+                }
                 break;
             }
+            isFirstQuery = false;
             Lists.partition(list, methodJson.getInteger("transferSize")).forEach(part -> {
                 //2.2插入日志
                 List<ThirdPartnerDataPassBackLog> passLogs = part.stream().map(syncUser -> {
@@ -130,9 +137,6 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
             });
         }
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-        //4.更新task的状态 = 2-已完成
-        taskForUpdate.setPushStatus(ThirdPartnerDataPassBackTaskPushStatusEnum.FINISHED.getPushStatus());
-        thirdPartnerDataPassBackTaskMapper.updateByPrimaryKeySelective(taskForUpdate);
         threadPool.shutdown();
         try {
             while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -168,7 +172,7 @@ public class ThirdPartnerDataBackServiceImpl implements ThirdPartnerDataBackServ
                 String accessNumber = UUID.randomUUID().toString();
                 validityChangeDTO.setAccessNumber(accessNumber);
                 validityChangeDTO.setData(caseNumDTOS);
-                Result<String> result = methodRetryHandlerService.callRobotOutbound(dto, validityChangeDTO.getMethod());
+                Result<String> result = methodRetryHandlerService.callRobotOutbound(dto, 0, validityChangeDTO.getMethod());
                 Integer status;
                 if (result.isSuccess()) {
                     status = ThirdPartnerDataPassBackLogStatusEnum.PUSH_SUCCESS.getStatus();
