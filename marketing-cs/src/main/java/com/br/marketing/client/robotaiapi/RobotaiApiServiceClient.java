@@ -243,14 +243,6 @@ public class RobotaiApiServiceClient {
                 throw new RuntimeException("客服中心-method：".concat(method).concat("，httpCode：")
                         .concat(String.valueOf(thirdApiResult.getHttpCode())));
             }
-            //TODO:需要大盘监控么
-//            try {
-//                //调用数量监控
-//                BrCounter.count(PrometheusMonitorUtils.COUNT_ROBOTAI_TRANSFER_METRIC_NAME, dto.getApiCode(), "transferData-api",
-//                        dto.getJsonData().getConversionData().size());
-//            } catch (Exception ex) {
-//                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), "推送客服转化接口统计异常！"), ex);
-//            }
             RobotOutboundVo result = JSON.parseObject(thirdApiResult.getResult()
                     , new TypeReference<RobotOutboundVo>() {}.getType());
             return result;

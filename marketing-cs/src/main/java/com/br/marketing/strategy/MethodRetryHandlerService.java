@@ -416,7 +416,8 @@ public class MethodRetryHandlerService {
             return new Result().setCode(ResultCode.SUCCESS.getValue());
         }
         log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode()
-                , "调用客服接口失败，method：" + method + " -- " + JSON.toJSONString(dto)));
+                , "调用客服接口失败，method：" + method
+                        + "，result：" + JSON.toJSONString(robotOutboundVo) + " -- " + JSON.toJSONString(dto)));
         if ("900001".equals(code)) {
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
