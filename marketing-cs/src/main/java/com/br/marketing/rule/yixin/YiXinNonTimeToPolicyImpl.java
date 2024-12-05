@@ -124,7 +124,8 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
             Object value = beanMap.get(keyObj);
 
             if ("id".equals(key) || "createTime".equals(key) || "updateTime".equals(key)
-                    || "insertTime".equals(key) || "tCid".equals(key) || "cid".equals(key)) {
+                    || "insertTime".equals(key) || "tCid".equals(key) || "cid".equals(key) || "status".equals(key)
+                    || "isTask".equals(key) || "taskTime".equals(key) || "isRepeat".equals(key)) {
                 continue;
             }
 
