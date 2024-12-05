@@ -29,4 +29,11 @@ public interface ZhongAnBiReportMapper {
             @Param("dimensionValue") String dimensionValue,
             @Param("itemName") String itemName);
 
+    List<ReportStatisticField> queryReportStatisticFieldbI_(
+            @Param("reportId") String reportId,
+            @Param("fieldYList") List<String> fieldYList,
+            @Param("itemName") String itemName,
+            @Param("orderFragment") String orderFragment
+    );
+
 }
