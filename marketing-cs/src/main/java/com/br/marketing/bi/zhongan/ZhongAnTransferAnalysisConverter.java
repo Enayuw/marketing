@@ -173,14 +173,26 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
      */
     @Override
     public void exportData(ExcelWriter excelWriter, List<BiReportDownLoadParam> params) {
-        // excel sheet名称最大长度31，超出31截取前31位
-        String name = params.get(0).getReportName();
-        String sheetName = name.length() > 31 ? name.substring(0, 31) : name;
-        excelWriter.setSheet(sheetName);
-        // 数据写入
-        writeData(excelWriter, params);
-        // 剔除默认生成的第一个sheet
-        excelWriter.getWorkbook().removeSheetAt(0);
+        Map<String, List<BiReportDownLoadParam>> mapByGroupName = params.stream()
+                .collect(Collectors.groupingBy((BiReportDownLoadParam param) -> {
+                    String reportName = param.getReportName();
+                    String[] reportNameSplit = reportName.split("-");
+                    String groupName = reportNameSplit[reportNameSplit.length - 1];
+                    return groupName;
+                }));
+        List<String> groupNameList = mapByGroupName.keySet().stream().sorted().collect(Collectors.toList());
+
+        for(String groupName : groupNameList) {
+            List<BiReportDownLoadParam> groupParams = mapByGroupName.get(groupName);
+            // excel sheet名称最大长度31，超出31截取前31位
+            String name = groupName;
+            String sheetName = name.length() > 31 ? name.substring(0, 31) : name;
+            excelWriter.setSheet(sheetName);
+            // 数据写入
+            writeData(excelWriter, groupParams);
+            // 剔除默认生成的第一个sheet
+            excelWriter.getWorkbook().removeSheetAt(0);
+        }
     }
 
     /**
@@ -192,36 +204,38 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
      * @date 2024/08/29
      */
     private void writeData(ExcelWriter writer, List<BiReportDownLoadParam> params) {
-        int rowIndex = 0;
         List<String> regions = com.google.common.collect.Lists.newArrayList();
+        int rowIndex = 0;
+        int colIndex = 0;
         for (BiReportDownLoadParam param : params) {
+            rowIndex = 0;
             List<String> xAxis = param.getXAxis();
             List<WrapDataVO> yAxis = param.getYAxis();
             String reportName = param.getReportName();
 
             // 写入报表名称
-            writer.writeCellValue(0, rowIndex, reportName);
+            writer.writeCellValue(colIndex, rowIndex, reportName);
             rowIndex++;
             // 写入X轴名称
-            writer.writeCellValue(0, rowIndex, param.getXAxisName());
+            writer.writeCellValue(colIndex, rowIndex, param.getXAxisName());
             // 写X轴数据
             for (int i = 0; i < xAxis.size(); i++) {
-                writer.writeCellValue(0, rowIndex + i + 1, xAxis.get(i));
+                writer.writeCellValue(colIndex, rowIndex + i + 1, xAxis.get(i));
             }
             // 写入Y轴数据
             for (int i = 0; i < yAxis.size(); i++) {
                 WrapDataVO yAxi = yAxis.get(i);
                 List<String> yData = yAxi.getData();
                 // 写入Y轴名称
-                writer.writeCellValue(i + 1, rowIndex, yAxi.getName());
+                writer.writeCellValue(colIndex + i + 1, rowIndex, yAxi.getName());
                 // 写入Y轴数据
                 for (int j = 0; j < xAxis.size(); j++) {
                     String value = (j < yData.size() && StringUtils.isNotEmpty(yData.get(j))) ? yData.get(j) : "";
-                    writer.writeCellValue(i + 1, rowIndex + j + 1, value);
+                    writer.writeCellValue(colIndex + i + 1, rowIndex + j + 1, value);
                 }
             }
             // 添加空行 xAxis.size() + 1 为当前表格所占行数，再+1添加空行
-            rowIndex += xAxis.size() + 2;
+            colIndex += yAxis.size() + 2;
         }
         DataBarUtil.addMinMaxDataBar(writer, regions);
         autoSizeColumnAll(writer);

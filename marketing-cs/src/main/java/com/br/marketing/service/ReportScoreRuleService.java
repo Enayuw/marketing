@@ -83,4 +83,9 @@ public interface ReportScoreRuleService {
      * @return
      */
     Boolean updateReportRecords(BiReportStatisticTransferParam param);
+
+    ApiResult<Boolean> updateReportName(Long id, String reportName);
+
+    ApiResult<Boolean> deleteReport(Long id);
+
 }

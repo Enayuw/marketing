@@ -150,4 +150,19 @@ public class ReportScoreRuleController {
     }
 
 
+
+    @ApiOperation(value = "重命名报表名称")
+    @GetMapping("/updateReportName")
+    @AuthDataControllerPermission
+    public ApiResult<Boolean> updateReportName(@RequestParam Long id, @RequestParam String reportName) {
+        return reportScoreRuleService.updateReportName(id, reportName);
+    }
+
+    @ApiOperation(value = "报表删除")
+    @GetMapping("/deleteReport")
+    @AuthDataControllerPermission
+    public ApiResult<Boolean> deleteReport(@RequestParam Long id) {
+        return reportScoreRuleService.deleteReport(id);
+    }
+
 }

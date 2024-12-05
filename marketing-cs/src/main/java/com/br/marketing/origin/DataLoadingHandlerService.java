@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * code is far away from bug with the animal protecting
@@ -229,8 +230,12 @@ public class DataLoadingHandlerService {
     }
 
     public void commonRuleContextAction(Integer source, List<AssembleData> assembleDataList, ProcessHandlerContext context) {
+        Set<String> enumCodes = Arrays.stream(CommonRuleLabelEnum.values())
+                .map(CommonRuleLabelEnum::getCode)
+                .collect(Collectors.toSet());
+
         if(TransferSource.INIT_DATA_SET_PROCESS.getCode().equals(source)){
-            if (assembleDataList.stream().anyMatch(t-> CommonRuleLabelEnum.TO_POLICY_COMMON.getCode().equals(t.label()))) {
+            if (assembleDataList.stream().anyMatch(t-> enumCodes.contains(t.label()))) {
                 CustomerTagsVO tags = customerTagsProcessService.getTags(context.getApiCode());
                 context.setCustomerTagsVO(tags);
             }
