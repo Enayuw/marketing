@@ -681,7 +681,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         try {
             ReportTaskExample reportTaskExample = new ReportTaskExample();
             reportTaskExample.createCriteria()
-                    .andReportNameEqualTo(reportDateStr)
+                    .andReportNameLike(reportDateStr)
                     .andReportTypeEqualTo(reportType);
 
             ReportTask reportTask = new ReportTask();
