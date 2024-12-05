@@ -1,6 +1,5 @@
 package com.br.marketing.rule.yixin;
 
-import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -11,16 +10,15 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
-import com.br.common.log.AlertLog;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
-import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.cglib.beans.BeanMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
@@ -68,11 +66,9 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
 
     @Autowired
     PushRuleService pushRuleService;
-    @Resource
-    CustomerTagsProcessServiceImpl customerTagsProcessService;
 
     @Override
-    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws IllegalAccessException {
+    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         log.warn("开始组装推决策参数 YiXin_NonRealTime_Policy ");
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
@@ -117,18 +113,14 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         jsonObject.put("cell", cell);
         buildJson(jsonObject, marketingSyncUser);
 
-        try {
-            JSONObject jsonObject1 = entityToJSONObject(transfer);
-            mergeJSONObjects(jsonObject, jsonObject1);
-        } catch (IllegalAccessException e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YIXIN_SERVICEERROR.getCode()
-                    , "宜信数据解析错误！"), e);
-        }
+        Map<String, Object> stringObjectMap = entityToMapWithBeanMap(transfer);
+        mergeJSONObjects(jsonObject, stringObjectMap);
 
         pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         return pushMarketingUserDetailByRuleDTO;
 
     }
+
     private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
@@ -143,69 +135,61 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         return jsonObject;
     }
 
-    public JSONObject entityToJSONObject(Object entity) throws IllegalAccessException {
-        if (entity == null) {
-            return new JSONObject();
-        }
+    public static Map<String, Object> entityToMapWithBeanMap(Object entity) {
+        Map<String, Object> resultMap = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        JSONObject jsonObject = new JSONObject();
+        BeanMap beanMap = BeanMap.create(entity);
 
-        // 获取实体类的所有字段（包括私有字段）
-        Field[] fields = entity.getClass().getDeclaredFields();
+        for (Object keyObj : beanMap.keySet()) {
+            String key = keyObj.toString();
+            Object value = beanMap.get(keyObj);
 
-        for (Field field : fields) {
-            field.setAccessible(true);
-            Object value = field.get(entity);
-            // 如果值为空，跳过当前字段
-            if (value == null || field.getName().equals("id") || field.getName().equals("createTime") || field.getName().equals("updateTime")) {
+            if ("id".equals(key) || "createTime".equals(key) || "updateTime".equals(key) || "insertTime".equals(key)) {
                 continue;
             }
 
-            // 忽略工具生成字段（如 $jacocoData）
-            if (field.getName().startsWith("$")) {
+            if (value == null || "".equals(value.toString().trim())) {
                 continue;
             }
 
-
-            if (field.getName().equals("reserveField1") || field.getName().equals("reserveField2")) {
-                // 如果是 reserveField1 或 reserveField2，尝试解析为 JSONObject
-                try {
-                    JSONObject nestedJson = JSONObject.parseObject(value.toString());
-                    if (nestedJson != null) {
-                        for (String nestedKey : nestedJson.keySet()) {
-                            Object nestedValue = nestedJson.get(nestedKey);
-                            if (nestedValue != null) {
-                                jsonObject.put(nestedKey, nestedValue);
-                            }
-                        }
+            // 处理 reserveField1 和 reserveField2
+            if ("reserveField1".equals(key) || "reserveField2".equals(key)) {
+                if (value instanceof String) {
+                    try {
+                        // 将 JSON 字符串解析为 Map 并合并到结果中
+                        Map<String, Object> nestedMap = objectMapper.readValue(value.toString(), new TypeReference<Map<String, Object>>() {});
+                        resultMap.putAll(nestedMap);
+                    } catch (Exception e) {
+                        log.warn("reserveField1或reserveField2不是 JSON 格式，跳过！, key :" + key);
                     }
-                } catch (Exception e) {
-                    // 如果解析失败，保留原始字符串值
-                    jsonObject.put(field.getName(), value);
                 }
             } else {
-                jsonObject.put(field.getName(), value);
+                resultMap.put(key, value);
             }
         }
-
-        return jsonObject;
+        return resultMap;
     }
 
-
-    public static JSONObject mergeJSONObjects(JSONObject jsonObject, JSONObject jsonObject1) {
+    public JSONObject mergeJSONObjects(JSONObject jsonObject, Map<String, Object> map) {
         if (jsonObject == null) {
-            return jsonObject1 == null ? new JSONObject() : jsonObject1;
+            return map == null ? new JSONObject() : new JSONObject(map);
         }
-        if (jsonObject1 == null) {
+        if (map == null) {
             return jsonObject;
         }
 
-        for (String key : jsonObject1.keySet()) {
-            if (!jsonObject.keySet().contains(key)) {
-                jsonObject.put(key, jsonObject1.get(key));
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value == null || "".equals(value.toString())) {
+                continue;
+            }
+            if (!jsonObject.containsKey(key)) {
+                jsonObject.put(key, value);
             }
         }
-
         return jsonObject;
     }
 
