@@ -1,5 +1,11 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.util.ObjectUtil;
+import com.br.common.log.AlertLog;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.service.bi.ReportStatisticService;
+import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -16,6 +22,7 @@ import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
 import com.br.marketing.service.bi.AnalysisReportService;
+import com.br.marketing.service.bi.impl.ZhongAnControlGroupServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
@@ -27,6 +34,9 @@ import com.br.marketing.vo.bi.ReportTaskVO;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import com.br.marketing.vo.zhongan.ZhongAnCustomInfoVO;
+import com.br.marketing.vo.zhongan.param.ZhongAnControlGroupParam;
+import com.br.marketing.vo.zhongan.param.ZhongAnCustomInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +45,10 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -82,6 +95,15 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
 
     @Resource
     private AnalysisReportService analysisReportService;
+
+    @Resource
+    ZhongAnControlGroupServiceImpl zhongAnControlGroupService;
+
+    @Resource
+    ReportStatisticTransferMapper reportStatisticTransferMapper;
+
+    @Resource
+    ReportStatisticService reportStatisticService;
 
     @Override
     public Map getProducts(String ids, String fieldType) {
@@ -249,7 +271,26 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
                 BiReportTypeEnum.BUSINESS_ANALYSIS_SEVEN_REPORT.getTypeName());
 
         if (businessList.contains(reportTypeName) && (!checkBusinessReportConfig(reportTaskParam))) {
-            return new ApiResult<Boolean>().fail(false, "经营分析报表未配置报表配置，请检查");
+            ZhongAnControlGroupParam param = new ZhongAnControlGroupParam();
+            param.setReportDate(LocalDate.now().toString());
+            ObjectMapper objectMapper = new ObjectMapper();
+            try {
+                String jsonData1 = "[{\"constituencies\":1,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}," +
+                        "{\"constituencies\":2,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}]";
+                String jsonData7 = "[{\"constituencies\":3,\"payPassRate\":0,\"lendersSucAmount\":0}," +
+                        "{\"constituencies\":4,\"totalNum\":0,\"loginRate\":0,\"incomingNum\":0,\"approversNum\":0," +
+                        "\"approvalAvailable\":0,\"applyPayNum\":0,\"payPassRate\":0,\"lendersSucNum\":0,\"lendersSucAmount\":0}]";
+                String jsonData8 = "[{\"constituencies\":5,\"totalNum\":0,\"incomingNum\":0,\"approversNum\":0}]";
+
+                param.setUserType1(objectMapper.readValue(jsonData1, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                param.setUserType7(objectMapper.readValue(jsonData7, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                param.setUserType8(objectMapper.readValue(jsonData8, new TypeReference<List<ZhongAnCustomInfo>>() {}));
+                zhongAnControlGroupService.saveCustomInfo(param);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                                "默认统计生成报表配置错误"), e);
+            }
+
         }
         Integer reportType = null;
         if (reportTypeName != null) {
@@ -606,5 +647,108 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
             return;
         }
         reportTaskParam.setReportType(BiReportTypeEnum.getEnumByTypeName(reportTaskParam.getReportTypeName()).getType());
+    }
+
+    /**
+     * 更新报表统计记录
+     * @param param
+     * @return
+     */
+    @Override
+    public Boolean updateReportRecords(BiReportStatisticTransferParam param) {
+        String reportDate = param.getReportDate();
+        if (StringUtils.isEmpty(reportDate)) {
+            reportDate = LocalDate.now().toString();
+        }
+        String reportTypeName = param.getReportTypeName();
+        Integer reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
+
+        // 众安上线后刷记录
+        ReportTaskExample example = new ReportTaskExample();
+        String reportDateStr = "%" + reportDate;
+        example.createCriteria().andReportNameLike(reportDateStr).andReportTypeEqualTo(reportType);
+        List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
+        if (ObjectUtil.isEmpty(reportTasks)) {
+            String string = "23:59:59.999";
+            String dateNow = reportDate + " " + string;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+            LocalDateTime localDateTime = LocalDateTime.parse(dateNow, formatter);
+            reportStatisticService.action(localDateTime);
+            return true;
+        }
+
+        // 更新逻辑
+        try {
+            ReportTaskExample reportTaskExample = new ReportTaskExample();
+            reportTaskExample.createCriteria()
+                    .andReportNameEqualTo(reportDateStr)
+                    .andReportTypeEqualTo(reportType);
+
+            ReportTask reportTask = new ReportTask();
+            reportTask.setStatus(0);
+            reportTask.setUpdateTime(new Date());
+            boolean a = reportTaskMapper.updateByExampleSelective(reportTask, reportTaskExample) == 1;
+            ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
+
+            switch (reportType) {
+                case 12:
+                    if (ObjectUtil.isNotEmpty(reportDate)) {
+                        reportStatisticTransferExample.createCriteria()
+                                .andReportDateEqualTo(reportDate)
+                                .andReportStatusEqualTo("0")
+                                .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString());
+                        ReportStatisticTransfer statisticTransfer = new ReportStatisticTransfer();
+                        statisticTransfer.setReportStatus("3");
+                        statisticTransfer.setUpdateTime(new Date());
+                        boolean b = reportStatisticTransferMapper.updateByExampleSelective(statisticTransfer,
+                                reportStatisticTransferExample) == 1;
+                        if (a && b) {
+                            return true;
+                        }
+                    }
+                    break;
+                case 13:
+                    if (ObjectUtil.isNotEmpty(reportDate)) {
+                        reportStatisticTransferExample.createCriteria()
+                                .andReportDateEqualTo(reportDate)
+                                .andReportStatusEqualTo("0")
+                                .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue().toString());
+                        ReportStatisticTransfer statisticTransfer = new ReportStatisticTransfer();
+                        statisticTransfer.setReportStatus("3");
+                        statisticTransfer.setUpdateTime(new Date());
+                        boolean b = reportStatisticTransferMapper.updateByExampleSelective(statisticTransfer,
+                                reportStatisticTransferExample) == 1;
+                        if (a && b) {
+                            return true;
+                        }
+                    }
+                    break;
+                case 14:
+                    if (ObjectUtil.isNotEmpty(reportDate)) {
+                        reportStatisticTransferExample.createCriteria()
+                                .andReportDateEqualTo(reportDate)
+                                .andReportStatusEqualTo("0")
+                                .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue().toString());
+                        reportStatisticTransferExample.setOrderByClause("create_time desc");
+                        ReportStatisticTransfer statisticTransfer = new ReportStatisticTransfer();
+                        statisticTransfer.setReportStatus("3");
+                        statisticTransfer.setUpdateTime(new Date());
+                        boolean b = reportStatisticTransferMapper.updateByExampleSelective(statisticTransfer,
+                                reportStatisticTransferExample) == 1;
+                        if (a && b) {
+                            return true;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        } catch (Exception e) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(),
+                    "更新报表统计记录异常"), e);
+            return false;
+        }
+
     }
 }

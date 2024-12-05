@@ -5,6 +5,7 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.vo.CustomerBatchNumVO;
 import com.br.marketing.vo.ScoreDetailVo;
 import com.br.marketing.vo.bi.ReportTaskVO;
+import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import com.br.marketing.vo.bi.param.ReportTaskParam;
 import java.util.List;
@@ -75,6 +76,13 @@ public interface ReportScoreRuleService {
      * @date 2024/10/24 16:01
      **/
     List<ReportTaskVO> getReportTaskListForScore(String name, String ids);
+
+    /**
+     * 更新报表统计记录
+     * @param param
+     * @return
+     */
+    Boolean updateReportRecords(BiReportStatisticTransferParam param);
 
     ApiResult<Boolean> updateReportName(Long id, String reportName);
 
