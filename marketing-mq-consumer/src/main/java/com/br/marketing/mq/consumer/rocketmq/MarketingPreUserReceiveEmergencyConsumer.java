@@ -8,9 +8,11 @@ import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushRuleService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +29,8 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingUploadEmergencyConstants.TOPIC,
         consumerGroup = MarketingUploadEmergencyConstants.MARKETING_PRE_USER_RECEIVE_EMERGENCY,
         selectorExpression = MarketingUploadEmergencyConstants.TAG_MARKETING_PRE_USER_RECEIVE_EMERGENCY,
-        consumeThreadNumber = 1, consumeThreadMax = 1)
-public class MarketingPreUserReceiveEmergencyConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+        consumeThreadNumber = 1, consumeThreadMax = 1,awaitTerminationMillisWhenShutdown = 5000)
+public class MarketingPreUserReceiveEmergencyConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -72,4 +74,8 @@ public class MarketingPreUserReceiveEmergencyConsumer extends BaseMqMessageListe
         super.dispatchMessage(messageExt);
     }
 
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setPullBatchSize(1);
+    }
 }

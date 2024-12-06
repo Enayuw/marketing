@@ -6,9 +6,11 @@ import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.PushDataService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +28,7 @@ import java.nio.charset.StandardCharsets;
         consumerGroup = MarketingAssistConstants.MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,
         selectorExpression = MarketingAssistConstants.TAG_MARKETING_UNIVERSAL_SFTPTODB_XIECHENGRECEIVE,
         consumeThreadNumber = 1, consumeThreadMax = 5)
-public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -67,5 +69,10 @@ public class MarketingUniversalSftpToDbXieChengReceiveConsumer extends BaseMqMes
     @Override
     public void onMessage(MessageExt messageExt) {
         super.dispatchMessage(messageExt);
+    }
+
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setPullBatchSize(1);
     }
 }

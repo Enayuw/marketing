@@ -9,9 +9,11 @@ import com.br.marketing.service.Impl.RocketMqConsumerService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.br.rocketmq.rocketmq.listener.BaseMqMessageListener;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQPushConsumerLifecycleListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +31,7 @@ import java.nio.charset.StandardCharsets;
         consumerGroup = MarketingUploadConstants.MARKETING_XIECHENG_COLLIDING_ACTIVATE,
         selectorExpression = MarketingUploadConstants.TAG_MARKETING_XIECHENG_COLLIDING_ACTIVATE,
         consumeThreadNumber = 1, consumeThreadMax = 5)
-public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt> {
+public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
     RocketMqConsumerService consumerService;
@@ -74,5 +76,10 @@ public class MarketingXieChengCollidingActivateConsumer extends BaseMqMessageLis
     @Override
     public void onMessage(MessageExt messageExt) {
         super.dispatchMessage(messageExt);
+    }
+
+    @Override
+    public void prepareStart(DefaultMQPushConsumer defaultMQPushConsumer) {
+        defaultMQPushConsumer.setPullBatchSize(1);
     }
 }
