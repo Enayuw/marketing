@@ -4,7 +4,7 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingRetryEs" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="file_id" property="fileId" jdbcType="VARCHAR" />
+    <result column="file_id" property="fileId" jdbcType="BIGINT" />
     <result column="retry_total_attempts" property="retryTotalAttempts" jdbcType="INTEGER" />
     <result column="retry_status" property="retryStatus" jdbcType="INTEGER" />
     <result column="reserve_field1" property="reserveField1" jdbcType="VARCHAR" />
@@ -111,7 +111,7 @@
     insert into b_marketing_retry_es (api_code, file_id, retry_total_attempts, 
       retry_status, reserve_field1, applet_date, 
       create_time, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=VARCHAR}, #{retryTotalAttempts,jdbcType=INTEGER}, 
+    values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=BIGINT}, #{retryTotalAttempts,jdbcType=INTEGER}, 
       #{retryStatus,jdbcType=INTEGER}, #{reserveField1,jdbcType=VARCHAR}, #{appletDate,jdbcType=VARCHAR}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
@@ -151,7 +151,7 @@
         #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="fileId != null" >
-        #{fileId,jdbcType=VARCHAR},
+        #{fileId,jdbcType=BIGINT},
       </if>
       <if test="retryTotalAttempts != null" >
         #{retryTotalAttempts,jdbcType=INTEGER},
@@ -189,7 +189,7 @@
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
       <if test="record.fileId != null" >
-        file_id = #{record.fileId,jdbcType=VARCHAR},
+        file_id = #{record.fileId,jdbcType=BIGINT},
       </if>
       <if test="record.retryTotalAttempts != null" >
         retry_total_attempts = #{record.retryTotalAttempts,jdbcType=INTEGER},
@@ -218,7 +218,7 @@
     update b_marketing_retry_es
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
-      file_id = #{record.fileId,jdbcType=VARCHAR},
+      file_id = #{record.fileId,jdbcType=BIGINT},
       retry_total_attempts = #{record.retryTotalAttempts,jdbcType=INTEGER},
       retry_status = #{record.retryStatus,jdbcType=INTEGER},
       reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
@@ -236,7 +236,7 @@
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
       <if test="fileId != null" >
-        file_id = #{fileId,jdbcType=VARCHAR},
+        file_id = #{fileId,jdbcType=BIGINT},
       </if>
       <if test="retryTotalAttempts != null" >
         retry_total_attempts = #{retryTotalAttempts,jdbcType=INTEGER},
@@ -262,7 +262,7 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingRetryEs" >
     update b_marketing_retry_es
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      file_id = #{fileId,jdbcType=VARCHAR},
+      file_id = #{fileId,jdbcType=BIGINT},
       retry_total_attempts = #{retryTotalAttempts,jdbcType=INTEGER},
       retry_status = #{retryStatus,jdbcType=INTEGER},
       reserve_field1 = #{reserveField1,jdbcType=VARCHAR},

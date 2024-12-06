@@ -28,7 +28,6 @@ import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Created by Bairong on 2019/8/21.
@@ -172,11 +171,12 @@ public class ResultUtil {
      * @param baseHeadInfo
      * @param fieldInfo
      * @param marketingTask
+     * @return
      * @throws IOException
      */
-    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
-                                    MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
-                                    BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
+    public static MarketingHistory generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
+                                                MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
+                                                BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
             , MarketingTaskService marketingTaskService, String part) throws IOException {
         log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
         JSONObject esResult = new JSONObject();
@@ -270,7 +270,11 @@ public class ResultUtil {
             //endregion
             String id = UuidUtils.getUuid();
             MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
-            service.insert(mh, id);
+            boolean insert = service.insert(mh, id);
+            if(!insert){
+                log.warn("写入ES重试3次失败,fileId:{}", mh.getFileId());
+                return mh;
+            }
         }
         if (isVer) {
             MarketingTaskResultPreview preview = new MarketingTaskResultPreview();
@@ -282,6 +286,7 @@ public class ResultUtil {
             preview.setIsTitle(0);
             marketingTaskService.saveScoreResult(preview);
         }
+        return null;
     }
 
 

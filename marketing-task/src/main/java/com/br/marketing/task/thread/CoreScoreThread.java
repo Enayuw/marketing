@@ -1,4 +1,6 @@
 package com.br.marketing.task.thread;
+import java.time.LocalDate;
+import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -11,6 +13,8 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.task.Scheduler;
@@ -22,6 +26,7 @@ import com.br.marketing.vo.StrategyProductDetailVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -54,6 +59,8 @@ public class CoreScoreThread implements Callable<String> {
     private List<String> noflagproductlist;
     private List<String> flagProductList;
     private MarketingTaskService marketingTaskService;
+    @Resource
+    private MarketingRetryEsMapper marketingRetryEsMapper;
     private Boolean isRetry;
     private String part;
 
@@ -202,11 +209,13 @@ public class CoreScoreThread implements Callable<String> {
                 }
                 JSONObject resultJson = JSONObject.parseObject(s);
                 if (fw != null) {
-                    ResultUtil.generateFile(resultJson, strategyId
+                    MarketingHistory marketingHistory = ResultUtil.generateFile(resultJson, strategyId
                             , fw, sep, proFieldMap, blu
                             , meal, cusBatchNumber, fileId
                             , customer.getPushCustomer().toString()
-                            , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService,part);
+                            , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService, part);
+
+                    insertRetryEs(marketingHistory,apiCode,fileId);
                 }
             }
         } catch (Exception e) {
@@ -214,15 +223,16 @@ public class CoreScoreThread implements Callable<String> {
         }
     }
 
-
     private void dealResult(Writer fw, MarketingSyncUser blu) throws IOException {
         try {
             if (fw != null) {
-                ResultUtil.generateFile(null, strategyId
+                MarketingHistory marketingHistory = ResultUtil.generateFile(null, strategyId
                         , fw, sep, proFieldMap, blu
                         , meal, cusBatchNumber, fileId
                         , customer.getPushCustomer().toString()
-                        , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService,part);
+                        , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService, part);
+
+                insertRetryEs(marketingHistory,apiCode,fileId);
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);
@@ -235,5 +245,17 @@ public class CoreScoreThread implements Callable<String> {
         }
     }
 
+    private void insertRetryEs(MarketingHistory marketingHistory, String apiCode, String fileId) {
+        if(marketingHistory != null){
+            MarketingRetryEs marketingRetryEs = new MarketingRetryEs();
+            marketingRetryEs.setApiCode(apiCode);
+            marketingRetryEs.setFileId(Long.valueOf(fileId));
+            marketingRetryEs.setReserveField1(marketingHistory.toString());
+            marketingRetryEs.setAppletDate(String.valueOf(LocalDate.now()));
+            marketingRetryEs.setCreateTime(new Date());
+            marketingRetryEs.setUpdateTime(new Date());
+            marketingRetryEsMapper.insertSelective(marketingRetryEs);
+        }
+    }
 
 }

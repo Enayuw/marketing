@@ -16,7 +16,7 @@ public class MarketingRetryEs {
     /**
      * 跑分记录id
      */
-    private String fileId;
+    private Long fileId;
 
     /**
      * 重试次数
@@ -64,12 +64,12 @@ public class MarketingRetryEs {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
-    public String getFileId() {
+    public Long getFileId() {
         return fileId;
     }
 
-    public void setFileId(String fileId) {
-        this.fileId = fileId == null ? null : fileId.trim();
+    public void setFileId(Long fileId) {
+        this.fileId = fileId;
     }
 
     public Integer getRetryTotalAttempts() {
