@@ -190,9 +190,9 @@ public class ZhongAnTransferAnalysisConverter extends AbstractBiReportConverter<
             excelWriter.setSheet(sheetName);
             // 数据写入
             writeData(excelWriter, groupParams);
-            // 剔除默认生成的第一个sheet
-            excelWriter.getWorkbook().removeSheetAt(0);
         }
+        // 剔除默认生成的第一个sheet
+        excelWriter.getWorkbook().removeSheetAt(0);
     }
 
     /**
