@@ -498,12 +498,14 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
             MarketingSyncUser marketingSyncUser = syncUsers.get(0);
             MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
+            MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
+            BeanUtils.copyProperties(t, transferSyncUser);
             BeanUtils.copyProperties(t, marketingTransferSyncUserCell);
             marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
             marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
             marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
             marketingTransferSyncUserCell.setMarketingSyncUser(marketingSyncUser);
-            marketingTransferSyncUserCell.setMarketingTransferSyncUser(t);
+            marketingTransferSyncUserCell.setMarketingTransferSyncUser(transferSyncUser);
             return marketingTransferSyncUserCell;
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
