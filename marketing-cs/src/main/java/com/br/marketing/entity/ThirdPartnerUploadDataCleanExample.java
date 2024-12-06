@@ -165,6 +165,76 @@ public class ThirdPartnerUploadDataCleanExample {
             return (Criteria) this;
         }
 
+        public Criteria andAccessNumberIsNull() {
+            addCriterion("access_number is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberIsNotNull() {
+            addCriterion("access_number is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberEqualTo(String value) {
+            addCriterion("access_number =", value, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberNotEqualTo(String value) {
+            addCriterion("access_number <>", value, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberGreaterThan(String value) {
+            addCriterion("access_number >", value, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberGreaterThanOrEqualTo(String value) {
+            addCriterion("access_number >=", value, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberLessThan(String value) {
+            addCriterion("access_number <", value, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberLessThanOrEqualTo(String value) {
+            addCriterion("access_number <=", value, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberLike(String value) {
+            addCriterion("access_number like", value, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberNotLike(String value) {
+            addCriterion("access_number not like", value, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberIn(List<String> values) {
+            addCriterion("access_number in", values, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberNotIn(List<String> values) {
+            addCriterion("access_number not in", values, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberBetween(String value1, String value2) {
+            addCriterion("access_number between", value1, value2, "accessNumber");
+            return (Criteria) this;
+        }
+
+        public Criteria andAccessNumberNotBetween(String value1, String value2) {
+            addCriterion("access_number not between", value1, value2, "accessNumber");
+            return (Criteria) this;
+        }
+
         public Criteria andApiCodeIsNull() {
             addCriterion("api_code is null");
             return (Criteria) this;

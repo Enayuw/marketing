@@ -3,6 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.ThirdPartnerUploadDataCleanMapper" >
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.ThirdPartnerUploadDataClean" >
     <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="access_number" property="accessNumber" jdbcType="VARCHAR" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="org_api_code" property="orgApiCode" jdbcType="VARCHAR" />
     <result column="cust_num" property="custNum" jdbcType="VARCHAR" />
@@ -78,9 +79,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, org_api_code, cust_num, cell, user_type, custom_name_type, resource_channel,
-    valid_start_date, valid_end_date, clean_status, task_id, extend, is_deleted, create_time,
-    update_time
+    id, access_number, api_code, org_api_code, cust_num, cell, user_type, custom_name_type,
+    resource_channel, valid_start_date, valid_end_date, clean_status, task_id, extend,
+    is_deleted, create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ThirdPartnerUploadDataCleanExample" >
     select
@@ -116,18 +117,18 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_third_partner_upload_data_clean (api_code, org_api_code, cust_num,
-    cell, user_type, custom_name_type,
-    resource_channel, valid_start_date, valid_end_date,
-    clean_status, task_id, extend,
-    is_deleted, create_time, update_time
-    )
-    values (#{apiCode,jdbcType=VARCHAR}, #{orgApiCode,jdbcType=VARCHAR}, #{custNum,jdbcType=VARCHAR},
-    #{cell,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR}, #{customNameType,jdbcType=VARCHAR},
-    #{resourceChannel,jdbcType=INTEGER}, #{validStartDate,jdbcType=VARCHAR}, #{validEndDate,jdbcType=VARCHAR},
-    #{cleanStatus,jdbcType=INTEGER}, #{taskId,jdbcType=BIGINT}, #{extend,jdbcType=VARCHAR},
-    #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
-    )
+    insert into b_third_partner_upload_data_clean (access_number, api_code, org_api_code,
+    cust_num, cell, user_type,
+    custom_name_type, resource_channel, valid_start_date,
+    valid_end_date, clean_status, task_id,
+    extend, is_deleted, create_time,
+    update_time)
+    values (#{accessNumber,jdbcType=VARCHAR}, #{apiCode,jdbcType=VARCHAR}, #{orgApiCode,jdbcType=VARCHAR},
+    #{custNum,jdbcType=VARCHAR}, #{cell,jdbcType=VARCHAR}, #{userType,jdbcType=VARCHAR},
+    #{customNameType,jdbcType=VARCHAR}, #{resourceChannel,jdbcType=INTEGER}, #{validStartDate,jdbcType=VARCHAR},
+    #{validEndDate,jdbcType=VARCHAR}, #{cleanStatus,jdbcType=INTEGER}, #{taskId,jdbcType=BIGINT},
+    #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.ThirdPartnerUploadDataClean" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -135,6 +136,9 @@
     </selectKey>
     insert into b_third_partner_upload_data_clean
     <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="accessNumber != null" >
+        access_number,
+      </if>
       <if test="apiCode != null" >
         api_code,
       </if>
@@ -182,6 +186,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="accessNumber != null" >
+        #{accessNumber,jdbcType=VARCHAR},
+      </if>
       <if test="apiCode != null" >
         #{apiCode,jdbcType=VARCHAR},
       </if>
@@ -241,6 +248,9 @@
       <if test="record.id != null" >
         id = #{record.id,jdbcType=BIGINT},
       </if>
+      <if test="record.accessNumber != null" >
+        access_number = #{record.accessNumber,jdbcType=VARCHAR},
+      </if>
       <if test="record.apiCode != null" >
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
@@ -294,6 +304,7 @@
   <update id="updateByExample" parameterType="map" >
     update b_third_partner_upload_data_clean
     set id = #{record.id,jdbcType=BIGINT},
+    access_number = #{record.accessNumber,jdbcType=VARCHAR},
     api_code = #{record.apiCode,jdbcType=VARCHAR},
     org_api_code = #{record.orgApiCode,jdbcType=VARCHAR},
     cust_num = #{record.custNum,jdbcType=VARCHAR},
@@ -316,6 +327,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ThirdPartnerUploadDataClean" >
     update b_third_partner_upload_data_clean
     <set >
+      <if test="accessNumber != null" >
+        access_number = #{accessNumber,jdbcType=VARCHAR},
+      </if>
       <if test="apiCode != null" >
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
@@ -366,7 +380,8 @@
   </update>
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ThirdPartnerUploadDataClean" >
     update b_third_partner_upload_data_clean
-    set api_code = #{apiCode,jdbcType=VARCHAR},
+    set access_number = #{accessNumber,jdbcType=VARCHAR},
+        api_code = #{apiCode,jdbcType=VARCHAR},
         org_api_code = #{orgApiCode,jdbcType=VARCHAR},
         cust_num = #{custNum,jdbcType=VARCHAR},
         cell = #{cell,jdbcType=VARCHAR},

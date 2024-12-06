@@ -72,7 +72,7 @@ public class BackEndController {
     @ApiOperation(value = "外呼推送三方上传数据接口")
     @PostMapping("/thirdPartner/uploadData")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
-    public Result thirdPartnerUploadData(String data) {
+    public Result thirdPartnerUploadData(String data, String accessNumber) {
         // 校验请求参数
         if (StringUtils.isEmpty(data)) {
             return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
@@ -96,6 +96,6 @@ public class BackEndController {
             return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
         }
 
-        return thirdPartnerDataService.saveData(dataList);
+        return thirdPartnerDataService.saveData(dataList, accessNumber);
     }
 }

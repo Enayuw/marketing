@@ -42,7 +42,7 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
     ThirdPartnerUploadDataCleanMapper uploadDataCleanMapper;
 
     @Override
-    public Result saveData(List<ThirdPartnerDataDTO> dataList) {
+    public Result saveData(List<ThirdPartnerDataDTO> dataList, String accessNumber) {
         try {
             HashMap<String, String> mappingConfig = marketingCommonConfig.getThirdPartnerApiCodeMappingConfig();
             // 根据源apiCode对数据分组
@@ -70,6 +70,7 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                         return;
                     }
 
+                    data.setAccessNumber(accessNumber);
                     data.setApiCode(apiCode);
                     data.setOrgApiCode(orgApiCode);
                     data.setValidStartDate(validStartDate.substring(0, 10));

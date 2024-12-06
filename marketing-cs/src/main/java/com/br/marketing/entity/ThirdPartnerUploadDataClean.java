@@ -9,6 +9,11 @@ public class ThirdPartnerUploadDataClean {
     private Long id;
 
     /**
+     * 请求流水号
+     */
+    private String accessNumber;
+
+    /**
      * 客户编号
      */
     private String apiCode;
@@ -89,6 +94,14 @@ public class ThirdPartnerUploadDataClean {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getAccessNumber() {
+        return accessNumber;
+    }
+
+    public void setAccessNumber(String accessNumber) {
+        this.accessNumber = accessNumber == null ? null : accessNumber.trim();
     }
 
     public String getApiCode() {
