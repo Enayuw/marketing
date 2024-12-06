@@ -127,11 +127,11 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 //营销非首登组,众安对照非首登组
                 ZhongAnBusAnalyOneReportDTO brNoLoginReportDTO = totalList.get(2);
                 ZhongAnBusAnalyOneReportDTO zhongAnNoLoginReportDTO = totalList.get(3);
-                brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
+                brNoLoginReportDTO.setIncomingIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
                         brNoLoginReportDTO.getIncomingNum(), zhongAnNoLoginReportDTO.getTotalNum(),
-                        zhongAnNoLoginReportDTO.getApproversNum()));
-                brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
-                        brNoLoginReportDTO.getTotalNum(), zhongAnNoLoginReportDTO.getTotalNum(),
+                        zhongAnNoLoginReportDTO.getIncomingNum()));
+                brNoLoginReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
+                        brNoLoginReportDTO.getApproversNum(), zhongAnNoLoginReportDTO.getTotalNum(),
                         zhongAnNoLoginReportDTO.getApproversNum()));
 
                 zhongAnNoLoginReportDTO.setIncomingIncreaseRate(brNoLoginReportDTO.getIncomingIncreaseRate());
