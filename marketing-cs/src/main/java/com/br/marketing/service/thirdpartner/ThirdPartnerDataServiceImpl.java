@@ -15,6 +15,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -78,9 +79,14 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                     data.setTaskId(taskId);
                 });
 
-                uploadDataCleanMapper.batchSaveByTaskId(value);
-                // 更新数据清洗任务表状态为待清洗
-                updateTaskCleanStatusById(taskId);
+                try {
+                    uploadDataCleanMapper.batchSaveByTaskId(value);
+                    // 更新数据清洗任务表状态为待清洗
+                    updateTaskCleanStatusById(taskId);
+                } catch (DuplicateKeyException e) {
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), accessNumber,
+                            "外呼推送三方上传数据接口，流水号重复"), e);
+                }
             });
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), JSON.toJSONString(dataList),
