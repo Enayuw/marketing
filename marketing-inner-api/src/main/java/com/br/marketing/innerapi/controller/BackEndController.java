@@ -96,6 +96,6 @@ public class BackEndController {
             return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
         }
 
-        return thirdPartnerDataService.saveData(dataList, accessNumber);
+        return thirdPartnerDataService.saveData(dataList, accessNumber, data);
     }
 }

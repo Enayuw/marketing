@@ -7,7 +7,9 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.ThirdPartnerUploadDataClean;
+import com.br.marketing.entity.ThirdPartnerUploadDataCleanFront;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
+import com.br.marketing.mapper.ThirdPartnerUploadDataCleanFrontMapper;
 import com.br.marketing.mapper.ThirdPartnerUploadDataCleanMapper;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.thirdpartner.dto.ThirdPartnerDataDTO;
@@ -41,10 +43,23 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
     @Resource
     ThirdPartnerUploadDataCleanMapper uploadDataCleanMapper;
+    @Resource
+    ThirdPartnerUploadDataCleanFrontMapper uploadDataCleanFrontMapper;
 
     @Override
-    public Result saveData(List<ThirdPartnerDataDTO> dataList, String accessNumber) {
+    public Result saveData(List<ThirdPartnerDataDTO> dataList, String accessNumber, String originalData) {
         try {
+            ThirdPartnerUploadDataCleanFront uploadDataCleanFront = new ThirdPartnerUploadDataCleanFront();
+            uploadDataCleanFront.setAccessNumber(accessNumber);
+            uploadDataCleanFront.setOriginalData(originalData);
+            try {
+                uploadDataCleanFrontMapper.insertSelective(uploadDataCleanFront);
+            } catch (DuplicateKeyException e) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), accessNumber,
+                        "外呼推送三方上传数据接口，流水号重复，数据不入库"), e);
+                return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("流水号重复");
+            }
+
             HashMap<String, String> mappingConfig = marketingCommonConfig.getThirdPartnerApiCodeMappingConfig();
             // 根据源apiCode对数据分组
             Map<String, List<ThirdPartnerUploadDataClean>> map =
@@ -79,14 +94,9 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                     data.setTaskId(taskId);
                 });
 
-                try {
-                    uploadDataCleanMapper.batchSaveByTaskId(value);
-                    // 更新数据清洗任务表状态为待清洗
-                    updateTaskCleanStatusById(taskId);
-                } catch (DuplicateKeyException e) {
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), accessNumber,
-                            "外呼推送三方上传数据接口，流水号重复"), e);
-                }
+                uploadDataCleanMapper.batchSaveByTaskId(value);
+                // 更新数据清洗任务表状态为待清洗
+                updateTaskCleanStatusById(taskId);
             });
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), JSON.toJSONString(dataList),

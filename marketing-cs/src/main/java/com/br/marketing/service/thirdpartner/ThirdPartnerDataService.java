@@ -11,5 +11,5 @@ import java.util.List;
  * @CreateTime 2024/11/28
  */
 public interface ThirdPartnerDataService {
-    Result saveData(List<ThirdPartnerDataDTO> dataList, String accessNumber);
+    Result saveData(List<ThirdPartnerDataDTO> dataList, String accessNumber, String originalData);
 }
