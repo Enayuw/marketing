@@ -148,7 +148,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         String resultDate = actionDate.minusDays(1).toString();
 
         transfer.put("statisticDate", resultDate);
-        transfer.put("requestStartDate", actionDate.withDayOfMonth(1).toString());
+        transfer.put("requestStartDate", actionDate.minusDays(1).withDayOfMonth(1).toString());
         transfer.put("requestEndDate", resultDate);
         String reportName = "";
         Integer type = null;
