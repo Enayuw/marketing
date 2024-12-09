@@ -1,58 +1,59 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.br.marketing.mapper.MarketingTaskMapper" >
-  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTask" >
-    <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
-    <result column="batch_number" property="batchNumber" jdbcType="VARCHAR" />
-    <result column="file_name" property="fileName" jdbcType="VARCHAR" />
-    <result column="file_id" property="fileId" jdbcType="INTEGER" />
-    <result column="request_code" property="requestCode" jdbcType="VARCHAR" />
-    <result column="strategy_id" property="strategyId" jdbcType="VARCHAR" />
-    <result column="product_info" property="productInfo" jdbcType="VARCHAR" />
-    <result column="frequency" property="frequency" jdbcType="VARCHAR" />
-    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
-    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
-    <result column="monitor_status" property="monitorStatus" jdbcType="INTEGER" />
-    <result column="status" property="status" jdbcType="INTEGER" />
-    <result column="task_number" property="taskNumber" jdbcType="INTEGER" />
-    <result column="actual_number" property="actualNumber" jdbcType="INTEGER" />
-    <result column="strategy_name" property="strategyName" jdbcType="VARCHAR" />
-    <result column="close_date" property="closeDate" jdbcType="VARCHAR" />
-    <result column="start_date" property="startDate" jdbcType="VARCHAR" />
-    <result column="error_message" property="errorMessage" jdbcType="VARCHAR" />
-    <result column="cus_batch" property="cusBatch" jdbcType="VARCHAR" />
-    <result column="monitor_type" property="monitorType" jdbcType="INTEGER" />
-    <result column="increment" property="increment" jdbcType="INTEGER" />
-    <result column="monitor_model" property="monitorModel" jdbcType="INTEGER" />
-    <result column="is_check" property="isCheck" jdbcType="INTEGER" />
-    <result column="is_repair" property="isRepair" jdbcType="INTEGER" />
-    <result column="context_id" property="contextId" jdbcType="BIGINT" />
-    <result column="task_type" property="taskType" jdbcType="INTEGER" />
-    <result column="cycle_day" property="cycleDay" jdbcType="VARCHAR" />
-    <result column="start_time" property="startTime" jdbcType="VARCHAR" />
-    <result column="priority" property="priority" jdbcType="INTEGER" />
-    <result column="is_online" property="isOnline" jdbcType="INTEGER" />
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.MarketingTaskMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.MarketingTask">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="batch_number" jdbcType="VARCHAR" property="batchNumber" />
+    <result column="file_name" jdbcType="VARCHAR" property="fileName" />
+    <result column="file_id" jdbcType="INTEGER" property="fileId" />
+    <result column="request_code" jdbcType="VARCHAR" property="requestCode" />
+    <result column="strategy_id" jdbcType="VARCHAR" property="strategyId" />
+    <result column="product_info" jdbcType="VARCHAR" property="productInfo" />
+    <result column="frequency" jdbcType="VARCHAR" property="frequency" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="monitor_status" jdbcType="INTEGER" property="monitorStatus" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="task_number" jdbcType="INTEGER" property="taskNumber" />
+    <result column="actual_number" jdbcType="INTEGER" property="actualNumber" />
+    <result column="strategy_name" jdbcType="VARCHAR" property="strategyName" />
+    <result column="close_date" jdbcType="VARCHAR" property="closeDate" />
+    <result column="start_date" jdbcType="VARCHAR" property="startDate" />
+    <result column="error_message" jdbcType="VARCHAR" property="errorMessage" />
+    <result column="cus_batch" jdbcType="VARCHAR" property="cusBatch" />
+    <result column="monitor_type" jdbcType="INTEGER" property="monitorType" />
+    <result column="increment" jdbcType="INTEGER" property="increment" />
+    <result column="monitor_model" jdbcType="INTEGER" property="monitorModel" />
+    <result column="is_check" jdbcType="INTEGER" property="isCheck" />
+    <result column="is_repair" jdbcType="INTEGER" property="isRepair" />
+    <result column="context_id" jdbcType="BIGINT" property="contextId" />
+    <result column="task_type" jdbcType="INTEGER" property="taskType" />
+    <result column="cycle_day" jdbcType="VARCHAR" property="cycleDay" />
+    <result column="start_time" jdbcType="VARCHAR" property="startTime" />
+    <result column="priority" jdbcType="INTEGER" property="priority" />
+    <result column="is_online" jdbcType="INTEGER" property="isOnline" />
+    <result column="score_separator" jdbcType="VARCHAR" property="scoreSeparator" />
   </resultMap>
-  <sql id="Example_Where_Clause" >
-    <where >
-      <foreach collection="oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue" >
+                <when test="criterion.singleValue">
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue" >
+                <when test="criterion.betweenValue">
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue" >
+                <when test="criterion.listValue">
                   and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
                     #{listItem}
                   </foreach>
                 </when>
@@ -63,25 +64,25 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Update_By_Example_Where_Clause" >
-    <where >
-      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
                   and ${criterion.condition}
                 </when>
-                <when test="criterion.singleValue" >
+                <when test="criterion.singleValue">
                   and ${criterion.condition} #{criterion.value}
                 </when>
-                <when test="criterion.betweenValue" >
+                <when test="criterion.betweenValue">
                   and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
                 </when>
-                <when test="criterion.listValue" >
+                <when test="criterion.listValue">
                   and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
                     #{listItem}
                   </foreach>
                 </when>
@@ -92,58 +93,55 @@
       </foreach>
     </where>
   </sql>
-  <sql id="Base_Column_List" >
+  <sql id="Base_Column_List">
     id, api_code, batch_number, file_name, file_id, request_code, strategy_id, product_info, 
-    frequency, create_time, update_time, monitor_status, status, task_number, actual_number, 
-    strategy_name, close_date, start_date, error_message, cus_batch, monitor_type, increment, 
+    frequency, create_time, update_time, monitor_status, `status`, task_number, actual_number, 
+    strategy_name, close_date, start_date, error_message, cus_batch, monitor_type, `increment`, 
     monitor_model, is_check, is_repair, context_id, task_type, cycle_day, start_time, 
-    priority, is_online
+    priority, is_online, score_separator
   </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingTaskExample" >
+  <select id="selectByExample" parameterType="com.br.marketing.entity.MarketingTaskExample" resultMap="BaseResultMap">
     select
-    <if test="distinct" >
+    <if test="distinct">
       distinct
     </if>
     <include refid="Base_Column_List" />
     from b_marketing_task
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
-    <if test="orderByClause != null" >
+    <if test="orderByClause != null">
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
     from b_marketing_task
     where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     delete from b_marketing_task
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTaskExample" >
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.MarketingTaskExample">
     delete from b_marketing_task
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.br.marketing.entity.MarketingTask" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingTask" useGeneratedKeys="true">
     insert into b_marketing_task (api_code, batch_number, file_name, 
       file_id, request_code, strategy_id, 
       product_info, frequency, create_time, 
-      update_time, monitor_status, status, 
+      update_time, monitor_status, `status`, 
       task_number, actual_number, strategy_name, 
       close_date, start_date, error_message, 
-      cus_batch, monitor_type, increment, 
+      cus_batch, monitor_type, `increment`, 
       monitor_model, is_check, is_repair, 
       context_id, task_type, cycle_day, 
-      start_time, priority, is_online
-      )
+      start_time, priority, is_online, 
+      score_separator)
     values (#{apiCode,jdbcType=VARCHAR}, #{batchNumber,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
       #{fileId,jdbcType=INTEGER}, #{requestCode,jdbcType=VARCHAR}, #{strategyId,jdbcType=VARCHAR}, 
       #{productInfo,jdbcType=VARCHAR}, #{frequency,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
@@ -153,307 +151,313 @@
       #{cusBatch,jdbcType=VARCHAR}, #{monitorType,jdbcType=INTEGER}, #{increment,jdbcType=INTEGER}, 
       #{monitorModel,jdbcType=INTEGER}, #{isCheck,jdbcType=INTEGER}, #{isRepair,jdbcType=INTEGER}, 
       #{contextId,jdbcType=BIGINT}, #{taskType,jdbcType=INTEGER}, #{cycleDay,jdbcType=VARCHAR}, 
-      #{startTime,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, #{isOnline,jdbcType=INTEGER}
-      )
+      #{startTime,jdbcType=VARCHAR}, #{priority,jdbcType=INTEGER}, #{isOnline,jdbcType=INTEGER}, 
+      #{scoreSeparator,jdbcType=VARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingTask" >
-    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.MarketingTask" useGeneratedKeys="true">
     insert into b_marketing_task
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="apiCode != null" >
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
         api_code,
       </if>
-      <if test="batchNumber != null" >
+      <if test="batchNumber != null">
         batch_number,
       </if>
-      <if test="fileName != null" >
+      <if test="fileName != null">
         file_name,
       </if>
-      <if test="fileId != null" >
+      <if test="fileId != null">
         file_id,
       </if>
-      <if test="requestCode != null" >
+      <if test="requestCode != null">
         request_code,
       </if>
-      <if test="strategyId != null" >
+      <if test="strategyId != null">
         strategy_id,
       </if>
-      <if test="productInfo != null" >
+      <if test="productInfo != null">
         product_info,
       </if>
-      <if test="frequency != null" >
+      <if test="frequency != null">
         frequency,
       </if>
-      <if test="createTime != null" >
+      <if test="createTime != null">
         create_time,
       </if>
-      <if test="updateTime != null" >
+      <if test="updateTime != null">
         update_time,
       </if>
-      <if test="monitorStatus != null" >
+      <if test="monitorStatus != null">
         monitor_status,
       </if>
-      <if test="status != null" >
-        status,
+      <if test="status != null">
+        `status`,
       </if>
-      <if test="taskNumber != null" >
+      <if test="taskNumber != null">
         task_number,
       </if>
-      <if test="actualNumber != null" >
+      <if test="actualNumber != null">
         actual_number,
       </if>
-      <if test="strategyName != null" >
+      <if test="strategyName != null">
         strategy_name,
       </if>
-      <if test="closeDate != null" >
+      <if test="closeDate != null">
         close_date,
       </if>
-      <if test="startDate != null" >
+      <if test="startDate != null">
         start_date,
       </if>
-      <if test="errorMessage != null" >
+      <if test="errorMessage != null">
         error_message,
       </if>
-      <if test="cusBatch != null" >
+      <if test="cusBatch != null">
         cus_batch,
       </if>
-      <if test="monitorType != null" >
+      <if test="monitorType != null">
         monitor_type,
       </if>
-      <if test="increment != null" >
-        increment,
+      <if test="increment != null">
+        `increment`,
       </if>
-      <if test="monitorModel != null" >
+      <if test="monitorModel != null">
         monitor_model,
       </if>
-      <if test="isCheck != null" >
+      <if test="isCheck != null">
         is_check,
       </if>
-      <if test="isRepair != null" >
+      <if test="isRepair != null">
         is_repair,
       </if>
-      <if test="contextId != null" >
+      <if test="contextId != null">
         context_id,
       </if>
-      <if test="taskType != null" >
+      <if test="taskType != null">
         task_type,
       </if>
-      <if test="cycleDay != null" >
+      <if test="cycleDay != null">
         cycle_day,
       </if>
-      <if test="startTime != null" >
+      <if test="startTime != null">
         start_time,
       </if>
-      <if test="priority != null" >
+      <if test="priority != null">
         priority,
       </if>
-      <if test="isOnline != null" >
+      <if test="isOnline != null">
         is_online,
       </if>
+      <if test="scoreSeparator != null">
+        score_separator,
+      </if>
     </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="apiCode != null" >
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
         #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="batchNumber != null" >
+      <if test="batchNumber != null">
         #{batchNumber,jdbcType=VARCHAR},
       </if>
-      <if test="fileName != null" >
+      <if test="fileName != null">
         #{fileName,jdbcType=VARCHAR},
       </if>
-      <if test="fileId != null" >
+      <if test="fileId != null">
         #{fileId,jdbcType=INTEGER},
       </if>
-      <if test="requestCode != null" >
+      <if test="requestCode != null">
         #{requestCode,jdbcType=VARCHAR},
       </if>
-      <if test="strategyId != null" >
+      <if test="strategyId != null">
         #{strategyId,jdbcType=VARCHAR},
       </if>
-      <if test="productInfo != null" >
+      <if test="productInfo != null">
         #{productInfo,jdbcType=VARCHAR},
       </if>
-      <if test="frequency != null" >
+      <if test="frequency != null">
         #{frequency,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
+      <if test="createTime != null">
         #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
+      <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="monitorStatus != null" >
+      <if test="monitorStatus != null">
         #{monitorStatus,jdbcType=INTEGER},
       </if>
-      <if test="status != null" >
+      <if test="status != null">
         #{status,jdbcType=INTEGER},
       </if>
-      <if test="taskNumber != null" >
+      <if test="taskNumber != null">
         #{taskNumber,jdbcType=INTEGER},
       </if>
-      <if test="actualNumber != null" >
+      <if test="actualNumber != null">
         #{actualNumber,jdbcType=INTEGER},
       </if>
-      <if test="strategyName != null" >
+      <if test="strategyName != null">
         #{strategyName,jdbcType=VARCHAR},
       </if>
-      <if test="closeDate != null" >
+      <if test="closeDate != null">
         #{closeDate,jdbcType=VARCHAR},
       </if>
-      <if test="startDate != null" >
+      <if test="startDate != null">
         #{startDate,jdbcType=VARCHAR},
       </if>
-      <if test="errorMessage != null" >
+      <if test="errorMessage != null">
         #{errorMessage,jdbcType=VARCHAR},
       </if>
-      <if test="cusBatch != null" >
+      <if test="cusBatch != null">
         #{cusBatch,jdbcType=VARCHAR},
       </if>
-      <if test="monitorType != null" >
+      <if test="monitorType != null">
         #{monitorType,jdbcType=INTEGER},
       </if>
-      <if test="increment != null" >
+      <if test="increment != null">
         #{increment,jdbcType=INTEGER},
       </if>
-      <if test="monitorModel != null" >
+      <if test="monitorModel != null">
         #{monitorModel,jdbcType=INTEGER},
       </if>
-      <if test="isCheck != null" >
+      <if test="isCheck != null">
         #{isCheck,jdbcType=INTEGER},
       </if>
-      <if test="isRepair != null" >
+      <if test="isRepair != null">
         #{isRepair,jdbcType=INTEGER},
       </if>
-      <if test="contextId != null" >
+      <if test="contextId != null">
         #{contextId,jdbcType=BIGINT},
       </if>
-      <if test="taskType != null" >
+      <if test="taskType != null">
         #{taskType,jdbcType=INTEGER},
       </if>
-      <if test="cycleDay != null" >
+      <if test="cycleDay != null">
         #{cycleDay,jdbcType=VARCHAR},
       </if>
-      <if test="startTime != null" >
+      <if test="startTime != null">
         #{startTime,jdbcType=VARCHAR},
       </if>
-      <if test="priority != null" >
+      <if test="priority != null">
         #{priority,jdbcType=INTEGER},
       </if>
-      <if test="isOnline != null" >
+      <if test="isOnline != null">
         #{isOnline,jdbcType=INTEGER},
+      </if>
+      <if test="scoreSeparator != null">
+        #{scoreSeparator,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
-  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTaskExample" resultType="java.lang.Integer" >
+  <select id="countByExample" parameterType="com.br.marketing.entity.MarketingTaskExample" resultType="java.lang.Long">
     select count(*) from b_marketing_task
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Example_Where_Clause" />
     </if>
   </select>
-  <update id="updateByExampleSelective" parameterType="map" >
+  <update id="updateByExampleSelective" parameterType="map">
     update b_marketing_task
-    <set >
-      <if test="record.id != null" >
+    <set>
+      <if test="record.id != null">
         id = #{record.id,jdbcType=BIGINT},
       </if>
-      <if test="record.apiCode != null" >
+      <if test="record.apiCode != null">
         api_code = #{record.apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.batchNumber != null" >
+      <if test="record.batchNumber != null">
         batch_number = #{record.batchNumber,jdbcType=VARCHAR},
       </if>
-      <if test="record.fileName != null" >
+      <if test="record.fileName != null">
         file_name = #{record.fileName,jdbcType=VARCHAR},
       </if>
-      <if test="record.fileId != null" >
+      <if test="record.fileId != null">
         file_id = #{record.fileId,jdbcType=INTEGER},
       </if>
-      <if test="record.requestCode != null" >
+      <if test="record.requestCode != null">
         request_code = #{record.requestCode,jdbcType=VARCHAR},
       </if>
-      <if test="record.strategyId != null" >
+      <if test="record.strategyId != null">
         strategy_id = #{record.strategyId,jdbcType=VARCHAR},
       </if>
-      <if test="record.productInfo != null" >
+      <if test="record.productInfo != null">
         product_info = #{record.productInfo,jdbcType=VARCHAR},
       </if>
-      <if test="record.frequency != null" >
+      <if test="record.frequency != null">
         frequency = #{record.frequency,jdbcType=VARCHAR},
       </if>
-      <if test="record.createTime != null" >
+      <if test="record.createTime != null">
         create_time = #{record.createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.updateTime != null" >
+      <if test="record.updateTime != null">
         update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="record.monitorStatus != null" >
+      <if test="record.monitorStatus != null">
         monitor_status = #{record.monitorStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.status != null" >
-        status = #{record.status,jdbcType=INTEGER},
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=INTEGER},
       </if>
-      <if test="record.taskNumber != null" >
+      <if test="record.taskNumber != null">
         task_number = #{record.taskNumber,jdbcType=INTEGER},
       </if>
-      <if test="record.actualNumber != null" >
+      <if test="record.actualNumber != null">
         actual_number = #{record.actualNumber,jdbcType=INTEGER},
       </if>
-      <if test="record.strategyName != null" >
+      <if test="record.strategyName != null">
         strategy_name = #{record.strategyName,jdbcType=VARCHAR},
       </if>
-      <if test="record.closeDate != null" >
+      <if test="record.closeDate != null">
         close_date = #{record.closeDate,jdbcType=VARCHAR},
       </if>
-      <if test="record.startDate != null" >
+      <if test="record.startDate != null">
         start_date = #{record.startDate,jdbcType=VARCHAR},
       </if>
-      <if test="record.errorMessage != null" >
+      <if test="record.errorMessage != null">
         error_message = #{record.errorMessage,jdbcType=VARCHAR},
       </if>
-      <if test="record.cusBatch != null" >
+      <if test="record.cusBatch != null">
         cus_batch = #{record.cusBatch,jdbcType=VARCHAR},
       </if>
-      <if test="record.monitorType != null" >
+      <if test="record.monitorType != null">
         monitor_type = #{record.monitorType,jdbcType=INTEGER},
       </if>
-      <if test="record.increment != null" >
-        increment = #{record.increment,jdbcType=INTEGER},
+      <if test="record.increment != null">
+        `increment` = #{record.increment,jdbcType=INTEGER},
       </if>
-      <if test="record.monitorModel != null" >
+      <if test="record.monitorModel != null">
         monitor_model = #{record.monitorModel,jdbcType=INTEGER},
       </if>
-      <if test="record.isCheck != null" >
+      <if test="record.isCheck != null">
         is_check = #{record.isCheck,jdbcType=INTEGER},
       </if>
-      <if test="record.isRepair != null" >
+      <if test="record.isRepair != null">
         is_repair = #{record.isRepair,jdbcType=INTEGER},
       </if>
-      <if test="record.contextId != null" >
+      <if test="record.contextId != null">
         context_id = #{record.contextId,jdbcType=BIGINT},
       </if>
-      <if test="record.taskType != null" >
+      <if test="record.taskType != null">
         task_type = #{record.taskType,jdbcType=INTEGER},
       </if>
-      <if test="record.cycleDay != null" >
+      <if test="record.cycleDay != null">
         cycle_day = #{record.cycleDay,jdbcType=VARCHAR},
       </if>
-      <if test="record.startTime != null" >
+      <if test="record.startTime != null">
         start_time = #{record.startTime,jdbcType=VARCHAR},
       </if>
-      <if test="record.priority != null" >
+      <if test="record.priority != null">
         priority = #{record.priority,jdbcType=INTEGER},
       </if>
-      <if test="record.isOnline != null" >
+      <if test="record.isOnline != null">
         is_online = #{record.isOnline,jdbcType=INTEGER},
       </if>
+      <if test="record.scoreSeparator != null">
+        score_separator = #{record.scoreSeparator,jdbcType=VARCHAR},
+      </if>
     </set>
-    <if test="_parameter != null" >
+    <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByExample" parameterType="map" >
+  <update id="updateByExample" parameterType="map">
     update b_marketing_task
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
@@ -467,7 +471,7 @@
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
       monitor_status = #{record.monitorStatus,jdbcType=INTEGER},
-      status = #{record.status,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=INTEGER},
       task_number = #{record.taskNumber,jdbcType=INTEGER},
       actual_number = #{record.actualNumber,jdbcType=INTEGER},
       strategy_name = #{record.strategyName,jdbcType=VARCHAR},
@@ -476,7 +480,7 @@
       error_message = #{record.errorMessage,jdbcType=VARCHAR},
       cus_batch = #{record.cusBatch,jdbcType=VARCHAR},
       monitor_type = #{record.monitorType,jdbcType=INTEGER},
-      increment = #{record.increment,jdbcType=INTEGER},
+      `increment` = #{record.increment,jdbcType=INTEGER},
       monitor_model = #{record.monitorModel,jdbcType=INTEGER},
       is_check = #{record.isCheck,jdbcType=INTEGER},
       is_repair = #{record.isRepair,jdbcType=INTEGER},
@@ -485,108 +489,112 @@
       cycle_day = #{record.cycleDay,jdbcType=VARCHAR},
       start_time = #{record.startTime,jdbcType=VARCHAR},
       priority = #{record.priority,jdbcType=INTEGER},
-      is_online = #{record.isOnline,jdbcType=INTEGER}
-    <if test="_parameter != null" >
+      is_online = #{record.isOnline,jdbcType=INTEGER},
+      score_separator = #{record.scoreSeparator,jdbcType=VARCHAR}
+    <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
   </update>
-  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTask" >
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.MarketingTask">
     update b_marketing_task
-    <set >
-      <if test="apiCode != null" >
+    <set>
+      <if test="apiCode != null">
         api_code = #{apiCode,jdbcType=VARCHAR},
       </if>
-      <if test="batchNumber != null" >
+      <if test="batchNumber != null">
         batch_number = #{batchNumber,jdbcType=VARCHAR},
       </if>
-      <if test="fileName != null" >
+      <if test="fileName != null">
         file_name = #{fileName,jdbcType=VARCHAR},
       </if>
-      <if test="fileId != null" >
+      <if test="fileId != null">
         file_id = #{fileId,jdbcType=INTEGER},
       </if>
-      <if test="requestCode != null" >
+      <if test="requestCode != null">
         request_code = #{requestCode,jdbcType=VARCHAR},
       </if>
-      <if test="strategyId != null" >
+      <if test="strategyId != null">
         strategy_id = #{strategyId,jdbcType=VARCHAR},
       </if>
-      <if test="productInfo != null" >
+      <if test="productInfo != null">
         product_info = #{productInfo,jdbcType=VARCHAR},
       </if>
-      <if test="frequency != null" >
+      <if test="frequency != null">
         frequency = #{frequency,jdbcType=VARCHAR},
       </if>
-      <if test="createTime != null" >
+      <if test="createTime != null">
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
+      <if test="updateTime != null">
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="monitorStatus != null" >
+      <if test="monitorStatus != null">
         monitor_status = #{monitorStatus,jdbcType=INTEGER},
       </if>
-      <if test="status != null" >
-        status = #{status,jdbcType=INTEGER},
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
       </if>
-      <if test="taskNumber != null" >
+      <if test="taskNumber != null">
         task_number = #{taskNumber,jdbcType=INTEGER},
       </if>
-      <if test="actualNumber != null" >
+      <if test="actualNumber != null">
         actual_number = #{actualNumber,jdbcType=INTEGER},
       </if>
-      <if test="strategyName != null" >
+      <if test="strategyName != null">
         strategy_name = #{strategyName,jdbcType=VARCHAR},
       </if>
-      <if test="closeDate != null" >
+      <if test="closeDate != null">
         close_date = #{closeDate,jdbcType=VARCHAR},
       </if>
-      <if test="startDate != null" >
+      <if test="startDate != null">
         start_date = #{startDate,jdbcType=VARCHAR},
       </if>
-      <if test="errorMessage != null" >
+      <if test="errorMessage != null">
         error_message = #{errorMessage,jdbcType=VARCHAR},
       </if>
-      <if test="cusBatch != null" >
+      <if test="cusBatch != null">
         cus_batch = #{cusBatch,jdbcType=VARCHAR},
       </if>
-      <if test="monitorType != null" >
+      <if test="monitorType != null">
         monitor_type = #{monitorType,jdbcType=INTEGER},
       </if>
-      <if test="increment != null" >
-        increment = #{increment,jdbcType=INTEGER},
+      <if test="increment != null">
+        `increment` = #{increment,jdbcType=INTEGER},
       </if>
-      <if test="monitorModel != null" >
+      <if test="monitorModel != null">
         monitor_model = #{monitorModel,jdbcType=INTEGER},
       </if>
-      <if test="isCheck != null" >
+      <if test="isCheck != null">
         is_check = #{isCheck,jdbcType=INTEGER},
       </if>
-      <if test="isRepair != null" >
+      <if test="isRepair != null">
         is_repair = #{isRepair,jdbcType=INTEGER},
       </if>
-      <if test="contextId != null" >
+      <if test="contextId != null">
         context_id = #{contextId,jdbcType=BIGINT},
       </if>
-      <if test="taskType != null" >
+      <if test="taskType != null">
         task_type = #{taskType,jdbcType=INTEGER},
       </if>
-      <if test="cycleDay != null" >
+      <if test="cycleDay != null">
         cycle_day = #{cycleDay,jdbcType=VARCHAR},
       </if>
-      <if test="startTime != null" >
+      <if test="startTime != null">
         start_time = #{startTime,jdbcType=VARCHAR},
       </if>
-      <if test="priority != null" >
+      <if test="priority != null">
         priority = #{priority,jdbcType=INTEGER},
       </if>
-      <if test="isOnline != null" >
+      <if test="isOnline != null">
         is_online = #{isOnline,jdbcType=INTEGER},
+      </if>
+      <if test="scoreSeparator != null">
+        score_separator = #{scoreSeparator,jdbcType=VARCHAR},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTask" >
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.MarketingTask">
     update b_marketing_task
     set api_code = #{apiCode,jdbcType=VARCHAR},
       batch_number = #{batchNumber,jdbcType=VARCHAR},
@@ -599,7 +607,7 @@
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       monitor_status = #{monitorStatus,jdbcType=INTEGER},
-      status = #{status,jdbcType=INTEGER},
+      `status` = #{status,jdbcType=INTEGER},
       task_number = #{taskNumber,jdbcType=INTEGER},
       actual_number = #{actualNumber,jdbcType=INTEGER},
       strategy_name = #{strategyName,jdbcType=VARCHAR},
@@ -608,7 +616,7 @@
       error_message = #{errorMessage,jdbcType=VARCHAR},
       cus_batch = #{cusBatch,jdbcType=VARCHAR},
       monitor_type = #{monitorType,jdbcType=INTEGER},
-      increment = #{increment,jdbcType=INTEGER},
+      `increment` = #{increment,jdbcType=INTEGER},
       monitor_model = #{monitorModel,jdbcType=INTEGER},
       is_check = #{isCheck,jdbcType=INTEGER},
       is_repair = #{isRepair,jdbcType=INTEGER},
@@ -617,7 +625,8 @@
       cycle_day = #{cycleDay,jdbcType=VARCHAR},
       start_time = #{startTime,jdbcType=VARCHAR},
       priority = #{priority,jdbcType=INTEGER},
-      is_online = #{isOnline,jdbcType=INTEGER}
+      is_online = #{isOnline,jdbcType=INTEGER},
+      score_separator = #{scoreSeparator,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

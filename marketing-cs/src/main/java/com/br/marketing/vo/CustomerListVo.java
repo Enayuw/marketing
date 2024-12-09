@@ -233,4 +233,8 @@ public class CustomerListVo {
     private String apiType;
 
     private Integer checkType;
+    /**
+     * 跑分分隔符,默认,
+     */
+    private String scoreSeparator;
 }

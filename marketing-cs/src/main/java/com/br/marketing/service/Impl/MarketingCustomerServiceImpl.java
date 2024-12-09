@@ -112,6 +112,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 customerListVo.setCheckType(marketingCustomerConfig == null
                         ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
                         : marketingCustomerConfig.getCheckType());
+                customerListVo.setScoreSeparator(marketingCustomerConfig.getScoreSeparator());
                 customerListVos.add(customerListVo);
             }
             PageInfo<MarketingCustomer> marketingCustomerPageInfo = new PageInfo<>(marketingCustomersList);
@@ -157,6 +158,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
             marketingCustomerConfig.setCreateTime(date);
             marketingCustomerConfig.setUpdateTime(date);
             marketingCustomerConfig.setCheckType(vo.getCheckType());
+            marketingCustomerConfig.setScoreSeparator(vo.getScoreSeparator());
             marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
 
         } else {
@@ -180,12 +182,14 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 marketingCustomerConfig.setCreateTime(date);
                 marketingCustomerConfig.setUpdateTime(date);
                 marketingCustomerConfig.setCheckType(vo.getCheckType());
+                marketingCustomerConfig.setScoreSeparator(vo.getScoreSeparator());
                 marketingCustomerConfigMapper.insertSelective(marketingCustomerConfig);
             } else {
                 MarketingCustomerConfig marketingCustomerConfig = marketingCustomerConfigs.get(0);
                 MarketingCustomerConfig updateEntity = new MarketingCustomerConfig();
                 updateEntity.setId(marketingCustomerConfig.getId());
                 updateEntity.setCheckType(vo.getCheckType());
+                updateEntity.setScoreSeparator(vo.getScoreSeparator());
                 marketingCustomerConfigMapper.updateByPrimaryKeySelective(updateEntity);
                 content.append("【checkType】=【" + marketingCustomerConfig.getCheckType() + "】" + "->【" + vo.getCheckType() + "】,");
             }

@@ -12,6 +12,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
@@ -19,35 +20,9 @@ import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
-import com.br.marketing.entity.MarketingDataValidConfig;
-import com.br.marketing.entity.MarketingSyncInfoExample;
-import com.br.marketing.entity.MarketingSyncReport;
-import com.br.marketing.entity.MarketingSyncReportExample;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskAutoBuildConfig;
-import com.br.marketing.entity.MarketingTaskAutoBuildConfigExample;
-import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.MarketingTaskResultPreview;
-import com.br.marketing.entity.MarketingTaskResultPreviewExample;
-import com.br.marketing.entity.MarketingTaskUserType;
-import com.br.marketing.entity.ScoreRuleConfig;
-import com.br.marketing.entity.StraHisFile;
-import com.br.marketing.entity.StraHisFileExample;
-import com.br.marketing.entity.TaskBatchnumberPre;
-import com.br.marketing.entity.TaskBatchnumberPreExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.mapper.MarketingDataValidConfigMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingSyncReportMapper;
-import com.br.marketing.mapper.MarketingTaskAutoBuildConfigMapper;
-import com.br.marketing.mapper.MarketingTaskExtendMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.MarketingTaskResultPreviewMapper;
-import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
-import com.br.marketing.mapper.ScoreRuleConfigMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
-import com.br.marketing.mapper.TaskBatchnumberPreMapper;
-import com.br.marketing.mapper.TaskStatusMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IDynamicSqlService;
@@ -172,6 +147,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Autowired
     MarketingTaskAutoBuildConfigMapper buildConfigMapper;
+
+    @Resource
+    private MarketingCustomerConfigMapper marketingCustomerConfigMapper;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -866,7 +844,15 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             log.warn("生成跑分任务失败，该跑分编号已存在：{}", batchNumber);
             return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(hasTask.getId());
         }
-
+        String scoreSeparator = ",";
+        MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
+        configExample.createCriteria()
+                .andIsDelEqualTo(Constants.DATA_VALID)
+                .andApiCodeEqualTo(apiCode);
+        List<MarketingCustomerConfig> marketingCustomerConfigs = marketingCustomerConfigMapper.selectByExample(configExample);
+        if(!CollectionUtils.isEmpty(marketingCustomerConfigs)){
+            scoreSeparator = marketingCustomerConfigs.get(0).getScoreSeparator();
+        }
         //region 处理task
         MarketingTask task = new MarketingTask();
         task.setApiCode(apiCode);
@@ -900,6 +886,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         task.setCreateTime(LocalDateTime.now().format(ymdhms));
         task.setContextId(iApiToDbService.getTaskContextId());
+        task.setScoreSeparator(scoreSeparator);
         marketingTaskMapper.insertSelective(task);
         //endregion
 
