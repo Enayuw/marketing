@@ -55,8 +55,7 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
             try {
                 uploadDataCleanFrontMapper.insertSelective(uploadDataCleanFront);
             } catch (DuplicateKeyException e) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), accessNumber,
-                        "外呼推送三方上传数据接口，流水号重复，数据不入库"), e);
+                log.warn("外呼推送三方上传数据接口，流水号{}重复，数据不入库", accessNumber);
                 return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("流水号重复");
             }
 
