@@ -634,6 +634,7 @@
         when shf.status = 9 then 1
         when shf.status = 10 then 4
         when shf.status = 11 then 5
+        when shf.status = 12 then 4
         else shf.status end                                as taskStatus,
         bmt.start_date                              as startDate,
         bmt.close_date                              as closeDate,

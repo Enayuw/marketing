@@ -64,8 +64,16 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 BrExecutors.getThreadPool(marketingCommonConfig.getEsRetryToDataThread(), marketingCommonConfig.getEsRetryToDataThread());
 
         // 需要补推的跑分文件
-        List<String> fileIdGroup = marketingRetryEsMapper.queryFileIdGroup();
+        List<String> fileIdGroup = marketingRetryEsMapper.queryFileIdGroup(date);
         for (String fileId : fileIdGroup) {
+
+            // 判断TaskScoreStartJob跑分是否执行完毕
+            StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileId));
+            if(straHisFile.getStatus() != 12){
+                log.warn(TITLE + "TaskScoreStartJob跑分未完成");
+                return;
+            }
+
             Long minId = null;
             boolean isContiue = Boolean.TRUE;
             while (isContiue) {
@@ -99,22 +107,27 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             if (task == null) {
                 return;
             }
-            StraHisFile updateFile = new StraHisFile();
-            updateFile.setId(task.getHisFileId());
-            boolean isOffline = task.getIsOnline().equals(2);
-            if (isOffline) {
-                updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
-            } else {
-                updateFile.setRunningEndTime(new Date());
-                updateFile.setStatus(task.getExecType().equals("2") ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
-            }
-            updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
-            straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-            if (isOffline) {
-                producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getHisFileId().toString());
-            } else {
-                producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString());
-            }
+            //文件合并
+            mergeFiles(task);
+        }
+    }
+
+    private void mergeFiles(MarketingTaskVO task) {
+        StraHisFile updateFile = new StraHisFile();
+        updateFile.setId(task.getHisFileId());
+        boolean isOffline = task.getIsOnline().equals(2);
+        if (isOffline) {
+            updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
+        } else {
+            updateFile.setRunningEndTime(new Date());
+            updateFile.setStatus(task.getExecType().equals("2") ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
+        }
+        updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
+        straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+        if (isOffline) {
+            producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getHisFileId().toString());
+        } else {
+            producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString());
         }
     }
 

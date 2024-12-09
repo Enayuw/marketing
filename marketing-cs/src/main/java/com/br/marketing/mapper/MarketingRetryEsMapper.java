@@ -11,5 +11,5 @@ public interface MarketingRetryEsMapper extends MarketingRetryEsMapperBase {
 
     List<MarketingRetryEs> queryByDateAndStatus(@Param("fileId") String fileId, @Param("date") String date, @Param("minId") Long minId);
 
-    List<String> queryFileIdGroup();
+    List<String> queryFileIdGroup(@Param("date") String date);
 }

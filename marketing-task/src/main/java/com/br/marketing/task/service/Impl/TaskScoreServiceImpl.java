@@ -298,6 +298,10 @@ public class TaskScoreServiceImpl {
                     } else {
                         producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
                     }
+                }else {
+                    // 存在异常数据，更新跑分记录状态为 异常待重试
+                    updateFile.setStatus(ScoreStatusEnum.WAIT_RETRY.getValue());
+                    straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
             } else {
                 // 当b_task_status.pause_type为2（插队暂停）时，将状态置为待恢复

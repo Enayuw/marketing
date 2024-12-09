@@ -20,6 +20,12 @@
     </select>
 
     <select id="queryFileIdGroup" resultType="java.lang.String">
-        select file_id from b_marketing_retry_es group by file_id;
+        select file_id from b_marketing_retry_es
+        where
+        <if test="date !=null and date!=''">
+            applet_date = #{date} and
+        </if>
+        retry_status = 0
+        group by file_id;
     </select>
 </mapper>
