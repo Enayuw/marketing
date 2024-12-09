@@ -182,6 +182,7 @@ public class ResultUtil {
         JSONObject esResult = new JSONObject();
         StringBuilder sb = new StringBuilder();
         MarketingHistory mh = new MarketingHistory();
+        MarketingHistory marketingHistory = null;
         //region 基本信息
         Date requestTime = new Date();
         sb.append(new SimpleDateFormat("yyyy-MM-dd").format(requestTime)).append(sep)
@@ -273,7 +274,7 @@ public class ResultUtil {
             boolean insert = service.insert(mh, id);
             if(!insert){
                 log.warn("写入ES重试3次失败,fileId:{}", mh.getFileId());
-                return mh;
+                marketingHistory = mh;
             }
         }
         if (isVer) {
@@ -286,7 +287,7 @@ public class ResultUtil {
             preview.setIsTitle(0);
             marketingTaskService.saveScoreResult(preview);
         }
-        return null;
+        return marketingHistory;
     }
 
 
