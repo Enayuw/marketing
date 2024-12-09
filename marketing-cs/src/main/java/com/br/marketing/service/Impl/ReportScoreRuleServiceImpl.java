@@ -660,20 +660,7 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
         String reportTypeName = param.getReportTypeName();
         Integer reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
-
-        // 众安上线后刷记录
-        ReportTaskExample example = new ReportTaskExample();
         String reportDateStr = "%" + reportDate;
-        example.createCriteria().andReportNameLike(reportDateStr).andReportTypeEqualTo(reportType);
-        List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
-        if (ObjectUtil.isEmpty(reportTasks)) {
-            String string = "23:59:59.999";
-            String dateNow = reportDate + " " + string;
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-            LocalDateTime localDateTime = LocalDateTime.parse(dateNow, formatter);
-            reportStatisticService.action(localDateTime);
-            return true;
-        }
 
         // 更新逻辑
         try {
