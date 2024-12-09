@@ -25,11 +25,11 @@ public class ToEsRetryDataJob extends AbstractSimpleElasticJob {
 
     @Override
     public void process(JobExecutionMultipleShardingContext jobExecutionMultipleShardingContext) {
-        log.info(TITLE + "start");
+        log.warn(TITLE + "start");
         long start = System.currentTimeMillis();
         toEsRetryDataService.process();
         long end = System.currentTimeMillis();
-        log.info(TITLE + "end, 耗时{}ms", end-start);
+        log.warn(TITLE + "end, 耗时{}ms", end-start);
     }
 
 }

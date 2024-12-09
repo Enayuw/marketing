@@ -17,6 +17,7 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.HxUtil;
 import com.br.marketing.task.utils.ResultUtil;
@@ -59,15 +60,16 @@ public class CoreScoreThread implements Callable<String> {
     private List<String> noflagproductlist;
     private List<String> flagProductList;
     private MarketingTaskService marketingTaskService;
-    @Resource
-    private MarketingRetryEsMapper marketingRetryEsMapper;
     private Boolean isRetry;
     private String part;
+    private MarketingRetryEsMapper marketingRetryEsMapper;
+    private MarketingCommonConfig marketingCommonConfig;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , Long currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
             , List<String> noflagproductlist, List<String> flagProductList, MarketingTaskExtend marketingTaskExtend
-            , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo, Boolean isRetry) {
+            , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo
+            , Boolean isRetry, MarketingRetryEsMapper marketingRetryEsMapper,MarketingCommonConfig marketingCommonConfig) {
         this.list = list;
         this.apiCode = param.get("apiCode");
         this.strategyId = param.get("strategyId");
@@ -92,6 +94,8 @@ public class CoreScoreThread implements Callable<String> {
         this.fieldInfo = fieldInfo;
         this.baseHeadConfigVO = baseHeadConfigVO;
         this.part = param.get("part");
+        this.marketingRetryEsMapper = marketingRetryEsMapper;
+        this.marketingCommonConfig = marketingCommonConfig;
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
     }
 
@@ -213,7 +217,8 @@ public class CoreScoreThread implements Callable<String> {
                             , fw, sep, proFieldMap, blu
                             , meal, cusBatchNumber, fileId
                             , customer.getPushCustomer().toString()
-                            , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService, part);
+                            , baseHeadConfigVO, fieldInfo, marketingTask
+                            , marketingTaskService, part, marketingCommonConfig);
 
                     insertRetryEs(marketingHistory,apiCode,fileId);
                 }
@@ -230,7 +235,8 @@ public class CoreScoreThread implements Callable<String> {
                         , fw, sep, proFieldMap, blu
                         , meal, cusBatchNumber, fileId
                         , customer.getPushCustomer().toString()
-                        , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService, part);
+                        , baseHeadConfigVO, fieldInfo, marketingTask
+                        , marketingTaskService, part, marketingCommonConfig);
 
                 insertRetryEs(marketingHistory,apiCode,fileId);
             }
@@ -250,7 +256,7 @@ public class CoreScoreThread implements Callable<String> {
             MarketingRetryEs marketingRetryEs = new MarketingRetryEs();
             marketingRetryEs.setApiCode(apiCode);
             marketingRetryEs.setFileId(Long.valueOf(fileId));
-            marketingRetryEs.setReserveField1(marketingHistory.toString());
+            marketingRetryEs.setReserveField1(JSONObject.toJSONString(marketingHistory));
             marketingRetryEs.setAppletDate(String.valueOf(LocalDate.now()));
             marketingRetryEs.setCreateTime(new Date());
             marketingRetryEs.setUpdateTime(new Date());

@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.MarketingRetryEsMapper" >
+
+    <select id="queryByDateAndStatus" resultType="com.br.marketing.entity.MarketingRetryEs">
+        select * from
+        b_marketing_retry_es
+        where
+        <if test="minId != null and minId >0">
+            id >=#{minId} and
+        </if>
+        <if test="date !=null and date!=''">
+            applet_date = #{date} and
+        </if>
+        retry_status = 0
+        order by id asc limit 2000;
+    </select>
 </mapper>

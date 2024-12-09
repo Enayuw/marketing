@@ -17,6 +17,7 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.BaseHead;
 import com.br.marketing.vo.BaseHeadConfigVO;
 import com.br.marketing.vo.StrategyProductDetailVO;
@@ -177,7 +178,7 @@ public class ResultUtil {
     public static MarketingHistory generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
                                                 MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
                                                 BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
-            , MarketingTaskService marketingTaskService, String part) throws IOException {
+            , MarketingTaskService marketingTaskService, String part, MarketingCommonConfig marketingCommonConfig) throws IOException {
         log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
         JSONObject esResult = new JSONObject();
         StringBuilder sb = new StringBuilder();
@@ -268,13 +269,19 @@ public class ResultUtil {
             }
             mh.setCondition(conditionList);
             mh.setReserveField(esResult.toJSONString());
-            //endregion
-            String id = UuidUtils.getUuid();
-            MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
-            boolean insert = service.insert(mh, id);
-            if(!insert){
-                log.warn("写入ES重试3次失败,fileId:{}", mh.getFileId());
+            // 模拟ES异常
+            if(marketingCommonConfig.getEsRetryToDataSwitch()){
+                log.warn("模拟写入ES重试3次失败,fileId:{}", mh.getFileId());
                 marketingHistory = mh;
+            }else {
+                //endregion
+                String id = UuidUtils.getUuid();
+                MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
+                boolean insert = service.insert(mh, id);
+                if(!insert){
+                    log.warn("写入ES重试3次失败,fileId:{}", mh.getFileId());
+                    marketingHistory = mh;
+                }
             }
         }
         if (isVer) {
@@ -289,7 +296,6 @@ public class ResultUtil {
         }
         return marketingHistory;
     }
-
 
     private static Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, JSONObject esResult, StrategyProductDetailVO fieldInfo) {
         StringBuilder result = new StringBuilder();

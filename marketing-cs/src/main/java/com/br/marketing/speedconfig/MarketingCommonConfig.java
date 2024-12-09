@@ -2382,5 +2382,10 @@ public class MarketingCommonConfig {
      */
     private String zhongAnReportStatisticApiCode;
 
+    /**
+     * 模拟ES异常的开关，false关闭开关；true 打开开关
+     */
+    private Boolean esRetryToDataSwitch;
+
 }
 

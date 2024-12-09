@@ -893,4 +893,18 @@
         </if>
         order by bmt.create_time desc,bmt.id desc
     </select>
+    <select id="getByFileId" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select
+            bmt.id,
+            shf.id                  as `hisFileId`,
+            bmt.api_code,
+            bmt.batch_number        as `batchNumber`,
+            bmt.task_number         as `taskNumber`,
+            bmt.monitor_type        as `execType`,
+            bmt.is_online           as `isOnline`
+        from b_marketing_task bmt
+                 left join stra_his_file shf on shf.batch_number = bmt.batch_number
+        where shf.id = #{fileId}
+        order by shf.create_time desc;
+    </select>
 </mapper>
