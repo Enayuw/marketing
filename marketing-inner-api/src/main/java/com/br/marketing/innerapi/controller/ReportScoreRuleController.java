@@ -10,6 +10,7 @@ import com.br.marketing.aspect.LogRecordAnnotation;
 import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.enums.InterfaceOperationsEnum;
 import com.br.marketing.vo.bi.ReportTaskVO;
+import com.br.marketing.vo.bi.param.BiReportStatisticTransferParam;
 import com.br.marketing.vo.bi.param.BiReportTaskParam;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -136,4 +137,32 @@ public class ReportScoreRuleController {
         List<ReportTaskVO> list = reportScoreRuleService.getReportTaskListForScore(name, ids);
         return new ApiResult<List<ReportTaskVO>>().success(list);
     }
+
+    @ApiOperation(value = "更新报表统计记录")
+    @PostMapping("/updateReportStatisticsRecords")
+    public ApiResult<Boolean> updateReportStatisticsRecords(@RequestBody(required = false) BiReportStatisticTransferParam param) {
+        try {
+            return new ApiResult<Boolean>().success(reportScoreRuleService.updateReportRecords(param));
+        } catch (Exception e) {
+            log.error("更新报表统计记录异常", e);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
+        }
+    }
+
+
+
+    @ApiOperation(value = "重命名报表名称")
+    @GetMapping("/updateReportName")
+    @AuthDataControllerPermission
+    public ApiResult<Boolean> updateReportName(@RequestParam Long id, @RequestParam String reportName) {
+        return reportScoreRuleService.updateReportName(id, reportName);
+    }
+
+    @ApiOperation(value = "报表删除")
+    @GetMapping("/deleteReport")
+    @AuthDataControllerPermission
+    public ApiResult<Boolean> deleteReport(@RequestParam Long id) {
+        return reportScoreRuleService.deleteReport(id);
+    }
+
 }

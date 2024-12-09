@@ -9,6 +9,8 @@ public class MarketingTransferSyncUserCell extends MarketingTransferSyncUser{
 
     private MarketingSyncUser marketingSyncUser;
 
+    private MarketingTransferSyncUser marketingTransferSyncUser;
+
     public String getCell() {
         return cell;
     }
@@ -31,5 +33,13 @@ public class MarketingTransferSyncUserCell extends MarketingTransferSyncUser{
 
     public void setMarketingSyncUser(MarketingSyncUser marketingSyncUser) {
         this.marketingSyncUser = marketingSyncUser;
+    }
+
+    public MarketingTransferSyncUser getMarketingTransferSyncUser() {
+        return marketingTransferSyncUser;
+    }
+
+    public void setMarketingTransferSyncUser(MarketingTransferSyncUser marketingTransferSyncUser) {
+        this.marketingTransferSyncUser = marketingTransferSyncUser;
     }
 }

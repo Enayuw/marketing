@@ -1,17 +1,17 @@
 package com.br.marketing.bi.zhongan;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.aspect.BiReportType;
 import com.br.marketing.bi.AbstractBiReportConverter;
-import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyEightReportDTO;
-import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalyOneReportDTO;
 import com.br.marketing.dto.report.zhongan.ZhongAnBusAnalySevenReportDTO;
 import com.br.marketing.entity.ReportStatisticTransfer;
 import com.br.marketing.entity.ReportStatisticTransferExample;
+
 import com.br.marketing.enums.report.BiReportChartTypeEnum;
 import com.br.marketing.enums.report.BiReportTypeEnum;
+import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.ReportStatisticTransferMapper;
-import com.br.marketing.mapper.ZhongAnBiReportMapper;
 import com.br.marketing.proxy.ZhongAnBiReportService;
 import com.br.marketing.vo.bi.BiReportVO;
 import com.br.marketing.vo.bi.WrapDataVO;
@@ -21,8 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,9 +33,6 @@ import java.util.stream.Collectors;
 public class ZhongAnBusAnalySevenConverter extends AbstractBiReportConverter<BiReportVO, ZhongAnBusAnalySevenReportDTO> {
 
     @Autowired
-    ZhongAnBiReportMapper zhongAnBiReportMapper;
-
-    @Autowired
     ZhongAnBiReportService zhongAnBiReportService;
 
     @Autowired
@@ -42,10 +40,22 @@ public class ZhongAnBusAnalySevenConverter extends AbstractBiReportConverter<BiR
 
     @Override
     public List<ZhongAnBusAnalySevenReportDTO> fetchData(BiReportParam param) {
-        String taskId = param.getCondition().getString("taskId");
-
+        String reportDate = param.getCondition().getString("reportDate");
         ReportStatisticTransferExample reportStatisticTransferExample = new ReportStatisticTransferExample();
-        reportStatisticTransferExample.createCriteria().andReportTaskIdEqualTo(taskId);
+        if (ObjectUtil.isNotEmpty(reportDate)) {
+            reportStatisticTransferExample.createCriteria()
+                    .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue().toString())
+                    .andReportDateEqualTo(reportDate)
+                    .andReportStatusEqualTo("0");
+
+        } else {
+            reportDate = LocalDate.now().toString();
+            reportStatisticTransferExample.createCriteria()
+                    .andReportTypeEqualTo(ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue().toString())
+                    .andReportDateEqualTo(reportDate)
+                    .andReportStatusEqualTo("0");
+
+        }
         reportStatisticTransferExample.setOrderByClause("create_time desc");
         List<ReportStatisticTransfer> reportStatisticTransfers = reportStatisticTransferMapper.selectByExample(reportStatisticTransferExample);
         if (reportStatisticTransfers.isEmpty()) {
