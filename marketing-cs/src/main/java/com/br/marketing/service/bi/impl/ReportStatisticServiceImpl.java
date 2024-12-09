@@ -48,14 +48,16 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
     @Override
     public void action(LocalDateTime actionDateTime) {
         try {
-            LocalDate today = actionDateTime.toLocalDate();
+            LocalDate today = actionDateTime.toLocalDate().minusDays(1);
+            String resultDate = today.toString();
+
             // 查询是否已存在统计记录
             ReportTaskExample example = new ReportTaskExample();
             example.createCriteria()
                     .andReportTypeIn(Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue(),
                             ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
                             ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue()))
-                    .andReportNameLike("%" + today.toString());
+                    .andReportNameLike("%" + resultDate);
             List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
             if (reportTasks.size() == 3) {
                 log.warn("众安日新增报表任务已存在！");
@@ -70,7 +72,6 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
                 log.warn("众安报表类型为空");
                 return;
             }
-            String resultDate = today.minusDays(1).toString();
 
             List<Integer> userTypes = zhongAnReportType.stream()
                     .map((String reportType) -> {
@@ -145,10 +146,10 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         Map<String, String> transfer = new HashMap<>();
         transfer.put("isSplit", "1");
         // 获取统计日期
-        String resultDate = actionDate.minusDays(1).toString();
+        String resultDate = actionDate.toString();
 
         transfer.put("statisticDate", resultDate);
-        transfer.put("requestStartDate", actionDate.minusDays(1).withDayOfMonth(1).toString());
+        transfer.put("requestStartDate", actionDate.withDayOfMonth(1).toString());
         transfer.put("requestEndDate", resultDate);
         String reportName = "";
         Integer type = null;
@@ -167,7 +168,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         String statisticsScene = "报表统计_众安(".concat(apiCode);
 
         if ("12".equals(reportType)) {
-            reportName = "场景一日统计" + actionDate.toString();
+            reportName = "场景一日统计" + resultDate;
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue();
             upload.put("dimensionsField", "defaultNone");
             upload.put("userType", "1");
@@ -178,7 +179,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             jsonObject.put("apiCode", apiCode);
             jsonObject.put("statisticsScene", statisticsScene.concat(")_1场景经营分析报表"));
         } else if ("13".equals(reportType)) {
-            reportName = "场景七日统计" + actionDate.toString();
+            reportName = "场景七日统计" + resultDate;
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue();
 
             upload.put("dimensionsField", "defaultNone");
@@ -190,7 +191,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             jsonObject.put("apiCode", apiCode);
             jsonObject.put("statisticsScene", statisticsScene.concat(")_7场景经营分析报表"));
         } else if ("14".equals(reportType)) {
-            reportName = "场景八日统计" + actionDate.toString();
+            reportName = "场景八日统计" + resultDate;
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue();
 
             upload.put("dimensionsField", "defaultNone");
