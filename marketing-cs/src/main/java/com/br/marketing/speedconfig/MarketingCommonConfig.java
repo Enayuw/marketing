@@ -2386,6 +2386,10 @@ public class MarketingCommonConfig {
      * 模拟ES异常的开关，false关闭开关；true 打开开关
      */
     private Boolean esRetryToDataSwitch;
+    /**
+     * ES补推创建线索程池数
+     */
+    private Integer esRetryToDataThread;
 
 }
 

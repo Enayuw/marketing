@@ -9,6 +9,7 @@ import java.util.List;
 @Repository
 public interface MarketingRetryEsMapper extends MarketingRetryEsMapperBase {
 
-    List<MarketingRetryEs> queryByDateAndStatus(@Param("date") String date, @Param("minId") Long minId);
+    List<MarketingRetryEs> queryByDateAndStatus(@Param("fileId") String fileId, @Param("date") String date, @Param("minId") Long minId);
 
+    List<String> queryFileIdGroup();
 }

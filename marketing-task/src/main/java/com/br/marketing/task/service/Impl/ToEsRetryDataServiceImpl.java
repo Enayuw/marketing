@@ -17,9 +17,11 @@ import com.br.marketing.mapper.MarketingTaskMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.service.ToEsRetryDataService;
 import com.br.marketing.vo.MarketingTaskVO;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,85 +51,98 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
     MarketingTaskService marketingTaskService;
     @Resource
     private MarketingTaskMapper marketingTaskMapper;
-
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
     @Autowired
     RabbitMqProducter producter;
 
     @Override
     public void process() {
+
         String date = String.valueOf(LocalDate.now());
-        ThreadPoolExecutor toEsRetryThread = BrExecutors.getThreadPool(100, 100);
-        Long minId = null;
-        Boolean isContiue = Boolean.TRUE;
-        while (isContiue) {
-            // 查询待重试数据
-            List<MarketingRetryEs> marketingRetryEsList = marketingRetryEsMapper.queryByDateAndStatus(date, minId);
+        ThreadPoolExecutor toEsRetryThread =
+                BrExecutors.getThreadPool(marketingCommonConfig.getEsRetryToDataThread(), marketingCommonConfig.getEsRetryToDataThread());
 
-            if (CollectionUtil.isEmpty(marketingRetryEsList)) {
-                isContiue = Boolean.FALSE;
-                continue;
+        // 需要补推的跑分文件
+        List<String> fileIdGroup = marketingRetryEsMapper.queryFileIdGroup();
+        for (String fileId : fileIdGroup) {
+            Long minId = null;
+            boolean isContiue = Boolean.TRUE;
+            while (isContiue) {
+                // 查询待重试数据
+                List<MarketingRetryEs> marketingRetryEsList = marketingRetryEsMapper.queryByDateAndStatus(fileId, date, minId);
+
+                if (CollectionUtil.isEmpty(marketingRetryEsList)) {
+                    isContiue = Boolean.FALSE;
+                    continue;
+                }
+                minId = marketingRetryEsList.get(marketingRetryEsList.size() - 1).getId() + 1;
+
+                List<List<MarketingRetryEs>> partition = ListUtils.partition(marketingRetryEsList, 500);
+                partition.forEach((List<MarketingRetryEs> p) -> {
+                    toEsRetryThread.submit(() -> pushToEsRetryDataSync(p));
+                });
             }
-            minId = marketingRetryEsList.get(marketingRetryEsList.size() - 1).getId() + 1;
-
-            List<List<MarketingRetryEs>> partition = ListUtils.partition(marketingRetryEsList, 500);
-            partition.forEach((List<MarketingRetryEs> p) -> {
-                toEsRetryThread.submit(() -> pushToEsRetryDataSync(p));
-            });
-
-        }
-        toEsRetryThread.shutdown();
-        try {
-            while (!toEsRetryThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.warn(TITLE + "线程池关闭");
+            toEsRetryThread.shutdown();
+            try {
+                while (!toEsRetryThread.awaitTermination(10L, TimeUnit.SECONDS)) {
+                    log.warn(TITLE + "线程池关闭");
+                }
+            } catch (InterruptedException ex) {
+                toEsRetryThread.shutdownNow();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "线程池关闭！异常"), ex);
+                Thread.currentThread().interrupt();
             }
-        } catch (InterruptedException ex) {
-            toEsRetryThread.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "线程池关闭！异常"), ex);
-            Thread.currentThread().interrupt();
-        }
 
+            //根据fileId查询task
+            MarketingTaskVO task = marketingTaskMapper.getByFileId(Long.valueOf(fileId));
+            if (task == null) {
+                return;
+            }
+            StraHisFile updateFile = new StraHisFile();
+            updateFile.setId(task.getHisFileId());
+            boolean isOffline = task.getIsOnline().equals(2);
+            if (isOffline) {
+                updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
+            } else {
+                updateFile.setRunningEndTime(new Date());
+                updateFile.setStatus(task.getExecType().equals("2") ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
+            }
+            updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
+            straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+            if (isOffline) {
+                producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getHisFileId().toString());
+            } else {
+                producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString());
+            }
+        }
     }
 
     private void pushToEsRetryDataSync(List<MarketingRetryEs> marketingRetryEsList) {
-        for (MarketingRetryEs marketingRetryEs : marketingRetryEsList) {
-            Long id = marketingRetryEs.getId();
-            Long fileId = marketingRetryEs.getFileId();
 
-            updateStatus(id, 1);
-            MarketingHistory mh = JSON.parseObject(marketingRetryEs.getReserveField1(), new TypeReference<MarketingHistory>() {
-            }.getType());
-
-            String uuid = UuidUtils.getUuid();
-            MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
-            boolean insert = service.insert(mh, uuid);
-            if (insert) {
-                //重试成功
-                updateStatus(id, 2);
-                //根据fileId查询task
-                MarketingTaskVO task = marketingTaskMapper.getByFileId(fileId);
-                if (task == null) {
-                    return;
-                }
-                StraHisFile updateFile = new StraHisFile();
-                updateFile.setId(task.getHisFileId());
-                boolean isOffline = task.getIsOnline().equals(2);
-                if (isOffline) {
-                    updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
-                } else {
-                    updateFile.setRunningEndTime(new Date());
-                    updateFile.setStatus(task.getExecType().equals("2") ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
-                }
-                updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
-                straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-                if (isOffline) {
-                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getHisFileId().toString());
-                } else {
-                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getHisFileId().toString());
-                }
-            } else {
-                updateStatus(id, 3);
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "失败！, fileId:{}"),  marketingRetryEs.getFileId());
+        try {
+            if(CollectionUtils.isEmpty(marketingRetryEsList)){
+                return;
             }
+            for (MarketingRetryEs marketingRetryEs : marketingRetryEsList) {
+                Long id = marketingRetryEs.getId();
+                updateStatus(id, 1);
+                MarketingHistory mh = JSON.parseObject(marketingRetryEs.getReserveField1(), new TypeReference<MarketingHistory>() {
+                }.getType());
+
+                String uuid = UuidUtils.getUuid();
+                MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
+                boolean insert = service.insert(mh, uuid);
+                if (insert) {
+                    //重试成功
+                    updateStatus(id, 2);
+                } else {
+                    updateStatus(id, 3);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "失败！, fileId:{}"),  marketingRetryEs.getFileId());
+                }
+            }
+        }catch (Exception e){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "异常！"),  e);
         }
     }
 
