@@ -112,7 +112,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 customerListVo.setCheckType(marketingCustomerConfig == null
                         ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
                         : marketingCustomerConfig.getCheckType());
-                customerListVo.setScoreSeparator(marketingCustomerConfig.getScoreSeparator());
+                customerListVo.setScoreSeparator(marketingCustomerConfig == null ? "," : marketingCustomerConfig.getScoreSeparator());
                 customerListVos.add(customerListVo);
             }
             PageInfo<MarketingCustomer> marketingCustomerPageInfo = new PageInfo<>(marketingCustomersList);
