@@ -73,7 +73,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             String resultDate = today.minusDays(1).toString();
 
             List<Integer> userTypes = zhongAnReportType.stream()
-                    .map(reportType -> {
+                    .map((String reportType) -> {
                         switch (reportType) {
                             case "12":
                                 return 1;
