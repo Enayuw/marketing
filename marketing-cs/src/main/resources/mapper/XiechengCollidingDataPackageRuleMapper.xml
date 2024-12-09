@@ -17,6 +17,7 @@
                dpt.task_start_time       as taskStartTime,
                dpr.colliding_start_time  as collidingStartTime,
                dpr.colliding_end_time    as collidingEndTime,
+               dpr.start_times           as startTimes,
                dpr.create_time           as createTime,
                dpr.update_time           as updateTime
         from b_xiecheng_colliding_data_package_rule dpr
@@ -131,6 +132,9 @@
             </if>
             <if test="collidingTimes != null">
                 colliding_times = #{collidingTimes,jdbcType=INTEGER},
+            </if>
+            <if test="startTimes != null">
+                start_times = #{startTimes,jdbcType=INTEGER},
             </if>
         </set>
         where id = #{dprId,jdbcType=BIGINT}

@@ -102,7 +102,7 @@ public interface XieChengCollidingRuleService {
      * @author senyang.zheng
      * @date 2024/04/24
      */
-    Long confirmCollidingRule(CollidingRuleConfirmParam confirmParam);
+    ApiResult<Boolean>  confirmCollidingRule(CollidingRuleConfirmParam confirmParam);
 
     /**
      * 获取暂存规则列表

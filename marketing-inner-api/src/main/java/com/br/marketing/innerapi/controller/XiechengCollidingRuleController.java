@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.common.exception.KnowException;
 import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -102,6 +103,8 @@ public class XiechengCollidingRuleController {
     public ApiResult<Boolean> updateCollidingRule(UpdateCollidingRuleParam param) {
         try {
             return new ApiResult<Boolean>().success(xieChengCollidingRuleService.updateCollidingRule(param));
+        } catch (KnowException ke){
+            return new ApiResult<Boolean>().fail(false, ke.getMessage());
         } catch (Exception e) {
             log.error("修改撞库规则异常", e);
             return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
@@ -156,12 +159,14 @@ public class XiechengCollidingRuleController {
 
     @ApiOperation(value = "10-确认撞库规则")
     @PostMapping("/rule/staging")
-    public ApiResult<Long> confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
+    public ApiResult<Boolean> confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
         try {
-            return new ApiResult<Long>().success(xieChengCollidingRuleService.confirmCollidingRule(confirmParam));
+            return xieChengCollidingRuleService.confirmCollidingRule(confirmParam);
+        } catch (KnowException ke){
+            return new ApiResult<Boolean>().fail(false, ke.getMessage());
         } catch (Exception e) {
             log.error("确认撞库规则异常", e);
-            return new ApiResult<Long>().fail(ServiceResultEnum.FAILED);
+            return new ApiResult<Boolean>().fail(ServiceResultEnum.FAILED);
         }
     }
 
