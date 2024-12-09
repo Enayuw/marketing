@@ -64,9 +64,9 @@ public class RocketMqSwitch {
         RocketMqSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMqSwitchEntity>() {
         }.getType());
         String global = entity.getGlobal();
-        if("true".equalsIgnoreCase(global)){
-            return Boolean.TRUE;
-        }else{
+        if("false".equalsIgnoreCase(global)){
+            return Boolean.FALSE;
+        }else if("true".equalsIgnoreCase(global)){
             JSONObject group = entity.getGroup();
             JSONObject tagObjet = group.getJSONObject(tag);
             if(null == tagObjet || tagObjet.isEmpty()){
@@ -88,6 +88,8 @@ public class RocketMqSwitch {
                     }
                 }
             }
+            return Boolean.FALSE;
+        }else{
             return Boolean.FALSE;
         }
     }
