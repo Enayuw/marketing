@@ -42,6 +42,16 @@ public class PageResultReturn<T> implements Serializable {
         return pageResultReturn;
     }
 
+    public static <T> PageResultReturn setPageResult(List<T> list, Integer page, Integer pageSize, Long total) {
+        PageInfo<T> pageList = new PageInfo<>(list);
+        PageResultReturn pageResultReturn = new PageResultReturn();
+        pageResultReturn.setCurrent(page);
+        pageResultReturn.setRecords(list);
+        pageResultReturn.setTotal(total);
+        pageResultReturn.setSize(pageSize);
+        return pageResultReturn;
+    }
+
     //分页数据进行封装到PageResultReturn
     public static <T> PageResultReturn setPageResult(List<T> list, Integer page) {
         PageInfo<T> pageList = new PageInfo<>(list);

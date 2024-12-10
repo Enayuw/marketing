@@ -1,9 +1,7 @@
 package com.br.marketing.rule.yixin;
 
-import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
@@ -20,12 +18,14 @@ import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
-import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.beans.BeanMap;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -59,7 +59,7 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
     CustomerTagsProcessServiceImpl customerTagsProcessService;
 
     @Override
-    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
         log.warn("开始组装推决策参数 YiXin_NonRealTime_Policy ");
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
         HashMap<String, Integer> pushCellEncPolicy = marketingCommonConfig.getPushCellEncPolicy();
@@ -86,6 +86,9 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         jsonObject.put("batchNumber", getBatchNumber(transfer.getType()));
         buildJson(jsonObject, marketingSyncUser);
 
+        Map<String, Object> stringObjectMap = entityToMapWithBeanMap(transfer);
+        mergeJSONObjects(jsonObject, stringObjectMap);
+
         pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         pushMarketingUserDetailByRuleDTO.setStrategyCode("");
         //去重参数设置
@@ -107,6 +110,66 @@ public class YiXinNonTimeToPolicyImpl implements AssembleData<PushMarketingUserD
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    public static Map<String, Object> entityToMapWithBeanMap(Object entity) {
+        Map<String, Object> resultMap = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        BeanMap beanMap = BeanMap.create(entity);
+
+        for (Object keyObj : beanMap.keySet()) {
+            String key = keyObj.toString();
+            Object value = beanMap.get(keyObj);
+
+            if ("id".equals(key) || "createTime".equals(key) || "updateTime".equals(key)
+                    || "tCid".equals(key) || "cid".equals(key) || "status".equals(key)
+                    || "isTask".equals(key) || "taskTime".equals(key) || "isRepeat".equals(key)) {
+                continue;
+            }
+
+            if (value == null || "".equals(value.toString().trim())) {
+                continue;
+            }
+
+            // 处理 reserveField1 和 reserveField2
+            if ("reserveField1".equals(key) || "reserveField2".equals(key)) {
+                if (value instanceof String) {
+                    try {
+                        // 将 JSON 字符串解析为 Map 并合并到结果中
+                        Map<String, Object> nestedMap = objectMapper.readValue(value.toString(), new TypeReference<Map<String, Object>>() {});
+                        resultMap.putAll(nestedMap);
+                    } catch (Exception e) {
+                        log.warn("reserveField1或reserveField2不是 JSON 格式，跳过！, key :" + key);
+                    }
+                }
+            } else {
+                resultMap.put(key, value);
+            }
+        }
+        return resultMap;
+    }
+
+    public JSONObject mergeJSONObjects(JSONObject jsonObject, Map<String, Object> map) {
+        if (jsonObject == null) {
+            return map == null ? new JSONObject() : new JSONObject(map);
+        }
+        if (map == null) {
+            return jsonObject;
+        }
+
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value == null || "".equals(value.toString())) {
+                continue;
+            }
+            if (!jsonObject.containsKey(key)) {
+                jsonObject.put(key, value);
+            }
+        }
         return jsonObject;
     }
 

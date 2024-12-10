@@ -2415,5 +2415,10 @@ public class MarketingCommonConfig {
      */
     private List<String> autoTestIp;
 
+    /**
+     * 众安经营分析报表统计apiCode
+     */
+    private String zhongAnReportStatisticApiCode;
+
 }
 

@@ -99,6 +99,11 @@ public enum BiReportTypeEnum {
      */
     XIECHENG_TRANSFER_DAILYSWITCHON_REPORT(115, ReportTaskTypeEnum.XIECHENG_DAY_TRANSFER_CALL_TYPE.getValue()
             , "xiechengTransferDailySwitchOnReport", "携程接通日转化报表"),
+    /**
+     * 转化分析报表
+     */
+    TRANSFER_CONNECT_REPORT(116, ReportTaskTypeEnum.TRANSFER_CONNECT_TYPE.getValue()
+            , "transferConnectReport", "接通转化报表"),
     ;
 
 
