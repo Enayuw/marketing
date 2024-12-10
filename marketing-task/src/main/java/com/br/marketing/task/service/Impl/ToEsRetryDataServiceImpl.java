@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -60,8 +61,6 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
     public void process() {
 
         String date = String.valueOf(LocalDate.now());
-        ThreadPoolExecutor toEsRetryThread =
-                BrExecutors.getThreadPool(marketingCommonConfig.getEsRetryToDataThread(), marketingCommonConfig.getEsRetryToDataThread());
 
         // 需要补推的跑分文件
         List<String> fileIdGroup = marketingRetryEsMapper.queryFileIdGroup(date);
@@ -73,6 +72,9 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 log.warn(TITLE + "TaskScoreStartJob跑分未完成");
                 return;
             }
+
+            ThreadPoolExecutor toEsRetryThread =
+                    BrExecutors.getThreadPool(marketingCommonConfig.getEsRetryToDataThread(), marketingCommonConfig.getEsRetryToDataThread());
 
             Long minId = null;
             boolean isContiue = Boolean.TRUE;
@@ -101,14 +103,54 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "线程池关闭！异常"), ex);
                 Thread.currentThread().interrupt();
             }
+            try {
+                // 检测是否存在重试失败数据
+                if(checkIsSuccess(fileId,date)){
+                    continue;
+                }
+                // 根据fileId查询task
+                MarketingTaskVO task = marketingTaskMapper.getByFileId(Long.valueOf(fileId));
+                if (task == null) {
+                    continue;
+                }
+                // 文件合并
+                mergeFiles(task);
+            }catch (Exception e){
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "合并异常！"),  e);
+            }
+        }
+    }
+    private void pushToEsRetryDataSync(List<MarketingRetryEs> marketingRetryEsList) {
 
-            //根据fileId查询task
-            MarketingTaskVO task = marketingTaskMapper.getByFileId(Long.valueOf(fileId));
-            if (task == null) {
+        try {
+            if(CollectionUtils.isEmpty(marketingRetryEsList)){
                 return;
             }
-            //文件合并
-            mergeFiles(task);
+            for (MarketingRetryEs marketingRetryEs : marketingRetryEsList) {
+                Long id = marketingRetryEs.getId();
+                updateStatus(id, 1);
+                MarketingHistory mh = JSON.parseObject(marketingRetryEs.getReserveField1(), new TypeReference<MarketingHistory>() {
+                }.getType());
+
+                // 模拟ES异常
+                HashMap<String, Object> esRetryToDataSwitch = marketingCommonConfig.getEsRetryToDataSwitch();
+                boolean o = (boolean) esRetryToDataSwitch.get("esRetry");
+                if(o){
+                    updateStatus(id, 3);
+                }else {
+                    String uuid = UuidUtils.getUuid();
+                    MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
+                    boolean insert = service.insert(mh, uuid);
+                    if (insert) {
+                        //重试成功
+                        updateStatus(id, 2);
+                    } else {
+                        updateStatus(id, 3);
+                    }
+                }
+            }
+        }catch (Exception e){
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "异常！"),  e);
         }
     }
 
@@ -131,32 +173,21 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
         }
     }
 
-    private void pushToEsRetryDataSync(List<MarketingRetryEs> marketingRetryEsList) {
-
-        try {
-            if(CollectionUtils.isEmpty(marketingRetryEsList)){
-                return;
-            }
-            for (MarketingRetryEs marketingRetryEs : marketingRetryEsList) {
-                Long id = marketingRetryEs.getId();
-                updateStatus(id, 1);
-                MarketingHistory mh = JSON.parseObject(marketingRetryEs.getReserveField1(), new TypeReference<MarketingHistory>() {
-                }.getType());
-
-                String uuid = UuidUtils.getUuid();
-                MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
-                boolean insert = service.insert(mh, uuid);
-                if (insert) {
-                    //重试成功
-                    updateStatus(id, 2);
-                } else {
-                    updateStatus(id, 3);
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "失败！, fileId:{}"),  marketingRetryEs.getFileId());
-                }
-            }
-        }catch (Exception e){
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "异常！"),  e);
+    private boolean checkIsSuccess(String fileId, String date) {
+        MarketingRetryEsExample marketingRetryEsExample = new MarketingRetryEsExample();
+        marketingRetryEsExample.createCriteria()
+                .andFileIdEqualTo(Long.valueOf(fileId))
+                .andAppletDateEqualTo(date)
+                .andRetryStatusEqualTo(3);
+        List<MarketingRetryEs> marketingRetryEs = marketingRetryEsMapper.selectByExample(marketingRetryEsExample);
+        if(CollectionUtils.isEmpty(marketingRetryEs)){
+            return false;
         }
+        log.warn(TITLE + "重试失败！fileId:{}, size:{}",fileId,marketingRetryEs.size());
+        for (MarketingRetryEs m : marketingRetryEs) {
+            updateStatus(m.getId(),0);
+        }
+        return true;
     }
 
     public void updateStatus(Long id, Integer retryStatus) {

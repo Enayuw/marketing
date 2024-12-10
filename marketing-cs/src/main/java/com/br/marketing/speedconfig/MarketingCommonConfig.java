@@ -2383,9 +2383,10 @@ public class MarketingCommonConfig {
     private String zhongAnReportStatisticApiCode;
 
     /**
-     * 模拟ES异常的开关，false关闭开关；true 打开开关
+     * 模拟ES异常的开关 {"scoreStart":true,"esRetry":true}
+     * true 打开开关, false关闭开关
      */
-    private Boolean esRetryToDataSwitch;
+    private HashMap<String, Object> esRetryToDataSwitch;
     /**
      * ES补推创建线索程池数
      */

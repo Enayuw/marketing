@@ -270,7 +270,9 @@ public class ResultUtil {
             mh.setCondition(conditionList);
             mh.setReserveField(esResult.toJSONString());
             // 模拟ES异常
-            if(marketingCommonConfig.getEsRetryToDataSwitch()){
+            HashMap<String, Object> esRetryToDataSwitch = marketingCommonConfig.getEsRetryToDataSwitch();
+            boolean o = (boolean) esRetryToDataSwitch.get("scoreStart");
+            if(o){
                 marketingHistory = mh;
             }else {
                 //endregion
