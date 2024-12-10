@@ -693,6 +693,9 @@
         <if test="taskStatus==5 ">
             and shf.status =11
         </if>
+        <if test="taskStatus==6 ">
+            and shf.status =12
+        </if>
         <if test="id !=null">
             and bmt.id = #{id}
         </if>
