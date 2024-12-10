@@ -69,7 +69,7 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             // 判断TaskScoreStartJob跑分是否执行完毕
             StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileId));
             if(straHisFile.getStatus() != 12){
-                log.warn(TITLE + "TaskScoreStartJob跑分未完成");
+                log.warn(TITLE + "TaskScoreStartJob跑分未完成,fileId{}",fileId);
                 return;
             }
 
