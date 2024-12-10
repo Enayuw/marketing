@@ -267,7 +267,8 @@
                context_id,
                task_type,
                product_info,
-               is_online
+               is_online,
+               score_separator
         FROM b_marketing_task
         WHERE batch_number = #{batchNumber}
     </select>
