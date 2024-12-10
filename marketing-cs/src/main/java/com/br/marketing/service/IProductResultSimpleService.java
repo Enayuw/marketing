@@ -26,7 +26,7 @@ public interface IProductResultSimpleService {
 
     Result<String> getBaseHeadInfoByTaskId(Long taskId);
 
-    Result<String> getCurrentBaseHeadInfoByTaskId(Long taskId);
+    Result<String> getCurrentBaseHeadInfoByTaskId(Long taskId ,String sep);
 
     Result<BaseHeadConfigVO> getBaseHeadConfig(String apiCode, String groupType);
 
