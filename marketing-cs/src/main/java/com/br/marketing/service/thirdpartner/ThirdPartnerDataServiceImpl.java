@@ -56,7 +56,7 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                 uploadDataCleanFrontMapper.insertSelective(uploadDataCleanFront);
             } catch (DuplicateKeyException e) {
                 log.warn("外呼推送三方上传数据接口，流水号{}重复，数据不入库", accessNumber);
-                return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("流水号重复");
+                return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("流水号重复");
             }
 
             HashMap<String, String> mappingConfig = marketingCommonConfig.getThirdPartnerApiCodeMappingConfig();
