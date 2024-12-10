@@ -271,7 +271,6 @@ public class ResultUtil {
             mh.setReserveField(esResult.toJSONString());
             // 模拟ES异常
             if(marketingCommonConfig.getEsRetryToDataSwitch()){
-                log.warn("模拟写入ES重试3次失败,fileId:{}", mh.getFileId());
                 marketingHistory = mh;
             }else {
                 //endregion
@@ -279,7 +278,7 @@ public class ResultUtil {
                 MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
                 boolean insert = service.insert(mh, id);
                 if(!insert){
-                    log.warn("写入ES重试3次失败,fileId:{}", mh.getFileId());
+                    log.warn("写入ES重试3次失败,batchNumber:{}", mh.getBatchNumber());
                     marketingHistory = mh;
                 }
             }
