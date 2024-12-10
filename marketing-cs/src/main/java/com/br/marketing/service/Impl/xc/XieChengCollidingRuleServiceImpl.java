@@ -167,13 +167,10 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
                 throw new KnowException("撞库时间格式有误！");
             }
         }
-        XiechengCollidingDataPackageRule update = new XiechengCollidingDataPackageRule();
-        update.setCollidingBackNumber(param.getCollidingBackNumber());
-        update.setCollidingTimes(param.getCollidingTimes());
-        update.setCollidingStartTime(DateUtil.parse(param.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN));
-        update.setCollidingEndTime(DateUtil.parse(param.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN));
-        update.setStartTimes(param.getStartTimes());
-        update.setId(param.getDprId());
+        param.setCollidingStartTime(DateUtil.parse(param.getCollidingStartTime(),
+                DatePattern.NORM_DATETIME_PATTERN).toStringDefaultTimeZone());
+        param.setCollidingEndTime(DateUtil.parse(param.getCollidingEndTime(),
+                DatePattern.NORM_DATETIME_PATTERN).toStringDefaultTimeZone());
         return packageRuleMapper.updateCollidingRule(param) == 1;
     }
 
