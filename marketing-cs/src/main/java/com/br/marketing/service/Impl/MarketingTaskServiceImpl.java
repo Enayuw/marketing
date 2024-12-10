@@ -55,6 +55,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -992,7 +993,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             return new Result<ResultPreviewVO>().setCode(ResultCode.FAIL.getValue()).setMessage("表头不存在");
         }
         MarketingTaskResultPreview marketingTaskResultPreview = first.get();
-        String[] titleArray = marketingTaskResultPreview.getContent().split(scoreSeparator);
+        String[] titleArray = marketingTaskResultPreview.getContent().split(Pattern.quote(scoreSeparator));
         List<HashMap> titleDesc = new ArrayList<>();
         List<HashMap> contentDesc = new ArrayList<>();
         for (String s : titleArray) {
@@ -1003,12 +1004,12 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
         }
         MarketingTaskResultPreview resultDate = marketingTaskResultPreviews.stream().filter(taskResult -> !new Integer(1).
                 equals(taskResult.getIsTitle())).collect(Collectors.toList()).get(0);
-        if (resultDate.getContent().split(scoreSeparator, -1).length != titleArray.length) {
+        if (resultDate.getContent().split(Pattern.quote(scoreSeparator), -1).length != titleArray.length) {
             return new Result<ResultPreviewVO>().setCode(ResultCode.FAIL.getValue()).setMessage("分隔符".concat(scoreSeparator).concat("数量不匹配"));
         }
         marketingTaskResultPreviews.forEach(t -> {
             if (!new Integer(1).equals(t.getIsTitle())) {
-                String[] field = t.getContent().split(scoreSeparator, -1);
+                String[] field = t.getContent().split(Pattern.quote(scoreSeparator), -1);
                 HashMap<String, String> contentHs = new HashMap<>();
                 for (int i = 0; i < field.length; i++) {
                     String fieldValue = field[i];
