@@ -14,7 +14,7 @@ import java.util.List;
 public interface IProductResultSimpleService {
     Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, MarketingUser user,JSONObject esResult);
 
-    Result<String> getFieldsStrInfo(String apiCode,String batchNumber);
+    Result<String> getFieldsStrInfo(String apiCode,String batchNumber,String sep);
 
     Result<List<String>> getFieldsInfo(String apiCode,String batchNumber);
 
