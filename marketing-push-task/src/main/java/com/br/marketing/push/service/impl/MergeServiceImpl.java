@@ -147,7 +147,7 @@ public class MergeServiceImpl implements MergeService {
                     .concat("_").concat(startTime).concat("_").concat(DateHelper.getDateAddYyMmDd(0)).concat(".txt");
             String filePathAndName=targetPath.toString().concat(fileName);
             StringBuilder head= new StringBuilder();
-            String separator=marketingSepService.querySepByApiCode(blt.getApiCode());
+            String separator=blt.getScoreSeparator();
             iProductResultSimpleService.initHead(head,separator,blt);
             Integer fileNum = isOffLine?300000000:30000000;
             if(!isOffLine&&StringUtils.isNotBlank(customer.getExtendConfigInfo())){
