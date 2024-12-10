@@ -18,6 +18,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.net.ThirdApiResultTransfer;
 import com.br.marketing.mapper.InterfaceLogMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,10 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import javax.annotation.Resource;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
@@ -56,6 +55,9 @@ public class RobotaiApiServiceClient {
 
     @Autowired
     AlarmApiClient alarmApiClient;
+
+    @Resource
+    MarketingCommonConfig marketingCommonConfig;
 
     public static final int RETRY_COUNT=2;
 
@@ -234,6 +236,14 @@ public class RobotaiApiServiceClient {
      **/
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public RobotOutboundVo pushRobotOutbound(RobotOutboundGeneralDTO dto, String method){
+        RobotOutboundVo result = new RobotOutboundVo();
+        HashMap<String, Object> mock = marketingCommonConfig.getThirdPartnerApiMethodMock();
+        if (!Objects.isNull(mock)) {
+            if (mock.get("switch") == Boolean.TRUE) {
+                result.setCode(mock.get("code").toString());
+                return result;
+            }
+        }
         try{
             ThirdApiResultTransfer thirdApiResult = new ApiCallerUtil(restTemplate,interfaceLogMapper,logDbpool)
                     .setUrl(robotOutboundUrl)
@@ -243,12 +253,12 @@ public class RobotaiApiServiceClient {
                 throw new RuntimeException("客服中心-method：".concat(method).concat("，httpCode：")
                         .concat(String.valueOf(thirdApiResult.getHttpCode())));
             }
-            RobotOutboundVo result = JSON.parseObject(thirdApiResult.getResult()
+            result = JSON.parseObject(thirdApiResult.getResult()
                     , new TypeReference<RobotOutboundVo>() {}.getType());
             return result;
         }catch (Exception ex){
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_CUSTOMERERROR.getCode(), ex.getMessage()), ex);
-            RobotOutboundVo result = new RobotOutboundVo();
+            result = new RobotOutboundVo();
             result.setCode("9999");
             result.setMessage(ex.getMessage());
             return result;

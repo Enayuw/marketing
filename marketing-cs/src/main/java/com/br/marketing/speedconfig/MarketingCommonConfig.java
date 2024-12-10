@@ -2387,5 +2387,16 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, JSONObject> thirdPartnerApiMethodConfig;
 
+    /**
+     * 三方接口方法挡板开关 true:开启挡板。false:关闭挡板
+     * thirdPartnerApiMethodMock={"switch":true,"code":"00"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * code：
+     *      00:请求成功
+     */
+    private HashMap<String, Object> thirdPartnerApiMethodMock;
+
 }
 
