@@ -43,10 +43,6 @@ public class RocketMqConsumerService {
      */
     public <T> void consumerRun(MessageExt messageExt, Function<T, Result<Boolean>> method, T t
             , String delayTopic, String retryTag, long delayTime) {
-        if(rocketMqSwitch.consumerStopFlag()){
-            log.warn("RocketMQ停止消费");
-            throw new RuntimeException();
-        }
         String message = null;
         String uuid = messageExt.getProperty(RocketMqSwitch.UUID_KEY);
         String topic = messageExt.getTopic();

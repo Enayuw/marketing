@@ -51,7 +51,7 @@ public class MarketingXcGeneralApplication {
      */
     public static void stop() {
         try {
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
             BrGrpcUtils.shutDown();
         }catch (InterruptedException e) {
             log.warn("Interrupted!", e);

@@ -50,7 +50,7 @@ public class MarketingDataRelayServiceApplication {
      */
     public static void stop() {
         try {
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
 //            BrGrpcUtils.shutDown();
         } catch (Exception e) {
             Thread.currentThread().interrupt();
