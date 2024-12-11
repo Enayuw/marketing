@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName ToEsRetryDataServiceImpl
@@ -78,6 +79,8 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
 
             Long minId = null;
             boolean isContiue = Boolean.TRUE;
+            log.warn(TITLE + "重试开始");
+            long start = System.currentTimeMillis();
             while (isContiue) {
                 // 查询待重试数据
                 List<MarketingRetryEs> marketingRetryEsList = marketingRetryEsMapper.queryByDateAndStatus(fileId, date, minId);
@@ -96,14 +99,19 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             toEsRetryThread.shutdown();
             try {
                 while (!toEsRetryThread.awaitTermination(10L, TimeUnit.SECONDS)) {
-                    log.warn(TITLE + "线程池关闭");
+                    log.warn("ES补撞线程池关闭");
                 }
             } catch (InterruptedException ex) {
                 toEsRetryThread.shutdownNow();
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "线程池关闭！异常"), ex);
                 Thread.currentThread().interrupt();
             }
+            long end = System.currentTimeMillis();
+            log.warn(TITLE + "重试结束, 耗时{}ms", end-start);
+
             try {
+                log.warn(TITLE + "合并开始");
+                long start1 = System.currentTimeMillis();
                 // 检测是否存在重试失败数据
                 if(checkIsSuccess(fileId,date)){
                     continue;
@@ -115,6 +123,8 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 }
                 // 文件合并
                 mergeFiles(task);
+                long end1 = System.currentTimeMillis();
+                log.warn(TITLE + "合并结束, 耗时{}ms", end1-start1);
             }catch (Exception e){
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "合并异常！"),  e);
             }
@@ -184,9 +194,11 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             return false;
         }
         log.warn(TITLE + "重试失败！fileId:{}, size:{}",fileId,marketingRetryEs.size());
-        for (MarketingRetryEs m : marketingRetryEs) {
-            updateStatus(m.getId(),0);
-        }
+        List<Long> ids = marketingRetryEs.stream()
+                .map(MarketingRetryEs::getId)
+                .collect(Collectors.toList());
+        int i = marketingRetryEsMapper.updateByIds(ids);
+        log.warn(TITLE + "更新重试状态！fileId:{}, size:{}",fileId,i);
         return true;
     }
 
