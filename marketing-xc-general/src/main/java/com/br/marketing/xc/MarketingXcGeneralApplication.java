@@ -5,6 +5,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.MqConsumerShutdown;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,10 @@ public class MarketingXcGeneralApplication {
                 MarketingXcGeneralApplication.stop();
             }
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MqConsumerShutdown bean = ac.getBean(MqConsumerShutdown.class);
+            bean.rocketmqDestroy();
+        }));
         log.warn("marketing-xc-general启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
     /**
@@ -46,7 +51,7 @@ public class MarketingXcGeneralApplication {
      */
     public static void stop() {
         try {
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
             BrGrpcUtils.shutDown();
         }catch (InterruptedException e) {
             log.warn("Interrupted!", e);

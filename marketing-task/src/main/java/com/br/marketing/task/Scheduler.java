@@ -7,6 +7,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.MqConsumerShutdown;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.prometheus.counter.EnableMarketingCounter;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
@@ -49,6 +50,10 @@ public class Scheduler {
                 Scheduler.stop();
             }
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MqConsumerShutdown bean = ac.getBean(MqConsumerShutdown.class);
+            bean.rocketmqDestroy();
+        }));
         Long end =System.currentTimeMillis();
         log.warn("Scheduler启动结束，耗时{}",end-start);
     }
@@ -58,7 +63,7 @@ public class Scheduler {
      */
     public static void stop() {
         try {
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
             BrGrpcUtils.shutDown();
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);

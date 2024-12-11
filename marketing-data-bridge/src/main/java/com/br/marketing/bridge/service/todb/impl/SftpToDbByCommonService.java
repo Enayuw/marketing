@@ -5,22 +5,22 @@ import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.bridge.common.utils.SftpToDbUtils;
 import com.br.marketing.bridge.model.dto.FileContext;
 import com.br.marketing.client.AlarmApiClient;
-import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
+import com.br.marketing.common.constants.rocketmq.MarketingAssistConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.common.utils.file.MyFileUtil;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.dto.TxtToDbDTO;
 import com.br.marketing.entity.FileDbConfig;
 import com.br.marketing.entity.LocalFile;
-import com.br.marketing.mapper.LoadResultMapper;
 import com.br.marketing.mapper.LocalFileMapper;
-import com.br.marketing.mapper.PhoneSaleMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.google.common.base.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.shaded.com.google.common.base.Splitter;
@@ -55,37 +55,18 @@ public class SftpToDbByCommonService {
     @Value("${otherConfig.alarm.outsideAppName:00}")
     private String appName;
 
-    /**
-     * The Load result mapper.
-     */
-    @Resource
-    LoadResultMapper loadResultMapper;
-
     @Resource
     RabbitMqProducter producter;
-
-    /**
-     * The Redis chg service.
-     */
     @Resource
-    RedisChgService redisChgService;
-
+    private RocketMqTemplate template;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
     @Resource
     LocalFileMapper localFileMapper;
-
-    @Resource
-    PhoneSaleMapper phoneSaleMapper;
-
     @Value("${api.dass.aesKey:00}")
     private String aesKey;
-
     @Resource
     MarketingCommonConfig marketingCommonConfig;
-
-    private static String phoneReg = "^([\\+]*[0-9]+)$";
-
-    private final static Integer SPLITSIZE = 5000;
-
 
     /**
      * 下载文件
@@ -386,7 +367,13 @@ public class SftpToDbByCommonService {
             updateFile.setStatus("2");
             localFileMapper.updateByPrimaryKeySelective(updateFile);
             if (StringUtils.isNotBlank(fileDbConfig.getRouteKey())) {
-                producter.send(fileDbConfig.getRouteKey(), localFile.getId().toString());
+                String routeKey = fileDbConfig.getRouteKey();
+                String msg = localFile.getId().toString();
+                if(rocketMqSwitch.rocketMQSwitchFlag(fileDbConfig.getApiCode(), routeKey)){
+                    rocketMqSwitch.syncSend(MarketingAssistConstants.TOPIC, routeKey, msg);
+                }else{
+                    producter.send(routeKey, msg);
+                }
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);

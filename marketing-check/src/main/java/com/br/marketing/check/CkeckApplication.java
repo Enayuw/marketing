@@ -6,6 +6,7 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.MqConsumerShutdown;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
 import com.br.marketing.service.Impl.ConsumerService;
 import io.shardingsphere.shardingjdbc.spring.boot.SpringBootConfiguration;
@@ -47,6 +48,10 @@ public class CkeckApplication {
                 CkeckApplication.stop();
             }
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MqConsumerShutdown bean = ac.getBean(MqConsumerShutdown.class);
+            bean.rocketmqDestroy();
+        }));
         log.warn("marketing-check启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
@@ -57,7 +62,7 @@ public class CkeckApplication {
         try {
             ConsumerService.consumerDownStatus = Boolean.TRUE;
             log.warn("消费者下线");
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
             BrGrpcUtils.shutDown();
             log.warn("GRPC服务关闭正常");
         } catch (Exception e) {

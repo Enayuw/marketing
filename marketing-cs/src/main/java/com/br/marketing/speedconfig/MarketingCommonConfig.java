@@ -229,6 +229,16 @@ public class MarketingCommonConfig {
     private List<String> mrpCallRecordDataPushMqApiCodes;
 
     /**
+     * 转化数据配置apiCode推送智能规则的mq
+     */
+    private List<String> mrpTransferDataPushMqApiCodes;
+
+    /**
+     * 上传数据配置apiCode推送智能规则的mq
+     */
+    private List<String> mrpUploadDataPushMqApiCodes;
+
+    /**
      * 玖富转化数据提取apiCode集合
      */
     private List<String> JiuFuTransferApiCodes;
@@ -2018,6 +2028,34 @@ public class MarketingCommonConfig {
      * 58新客-营销转化结果查询-调用线程
      */
     private List<Integer> wuBaQueryConversionThreadPool;
+    /**
+     * 是否使用 RocketMq 发送消息配置:（注意区分大小写）
+     *     1.speed中global= true 时全部apiCode和全部队列都使用 RocketMq
+     *     2.flag= true 时tag对应的队列中全部apiCode都使用 RocketMq
+     *     3.global=false且flag=false时， apiCodes中包含的apiCode使用RocketMQ,多个以逗号分隔
+     * 结构：
+     * {
+     *     "global": "false",
+     *     "group": {
+     *         "Marketing.PreUser.Receive": {
+     *             "flag": "false",
+     *             "apiCodes": "7410950,7410951",
+     *             "printLog":"false"
+     *         },
+     *         "Marketing.PreUser.Receive.Small": {
+     *             "flag": "false",
+     *             "apiCodes": "7410950,7410951",
+     *             "printLog":"false"
+     *         }
+     *     }
+     * }
+     * 说明：
+     *      global：全局
+     *      name：配置启用RocketMQ的服务名称,多个以逗号分隔
+     *      apiCodes：配置启用RocketMQ的apiCode,多个以逗号分隔
+     *      tags：配置启用RocketMQ的tag,多个以逗号分隔
+     */
+    private String rocketMqSwitch2;
 
     /**
      * 58新客-营销转化结果查询-批量DB线程

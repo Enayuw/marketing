@@ -32,6 +32,7 @@
         <commons-pool2.version>2.8.0</commons-pool2.version>
         <poi.version>5.2.5</poi.version>
         <log4j.version>2.23.1</log4j.version>
+        <rocketmq5x.version>1.0.1</rocketmq5x.version>
         <br-encrypt.version>1.0.0</br-encrypt.version>
     </properties>
     <dependencies>
@@ -44,6 +45,11 @@
                     <artifactId>logback-classic</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.br.rocketmq</groupId>
+            <artifactId>br-rocketmq-starter-1.x</artifactId>
+            <version>${rocketmq5x.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

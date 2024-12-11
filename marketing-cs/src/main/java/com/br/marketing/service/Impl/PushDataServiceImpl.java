@@ -35,8 +35,10 @@ import com.br.marketing.client.yiqianbao.input.YqbDetailVo;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.constants.rocketmq.MarketingOutsideInterfaceConstants;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SftpFileTypeEnum;
+import com.br.marketing.config.RocketMqSwitch;
 import com.br.marketing.common.utils.AESUtil;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
@@ -44,33 +46,7 @@ import com.br.marketing.common.utils.RandomUtils;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
-import com.br.marketing.entity.HaierCollidingData;
-import com.br.marketing.entity.HaierCollidingDataLog;
-import com.br.marketing.entity.HaierData;
-import com.br.marketing.entity.HaierDataExample;
-import com.br.marketing.entity.HaierReq;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.MarketingTransferInfo;
-import com.br.marketing.entity.MarketingTransferSyncUser;
-import com.br.marketing.entity.MarketingTransferSyncUserExample;
-import com.br.marketing.entity.PhoneSaleIbu;
-import com.br.marketing.entity.RetryMainLog;
-import com.br.marketing.entity.TwosevenFile;
-import com.br.marketing.entity.XieChengData;
-import com.br.marketing.entity.XieChengDataExample;
-import com.br.marketing.entity.XieChengJudgeConvTypeValue;
-import com.br.marketing.entity.XieChengSmsCollidingData;
-import com.br.marketing.entity.XieChengSmsCollidingDataExample;
-import com.br.marketing.entity.XieChengSmsCollidingDataLog;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogExample;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVt;
-import com.br.marketing.entity.XieChengSmsCollidingDataLogVtExample;
-import com.br.marketing.entity.XieChengSmsCollidingDataVt;
-import com.br.marketing.entity.XiechengSmsQuitData;
-import com.br.marketing.entity.XiechengSmsQuitDataExample;
-import com.br.marketing.entity.YiqianbaoData;
-import com.br.marketing.entity.YiqianbaoDataExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.HaierCollidingDataLogMapper;
 import com.br.marketing.mapper.HaierCollidingDataMapper;
 import com.br.marketing.mapper.HaierDataMapper;
@@ -102,6 +78,7 @@ import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import com.br.marketing.util.TimeUtils;
 import com.br.marketing.webhook.dingding.service.DingDingRobotHookService;
+import com.br.rocketmq.rocketmq.template.RocketMqTemplate;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.google.common.collect.Lists;
@@ -250,6 +227,10 @@ public class PushDataServiceImpl implements PushDataService {
 
     @Autowired
     RabbitMqProducter producter;
+    @Resource
+    private RocketMqSwitch rocketMqSwitch;
+    @Resource
+    private RocketMqTemplate template;
 
     @Autowired
     YiqianbaoDataMapper yiqianbaoDataMapper;
@@ -1651,8 +1632,14 @@ public class PushDataServiceImpl implements PushDataService {
                 .filter(item -> !item.getResult())
                 .map(XieChengSmsCollidingDataLogVt::getSha256CodeList)
                 .collect(Collectors.toList());
-        producter.send(ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER
-                , JSON.toJSONString(sha256CodeListFalseList));
+        String jsonString = JSON.toJSONString(sha256CodeListFalseList);
+        if(rocketMqSwitch.rocketMQSwitchFlag(null, MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER)){
+            rocketMqSwitch.syncSend(MarketingOutsideInterfaceConstants.TOPIC
+                    , MarketingOutsideInterfaceConstants.TAG_MARKETING_XIECHENGSMSCOLLIDINGVT_CUSTOMER, jsonString);
+        }else{
+            producter.send(ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER
+                    , jsonString);
+        }
     }
 
 

@@ -7,14 +7,15 @@ import com.br.cloud.hystrix.EnableHystrixPrometheus;
 import com.br.cloud.jvm.EnablePrometheusJvm;
 import com.br.cloud.web.EnablePrometheusTiming;
 import com.br.grpc.utils.BrGrpcUtils;
+import com.br.marketing.config.MqConsumerShutdown;
 import com.br.marketing.config.autoinject.druid.EnableDruidPrometheus;
-import com.br.marketing.prometheus.druid.DruidCollector;
 import lombok.extern.slf4j.Slf4j;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.cloud.netflix.feign.EnableFeignClients;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 
@@ -50,13 +51,17 @@ public class MarketingApiApplication {
     public static void main(String[] args) {
         Long start = System.currentTimeMillis();
         log.warn("marketing-api开始启动！");
-        SpringApplication.run(MarketingApiApplication.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(MarketingApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 MarketingApiApplication.stop();
             }
         });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            MqConsumerShutdown bean = context.getBean(MqConsumerShutdown.class);
+            bean.rocketmqDestroy();
+        }));
         log.warn("marketing-api启动结束，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
@@ -65,7 +70,7 @@ public class MarketingApiApplication {
      */
     public static void stop() {
         try {
-            Thread.sleep(4500L);
+            Thread.sleep(24500L);
             BrGrpcUtils.shutDown();
         } catch (Exception e) {
             log.error("GRPC服务关闭异常", e);
