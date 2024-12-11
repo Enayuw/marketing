@@ -138,7 +138,6 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             }
             for (MarketingRetryEs marketingRetryEs : marketingRetryEsList) {
                 Long id = marketingRetryEs.getId();
-                updateStatus(id, 1);
                 MarketingHistory mh = JSON.parseObject(marketingRetryEs.getReserveField1(), new TypeReference<MarketingHistory>() {
                 }.getType());
 
