@@ -53,45 +53,50 @@ public class RocketMqSwitch {
     private RocketMqTemplate template;
 
     public Boolean rocketMQSwitchFlag(String apiCode, String tag){
-        UUID uuid = UUID.randomUUID();
-        if(log.isInfoEnabled()){
-            log.info("[{}]rocketMQSwitchFlag--apiCode[{}]tag[{}]", uuid, apiCode, tag);
-        }
-        String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
-        if(StringUtils.isBlank(rocketMqSwitchString)){
-            return Boolean.FALSE;
-        }
-        RocketMqSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMqSwitchEntity>() {
-        }.getType());
-        String global = entity.getGlobal();
-        if("false".equalsIgnoreCase(global)){
-            return Boolean.FALSE;
-        }else if("true".equalsIgnoreCase(global)){
-            JSONObject group = entity.getGroup();
-            JSONObject tagObjet = group.getJSONObject(tag);
-            if(null == tagObjet || tagObjet.isEmpty()){
+        try {
+            UUID uuid = UUID.randomUUID();
+            if(log.isInfoEnabled()){
+                log.info("[{}]rocketMQSwitchFlag--apiCode[{}]tag[{}]", uuid, apiCode, tag);
+            }
+            String rocketMqSwitchString = marketingCommonConfig.getRocketMqSwitch2();
+            if(StringUtils.isBlank(rocketMqSwitchString)){
+                return Boolean.FALSE;
+            }
+            RocketMqSwitchEntity entity = JSON.parseObject(rocketMqSwitchString, new TypeReference<RocketMqSwitchEntity>() {
+            }.getType());
+            String global = entity.getGlobal();
+            if("false".equalsIgnoreCase(global)){
+                return Boolean.FALSE;
+            }else if("true".equalsIgnoreCase(global)){
+                JSONObject group = entity.getGroup();
+                JSONObject tagObjet = group.getJSONObject(tag);
+                if(null == tagObjet || tagObjet.isEmpty()){
+                    return Boolean.FALSE;
+                }else{
+                    Boolean flagBoolean = tagObjet.getBoolean(FLAG);
+                    if(log.isInfoEnabled()){
+                        log.info("[{}]rocketMQSwitchFlag--tagObjet[{}]flagBoolean[{}]", uuid, tagObjet, flagBoolean);
+                    }
+                    if(flagBoolean){
+                        return Boolean.TRUE;
+                    }else{
+                        if(StringUtils.isBlank(apiCode)){
+                            return Boolean.FALSE;
+                        }
+                        String apiCodes = tagObjet.getString(APICODES_SPEED);
+                        if(StringUtils.isNotBlank(apiCodes) && apiCodes.contains(apiCode)){
+                            return Boolean.TRUE;
+                        }
+                    }
+                }
                 return Boolean.FALSE;
             }else{
-                Boolean flagBoolean = tagObjet.getBoolean(FLAG);
-                if(log.isInfoEnabled()){
-                    log.info("[{}]rocketMQSwitchFlag--tagObjet[{}]flagBoolean[{}]", uuid, tagObjet, flagBoolean);
-                }
-                if(flagBoolean){
-                    return Boolean.TRUE;
-                }else{
-                    if(StringUtils.isBlank(apiCode)){
-                        return Boolean.FALSE;
-                    }
-                    String apiCodes = tagObjet.getString(APICODES_SPEED);
-                    if(StringUtils.isNotBlank(apiCodes) && apiCodes.contains(apiCode)){
-                        return Boolean.TRUE;
-                    }
-                }
+                return Boolean.FALSE;
             }
-            return Boolean.FALSE;
-        }else{
-            return Boolean.FALSE;
+        }catch (Exception e){
+            log.warn("rocketMQSwitchFlag对应的RocketMqSwitch2配置异常,apiCode:{}--tag:{}--", apiCode, tag, e);
         }
+        return Boolean.FALSE;
     }
 
 
