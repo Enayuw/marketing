@@ -72,6 +72,7 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                 if (Objects.isNull(apiCode)) {
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "入参apiCode：" + orgApiCode,
                             "外呼推送三方上传数据接口，入参apiCode没有映射关系。数据不落库，需要关注"));
+                    return;
                 }
 
                 Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "三方数据_上传清洗规则勿动");
@@ -81,7 +82,6 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                     if (Objects.isNull(validStartDate) || Objects.isNull(validEndDate)) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), JSON.toJSONString(data),
                                 "外呼推送三方上传数据接口，参数异常"));
-                        return;
                     }
 
                     data.setAccessNumber(accessNumber);
