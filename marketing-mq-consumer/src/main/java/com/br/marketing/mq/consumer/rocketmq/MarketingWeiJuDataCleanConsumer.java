@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 @RocketMQMessageListener(topic = MarketingUploadConstants.TOPIC,
         consumerGroup = MarketingUploadConstants.MARKETING_WEIJU_DATA_CLEAN,
         selectorExpression = MarketingUploadConstants.TAG_MARKETING_WEIJU_DATA_CLEAN,
-        consumeThreadNumber = 1, consumeThreadMax = 5, awaitTerminationMillisWhenShutdown = 3000)
+        consumeThreadNumber = 1, consumeThreadMax = 5, awaitTerminationMillisWhenShutdown = 2000)
 public class MarketingWeiJuDataCleanConsumer extends BaseMqMessageListener implements RocketMQListener<MessageExt>, RocketMQPushConsumerLifecycleListener {
 
     @Autowired
