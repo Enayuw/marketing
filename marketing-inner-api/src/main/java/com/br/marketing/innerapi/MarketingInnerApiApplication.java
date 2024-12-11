@@ -59,7 +59,7 @@ public class MarketingInnerApiApplication {
         ac =SpringApplication.run(MarketingInnerApiApplication.class, args);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
-            public void run() { ;
+            public void run() {
                 MarketingInnerApiApplication.stop();
             }
         });
