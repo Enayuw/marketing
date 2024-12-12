@@ -21,6 +21,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,12 +62,8 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
 
             HashMap<String, String> mappingConfig = marketingCommonConfig.getThirdPartnerApiCodeMappingConfig();
             // 根据源apiCode对数据分组
-            Map<String, List<ThirdPartnerUploadDataClean>> map =
-                    dataList.stream().map(t -> {
-                        ThirdPartnerUploadDataClean dataClean = new ThirdPartnerUploadDataClean();
-                        BeanUtils.copyProperties(t, dataClean);
-                        return dataClean;
-                    }).collect(Collectors.groupingBy(ThirdPartnerUploadDataClean::getApiCode));
+            Map<String, List<ThirdPartnerDataDTO>> map =
+                    dataList.stream().collect(Collectors.groupingBy(ThirdPartnerDataDTO::getApiCode));
             map.forEach((orgApiCode, value) -> {
                 String apiCode = mappingConfig.get(orgApiCode);
                 if (Objects.isNull(apiCode)) {
@@ -76,23 +73,29 @@ public class ThirdPartnerDataServiceImpl implements ThirdPartnerDataService {
                 }
 
                 Long taskId = cleaningAutoService.saveCleanTask(apiCode, 0, "三方数据_上传清洗规则勿动");
+                List<ThirdPartnerUploadDataClean> list = new ArrayList<>();
                 value.forEach(data -> {
                     String validStartDate = data.getValidStartDate();
                     String validEndDate = data.getValidEndDate();
                     if (Objects.isNull(validStartDate) || Objects.isNull(validEndDate)) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), JSON.toJSONString(data),
                                 "外呼推送三方上传数据接口，参数异常"));
+                        return;
                     }
 
-                    data.setAccessNumber(accessNumber);
-                    data.setApiCode(apiCode);
-                    data.setOrgApiCode(orgApiCode);
-                    data.setValidStartDate(validStartDate.substring(0, 10));
-                    data.setValidEndDate(validEndDate.substring(0, 10));
-                    data.setTaskId(taskId);
+                    ThirdPartnerUploadDataClean dataClean = new ThirdPartnerUploadDataClean();
+                    BeanUtils.copyProperties(data, dataClean);
+
+                    dataClean.setAccessNumber(accessNumber);
+                    dataClean.setApiCode(apiCode);
+                    dataClean.setOrgApiCode(orgApiCode);
+                    dataClean.setValidStartDate(validStartDate.substring(0, 10));
+                    dataClean.setValidEndDate(validEndDate.substring(0, 10));
+                    dataClean.setTaskId(taskId);
+                    list.add(dataClean);
                 });
 
-                uploadDataCleanMapper.batchSaveByTaskId(value);
+                uploadDataCleanMapper.batchSaveByTaskId(list);
                 // 更新数据清洗任务表状态为待清洗
                 updateTaskCleanStatusById(taskId);
             });
