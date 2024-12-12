@@ -71,12 +71,6 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 .collect(Collectors.toList());
 
         for (Long fileId : fileIds) {
-            // 判断TaskScoreStartJob跑分是否执行完毕
-            StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(fileId);
-            if(!Objects.equals(straHisFile.getStatus(), ScoreStatusEnum.WAIT_RETRY.getValue())){
-                log.warn(TITLE + "TaskScoreStartJob跑分未完成,fileId:{}",fileId);
-                continue;
-            }
 
             ThreadPoolExecutor toEsRetryThread =
                     BrExecutors.getThreadPool(marketingCommonConfig.getEsRetryToDataThread(), marketingCommonConfig.getEsRetryToDataThread());
