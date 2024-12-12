@@ -100,14 +100,15 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "线程池关闭！异常"), ex);
                 Thread.currentThread().interrupt();
             }
-            log.warn(TITLE + "成功数: {}, 失败数: {}", successCount.get(), failureCount.get());
             try {
                 if(failureCount.get() > 0){
                     StringBuilder stringBuilder = new StringBuilder();
                     stringBuilder.append(TITLE);
-                    stringBuilder.append("异常，失败量级:");
+                    stringBuilder.append("异常，成功量级:");
+                    stringBuilder.append(successCount.get());
+                    stringBuilder.append("，失败量级:");
                     stringBuilder.append(failureCount.get());
-                    stringBuilder.append(",fileId:");
+                    stringBuilder.append("，fileId:");
                     stringBuilder.append(fileId);
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), stringBuilder.toString()), failureCount.get());
                     continue;
