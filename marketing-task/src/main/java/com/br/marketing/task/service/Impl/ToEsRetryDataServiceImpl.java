@@ -70,7 +70,7 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             // 判断TaskScoreStartJob跑分是否执行完毕
             StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileId));
             if(straHisFile.getStatus() != 12){
-                log.warn(TITLE + "TaskScoreStartJob跑分未完成,fileId{}",fileId);
+                log.warn(TITLE + "TaskScoreStartJob跑分未完成,fileId:{}",fileId);
                 continue;
             }
 
@@ -106,12 +106,7 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "线程池关闭！异常"), ex);
                 Thread.currentThread().interrupt();
             }
-            long end = System.currentTimeMillis();
-            log.warn(TITLE + "重试结束, 耗时{}ms", end-start);
-
             try {
-                log.warn(TITLE + "合并开始");
-                long start1 = System.currentTimeMillis();
                 // 检测是否存在重试失败数据
                 if(checkIsSuccess(fileId,date)){
                     continue;
@@ -123,8 +118,8 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 }
                 // 文件合并
                 mergeFiles(task);
-                long end1 = System.currentTimeMillis();
-                log.warn(TITLE + "合并结束, 耗时{}ms", end1-start1);
+                long end = System.currentTimeMillis();
+                log.warn(TITLE + "重试结束,fileId:{}, 耗时:{}ms", fileId, end-start);
             }catch (Exception e){
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "合并异常！"),  e);
             }
