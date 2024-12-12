@@ -71,7 +71,7 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             StraHisFile straHisFile = straHisFileMapper.selectByPrimaryKey(Long.valueOf(fileId));
             if(straHisFile.getStatus() != 12){
                 log.warn(TITLE + "TaskScoreStartJob跑分未完成,fileId{}",fileId);
-                return;
+                continue;
             }
 
             ThreadPoolExecutor toEsRetryThread =
