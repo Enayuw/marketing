@@ -2386,7 +2386,7 @@ public class MarketingCommonConfig {
      * 模拟ES异常的开关 {"scoreStart":true,"esRetry":true}
      * true 打开开关, false关闭开关
      */
-    private HashMap<String, Object> esRetryToDataSwitch;
+    private HashMap<String, JSONObject> esRetryToDataSwitch;
     /**
      * ES补推创建线索程池数
      */

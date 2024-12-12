@@ -5,9 +5,10 @@
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
     <result column="file_id" property="fileId" jdbcType="BIGINT" />
+    <result column="es_id" property="esId" jdbcType="VARCHAR" />
     <result column="retry_total_attempts" property="retryTotalAttempts" jdbcType="INTEGER" />
     <result column="retry_status" property="retryStatus" jdbcType="INTEGER" />
-    <result column="reserve_field1" property="reserveField1" jdbcType="VARCHAR" />
+    <result column="extend" property="extend" jdbcType="VARCHAR" />
     <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -71,7 +72,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, file_id, retry_total_attempts, retry_status, reserve_field1, applet_date, 
+    id, api_code, file_id, es_id, retry_total_attempts, retry_status, extend, applet_date, 
     create_time, update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.MarketingRetryEsExample" >
@@ -108,12 +109,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_marketing_retry_es (api_code, file_id, retry_total_attempts, 
-      retry_status, reserve_field1, applet_date, 
-      create_time, update_time)
-    values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=BIGINT}, #{retryTotalAttempts,jdbcType=INTEGER}, 
-      #{retryStatus,jdbcType=INTEGER}, #{reserveField1,jdbcType=VARCHAR}, #{appletDate,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_marketing_retry_es (api_code, file_id, es_id, 
+      retry_total_attempts, retry_status, extend, 
+      applet_date, create_time, update_time
+      )
+    values (#{apiCode,jdbcType=VARCHAR}, #{fileId,jdbcType=BIGINT}, #{esId,jdbcType=VARCHAR}, 
+      #{retryTotalAttempts,jdbcType=INTEGER}, #{retryStatus,jdbcType=INTEGER}, #{extend,jdbcType=VARCHAR}, 
+      #{appletDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.MarketingRetryEs" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -127,14 +130,17 @@
       <if test="fileId != null" >
         file_id,
       </if>
+      <if test="esId != null" >
+        es_id,
+      </if>
       <if test="retryTotalAttempts != null" >
         retry_total_attempts,
       </if>
       <if test="retryStatus != null" >
         retry_status,
       </if>
-      <if test="reserveField1 != null" >
-        reserve_field1,
+      <if test="extend != null" >
+        extend,
       </if>
       <if test="appletDate != null" >
         applet_date,
@@ -153,14 +159,17 @@
       <if test="fileId != null" >
         #{fileId,jdbcType=BIGINT},
       </if>
+      <if test="esId != null" >
+        #{esId,jdbcType=VARCHAR},
+      </if>
       <if test="retryTotalAttempts != null" >
         #{retryTotalAttempts,jdbcType=INTEGER},
       </if>
       <if test="retryStatus != null" >
         #{retryStatus,jdbcType=INTEGER},
       </if>
-      <if test="reserveField1 != null" >
-        #{reserveField1,jdbcType=VARCHAR},
+      <if test="extend != null" >
+        #{extend,jdbcType=VARCHAR},
       </if>
       <if test="appletDate != null" >
         #{appletDate,jdbcType=VARCHAR},
@@ -191,14 +200,17 @@
       <if test="record.fileId != null" >
         file_id = #{record.fileId,jdbcType=BIGINT},
       </if>
+      <if test="record.esId != null" >
+        es_id = #{record.esId,jdbcType=VARCHAR},
+      </if>
       <if test="record.retryTotalAttempts != null" >
         retry_total_attempts = #{record.retryTotalAttempts,jdbcType=INTEGER},
       </if>
       <if test="record.retryStatus != null" >
         retry_status = #{record.retryStatus,jdbcType=INTEGER},
       </if>
-      <if test="record.reserveField1 != null" >
-        reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
+      <if test="record.extend != null" >
+        extend = #{record.extend,jdbcType=VARCHAR},
       </if>
       <if test="record.appletDate != null" >
         applet_date = #{record.appletDate,jdbcType=VARCHAR},
@@ -219,9 +231,10 @@
     set id = #{record.id,jdbcType=BIGINT},
       api_code = #{record.apiCode,jdbcType=VARCHAR},
       file_id = #{record.fileId,jdbcType=BIGINT},
+      es_id = #{record.esId,jdbcType=VARCHAR},
       retry_total_attempts = #{record.retryTotalAttempts,jdbcType=INTEGER},
       retry_status = #{record.retryStatus,jdbcType=INTEGER},
-      reserve_field1 = #{record.reserveField1,jdbcType=VARCHAR},
+      extend = #{record.extend,jdbcType=VARCHAR},
       applet_date = #{record.appletDate,jdbcType=VARCHAR},
       create_time = #{record.createTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP}
@@ -238,14 +251,17 @@
       <if test="fileId != null" >
         file_id = #{fileId,jdbcType=BIGINT},
       </if>
+      <if test="esId != null" >
+        es_id = #{esId,jdbcType=VARCHAR},
+      </if>
       <if test="retryTotalAttempts != null" >
         retry_total_attempts = #{retryTotalAttempts,jdbcType=INTEGER},
       </if>
       <if test="retryStatus != null" >
         retry_status = #{retryStatus,jdbcType=INTEGER},
       </if>
-      <if test="reserveField1 != null" >
-        reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
+      <if test="extend != null" >
+        extend = #{extend,jdbcType=VARCHAR},
       </if>
       <if test="appletDate != null" >
         applet_date = #{appletDate,jdbcType=VARCHAR},
@@ -263,9 +279,10 @@
     update b_marketing_retry_es
     set api_code = #{apiCode,jdbcType=VARCHAR},
       file_id = #{fileId,jdbcType=BIGINT},
+      es_id = #{esId,jdbcType=VARCHAR},
       retry_total_attempts = #{retryTotalAttempts,jdbcType=INTEGER},
       retry_status = #{retryStatus,jdbcType=INTEGER},
-      reserve_field1 = #{reserveField1,jdbcType=VARCHAR},
+      extend = #{extend,jdbcType=VARCHAR},
       applet_date = #{appletDate,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP}

@@ -18,16 +18,6 @@
         order by id asc limit 2000;
     </select>
 
-    <select id="queryFileIdGroup" resultType="java.lang.String">
-        select file_id from b_marketing_retry_es
-        where
-        <if test="date !=null and date!=''">
-            applet_date = #{date} and
-        </if>
-        retry_status = 0
-        group by file_id;
-    </select>
-
     <update id="updateByIds" parameterType="java.util.List">
         update b_marketing_retry_es set retry_status = 0
         where id in

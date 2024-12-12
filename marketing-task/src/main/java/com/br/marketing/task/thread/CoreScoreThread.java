@@ -213,14 +213,13 @@ public class CoreScoreThread implements Callable<String> {
                 }
                 JSONObject resultJson = JSONObject.parseObject(s);
                 if (fw != null) {
-                    MarketingHistory marketingHistory = ResultUtil.generateFile(resultJson, strategyId
+                    ResultUtil.generateFile(resultJson, strategyId
                             , fw, sep, proFieldMap, blu
                             , meal, cusBatchNumber, fileId
                             , customer.getPushCustomer().toString()
                             , baseHeadConfigVO, fieldInfo, marketingTask
-                            , marketingTaskService, part, marketingCommonConfig);
-
-                    insertRetryEs(marketingHistory,apiCode,fileId);
+                            , marketingTaskService, part
+                            , marketingCommonConfig,marketingRetryEsMapper);
                 }
             }
         } catch (Exception e) {
@@ -231,14 +230,13 @@ public class CoreScoreThread implements Callable<String> {
     private void dealResult(Writer fw, MarketingSyncUser blu) throws IOException {
         try {
             if (fw != null) {
-                MarketingHistory marketingHistory = ResultUtil.generateFile(null, strategyId
+                ResultUtil.generateFile(null, strategyId
                         , fw, sep, proFieldMap, blu
                         , meal, cusBatchNumber, fileId
                         , customer.getPushCustomer().toString()
                         , baseHeadConfigVO, fieldInfo, marketingTask
-                        , marketingTaskService, part, marketingCommonConfig);
-
-                insertRetryEs(marketingHistory,apiCode,fileId);
+                        , marketingTaskService, part
+                        , marketingCommonConfig,marketingRetryEsMapper);
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);
@@ -248,19 +246,6 @@ public class CoreScoreThread implements Callable<String> {
     private void dealResult(String s, Writer errorFw) throws IOException {
         if (!StringUtils.isEmpty(s)) {
             errorFw.append(s + "\r\n");
-        }
-    }
-
-    private void insertRetryEs(MarketingHistory marketingHistory, String apiCode, String fileId) {
-        if(marketingHistory != null){
-            MarketingRetryEs marketingRetryEs = new MarketingRetryEs();
-            marketingRetryEs.setApiCode(apiCode);
-            marketingRetryEs.setFileId(Long.valueOf(fileId));
-            marketingRetryEs.setReserveField1(JSONObject.toJSONString(marketingHistory));
-            marketingRetryEs.setAppletDate(String.valueOf(LocalDate.now()));
-            marketingRetryEs.setCreateTime(new Date());
-            marketingRetryEs.setUpdateTime(new Date());
-            marketingRetryEsMapper.insertSelective(marketingRetryEs);
         }
     }
 

@@ -276,32 +276,31 @@ public class TaskScoreServiceImpl {
             StraHisFile updateFile = new StraHisFile();
             updateFile.setId(task.getFileId());
             if (observedTaskObj.getInterrupt().equals(0)) {
-                MarketingRetryEsExample marketingRetryEsExample = new MarketingRetryEsExample();
-                marketingRetryEsExample.createCriteria()
-                        .andApiCodeEqualTo(apiCode)
-                        .andAppletDateEqualTo(String.valueOf(LocalDate.now()))
-                        .andRetryStatusEqualTo(0)
-                        .andFileIdEqualTo(task.getFileId());
-                int i = marketingRetryEsMapper.countByExample(marketingRetryEsExample);
-                if(i == 0){
-                    if (isOffline) {
-                        updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
-                    } else {
-                        updateFile.setRunningEndTime(new Date());
-                        updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
-                    }
+                // 离线
+                if (isOffline) {
+                    updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
                     updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
                     straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-
-                    if (isOffline) {
-                        producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
-                    } else {
+                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
+                } else {
+                    MarketingRetryEsExample marketingRetryEsExample = new MarketingRetryEsExample();
+                    marketingRetryEsExample.createCriteria()
+                            .andApiCodeEqualTo(apiCode)
+                            .andAppletDateEqualTo(String.valueOf(LocalDate.now()))
+                            .andRetryStatusEqualTo(0)
+                            .andFileIdEqualTo(task.getFileId());
+                    int i = marketingRetryEsMapper.countByExample(marketingRetryEsExample);
+                    if(i == 0){
+                        updateFile.setRunningEndTime(new Date());
+                        updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
+                        updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
+                        straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                         producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
+                    }else {
+                        // 存在异常数据，更新跑分记录状态为 异常待重试
+                        updateFile.setStatus(ScoreStatusEnum.WAIT_RETRY.getValue());
+                        straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                     }
-                }else {
-                    // 存在异常数据，更新跑分记录状态为 异常待重试
-                    updateFile.setStatus(ScoreStatusEnum.WAIT_RETRY.getValue());
-                    straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                 }
             } else {
                 // 当b_task_status.pause_type为2（插队暂停）时，将状态置为待恢复

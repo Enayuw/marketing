@@ -19,19 +19,24 @@ public class MarketingRetryEs {
     private Long fileId;
 
     /**
+     * ES id
+     */
+    private String esId;
+
+    /**
      * 重试次数
      */
     private Integer retryTotalAttempts;
 
     /**
-     * 重试状态 0-待重试；1-重试中；2-重试成功；3-重试失败
+     * 重试状态 0-待重试；1-重试成功；2-重试失败
      */
     private Integer retryStatus;
 
     /**
-     * 预留字段1
+     * 扩展字段
      */
-    private String reserveField1;
+    private String extend;
 
     /**
      * 执行日期
@@ -72,6 +77,14 @@ public class MarketingRetryEs {
         this.fileId = fileId;
     }
 
+    public String getEsId() {
+        return esId;
+    }
+
+    public void setEsId(String esId) {
+        this.esId = esId == null ? null : esId.trim();
+    }
+
     public Integer getRetryTotalAttempts() {
         return retryTotalAttempts;
     }
@@ -88,12 +101,12 @@ public class MarketingRetryEs {
         this.retryStatus = retryStatus;
     }
 
-    public String getReserveField1() {
-        return reserveField1;
+    public String getExtend() {
+        return extend;
     }
 
-    public void setReserveField1(String reserveField1) {
-        this.reserveField1 = reserveField1 == null ? null : reserveField1.trim();
+    public void setExtend(String extend) {
+        this.extend = extend == null ? null : extend.trim();
     }
 
     public String getAppletDate() {

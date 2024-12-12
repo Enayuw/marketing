@@ -1,4 +1,5 @@
 package com.br.marketing.task.utils;
+import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -16,6 +17,7 @@ import com.br.marketing.es.bean.MarketingCondition;
 import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.impl.MarketingHistoryEsServiceImpl;
 import com.br.marketing.es.util.UuidUtils;
+import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.service.MarketingTaskService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.vo.BaseHead;
@@ -27,6 +29,7 @@ import org.springframework.util.DigestUtils;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -175,15 +178,14 @@ public class ResultUtil {
      * @return
      * @throws IOException
      */
-    public static MarketingHistory generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
+    public static void generateFile(JSONObject resultJson, String strategyId, Writer fw, String sep, Map<String, String> proFieldMap,
                                                 MarketingSyncUser user, JSONObject meal, String cusBatchNumber, String fileId, String pushCustomer,
                                                 BaseHeadConfigVO baseHeadInfo, StrategyProductDetailVO fieldInfo, MarketingTask marketingTask
-            , MarketingTaskService marketingTaskService, String part, MarketingCommonConfig marketingCommonConfig) throws IOException {
+            , MarketingTaskService marketingTaskService, String part, MarketingCommonConfig marketingCommonConfig, MarketingRetryEsMapper marketingRetryEsMapper) throws IOException {
         log.info("cus_num：{} 画像流水:{}", user.getCustNum(), resultJson);
         JSONObject esResult = new JSONObject();
         StringBuilder sb = new StringBuilder();
         MarketingHistory mh = new MarketingHistory();
-        MarketingHistory marketingHistory = null;
         //region 基本信息
         Date requestTime = new Date();
         sb.append(new SimpleDateFormat("yyyy-MM-dd").format(requestTime)).append(sep)
@@ -269,19 +271,23 @@ public class ResultUtil {
             }
             mh.setCondition(conditionList);
             mh.setReserveField(esResult.toJSONString());
+            String id = UuidUtils.getUuid();
+            MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
             // 模拟ES异常
-            HashMap<String, Object> esRetryToDataSwitch = marketingCommonConfig.getEsRetryToDataSwitch();
-            boolean o = (boolean) esRetryToDataSwitch.get("scoreStart");
+            boolean o = Boolean.FALSE;
+            HashMap<String, JSONObject> esRetryToDataSwitch = marketingCommonConfig.getEsRetryToDataSwitch();
+            JSONObject jsonObject = esRetryToDataSwitch.get(mh.getApiCode());
+            if(jsonObject != null){
+                o = (boolean) jsonObject.get("scoreStart");
+            }
             if(o){
-                marketingHistory = mh;
+                buildRetryEs(fileId, marketingRetryEsMapper, mh, id);
             }else {
                 //endregion
-                String id = UuidUtils.getUuid();
-                MarketingHistoryEsServiceImpl service = new MarketingHistoryEsServiceImpl();
                 boolean insert = service.insert(mh, id);
                 if(!insert){
                     log.warn("写入ES重试3次失败,batchNumber:{}", mh.getBatchNumber());
-                    marketingHistory = mh;
+                    buildRetryEs(fileId, marketingRetryEsMapper, mh, id);
                 }
             }
         }
@@ -295,7 +301,19 @@ public class ResultUtil {
             preview.setIsTitle(0);
             marketingTaskService.saveScoreResult(preview);
         }
-        return marketingHistory;
+    }
+
+    private static void buildRetryEs(String fileId, MarketingRetryEsMapper marketingRetryEsMapper,
+                                     MarketingHistory mh, String id) {
+        MarketingRetryEs marketingRetryEs = new MarketingRetryEs();
+        marketingRetryEs.setApiCode(mh.getApiCode());
+        marketingRetryEs.setFileId(Long.valueOf(fileId));
+        marketingRetryEs.setEsId(id);
+        marketingRetryEs.setExtend(JSONObject.toJSONString(mh));
+        marketingRetryEs.setAppletDate(String.valueOf(LocalDate.now()));
+        marketingRetryEs.setCreateTime(new Date());
+        marketingRetryEs.setUpdateTime(new Date());
+        marketingRetryEsMapper.insertSelective(marketingRetryEs);
     }
 
     private static Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, JSONObject esResult, StrategyProductDetailVO fieldInfo) {

@@ -295,6 +295,76 @@ public class MarketingRetryEsExample {
             return (Criteria) this;
         }
 
+        public Criteria andEsIdIsNull() {
+            addCriterion("es_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdIsNotNull() {
+            addCriterion("es_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdEqualTo(String value) {
+            addCriterion("es_id =", value, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdNotEqualTo(String value) {
+            addCriterion("es_id <>", value, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdGreaterThan(String value) {
+            addCriterion("es_id >", value, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdGreaterThanOrEqualTo(String value) {
+            addCriterion("es_id >=", value, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdLessThan(String value) {
+            addCriterion("es_id <", value, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdLessThanOrEqualTo(String value) {
+            addCriterion("es_id <=", value, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdLike(String value) {
+            addCriterion("es_id like", value, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdNotLike(String value) {
+            addCriterion("es_id not like", value, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdIn(List<String> values) {
+            addCriterion("es_id in", values, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdNotIn(List<String> values) {
+            addCriterion("es_id not in", values, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdBetween(String value1, String value2) {
+            addCriterion("es_id between", value1, value2, "esId");
+            return (Criteria) this;
+        }
+
+        public Criteria andEsIdNotBetween(String value1, String value2) {
+            addCriterion("es_id not between", value1, value2, "esId");
+            return (Criteria) this;
+        }
+
         public Criteria andRetryTotalAttemptsIsNull() {
             addCriterion("retry_total_attempts is null");
             return (Criteria) this;
@@ -415,73 +485,73 @@ public class MarketingRetryEsExample {
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1IsNull() {
-            addCriterion("reserve_field1 is null");
+        public Criteria andExtendIsNull() {
+            addCriterion("extend is null");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1IsNotNull() {
-            addCriterion("reserve_field1 is not null");
+        public Criteria andExtendIsNotNull() {
+            addCriterion("extend is not null");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1EqualTo(String value) {
-            addCriterion("reserve_field1 =", value, "reserveField1");
+        public Criteria andExtendEqualTo(String value) {
+            addCriterion("extend =", value, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1NotEqualTo(String value) {
-            addCriterion("reserve_field1 <>", value, "reserveField1");
+        public Criteria andExtendNotEqualTo(String value) {
+            addCriterion("extend <>", value, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1GreaterThan(String value) {
-            addCriterion("reserve_field1 >", value, "reserveField1");
+        public Criteria andExtendGreaterThan(String value) {
+            addCriterion("extend >", value, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1GreaterThanOrEqualTo(String value) {
-            addCriterion("reserve_field1 >=", value, "reserveField1");
+        public Criteria andExtendGreaterThanOrEqualTo(String value) {
+            addCriterion("extend >=", value, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1LessThan(String value) {
-            addCriterion("reserve_field1 <", value, "reserveField1");
+        public Criteria andExtendLessThan(String value) {
+            addCriterion("extend <", value, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1LessThanOrEqualTo(String value) {
-            addCriterion("reserve_field1 <=", value, "reserveField1");
+        public Criteria andExtendLessThanOrEqualTo(String value) {
+            addCriterion("extend <=", value, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1Like(String value) {
-            addCriterion("reserve_field1 like", value, "reserveField1");
+        public Criteria andExtendLike(String value) {
+            addCriterion("extend like", value, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1NotLike(String value) {
-            addCriterion("reserve_field1 not like", value, "reserveField1");
+        public Criteria andExtendNotLike(String value) {
+            addCriterion("extend not like", value, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1In(List<String> values) {
-            addCriterion("reserve_field1 in", values, "reserveField1");
+        public Criteria andExtendIn(List<String> values) {
+            addCriterion("extend in", values, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1NotIn(List<String> values) {
-            addCriterion("reserve_field1 not in", values, "reserveField1");
+        public Criteria andExtendNotIn(List<String> values) {
+            addCriterion("extend not in", values, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1Between(String value1, String value2) {
-            addCriterion("reserve_field1 between", value1, value2, "reserveField1");
+        public Criteria andExtendBetween(String value1, String value2) {
+            addCriterion("extend between", value1, value2, "extend");
             return (Criteria) this;
         }
 
-        public Criteria andReserveField1NotBetween(String value1, String value2) {
-            addCriterion("reserve_field1 not between", value1, value2, "reserveField1");
+        public Criteria andExtendNotBetween(String value1, String value2) {
+            addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
 
