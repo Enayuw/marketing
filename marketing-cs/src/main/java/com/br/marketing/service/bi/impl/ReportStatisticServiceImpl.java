@@ -46,47 +46,67 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
     ZhongAnControlGroupServiceImpl zhongAnControlGroupService;
 
     @Override
-    public void action(LocalDateTime actionDateTime) {
+    public void action(LocalDateTime actionDateTime, Integer reportType) {
         try {
-            LocalDate today = actionDateTime.toLocalDate();
-            // 查询是否已存在统计记录
-            ReportTaskExample example = new ReportTaskExample();
-            example.createCriteria()
-                    .andReportTypeIn(Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue(),
-                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
-                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue()))
-                    .andReportNameLike("%" + today.toString());
-            List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
-            if (reportTasks.size() == 3) {
-                log.warn("众安日新增报表任务已存在！");
-                return;
-            }
+            LocalDate today = actionDateTime.toLocalDate().minusDays(1);
+            String resultDate = today.toString();
+            List<Integer> userTypes = new ArrayList<>();
+            List<String> zhongAnReportTypeList = new ArrayList<>();
+            if (ObjectUtil.isEmpty(reportType)) {
+                // 查询是否已存在统计记录
+                ReportTaskExample example = new ReportTaskExample();
+                example.createCriteria()
+                        .andReportTypeIn(Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue(),
+                                ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue(),
+                                ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue()))
+                        .andReportNameLike("%" + resultDate);
+                List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
+                if (reportTasks.size() == 3) {
+                    log.warn("众安日新增报表任务已存在！");
+                    return;
+                }
 
-            List<String> zhongAnReportType =
-                    Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString(),
-                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue().toString(),
-                            ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue().toString());
-            if (ObjectUtil.isEmpty(zhongAnReportType)) {
-                log.warn("众安报表类型为空");
-                return;
-            }
-            String resultDate = today.minusDays(1).toString();
+                zhongAnReportTypeList = Arrays.asList(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString(),
+                        ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue().toString(),
+                        ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue().toString());
+                if (ObjectUtil.isEmpty(zhongAnReportTypeList)) {
+                    log.warn("众安报表类型为空");
+                    return;
+                }
 
-            List<Integer> userTypes = zhongAnReportType.stream()
-                    .map(reportType -> {
-                        switch (reportType) {
-                            case "12":
-                                return 1;
-                            case "13":
-                                return 7;
-                            case "14":
-                                return 8;
-                            default:
-                                log.warn("未匹配到报表类型");
-                                return null;
-                        }
-                    })
-                    .collect(Collectors.toList());
+                userTypes = zhongAnReportTypeList.stream()
+                        .map((String newReportType) -> {
+                            switch (newReportType) {
+                                case "12":
+                                    return 1;
+                                case "13":
+                                    return 7;
+                                case "14":
+                                    return 8;
+                                default:
+                                    log.warn("未匹配到报表类型");
+                                    return null;
+                            }
+                        })
+                        .collect(Collectors.toList());
+            } else {
+                switch (reportType) {
+                    case 12:
+                        userTypes.add(1);
+                        zhongAnReportTypeList.add(ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue().toString());
+                        break;
+                    case 13:
+                        userTypes.add(7);
+                        zhongAnReportTypeList.add(ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue().toString());
+                        break;
+                    case 14:
+                        userTypes.add(8);
+                        zhongAnReportTypeList.add(ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue().toString());
+                        break;
+                    default:
+                        break;
+                }
+            }
             if (CollectionUtils.isEmpty(userTypes)) {
                 log.warn("报表类型为空");
                 return;
@@ -117,8 +137,8 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
 
             }
 
-            for (String reportType : zhongAnReportType) {
-                if (!sqlProcessing(reportType, today)) {
+            for (String zhongAnReportType : zhongAnReportTypeList) {
+                if (!sqlProcessing(zhongAnReportType, today)) {
                     log.warn("众安经营分析报表任务生成失败");
                     return;
                 }
@@ -145,7 +165,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         Map<String, String> transfer = new HashMap<>();
         transfer.put("isSplit", "1");
         // 获取统计日期
-        String resultDate = actionDate.minusDays(1).toString();
+        String resultDate = actionDate.toString();
 
         transfer.put("statisticDate", resultDate);
         transfer.put("requestStartDate", actionDate.withDayOfMonth(1).toString());
@@ -167,7 +187,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
         String statisticsScene = "报表统计_众安(".concat(apiCode);
 
         if ("12".equals(reportType)) {
-            reportName = "场景一日统计" + actionDate.toString();
+            reportName = "场景一日统计" + resultDate;
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_ONE_TYPE.getValue();
             upload.put("dimensionsField", "defaultNone");
             upload.put("userType", "1");
@@ -178,7 +198,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             jsonObject.put("apiCode", apiCode);
             jsonObject.put("statisticsScene", statisticsScene.concat(")_1场景经营分析报表"));
         } else if ("13".equals(reportType)) {
-            reportName = "场景七日统计" + actionDate.toString();
+            reportName = "场景七日统计" + resultDate;
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_SEVEN_TYPE.getValue();
 
             upload.put("dimensionsField", "defaultNone");
@@ -190,7 +210,7 @@ public class ReportStatisticServiceImpl implements ReportStatisticService {
             jsonObject.put("apiCode", apiCode);
             jsonObject.put("statisticsScene", statisticsScene.concat(")_7场景经营分析报表"));
         } else if ("14".equals(reportType)) {
-            reportName = "场景八日统计" + actionDate.toString();
+            reportName = "场景八日统计" + resultDate;
             type = ReportTaskTypeEnum.BUSINESS_ANALYSIS_EIGHT_TYPE.getValue();
 
             upload.put("dimensionsField", "defaultNone");
