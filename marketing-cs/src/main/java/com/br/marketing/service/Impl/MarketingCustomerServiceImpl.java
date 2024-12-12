@@ -22,6 +22,7 @@ import com.br.marketing.vo.CustomerSelectVO;
 import com.br.marketing.vo.MarketingCustomerListVO;
 import com.br.marketing.vo.MarketingCustomerVO;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
 import org.springframework.beans.BeanUtils;
@@ -113,7 +114,8 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                         : marketingCustomerConfig.getCheckType());
                 customerListVos.add(customerListVo);
             }
-            return PageResultReturn.setPageResult(customerListVos, page, pageSize);
+            PageInfo<MarketingCustomer> marketingCustomerPageInfo = new PageInfo<>(marketingCustomersList);
+            return PageResultReturn.setPageResult(customerListVos, page, pageSize,marketingCustomerPageInfo.getTotal());
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

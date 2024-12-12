@@ -1771,6 +1771,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 marketingSyncUser.setCusBatch(marketingSyncInfo.getCusBatch());
                 marketingSyncUser.setRequestBatch(marketingSyncInfo.getRequestBatch());
                 marketingSyncUser.setCustNum(marketingPreUserDetailDTO.getCustNum());
+                marketingSyncUser.setOperateType(marketingPreUserDetailDTO.getOperateType());
                 marketingSyncUser.setIdCard(marketingPreUserDetailDTO.getId());
                 marketingSyncUser.setName(marketingPreUserDetailDTO.getName());
                 marketingSyncUser.setCell(marketingPreUserDetailDTO.getCell());

@@ -4,7 +4,8 @@ package com.br.marketing.rule.common;
 
 
 public enum CommonRuleLabelEnum {
-    TO_POLICY_COMMON("To_Policy_Common");
+    TO_POLICY_COMMON("To_Policy_Common"),
+    TO_POLICY_GENERAL("To_Policy_General");
 
 
     CommonRuleLabelEnum(String code) {

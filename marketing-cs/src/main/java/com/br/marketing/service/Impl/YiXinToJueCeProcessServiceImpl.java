@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.br.common.encryption.Sha256Util;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.intelligentcustomerservice.input.*;
@@ -26,15 +25,17 @@ import com.br.marketing.service.YiXinToJueCeProcessService;
 import com.br.marketing.service.ZnkfPushService;
 import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
-import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cglib.beans.BeanMap;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
@@ -497,11 +498,14 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
 
             MarketingSyncUser marketingSyncUser = syncUsers.get(0);
             MarketingTransferSyncUserCell marketingTransferSyncUserCell = new MarketingTransferSyncUserCell();
+            MarketingTransferSyncUser transferSyncUser = new MarketingTransferSyncUser();
+            BeanUtils.copyProperties(t, transferSyncUser);
             BeanUtils.copyProperties(t, marketingTransferSyncUserCell);
             marketingTransferSyncUserCell.setCell(marketingSyncUser.getCell());
             marketingTransferSyncUserCell.setTaskId(marketingSyncUser.getCusBatch());
             marketingTransferSyncUserCell.setUserType(marketingSyncUser.getUserType());
             marketingTransferSyncUserCell.setMarketingSyncUser(marketingSyncUser);
+            marketingTransferSyncUserCell.setMarketingTransferSyncUser(transferSyncUser);
             return marketingTransferSyncUserCell;
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
@@ -625,12 +629,17 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
     private JSONObject variablesInit(MarketingTransferSyncUserCell marketingTransferSyncUserCell, String cell, String actionType) {
 
         MarketingSyncUser marketingSyncUser = marketingTransferSyncUserCell.getMarketingSyncUser();
+        MarketingTransferSyncUser transferSyncUser = marketingTransferSyncUserCell.getMarketingTransferSyncUser();
         JSONObject jsonObject = JSONObject.parseObject(marketingSyncUser.getReserveField1());
         buildJson(jsonObject, marketingSyncUser);
 
         jsonObject.put("custNum", marketingTransferSyncUserCell.getCustNum());
         jsonObject.put("cell", cell);
         jsonObject.put("userType", marketingTransferSyncUserCell.getUserType());
+
+        Map<String, Object> stringObjectMap = entityToMapWithBeanMap(transferSyncUser);
+        mergeJSONObjects(jsonObject, stringObjectMap);
+
         switch (actionType) {
             case "D":
                 jsonObject.put("unlentAmount", marketingTransferSyncUserCell.getUnlentAmount());
@@ -666,6 +675,66 @@ public class YiXinToJueCeProcessServiceImpl implements YiXinToJueCeProcessServic
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    public static Map<String, Object> entityToMapWithBeanMap(Object entity) {
+        Map<String, Object> resultMap = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        BeanMap beanMap = BeanMap.create(entity);
+
+        for (Object keyObj : beanMap.keySet()) {
+            String key = keyObj.toString();
+            Object value = beanMap.get(keyObj);
+
+            if ("id".equals(key) || "createTime".equals(key) || "updateTime".equals(key)
+                    || "tCid".equals(key) || "cid".equals(key) || "status".equals(key)
+                    || "isTask".equals(key) || "taskTime".equals(key) || "isRepeat".equals(key)) {
+                continue;
+            }
+
+            if (value == null || "".equals(value.toString().trim())) {
+                continue;
+            }
+
+            // 处理 reserveField1 和 reserveField2
+            if ("reserveField1".equals(key) || "reserveField2".equals(key)) {
+                if (value instanceof String) {
+                    try {
+                        // 将 JSON 字符串解析为 Map 并合并到结果中
+                        Map<String, Object> nestedMap = objectMapper.readValue(value.toString(), new TypeReference<Map<String, Object>>() {});
+                        resultMap.putAll(nestedMap);
+                    } catch (Exception e) {
+                        log.warn("reserveField1或reserveField2不是 JSON 格式，跳过！, key :" + key);
+                    }
+                }
+            } else {
+                resultMap.put(key, value);
+            }
+        }
+        return resultMap;
+    }
+
+    public JSONObject mergeJSONObjects(JSONObject jsonObject, Map<String, Object> map) {
+        if (jsonObject == null) {
+            return map == null ? new JSONObject() : new JSONObject(map);
+        }
+        if (map == null) {
+            return jsonObject;
+        }
+
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value == null || "".equals(value.toString())) {
+                continue;
+            }
+            if (!jsonObject.containsKey(key)) {
+                jsonObject.put(key, value);
+            }
+        }
         return jsonObject;
     }
 

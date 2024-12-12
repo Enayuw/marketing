@@ -10,16 +10,15 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
-import com.br.common.encryption.Sha256Util;
-import com.br.marketing.service.customertagsprocess.CustomerTagsProcessServiceImpl;
 import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
-import com.br.marketing.service.customertagsprocess.vo.CustomerTagsVO;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.cglib.beans.BeanMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
@@ -67,8 +66,6 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
 
     @Autowired
     PushRuleService pushRuleService;
-    @Resource
-    CustomerTagsProcessServiceImpl customerTagsProcessService;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -116,10 +113,14 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         jsonObject.put("cell", cell);
         buildJson(jsonObject, marketingSyncUser);
 
+        Map<String, Object> stringObjectMap = entityToMapWithBeanMap(transfer);
+        mergeJSONObjects(jsonObject, stringObjectMap);
+
         pushMarketingUserDetailByRuleDTO.setVariables(jsonObject);
         return pushMarketingUserDetailByRuleDTO;
 
     }
+
     private JSONObject buildJson(JSONObject jsonObject, MarketingSyncUser syncUser) {
         jsonObject.put("cusBatch", emptyDefault(syncUser.getCusBatch()));
         jsonObject.put("requestBatch", emptyDefault(syncUser.getRequestBatch()));
@@ -131,6 +132,66 @@ public class YiXinArtificialRealTimeDataImpl implements AssembleData<PushMarketi
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
         jsonObject.put("taskId", emptyDefault(syncUser.getCusBatch()));
+        return jsonObject;
+    }
+
+    public static Map<String, Object> entityToMapWithBeanMap(Object entity) {
+        Map<String, Object> resultMap = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        BeanMap beanMap = BeanMap.create(entity);
+
+        for (Object keyObj : beanMap.keySet()) {
+            String key = keyObj.toString();
+            Object value = beanMap.get(keyObj);
+
+            if ("id".equals(key) || "createTime".equals(key) || "updateTime".equals(key)
+                    || "tCid".equals(key) || "cid".equals(key) || "status".equals(key)
+                    || "isTask".equals(key) || "taskTime".equals(key) || "isRepeat".equals(key)) {
+                continue;
+            }
+
+            if (value == null || "".equals(value.toString().trim())) {
+                continue;
+            }
+
+            // 处理 reserveField1 和 reserveField2
+            if ("reserveField1".equals(key) || "reserveField2".equals(key)) {
+                if (value instanceof String) {
+                    try {
+                        // 将 JSON 字符串解析为 Map 并合并到结果中
+                        Map<String, Object> nestedMap = objectMapper.readValue(value.toString(), new TypeReference<Map<String, Object>>() {});
+                        resultMap.putAll(nestedMap);
+                    } catch (Exception e) {
+                        log.warn("reserveField1或reserveField2不是 JSON 格式，跳过！, key :" + key);
+                    }
+                }
+            } else {
+                resultMap.put(key, value);
+            }
+        }
+        return resultMap;
+    }
+
+    public JSONObject mergeJSONObjects(JSONObject jsonObject, Map<String, Object> map) {
+        if (jsonObject == null) {
+            return map == null ? new JSONObject() : new JSONObject(map);
+        }
+        if (map == null) {
+            return jsonObject;
+        }
+
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+
+            if (value == null || "".equals(value.toString())) {
+                continue;
+            }
+            if (!jsonObject.containsKey(key)) {
+                jsonObject.put(key, value);
+            }
+        }
         return jsonObject;
     }
 

@@ -179,12 +179,20 @@ public abstract class AbstractBiReportConverter<V, T> {
                     return value == null ? "0" :NumberUtil.decimalFormat(",###", new BigDecimal(String.valueOf(value)).doubleValue());
                 case THOUSAND_SCALE2:
                     return value == null ? "0" :NumberUtil.decimalFormat(",###.00", new BigDecimal(String.valueOf(value)).doubleValue());
+                case THOUSAND_SEPARATOR_INTEGER:
+                    return value == null ? "0" :NumberUtil.decimalFormat(",##0", NumberUtil.round(String.valueOf(value), 0));
+                case THOUSAND_SEPARATOR_SCALE1:
+                    return value == null ? "0" :NumberUtil.decimalFormat(",##0.0", NumberUtil.round(String.valueOf(value), 1));
+                case THOUSAND_SEPARATOR_SCALE2:
+                    return value == null ? "0" :NumberUtil.decimalFormat(",##0.00", NumberUtil.round(String.valueOf(value), 2));
+                case PERCENT_SCALE1:
+                    return value == null ? "0%" :NumberUtil.decimalFormat("#0.0%", NumberUtil.round(String.valueOf(value), 3));
                 case PERCENT_SCALE2:
-                    return value == null ? "0%" :NumberUtil.decimalFormat("#0.00%", new BigDecimal(String.valueOf(value)));
+                    return value == null ? "0%" :NumberUtil.decimalFormat("#0.00%", NumberUtil.round(String.valueOf(value), 4));
                 case PERCENT_SCALE3:
-                    return value == null ? "0%" :NumberUtil.decimalFormat("#0.000%", new BigDecimal(String.valueOf(value)));
+                    return value == null ? "0%" :NumberUtil.decimalFormat("#0.000%", NumberUtil.round(String.valueOf(value), 5));
                 case PERCENT_SCALE4:
-                    return value == null ? "0%" :NumberUtil.decimalFormat("#0.0000%", new BigDecimal(String.valueOf(value)));
+                    return value == null ? "0%" :NumberUtil.decimalFormat("#0.0000%", NumberUtil.round(String.valueOf(value), 6));
                 default:
                     return value == null ? "" : String.valueOf(value);
             }
@@ -200,6 +208,10 @@ public abstract class AbstractBiReportConverter<V, T> {
         PERCENT_SIGN("PERCENT_SIGN"),
         THOUSAND_INTEGER("THOUSAND_INTEGER"),
         THOUSAND_SCALE2("THOUSAND_SCALE2"),
+        THOUSAND_SEPARATOR_INTEGER("THOUSAND_SEPARATOR_INTEGER"),
+        THOUSAND_SEPARATOR_SCALE1("THOUSAND_SEPARATOR_SCALE1"),
+        THOUSAND_SEPARATOR_SCALE2("THOUSAND_SEPARATOR_SCALE2"),
+        PERCENT_SCALE1("PERCENT_SCALE1"),
         PERCENT_SCALE2("PERCENT_SCALE2"),
         PERCENT_SCALE3("PERCENT_SCALE3"),
         PERCENT_SCALE4("PERCENT_SCALE4"),
@@ -305,6 +317,44 @@ public abstract class AbstractBiReportConverter<V, T> {
         }
         cellStyle.setDataFormat(formatIndex);
         return cellStyle;
+    }
+
+    public static void main(String[] args) {
+        String s1 = NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf("220.945000")).doubleValue());
+        String s2 = NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf("123.455000")).doubleValue());
+        String s3 = NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf("220.945000")));
+        String s4 = NumberUtil.decimalFormat(",##0.00", new BigDecimal(String.valueOf("123.455000")));
+
+        String s5 = NumberUtil.decimalFormat(",##0.00", NumberUtil.round("12345220.945000", 2));
+        String s6 = NumberUtil.decimalFormat(",##0.00", NumberUtil.round("123123123.455000", 2));
+        String s7 = NumberUtil.decimalFormat(",##0.00", NumberUtil.round("0", 2));
+        String s8 = NumberUtil.decimalFormat(",##0.00", NumberUtil.round("0.000000", 2));
+        log.warn(s1);
+        log.warn(s2);
+        log.warn(s3);
+        log.warn(s4);
+        log.warn(s5);
+        log.warn(s6);
+        log.warn(s7);
+        log.warn(s8);
+
+
+        String v1 = NumberUtil.decimalFormat("#0.0%",    NumberUtil.round(String.valueOf("0.666666"), 3));
+        String v2 = NumberUtil.decimalFormat("#0.00%",   NumberUtil.round(String.valueOf("0.666666"), 4));
+        String v3 = NumberUtil.decimalFormat("#0.000%",  NumberUtil.round(String.valueOf("0.666666"), 5));
+        String v4 = NumberUtil.decimalFormat("#0.0000%", NumberUtil.round(String.valueOf("0.666666"), 6));
+        String v11 = NumberUtil.decimalFormat("#0.0%",    NumberUtil.round(String.valueOf("0"), 3));
+        String v12 = NumberUtil.decimalFormat("#0.00%",   NumberUtil.round(String.valueOf("0"), 4));
+        String v13 = NumberUtil.decimalFormat("#0.000%",  NumberUtil.round(String.valueOf("0"), 5));
+        String v14 = NumberUtil.decimalFormat("#0.0000%", NumberUtil.round(String.valueOf("0"), 6));
+        log.warn(v1);
+        log.warn(v2);
+        log.warn(v3);
+        log.warn(v4);
+        log.warn(v11);
+        log.warn(v12);
+        log.warn(v13);
+        log.warn(v14);
     }
 
 }
