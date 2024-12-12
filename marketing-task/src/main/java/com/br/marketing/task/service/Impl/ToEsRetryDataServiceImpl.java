@@ -79,9 +79,11 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
 
             Long minId = null;
             boolean isContiue = Boolean.TRUE;
-            log.warn(TITLE + "重试开始");
-            long start = System.currentTimeMillis();
+
             while (isContiue) {
+                log.warn(TITLE + "重试开始");
+                long start = System.currentTimeMillis();
+
                 // 查询待重试数据
                 List<MarketingRetryEs> marketingRetryEsList = marketingRetryEsMapper.queryByDateAndStatus(fileId, date, minId);
 
@@ -91,11 +93,12 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 }
                 minId = marketingRetryEsList.get(marketingRetryEsList.size() - 1).getId() + 1;
 
-                List<List<MarketingRetryEs>> partition = ListUtils.partition(marketingRetryEsList, 500);
-                partition.forEach((List<MarketingRetryEs> p) -> {
-                    toEsRetryThread.submit(() -> pushToEsRetryDataSync(p));
-                });
+                toEsRetryThread.submit(() -> pushToEsRetryDataSync(marketingRetryEsList));
+
+                long end = System.currentTimeMillis();
+                log.warn(TITLE + "重试结束,fileId:{}, 耗时:{}ms", fileId, end-start);
             }
+
             toEsRetryThread.shutdown();
             try {
                 while (!toEsRetryThread.awaitTermination(10L, TimeUnit.SECONDS)) {
@@ -118,8 +121,7 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 }
                 // 文件合并
                 mergeFiles(task);
-                long end = System.currentTimeMillis();
-                log.warn(TITLE + "重试结束,fileId:{}, 耗时:{}ms", fileId, end-start);
+
             }catch (Exception e){
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "合并异常！"),  e);
             }
