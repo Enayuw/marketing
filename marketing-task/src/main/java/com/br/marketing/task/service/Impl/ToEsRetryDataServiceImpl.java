@@ -81,9 +81,6 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             boolean isContiue = Boolean.TRUE;
 
             while (isContiue) {
-                log.warn(TITLE + "重试开始");
-                long start = System.currentTimeMillis();
-
                 // 查询待重试数据
                 List<MarketingRetryEs> marketingRetryEsList = marketingRetryEsMapper.queryByDateAndStatus(fileId, date, minId);
 
@@ -94,9 +91,6 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                 minId = marketingRetryEsList.get(marketingRetryEsList.size() - 1).getId() + 1;
 
                 toEsRetryThread.submit(() -> pushToEsRetryDataSync(marketingRetryEsList));
-
-                long end = System.currentTimeMillis();
-                log.warn(TITLE + "重试结束,fileId:{}, 耗时:{}ms", fileId, end-start);
             }
 
             toEsRetryThread.shutdown();
@@ -128,7 +122,8 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
         }
     }
     private void pushToEsRetryDataSync(List<MarketingRetryEs> marketingRetryEsList) {
-
+        log.warn(TITLE + "重试开始");
+        long start = System.currentTimeMillis();
         try {
             if(CollectionUtils.isEmpty(marketingRetryEsList)){
                 return;
@@ -155,6 +150,8 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
                     }
                 }
             }
+            long end = System.currentTimeMillis();
+            log.warn(TITLE + "重试结束, 耗时:{}ms", end-start);
         }catch (Exception e){
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "异常！"),  e);
         }
