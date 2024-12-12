@@ -103,7 +103,13 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             log.warn(TITLE + "成功数: {}, 失败数: {}", successCount.get(), failureCount.get());
             try {
                 if(failureCount.get() > 0){
-                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), TITLE + "异常，量级:"), failureCount.get());
+                    StringBuilder stringBuilder = new StringBuilder();
+                    stringBuilder.append(TITLE);
+                    stringBuilder.append("异常，失败量级:");
+                    stringBuilder.append(failureCount.get());
+                    stringBuilder.append(",fileId:");
+                    stringBuilder.append(fileId);
+                    log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), stringBuilder.toString()), failureCount.get());
                     continue;
                 }
                 // 根据fileId查询task
@@ -118,6 +124,7 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             }
         }
     }
+
     private void pushToEsRetryDataSync(List<MarketingRetryEs> marketingRetryEsList,AtomicInteger successCount,AtomicInteger failureCount) {
         log.warn(TITLE + "重试开始");
         long start = System.currentTimeMillis();
