@@ -261,7 +261,12 @@ public class DassServiceClient {
             interfaceLog.setExpire(String.valueOf(end - start));
             log.warn("postBlackList耗时：{}ms", interfaceLog.getExpire());
         }
-        interfaceLogMapper.insertSelective(interfaceLog);
+        try {
+            interfaceLogMapper.insertSelective(interfaceLog);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                    "推送Dass数据写入日志异常，异常日志：" + e.getMessage()), e);
+        }
         return result;
     }
 
