@@ -241,7 +241,7 @@ public class RabbitMqConfig {
         return factory;
     }
 
-   /* @Bean(name = "xieChengSmsMqContainerFactory")
+    @Bean(name = "xieChengSmsMqContainerFactory")
     public SimpleRabbitListenerContainerFactory xieChengSmsMqContainerFactory(SimpleRabbitListenerContainerFactoryConfigurer configurer,
                                                                  ConnectionFactory connectionFactory) {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
@@ -253,6 +253,6 @@ public class RabbitMqConfig {
         factory.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         configurer.configure(factory, connectionFactory);
         return factory;
-    }*/
+    }
 
 }

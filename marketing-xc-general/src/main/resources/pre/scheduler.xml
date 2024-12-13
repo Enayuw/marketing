@@ -153,7 +153,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="XieChengSmsCollidingDataVtToSendJob"
+    <job:simple id="【xc-general】-XieChengSmsCollidingDataVtToSendJob"
                 class="com.br.marketing.xc.job.XieChengSmsCollidingDataVtToSendJob"
                 cron="0 0/10 6-8 * * ? *"
                 description="携程短信撞库早 8 点定时任务"
