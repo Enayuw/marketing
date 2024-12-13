@@ -167,6 +167,9 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
                 throw new KnowException("撞库时间格式有误！");
             }
         }
+        if (StringUtils.hasDuplicate(timePoints)) {
+            throw new KnowException("撞库时间不可重复设置！");
+        }
         param.setCollidingStartTime(DateUtil.parse(param.getCollidingStartTime(),
                 DatePattern.NORM_DATETIME_PATTERN).toStringDefaultTimeZone());
         param.setCollidingEndTime(DateUtil.parse(param.getCollidingEndTime(),
@@ -263,7 +266,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
+    public Long confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
         //校验collidingTimePoints
         String collidingTimePoints = confirmParam.getStartTimes();
         if (StringUtils.isEmpty(collidingTimePoints)) {
@@ -275,6 +278,10 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
                 throw new KnowException("撞库时间格式有误！");
             }
         }
+        if (StringUtils.hasDuplicate(timePoints)) {
+            throw new KnowException("撞库时间不可重复设置！");
+        }
+        //判断timePoints是否重复
         XiechengCollidingDataPackageRuleStagingExample example = new XiechengCollidingDataPackageRuleStagingExample();
         example.createCriteria().andIsDeleteEqualTo(0).andPackageIdNotEqualTo(confirmParam.getPackageId());
         int hisCount = stagingMapper.countByExample(example);
@@ -296,10 +303,10 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             stagingRule.setCollidingTimes(confirmParam.getCollidingTimes());
             stagingRule.setStartTimes(collidingTimePoints);
             stagingMapper.insertSelective(stagingRule);
-            return new ApiResult<Boolean>().success(true);
+            return stagingRule.getId();
         } else {
             stagingMapper.updateStagingRule(confirmParam);
-            return new ApiResult<Boolean>().success(true);
+            return confirmParam.getPrsId();
         }
     }
 

@@ -28,6 +28,9 @@
             <if test="collidingTimes != null">
                 colliding_times = #{collidingTimes,jdbcType=INTEGER},
             </if>
+            <if test="startTimes != null">
+                start_times = #{startTimes,jdbcType=INTEGER},
+            </if>
         </set>
         where id = #{prsId,jdbcType=BIGINT}
     </update>
