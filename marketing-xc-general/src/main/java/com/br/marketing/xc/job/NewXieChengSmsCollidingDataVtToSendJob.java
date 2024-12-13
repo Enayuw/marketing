@@ -28,7 +28,7 @@ import java.util.List;
  **/
 @Component
 @Slf4j
-public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJob {
+public class NewXieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJob {
     private static final String XIECHENGSMSCOLLIDINGVT = "xiechengsmscollidingvt";
 
     /**
