@@ -17,10 +17,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.CallRecord;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.ZhonganRosterLockingData;
-import com.br.marketing.entity.ZhonganRosterLockingDataExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
@@ -44,6 +41,8 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
@@ -511,13 +510,11 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> ob = iterator.next();
-            // 众安客服拨打明细custnum今日黑名单实时缓存
-            Boolean sismember = redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday, ob.getKey());
             String nowDayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if (nowDayStr.equals(ob.getValue()) && sismember) {
-                iterator.remove();
-                // key: custNum+yyyy-MM-dd
-                custNumBlackListSet.add(ob.getKey() + nowDayStr);
+            if (nowDayStr.equals(ob.getValue()) && isTodayZhongaAnBlackData(ob.getKey())) {
+                    iterator.remove();
+                    // key: custNum+yyyy-MM-dd
+                    custNumBlackListSet.add(ob.getKey() + nowDayStr);
             }
         }
         if (!CollectionUtils.isEmpty(custNumMap)) {
@@ -679,5 +676,27 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         pool.setMaximumPoolSize(poolSize);
         pushPool.setCorePoolSize(pushPoolSize);
         pushPool.setMaximumPoolSize(pushPoolSize);
+    }
+
+    /**
+     * 判断是否在当天拨打记录黑名单中,实时缓存+db,兼容redis不可用场景
+     */
+    public boolean isTodayZhongaAnBlackData(String custNum){
+        try {
+            if(redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday, custNum)){
+                return true;
+            }
+        }catch (Exception e){
+            log.warn("redis查询众安当天拨打记录黑名单异常custNum:",custNum);
+        }
+        long startMillis = System.currentTimeMillis();
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        CallRecordExample example = new CallRecordExample();
+        example.createCriteria().andCaseNumEqualTo(custNum).andCallStatusEqualTo(12)
+                .andCreateTimeGreaterThanOrEqualTo(Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant()))
+                .andCreateTimeLessThan(Date.from(todayStart.plusDays(1).atZone(ZoneId.systemDefault()).toInstant()));
+        boolean flag = callRecordMapper.countByExample(example) > 0;
+        log.warn("查询众安当天拨打记录黑名单耗时：{}ms",System.currentTimeMillis() - startMillis);
+        return  flag;
     }
 }

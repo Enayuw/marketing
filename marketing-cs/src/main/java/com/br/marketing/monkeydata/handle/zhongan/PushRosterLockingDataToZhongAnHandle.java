@@ -426,8 +426,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> ob = iterator.next();
-            Boolean sismember = redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday, ob.getKey());
-            if (nowDay.equals(ob.getValue()) && sismember) {
+            if (nowDay.equals(ob.getValue()) && isTodayZhongaAnBlackData(ob.getKey())) {
                 iterator.remove();
                 custNumBlackListSet.add(ob.getKey() + nowDay);
             }
@@ -658,8 +657,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> ob = iterator.next();
-            Boolean sismember = redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday, ob.getKey());
-            if (nowDay.equals(ob.getValue()) && sismember) {
+            if (nowDay.equals(ob.getValue())  && isTodayZhongaAnBlackData(ob.getKey())) {
                 iterator.remove();
                 custNumBlackListSet.add(ob.getKey() + nowDay);
             }
@@ -856,5 +854,27 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
             localFileMapper.updateByPrimaryKeySelective(localFile);
         }
 
+    }
+
+    /**
+     * 判断是否在当天拨打记录黑名单中,实时缓存+db,兼容redis不可用场景
+     */
+    public boolean isTodayZhongaAnBlackData(String custNum){
+        try {
+            if(redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday, custNum)){
+                return true;
+            }
+        }catch (Exception e){
+            log.warn("redis查询众安当天拨打记录黑名单异常custNum:",custNum);
+        }
+        long startMillis = System.currentTimeMillis();
+        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        CallRecordExample example = new CallRecordExample();
+        example.createCriteria().andCaseNumEqualTo(custNum).andCallStatusEqualTo(12)
+                .andCreateTimeGreaterThanOrEqualTo(Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant()))
+                .andCreateTimeLessThan(Date.from(todayStart.plusDays(1).atZone(ZoneId.systemDefault()).toInstant()));
+        boolean flag = callRecordMapper.countByExample(example) > 0;
+        log.warn("查询众安当天拨打记录黑名单耗时：{}ms",System.currentTimeMillis() - startMillis);
+        return  flag;
     }
 }
