@@ -45,4 +45,6 @@ public interface CallRecordMapper extends CallRecordMapperBase {
                                   @Param("convType") String convType, @Param("lineName") String lineName);
 
     List<CallRecord> getBlackListSetNewtikv_(@Param("custNumMap") Map<String, String> custNumMap, @Param("bizDate") String bizDate);
+
+    List<String> getTodayZhongaAnBlackList(@Param("custNumSet") Set<String> custNumSet, @Param("nowDate") String nowDate);
 }

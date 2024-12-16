@@ -507,16 +507,17 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         if (CollectionUtils.isEmpty(pageList)) {
             return Collections.emptySet();
         }
+        String nowDayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, String> ob = iterator.next();
-            String nowDayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             if (nowDayStr.equals(ob.getValue()) && isTodayZhongaAnBlackData(ob.getKey())) {
                     iterator.remove();
                     // key: custNum+yyyy-MM-dd
                     custNumBlackListSet.add(ob.getKey() + nowDayStr);
             }
         }
+        processTodayZhongaAnBlackData(custNumMap,custNumBlackListSet, nowDayStr);
         if (!CollectionUtils.isEmpty(custNumMap)) {
             // 客服拨打记录表  callStatus≠12 12-黑名单
             List<String> bizDates = pageList.stream()
@@ -679,7 +680,7 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
     }
 
     /**
-     * 判断是否在当天拨打记录黑名单中,实时缓存+db,兼容redis不可用场景
+     * 判断是否在当天拨打记录黑名单中,实时缓存
      */
     public boolean isTodayZhongaAnBlackData(String custNum){
         try {
@@ -689,14 +690,30 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         }catch (Exception e){
             log.warn("redis查询众安当天拨打记录黑名单异常custNum:",custNum);
         }
+        return false;
+    }
+
+
+    /**
+     * 兼容redis不可用场景，查询db判断众安当天拨打记录黑名单
+     */
+    public void processTodayZhongaAnBlackData(Map<String,String> custNumMap,Set custNumBlackListSet,String nowDayStr){
+        if (CollectionUtils.isEmpty(custNumMap)) {
+            return ;
+        }
         long startMillis = System.currentTimeMillis();
-        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-        CallRecordExample example = new CallRecordExample();
-        example.createCriteria().andCaseNumEqualTo(custNum).andCallStatusEqualTo(12)
-                .andCreateTimeGreaterThanOrEqualTo(Date.from(todayStart.atZone(ZoneId.systemDefault()).toInstant()))
-                .andCreateTimeLessThan(Date.from(todayStart.plusDays(1).atZone(ZoneId.systemDefault()).toInstant()));
-        boolean flag = callRecordMapper.countByExample(example) > 0;
-        log.warn("查询众安当天拨打记录黑名单耗时：{}ms",System.currentTimeMillis() - startMillis);
-        return  flag;
+        Set<String> querySet = custNumMap.entrySet().stream()
+                .filter(entry -> nowDayStr.equals(entry.getValue())).map(Map.Entry::getKey).collect(Collectors.toSet());
+        if (CollectionUtils.isEmpty(querySet)) {
+            return ;
+        }
+        List<String> custNumList = callRecordMapper.getTodayZhongaAnBlackList(querySet,nowDayStr);
+        if(!CollectionUtils.isEmpty(custNumList)){
+            custNumList.stream().forEach(t -> {
+                custNumMap.remove(t);
+                custNumBlackListSet.add(t + nowDayStr);
+            });
+        }
+        log.warn("查询众安当天拨打记录黑名单耗时:{}ms",System.currentTimeMillis() - startMillis);
     }
 }
