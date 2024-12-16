@@ -709,9 +709,9 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         }
         List<String> custNumList = callRecordMapper.getTodayZhongaAnBlackList(querySet,nowDayStr);
         if(!CollectionUtils.isEmpty(custNumList)){
-            custNumList.stream().forEach(t -> {
-                custNumMap.remove(t);
-                custNumBlackListSet.add(t + nowDayStr);
+            custNumList.stream().forEach((String key) -> {
+                custNumMap.remove(key);
+                custNumBlackListSet.add(key + nowDayStr);
             });
         }
         log.warn("查询众安当天拨打记录黑名单耗时:{}ms",System.currentTimeMillis() - startMillis);
