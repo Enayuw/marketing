@@ -634,7 +634,7 @@
         when shf.status = 9 then 1
         when shf.status = 10 then 4
         when shf.status = 11 then 5
-        when shf.status = 12 then 6
+        when shf.status = 12 then 1
         else shf.status end                                as taskStatus,
         bmt.start_date                              as startDate,
         bmt.close_date                              as closeDate,
@@ -682,7 +682,7 @@
             and shf.status = 2
         </if>
         <if test="taskStatus==1 ">
-            and shf.status in(1,3,4,5,6,7,9)
+            and shf.status in(1,3,4,5,6,7,9,12)
         </if>
         <if test="taskStatus==3 ">
             and shf.status =0
@@ -692,9 +692,6 @@
         </if>
         <if test="taskStatus==5 ">
             and shf.status =11
-        </if>
-        <if test="taskStatus==6 ">
-            and shf.status =12
         </if>
         <if test="id !=null">
             and bmt.id = #{id}
