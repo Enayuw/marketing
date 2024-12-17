@@ -59,8 +59,6 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
     @Override
     public void process() {
 
-        String date = String.valueOf(LocalDate.now());
-
         // 需要重试的跑分文件
         StraHisFileExample fileExample = new StraHisFileExample();
         fileExample.createCriteria().andStatusEqualTo(ScoreStatusEnum.WAIT_RETRY.getValue());
@@ -81,7 +79,7 @@ public class ToEsRetryDataServiceImpl implements ToEsRetryDataService {
             AtomicInteger failureCount = new AtomicInteger(0);
             while (isContiue) {
                 // 查询待重试数据
-                List<MarketingRetryEs> marketingRetryEsList = marketingRetryEsMapper.queryByDateAndStatus(String.valueOf(fileId), date, minId);
+                List<MarketingRetryEs> marketingRetryEsList = marketingRetryEsMapper.queryByDateAndStatus(String.valueOf(fileId), minId);
 
                 if (CollectionUtil.isEmpty(marketingRetryEsList)) {
                     isContiue = Boolean.FALSE;

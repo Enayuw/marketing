@@ -8,9 +8,6 @@
         <if test="minId != null and minId >0">
             id >=#{minId} and
         </if>
-        <if test="date !=null and date!=''">
-            applet_date = #{date} and
-        </if>
         <if test="fileId !=null and fileId!=''">
             file_id = #{fileId} and
         </if>
