@@ -1,13 +1,11 @@
-package com.br.marketing.check.job;
+package com.br.marketing.xc.job;
 
-import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.mapper.LocalFileMapper;
 import com.br.marketing.service.PushDataService;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
-import com.google.common.base.Splitter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -28,10 +26,9 @@ import java.util.List;
  * @Version 1.0
  * --------------------------------------
  **/
-@Deprecated
 @Component
 @Slf4j
-public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJob {
+public class NewXieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJob {
     private static final String XIECHENGSMSCOLLIDINGVT = "xiechengsmscollidingvt";
 
     /**
