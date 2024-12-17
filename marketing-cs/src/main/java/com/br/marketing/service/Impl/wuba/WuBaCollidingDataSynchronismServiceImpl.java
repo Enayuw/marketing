@@ -66,10 +66,9 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
             for (LocalFile localFile : localFiles) {
                 try {
                     process(localFile);
+                    // 只有process执行成功，才更新push_status，否则下次调度时会重新执行
                     updatePushStatus(localFile, "2");
                 } catch (Exception e) {
-                    //推送异常更新状态,更新为失败status=3
-                    updatePushStatus(localFile, "3");
                     String subject = "58撞库数据同步作业异常,localFIleId:" + localFile.getId();
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
                             , subject), e);
