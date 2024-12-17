@@ -28,6 +28,7 @@ import com.br.marketing.dto.report.xiecheng.XiechengCollidingWeeklyReportDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
 import com.br.marketing.entity.eventtrack.EventTrackingCellReport;
+import com.br.marketing.enums.ThirdPartnerDataPassBackTaskPushStatusEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.rpcclient.rpcclientImpl.DecodeGrpcClient;
@@ -126,6 +127,9 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
 
     @Resource
     private UploadDataFieldDictMapper uploadDataFieldDictMapper;
+
+    @Resource
+    private ThirdPartnerDataPassBackTaskMapper thirdPartnerDataPassBackTaskMapper;
 
 
     @Override
@@ -664,6 +668,8 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
             List<String> list = new ArrayList<>();
             List<Long> validIds = new ArrayList<>();
             String str = "";
+            Map<String, String> apiCodeMappingConfig = marketingCommonConfig.getThirdPartnerApiCodeMappingConfig();
+            List<String> apiCodes = apiCodeMappingConfig.values().stream().collect(Collectors.toList());
             for (Long id : ids) {
                 MarketingSyncReportVO reportVO = syncReportMapper.selectById(id);
                 String apiCode = reportVO.getApiCode();
@@ -686,6 +692,16 @@ public class MarketingSyncReportServiceImpl implements MarketingSyncReportServic
                     list.add(str);
                     log.warn("开始重推, apiCode={}, userType={}, id={}", apiCode, userType, data.getId());
                     recordService.saveRecord(apiCode, userType, data.getId());
+                }
+                if (apiCodes.contains(apiCode)) {
+                    ThirdPartnerDataPassBackTask task = new ThirdPartnerDataPassBackTask();
+                    task.setApiCode(apiCode);
+                    task.setAppletDate(appletDate);
+                    task.setUserType(userType);
+                    task.setValidStartDate(validStartDate);
+                    task.setValidEndDate(validEndDate);
+                    task.setExtend("");
+                    thirdPartnerDataPassBackTaskMapper.insertSelective(task);
                 }
             }
             log.warn("更新有效期的ids, validIds={}", validIds);

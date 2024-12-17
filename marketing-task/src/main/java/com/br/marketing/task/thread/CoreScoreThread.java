@@ -1,4 +1,6 @@
 package com.br.marketing.task.thread;
+import java.time.LocalDate;
+import java.util.Date;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -11,8 +13,11 @@ import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TaskTypeEnum;
 import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.*;
+import com.br.marketing.es.bean.MarketingHistory;
+import com.br.marketing.mapper.MarketingRetryEsMapper;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.task.Scheduler;
 import com.br.marketing.task.utils.HxUtil;
 import com.br.marketing.task.utils.ResultUtil;
@@ -22,6 +27,7 @@ import com.br.marketing.vo.StrategyProductDetailVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -56,11 +62,14 @@ public class CoreScoreThread implements Callable<String> {
     private MarketingTaskService marketingTaskService;
     private Boolean isRetry;
     private String part;
+    private MarketingRetryEsMapper marketingRetryEsMapper;
+    private MarketingCommonConfig marketingCommonConfig;
 
     public CoreScoreThread(List<MarketingSyncUser> list, Map<String, String> param
             , Long currentPage, boolean firstTime, MarketingCustomer customer, MarketingTask marketingTask
             , List<String> noflagproductlist, List<String> flagProductList, MarketingTaskExtend marketingTaskExtend
-            , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo, Boolean isRetry) {
+            , BaseHeadConfigVO baseHeadConfigVO, StrategyProductDetailVO fieldInfo
+            , Boolean isRetry, MarketingRetryEsMapper marketingRetryEsMapper,MarketingCommonConfig marketingCommonConfig) {
         this.list = list;
         this.apiCode = param.get("apiCode");
         this.strategyId = param.get("strategyId");
@@ -85,6 +94,8 @@ public class CoreScoreThread implements Callable<String> {
         this.fieldInfo = fieldInfo;
         this.baseHeadConfigVO = baseHeadConfigVO;
         this.part = param.get("part");
+        this.marketingRetryEsMapper = marketingRetryEsMapper;
+        this.marketingCommonConfig = marketingCommonConfig;
         Scheduler.ac.getBean(ProFieldsClient.class).setLoanPro(strategyStr, meal);
     }
 
@@ -206,14 +217,15 @@ public class CoreScoreThread implements Callable<String> {
                             , fw, sep, proFieldMap, blu
                             , meal, cusBatchNumber, fileId
                             , customer.getPushCustomer().toString()
-                            , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService,part);
+                            , baseHeadConfigVO, fieldInfo, marketingTask
+                            , marketingTaskService, part
+                            , marketingCommonConfig,marketingRetryEsMapper);
                 }
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);
         }
     }
-
 
     private void dealResult(Writer fw, MarketingSyncUser blu) throws IOException {
         try {
@@ -222,7 +234,9 @@ public class CoreScoreThread implements Callable<String> {
                         , fw, sep, proFieldMap, blu
                         , meal, cusBatchNumber, fileId
                         , customer.getPushCustomer().toString()
-                        , baseHeadConfigVO, fieldInfo, marketingTask, marketingTaskService,part);
+                        , baseHeadConfigVO, fieldInfo, marketingTask
+                        , marketingTaskService, part
+                        , marketingCommonConfig,marketingRetryEsMapper);
             }
         } catch (Exception e) {
             log.error("dealResult出错了", e);
@@ -234,6 +248,5 @@ public class CoreScoreThread implements Callable<String> {
             errorFw.append(s + "\r\n");
         }
     }
-
 
 }

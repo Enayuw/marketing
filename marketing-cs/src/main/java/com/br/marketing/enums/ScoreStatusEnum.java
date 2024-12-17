@@ -12,7 +12,8 @@ public enum ScoreStatusEnum {
     ,OFFLINESUCCESS(7,"离线跑批成功")
     ,OFFLINEFAIL(9,"离线跑批失败")
     ,PAUSE(10,"暂停中")
-    ,PAUSEED(11,"已暂停");
+    ,PAUSEED(11,"已暂停")
+    ,WAIT_RETRY(12,"异常待重试");
 
     ScoreStatusEnum(Integer value,String desc) {
         this.value = value;

@@ -1,16 +1,15 @@
 package com.br.marketing.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class MarketingCustomerConfig {
-    /**
-     * 
-     */
+/**
+ * b_marketing_customer_config
+ * @author 
+ */
+public class MarketingCustomerConfig implements Serializable {
     private Long id;
 
-    /**
-     * 
-     */
     private String apiCode;
 
     /**
@@ -29,6 +28,11 @@ public class MarketingCustomerConfig {
     private Integer checkType;
 
     /**
+     * 跑分分隔符,默认,
+     */
+    private String scoreSeparator;
+
+    /**
      * 入库时间
      */
     private Date createTime;
@@ -37,6 +41,8 @@ public class MarketingCustomerConfig {
      * 修改时间
      */
     private Date updateTime;
+
+    private static final long serialVersionUID = 1L;
 
     public Long getId() {
         return id;
@@ -51,7 +57,7 @@ public class MarketingCustomerConfig {
     }
 
     public void setApiCode(String apiCode) {
-        this.apiCode = apiCode == null ? null : apiCode.trim();
+        this.apiCode = apiCode;
     }
 
     public Integer getThreeKEncryptType() {
@@ -76,6 +82,14 @@ public class MarketingCustomerConfig {
 
     public void setCheckType(Integer checkType) {
         this.checkType = checkType;
+    }
+
+    public String getScoreSeparator() {
+        return scoreSeparator;
+    }
+
+    public void setScoreSeparator(String scoreSeparator) {
+        this.scoreSeparator = scoreSeparator;
     }
 
     public Date getCreateTime() {

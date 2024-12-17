@@ -384,4 +384,12 @@ public interface IPeriodOfValidityService {
      * @return Boolean
      */
     Result<Boolean> customizeConfigValidDateDefault(MarketingSyncUser syncUser);
+
+    /**
+     * 根据明确的有效期开始和结束时间生成有效期范围
+     * 使用范围：三方流程数据上传
+     * @param syncUser 上传数据
+     * @return Boolean
+     */
+    Result<Boolean> generateConfigValidByStartAndEndDate(MarketingSyncUser syncUser);
 }
