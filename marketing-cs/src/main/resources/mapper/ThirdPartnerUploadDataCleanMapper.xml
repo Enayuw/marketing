@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ThirdPartnerUploadDataCleanMapper">
+    <insert id="batchSaveByTaskId">
+        insert into b_third_partner_upload_data_clean (access_number,api_code,org_api_code,cust_num,cell,user_type,custom_name_type,resource_channel
+        ,valid_start_date,valid_end_date,task_id,create_time,update_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.accessNumber},#{item.apiCode},#{item.orgApiCode},#{item.custNum},#{item.cell},#{item.userType},#{item.customNameType},#{item.resourceChannel}
+            ,#{item.validStartDate},#{item.validEndDate},#{item.taskId},now(),now())
+        </foreach>
+    </insert>
+</mapper>

@@ -127,11 +127,11 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 //营销非首登组,众安对照非首登组
                 ZhongAnBusAnalyOneReportDTO brNoLoginReportDTO = totalList.get(2);
                 ZhongAnBusAnalyOneReportDTO zhongAnNoLoginReportDTO = totalList.get(3);
-                brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
+                brNoLoginReportDTO.setIncomingIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
                         brNoLoginReportDTO.getIncomingNum(), zhongAnNoLoginReportDTO.getTotalNum(),
-                        zhongAnNoLoginReportDTO.getApproversNum()));
-                brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
-                        brNoLoginReportDTO.getTotalNum(), zhongAnNoLoginReportDTO.getTotalNum(),
+                        zhongAnNoLoginReportDTO.getIncomingNum()));
+                brNoLoginReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brNoLoginReportDTO.getTotalNum(),
+                        brNoLoginReportDTO.getApproversNum(), zhongAnNoLoginReportDTO.getTotalNum(),
                         zhongAnNoLoginReportDTO.getApproversNum()));
 
                 zhongAnNoLoginReportDTO.setIncomingIncreaseRate(brNoLoginReportDTO.getIncomingIncreaseRate());
@@ -144,37 +144,38 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         return zhongAnBusAnalyOneReportDTOS;
     }
 
-    public static List<ZhongAnBusAnalyOneReportDTO> traverseDatesOne(List<ZhongAnBusAnalyOneReportDTO> zhongAnBusAnalyEightReportList, LocalDate beginDate, LocalDate endDate) {
-            List<ZhongAnBusAnalyOneReportDTO> result = new ArrayList<>();
+    public static List<ZhongAnBusAnalyOneReportDTO> traverseDatesOne(List<ZhongAnBusAnalyOneReportDTO> zhongAnBusAnalyEightReportList,
+                                                                     LocalDate beginDate, LocalDate endDate) {
+        List<ZhongAnBusAnalyOneReportDTO> result = new ArrayList<>();
 
-            String oneDay = beginDate.withDayOfMonth(1).toString();
-            String oneDayToOneDay = beginDate + "--" + beginDate;
-            // 判断是否是1号
-            if (endDate.getDayOfMonth() == 1) {
+        String oneDay = beginDate.withDayOfMonth(1).toString();
+        String oneDayToOneDay = beginDate + "--" + beginDate;
+        // 判断是否是1号
+        if (endDate.getDayOfMonth() == 1) {
+            zhongAnBusAnalyEightReportList.stream()
+                    .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                    .forEach(result::add);
+        } else {
+            zhongAnBusAnalyEightReportList.stream()
+                    .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                    .forEach(result::add);
+            // 如果不是1号，从2号到今天遍历
+            LocalDate firstDayOfMonth = endDate.withDayOfMonth(2);
+            LocalDate currentDay = firstDayOfMonth;
+
+            // 遍历从1号到今天的日期
+            while (!currentDay.isAfter(endDate)) {
+                String dateStr = currentDay.toString();
                 zhongAnBusAnalyEightReportList.stream()
-                        .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
+                        .filter(date -> date.getReportDate().contains(dateStr))
                         .forEach(result::add);
-            } else {
-                zhongAnBusAnalyEightReportList.stream()
-                        .filter(date -> date.getReportDate().equals(oneDay) || date.getReportDate().equals(oneDayToOneDay))
-                        .forEach(result::add);
-                // 如果不是1号，从2号到今天遍历
-                LocalDate firstDayOfMonth = endDate.withDayOfMonth(2);
-                LocalDate currentDay = firstDayOfMonth;
 
-                // 遍历从1号到今天的日期
-                while (!currentDay.isAfter(endDate)) {
-                    String dateStr = currentDay.toString();
-                    zhongAnBusAnalyEightReportList.stream()
-                            .filter(date -> date.getReportDate().contains(dateStr))
-                            .forEach(result::add);
-
-                    currentDay = currentDay.plusDays(1);
-                }
+                currentDay = currentDay.plusDays(1);
             }
-
-            return result;
         }
+
+        return result;
+    }
 
 
     @Override
@@ -258,7 +259,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                                 zhongAnReportDTO.getTotalNum(), zhongAnReportDTO.getIncomingNum()));
                 brReportDTO.setApproversIncreaseRate(calculateIncomingIncreaseRate(brReportDTO.getTotalNum(),
                         brReportDTO.getApproversNum(), zhongAnReportDTO.getTotalNum(),
-                                zhongAnReportDTO.getApproversNum()));
+                        zhongAnReportDTO.getApproversNum()));
                 zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
                 zhongAnReportDTO.setApproversIncreaseRate(brReportDTO.getApproversIncreaseRate());
                 zhongAnBusAnalyEightReportList.addAll(totalList);
@@ -272,7 +273,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         return zhongAnBusAnalyEightReportDTOS;
     }
 
-    public static List<ZhongAnBusAnalyEightReportDTO> traverseDates(List<ZhongAnBusAnalyEightReportDTO> zhongAnBusAnalyEightReportList, LocalDate beginDate, LocalDate endDate) {
+    public static List<ZhongAnBusAnalyEightReportDTO> traverseDates(List<ZhongAnBusAnalyEightReportDTO> zhongAnBusAnalyEightReportList,
+                                                                    LocalDate beginDate, LocalDate endDate) {
         List<ZhongAnBusAnalyEightReportDTO> result = new ArrayList<>();
 
         String oneDay = beginDate.withDayOfMonth(1).toString();
@@ -303,7 +305,6 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
 
         return result;
     }
-
 
 
     @Override
@@ -398,7 +399,7 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                             .filter(t -> !t.getReportDate().contains("--"))
                             .filter(t -> LocalDate.parse(t.getReportDate()).isBefore(finalDate.plusDays(1)))
                             .filter(t -> t.getConstituencies().equals(group))
-                            .map(report-> report.getApprovalsAvgNum()*report.getApproversNum())
+                            .map(report -> report.getApprovalsAvgNum() * report.getApproversNum())
                             .reduce(0L, Long::sum);
                     sevenReportDTO.setApprovalsAvgNum(0L);
                     sevenReportDTO.setLendersSucAvgAmount(0L);
@@ -432,15 +433,18 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
                 ZhongAnBusAnalySevenReportDTO zhongAnReportDTO = totalList.get(1);
                 brReportDTO.setIncomingIncreaseRate(calculateIncomingIncreaseRate(brReportDTO.getTotalNum(),
                         brReportDTO.getIncomingNum(), zhongAnReportDTO.getTotalNum(), zhongAnReportDTO.getIncomingNum()));
-                brReportDTO.setApproversIncreaseRate(calculateApproversIncreaseRate(brReportDTO.getApproversTotalRate(), zhongAnReportDTO.getApproversTotalRate()));
+                brReportDTO.setApproversIncreaseRate(calculateApproversIncreaseRate(brReportDTO.getApproversTotalRate(),
+                        zhongAnReportDTO.getApproversTotalRate()));
 
                 brReportDTO.setApproversIncrNum(calculateApproversIncrNum(brReportDTO.getApproversNum(),
                         zhongAnReportDTO.getApproversNum(), brReportDTO.getTotalNum(), zhongAnReportDTO.getTotalNum()));
                 brReportDTO.setLendersSucIncrAmount(calculateApproversIncrNum(brReportDTO.getLendersSucAmount(),
                         zhongAnReportDTO.getLendersSucAmount(), brReportDTO.getTotalNum(), zhongAnReportDTO.getTotalNum()));
 
-                brReportDTO.setApplyPayIncrRate(calculateApproversIncreaseRate(brReportDTO.getApplyPayRate(), zhongAnReportDTO.getApplyPayRate()));
-                brReportDTO.setLendersSucIncrRate(calculateApproversIncreaseRate(brReportDTO.getLendersSucTotalRate(), zhongAnReportDTO.getLendersSucTotalRate()));
+                brReportDTO.setApplyPayIncrRate(calculateApproversIncreaseRate(brReportDTO.getApplyPayRate(),
+                        zhongAnReportDTO.getApplyPayRate()));
+                brReportDTO.setLendersSucIncrRate(calculateApproversIncreaseRate(brReportDTO.getLendersSucTotalRate(),
+                        zhongAnReportDTO.getLendersSucTotalRate()));
 
                 zhongAnReportDTO.setIncomingIncreaseRate(brReportDTO.getIncomingIncreaseRate());
                 zhongAnReportDTO.setApproversIncreaseRate(brReportDTO.getApproversIncreaseRate());
@@ -456,7 +460,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
         return zhongAnBusAnalySevenReportDTOS;
     }
 
-    public static List<ZhongAnBusAnalySevenReportDTO> traverseDatesSeven(List<ZhongAnBusAnalySevenReportDTO> zhongAnBusAnalyEightReportList, LocalDate beginDate, LocalDate endDate) {
+    public static List<ZhongAnBusAnalySevenReportDTO> traverseDatesSeven(List<ZhongAnBusAnalySevenReportDTO> zhongAnBusAnalyEightReportList,
+                                                                         LocalDate beginDate, LocalDate endDate) {
         List<ZhongAnBusAnalySevenReportDTO> result = new ArrayList<>();
 
         String oneDay = beginDate.withDayOfMonth(1).toString();
@@ -511,8 +516,8 @@ public class ZhongAnBiReportServiceImpl implements ZhongAnBiReportService {
             return BigDecimal.ZERO;
         }
 
-        return new BigDecimal(numerator)
-                .divide(new BigDecimal(denominator), 6, BigDecimal.ROUND_HALF_UP);
+        return BigDecimal.valueOf(numerator)
+                .divide(BigDecimal.valueOf(denominator), 6, BigDecimal.ROUND_HALF_UP);
     }
 
     public static BigDecimal calculateApproversIncreaseRate(BigDecimal brApproversTotalRate, BigDecimal zhongAnApproversTotalRate) {

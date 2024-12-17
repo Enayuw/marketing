@@ -10,5 +10,5 @@ import java.time.LocalDateTime;
  */
 public interface ReportStatisticService {
 
-    void action(LocalDateTime actionDateTime);
+    void action(LocalDateTime actionDateTime, Integer reportType);
 }

@@ -1,17 +1,24 @@
 package com.br.marketing.innerapi.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
-import com.br.marketing.entity.MarketingCustomer;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.Impl.MarketingCustomertestImpl;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.thirdpartner.ThirdPartnerDataService;
+import com.br.marketing.service.thirdpartner.dto.ThirdPartnerDataDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,10 +40,11 @@ public class BackEndController {
     PushRuleService pushRuleService;
     @Autowired
     MarketingCustomertestImpl marketingCustomertest;
+    @Autowired
+    ThirdPartnerDataService thirdPartnerDataService;
 
     /**
      * 查询客户信息接口（外呼→营销）
-     *
      * @param cid
      * @param apiCode
      * @param custNum
@@ -51,8 +59,43 @@ public class BackEndController {
         try {
             return pushRuleService.queryCustInfo(cid, apiCode, custNum, cell);
         } catch (Exception ex) {
-            log.error("外呼查询营销客户信息接口异常",ex);
+            log.error("外呼查询营销客户信息接口异常", ex);
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue()).setMessage(ex.getMessage());
         }
+    }
+
+    /**
+     * 外呼推送三方上传数据接口（外呼→营销）
+     * @param data
+     * @return
+     */
+    @ApiOperation(value = "外呼推送三方上传数据接口")
+    @PostMapping("/thirdPartner/uploadData")
+    @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS)
+    public Result thirdPartnerUploadData(String data, String accessNumber) {
+        // 校验请求参数
+        if (StringUtils.isEmpty(data)) {
+            return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
+        }
+
+        List<ThirdPartnerDataDTO> dataList;
+        try {
+            dataList = JSON.parseObject(data,
+                    new TypeReference<List<ThirdPartnerDataDTO>>() {
+                    });
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), data, "外呼推送三方上传数据接口，参数JSON解析异常"));
+            return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
+        }
+
+        if (CollectionUtils.isEmpty(dataList)) {
+            return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
+        }
+        if (dataList.size() > 5000) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), data, "外呼推送三方上传数据接口，外呼推送量级超限"));
+            return new Result().setCode(ResultCode.PARAM_ERROR.getValue()).setMessage("参数异常");
+        }
+
+        return thirdPartnerDataService.saveData(dataList, accessNumber, data);
     }
 }

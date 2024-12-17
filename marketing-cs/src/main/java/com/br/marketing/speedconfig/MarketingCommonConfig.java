@@ -2378,6 +2378,27 @@ public class MarketingCommonConfig {
     private List<String> autoTestIp;
 
     /**
+     * 三方apiCode映射配置
+     */
+    private HashMap<String, String> thirdPartnerApiCodeMappingConfig;
+
+    /**
+     * 三方接口方法参数配置
+     */
+    private HashMap<String, JSONObject> thirdPartnerApiMethodConfig;
+
+    /**
+     * 三方接口方法挡板开关 true:开启挡板。false:关闭挡板
+     * thirdPartnerApiMethodMock={"switch":true,"code":"00"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * code：
+     *      00:请求成功
+     */
+    private HashMap<String, Object> thirdPartnerApiMethodMock;
+
+    /**
      * 众安经营分析报表统计apiCode
      */
     private String zhongAnReportStatisticApiCode;
