@@ -111,13 +111,13 @@ public class ConsumerApp {
      * @param channel 通道
      * @param message 消息体
      */
-    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_XIECHENG_SMSCOLLIDINGVT_CUSTOMER, durable = "true")
+  /*  @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_XIECHENG_SMSCOLLIDINGVT_CUSTOMER, durable = "true")
             , exchange = @Exchange(value = MQConstants.MARKETINGEXCHANGER_NAME, type = "topic", durable = "true")
             , key = MQConstants.ROUTING_KEY_XIECHENG_SMSCOLLIDINGVT_CUSTOMER)}, containerFactory = "xieChengSmsMqContainerFactory")
     public void consumerXiechengSmsCollidingVtUser(Channel channel, Message message) {
         String o = new String(message.getBody(), StandardCharsets.UTF_8);
         consumerService.consumerRun(channel, message, xieChengSmsPushToTransferService::consumerXiechengSmsCollidingVtUser, o, null);
-    }
+    }*/
 
     /**
      * 消费 携程消费
