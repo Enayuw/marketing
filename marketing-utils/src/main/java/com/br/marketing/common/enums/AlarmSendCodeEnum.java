@@ -270,6 +270,8 @@ public enum AlarmSendCodeEnum {
     //顺丰业务异常,立即推送
     SHUNFENG_SERVICEERROR("6039001", "顺丰业务异常"),
 
+    ES_RETRY_DATAERROR("6040001", "ES补推数据异常"),
+
     ;
 
     /**
