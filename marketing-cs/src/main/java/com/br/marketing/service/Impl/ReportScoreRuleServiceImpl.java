@@ -17,7 +17,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.enums.report.BiReportTypeEnum;
-import com.br.marketing.enums.report.ReportTaskStatusEnum;
 import com.br.marketing.enums.report.ReportTaskTypeEnum;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.ReportScoreRuleService;
@@ -45,7 +44,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import shaded.com.google.common.collect.Lists;
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -662,18 +660,18 @@ public class ReportScoreRuleServiceImpl implements ReportScoreRuleService {
         }
         String reportTypeName = param.getReportTypeName();
         Integer reportType = BiReportTypeEnum.getEnumByTypeName(reportTypeName).getType();
+        String reportDateStr = "%" + reportDate;
 
         // 众安上线后刷记录
         ReportTaskExample example = new ReportTaskExample();
-        String reportDateStr = "%" + reportDate;
         example.createCriteria().andReportNameLike(reportDateStr).andReportTypeEqualTo(reportType);
         List<ReportTask> reportTasks = reportTaskMapper.selectByExample(example);
         if (ObjectUtil.isEmpty(reportTasks)) {
             String string = "23:59:59.999";
             String dateNow = reportDate + " " + string;
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-            LocalDateTime localDateTime = LocalDateTime.parse(dateNow, formatter);
-            reportStatisticService.action(localDateTime);
+            LocalDateTime localDateTime = LocalDateTime.parse(dateNow, formatter).plusDays(1);
+            reportStatisticService.action(localDateTime, reportType);
             return true;
         }
 
