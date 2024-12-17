@@ -877,6 +877,9 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
      * 兼容redis不可用场景，查询db判断众安当天拨打记录黑名单
      */
     public void processTodayZhongaAnBlackData(Map<String,String> custNumMap,Set custNumBlackListSet,String nowDayStr){
+        if(marketingCommonConfig.getZhongAnCallRecordBlackFromDbSwitch() != null && !marketingCommonConfig.getZhongAnCallRecordBlackFromDbSwitch()){
+            return ;
+        }
         if (CollectionUtils.isEmpty(custNumMap)) {
             return ;
         }
