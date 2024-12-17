@@ -16,6 +16,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.commonentity.CommonConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
@@ -845,7 +846,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             log.warn("生成跑分任务失败，该跑分编号已存在：{}", batchNumber);
             return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(hasTask.getId());
         }
-        String scoreSeparator = ",";
+        String scoreSeparator = CommonConstants.COMMA;
         MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
         configExample.createCriteria()
                 .andIsDelEqualTo(Constants.DATA_VALID)

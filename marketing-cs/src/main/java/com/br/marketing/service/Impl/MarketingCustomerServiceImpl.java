@@ -8,6 +8,7 @@ import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.TableCodeEnum;
 import com.br.marketing.common.utils.Constants;
+import com.br.marketing.commonentity.CommonConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.entity.*;
 import com.br.marketing.entity.auth.MarketingUserDetail;
@@ -112,7 +113,7 @@ public class MarketingCustomerServiceImpl implements MarketingCustomerService {
                 customerListVo.setCheckType(marketingCustomerConfig == null
                         ? CustomerTagsValue.CheckTypeEnum.CHECKCELL.getValue()
                         : marketingCustomerConfig.getCheckType());
-                customerListVo.setScoreSeparator(marketingCustomerConfig == null ? "," : marketingCustomerConfig.getScoreSeparator());
+                customerListVo.setScoreSeparator(marketingCustomerConfig == null ? CommonConstants.COMMA : marketingCustomerConfig.getScoreSeparator());
                 customerListVos.add(customerListVo);
             }
             PageInfo<MarketingCustomer> marketingCustomerPageInfo = new PageInfo<>(marketingCustomersList);
