@@ -886,13 +886,17 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         if (CollectionUtils.isEmpty(querySet)) {
             return ;
         }
-        List<String> custNumList = callRecordMapper.getTodayZhongaAnBlackList(querySet,nowDayStr);
-        if(!CollectionUtils.isEmpty(custNumList)){
-            custNumList.stream().forEach((String key) -> {
-                custNumMap.remove(key);
-                custNumBlackListSet.add(key + nowDayStr);
-            });
+        Long num = callRecordMapper.getOneDayBlackNumByCreateTime(querySet,nowDayStr);
+        log.warn("查询众安当天拨打记录黑名单数量耗时:{}ms",System.currentTimeMillis() - startMillis);
+        if(num > 0){
+            List<String> custNumList = callRecordMapper.getOneDayBlackListByCreateTime(querySet,nowDayStr);
+            if(!CollectionUtils.isEmpty(custNumList)){
+                custNumList.stream().forEach((String key) -> {
+                    custNumMap.remove(key);
+                    custNumBlackListSet.add(key + nowDayStr);
+                });
+                log.warn("查询众安当天拨打记录黑名单总耗时:{}ms,数据{}条",System.currentTimeMillis() - startMillis,custNumList.size());
+            }
         }
-        log.warn("查询众安当天拨打记录黑名单耗时:{}ms",System.currentTimeMillis() - startMillis);
     }
 }

@@ -49,5 +49,7 @@ public interface CallRecordMapper extends CallRecordMapperBase {
 
     List<CallRecord> getBlackListSetNewtikv_(@Param("custNumMap") Map<String, String> custNumMap, @Param("bizDate") String bizDate);
 
-    List<String> getTodayZhongaAnBlackList(@Param("custNumSet") Set<String> custNumSet, @Param("nowDate") String nowDate);
+    Long getOneDayBlackNumByCreateTime(@Param("custNumSet") Set<String> custNumSet, @Param("nowDate") String nowDate);
+
+    List<String> getOneDayBlackListByCreateTime(@Param("custNumSet") Set<String> custNumSet, @Param("nowDate") String nowDate);
 }
