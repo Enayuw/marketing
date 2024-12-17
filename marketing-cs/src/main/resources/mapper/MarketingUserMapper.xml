@@ -403,6 +403,7 @@
 			`cell_sha256` varchar(255) DEFAULT NULL COMMENT '手机号sha256',
 			`group_type` varchar(255) DEFAULT NULL COMMENT '场景',
 			`user_type` varchar(255) DEFAULT NULL COMMENT '新场景-替代group_type',
+			`operate_type` varchar(100) DEFAULT NULL COMMENT '操作类型',
 			`register_date` varchar(50) DEFAULT NULL COMMENT '日期',
 			`reserve_field1` text DEFAULT NULL COMMENT '预留字段1',
 			`reserve_field2` text DEFAULT NULL COMMENT '预留字段2',

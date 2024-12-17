@@ -34,6 +34,9 @@ public class MarketingPreUserDetailDTO implements Serializable {
     @NotEmpty(message = "custNum必传")
     private String custNum;
 
+    @ApiModelProperty(value = "操作类型")
+    private String operateType;
+
     @ApiModelProperty(value = "")
     private String registerDate;
 

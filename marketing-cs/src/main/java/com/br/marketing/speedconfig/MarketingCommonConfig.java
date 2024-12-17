@@ -2398,5 +2398,10 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, Object> thirdPartnerApiMethodMock;
 
+    /**
+     * 众安经营分析报表统计apiCode
+     */
+    private String zhongAnReportStatisticApiCode;
+
 }
 

@@ -19,6 +19,9 @@
             <if test="custNum != null">
                 cust_num,
             </if>
+            <if test="operateType != null">
+                operate_type,
+            </if>
             <if test="idCard != null">
                 id_card,
             </if>
@@ -89,6 +92,9 @@
             </if>
             <if test="custNum != null">
                 #{custNum,jdbcType=VARCHAR},
+            </if>
+            <if test="operateType != null">
+                #{operateType,jdbcType=VARCHAR},
             </if>
             <if test="idCard != null">
                 #{idCard,jdbcType=VARCHAR},
