@@ -97,6 +97,7 @@
         FROM b_xiecheng_colliding_data_rob
         WHERE package_id = #{packageId,jdbcType=BIGINT}
           AND is_delete = 0
+            and retry_count=0
           AND colliding_count <![CDATA[ < ]]> #{collidingTimes,jdbcType=INTEGER};
     </select>
 
