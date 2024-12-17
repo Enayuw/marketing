@@ -317,9 +317,9 @@ public class MergeWithMessageServiceImpl {
 
         final List<String> baseFields;
         final List<String> hxFields;
-        Result<String> headRes = iProductResultSimpleService.getCurrentBaseHeadInfoByTaskId(task.getId());
+        Result<String> headRes = iProductResultSimpleService.getCurrentBaseHeadInfoByTaskId(task.getId(),task.getScoreSeparator());
         if (ResultCode.SUCCESS.getValue().equals(headRes.getCode()) && StringUtils.isNotBlank(headRes.getData())) {
-            baseFields = Arrays.stream(headRes.getData().split(",")).collect(Collectors.toList());
+            baseFields = Arrays.stream(headRes.getData().split(task.getScoreSeparator())).collect(Collectors.toList());
         } else {
             baseFields = new ArrayList<>();
         }

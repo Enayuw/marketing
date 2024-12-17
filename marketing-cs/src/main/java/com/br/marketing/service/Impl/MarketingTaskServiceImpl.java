@@ -12,42 +12,18 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.customizedassert.AssertResult;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.commonentity.CommonConstants;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.OffLineCallBackDTO;
 import com.br.marketing.dto.TaskExtendExtendFieldDTO;
 import com.br.marketing.dto.TaskSelectSaveDTO;
-import com.br.marketing.entity.MarketingDataValidConfig;
-import com.br.marketing.entity.MarketingSyncInfoExample;
-import com.br.marketing.entity.MarketingSyncReport;
-import com.br.marketing.entity.MarketingSyncReportExample;
-import com.br.marketing.entity.MarketingTask;
-import com.br.marketing.entity.MarketingTaskAutoBuildConfig;
-import com.br.marketing.entity.MarketingTaskAutoBuildConfigExample;
-import com.br.marketing.entity.MarketingTaskExtend;
-import com.br.marketing.entity.MarketingTaskResultPreview;
-import com.br.marketing.entity.MarketingTaskResultPreviewExample;
-import com.br.marketing.entity.MarketingTaskUserType;
-import com.br.marketing.entity.ScoreRuleConfig;
-import com.br.marketing.entity.StraHisFile;
-import com.br.marketing.entity.StraHisFileExample;
-import com.br.marketing.entity.TaskBatchnumberPre;
-import com.br.marketing.entity.TaskBatchnumberPreExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.enums.ScoreStatusEnum;
-import com.br.marketing.mapper.MarketingDataValidConfigMapper;
-import com.br.marketing.mapper.MarketingSyncInfoMapper;
-import com.br.marketing.mapper.MarketingSyncReportMapper;
-import com.br.marketing.mapper.MarketingTaskAutoBuildConfigMapper;
-import com.br.marketing.mapper.MarketingTaskExtendMapper;
-import com.br.marketing.mapper.MarketingTaskMapper;
-import com.br.marketing.mapper.MarketingTaskResultPreviewMapper;
-import com.br.marketing.mapper.MarketingTaskUserTypeMapper;
-import com.br.marketing.mapper.ScoreRuleConfigMapper;
-import com.br.marketing.mapper.StraHisFileMapper;
-import com.br.marketing.mapper.TaskBatchnumberPreMapper;
-import com.br.marketing.mapper.TaskStatusMapper;
+import com.br.marketing.mapper.*;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.IApiToDbService;
 import com.br.marketing.service.IDynamicSqlService;
@@ -80,6 +56,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -172,6 +149,9 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
     @Autowired
     MarketingTaskAutoBuildConfigMapper buildConfigMapper;
+
+    @Resource
+    private MarketingCustomerConfigMapper marketingCustomerConfigMapper;
 
     @Override
     public PageResultReturn list(int current, int size, String search, Integer status, String createTimeStart, String createTimeEnd,
@@ -866,7 +846,15 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             log.warn("生成跑分任务失败，该跑分编号已存在：{}", batchNumber);
             return new Result<Long>().setCode(ResultCode.SUCCESS.getValue()).setDate(hasTask.getId());
         }
-
+        String scoreSeparator = CommonConstants.COMMA;
+        MarketingCustomerConfigExample configExample = new MarketingCustomerConfigExample();
+        configExample.createCriteria()
+                .andIsDelEqualTo(Constants.DATA_VALID)
+                .andApiCodeEqualTo(apiCode);
+        List<MarketingCustomerConfig> marketingCustomerConfigs = marketingCustomerConfigMapper.selectByExample(configExample);
+        if(!CollectionUtils.isEmpty(marketingCustomerConfigs)){
+            scoreSeparator = marketingCustomerConfigs.get(0).getScoreSeparator();
+        }
         //region 处理task
         MarketingTask task = new MarketingTask();
         task.setApiCode(apiCode);
@@ -900,6 +888,7 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
 
         task.setCreateTime(LocalDateTime.now().format(ymdhms));
         task.setContextId(iApiToDbService.getTaskContextId());
+        task.setScoreSeparator(scoreSeparator);
         marketingTaskMapper.insertSelective(task);
         //endregion
 
@@ -995,15 +984,17 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
     @Override
     public Result<ResultPreviewVO> resultPreview(Long tasId) {
         ResultPreviewVO resData = new ResultPreviewVO();
+        MarketingTask task =marketingTaskMapper.selectByPrimaryKey(tasId);
+        String scoreSeparator = task.getScoreSeparator();
         MarketingTaskResultPreviewExample example = new MarketingTaskResultPreviewExample();
         example.createCriteria().andTaskIdEqualTo(tasId);
         List<MarketingTaskResultPreview> marketingTaskResultPreviews = marketingTaskResultPreviewMapper.selectByExample(example);
         Optional<MarketingTaskResultPreview> first = marketingTaskResultPreviews.stream().filter(t -> new Integer(1).equals(t.getIsTitle())).findFirst();
         if (!first.isPresent()) {
-            return new Result<ResultPreviewVO>().setCode(ResultCode.SUCCESS.getValue()).setMessage("表头不存在");
+            return new Result<ResultPreviewVO>().setCode(ResultCode.FAIL.getValue()).setMessage("表头不存在");
         }
         MarketingTaskResultPreview marketingTaskResultPreview = first.get();
-        String[] titleArray = marketingTaskResultPreview.getContent().split(",");
+        String[] titleArray = marketingTaskResultPreview.getContent().split(Pattern.quote(scoreSeparator));
         List<HashMap> titleDesc = new ArrayList<>();
         List<HashMap> contentDesc = new ArrayList<>();
         for (String s : titleArray) {
@@ -1012,9 +1003,14 @@ public class MarketingTaskServiceImpl implements MarketingTaskService {
             titleHs.put("status", 0);
             titleDesc.add(titleHs);
         }
+        MarketingTaskResultPreview resultDate = marketingTaskResultPreviews.stream().filter(taskResult -> !new Integer(1).
+                equals(taskResult.getIsTitle())).collect(Collectors.toList()).get(0);
+        if (resultDate.getContent().split(Pattern.quote(scoreSeparator), -1).length != titleArray.length) {
+            return new Result<ResultPreviewVO>().setCode(ResultCode.FAIL.getValue()).setMessage("分隔符".concat(scoreSeparator).concat("数量不匹配"));
+        }
         marketingTaskResultPreviews.forEach(t -> {
             if (!new Integer(1).equals(t.getIsTitle())) {
-                String[] field = t.getContent().split(",", -1);
+                String[] field = t.getContent().split(Pattern.quote(scoreSeparator), -1);
                 HashMap<String, String> contentHs = new HashMap<>();
                 for (int i = 0; i < field.length; i++) {
                     String fieldValue = field[i];

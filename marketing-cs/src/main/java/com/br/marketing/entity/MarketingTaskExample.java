@@ -12,7 +12,7 @@ public class MarketingTaskExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingTaskExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingTaskExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -896,62 +896,62 @@ public class MarketingTaskExample {
         }
 
         public Criteria andStatusIsNull() {
-            addCriterion("status is null");
+            addCriterion("`status` is null");
             return (Criteria) this;
         }
 
         public Criteria andStatusIsNotNull() {
-            addCriterion("status is not null");
+            addCriterion("`status` is not null");
             return (Criteria) this;
         }
 
         public Criteria andStatusEqualTo(Integer value) {
-            addCriterion("status =", value, "status");
+            addCriterion("`status` =", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotEqualTo(Integer value) {
-            addCriterion("status <>", value, "status");
+            addCriterion("`status` <>", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThan(Integer value) {
-            addCriterion("status >", value, "status");
+            addCriterion("`status` >", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusGreaterThanOrEqualTo(Integer value) {
-            addCriterion("status >=", value, "status");
+            addCriterion("`status` >=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThan(Integer value) {
-            addCriterion("status <", value, "status");
+            addCriterion("`status` <", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusLessThanOrEqualTo(Integer value) {
-            addCriterion("status <=", value, "status");
+            addCriterion("`status` <=", value, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusIn(List<Integer> values) {
-            addCriterion("status in", values, "status");
+            addCriterion("`status` in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotIn(List<Integer> values) {
-            addCriterion("status not in", values, "status");
+            addCriterion("`status` not in", values, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusBetween(Integer value1, Integer value2) {
-            addCriterion("status between", value1, value2, "status");
+            addCriterion("`status` between", value1, value2, "status");
             return (Criteria) this;
         }
 
         public Criteria andStatusNotBetween(Integer value1, Integer value2) {
-            addCriterion("status not between", value1, value2, "status");
+            addCriterion("`status` not between", value1, value2, "status");
             return (Criteria) this;
         }
 
@@ -1486,62 +1486,62 @@ public class MarketingTaskExample {
         }
 
         public Criteria andIncrementIsNull() {
-            addCriterion("increment is null");
+            addCriterion("`increment` is null");
             return (Criteria) this;
         }
 
         public Criteria andIncrementIsNotNull() {
-            addCriterion("increment is not null");
+            addCriterion("`increment` is not null");
             return (Criteria) this;
         }
 
         public Criteria andIncrementEqualTo(Integer value) {
-            addCriterion("increment =", value, "increment");
+            addCriterion("`increment` =", value, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementNotEqualTo(Integer value) {
-            addCriterion("increment <>", value, "increment");
+            addCriterion("`increment` <>", value, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementGreaterThan(Integer value) {
-            addCriterion("increment >", value, "increment");
+            addCriterion("`increment` >", value, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementGreaterThanOrEqualTo(Integer value) {
-            addCriterion("increment >=", value, "increment");
+            addCriterion("`increment` >=", value, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementLessThan(Integer value) {
-            addCriterion("increment <", value, "increment");
+            addCriterion("`increment` <", value, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementLessThanOrEqualTo(Integer value) {
-            addCriterion("increment <=", value, "increment");
+            addCriterion("`increment` <=", value, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementIn(List<Integer> values) {
-            addCriterion("increment in", values, "increment");
+            addCriterion("`increment` in", values, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementNotIn(List<Integer> values) {
-            addCriterion("increment not in", values, "increment");
+            addCriterion("`increment` not in", values, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementBetween(Integer value1, Integer value2) {
-            addCriterion("increment between", value1, value2, "increment");
+            addCriterion("`increment` between", value1, value2, "increment");
             return (Criteria) this;
         }
 
         public Criteria andIncrementNotBetween(Integer value1, Integer value2) {
-            addCriterion("increment not between", value1, value2, "increment");
+            addCriterion("`increment` not between", value1, value2, "increment");
             return (Criteria) this;
         }
 
@@ -2104,10 +2104,81 @@ public class MarketingTaskExample {
             addCriterion("is_online not between", value1, value2, "isOnline");
             return (Criteria) this;
         }
+
+        public Criteria andScoreSeparatorIsNull() {
+            addCriterion("score_separator is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorIsNotNull() {
+            addCriterion("score_separator is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorEqualTo(String value) {
+            addCriterion("score_separator =", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorNotEqualTo(String value) {
+            addCriterion("score_separator <>", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorGreaterThan(String value) {
+            addCriterion("score_separator >", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorGreaterThanOrEqualTo(String value) {
+            addCriterion("score_separator >=", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorLessThan(String value) {
+            addCriterion("score_separator <", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorLessThanOrEqualTo(String value) {
+            addCriterion("score_separator <=", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorLike(String value) {
+            addCriterion("score_separator like", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorNotLike(String value) {
+            addCriterion("score_separator not like", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorIn(List<String> values) {
+            addCriterion("score_separator in", values, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorNotIn(List<String> values) {
+            addCriterion("score_separator not in", values, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorBetween(String value1, String value2) {
+            addCriterion("score_separator between", value1, value2, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorNotBetween(String value1, String value2) {
+            addCriterion("score_separator not between", value1, value2, "scoreSeparator");
+            return (Criteria) this;
+        }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

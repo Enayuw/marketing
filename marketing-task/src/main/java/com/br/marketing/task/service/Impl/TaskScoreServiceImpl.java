@@ -566,8 +566,8 @@ public class TaskScoreServiceImpl {
             if (flagProduct.getCode().equals(ResultCode.SUCCESS.getValue())) {
                 flagproductlist = flagProduct.getData();
             }
-
-            String separator = marketingSepService.querySepByApiCode(blt.getApiCode());
+            //使用任务表中的分隔符
+            String separator = blt.getScoreSeparator();
             String redisOpen = redisChgService.get(RedisEsOpen);
             String esOpenMark = StringUtils.isNotBlank(redisOpen) ? redisOpen : "1";
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());

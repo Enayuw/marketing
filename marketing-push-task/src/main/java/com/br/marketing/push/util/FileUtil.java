@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -129,7 +130,7 @@ public class FileUtil {
     private static int countStr(String str, String sToFind) {
         int num = 0;
         int len1 = str.length();
-        String str1 = str.replaceAll(sToFind, "");
+        String str1 = str.replaceAll(Pattern.quote(sToFind), "");
         int len2 = str1.length();
         num = len1 - len2;
         return num;
@@ -204,7 +205,7 @@ public class FileUtil {
      * @param destPath 需要合并的目录
      */
     public static List<String> mergeAll(String head, String pathName, String destPath, String sep, Integer fileNum) {
-        log.warn("开始合并文件 结果文件名称:{},需要合并的目录:{}", pathName, destPath);
+        log.warn("开始合并文件 结果文件名称:{},需要合并的目录:{},分隔符:{}", pathName, destPath, sep);
         long l = System.currentTimeMillis();
         ExecutorService mergeExecutor = BrExecutors.getThreadPool(100, 100);
         FileReader read = null;
@@ -380,7 +381,7 @@ public class FileUtil {
         private int countStr1(String str, String sToFind) {
             int num = 0;
             int len1 = str.length();
-            String str1 = str.replaceAll(sToFind, "");
+            String str1 = str.replaceAll(Pattern.quote(sToFind), "");
             int len2 = str1.length();
             num = len1 - len2;
             return num;

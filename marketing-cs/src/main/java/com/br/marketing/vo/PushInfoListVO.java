@@ -49,6 +49,9 @@ public class PushInfoListVO {
     @ApiModelProperty(value = "场景")
     private String userType;
 
+    @ApiModelProperty(value = "数据集名称")
+    private String batchName;
+
     public String getmStatusDesc() {
         if (mStatus.equals(PushRuleStatusEnum.RUNNING.getValue())) {
             return PushRuleStatusEnum.RUNNING.getDesc();
@@ -180,5 +183,14 @@ public class PushInfoListVO {
 
     public void setmScoreCondition(String mScoreCondition) {
         this.mScoreCondition = mScoreCondition;
+    }
+
+
+    public String getBatchName() {
+        return batchName;
+    }
+
+    public void setBatchName(String batchName) {
+        this.batchName = batchName;
     }
 }

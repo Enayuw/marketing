@@ -14,7 +14,7 @@ import java.util.List;
 public interface IProductResultSimpleService {
     Result buildResult(JSONObject hxJson, StringBuilder sb, String sep, MarketingUser user,JSONObject esResult);
 
-    Result<String> getFieldsStrInfo(String apiCode,String batchNumber);
+    Result<String> getFieldsStrInfo(String apiCode,String batchNumber,String sep);
 
     Result<List<String>> getFieldsInfo(String apiCode,String batchNumber);
 
@@ -26,7 +26,7 @@ public interface IProductResultSimpleService {
 
     Result<String> getBaseHeadInfoByTaskId(Long taskId);
 
-    Result<String> getCurrentBaseHeadInfoByTaskId(Long taskId);
+    Result<String> getCurrentBaseHeadInfoByTaskId(Long taskId ,String sep);
 
     Result<BaseHeadConfigVO> getBaseHeadConfig(String apiCode, String groupType);
 
