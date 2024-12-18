@@ -42,7 +42,7 @@ public class SmyUploadDataService {
         smyResponseDTO.success();
         CustomizeUploadDataSmy customizeUploadDataSmy = new CustomizeUploadDataSmy();
         JSONObject smyCustomizeDataConfig = marketingCommonConfig.getSmyCustomizeDataConfig();
-        customizeUploadDataSmy.setApiCode(smyCustomizeDataConfig.getString("uploadApiCode"));
+        customizeUploadDataSmy.setApiCode(smyCustomizeDataConfig == null ? null : smyCustomizeDataConfig.getString("uploadApiCode"));
         customizeUploadDataSmy.setRequestId(dto.getRequestNo());
         customizeUploadDataSmy.setReceiveDate(LocalDate.now().toString());
         customizeUploadDataSmy.setRequestJsonData(JSONObject.toJSONString(dto));

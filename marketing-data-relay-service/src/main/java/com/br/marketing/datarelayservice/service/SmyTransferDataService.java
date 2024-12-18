@@ -1,6 +1,11 @@
 package com.br.marketing.datarelayservice.service;
 
-import cn.hutool.core.lang.UUID;
+import java.time.LocalDate;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -8,13 +13,11 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.datarelayservice.dto.smy.request.SmyTransferRequestDTO;
 import com.br.marketing.datarelayservice.dto.smy.response.SmyResponseDTO;
 import com.br.marketing.entity.CustomizeTransferDataSmy;
-import com.br.marketing.entity.CustomizeUploadDataSmy;
 import com.br.marketing.mapper.CustomizeTransferDataSmyMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-import java.time.LocalDate;
-import javax.annotation.Resource;
+
+import cn.hutool.core.lang.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -30,12 +33,12 @@ public class SmyTransferDataService {
         smyResponseDTO.success();
         CustomizeTransferDataSmy customizeTransferDataSmy = new CustomizeTransferDataSmy();
         JSONObject smyCustomizeDataConfig = marketingCommonConfig.getSmyCustomizeDataConfig();
-        customizeTransferDataSmy.setApiCode(smyCustomizeDataConfig.getString("uploadApiCode"));
+        customizeTransferDataSmy.setApiCode(smyCustomizeDataConfig == null ? null : smyCustomizeDataConfig.getString("transferApiCode"));
         customizeTransferDataSmy.setRequestId(UUID.fastUUID().toString(true));
         customizeTransferDataSmy.setReceiveDate(LocalDate.now().toString());
         customizeTransferDataSmy.setRequestJsonData(JSONObject.toJSONString(dto));
         customizeTransferDataSmy.setStatus(1);
-        //Check Field
+        // Check Field
         StringBuilder errorMessage = new StringBuilder();
         if (StringUtils.isBlank(dto.getEventType())) {
             errorMessage.append(", event_type 不可为空");
@@ -59,7 +62,7 @@ public class SmyTransferDataService {
         int i = customizeTransferDataSmyMapper.insertSelective(customizeTransferDataSmy);
         if (i != 1) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(),
-                    "dtoJson:" + JSONObject.toJSONString(dto), "萨摩耶定制转化数据入库失败！！！"));
+                "dtoJson:" + JSONObject.toJSONString(dto), "萨摩耶定制转化数据入库失败！！！"));
         }
         return smyResponseDTO;
     }
