@@ -139,4 +139,13 @@
         </set>
         where id = #{dprId,jdbcType=BIGINT}
     </update>
+
+    <select id="getPackageRuleByPackageId" resultType="com.br.marketing.entity.XiechengCollidingDataPackageRule">
+        SELECT *
+        FROM b_xiecheng_colliding_data_package_rule r
+        WHERE r.package_id = #{packageId}
+        AND r.is_delete = 0
+        AND DATE(r.colliding_start_time) <![CDATA[ <= ]]> CURDATE()
+        AND DATE(r.colliding_end_time)  <![CDATA[ >= ]]> CURDATE()
+    </select>
 </mapper>
