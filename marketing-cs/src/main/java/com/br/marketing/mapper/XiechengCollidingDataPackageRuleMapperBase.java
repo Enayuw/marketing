@@ -1,11 +1,10 @@
 package com.br.marketing.mapper;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Param;
-
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.entity.XiechengCollidingDataPackageRuleExample;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface XiechengCollidingDataPackageRuleMapperBase {
     int countByExample(XiechengCollidingDataPackageRuleExample example);

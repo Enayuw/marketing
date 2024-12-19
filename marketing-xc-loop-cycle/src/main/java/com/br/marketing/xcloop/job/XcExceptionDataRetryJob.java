@@ -92,7 +92,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
             if (alertedLog == null) {
                 XieChengCollidingDataLog dataLog = logMapper.selectByOverCount(createTimeStart);
                 updateByAlert(dataLog);
-                String msg = "携程撞库暂停通知:code返回707";
+                String msg = "携程撞库暂停通知：code返回707";
                 return new Pair<>(1, msg);
             }
 
@@ -119,7 +119,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         int trueDataCount = loopCycleMapper.countByExample(cycleExample);
         boolean b = trueDataCount >= trueDataThresholdSize;
         if (b) {
-            String msg = "携程撞库暂停通知:今天撞得总量级" + trueDataCount + ",已达到设定阈值" + trueDataThresholdSize;
+            String msg = "携程撞库暂停通知：今天撞得总量级：" + trueDataCount + "，已达到设定阈值：" + trueDataThresholdSize;
             return new Pair<>(2, msg);
         }
 
@@ -147,7 +147,7 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         int count = cycleCount + robCount;
         boolean c = count >= retryThresholdSize;
         if (c) {
-            String msg = "携程撞库暂停通知:今天异常数据堆积总量级" + count + "已达到设定阈值" + retryThresholdSize;
+            String msg = "携程撞库暂停通知：今天异常数据堆积总量级：" + count + "，已达到设定阈值：" + retryThresholdSize + "，需要手动调整异常量级才能恢复撞库。调整入口：携程定制页面 -> 量级控制 -> 异常报警量级";
             return new Pair<>(3, msg);
         }
 
@@ -230,6 +230,6 @@ public class XcExceptionDataRetryJob extends AbstractSimpleElasticJob {
         // 关闭条件开关
         xieChengServiceNew.shutDownConditionSwitch();
         // 钉钉告警
-        service.sendDingDingAlert("携程撞库暂停通知", msg);
+        service.sendDingDingAlertByAtSomeBody(msg);
     }
 }

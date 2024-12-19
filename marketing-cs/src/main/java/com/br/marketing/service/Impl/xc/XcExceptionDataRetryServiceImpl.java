@@ -1,10 +1,13 @@
 package com.br.marketing.service.Impl.xc;
 
+import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.XieChengCollidingDataLoopCycle;
+import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.enums.DingDingAlarmFunctionEnum;
 import com.br.marketing.mapper.XieChengCollidingDataLoopCycleMapper;
 import com.br.marketing.mapper.XieChengCollidingDataRobMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -18,7 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -174,5 +178,13 @@ public class XcExceptionDataRetryServiceImpl implements XcExceptionDataRetryServ
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                     , "发送钉钉消息失败"), e);
         }
+    }
+
+    @Override
+    public void sendDingDingAlertByAtSomeBody(String msg) {
+        Map<String, JSONObject> webHookInfo = marketingCommonConfig.getDingDingWebHookInfo();
+        Map<String, Object> map = webHookInfo.get(DingDingAlarmFunctionEnum.XIECHENG_TRUE_DELETE_NOTICE.toString());
+
+        dingDingRobotHookService.sendDingDingTextMessage(msg, map);
     }
 }
