@@ -2413,11 +2413,5 @@ public class MarketingCommonConfig {
      */
     private Integer esRetryToDataThread;
 
-    /**
-     * 众安推送锁定名单定时任务中通过db查询拨打记录黑名单的开关
-     * true 打开，false 关闭执行
-     */
-    private Boolean zhongAnCallRecordBlackFromDbSwitch;
-
 }
 
