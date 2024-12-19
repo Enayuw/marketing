@@ -2413,5 +2413,12 @@ public class MarketingCommonConfig {
      */
     private Integer esRetryToDataThread;
 
+
+    /**
+     * 萨摩耶客制化传输数据配置
+     * {"uploadApiCode":"7491637","transferApiCode":"7491637"}
+     */
+    private JSONObject smyCustomizeDataConfig;
+
 }
 

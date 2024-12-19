@@ -1025,7 +1025,7 @@
     />
     <job:simple id="ThirdPartnerDataValidPassBackJob"
                 class="com.br.marketing.check.job.ThirdPartnerDataValidPassBackJob"
-                cron="0 0/5 * * * 2050-2050"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="三方数据有效期变更回传任务"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
