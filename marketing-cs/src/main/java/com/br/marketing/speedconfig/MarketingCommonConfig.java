@@ -2413,5 +2413,12 @@ public class MarketingCommonConfig {
      */
     private Integer esRetryToDataThread;
 
+
+
+    /**
+     * 数据分组分页大小
+     */
+    private Map<String,Integer> dataGroupPageSize;
+
 }
 

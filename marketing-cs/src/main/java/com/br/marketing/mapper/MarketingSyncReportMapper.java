@@ -97,4 +97,9 @@ public interface MarketingSyncReportMapper extends MarketingSyncReportMapperBase
 
     List<MarketingSyncUser> selectGroupDataByReport(@Param("apiCode")String apiCode,@Param("list")List<MarketingSyncReport> reportList,@Param("extend")String extend,
                                                     @Param("indexId")Long indexId,  @Param("pageSize")Integer pageSize);
+
+    Map<String, Long> selectGroupMaxMinId(@Param("apiCode")String apiCode, @Param("indexId")Long indexId,
+                                                   @Param("groupNum")Integer groupNum,@Param("sqlCondition")String sqlCondition);
+
+
 }

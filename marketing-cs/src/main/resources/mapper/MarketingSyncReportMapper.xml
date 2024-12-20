@@ -341,5 +341,16 @@
 
   </select>
 
+  <select id="selectGroupMaxMinId" resultType="java.util.Map">
+    select max(id)as maxId,min(id) as minId from (
+    select id from b_marketing_sync_${apiCode}
+    <where>${sqlCondition}
+      <if test="indexId != null and indexId!=''">
+        and id > #{indexId}
+      </if>
+      order by id asc limit #{ groupNum} )
+    </where>
+  </select>
+
 
 </mapper>
