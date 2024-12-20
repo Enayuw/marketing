@@ -169,7 +169,7 @@
     />
     <job:simple id="【xc-general】XieChengRobDataCollidingManyTimesJob"
                 class="com.br.marketing.xc.job.XieChengRobDataCollidingManyTimesJob"
-                cron="0 */10 * ? * * 2050-2050"
+                cron="0 0/1 * * * ?"
                 description="携程非周期数据撞库"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
