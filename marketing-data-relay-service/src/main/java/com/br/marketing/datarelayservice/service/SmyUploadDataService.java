@@ -62,10 +62,6 @@ public class SmyUploadDataService {
             customizeUploadDataSmy.setStatus(0);
             smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_PARAM_ERROR, errorMessage.toString());
         }
-        if (dto.getTotal() != dto.getNameList().size()) {
-            customizeUploadDataSmy.setStatus(0);
-            smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_BIZ_ERROR, "批次总数与代运营名单列表条数不符");
-        }
         customizeUploadDataSmy.setBizDataNumber(dto.getTotal());
         customizeUploadDataSmy.setResponseCode(String.valueOf(smyResponseDTO.getCode()));
         customizeUploadDataSmy.setResponseData(smyResponseDTO.getMessage());
