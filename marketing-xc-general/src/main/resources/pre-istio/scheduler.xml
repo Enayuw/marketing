@@ -24,7 +24,7 @@
                    nested-port="${NESTED_PORT}"
                    nested-data-dir="${NESTED_DATA_DIR}"/>
 
-    <job:simple id="XieChengTableBackupJob"
+    <job:simple id="【xc-general】XieChengTableBackupJob"
                 class="com.br.marketing.xc.job.XieChengTableBackupJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="携程数据备份"
@@ -38,7 +38,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="XieChengRobDataCollidingJob"
+    <job:simple id="【xc-general】XieChengRobDataCollidingJob"
                 class="com.br.marketing.xc.job.XieChengRobDataCollidingJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="携程非周期数据撞库"
@@ -52,7 +52,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="XieChengCollidingDataProcessJob"
+    <job:simple id="【xc-general】XieChengCollidingDataProcessJob"
                 class="com.br.marketing.xc.job.XieChengCollidingDataProcessJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="携程撞库数据处理作业"
@@ -66,7 +66,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="XieChengDynaRobDeleteDataJob"
+    <job:simple id="【xc-general】XieChengDynaRobDeleteDataJob"
                 class="com.br.marketing.xc.job.XieChengDynaRobDeleteDataJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="携程动态补充包数据剔除"
@@ -80,7 +80,7 @@
                 overwrite="true"
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
-    <job:simple id="XieChengResetCollidingCountJob"
+    <job:simple id="【xc-general】XieChengResetCollidingCountJob"
                 class="com.br.marketing.xc.job.XieChengResetCollidingCountJob"
                 cron="0 0 18 29 9 ? 2050-2050"
                 description="携程重置撞库次数"
@@ -123,7 +123,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="XieChengBlackEncAndDecJob"
+    <job:simple id="【xc-general】XieChengBlackEncAndDecJob"
                 class="com.br.marketing.xc.job.XieChengBlackEncAndDecJob"
                 cron="0 1/30 * * * ? 2050-2050"
                 description="携程黑名单log解密sha256加密"
@@ -138,7 +138,7 @@
                 job-sharding-strategy-class="com.dangdang.ddframe.job.plugin.sharding.strategy.OdevitySortByNameJobShardingStrategy"
     />
 
-    <job:simple id="XieChengPreCollidingBlackListDeleteJob"
+    <job:simple id="【xc-general】XieChengPreCollidingBlackListDeleteJob"
                 class="com.br.marketing.xc.job.XieChengPreCollidingBlackListDeleteJob"
                 cron="0 */10 * ? * * 2050-2050"
                 description="携程撞库前黑名单剔除"
