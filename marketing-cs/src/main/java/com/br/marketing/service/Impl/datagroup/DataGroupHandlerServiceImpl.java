@@ -692,7 +692,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 StringBuilder sqlWhere = new StringBuilder();
                 StringBuilder appletDateWhere = new StringBuilder();
                 sqlWhere.append("status =1 and is_repeat in (1, 2) ");
-                appletDateWhere.append("and applet_date");
+                appletDateWhere.append(" and applet_date");
                 String userType = (String) map.get("userType");
                 //有user_type，获取user_type对应的appletDate
                 if (StringUtils.isNotEmpty(userType)) {
@@ -710,7 +710,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 String extendField = rule.getExtendField();
                 String extendVaule = ((String) map.get(extendField));
                 if (StringUtils.isNotEmpty(extendField)) {
-                    sqlWhere.append("and  reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule.replace("\"",
+                    sqlWhere.append(" and  reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule.replace("\"",
                             "")).append("'");
                 }
                 Map<String, Long> maxMinId = syncReportMapper.selectGroupMaxMinId(apiCode, indexId, groupNum, sqlWhere.toString());
@@ -723,7 +723,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 taskDetail.setGroupTaskId(taskId);
                 taskDetail.setGroupFieldValue(groupFieldValue);
                 taskDetail.setExtendField(extendField);
-                taskDetail.setExtendFieldValue(extendVaule);
+                taskDetail.setExtendFieldValue(extendVaule.replace("\"", ""));
                 taskDetail.setGroupNum(groupNum);
                 taskDetail.setGroupMaxId(maxId);
                 taskDetail.setGroupMinId(minId);
