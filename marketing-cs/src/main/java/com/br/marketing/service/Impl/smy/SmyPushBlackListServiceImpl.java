@@ -25,11 +25,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 /**
  * @Description 萨摩耶黑名单传输业务处理类
@@ -84,22 +82,33 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
                 smyExample.createCriteria().andLocalIdEqualTo(localFile.getId()).
                         andStatusEqualTo(1).andPushStatusEqualTo(pushStatus)
                         .andNameValueIsNotNull().andNameValueNotEqualTo("").andIdGreaterThan(indexId);
-                smyExample.setOrderByClause("id asc limit 2000");
+                smyExample.setOrderByClause("id asc limit 1000");
                 List<SmyBlacklistData> list = smyBlacklistDataMapper.selectByExample(smyExample);
                 if (CollectionUtils.isEmpty(list)) {
                     break;
                 }
                 autualNum += list.size();
                 indexId = list.get(list.size() - 1).getId();
-                List<List<SmyBlacklistData>> partition = Lists.partition(list, 500);
-                updatePoolSize(poolExecutor);
-                for(List<SmyBlacklistData> smyBlackList : partition){
+                Map<String, List<SmyBlacklistData>> groupedMap = list.stream()
+                        .collect(Collectors.groupingBy(SmyBlacklistData::getMarketingTime));
+                groupedMap.forEach((time, dataList) -> {
+                    updatePoolSize(poolExecutor);
                     futureList.add(
                             poolExecutor.submit(() -> {
-                                    return sendSmyBlackList(smyBlackList);
+                                return sendSmyBlackList(time,dataList);
                             })
                     );
-                }
+                    /*List<List<SmyBlacklistData>> partition = Lists.partition(dataList, 500);
+                    for(List<SmyBlacklistData> smyBlackList : partition){
+                        futureList.add(
+                                poolExecutor.submit(() -> {
+                                    return sendSmyBlackList(smyBlackList);
+                                })
+                        );
+                    }*/
+                });
+
+
             }
             int errorActualNumber = 0;
             for (Future<Integer> future : futureList) {
@@ -140,7 +149,7 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
      * @param list
      * @return errorNum
      */
-    private int sendSmyBlackList(List<SmyBlacklistData> list ){
+    private int sendSmyBlackList(String marketTime,List<SmyBlacklistData> list ){
         int errorNum = 0;
         List<SmyModelTagDto.BatchHitValue> batchHitValueList = new ArrayList<>(500);
         List<Long> ids = new ArrayList<>(500);
@@ -148,8 +157,6 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
             batchHitValueList.add(new SmyModelTagDto.BatchHitValue(data.getNameValue(),"wp_black_record"));
             ids.add(data.getId());
         });
-        //todo time
-        String marketTime = generalMarketingTime();
         String reqSeqNumber = UUID.randomUUID().toString().replaceAll(PATTERN, "");
         SmyModelTagDto smyModelTagDto = new SmyModelTagDto(marketTime,batchHitValueList);
         SmyCommReqDto commReqDto = new SmyCommReqDto();
