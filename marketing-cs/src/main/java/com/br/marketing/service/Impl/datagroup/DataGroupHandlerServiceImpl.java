@@ -426,7 +426,8 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             Long maxId = taskDetail.getGroupMaxId();
             Boolean continueFlag = Boolean.TRUE;
             while(continueFlag){
-                Integer pageSize =  /*marketingCommonConfig.getDataGroupPageSize().get("addFieldPageSize")*/ 10000;
+                Integer pageSize =  marketingCommonConfig.getDataGroupPageSize().get("addFieldPageSize");
+                modifyCorePoolSize(pool);
                 Long middleId = minId+pageSize;
                 if(middleId>=maxId){
                     middleId = maxId+1;
@@ -434,9 +435,9 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 }
                 Long finalMinId = minId;
                 Long finalMiddleId = middleId;
-                /*pool.submit(() -> {*/
+                pool.submit(() -> {
                     addGroupFieldData(taskDetail, finalMinId, finalMiddleId);
-                /*});*/
+                });
                 minId = finalMiddleId;
 
             }
@@ -502,6 +503,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
 
     private void addGroupFieldData(DataGroupTaskDetail taskDetail, Long minId, Long endId) {
         try {
+            Long start = System.currentTimeMillis();
             String apiCode = taskDetail.getApiCode();
             StringBuilder update = new StringBuilder(
                     String.format("UPDATE b_marketing_sync_%s SET reserve_field1 = CONCAT(SUBSTRING(reserve_field1, 1, (character_length(reserve_field1)" +
@@ -515,6 +517,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             } catch (Exception ex) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "数据分组结果存入redis异常！"), ex);
             }
+            log.warn("数据分组更新字段minId={}-endId={}，量级={}，耗时{}s", minId, endId, updateNum, (System.currentTimeMillis() - start) / 1000);
         } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "数据分组添加字段更新异常！"), ex);
         }
