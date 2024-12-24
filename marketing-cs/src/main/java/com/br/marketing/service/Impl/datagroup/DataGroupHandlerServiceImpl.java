@@ -723,7 +723,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 taskDetail.setGroupTaskId(taskId);
                 taskDetail.setGroupFieldValue(groupFieldValue);
                 taskDetail.setExtendField(extendField);
-                taskDetail.setExtendFieldValue(extendVaule.replace("\"", ""));
+                taskDetail.setExtendFieldValue(StringUtils.isNotEmpty(extendVaule) ? extendVaule.replace("\"", "") : null);
                 taskDetail.setGroupNum(groupNum);
                 taskDetail.setGroupMaxId(maxId);
                 taskDetail.setGroupMinId(minId);
