@@ -57,7 +57,7 @@ public class SmyClient {
         }
         if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_INTERFACEERROR.getCode(),
-                    String.format("萨摩耶黑名单推送失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(resMap))));
+                    String.format("萨摩耶黑名单推送请求失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(resMap))));
             return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
         }
         SmyCommRespDto commRespDto = JSON.parseObject(resMap.get("content"), SmyCommRespDto.class);
@@ -69,7 +69,7 @@ public class SmyClient {
        JSONObject respJson = JSON.parseObject(commRespDto.getBizContent());
        if(respJson.containsKey("code") && !"10000".equals(respJson.getString("code"))){
            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_SERVICEERROR.getCode(),
-                   String.format("萨摩耶黑名单推送失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(resMap))));
+                   String.format("萨摩耶黑名单推送失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(respJson))));
            return new Result().setCode(ResultCode.FAIL.getValue());
        }
         return new Result().setCode(ResultCode.SUCCESS.getValue());

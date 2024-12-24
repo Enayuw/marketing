@@ -110,15 +110,14 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
                 }
             }
             localFileNew.setPushEndTime(new Date());
+            int oldPushNum =  localFile.getPushNumber() == null ? 0 :localFile.getPushNumber();
+            localFileNew.setPushNumber(oldPushNum + autualNum - errorActualNumber);
+            localFileNew.setErrorActualNumber(errorActualNumber);
+            localFileNew.setActualNumber(localFileNew.getPushNumber()+errorActualNumber);
             if (errorActualNumber == 0) {
                 localFileNew.setPushStatus("2");
-                localFileNew.setPushNumber(autualNum-errorActualNumber);
-                localFileNew.setActualNumber(autualNum);
             } else {
                 localFileNew.setPushStatus("1");
-                localFileNew.setErrorActualNumber(errorActualNumber);
-                localFileNew.setPushNumber(autualNum-errorActualNumber);
-                localFileNew.setActualNumber(autualNum);
             }
             // 更新文件状态
             localFileMapper.updateByPrimaryKeySelective(localFileNew);
@@ -167,23 +166,21 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
                 //todo 成功更新营销时间
                 smyBlacklistData.setMarketingTime(marketTime);
                 log.warn("萨摩耶推送黑名单成功reqSeqNumber：{};本批次涉及的数据id：{}",reqSeqNumber,ids);
-                if(smyBlacklistDataMapper.updateByExampleSelective(smyBlacklistData,smyExample) < 1){
-                    log.warn("萨摩耶推送黑名单后更新数据状态失败reqSeqNumber：{};",reqSeqNumber);
-                }
                 break;
             case 500:
-                // 已推送,未成功，业务返回失败
+                // 服务端返回非http 200，重试后依然失败
                 smyBlacklistData.setPushStatus(3);
                 log.warn("萨摩耶推送黑名单失败reqSeqNumber：{};本批次涉及的数据id：{}",reqSeqNumber,ids);
-                if(smyBlacklistDataMapper.updateByExampleSelective(smyBlacklistData,smyExample) < 1){
-                    log.warn("萨摩耶推送黑名单后更新数据状态失败reqSeqNumber：{};",reqSeqNumber);
-                }
                 errorNum = list.size();
                 break;
             default:
-                // 未推送,发送前签名失败 或 返回业务报错，验签失败等 todo
+                // 未推送成功,发送前签名失败 或 返回业务报错，验签失败等 todo
+                smyBlacklistData.setPushStatus(4);
+                log.warn("萨摩耶推送黑名单失败reqSeqNumber：{};本批次涉及的数据id：{}",reqSeqNumber,ids);
                 errorNum = list.size();
-
+        }
+        if(smyBlacklistDataMapper.updateByExampleSelective(smyBlacklistData,smyExample) < 1){
+            log.warn("萨摩耶推送黑名单后更新数据状态失败reqSeqNumber：{};",reqSeqNumber);
         }
         return errorNum;
     }
