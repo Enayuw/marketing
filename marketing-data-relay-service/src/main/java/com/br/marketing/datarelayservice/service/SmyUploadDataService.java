@@ -8,9 +8,11 @@ import com.br.marketing.dto.smy.request.SmyUploadRequestDTO;
 import com.br.marketing.dto.smy.response.SmyResponseDTO;
 import com.br.marketing.entity.CustomizeUploadDataSmy;
 import com.br.marketing.mapper.CustomizeUploadDataSmyMapper;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import java.time.LocalDate;
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,8 @@ public class SmyUploadDataService {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private CustomizeUploadDataSmyMapper customizeUploadDataSmyMapper;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
 
     /**
      * receive smy upload data
@@ -37,12 +41,23 @@ public class SmyUploadDataService {
      * @author Sion Cheng
      * @date 2024/12/18
      */
-    public SmyResponseDTO receiveSmyUploadData(SmyUploadRequestDTO dto) {
+    public SmyResponseDTO receiveSmyUploadData(SmyUploadRequestDTO dto, HttpServletRequest request) {
         SmyResponseDTO smyResponseDTO = new SmyResponseDTO();
         smyResponseDTO.success();
         CustomizeUploadDataSmy customizeUploadDataSmy = new CustomizeUploadDataSmy();
         JSONObject smyCustomizeDataConfig = marketingCommonConfig.getSmyCustomizeDataConfig();
-        customizeUploadDataSmy.setApiCode(smyCustomizeDataConfig == null ? null : smyCustomizeDataConfig.getString("uploadApiCode"));
+        String testApiCode = request.getHeader("Test-ApiCode");
+        String apiCode = testApiCode != null ? testApiCode : smyCustomizeDataConfig.getString("uploadApiCode");
+        String tCid = tableCreateService.getTcId(apiCode);
+        if (StringUtils.isEmpty(tCid)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
+                    "萨摩耶创建客户定制上传前置表，未查询到该apiCode:" + apiCode + "对应客户信息，请关注！！！"));
+        } else {
+            // 创建定制上传表
+            customizeUploadDataSmyMapper.createCustomizeUploadDataTable(tCid);
+        }
+        customizeUploadDataSmy.setApiCode(apiCode);
+        customizeUploadDataSmy.setTCid(tCid);
         customizeUploadDataSmy.setRequestId(dto.getRequestNo());
         customizeUploadDataSmy.setReceiveDate(LocalDate.now().toString());
         customizeUploadDataSmy.setRequestJsonData(JSONObject.toJSONString(dto));

@@ -1,11 +1,6 @@
 package com.br.marketing.datarelayservice.service;
 
-import java.time.LocalDate;
-
-import javax.annotation.Resource;
-
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.lang.UUID;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
@@ -14,10 +9,13 @@ import com.br.marketing.dto.smy.request.SmyTransferRequestDTO;
 import com.br.marketing.dto.smy.response.SmyResponseDTO;
 import com.br.marketing.entity.CustomizeTransferDataSmy;
 import com.br.marketing.mapper.CustomizeTransferDataSmyMapper;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
-
-import cn.hutool.core.lang.UUID;
+import java.time.LocalDate;
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -27,12 +25,26 @@ public class SmyTransferDataService {
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private CustomizeTransferDataSmyMapper customizeTransferDataSmyMapper;
+    @Resource
+    private TableCreateServiceImpl tableCreateService;
 
-    public SmyResponseDTO receiveSmyTransferData(SmyTransferRequestDTO dto) {
+    public SmyResponseDTO receiveSmyTransferData(SmyTransferRequestDTO dto, HttpServletRequest request) {
         SmyResponseDTO smyResponseDTO = new SmyResponseDTO();
         smyResponseDTO.success();
         CustomizeTransferDataSmy customizeTransferDataSmy = new CustomizeTransferDataSmy();
         JSONObject smyCustomizeDataConfig = marketingCommonConfig.getSmyCustomizeDataConfig();
+        String testApiCode = request.getHeader("Test-ApiCode");
+        String apiCode = testApiCode != null ? testApiCode : smyCustomizeDataConfig.getString("uploadApiCode");
+        String tCid = tableCreateService.getTcId(apiCode);
+        customizeTransferDataSmy.setTCid(tCid);
+        if (StringUtils.isEmpty(tCid)) {
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(),
+                    "萨摩耶创建客户定制转化前置表，未查询到该apiCode:" + apiCode + "对应客户信息，请关注！！！"));
+        } else {
+            // 创建定制上传表
+            customizeTransferDataSmyMapper.createCustomizeTransferDataTable(tCid);
+        }
+
         customizeTransferDataSmy.setApiCode(smyCustomizeDataConfig == null ? null : smyCustomizeDataConfig.getString("transferApiCode"));
         customizeTransferDataSmy.setRequestId(UUID.fastUUID().toString(true));
         customizeTransferDataSmy.setReceiveDate(LocalDate.now().toString());
@@ -62,7 +74,7 @@ public class SmyTransferDataService {
         int i = customizeTransferDataSmyMapper.insertSelective(customizeTransferDataSmy);
         if (i != 1) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(),
-                "dtoJson:" + JSONObject.toJSONString(dto), "萨摩耶定制转化数据入库失败！！！"));
+                    "dtoJson:" + JSONObject.toJSONString(dto), "萨摩耶定制转化数据入库失败！！！"));
         }
         return smyResponseDTO;
     }

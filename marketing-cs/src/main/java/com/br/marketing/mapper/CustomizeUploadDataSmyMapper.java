@@ -4,9 +4,17 @@ import com.br.marketing.entity.CustomizeUploadDataSmy;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-public interface CustomizeUploadDataSmyMapper extends CustomizeUploadDataSmyMapperBase {
-    Long smyCleanCustomizedUploadDataOfMinId(@Param("apiCode") String apiCode, @Param("date") String date);
+public interface CustomizeUploadDataSmyMapper {
+    void createCustomizeUploadDataTable(@Param("tCid") String tCid);
 
-    List<CustomizeUploadDataSmy> smyCleanCustomizedUploadDataByMinId(@Param("apiCode") String apiCode, @Param("date") String date,
-                                                                     @Param("minId") Long minId, @Param("limit") Integer limit);
+    int insertSelective(CustomizeUploadDataSmy customizeUploadDataSmy);
+
+    Long smyCleanCustomizedUploadDataOfMinId(@Param("tCid") String tCid, @Param("apiCode") String apiCode, @Param("date") String date);
+
+    List<CustomizeUploadDataSmy> smyCleanCustomizedUploadDataByMinId(@Param("tCid") String tCid, @Param("apiCode") String apiCode,
+                                                                     @Param("date") String date, @Param("minId") Long minId,
+                                                                     @Param("limit") Integer limit);
+
+    void updateSyncStatusById(@Param("tCid") String tCid, @Param("id") Long id, @Param("syncStatus") int syncStatus);
+
 }

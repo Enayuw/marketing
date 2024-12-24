@@ -1,9 +1,10 @@
 package com.br.marketing.mapper;
 
 import com.br.marketing.entity.CustomizeTransferDataSmy;
-import com.br.marketing.entity.CustomizeTransferDataSmyExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-public interface CustomizeTransferDataSmyMapper extends CustomizeTransferDataSmyMapperBase{
+public interface CustomizeTransferDataSmyMapper {
+    void createCustomizeTransferDataTable(@Param("tCid") String tCid);
+
+    int insertSelective(CustomizeTransferDataSmy customizeTransferDataSmy);
 }
