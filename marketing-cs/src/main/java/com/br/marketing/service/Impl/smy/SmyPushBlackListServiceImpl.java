@@ -39,6 +39,7 @@ import java.util.concurrent.*;
 @Slf4j
 @Service
 public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
+    private static final String PATTERN = "-";
     @Resource
     private LocalFileMapper localFileMapper;
 
@@ -149,7 +150,7 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
         });
         //todo time
         String marketTime = generalMarketingTime();
-        String reqSeqNumber = UUID.randomUUID().toString().replaceAll("-", "");
+        String reqSeqNumber = UUID.randomUUID().toString().replaceAll(PATTERN, "");
         SmyModelTagDto smyModelTagDto = new SmyModelTagDto(marketTime,batchHitValueList);
         SmyCommReqDto commReqDto = new SmyCommReqDto();
         commReqDto.setReqSeqNumber(reqSeqNumber);

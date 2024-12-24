@@ -40,10 +40,10 @@ public class SmyPushBlackListJob extends AbstractSimpleElasticJob {
             } else {
                 pushStatus = 1;
             }
-            jsonObject.forEach((k, v) -> {
-                LocalDate parse = LocalDate.parse(v.toString());
+            jsonObject.forEach((String key, Object value) -> {
+                LocalDate parse = LocalDate.parse(value.toString());
                 log.warn("萨摩耶推送黑名单数据调度开始apiCodes:{},处理文件的日期：{}", apiCode, parse);
-                smyPushBlackListService.pushBlackList(k, parse,pushStatus);
+                smyPushBlackListService.pushBlackList(key, parse,pushStatus);
             });
         } else {
             pushStatus = 1;

@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class MarketingSign4SmyUtil {
+    private static final String PATTERN = "-";
     /**
      * 签名，加密萨摩耶请求参数
      * @param PARTNERS_PRIVATE_KEY 请求方签名私钥
@@ -41,11 +42,11 @@ public class MarketingSign4SmyUtil {
             smyCommReqDto.setTimestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
         if(StringUtils.isEmpty(smyCommReqDto.getReqSeqNumber())){
-            smyCommReqDto.setReqSeqNumber(UUID.randomUUID().toString().replaceAll("-", ""));
+            smyCommReqDto.setReqSeqNumber(UUID.randomUUID().toString().replaceAll(PATTERN, ""));
         }
         String secretKey = smyCommReqDto.getSecretKey();
         if(StringUtils.isEmpty(secretKey)){
-            secretKey = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16);
+            secretKey = UUID.randomUUID().toString().replaceAll(PATTERN, "").substring(0, 16);
         }
         try {
             //加密并转base64
@@ -53,7 +54,8 @@ public class MarketingSign4SmyUtil {
             //rsa 公钥加密 secretKey
             smyCommReqDto.setSecretKey(RSASignUtil.encryptByPublicKey(secretKey, SMY_PUBLIC_KEY));
             //把当前对象转为Map<String,String>
-            Map<String,String> contentMap = BeanUtil.beanToMap(smyCommReqDto).entrySet().stream().filter(entry -> StringUtils.isNotEmpty(entry.getValue())).
+            Map<String,String> contentMap = BeanUtil.beanToMap(smyCommReqDto).entrySet().stream().
+                    filter(entry -> StringUtils.isNotEmpty(entry.getValue())).
                     collect(Collectors.toMap(Map.Entry::getKey, entry -> (String) entry.getValue()));
             //sign 不参与加密
             contentMap.remove("sign");
@@ -79,7 +81,8 @@ public class MarketingSign4SmyUtil {
         Assert.isTrue(StringUtils.isNotEmpty(PARTNERS_PRIVATE_KEY),"请求方签名私钥不能为空");
         Assert.isTrue(StringUtils.isNotEmpty(SMY_PUBLIC_KEY),"萨摩耶加密公钥不能为空");
         //把当前对象转为Map<String,String>
-        Map<String,String> resultMap = BeanUtil.beanToMap(commRespDto).entrySet().stream().filter(entry -> StringUtils.isNotEmpty(entry.getValue())).
+        Map<String,String> resultMap = BeanUtil.beanToMap(commRespDto).entrySet().stream().
+                filter(entry -> StringUtils.isNotEmpty(entry.getValue())).
                 collect(Collectors.toMap(Map.Entry::getKey, entry -> (String) entry.getValue()));
         resultMap.remove("sign");
         String signFromChannel = commRespDto.getSign();
@@ -100,7 +103,8 @@ public class MarketingSign4SmyUtil {
             commRespDto.setBizContent(decode);
         }catch (Exception e){
             String message = AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_SERVICEERROR.getCode(),
-                    String.format("萨摩耶黑名单推送响应结果验签异常-verifyMd5:%s;decryptMd5:%s;secretKey:%s;bizContent:%s;异常:%s", verifyMd5,decryptMd5,commRespDto.getSecretKey(),commRespDto.getBizContent(),e.getMessage()));
+                    String.format("萨摩耶黑名单推送响应结果验签异常-verifyMd5:%s;decryptMd5:%s;secretKey:%s;bizContent:%s;异常:%s",
+                            verifyMd5,decryptMd5,commRespDto.getSecretKey(),commRespDto.getBizContent(),e.getMessage()));
             log.error(message+";异常详细信息：{}",e);
             return false;
         }
