@@ -144,6 +144,10 @@ public class MarketingTask {
      * 是否线上跑分1-线上；2-离线
      */
     private Integer isOnline;
+    /**
+     * 跑分分隔符,默认,
+     */
+    private String scoreSeparator;
 
     @Override
     public String toString() {
@@ -192,6 +196,7 @@ public class MarketingTask {
                 ", requestCode=" + requestCode +
                 ", statusId=" + statusId +
                 ", isOnline=" + isOnline +
+                ", scoreSeparator=" + scoreSeparator +
                 '}';
     }
 }

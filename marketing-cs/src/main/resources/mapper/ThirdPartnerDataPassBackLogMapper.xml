@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ThirdPartnerDataPassBackLogMapper" >
+    <insert id="saveBatch" parameterType="list"  useGeneratedKeys="true" keyProperty="id">
+        insert into b_third_partner_data_pass_back_log (sync_user_id, org_api_code, cust_num, cell, task_id, status, extend)
+            values
+        <foreach collection="list" item="data" separator=",">
+            (#{data.syncUserId}, #{data.orgApiCode}, #{data.custNum}, #{data.cell}, #{data.taskId}, #{data.status}, #{data.extend})
+        </foreach>
+    </insert>
+
+    <update id="updateStatusByIds" parameterType="java.util.List">
+        update b_third_partner_data_pass_back_log
+        set status = #{status}, update_time = now()
+        where
+        id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

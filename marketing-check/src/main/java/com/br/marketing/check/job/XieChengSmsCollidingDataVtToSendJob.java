@@ -28,6 +28,7 @@ import java.util.List;
  * @Version 1.0
  * --------------------------------------
  **/
+@Deprecated
 @Component
 @Slf4j
 public class XieChengSmsCollidingDataVtToSendJob extends AbstractSimpleElasticJob {

@@ -12,7 +12,7 @@ public class MarketingCustomerConfigExample {
     protected List<Criteria> oredCriteria;
 
     public MarketingCustomerConfigExample() {
-        oredCriteria = new ArrayList<Criteria>();
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class MarketingCustomerConfigExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -415,6 +415,76 @@ public class MarketingCustomerConfigExample {
             return (Criteria) this;
         }
 
+        public Criteria andScoreSeparatorIsNull() {
+            addCriterion("score_separator is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorIsNotNull() {
+            addCriterion("score_separator is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorEqualTo(String value) {
+            addCriterion("score_separator =", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorNotEqualTo(String value) {
+            addCriterion("score_separator <>", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorGreaterThan(String value) {
+            addCriterion("score_separator >", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorGreaterThanOrEqualTo(String value) {
+            addCriterion("score_separator >=", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorLessThan(String value) {
+            addCriterion("score_separator <", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorLessThanOrEqualTo(String value) {
+            addCriterion("score_separator <=", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorLike(String value) {
+            addCriterion("score_separator like", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorNotLike(String value) {
+            addCriterion("score_separator not like", value, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorIn(List<String> values) {
+            addCriterion("score_separator in", values, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorNotIn(List<String> values) {
+            addCriterion("score_separator not in", values, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorBetween(String value1, String value2) {
+            addCriterion("score_separator between", value1, value2, "scoreSeparator");
+            return (Criteria) this;
+        }
+
+        public Criteria andScoreSeparatorNotBetween(String value1, String value2) {
+            addCriterion("score_separator not between", value1, value2, "scoreSeparator");
+            return (Criteria) this;
+        }
+
         public Criteria andCreateTimeIsNull() {
             addCriterion("create_time is null");
             return (Criteria) this;
@@ -536,8 +606,9 @@ public class MarketingCustomerConfigExample {
         }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

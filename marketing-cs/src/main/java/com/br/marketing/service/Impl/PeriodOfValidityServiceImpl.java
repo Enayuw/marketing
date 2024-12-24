@@ -450,6 +450,53 @@ public class PeriodOfValidityServiceImpl implements IPeriodOfValidityService {
         return result;
     }
 
+    @Override
+    public Result<Boolean> generateConfigValidByStartAndEndDate(MarketingSyncUser syncUser) {
+        Result<Boolean> result = new Result<>();
+        result.setCode(ResultCode.SUCCESS.getValue());
+        result.setDate(false);
+        // 查询有效期配置表是否已经生成有效期
+        MarketingDataValidConfigExample validConfigExample = new MarketingDataValidConfigExample();
+        validConfigExample.createCriteria()
+                .andApiCodeEqualTo(syncUser.getApiCode())
+                .andUserTypeEqualTo(syncUser.getUserType())
+                .andAppletDateEqualTo(syncUser.getAppletDate())
+                .andIsDelEqualTo(1);
+        int i = marketingDataValidConfigMapper.countByExample(validConfigExample);
+        if (i > 0) {
+            return result;
+        }
+
+        MarketingSyncUser marketingSyncByCusBatch = marketingSyncUserMapper.getMarketingSyncByAppletDateAndUserType(
+                syncUser.getApiCode(),
+                syncUser.getUserType(),
+                syncUser.getAppletDate());
+
+        if (Objects.isNull(marketingSyncByCusBatch)) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.VALIDITY_INTERFACEERROR.getCode(),
+                    "根据有效期开始和结束时间生成有效期范围，没有查到上传数据，研发人员需要排查!"));
+            return result;
+        }
+        JSONObject json = JSON.parseObject(marketingSyncByCusBatch.getReserveField1());
+        String validStartDate = json.getString("validStartDate");
+        String validEndDate = json.getString("validEndDate");
+
+        MarketingDataValidConfig validConfig = new MarketingDataValidConfig();
+        validConfig.setApiCode(syncUser.getApiCode());
+        validConfig.setUserType(syncUser.getUserType());
+        validConfig.setAppletDate(syncUser.getAppletDate());
+        validConfig.setIsDel(1);
+        validConfig.setValidType(1);
+        validConfig.setCreateTime(new Date());
+        validConfig.setUpdateTime(new Date());
+        validConfig.setValidStartDate(validStartDate);
+        validConfig.setValidEndDate(validEndDate);
+
+        marketingDataValidConfigMapper.insertSelective(validConfig);
+        result.setDate(true);
+        return new Result<>();
+    }
+
     private  MarketingCustomizeDataValidConfig getMarketingCustomizeDataValidConfig(MarketingSyncUser syncUser) {
         // 查询当前 api_code ,task_id ,applet_date下的 上传数据获取其中一条解析，reserve_field1 下的开始时间和结束时间
         // reserve_field1: {"operationScene":"creditT30","expireDate":"2024-07-12 23:59:59",

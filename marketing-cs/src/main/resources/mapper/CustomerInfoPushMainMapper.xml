@@ -39,7 +39,8 @@
         m_plan_num as mPlanNum,
         m_percentage as mPercentage,
         DATE_FORMAT(create_time,'%Y-%m-%d %H:%i:%s') as createTime,
-        m_status as mStatus
+        m_status as mStatus,
+        batch_name as  batchName
         from b_customer_info_push_main
         where is_del=1
           and m_status !=-1

@@ -2378,9 +2378,47 @@ public class MarketingCommonConfig {
     private List<String> autoTestIp;
 
     /**
+     * 三方apiCode映射配置
+     */
+    private HashMap<String, String> thirdPartnerApiCodeMappingConfig;
+
+    /**
+     * 三方接口方法参数配置
+     */
+    private HashMap<String, JSONObject> thirdPartnerApiMethodConfig;
+
+    /**
+     * 三方接口方法挡板开关 true:开启挡板。false:关闭挡板
+     * thirdPartnerApiMethodMock={"switch":true,"code":"00"}
+     * switch：
+     *      true:开启挡板
+     *      false:关闭挡板
+     * code：
+     *      00:请求成功
+     */
+    private HashMap<String, Object> thirdPartnerApiMethodMock;
+
+    /**
      * 众安经营分析报表统计apiCode
      */
     private String zhongAnReportStatisticApiCode;
+
+    /**
+     * 模拟ES异常的开关 {"scoreStart":true,"esRetry":true}
+     * true 打开开关, false关闭开关
+     */
+    private HashMap<String, JSONObject> esRetryToDataSwitch;
+    /**
+     * ES补推创建线索程池数
+     */
+    private Integer esRetryToDataThread;
+
+
+    /**
+     * 萨摩耶客制化传输数据配置
+     * {"uploadApiCode":"7491637","transferApiCode":"7491637"}
+     */
+    private JSONObject smyCustomizeDataConfig;
 
 }
 

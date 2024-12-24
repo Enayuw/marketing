@@ -151,6 +151,9 @@ public class TaskScoreServiceImpl {
     @Autowired
     private DingDingRobotHookService dingDingRobotHookService;
 
+    @Resource
+    private MarketingRetryEsMapper marketingRetryEsMapper;
+
     /**
      * 跑分服务
      *
@@ -273,19 +276,31 @@ public class TaskScoreServiceImpl {
             StraHisFile updateFile = new StraHisFile();
             updateFile.setId(task.getFileId());
             if (observedTaskObj.getInterrupt().equals(0)) {
+                // 离线
                 if (isOffline) {
                     updateFile.setStatus(ScoreStatusEnum.OFFLINEMERGE.getValue());
-                } else {
-                    updateFile.setRunningEndTime(new Date());
-                    updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
-                }
-                updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
-                straHisFileMapper.updateByPrimaryKeySelective(updateFile);
-
-                if (isOffline) {
+                    updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
+                    straHisFileMapper.updateByPrimaryKeySelective(updateFile);
                     producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_MERGE, task.getFileId().toString());
                 } else {
-                    producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
+                    MarketingRetryEsExample marketingRetryEsExample = new MarketingRetryEsExample();
+                    marketingRetryEsExample.createCriteria()
+                            .andApiCodeEqualTo(apiCode)
+                            .andAppletDateEqualTo(String.valueOf(LocalDate.now()))
+                            .andRetryStatusEqualTo(0)
+                            .andFileIdEqualTo(task.getFileId());
+                    int i = marketingRetryEsMapper.countByExample(marketingRetryEsExample);
+                    if(i == 0){
+                        updateFile.setRunningEndTime(new Date());
+                        updateFile.setStatus(task.getMonitorType().equals(2) ? ScoreStatusEnum.FINISH.getValue() : ScoreStatusEnum.MERGE.getValue());
+                        updateFile.setIndexNum(marketingTaskService.getPartNum(task.getTaskNumber()));
+                        straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+                        producter.send(MQConstants.ROUTING_KEY_PUSHTASK_FILE_INITMERGE, task.getFileId().toString());
+                    }else {
+                        // 存在异常数据，更新跑分记录状态为 异常待重试
+                        updateFile.setStatus(ScoreStatusEnum.WAIT_RETRY.getValue());
+                        straHisFileMapper.updateByPrimaryKeySelective(updateFile);
+                    }
                 }
             } else {
                 // 当b_task_status.pause_type为2（插队暂停）时，将状态置为待恢复
@@ -394,7 +409,9 @@ public class TaskScoreServiceImpl {
             warrningExecutor.submit(new CoreScoreThread(
                     list, param, currentPage, true, customer
                     , marketingTask, noflagproductlist
-                    , flagproductlist, marketingTaskExtend, baseHeadConfigVO, fieldInfo, true));
+                    , flagproductlist, marketingTaskExtend
+                    , baseHeadConfigVO, fieldInfo, true
+                    , marketingRetryEsMapper, marketingCommonConfig));
         } catch (Exception e) {
             log.error("重新处理画像异常数据出错:{},{}", errorFile, row, e);
         }
@@ -566,8 +583,8 @@ public class TaskScoreServiceImpl {
             if (flagProduct.getCode().equals(ResultCode.SUCCESS.getValue())) {
                 flagproductlist = flagProduct.getData();
             }
-
-            String separator = marketingSepService.querySepByApiCode(blt.getApiCode());
+            //使用任务表中的分隔符
+            String separator = blt.getScoreSeparator();
             String redisOpen = redisChgService.get(RedisEsOpen);
             String esOpenMark = StringUtils.isNotBlank(redisOpen) ? redisOpen : "1";
             MarketingTaskExtend marketingTaskExtend = marketingTaskExtendService.getMarketingTaskExtend(blt.getId());
@@ -665,7 +682,9 @@ public class TaskScoreServiceImpl {
                             warrningExecutor.submit(new CoreScoreThread(
                                     list, param, currentPage
                                     , firstTime, customer, blt
-                                    , noflagproductlist, flagproductlist, marketingTaskExtend, baseHeadConfigVO, fieldInfo, false));
+                                    , noflagproductlist, flagproductlist, marketingTaskExtend
+                                    , baseHeadConfigVO, fieldInfo, false
+                                    ,marketingRetryEsMapper,marketingCommonConfig));
                             if (warrningExecutor.isTerminated()) {
                                 threadpoolStatus = Boolean.FALSE;
                             }
