@@ -2430,5 +2430,11 @@ public class MarketingCommonConfig {
      */
     private JSONObject smyCustomizeDataConfig;
 
+    /**
+     * 萨摩耶黑名单推送配置
+     * eg:{"mock":"1","poolCoreSize":"10","poolMaxSize":"20"}
+     * mock 1 开启
+     */
+    private Map<String, Object> smyBlacklistConfig = new HashMap<>();
 }
 

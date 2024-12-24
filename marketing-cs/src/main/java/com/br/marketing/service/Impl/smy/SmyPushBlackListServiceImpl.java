@@ -197,13 +197,13 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
      * 设置线程数据
      */
     private void updatePoolSize(ThreadPoolExecutor poolExecutor) {
- /*           int poolCoreSize = Integer.parseInt(marketingCommonConfig.getSmyBlacklistConfig().getOrDefault("poolCoreSize",1).toString());
+           int poolCoreSize = Integer.parseInt(marketingCommonConfig.getSmyBlacklistConfig().getOrDefault("poolCoreSize",1).toString());
             if (poolExecutor.getCorePoolSize() != poolCoreSize) {
                 poolExecutor.setCorePoolSize(poolCoreSize);
             }
             int poolMaxSize = Integer.parseInt(marketingCommonConfig.getSmyBlacklistConfig().getOrDefault("poolMaxSize",1).toString());
             if (poolExecutor.getMaximumPoolSize() != poolMaxSize) {
                 poolExecutor.setMaximumPoolSize(poolMaxSize);
-            }*/
+            }
     }
 }

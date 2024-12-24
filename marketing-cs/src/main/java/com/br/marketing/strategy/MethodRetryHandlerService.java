@@ -1428,11 +1428,11 @@ public class MethodRetryHandlerService {
     @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
     public Result<?> sendSmyBlackList(SmyCommReqDto commReqDto, Integer retry) {
         // 萨摩耶推送Mock挡板，1：开启，0：关闭
-      /* Object mock = marketingCommonConfig.getSmyBlacklistConfig().get("mock");
+        Object mock = marketingCommonConfig.getSmyBlacklistConfig().get("mock");
         if("1".equals(mock)){
             log.warn("【萨摩耶黑名单传输】挡板开启, {}", mock);
             return new Result().setCode(ResultCode.SUCCESS.getValue());
-        }*/
+        }
         return smyClient.sendSmyBlackList(commReqDto);
     }
 
