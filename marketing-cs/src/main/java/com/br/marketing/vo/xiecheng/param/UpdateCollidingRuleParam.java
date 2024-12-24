@@ -38,4 +38,7 @@ public class UpdateCollidingRuleParam {
     @ApiModelProperty("结束撞库时间 yyyy-MM-dd HH:mm:ss")
     private String collidingEndTime;
 
+    @ApiModelProperty("撞库开始时间（多个时间以逗号分割，格式HH:mm）")
+    private String startTimes;
+
 }

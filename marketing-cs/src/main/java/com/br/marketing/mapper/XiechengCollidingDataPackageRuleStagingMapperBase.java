@@ -2,8 +2,9 @@ package com.br.marketing.mapper;
 
 import com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging;
 import com.br.marketing.entity.XiechengCollidingDataPackageRuleStagingExample;
-import java.util.List;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface XiechengCollidingDataPackageRuleStagingMapperBase {
     int countByExample(XiechengCollidingDataPackageRuleStagingExample example);
@@ -20,9 +21,11 @@ public interface XiechengCollidingDataPackageRuleStagingMapperBase {
 
     XiechengCollidingDataPackageRuleStaging selectByPrimaryKey(Long id);
 
-    int updateByExampleSelective(@Param("record") XiechengCollidingDataPackageRuleStaging record, @Param("example") XiechengCollidingDataPackageRuleStagingExample example);
+    int updateByExampleSelective(@Param("record") XiechengCollidingDataPackageRuleStaging record,
+                                 @Param("example") XiechengCollidingDataPackageRuleStagingExample example);
 
-    int updateByExample(@Param("record") XiechengCollidingDataPackageRuleStaging record, @Param("example") XiechengCollidingDataPackageRuleStagingExample example);
+    int updateByExample(@Param("record") XiechengCollidingDataPackageRuleStaging record,
+                        @Param("example") XiechengCollidingDataPackageRuleStagingExample example);
 
     int updateByPrimaryKeySelective(XiechengCollidingDataPackageRuleStaging record);
 

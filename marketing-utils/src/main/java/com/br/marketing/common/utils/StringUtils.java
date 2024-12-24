@@ -3,6 +3,7 @@ package com.br.marketing.common.utils;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -191,5 +192,20 @@ public class StringUtils {
             return (gender % 2 == 0) ? "女" : "男";
         }
         return null;
+    }
+
+    /**
+     * 判断字符串数组中是否有重复
+     * @param array
+     * @return
+     */
+    public static boolean hasDuplicate(String[] array) {
+        HashSet<String> set = new HashSet<>();
+        for (String s : array) {
+            if (!set.add(s)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
