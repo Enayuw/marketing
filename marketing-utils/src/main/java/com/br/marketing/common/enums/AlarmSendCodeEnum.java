@@ -271,7 +271,10 @@ public enum AlarmSendCodeEnum {
     SHUNFENG_SERVICEERROR("6039001", "顺丰业务异常"),
 
     ES_RETRY_DATAERROR("6040001", "ES补推数据异常"),
-
+    //萨摩耶接口调用失败,阶梯推送
+    SMY_SERVICEERROR("6050001", "萨摩耶业务异常"),
+    //萨摩耶接口调用失败,阶梯推送
+    SMY_INTERFACEERROR("6050002", "萨摩耶接口调用失败"),
     ;
 
     /**
