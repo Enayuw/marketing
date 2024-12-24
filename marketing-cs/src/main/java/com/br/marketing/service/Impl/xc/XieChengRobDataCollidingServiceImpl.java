@@ -353,6 +353,7 @@ public class XieChengRobDataCollidingServiceImpl implements XieChengRobDataColli
                         } catch (Exception ex) {
                             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.XIECHENG_SERVICEERROR.getCode(), e.getMessage()
                                     , "携程重置撞库次数作业，子线程处理再次异常"), ex);
+                            Thread.currentThread().interrupt();
                         }
                     }
                 });
