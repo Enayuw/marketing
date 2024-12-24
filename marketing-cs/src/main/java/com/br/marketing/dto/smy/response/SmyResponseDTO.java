@@ -1,4 +1,4 @@
-package com.br.marketing.datarelayservice.dto.smy.response;
+package com.br.marketing.dto.smy.response;
 
 import io.swagger.annotations.ApiModelProperty;
 import java.io.Serializable;

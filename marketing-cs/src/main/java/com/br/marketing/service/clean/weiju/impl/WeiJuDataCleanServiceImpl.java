@@ -1,4 +1,4 @@
-package com.br.marketing.service.weiju.impl;
+package com.br.marketing.service.clean.weiju.impl;
 
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
@@ -20,7 +20,7 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.mapper.CustomizeUploadDataMapper;
-import com.br.marketing.service.weiju.WeiJuDataCleanService;
+import com.br.marketing.service.clean.weiju.WeiJuDataCleanService;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Resource;

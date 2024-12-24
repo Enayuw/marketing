@@ -1,4 +1,4 @@
-package com.br.marketing.datarelayservice.dto.smy.request;
+package com.br.marketing.dto.smy.request;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.annotation.JSONField;
@@ -12,10 +12,10 @@ public class NameValueDTO implements Serializable {
 
     @ApiModelProperty("32位小写md5加密客户号")
     @JSONField(name = "cid_md5")
-    private String cid_md5;
+    private String cidMd5;
     @ApiModelProperty("32位小写md5加密手机号")
     @JSONField(name = "mid_md5")
-    private String caseType;
+    private String midMd5;
     @ApiModelProperty("注册时间")
     @JSONField(name = "register_datetime")
     private String registerDatetime;

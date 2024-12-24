@@ -1,4 +1,4 @@
-package com.br.marketing.service.weiju;
+package com.br.marketing.service.clean.weiju;
 
 import com.br.marketing.common.commondto.Result;
 

@@ -2,10 +2,9 @@ package com.br.marketing.datarelayservice.controller;
 
 import com.br.cloud.web.MethodType;
 import com.br.cloud.web.PrometheusTimeMethod;
-import com.br.marketing.datarelayservice.client.QiFuAiResDTO;
-import com.br.marketing.datarelayservice.dto.smy.request.SmyTransferRequestDTO;
-import com.br.marketing.datarelayservice.dto.smy.request.SmyUploadRequestDTO;
-import com.br.marketing.datarelayservice.dto.smy.response.SmyResponseDTO;
+import com.br.marketing.dto.smy.request.SmyTransferRequestDTO;
+import com.br.marketing.dto.smy.request.SmyUploadRequestDTO;
+import com.br.marketing.dto.smy.response.SmyResponseDTO;
 import com.br.marketing.datarelayservice.service.SmyTransferDataService;
 import com.br.marketing.datarelayservice.service.SmyUploadDataService;
 import io.swagger.annotations.Api;
