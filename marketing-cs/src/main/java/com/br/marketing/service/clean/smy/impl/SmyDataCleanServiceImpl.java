@@ -1,5 +1,6 @@
 package com.br.marketing.service.clean.smy.impl;
 
+import com.br.marketing.common.utils.StringUtils;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -70,7 +71,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
         minId = minId - 1;
         while (mark) {
             List<CustomizeUploadDataSmy> uploadDataSmyList =
-                customizeUploadDataSmyMapper.smyCleanCustomizedUploadDataByMinId(tCid, apiCode, date, minId, limit);
+                    customizeUploadDataSmyMapper.smyCleanCustomizedUploadDataByMinId(tCid, apiCode, date, minId, limit);
             if (uploadDataSmyList.size() <= 0) {
                 mark = Boolean.FALSE;
                 continue;
@@ -79,13 +80,13 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
             threadPool.submit(() -> {
                 for (CustomizeUploadDataSmy customizeUploadDataSmy : uploadDataSmyList) {
                     SmyUploadRequestDTO smyUploadRequestDTO =
-                        JSONObject.parseObject(customizeUploadDataSmy.getRequestJsonData(), SmyUploadRequestDTO.class);
+                            JSONObject.parseObject(customizeUploadDataSmy.getRequestJsonData(), SmyUploadRequestDTO.class);
                     Result<Boolean> result;
                     try {
                         MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
                         userDTO.setTaskId(smyUploadRequestDTO.getCaseType());
                         userDTO.setRequestId(apiCode + "_" + smyUploadRequestDTO.getCaseType() + "_" + UUID.fastUUID().toString(true));
-                        List<MarketingPreUserDetailDTO> dataUploadItems = buildUploadDataItems(userType,smyUploadRequestDTO);
+                        List<MarketingPreUserDetailDTO> dataUploadItems = buildUploadDataItems(userType, smyUploadRequestDTO);
                         userDTO.setDataItems(dataUploadItems);
                         UploadDataDTO uploadDataDTO = new UploadDataDTO();
                         uploadDataDTO.setApiCode(apiCode);
@@ -96,7 +97,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                         }
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
-                            "萨摩耶定制上传数据清洗，子线程处理异常，前置表id：" + customizeUploadDataSmy.getId()), e);
+                                "萨摩耶定制上传数据清洗，子线程处理异常，前置表id：" + customizeUploadDataSmy.getId()), e);
                     }
                 }
             });
@@ -139,7 +140,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
         minId = minId - 1;
         while (mark) {
             List<CustomizeTransferDataSmy> transferDataSmyList =
-                customizeTransferDataSmyMapper.smyCleanCustomizedUploadDataByMinId(tCid, apiCode, date, minId, limit);
+                    customizeTransferDataSmyMapper.smyCleanCustomizedUploadDataByMinId(tCid, apiCode, date, minId, limit);
             if (transferDataSmyList.size() <= 0) {
                 mark = Boolean.FALSE;
                 continue;
@@ -148,7 +149,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
             threadPool.submit(() -> {
                 for (CustomizeTransferDataSmy customizeTransferDataSmy : transferDataSmyList) {
                     SmyTransferRequestDTO smyUploadRequestDTO =
-                        JSONObject.parseObject(customizeTransferDataSmy.getRequestJsonData(), SmyTransferRequestDTO.class);
+                            JSONObject.parseObject(customizeTransferDataSmy.getRequestJsonData(), SmyTransferRequestDTO.class);
                     Result<Boolean> result;
                     try {
                         TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
@@ -164,7 +165,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                         }
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
-                            "萨摩耶定制转化数据清洗，子线程处理异常，前置表id：" + customizeTransferDataSmy.getId()), e);
+                                "萨摩耶定制转化数据清洗，子线程处理异常，前置表id：" + customizeTransferDataSmy.getId()), e);
                     }
                 }
             });
@@ -179,42 +180,62 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
         transferDataItemDTO.setUserType(userType);
         DateTime date = DateUtil.date(smyUploadRequestDTO.getEventTime());
         String formatDateTime = DateUtil.formatDateTime(date);
-        if ("login".equals(smyUploadRequestDTO.getEventType())) {
-            transferDataItemDTO.setIfLogin("1");
-            transferDataItemDTO.setLoginTime(formatDateTime);
+        switch (smyUploadRequestDTO.getEventType()) {
+            case "login":
+                transferDataItemDTO.setIfLogin("1");
+                transferDataItemDTO.setLoginTime(formatDateTime);
+                break;
+            case "finish":
+                transferDataItemDTO.setIfApply("1");
+                transferDataItemDTO.setApplyDt(formatDateTime);
+                break;
+            case "approve":
+                transferDataItemDTO.setApplyResult("1");
+                transferDataItemDTO.setAuditTime(formatDateTime);
+                break;
+            case "loan":
+                transferDataItemDTO.setIfLent("1");
+                transferDataItemDTO.setLentTime(formatDateTime);
+                break;
+            case "blacklist":
+                addToReserveField(transferDataItemDTO, "isBlack", "1");
+                break;
+            case "F1":
+            case "F2":
+            case "F3":
+                addToReserveField(transferDataItemDTO, smyUploadRequestDTO.getEventType(), "1");
+                break;
+            default:
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(),
+                        "萨摩耶定制转化数据清洗，客户传输未知事件，数据内容:{}" + JSONObject.toJSONString(smyUploadRequestDTO)));
+                break;
         }
-        if ("finish".equals(smyUploadRequestDTO.getEventType())) {
-            transferDataItemDTO.setIfApply("1");
-            transferDataItemDTO.setApplyDt(formatDateTime);
-        }
-        if ("approve".equals(smyUploadRequestDTO.getEventType())) {
-            transferDataItemDTO.setApplyResult("1");
-            transferDataItemDTO.setApplyTime(formatDateTime);
-        }
-        if ("approve".equals(smyUploadRequestDTO.getEventType())) {
-            transferDataItemDTO.setApplyResult("1");
-            transferDataItemDTO.setAuditTime(formatDateTime);
-        }
-        if ("loan".equals(smyUploadRequestDTO.getEventType())) {
-            transferDataItemDTO.setIfLent("1");
-            transferDataItemDTO.setLentTime(formatDateTime);
-        }
-        JSONObject reserveField1 = new JSONObject();
-        if ("blacklist".equals(smyUploadRequestDTO.getEventType())) {
-            reserveField1.put("isBlack", "1");
-        }
-        if ("F1".equals(smyUploadRequestDTO.getEventType())) {
-            reserveField1.put("F1", "1");
-        }
-        if ("F2".equals(smyUploadRequestDTO.getEventType())) {
-            reserveField1.put("F2", "1");
-        }
-        if ("F3".equals(smyUploadRequestDTO.getEventType())) {
-            reserveField1.put("F3", "1");
-        }
-        reserveField1.putAll(JSONObject.parseObject(smyUploadRequestDTO.getExtendFields()));
+        // 处理扩展字段
+        JSONObject reserveField1 = JSONObject.parseObject(smyUploadRequestDTO.getExtendFields());
+        handleFakeAndApiFlags(reserveField1);
+        transferDataItemDTO.setReserveField1(reserveField1.toJSONString());
         dataItems.add(transferDataItemDTO);
         return dataItems;
+    }
+
+    private void addToReserveField(TransferDataItemDTO transferDataItemDTO, String key, String value) {
+        JSONObject reserveField1 = JSONObject.parseObject(transferDataItemDTO.getReserveField1());
+        if (reserveField1 == null) {
+            reserveField1 = new JSONObject();
+        }
+        reserveField1.put(key, value);
+        transferDataItemDTO.setReserveField1(reserveField1.toJSONString());
+    }
+
+    private void handleFakeAndApiFlags(JSONObject reserveField1) {
+        if (reserveField1 == null) {
+            return;
+        }
+        if (StringUtils.isNotEmpty(reserveField1.getString("finish_fake"))) {
+            reserveField1.put("finish_fake", "Y".equals(reserveField1.getString("finish_fake")) ? "1" : "0");
+        } else if (StringUtils.isNotEmpty(reserveField1.getString("finish_api"))) {
+            reserveField1.put("finish_api", "Y".equals(reserveField1.getString("finish_api")) ? "1" : "0");
+        }
     }
 
     public void shutDownThreadPool(ThreadPoolExecutor threadPool) {
