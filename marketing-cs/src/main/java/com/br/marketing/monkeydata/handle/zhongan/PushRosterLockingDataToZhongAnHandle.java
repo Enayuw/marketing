@@ -841,16 +841,14 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
         }
 
     }
-
+    /**
+     * 循环处理在当天拨打记录黑名单中,实时缓存
+     */
     public void processTodayZhongaAnBlackData(Map<String,String> custNumMap,Set custNumBlackListSet,String nowDayStr){
         try{
             Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
             while (iterator.hasNext()) {
                 Map.Entry<String, String> ob = iterator.next();
-                //模拟redis异常
-                if(marketingCommonConfig.getZhongAnPushRosterDataMock() == 1){
-                    throw new RuntimeException("众安推送名单锁定模拟redis异常");
-                }
                 if (nowDayStr.equals(ob.getValue()) && redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday,ob.getKey())) {
                     iterator.remove();
                     custNumBlackListSet.add(ob.getKey() + nowDayStr);
@@ -866,10 +864,6 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
      * 兼容redis不可用场景，查询db判断众安当天拨打记录黑名单
      */
     public void processTodayZhongaAnBlackDataFromDb(Map<String,String> custNumMap,Set custNumBlackListSet,String nowDayStr){
-        //禁用db查询功能开关
-        if(marketingCommonConfig.getZhongAnPushRosterDataMock() == 2){
-            return ;
-        }
         if (CollectionUtils.isEmpty(custNumMap)) {
             return ;
         }
