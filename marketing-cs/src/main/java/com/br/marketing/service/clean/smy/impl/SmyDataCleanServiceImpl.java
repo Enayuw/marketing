@@ -181,6 +181,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
         transferDataItemDTO.setUserType(userType);
         DateTime date = DateUtil.date(smyUploadRequestDTO.getEventTime());
         String formatDateTime = DateUtil.formatDateTime(date);
+        JSONObject reserveField1 = new JSONObject();
         switch (smyUploadRequestDTO.getEventType()) {
             case "login":
                 transferDataItemDTO.setIfLogin("1");
@@ -199,12 +200,12 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                 transferDataItemDTO.setLentTime(formatDateTime);
                 break;
             case "blacklist":
-                addToReserveField(transferDataItemDTO, "isBlack", "1");
+                reserveField1.put("isBlack", "1");
                 break;
             case "F1":
             case "F2":
             case "F3":
-                addToReserveField(transferDataItemDTO, smyUploadRequestDTO.getEventType(), "1");
+                reserveField1.put(smyUploadRequestDTO.getEventType(), "1");
                 break;
             default:
                 log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(),
@@ -212,7 +213,10 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                 break;
         }
         // 处理扩展字段
-        JSONObject reserveField1 = JSONObject.parseObject(smyUploadRequestDTO.getExtendFields());
+        JSONObject extendFields = JSONObject.parseObject(smyUploadRequestDTO.getExtendFields());
+        if (extendFields != null) {
+            reserveField1.putAll(extendFields);
+        }
         handleFakeAndApiFlags(reserveField1);
         transferDataItemDTO.setReserveField1(reserveField1.toJSONString());
         dataItems.add(transferDataItemDTO);
