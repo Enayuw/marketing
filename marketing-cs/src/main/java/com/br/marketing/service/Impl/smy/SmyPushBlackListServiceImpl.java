@@ -55,11 +55,11 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
         Date endTime = Date.from(localDate.plusDays(1).atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         example.createCriteria().andFileTypeEqualTo(SftpFileTypeEnum.SMY_PUSH_BLACK_LIST.getValue()).andApiCodeEqualTo(apiCode)
                 .andCompleteEqualTo("1").andStatusEqualTo("2").andPushStatusIsNull()
-                //todo 取filename的日期吗?
                 .andCreateTimeGreaterThanOrEqualTo(startTime).andCreateTimeLessThan(endTime);
         example.or().andFileTypeEqualTo(SftpFileTypeEnum.SMY_PUSH_BLACK_LIST.getValue()).andApiCodeEqualTo(apiCode)
                 .andCompleteEqualTo("1").andStatusEqualTo("2").andPushStatusEqualTo("1")
                 .andCreateTimeGreaterThanOrEqualTo(startTime).andCreateTimeLessThan(endTime);
+        example.setOrderByClause("create_time asc");
         List<LocalFile> localFiles = localFileMapper.selectByExample(example);
         if (CollectionUtils.isEmpty(localFiles)) {
             log.warn("萨摩耶黑名单数据推送，没有需要处理的文件，apiCode:{}，localDate:{}"
@@ -81,31 +81,25 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
                 SmyBlacklistDataExample smyExample =  new SmyBlacklistDataExample();
                 smyExample.createCriteria().andLocalIdEqualTo(localFile.getId()).
                         andStatusEqualTo(1).andPushStatusEqualTo(pushStatus)
-                        .andNameValueIsNotNull().andNameValueNotEqualTo("").andIdGreaterThan(indexId);
+                        .andNameValueIsNotNull().andNameValueNotEqualTo("").andMarketingTimeIsNotNull()
+                        .andMarketingTimeNotEqualTo("").andIdGreaterThan(indexId);
                 smyExample.setOrderByClause("id asc limit 1000");
                 List<SmyBlacklistData> list = smyBlacklistDataMapper.selectByExample(smyExample);
                 if (CollectionUtils.isEmpty(list)) {
                     break;
                 }
+                //更新线程池配置
+                updatePoolSize(poolExecutor);
                 autualNum += list.size();
                 indexId = list.get(list.size() - 1).getId();
                 Map<String, List<SmyBlacklistData>> groupedMap = list.stream()
                         .collect(Collectors.groupingBy(SmyBlacklistData::getMarketingTime));
                 groupedMap.forEach((time, dataList) -> {
-                    updatePoolSize(poolExecutor);
                     futureList.add(
                             poolExecutor.submit(() -> {
                                 return sendSmyBlackList(time,dataList);
                             })
                     );
-                    /*List<List<SmyBlacklistData>> partition = Lists.partition(dataList, 500);
-                    for(List<SmyBlacklistData> smyBlackList : partition){
-                        futureList.add(
-                                poolExecutor.submit(() -> {
-                                    return sendSmyBlackList(smyBlackList);
-                                })
-                        );
-                    }*/
                 });
 
 
@@ -171,8 +165,6 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
             case 1:
                 //推送成功
                 smyBlacklistData.setPushStatus(2);
-                //todo 成功更新营销时间
-                smyBlacklistData.setMarketingTime(marketTime);
                 log.warn("萨摩耶推送黑名单成功reqSeqNumber：{};本批次涉及的数据id：{}",reqSeqNumber,ids);
                 break;
             case 500:
@@ -192,11 +184,6 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
         }
         return errorNum;
     }
-    private String generalMarketingTime(){
-        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-    }
-
-
     /**
      * 2024-10-30 12:40
      * 设置线程数据
