@@ -316,6 +316,16 @@ public class MarketingCommonConfig {
     private Boolean ruleSchedulerJobOnlineSwitch;
 
     /**
+     * #xc-general服务job的上线开关
+     */
+    private Boolean xcGeneralJobOnlineSwitch;
+
+    /**
+     * #xc-loop-cycle服务job的上线开关
+     */
+    private Boolean xcLoopCycleJobOnlineSwitch;
+
+    /**
      * 离线跑批入es文件 线程数
      */
     private Integer OffLineInserEsThreadNum;
@@ -2414,11 +2424,15 @@ public class MarketingCommonConfig {
     private Integer esRetryToDataThread;
 
 
-
     /**
      * 数据分组分页大小
      */
     private Map<String,Integer> dataGroupPageSize;
+    /**
+     * 萨摩耶客制化传输数据配置
+     * {"uploadApiCode":"7491637","transferApiCode":"7491637"}
+     */
+    private JSONObject smyCustomizeDataConfig;
 
 }
 

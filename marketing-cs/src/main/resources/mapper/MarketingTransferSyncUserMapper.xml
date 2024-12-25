@@ -1030,6 +1030,16 @@
         </where>
     </select>
 
+    <select id="getTransferSyncUserEventTypeCount" resultType="java.lang.Integer">
+        select count(*)
+        from b_marketing_transfer_sync_${tCid}
+        where api_code = #{apiCode}
+        and json_extract(reserve_field1, "$.eventType") ='LOAN_APPLY'
+        and request_time between '${requestStartDate}' and '${requestEndDate}'
+        and user_type = #{userType}
+        and cust_num = #{custNum}
+    </select>
+
     <select id="selectTransferSyncReportByRequestIdCount" resultType="com.br.marketing.entity.TransferSyncReport">
         select count(*) as dataCount, user_type as userType, id
         , max(create_time) as appletEndTime

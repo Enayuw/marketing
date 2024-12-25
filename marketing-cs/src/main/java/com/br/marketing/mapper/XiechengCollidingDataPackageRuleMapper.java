@@ -1,14 +1,13 @@
 package com.br.marketing.mapper;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
 import com.br.marketing.vo.xiecheng.XiechengCollidingRuleVO;
 import com.br.marketing.vo.xiecheng.param.CollidingRuleListParam;
 import com.br.marketing.vo.xiecheng.param.UpdateCollidingRuleParam;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface XiechengCollidingDataPackageRuleMapper extends XiechengCollidingDataPackageRuleMapperBase {
@@ -25,5 +24,9 @@ public interface XiechengCollidingDataPackageRuleMapper extends XiechengCollidin
 
     List<XiechengCollidingDataPackageRule> getMaxEndTimeGroupByPackageId(@Param("packageIds") List<Long> packageIds);
 
+    List<XiechengCollidingDataPackageRule> getPackageRuleByPackageId(@Param("packageId") Long packageId);
+
     int updateCollidingRule(UpdateCollidingRuleParam param);
+
+
 }

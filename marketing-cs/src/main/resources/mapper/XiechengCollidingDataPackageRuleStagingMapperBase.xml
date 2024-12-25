@@ -9,6 +9,7 @@
     <result column="colliding_back_number" property="collidingBackNumber" jdbcType="INTEGER" />
     <result column="colliding_start_time" property="collidingStartTime" jdbcType="TIMESTAMP" />
     <result column="colliding_end_time" property="collidingEndTime" jdbcType="TIMESTAMP" />
+    <result column="start_times" property="startTimes" jdbcType="VARCHAR" />
     <result column="colliding_times" property="collidingTimes" jdbcType="INTEGER" />
     <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
     <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
@@ -73,8 +74,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, api_code, package_id, colliding_data_task_id, colliding_back_number, colliding_start_time, 
-    colliding_end_time, colliding_times, create_time, update_time, is_delete
+    id, api_code, package_id, colliding_data_task_id, colliding_back_number, colliding_start_time,
+    colliding_end_time, start_times, colliding_times, create_time, update_time, is_delete
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStagingExample" >
     select
@@ -91,7 +92,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from b_xiecheng_colliding_data_package_rule_staging
     where id = #{id,jdbcType=BIGINT}
@@ -110,14 +111,16 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_xiecheng_colliding_data_package_rule_staging (api_code, package_id, colliding_data_task_id, 
-      colliding_back_number, colliding_start_time, 
-      colliding_end_time, colliding_times, create_time, 
-      update_time, is_delete)
-    values (#{apiCode,jdbcType=VARCHAR}, #{packageId,jdbcType=BIGINT}, #{collidingDataTaskId,jdbcType=BIGINT}, 
-      #{collidingBackNumber,jdbcType=INTEGER}, #{collidingStartTime,jdbcType=TIMESTAMP}, 
-      #{collidingEndTime,jdbcType=TIMESTAMP}, #{collidingTimes,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER})
+    insert into b_xiecheng_colliding_data_package_rule_staging (api_code, package_id, colliding_data_task_id,
+    colliding_back_number, colliding_start_time,
+    colliding_end_time, start_times, colliding_times,
+    create_time, update_time, is_delete
+    )
+    values (#{apiCode,jdbcType=VARCHAR}, #{packageId,jdbcType=BIGINT}, #{collidingDataTaskId,jdbcType=BIGINT},
+    #{collidingBackNumber,jdbcType=INTEGER}, #{collidingStartTime,jdbcType=TIMESTAMP},
+    #{collidingEndTime,jdbcType=TIMESTAMP}, #{startTimes,jdbcType=VARCHAR}, #{collidingTimes,jdbcType=INTEGER},
+    #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{isDelete,jdbcType=INTEGER}
+    )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -142,6 +145,9 @@
       </if>
       <if test="collidingEndTime != null" >
         colliding_end_time,
+      </if>
+      <if test="startTimes != null" >
+        start_times,
       </if>
       <if test="collidingTimes != null" >
         colliding_times,
@@ -174,6 +180,9 @@
       </if>
       <if test="collidingEndTime != null" >
         #{collidingEndTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="startTimes != null" >
+        #{startTimes,jdbcType=VARCHAR},
       </if>
       <if test="collidingTimes != null" >
         #{collidingTimes,jdbcType=INTEGER},
@@ -219,6 +228,9 @@
       <if test="record.collidingEndTime != null" >
         colliding_end_time = #{record.collidingEndTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="record.startTimes != null" >
+        start_times = #{record.startTimes,jdbcType=VARCHAR},
+      </if>
       <if test="record.collidingTimes != null" >
         colliding_times = #{record.collidingTimes,jdbcType=INTEGER},
       </if>
@@ -239,16 +251,17 @@
   <update id="updateByExample" parameterType="map" >
     update b_xiecheng_colliding_data_package_rule_staging
     set id = #{record.id,jdbcType=BIGINT},
-      api_code = #{record.apiCode,jdbcType=VARCHAR},
-      package_id = #{record.packageId,jdbcType=BIGINT},
-      colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT},
-      colliding_back_number = #{record.collidingBackNumber,jdbcType=INTEGER},
-      colliding_start_time = #{record.collidingStartTime,jdbcType=TIMESTAMP},
-      colliding_end_time = #{record.collidingEndTime,jdbcType=TIMESTAMP},
-      colliding_times = #{record.collidingTimes,jdbcType=INTEGER},
-      create_time = #{record.createTime,jdbcType=TIMESTAMP},
-      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      is_delete = #{record.isDelete,jdbcType=INTEGER}
+    api_code = #{record.apiCode,jdbcType=VARCHAR},
+    package_id = #{record.packageId,jdbcType=BIGINT},
+    colliding_data_task_id = #{record.collidingDataTaskId,jdbcType=BIGINT},
+    colliding_back_number = #{record.collidingBackNumber,jdbcType=INTEGER},
+    colliding_start_time = #{record.collidingStartTime,jdbcType=TIMESTAMP},
+    colliding_end_time = #{record.collidingEndTime,jdbcType=TIMESTAMP},
+    start_times = #{record.startTimes,jdbcType=VARCHAR},
+    colliding_times = #{record.collidingTimes,jdbcType=INTEGER},
+    create_time = #{record.createTime,jdbcType=TIMESTAMP},
+    update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+    is_delete = #{record.isDelete,jdbcType=INTEGER}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -274,6 +287,9 @@
       <if test="collidingEndTime != null" >
         colliding_end_time = #{collidingEndTime,jdbcType=TIMESTAMP},
       </if>
+      <if test="startTimes != null" >
+        start_times = #{startTimes,jdbcType=VARCHAR},
+      </if>
       <if test="collidingTimes != null" >
         colliding_times = #{collidingTimes,jdbcType=INTEGER},
       </if>
@@ -292,15 +308,16 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.XiechengCollidingDataPackageRuleStaging" >
     update b_xiecheng_colliding_data_package_rule_staging
     set api_code = #{apiCode,jdbcType=VARCHAR},
-      package_id = #{packageId,jdbcType=BIGINT},
-      colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT},
-      colliding_back_number = #{collidingBackNumber,jdbcType=INTEGER},
-      colliding_start_time = #{collidingStartTime,jdbcType=TIMESTAMP},
-      colliding_end_time = #{collidingEndTime,jdbcType=TIMESTAMP},
-      colliding_times = #{collidingTimes,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = #{updateTime,jdbcType=TIMESTAMP},
-      is_delete = #{isDelete,jdbcType=INTEGER}
+        package_id = #{packageId,jdbcType=BIGINT},
+        colliding_data_task_id = #{collidingDataTaskId,jdbcType=BIGINT},
+        colliding_back_number = #{collidingBackNumber,jdbcType=INTEGER},
+        colliding_start_time = #{collidingStartTime,jdbcType=TIMESTAMP},
+        colliding_end_time = #{collidingEndTime,jdbcType=TIMESTAMP},
+        start_times = #{startTimes,jdbcType=VARCHAR},
+        colliding_times = #{collidingTimes,jdbcType=INTEGER},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+        is_delete = #{isDelete,jdbcType=INTEGER}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>
