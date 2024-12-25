@@ -39,7 +39,7 @@ public class SaMoYeCollectDataImpl extends CommonMethodHandlerService{
     }
     @Override
     public RuleDataCollectionEnum label() {
-        return RuleDataCollectionEnum.RS_DATA_COLLECTION;
+        return RuleDataCollectionEnum.SAMOYE_TRANSFER_FILTER_COLLECTION;
     }
     @Data
     public class SaMoYeRuleNecessaryData extends RuleNecessaryData {
