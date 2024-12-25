@@ -303,49 +303,13 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
 
         }
 
-
-
-
-        /*if (rule.getGroupType().equals("0")) {
-            DataGroupTaskExample dataGroupTaskExample = new DataGroupTaskExample();
-            dataGroupTaskExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andConfigIdEqualTo(config.getId()).andGroupFiledEqualTo(field);
-            List<DataGroupTask> groupTaskList = dataGroupTaskMapper.selectByExample(dataGroupTaskExample);
-            if (!CollectionUtils.isEmpty(groupTaskList) && groupTaskList.get(0).getStatus().equals(2)) {
-                ruleJson.forEach((Object k, Object v) -> {
-                    percentMap.put((String) k, 100L);
-                });
-
-            } else {
-                ruleJson.forEach((Object k, Object v) -> {
-                    percentMap.put((String) k, 0L);
-                });
-            }
-        } else {
-            MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
-            reportExample.createCriteria().andIdIn(Arrays.stream(config.getUploadReportId().split(",")).map(Long::parseLong).collect(Collectors.toList()));
-            List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
-            List<Map<String, Object>> groupNum = syncReportMapper.selectGroupUploadNumtikv_(config.getApiCode(), reportList, "reserve_field1->'$.\"".concat(field).concat("\"'"),
-                    StringUtils.isEmpty(rule.getExtendField()) ? "" : "reserve_field1->'$.\"".concat(rule.getExtendField()).concat("\"'"));
-            rule.setGroupRange("0");
-            //List<Map<String, Object>> groupNumTotal = dataGroupNumTransfer(rule, reportList, Boolean.FALSE);
-           *//* JSONObject totalJson = (JSONObject) groupNumTotal.get(0).get("rule");
-            groupNum.forEach((Map<String, Object> map) -> {
-                String groupField = ((String) map.get("field"));
-                if (StringUtils.isBlank(groupField)) {
-                    return;
-                }
-                String fieldTrim = groupField.replace("\"", "");
-                Long num = (Long) map.get("num");
-                percentMap.put(fieldTrim, num * 100 / totalJson.getInteger(fieldTrim));
-            });*//*
-        }*/
         return percentMap;
     }
 
     private void delFieldHandler(String uploadReportId, DataGroupTask dataGroupTask) {
         String apiCode = dataGroupTask.getApiCode();
         String groupField = dataGroupTask.getGroupFiled();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 20);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 50);
         MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
         reportExample.createCriteria().andIdIn(Arrays.stream(uploadReportId.split(",")).map(Long::parseLong).collect(Collectors.toList()));
         List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
@@ -442,52 +406,6 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
 
             }
         });
-        //id 范围多线程更新
-        /*groupTask.forEach((Map<String, Object> taskMap) -> {
-            JSONObject jsonRule = (JSONObject) taskMap.get("rule");
-            String userType = (String) taskMap.get("userType");
-            String extendVaule = ((String) taskMap.get(rule.getExtendField()));
-            StringBuilder extend = new StringBuilder();
-            if (StringUtils.isNotEmpty(rule.getExtendField())) {
-                extend.append("reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule.replace("\"", "")
-                ).append("'");
-            }
-            Long indexId = null;
-            Set<String> keySet = jsonRule.keySet();
-            //单个规则分组清洗，对应同一批数据
-            for (String field : keySet) {
-                Integer pageSize;
-                Integer total = (int) jsonRule.get(field);
-                Integer sum = 0;
-                while (true) {
-                    //差值超过2000，每页赋值2000，小于2000，取小值
-                    if (total - sum >= 2000) {
-                        pageSize = 2000;
-                    } else {
-                        pageSize = total - sum;
-                    }
-                    //没有场景和扩展字段分组
-                    List<MarketingSyncUser> marketingSyncUserList;
-                    if ((StringUtils.isEmpty(userType))) {
-                        marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, reportList, extend.toString(), indexId, pageSize);
-                    } else {
-                        //有场景需要获取场景属于的日期appletDate
-                        marketingSyncUserList = syncReportMapper.selectGroupData(apiCode, Lists.newArrayList(appletDateMap.get(userType)), userType,
-                                extend.toString(), indexId, pageSize);
-                    }
-                    indexId = marketingSyncUserList.get(marketingSyncUserList.size() - 1).getId();
-                    modifyCorePoolSize(pool);
-                    pool.submit(() -> {
-                        updateGroupData(marketingSyncUserList, groupField, field);
-                    });
-                    sum += marketingSyncUserList.size();
-                    //达到量级
-                    if (sum.equals(total)) {
-                        break;
-                    }
-                }
-            }
-        });*/
         // 关闭线程池
         pool.shutdown();
         try {
