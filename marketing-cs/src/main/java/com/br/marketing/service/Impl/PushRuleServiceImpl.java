@@ -1302,9 +1302,9 @@ public class PushRuleServiceImpl implements PushRuleService {
                                     .andPartEqualTo(part).andPageSizeEqualTo(i).andSearchAfterEqualTo(searchAfterStr)
                                     .andRetryStatusEqualTo(0).andFilterTypeEqualTo(0).andTypeEqualTo(0);
                             List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-                            // todo
+                            // 当前页不是待补推数据 则进入下一页
                             if(CollectionUtils.isEmpty(errorMarks)){
-                                continue;
+                                break;
                             }
                             errorMark = errorMarks.get(0);
                             i = errorMark.getPageSize();
@@ -1324,36 +1324,15 @@ public class PushRuleServiceImpl implements PushRuleService {
                     if(marketingHistories == null){
                         // 已存在补推记录
                         if(errorMark.getId() != null){
-                            if(errorMark.getRetryTotalAttempts() >= 3){
+                            Integer retryTotalAttempts = errorMark.getRetryTotalAttempts();
+                            if(retryTotalAttempts >= 3){
                                 log.error("跑分异常补推es已重试3次，请手动处理，errorMarkId：{}", errorMark.getId());
                             }else {
-                                ErrorMark errorMark1 = new ErrorMark();
-                                errorMark1.setId(errorMark.getId());
-                                errorMark1.setPageSize(i);
-                                errorMark1.setSearchAfter(searchAfterStr);
-                                errorMark1.setEsCondition(JSONObject.toJSONString(queryBaseBean));
-                                errorMark1.setRetryTotalAttempts(errorMark.getRetryTotalAttempts() + 1);
-                                errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+                                updateErrorMark(errorMark,retryTotalAttempts);
                             }
                         }else {
-                            ErrorMark errorMark2 = new ErrorMark();
-                            errorMark2.setApiCode(customerInfoPushMain.getmApiCode());
-                            errorMark2.setmId(customerInfoPushMain.getId());
-                            errorMark2.setPart(part);
-                            errorMark2.setPageSize(i);
-                            errorMark2.setSearchAfter(searchAfterStr);
-                            errorMark2.setEsCondition(JSONObject.toJSONString(queryBaseBean));
-                            errorMark2.setRetryTotalAttempts(1);
-                            errorMark2.setRetryStatus(0);
-                            errorMark2.setAppletDate(LocalDate.now().toString());
-                            errorMark2.setCreateTime(new Date());
-                            errorMark2.setUpdateTime(new Date());
-                            errorMarkMapper.insertSelective(errorMark2);
+                            insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
                         }
-                        CustomerInfoPushMain updatePushMain = new CustomerInfoPushMain();
-                        updatePushMain.setId(customerInfoPushMain.getId());
-                        updatePushMain.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
-                        customerInfoPushMainMapper.updateByPrimaryKeySelective(updatePushMain);
                         break;
                     }else if(errorMark.getId() != null){
                         ErrorMark errorMark1 = new ErrorMark();
@@ -1369,7 +1348,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , realNum
                             , i);
                     if(realNum == 0){
-                        break;
+                        continue;
                     }
                     List<PushMarketingUserDetailDTO> userDetailDTOS = new ArrayList<>();
                     for (int k = 0; k < marketingHistories.size(); k++) {
@@ -1465,6 +1444,28 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
     }
 
+    private void insertNewErrorMark(CustomerInfoPushMain customerInfoPushMain, String part, int pageSize, String searchAfterStr, String esCondition) {
+        // 新增异常待补推数据
+        ErrorMark errorMark = new ErrorMark();
+        errorMark.setApiCode(customerInfoPushMain.getmApiCode());
+        errorMark.setmId(customerInfoPushMain.getId());
+        errorMark.setPart(part);
+        errorMark.setPageSize(pageSize);
+        errorMark.setSearchAfter(searchAfterStr);
+        errorMark.setEsCondition(esCondition);
+        errorMark.setRetryTotalAttempts(1);
+        errorMark.setRetryStatus(0);
+        errorMark.setAppletDate(LocalDate.now().toString());
+        errorMark.setCreateTime(new Date());
+        errorMark.setUpdateTime(new Date());
+        errorMarkMapper.insertSelective(errorMark);
+        // 更新任务状态为异常待补推
+        CustomerInfoPushMain updatePushMain = new CustomerInfoPushMain();
+        updatePushMain.setId(customerInfoPushMain.getId());
+        updatePushMain.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
+        customerInfoPushMainMapper.updateByPrimaryKeySelective(updatePushMain);
+    }
+
     private void markForCell(JSONObject varObject, JSONObject fields) {
         if (fields == null) {
             return;
@@ -1515,11 +1516,11 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             if (ResultCode.TIME_OUT.getValue().equals(result.getCode())) {
                 if (errorMark != null) {
-                    int retryAttempts = errorMark.getRetryTotalAttempts() + 1;
+                    int retryAttempts = errorMark.getRetryTotalAttempts();
                     if (retryAttempts >= 3) {
                         log.error("跑分异常补推es已重试3次，请手动处理，errorMarkId：{}", errorMark.getId());
                     } else {
-                        updateErrorMark(errorMarkMapper, errorMark, retryAttempts);
+                        updateErrorMark(errorMark, retryAttempts+1);
                     }
                 } else {
                     insertErrorMark(errorMarkMapper, pushMarketingUserDTO, mainId, accessNumber, size);
@@ -1538,7 +1539,7 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     // 更新错误标记
-    private void updateErrorMark(ErrorMarkMapper errorMarkMapper, ErrorMark errorMark, int retryAttempts) {
+    private void updateErrorMark(ErrorMark errorMark, int retryAttempts) {
         if (errorMark != null) {
             errorMark.setRetryTotalAttempts(retryAttempts);
             errorMark.setUpdateTime(new Date());
