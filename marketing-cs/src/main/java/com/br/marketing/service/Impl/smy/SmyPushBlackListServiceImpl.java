@@ -18,13 +18,10 @@ import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import shaded.com.google.common.collect.Lists;
 
 import javax.annotation.Resource;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
@@ -37,7 +34,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
-    private static final String PATTERN = "-";
     @Resource
     private LocalFileMapper localFileMapper;
 
@@ -94,7 +90,7 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
                 indexId = list.get(list.size() - 1).getId();
                 Map<String, List<SmyBlacklistData>> groupedMap = list.stream()
                         .collect(Collectors.groupingBy(SmyBlacklistData::getMarketingTime));
-                groupedMap.forEach((time, dataList) -> {
+                groupedMap.forEach((String time, List<SmyBlacklistData> dataList) -> {
                     futureList.add(
                             poolExecutor.submit(() -> {
                                 return sendSmyBlackList(time,dataList);
@@ -117,7 +113,6 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
             int oldPushNum =  localFile.getPushNumber() == null ? 0 :localFile.getPushNumber();
             localFileNew.setPushNumber(oldPushNum + autualNum - errorActualNumber);
             localFileNew.setErrorActualNumber(errorActualNumber);
-            localFileNew.setActualNumber(localFileNew.getPushNumber()+errorActualNumber);
             if (errorActualNumber == 0) {
                 localFileNew.setPushStatus("2");
             } else {
@@ -151,7 +146,7 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
             batchHitValueList.add(new SmyModelTagDto.BatchHitValue(data.getNameValue(),"wp_black_record"));
             ids.add(data.getId());
         });
-        String reqSeqNumber = UUID.randomUUID().toString().replaceAll(PATTERN, "");
+        String reqSeqNumber = UUID.randomUUID().toString().replaceAll("-", "");
         SmyModelTagDto smyModelTagDto = new SmyModelTagDto(marketTime,batchHitValueList);
         SmyCommReqDto commReqDto = new SmyCommReqDto();
         commReqDto.setReqSeqNumber(reqSeqNumber);
