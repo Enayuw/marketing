@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSON;
@@ -85,7 +86,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                     try {
                         MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
                         userDTO.setTaskId(smyUploadRequestDTO.getCaseType());
-                        userDTO.setRequestId(apiCode + "_" + smyUploadRequestDTO.getCaseType() + "_" + UUID.fastUUID().toString(true));
+                        userDTO.setRequestId(apiCode + "_" + smyUploadRequestDTO.getCaseType() + "_" + RandomStringUtils.randomAlphabetic(8) + UUID.fastUUID().toString(true));
                         List<MarketingPreUserDetailDTO> dataUploadItems = buildUploadDataItems(userType, smyUploadRequestDTO);
                         userDTO.setDataItems(dataUploadItems);
                         UploadDataDTO uploadDataDTO = new UploadDataDTO();
@@ -153,7 +154,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                     Result<Boolean> result;
                     try {
                         TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
-                        transferDataDTO.setRequestId(apiCode + "_" + UUID.fastUUID().toString(true));
+                        transferDataDTO.setRequestId(apiCode + "_" + RandomStringUtils.randomAlphabetic(8) + UUID.fastUUID().toString(true));
                         List<TransferDataItemDTO> dataTransferItems = buildTransferDataItems(userType, smyUploadRequestDTO);
                         transferDataDTO.setDataItems(dataTransferItems);
                         PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
