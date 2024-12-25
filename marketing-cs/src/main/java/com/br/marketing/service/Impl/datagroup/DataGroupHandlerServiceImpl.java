@@ -345,13 +345,13 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
     private void delFieldHandler(String uploadReportId, DataGroupTask dataGroupTask) {
         String apiCode = dataGroupTask.getApiCode();
         String groupField = dataGroupTask.getGroupFiled();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 100);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 20);
         MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
         reportExample.createCriteria().andIdIn(Arrays.stream(uploadReportId.split(",")).map(Long::parseLong).collect(Collectors.toList()));
         List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
         reportList.forEach((MarketingSyncReport report) -> {
             Long indexId = null;
-            Integer pageSize = 2000;
+            Integer pageSize = marketingCommonConfig.getDataGroupPageSize().get("delFieldPageSize");
             while (true) {
                 List<MarketingSyncUser> marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, Lists.newArrayList(report),
                         null, indexId, pageSize);
