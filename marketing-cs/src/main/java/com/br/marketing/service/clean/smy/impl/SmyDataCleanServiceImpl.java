@@ -1,24 +1,16 @@
 package com.br.marketing.service.clean.smy.impl;
 
-import com.br.marketing.common.utils.StringUtils;
-import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Resource;
-
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.stereotype.Service;
-
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.lang.UUID;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.PushTransferDataDetailDTO;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
-import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.dto.TransferDataDTO;
@@ -30,16 +22,18 @@ import com.br.marketing.entity.CustomizeTransferDataSmy;
 import com.br.marketing.entity.CustomizeUploadDataSmy;
 import com.br.marketing.mapper.CustomizeTransferDataSmyMapper;
 import com.br.marketing.mapper.CustomizeUploadDataSmyMapper;
-import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.PushInfoService;
 import com.br.marketing.service.clean.smy.SmyDataCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
-
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.lang.UUID;
+import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -82,20 +76,17 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                 for (CustomizeUploadDataSmy customizeUploadDataSmy : uploadDataSmyList) {
                     SmyUploadRequestDTO smyUploadRequestDTO =
                             JSONObject.parseObject(customizeUploadDataSmy.getRequestJsonData(), SmyUploadRequestDTO.class);
-                    Result<Boolean> result;
                     try {
                         MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
                         userDTO.setTaskId(smyUploadRequestDTO.getCaseType());
-                        userDTO.setRequestId(apiCode + "_" + smyUploadRequestDTO.getCaseType() + "_" + RandomStringUtils.randomAlphabetic(8) + UUID.fastUUID().toString(true));
+                        userDTO.setRequestId(smyUploadRequestDTO.getRequestNo());
                         List<MarketingPreUserDetailDTO> dataUploadItems = buildUploadDataItems(userType, smyUploadRequestDTO);
                         userDTO.setDataItems(dataUploadItems);
                         UploadDataDTO uploadDataDTO = new UploadDataDTO();
                         uploadDataDTO.setApiCode(apiCode);
                         uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
-                        result = pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                            customizeUploadDataSmyMapper.updateSyncStatusById(tCid, customizeUploadDataSmy.getId(), 1);
-                        }
+                        pushInfoService.pushUploadByRetry(uploadDataDTO, null);
+                        customizeUploadDataSmyMapper.updateSyncStatusById(tCid, customizeUploadDataSmy.getId(), 1);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
                                 "萨摩耶定制上传数据清洗，子线程处理异常，前置表id：" + customizeUploadDataSmy.getId()), e);
@@ -151,7 +142,6 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                 for (CustomizeTransferDataSmy customizeTransferDataSmy : transferDataSmyList) {
                     SmyTransferRequestDTO smyUploadRequestDTO =
                             JSONObject.parseObject(customizeTransferDataSmy.getRequestJsonData(), SmyTransferRequestDTO.class);
-                    Result<Boolean> result;
                     try {
                         TransferDataDTO<TransferDataItemDTO> transferDataDTO = new TransferDataDTO<>();
                         transferDataDTO.setRequestId(apiCode + "_" + RandomStringUtils.randomAlphabetic(8) + UUID.fastUUID().toString(true));
@@ -160,10 +150,8 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                         PushTransferDataDetailDTO dto = new PushTransferDataDetailDTO();
                         dto.setApiCode(apiCode);
                         dto.setJsonData(JSON.toJSONString(transferDataDTO));
-                        result = pushInfoService.pushTransferByRetry(dto, null);
-                        if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                            customizeTransferDataSmyMapper.updateSyncStatusById(tCid, customizeTransferDataSmy.getId(), 1);
-                        }
+                        pushInfoService.pushTransferByRetry(dto, null);
+                        customizeTransferDataSmyMapper.updateSyncStatusById(tCid, customizeTransferDataSmy.getId(), 1);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
                                 "萨摩耶定制转化数据清洗，子线程处理异常，前置表id：" + customizeTransferDataSmy.getId()), e);
@@ -221,15 +209,6 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
         transferDataItemDTO.setReserveField1(reserveField1.toJSONString());
         dataItems.add(transferDataItemDTO);
         return dataItems;
-    }
-
-    private void addToReserveField(TransferDataItemDTO transferDataItemDTO, String key, String value) {
-        JSONObject reserveField1 = JSONObject.parseObject(transferDataItemDTO.getReserveField1());
-        if (reserveField1 == null) {
-            reserveField1 = new JSONObject();
-        }
-        reserveField1.put(key, value);
-        transferDataItemDTO.setReserveField1(reserveField1.toJSONString());
     }
 
     private void handleFakeAndApiFlags(JSONObject reserveField1) {
