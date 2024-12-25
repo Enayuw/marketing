@@ -2430,10 +2430,5 @@ public class MarketingCommonConfig {
      */
     private JSONObject smyCustomizeDataConfig;
 
-    /**
-     * 众安推送明名单锁定 redis 异常mock挡板
-     * 0：默认值 正常使用， 1:模拟redis异常，2:"禁用db查询redis功能"
-     */
-    private Integer zhongAnPushRosterDataMock = 0;
 }
 
