@@ -88,7 +88,7 @@ public class SaMoYeTransferDataAutoFiltrationImpl implements AssembleData<Conver
                     (SaMoYeCollectDataImpl.SaMoYeRuleNecessaryData) context.getRuleNecessaryData();
             if(StringUtils.isNotBlank(reserveField1)){
                 JSONObject jsonObject = JSON.parseObject(reserveField1);
-                String inversionStatus = getInversionStatus(jsonObject, ruleNecessaryData);
+                String inversionStatus = getInversionStatus(transfer, jsonObject, ruleNecessaryData);
                 if(null != inversionStatus){
                     Map<String, SyncUserValidityPeriodsBO> userValidityPeriodsBOMap = ruleNecessaryData.getCustomerUserTypeMap()
                             .get(custNum);
@@ -103,16 +103,17 @@ public class SaMoYeTransferDataAutoFiltrationImpl implements AssembleData<Conver
         return false;
     }
 
-    private String getInversionStatus(JSONObject reserveField1, SaMoYeCollectDataImpl.SaMoYeRuleNecessaryData ruleNecessaryData){
+    private String getInversionStatus(MarketingTransferSyncUser transfer, JSONObject reserveField1
+            , SaMoYeCollectDataImpl.SaMoYeRuleNecessaryData ruleNecessaryData){
         // 情况2
-        String ifApply = reserveField1.getString("ifApply");
+        String ifApply = transfer.getIfApply();
         // 情况3
-        String applyResult1 = reserveField1.getString("applyResult");
+        String applyResult = transfer.getApplyResult();
         // 情况4
         String finishFake = reserveField1.getString("finish_fake");
         // 情况5
         String finishApi = reserveField1.getString("finish_api");
-        if("1".equals(ifApply)||"1".equals(applyResult1)||"1".equals(finishFake)||"1".equals(finishApi)){
+        if("1".equals(ifApply)||"1".equals(applyResult)||"1".equals(finishFake)||"1".equals(finishApi)){
             ruleNecessaryData.setInversionStatus(INVERSION_STATUS_0);
             return INVERSION_STATUS_0;
         }
