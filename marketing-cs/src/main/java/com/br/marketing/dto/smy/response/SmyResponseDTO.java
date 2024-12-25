@@ -7,6 +7,7 @@ import lombok.Getter;
 
 @Data
 public class SmyResponseDTO implements Serializable {
+    private static final long serialVersionUID = 8376361895732046747L;
 
     @ApiModelProperty("响应码")
     private Integer code;
