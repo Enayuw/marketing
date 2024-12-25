@@ -1,10 +1,12 @@
 package com.br.marketing.mapper;
 
+import com.br.marketing.entity.XieChengCollidingDataPackage;
+import com.br.marketing.entity.XieChengCollidingDataRob;
+import com.br.marketing.entity.XieChengCollidingDataRobPriority;
+import org.apache.ibatis.annotations.Param;
+
 import java.util.List;
 import java.util.Map;
-
-import com.br.marketing.entity.*;
-import org.apache.ibatis.annotations.Param;
 
 public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRobMapperBase {
 
@@ -16,7 +18,7 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     int deleteByIdList(@Param("ids") List<Long> ids, @Param("size") int size);
 
-    List<Long> robCelltiflash_(@Param("xieChengCleanCount") int xieChengCleanCount);
+    List<Long> robCell(@Param("xieChengCleanCount") int xieChengCleanCount);
 
     /**
      * 根据id批量更新is_deleted = 1
@@ -71,7 +73,10 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
 
     int batchResetCollidingCountByIds(@Param("list") List<Long> list);
 
-    Long selectCountByRoundPackages(@Param("list") List<XieChengCollidingDataPackage> list);
+    /**
+     * colliding_count = 0 and retry_count = 0 and is_delete = 0
+     */
+    Long selectCountByRoundPackagestiflash_(@Param("list") List<XieChengCollidingDataPackage> list);
 
     List<Long> selectIdsOfDynaFalseDataProcessTasktikv_(@Param("minId") Long minId, @Param("queryRuleScoreDataSql") String queryRuleScoreDataSql,
                                                         @Param("tableName") String tableName, @Param("pageSize") Integer pageSize);
@@ -82,5 +87,14 @@ public interface XieChengCollidingDataRobMapper extends XieChengCollidingDataRob
     void batchUpdateRobNoPublicBlackListData(@Param("labelName") String labelName,@Param("cellSha256") String cellSha256);
 
     int searchRobDeleteCountByExtend(@Param("extend") String extend);
+
+
+    List<XieChengCollidingDataRob> getFirstRobDataPush(@Param("packageId") Long packageId,@Param("pageSize") Integer pageSize);
+
+    List<XieChengCollidingDataRob> getMoreRobDataPush(@Param("packageId") Long packageId,@Param("pageSize") Integer pageSize,
+                                                      @Param("collidingCount") Integer collidingCount);
+
+    int getPackageCounttiflash_(@Param("packageId") Long packageId);
+
 
 }

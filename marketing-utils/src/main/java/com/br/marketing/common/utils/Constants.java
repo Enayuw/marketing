@@ -133,6 +133,16 @@ public class Constants {
     public static final String TEL_HOME_REGEX = "^[0-9]{2,4}-[0-9]{7,8}$";
     public static final String CUS_NUM_REGEX = "^([a-zA-Z0-9]{1,64})$";
 
+    /**
+     * 正则 HH:mm
+     */
+    public static final String TIME_MINUTE_REGEX = "^([0-1]?[0-9]|2[0-3]):([0-5][0-9])$";
+
+    /**
+     * 正则 HH:mm:ss
+     */
+    public static final String TIME_SECOND_REGEX = "^([0-1]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$";
+
     public static final String DELETE_MONIZTOR_REMARK = "^[0-9a-zA-Z_.]{1,100}$";
     public static final String REDIS_RADAR_PREFIX = "cnt_loan";
     public static final String REDIS_RADAR_TEST_PREFIX = "cnt_loan_test";

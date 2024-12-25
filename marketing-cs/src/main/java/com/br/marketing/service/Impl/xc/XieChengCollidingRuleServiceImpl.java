@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import com.br.marketing.common.exception.KnowException;
+import com.br.marketing.common.utils.Constants;
 import com.br.marketing.vo.xiecheng.param.UpdateRoundParam;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -154,12 +156,24 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
      */
     @Override
     public Boolean updateCollidingRule(UpdateCollidingRuleParam param) {
-        XiechengCollidingDataPackageRule update = new XiechengCollidingDataPackageRule();
-        update.setCollidingBackNumber(param.getCollidingBackNumber());
-        update.setCollidingTimes(param.getCollidingTimes());
-        update.setCollidingStartTime(DateUtil.parse(param.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN));
-        update.setCollidingEndTime(DateUtil.parse(param.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN));
-        update.setId(param.getDprId());
+        //校验collidingTimePoints
+        String collidingTimePoints = param.getStartTimes();
+        if (StringUtils.isEmpty(collidingTimePoints)) {
+            throw new KnowException("请设置撞库时间！");
+        }
+        String[] timePoints = collidingTimePoints.split(",");
+        for (String timePoint : timePoints) {
+            if (!timePoint.matches(Constants.TIME_MINUTE_REGEX)) {
+                throw new KnowException("撞库时间格式有误！");
+            }
+        }
+        if (StringUtils.hasDuplicate(timePoints)) {
+            throw new KnowException("撞库时间不可重复设置！");
+        }
+        param.setCollidingStartTime(DateUtil.parse(param.getCollidingStartTime(),
+                DatePattern.NORM_DATETIME_PATTERN).toStringDefaultTimeZone());
+        param.setCollidingEndTime(DateUtil.parse(param.getCollidingEndTime(),
+                DatePattern.NORM_DATETIME_PATTERN).toStringDefaultTimeZone());
         return packageRuleMapper.updateCollidingRule(param) == 1;
     }
 
@@ -253,6 +267,21 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long confirmCollidingRule(CollidingRuleConfirmParam confirmParam) {
+        //校验collidingTimePoints
+        String collidingTimePoints = confirmParam.getStartTimes();
+        if (StringUtils.isEmpty(collidingTimePoints)) {
+            throw new KnowException("请设置撞库时间！");
+        }
+        String[] timePoints = collidingTimePoints.split(",");
+        for (String timePoint : timePoints) {
+            if (!timePoint.matches(Constants.TIME_MINUTE_REGEX)) {
+                throw new KnowException("撞库时间格式有误！");
+            }
+        }
+        if (StringUtils.hasDuplicate(timePoints)) {
+            throw new KnowException("撞库时间不可重复设置！");
+        }
+        //判断timePoints是否重复
         XiechengCollidingDataPackageRuleStagingExample example = new XiechengCollidingDataPackageRuleStagingExample();
         example.createCriteria().andIsDeleteEqualTo(0).andPackageIdNotEqualTo(confirmParam.getPackageId());
         int hisCount = stagingMapper.countByExample(example);
@@ -272,6 +301,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             stagingRule.setCollidingStartTime(DateUtil.parse(confirmParam.getCollidingStartTime(), DatePattern.NORM_DATETIME_PATTERN));
             stagingRule.setCollidingEndTime(DateUtil.parse(confirmParam.getCollidingEndTime(), DatePattern.NORM_DATETIME_PATTERN));
             stagingRule.setCollidingTimes(confirmParam.getCollidingTimes());
+            stagingRule.setStartTimes(collidingTimePoints);
             stagingMapper.insertSelective(stagingRule);
             return stagingRule.getId();
         } else {
@@ -322,6 +352,7 @@ public class XieChengCollidingRuleServiceImpl implements XieChengCollidingRuleSe
             insert.setCollidingStartTime(stagingRule.getCollidingStartTime());
             insert.setCollidingEndTime(stagingRule.getCollidingEndTime());
             insert.setCollidingTimes(stagingRule.getCollidingTimes());
+            insert.setStartTimes(stagingRule.getStartTimes());
             packageRuleMapper.insertSelective(insert);
             stagingRule.setIsDelete(1);
             stagingMapper.updateByPrimaryKeySelective(stagingRule);

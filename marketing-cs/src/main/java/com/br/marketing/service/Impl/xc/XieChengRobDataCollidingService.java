@@ -16,7 +16,7 @@ public interface XieChengRobDataCollidingService extends DataCollidingService<Xi
 
     void initializeTodayReleaseTime(String key);
 
-    void resetCollidingCount();
+    void resetCollidingCountAndBuildRobTask();
 
     /**
      * 促活数据接入后续处理

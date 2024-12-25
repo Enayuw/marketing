@@ -49,4 +49,7 @@ public class XiechengCollidingStagingRuleVO implements Serializable {
 
     @ApiModelProperty("是否删除 0 正常，1删除")
     private Integer isDelete;
+
+    @ApiModelProperty("撞库开始时间（多个时间以逗号分割，格式HH:mm）")
+    private String startTimes;
 }
