@@ -45,33 +45,39 @@ public class SmyClient {
     HttpProxyClient httpProxyClient;
     @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
     public Result sendSmyBlackList(SmyCommReqDto commReqDto) {
-        commReqDto.setMerchantNo(merchantNo);
-        commReqDto.setVersion("4.0");
-        if(!MarketingSign4SmyUtil.signSmyRequest(marketPrivateKey,smyPublicKey,commReqDto)){
+        try{
+            commReqDto.setMerchantNo(merchantNo);
+            commReqDto.setVersion("4.0");
+            if(!MarketingSign4SmyUtil.signSmyRequest(marketPrivateKey,smyPublicKey,commReqDto)){
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            Map<String, String> resMap = httpProxyClient.sendByCodeWithLog(commReqDto
+                    , modelTagUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", true, false);
+            if(log.isInfoEnabled()){
+                log.info("调用萨摩耶营销模型标识上传接口推送黑名单响应数据：{}",resMap);
+            }
+            if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_INTERFACEERROR.getCode(),
+                        String.format("萨摩耶黑名单推送请求失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(resMap))));
+                return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
+            }
+            SmyCommRespDto commRespDto = JSON.parseObject(resMap.get("content"), SmyCommRespDto.class);
+            if(!MarketingSign4SmyUtil.verifySignSmyResponse(marketPrivateKey,smyPublicKey,commRespDto)){
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_SERVICEERROR.getCode(),
+                        String.format("萨摩耶黑名单推送响应结果验签失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(resMap))));
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            JSONObject respJson = JSON.parseObject(commRespDto.getBizContent());
+            if(respJson.containsKey("code") && !"10000".equals(respJson.getString("code"))){
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_SERVICEERROR.getCode(),
+                        String.format("萨摩耶黑名单推送失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(respJson))));
+                return new Result().setCode(ResultCode.FAIL.getValue());
+            }
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }catch (Exception ex){
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_SERVICEERROR.getCode(),
+                    String.format("萨摩耶黑名单推送处理异常-请求参数:%s;异常:%s;", JSON.toJSONString(commReqDto), ex.getMessage())), ex);
             return new Result().setCode(ResultCode.FAIL.getValue());
         }
-        Map<String, String> resMap = httpProxyClient.sendByCodeWithLog(commReqDto
-                , modelTagUrl, isProxy, MediaType.APPLICATION_JSON_UTF8_VALUE, "", true, false);
-        if(log.isInfoEnabled()){
-            log.info("调用萨摩耶营销模型标识上传接口推送黑名单响应数据：{}",resMap);
-        }
-        if (!"200".equals(resMap.get("httpcode")) || StringUtils.isBlank(resMap.get("content"))) {
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_INTERFACEERROR.getCode(),
-                    String.format("萨摩耶黑名单推送请求失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(resMap))));
-            return new Result().setCode(ResultCode.INTERNAL_SERVER_ERROR.getValue());
-        }
-        SmyCommRespDto commRespDto = JSON.parseObject(resMap.get("content"), SmyCommRespDto.class);
-       if(!MarketingSign4SmyUtil.verifySignSmyResponse(marketPrivateKey,smyPublicKey,commRespDto)){
-           log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_SERVICEERROR.getCode(),
-                   String.format("萨摩耶黑名单推送响应结果验签失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(resMap))));
-           return new Result().setCode(ResultCode.FAIL.getValue());
-       }
-       JSONObject respJson = JSON.parseObject(commRespDto.getBizContent());
-       if(respJson.containsKey("code") && !"10000".equals(respJson.getString("code"))){
-           log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_SERVICEERROR.getCode(),
-                   String.format("萨摩耶黑名单推送失败-请求参数:%s;返回:%s", JSON.toJSONString(commReqDto),JSON.toJSONString(respJson))));
-           return new Result().setCode(ResultCode.FAIL.getValue());
-       }
-        return new Result().setCode(ResultCode.SUCCESS.getValue());
     }
 }

@@ -105,7 +105,7 @@ public class MarketingSign4SmyUtil {
             String message = AlertLog.buildErrorMessage(AlarmSendCodeEnum.SMY_SERVICEERROR.getCode(),
                     String.format("萨摩耶黑名单推送响应结果验签异常-verifyMd5:%s;decryptMd5:%s;secretKey:%s;bizContent:%s;异常:%s",
                             verifyMd5,decryptMd5,commRespDto.getSecretKey(),commRespDto.getBizContent(),e.getMessage()));
-            log.error(message+";异常详细信息：{}",e);
+            log.error(message,e);
             return false;
         }
         return true;

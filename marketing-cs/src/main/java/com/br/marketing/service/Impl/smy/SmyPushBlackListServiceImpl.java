@@ -62,7 +62,7 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
                     , apiCode, localDate);
             return;
         }
-        ThreadPoolExecutor poolExecutor = BrExecutors.getThreadPool(1, 1, "job-smy-blacklist");
+        ThreadPoolExecutor poolExecutor = BrExecutors.getThreadPool(1, 1, "job-smy-blacklist",20);
         for (LocalFile localFile : localFiles) {
             log.warn("萨摩耶黑名单数据推送，开始处理{}文件，文件id:{}，apiCode:{}，localDate:{}", localFile.getFileName()
                     , localFile.getId(), apiCode, localDate);
@@ -76,9 +76,7 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
             while (true) {
                 SmyBlacklistDataExample smyExample =  new SmyBlacklistDataExample();
                 smyExample.createCriteria().andLocalIdEqualTo(localFile.getId()).
-                        andStatusEqualTo(1).andPushStatusEqualTo(pushStatus)
-                        .andNameValueIsNotNull().andNameValueNotEqualTo("").andMarketingTimeIsNotNull()
-                        .andMarketingTimeNotEqualTo("").andIdGreaterThan(indexId);
+                        andStatusEqualTo(1).andPushStatusEqualTo(pushStatus).andIdGreaterThan(indexId);
                 smyExample.setOrderByClause("id asc limit 1000");
                 List<SmyBlacklistData> list = smyBlacklistDataMapper.selectByExample(smyExample);
                 if (CollectionUtils.isEmpty(list)) {
@@ -140,8 +138,8 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
      */
     private int sendSmyBlackList(String marketTime,List<SmyBlacklistData> list ){
         int errorNum = 0;
-        List<SmyModelTagDto.BatchHitValue> batchHitValueList = new ArrayList<>(500);
-        List<Long> ids = new ArrayList<>(500);
+        List<SmyModelTagDto.BatchHitValue> batchHitValueList = new ArrayList<>(list.size());
+        List<Long> ids = new ArrayList<>(list.size());
         list.stream().forEach((SmyBlacklistData data) -> {
             batchHitValueList.add(new SmyModelTagDto.BatchHitValue(data.getNameValue(),"wp_black_record"));
             ids.add(data.getId());

@@ -1425,7 +1425,7 @@ public class MethodRetryHandlerService {
      * @param commReqDto  封装的数据
      * @param retry 是否重试
      */
-    @RetryMethod(retryNowNum = 1, isOrNoDbRetry = true)
+    @RetryMethod(retryNowNum = 3)
     public Result<?> sendSmyBlackList(SmyCommReqDto commReqDto, Integer retry) {
         // 萨摩耶推送Mock挡板，1：开启，0：关闭
         Object mock = marketingCommonConfig.getSmyBlacklistConfig().get("mock");
