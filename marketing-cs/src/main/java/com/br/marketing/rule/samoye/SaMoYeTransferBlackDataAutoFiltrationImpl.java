@@ -10,7 +10,6 @@ import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
-import com.br.marketing.context.impl.SaMoYeCollectDataImpl;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
@@ -77,11 +76,9 @@ public class SaMoYeTransferBlackDataAutoFiltrationImpl implements AssembleData<C
         if (transmitFact instanceof MarketingTransferSyncUser) {
             MarketingTransferSyncUser transfer = (MarketingTransferSyncUser) transmitFact;
             String reserveField1 = transfer.getReserveField1();
-            SaMoYeCollectDataImpl.SaMoYeRuleNecessaryData ruleNecessaryData =
-                    (SaMoYeCollectDataImpl.SaMoYeRuleNecessaryData) context.getRuleNecessaryData();
             if(StringUtils.isNotBlank(reserveField1)){
                 JSONObject jsonObject = JSON.parseObject(reserveField1);
-                if(null != getBlackInversionStatus(jsonObject, ruleNecessaryData)){
+                if(null != getBlackInversionStatus(jsonObject)){
                     return true;
                 }
             }
@@ -89,11 +86,12 @@ public class SaMoYeTransferBlackDataAutoFiltrationImpl implements AssembleData<C
         return false;
     }
 
-    private String getBlackInversionStatus(JSONObject reserveField1, SaMoYeCollectDataImpl.SaMoYeRuleNecessaryData ruleNecessaryData) {
+    private String getBlackInversionStatus(JSONObject reserveField1) {
+        // 情况6
+        String accountClose = reserveField1.getString("accountclose");
         // 情况1
         String isBlack = reserveField1.getString("isBlack");
-        if("1".equals(isBlack)){
-            ruleNecessaryData.setInversionStatus(INVERSION_STATUS_2);
+        if("1".equals(accountClose) || "1".equals(isBlack)){
             return INVERSION_STATUS_2;
         }
         return null;
