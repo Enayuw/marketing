@@ -181,6 +181,11 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             configId = update.getId();
             List<DataGropRuleVO> updateGroupRules = JSON.parseObject(update.getGroupRules(), new TypeReference<List<DataGropRuleVO>>() {
             }.getType());
+            List<DataGropRuleVO> repeatRule = updateGroupRules.stream().filter(rule -> rule.getGroupField().equals(gropRuleVOList.get(0).
+                    getGroupField())).collect(Collectors.toList());
+            if(!CollectionUtils.isEmpty(repeatRule)){
+                return new ApiResult().fail("打标字段已存在");
+            }
             if (operType.equals("0")) {
                 updateGroupRules.addAll(gropRuleVOList);
             } else {
@@ -244,13 +249,14 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
 
     @Override
     public void dataGroupHandler(DataGroupTask dataGroupTask) {
-
+        Long start = System.currentTimeMillis();
         DataGroupConfig config = dataGroupConfigMapper.selectByPrimaryKey(dataGroupTask.getConfigId());
         if (dataGroupTask.getOperType().equals(0)) {
             addFieldHandler(config.getUploadReportId(), dataGroupTask);
         } else {
             delFieldHandler(config.getUploadReportId(), dataGroupTask);
         }
+        log.warn("数据分组分组任务执行完成，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
     @Override
@@ -282,18 +288,18 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         List<DataGroupTask> groupTaskList = dataGroupTaskMapper.selectByExample(dataGroupTaskExample);
         String groupResultNumKey = RedisKeyConstant.DATA_GROUP_RESULT_NUM.concat(":").concat(config.getApiCode()).concat(":")
                 .concat(groupTaskList.get(0).getId().toString());
+        Map<String, Object> runMap = redisChgService.hgetall(groupResultNumKey);
         //查询任务明细表
         DataGroupTaskDetailExample taskDetailExample = new DataGroupTaskDetailExample();
         taskDetailExample.createCriteria().andGroupTaskIdEqualTo(groupTaskList.get(0).getId());
         List<DataGroupTaskDetail> taskDetailList = dataGroupTaskDetailMapper.selectByExample(taskDetailExample);
-        if(CollectionUtils.isEmpty(taskDetailList)){
+        if (CollectionUtils.isEmpty(taskDetailList) || CollectionUtils.isEmpty(runMap)) {
             ruleJson.forEach((Object k, Object v) -> {
                 percentMap.put((String) k, 0L);
             });
 
-        }else{
-            Map<String, Object> runMap = redisChgService.hgetall(groupResultNumKey);
-            Map<String,Long> taskDetailMap =  taskDetailList.stream().collect(Collectors.groupingBy(DataGroupTaskDetail::getGroupFieldValue,
+        } else {
+            Map<String, Long> taskDetailMap = taskDetailList.stream().collect(Collectors.groupingBy(DataGroupTaskDetail::getGroupFieldValue,
                     Collectors.summingLong(DataGroupTaskDetail::getGroupNum)));
             ruleJson.forEach((Object k, Object v) -> {
                 String fieldVaule = (String) k;
@@ -631,6 +637,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     sqlWhere.append(" and  reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule.replace("\"",
                             "")).append("'");
                 }
+                Long start = System.currentTimeMillis();
                 Map<String, Long> maxMinId = syncReportMapper.selectGroupMaxMinId(apiCode, indexId, groupNum, sqlWhere.toString());
                 Long minId = maxMinId.get("minId");
                 Long maxId = maxMinId.get("maxId");
@@ -650,6 +657,7 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                 taskDetail.setCreateTime(new Date());
                 taskDetail.setUpdateTime(new Date());
                 dataGroupTaskDetailMapper.insertSelective(taskDetail);
+                log.warn("数据分组任务解析，耗时{}s", (System.currentTimeMillis() - start) / 1000);  
             }
         });
     }
