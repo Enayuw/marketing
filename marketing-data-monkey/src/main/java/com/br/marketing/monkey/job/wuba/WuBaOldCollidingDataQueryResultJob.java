@@ -10,13 +10,12 @@ import javax.annotation.Resource;
 
 /**
  * 58查询撞库结果作业
- * 技术方案地址：https://c.100credit.cn/pages/viewpage.action?pageId=193954645
  * @Author chenh
- * @Date 2024-12-26
+ * @Date 2024-07-10
  */
 @Component
 @Slf4j
-public class WuBaCollidingDataQueryResultJob extends AbstractSimpleElasticJob {
+public class WuBaOldCollidingDataQueryResultJob extends AbstractSimpleElasticJob {
     @Resource
     WuBaCollidingDataQueryResultService service;
 
@@ -24,6 +23,6 @@ public class WuBaCollidingDataQueryResultJob extends AbstractSimpleElasticJob {
     public void process(JobExecutionMultipleShardingContext context) {
         long start = System.currentTimeMillis();
         service.process(context);
-        log.warn("58老客查询撞库结果作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
+        log.warn("58查询撞库结果作业，单次运行耗时：{}s", (System.currentTimeMillis() - start) / 1000);
     }
 }
