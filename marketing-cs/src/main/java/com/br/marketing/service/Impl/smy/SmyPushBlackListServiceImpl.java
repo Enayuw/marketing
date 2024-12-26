@@ -89,9 +89,11 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
                 Map<String, List<SmyBlacklistData>> groupedMap = list.stream()
                         .collect(Collectors.groupingBy(SmyBlacklistData::getMarketingTime));
                 groupedMap.forEach((String time, List<SmyBlacklistData> dataList) -> {
+                    //主线程同步生成流水号
+                    String reqSeqNumber = UUID.randomUUID().toString().replaceAll("-", "");
                     futureList.add(
                             poolExecutor.submit(() -> {
-                                return sendSmyBlackList(time,dataList);
+                                return sendSmyBlackList(reqSeqNumber,time,dataList);
                             })
                     );
                 });
@@ -136,7 +138,7 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
      * @param list
      * @return errorNum
      */
-    private int sendSmyBlackList(String marketTime,List<SmyBlacklistData> list ){
+    private int sendSmyBlackList(String reqSeqNumber,String marketTime,List<SmyBlacklistData> list ){
         int errorNum = 0;
         List<SmyModelTagDto.BatchHitValue> batchHitValueList = new ArrayList<>(list.size());
         List<Long> ids = new ArrayList<>(list.size());
@@ -144,7 +146,6 @@ public class SmyPushBlackListServiceImpl implements ISmyPushBlackListService {
             batchHitValueList.add(new SmyModelTagDto.BatchHitValue(data.getNameValue(),"wp_black_record"));
             ids.add(data.getId());
         });
-        String reqSeqNumber = UUID.randomUUID().toString().replaceAll("-", "");
         SmyModelTagDto smyModelTagDto = new SmyModelTagDto(marketTime,batchHitValueList);
         SmyCommReqDto commReqDto = new SmyCommReqDto();
         commReqDto.setReqSeqNumber(reqSeqNumber);
