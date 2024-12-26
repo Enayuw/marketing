@@ -181,12 +181,12 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             configId = update.getId();
             List<DataGropRuleVO> updateGroupRules = JSON.parseObject(update.getGroupRules(), new TypeReference<List<DataGropRuleVO>>() {
             }.getType());
-            List<DataGropRuleVO> repeatRule = updateGroupRules.stream().filter(rule -> rule.getGroupField().equals(gropRuleVOList.get(0).
-                    getGroupField())).collect(Collectors.toList());
-            if(!CollectionUtils.isEmpty(repeatRule)){
-                return new ApiResult().fail("打标字段已存在");
-            }
             if (operType.equals("0")) {
+                List<DataGropRuleVO> repeatRule = updateGroupRules.stream().filter(rule -> rule.getGroupField().equals(gropRuleVOList.get(0).
+                        getGroupField())).collect(Collectors.toList());
+                if(!CollectionUtils.isEmpty(repeatRule)){
+                    return new ApiResult().fail("打标字段已存在");
+                }
                 updateGroupRules.addAll(gropRuleVOList);
             } else {
                 updateGroupRules.removeIf(rule -> gropRuleMap.keySet().contains(rule.getGroupField()));
