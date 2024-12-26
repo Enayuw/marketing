@@ -44,45 +44,52 @@ public class SmyUploadDataService {
     public SmyResponseDTO receiveSmyUploadData(SmyUploadRequestDTO dto, HttpServletRequest request) {
         SmyResponseDTO smyResponseDTO = new SmyResponseDTO();
         smyResponseDTO.success();
-        CustomizeUploadDataSmy customizeUploadDataSmy = new CustomizeUploadDataSmy();
-        JSONObject smyCustomizeDataConfig = marketingCommonConfig.getSmyCustomizeDataConfig();
-        String testApiCode = request.getHeader("Test-ApiCode");
-        String apiCode = testApiCode != null ? testApiCode : smyCustomizeDataConfig.getString("uploadApiCode");
-        String tCid = tableCreateService.getTcId(apiCode);
-        if (StringUtils.isEmpty(tCid)) {
+        try {
+            CustomizeUploadDataSmy customizeUploadDataSmy = new CustomizeUploadDataSmy();
+            JSONObject smyCustomizeDataConfig = marketingCommonConfig.getSmyCustomizeDataConfig();
+            String testApiCode = request.getHeader("Test-ApiCode");
+            String apiCode = testApiCode != null ? testApiCode : smyCustomizeDataConfig.getString("uploadApiCode");
+            String tCid = tableCreateService.getTcId(apiCode);
+            if (StringUtils.isEmpty(tCid)) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
+                        "萨摩耶创建客户定制上传前置表，未查询到该apiCode:" + apiCode + "对应客户信息，请关注！！！"));
+            } else {
+                // 创建定制上传表
+                customizeUploadDataSmyMapper.createCustomizeUploadDataTable(tCid);
+            }
+            customizeUploadDataSmy.setApiCode(apiCode);
+            customizeUploadDataSmy.setTCid(tCid);
+            customizeUploadDataSmy.setRequestId(dto.getRequestNo());
+            customizeUploadDataSmy.setReceiveDate(LocalDate.now().toString());
+            customizeUploadDataSmy.setRequestJsonData(JSONObject.toJSONString(dto));
+            customizeUploadDataSmy.setStatus(1);
+            //Check Field
+            StringBuilder errorMessage = new StringBuilder();
+            if (StringUtils.isBlank(dto.getRequestNo())) {
+                errorMessage.append(", request_no 不可为空");
+            } else if (StringUtils.isBlank(dto.getCaseType())) {
+                errorMessage.append(", case_type 不可为空");
+            } else if (dto.getTotal() == null) {
+                errorMessage.append(", total 不可为空");
+            } else if (dto.getNameList() == null || dto.getNameList().isEmpty()) {
+                errorMessage.append(", name_list 不可为空");
+            }
+            if (errorMessage.length() > 0) {
+                customizeUploadDataSmy.setStatus(0);
+                smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_PARAM_ERROR, errorMessage.toString());
+            }
+            customizeUploadDataSmy.setBizDataNumber(dto.getTotal());
+            customizeUploadDataSmy.setResponseCode(String.valueOf(smyResponseDTO.getCode()));
+            customizeUploadDataSmy.setResponseData(smyResponseDTO.getMessage());
+            int i = customizeUploadDataSmyMapper.insertSelective(customizeUploadDataSmy);
+            if (i != 1) {
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "dto:" + dto,
+                        "萨摩耶定制上传数据入库失败！！！"));
+            }
+        } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
-                    "萨摩耶创建客户定制上传前置表，未查询到该apiCode:" + apiCode + "对应客户信息，请关注！！！"));
-        } else {
-            // 创建定制上传表
-            customizeUploadDataSmyMapper.createCustomizeUploadDataTable(tCid);
-        }
-        customizeUploadDataSmy.setApiCode(apiCode);
-        customizeUploadDataSmy.setTCid(tCid);
-        customizeUploadDataSmy.setRequestId(dto.getRequestNo());
-        customizeUploadDataSmy.setReceiveDate(LocalDate.now().toString());
-        customizeUploadDataSmy.setRequestJsonData(JSONObject.toJSONString(dto));
-        customizeUploadDataSmy.setStatus(1);
-        //Check Field
-        StringBuilder errorMessage = new StringBuilder();
-        if (StringUtils.isBlank(dto.getRequestNo())) {
-            errorMessage.append(", request_no 不可为空");
-        } else if (StringUtils.isBlank(dto.getCaseType())) {
-            errorMessage.append(", case_type 不可为空");
-        } else if (dto.getTotal() == null) {
-            errorMessage.append(", total 不可为空");
-        } else if (dto.getNameList() == null || dto.getNameList().isEmpty()) {
-            errorMessage.append(", name_list 不可为空");
-        }
-        if (errorMessage.length() > 0) {
-            customizeUploadDataSmy.setStatus(0);
-            smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_PARAM_ERROR, errorMessage.toString());
-        }
-        customizeUploadDataSmy.setBizDataNumber(dto.getTotal());
-        customizeUploadDataSmy.setResponseCode(String.valueOf(smyResponseDTO.getCode()));
-        customizeUploadDataSmy.setResponseData(smyResponseDTO.getMessage());
-        int i = customizeUploadDataSmyMapper.insertSelective(customizeUploadDataSmy);
-        if (i != 1) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "dto:" + dto, "萨摩耶定制上传数据入库失败！！！"));
+                    "dtoJson:" + JSONObject.toJSONString(dto), "萨摩耶定制上传数据接入异常！！！"));
+            smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_SYSTEM_ERROR);
         }
         return smyResponseDTO;
     }

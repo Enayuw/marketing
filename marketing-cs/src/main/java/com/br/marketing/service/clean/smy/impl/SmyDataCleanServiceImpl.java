@@ -193,6 +193,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
             case "F1":
             case "F2":
             case "F3":
+            case "accountclose":
                 reserveField1.put(smyUploadRequestDTO.getEventType(), "1");
                 break;
             default:
