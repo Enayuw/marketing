@@ -13,6 +13,7 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.dto.datagroup.DataGroupConfgDTO;
 import com.br.marketing.entity.*;
 import com.br.marketing.mapper.*;
+import com.br.marketing.mapper.datagroup.DataGroupTaskDetailMapper;
 import com.br.marketing.service.SoleStrategyService;
 import com.br.marketing.service.datagroup.DataGroupHandlerService;
 import com.br.marketing.mapper.datagroup.DataGroupConfigMapper;
@@ -79,6 +80,9 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
 
     @Autowired
     SoleStrategyService soleStrategyService;
+
+    @Autowired
+    private DataGroupTaskDetailMapper dataGroupTaskDetailMapper;
 
 
     /**
@@ -178,6 +182,11 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             List<DataGropRuleVO> updateGroupRules = JSON.parseObject(update.getGroupRules(), new TypeReference<List<DataGropRuleVO>>() {
             }.getType());
             if (operType.equals("0")) {
+                List<DataGropRuleVO> repeatRule = updateGroupRules.stream().filter(rule -> rule.getGroupField().equals(gropRuleVOList.get(0).
+                        getGroupField())).collect(Collectors.toList());
+                if(!CollectionUtils.isEmpty(repeatRule)){
+                    return new ApiResult().fail("打标字段已存在");
+                }
                 updateGroupRules.addAll(gropRuleVOList);
             } else {
                 updateGroupRules.removeIf(rule -> gropRuleMap.keySet().contains(rule.getGroupField()));
@@ -240,13 +249,14 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
 
     @Override
     public void dataGroupHandler(DataGroupTask dataGroupTask) {
-
+        Long start = System.currentTimeMillis();
         DataGroupConfig config = dataGroupConfigMapper.selectByPrimaryKey(dataGroupTask.getConfigId());
         if (dataGroupTask.getOperType().equals(0)) {
             addFieldHandler(config.getUploadReportId(), dataGroupTask);
         } else {
             delFieldHandler(config.getUploadReportId(), dataGroupTask);
         }
+        log.warn("数据分组分组任务执行完成，耗时{}s", (System.currentTimeMillis() - start) / 1000);
     }
 
     @Override
@@ -273,55 +283,48 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         DataGropRuleVO rule = dataGropRuleVOList.stream().filter((DataGropRuleVO ruleVO) -> ruleVO.getGroupField().equals(field))
                 .collect(Collectors.toList()).get(0);
         JSONObject ruleJson = rule.getGroupNum();
-        if (rule.getGroupType().equals("0")) {
-            DataGroupTaskExample dataGroupTaskExample = new DataGroupTaskExample();
-            dataGroupTaskExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andConfigIdEqualTo(config.getId()).andGroupFiledEqualTo(field);
-            List<DataGroupTask> groupTaskList = dataGroupTaskMapper.selectByExample(dataGroupTaskExample);
-            if (!CollectionUtils.isEmpty(groupTaskList) && groupTaskList.get(0).getStatus().equals(2)) {
-                ruleJson.forEach((Object k, Object v) -> {
-                    percentMap.put((String) k, 100L);
-                });
-
-            } else {
-                ruleJson.forEach((Object k, Object v) -> {
-                    percentMap.put((String) k, 0L);
-                });
-            }
-        } else {
-            MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
-            reportExample.createCriteria().andIdIn(Arrays.stream(config.getUploadReportId().split(",")).map(Long::parseLong).collect(Collectors.toList()));
-            List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
-            List<Map<String, Object>> groupNum = syncReportMapper.selectGroupUploadNumtikv_(config.getApiCode(), reportList, "reserve_field1->'$.\"".concat(field).concat("\"'"),
-                    StringUtils.isEmpty(rule.getExtendField()) ? "" : "reserve_field1->'$.\"".concat(rule.getExtendField()).concat("\"'"));
-            rule.setGroupRange("0");
-            List<Map<String, Object>> groupNumTotal = dataGroupNumTransfer(rule, reportList, Boolean.FALSE);
-            JSONObject totalJson = (JSONObject) groupNumTotal.get(0).get("rule");
-            groupNum.forEach((Map<String, Object> map) -> {
-                String groupField = ((String) map.get("field"));
-                if (StringUtils.isBlank(groupField)) {
-                    return;
-                }
-                String fieldTrim = groupField.replace("\"", "");
-                Long num = (Long) map.get("num");
-                percentMap.put(fieldTrim, num * 100 / totalJson.getInteger(fieldTrim));
+        DataGroupTaskExample dataGroupTaskExample = new DataGroupTaskExample();
+        dataGroupTaskExample.createCriteria().andApiCodeEqualTo(config.getApiCode()).andConfigIdEqualTo(config.getId()).andGroupFiledEqualTo(field);
+        List<DataGroupTask> groupTaskList = dataGroupTaskMapper.selectByExample(dataGroupTaskExample);
+        String groupResultNumKey = RedisKeyConstant.DATA_GROUP_RESULT_NUM.concat(":").concat(config.getApiCode()).concat(":")
+                .concat(groupTaskList.get(0).getId().toString());
+        Map<String, Object> runMap = redisChgService.hgetall(groupResultNumKey);
+        //查询任务明细表
+        DataGroupTaskDetailExample taskDetailExample = new DataGroupTaskDetailExample();
+        taskDetailExample.createCriteria().andGroupTaskIdEqualTo(groupTaskList.get(0).getId());
+        List<DataGroupTaskDetail> taskDetailList = dataGroupTaskDetailMapper.selectByExample(taskDetailExample);
+        if (CollectionUtils.isEmpty(taskDetailList) || CollectionUtils.isEmpty(runMap)) {
+            ruleJson.forEach((Object k, Object v) -> {
+                percentMap.put((String) k, 0L);
             });
+
+        } else {
+            Map<String, Long> taskDetailMap = taskDetailList.stream().collect(Collectors.groupingBy(DataGroupTaskDetail::getGroupFieldValue,
+                    Collectors.summingLong(DataGroupTaskDetail::getGroupNum)));
+            ruleJson.forEach((Object k, Object v) -> {
+                String fieldVaule = (String) k;
+                Long runNum = Long.parseLong((String) runMap.get(fieldVaule));
+                percentMap.put(fieldVaule, runNum * 100 / taskDetailMap.get(fieldVaule));
+            });
+
         }
+
         return percentMap;
     }
 
     private void delFieldHandler(String uploadReportId, DataGroupTask dataGroupTask) {
         String apiCode = dataGroupTask.getApiCode();
         String groupField = dataGroupTask.getGroupFiled();
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 100);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 50);
         MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
         reportExample.createCriteria().andIdIn(Arrays.stream(uploadReportId.split(",")).map(Long::parseLong).collect(Collectors.toList()));
         List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
         reportList.forEach((MarketingSyncReport report) -> {
             Long indexId = null;
-            Integer pageSize = 2000;
+            Integer pageSize = marketingCommonConfig.getDataGroupPageSize().get("delFieldPageSize");
             while (true) {
-                List<MarketingSyncUser> marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, reportList, null
-                        , indexId, pageSize);
+                List<MarketingSyncUser> marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, Lists.newArrayList(report),
+                        null, indexId, pageSize);
                 if (CollectionUtils.isEmpty(marketingSyncUserList)) {
                     break;
                 }
@@ -376,59 +379,37 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
     private void addFieldHandler(String uploadReportId, DataGroupTask dataGroupTask) {
         String groupField = dataGroupTask.getGroupFiled();
         String apiCode = dataGroupTask.getApiCode();
+        Long taskId = dataGroupTask.getId();
         DataGropRuleVO rule = JSON.parseObject(dataGroupTask.getGroupRule(), new TypeReference<DataGropRuleVO>() {
         }.getType());
         MarketingSyncReportExample reportExample = new MarketingSyncReportExample();
         reportExample.createCriteria().andIdIn(Arrays.stream(uploadReportId.split(",")).map(Long::parseLong).collect(Collectors.toList()));
         List<MarketingSyncReport> reportList = syncReportMapper.selectByExample(reportExample);
-        Map<String, Set<String>> appletDateMap = reportList.stream().collect(Collectors.groupingBy(
-                MarketingSyncReport::getUserType,
-                Collectors.mapping(MarketingSyncReport::getAppletDate, Collectors.toSet())));
-        List<Map<String, Object>> groupTask = dataGroupNumTransfer(rule, reportList, Boolean.TRUE);
-        ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 100);
-        groupTask.forEach((Map<String, Object> taskMap) -> {
-            JSONObject jsonRule = (JSONObject) taskMap.get("rule");
-            String userType = (String) taskMap.get("userType");
-            String extendVaule = ((String) taskMap.get(rule.getExtendField()));
-            StringBuilder extend = new StringBuilder();
-            if (StringUtils.isNotEmpty(rule.getExtendField())) {
-                extend.append("reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule.replace("\"", "")
-                ).append("'");
-            }
-            Long indexId = null;
-            Set<String> keySet = jsonRule.keySet();
-            //单个规则分组清洗，对应同一批数据
-            for (String field : keySet) {
-                Integer pageSize;
-                Integer total = (int) jsonRule.get(field);
-                Integer sum = 0;
-                while (true) {
-                    //差值超过2000，每页赋值2000，小于2000，取小值
-                    if (total - sum >= 2000) {
-                        pageSize = 2000;
-                    } else {
-                        pageSize = total - sum;
-                    }
-                    //没有场景和扩展字段分组
-                    List<MarketingSyncUser> marketingSyncUserList;
-                    if ((StringUtils.isEmpty(userType))) {
-                        marketingSyncUserList = syncReportMapper.selectGroupDataByReport(apiCode, reportList, extend.toString(), indexId, pageSize);
-                    } else {
-                        //有场景需要获取场景属于的日期appletDate
-                        marketingSyncUserList = syncReportMapper.selectGroupData(apiCode, Lists.newArrayList(appletDateMap.get(userType)), userType,
-                                extend.toString(), indexId, pageSize);
-                    }
-                    indexId = marketingSyncUserList.get(marketingSyncUserList.size() - 1).getId();
-                    modifyCorePoolSize(pool);
-                    pool.submit(() -> {
-                        updateGroupData(marketingSyncUserList, groupField, field);
-                    });
-                    sum += marketingSyncUserList.size();
-                    //达到量级
-                    if (sum.equals(total)) {
-                        break;
-                    }
+        dataGroupNumTransfer(rule, reportList, taskId);
+        ThreadPoolExecutor pool = BrExecutors.getThreadPool(10, 10, 20);
+        //查询任务明细表
+        DataGroupTaskDetailExample taskDetailExample = new DataGroupTaskDetailExample();
+        taskDetailExample.createCriteria().andGroupTaskIdEqualTo(taskId);
+        List<DataGroupTaskDetail> taskDetailList = dataGroupTaskDetailMapper.selectByExample(taskDetailExample);
+        taskDetailList.forEach(taskDetail ->{
+            Long minId = taskDetail.getGroupMinId();
+            Long maxId = taskDetail.getGroupMaxId();
+            Boolean continueFlag = Boolean.TRUE;
+            while(continueFlag){
+                Integer pageSize =  marketingCommonConfig.getDataGroupPageSize().get("addFieldPageSize");
+                modifyCorePoolSize(pool);
+                Long middleId = minId+pageSize;
+                if(middleId>=maxId){
+                    middleId = maxId+1;
+                    continueFlag = Boolean.FALSE;
                 }
+                Long finalMinId = minId;
+                Long finalMiddleId = middleId;
+                pool.submit(() -> {
+                    addGroupFieldData(taskDetail, finalMinId, finalMiddleId);
+                });
+                minId = finalMiddleId;
+
             }
         });
         // 关闭线程池
@@ -442,6 +423,28 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
             Thread.currentThread().interrupt();
         }
         updateScoreConfigField(apiCode, groupField, "0");
+    }
+
+    private void addGroupFieldData(DataGroupTaskDetail taskDetail, Long minId, Long endId) {
+        try {
+            Long start = System.currentTimeMillis();
+            String apiCode = taskDetail.getApiCode();
+            StringBuilder update = new StringBuilder(
+                    String.format("UPDATE b_marketing_sync_%s SET reserve_field1 = CONCAT(SUBSTRING(reserve_field1, 1, (character_length(reserve_field1)" +
+                            " - 1)),',\"%s\":\"%s\"}') where ", apiCode, taskDetail.getGroupField(), taskDetail.getGroupFieldValue()));
+            update.append(taskDetail.getUpdateCondition()).append(" and id>=").append(minId).append(" and id<").append(endId);
+            int updateNum = syncReportMapper.updateBatchGroupData(update.toString());
+            String groupResultNumKey = RedisKeyConstant.DATA_GROUP_RESULT_NUM.concat(":").concat(taskDetail.getApiCode()).concat(":")
+                    .concat(taskDetail.getGroupTaskId().toString());
+            try {
+                redisChgService.hincrby(groupResultNumKey, taskDetail.getGroupFieldValue(), updateNum);
+            } catch (Exception ex) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "数据分组结果存入redis异常！"), ex);
+            }
+            log.warn("数据分组更新字段minId={}-endId={}，量级={}，耗时{}s", minId, endId, updateNum, (System.currentTimeMillis() - start) / 1000);
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YINGXIAO_SERVICEERROR.getCode(), "数据分组添加字段更新异常！"), ex);
+        }
     }
 
     private void updateScoreConfigField(String apiCode, String field, String type) {
@@ -537,12 +540,14 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
     }
 
     //数据分组量级转化
-    private List<Map<String, Object>> dataGroupNumTransfer(DataGropRuleVO rule, List<MarketingSyncReport> reportList, Boolean extendGroup) {
+    private void  dataGroupNumTransfer(DataGropRuleVO rule, List<MarketingSyncReport> reportList, Long taskId) {
         StringBuilder field = new StringBuilder();
         StringBuilder whereStr = new StringBuilder();
         StringBuilder groupStr = new StringBuilder();
+        StringBuilder reportStr = new StringBuilder();
+        String apiCode = reportList.get(0).getApiCode();
         field.append("select count(1) as num");
-        whereStr.append(" from b_marketing_sync_").append(reportList.get(0).getApiCode()).append(" where status =1 and is_repeat in (1, 2) ");
+        whereStr.append(" from b_marketing_sync_").append(apiCode).append(" where status =1 and is_repeat in (1, 2) ");
         if (rule.getGroupRange().equals("1")) {
             field.append(",user_type as userType");
             groupStr.append(" group by  user_type");
@@ -550,22 +555,22 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
         if (StringUtil.isNotBlank(rule.getExtendField())) {
             field.append(",reserve_field1->'$.\"").append(rule.getExtendField()).append("\"'  as ").append(rule.getExtendField());
             whereStr.append("and ").append("reserve_field1->'$.\"").append(rule.getExtendField()).append("\"' is not null ");
-            if (extendGroup) {
-                if (StringUtil.isBlank(groupStr)) {
-                    groupStr.append(" group by reserve_field1->'$.\"").append(rule.getExtendField()).append("\"'");
-                } else {
-                    groupStr.append(",reserve_field1->'$.\"").append(rule.getExtendField()).append("\"'");
-                }
+            if (StringUtil.isBlank(groupStr)) {
+                groupStr.append(" group by reserve_field1->'$.\"").append(rule.getExtendField()).append("\"'");
+            } else {
+                groupStr.append(",reserve_field1->'$.\"").append(rule.getExtendField()).append("\"'");
             }
         }
-        whereStr.append("and (");
+        reportStr.append("and (");
         reportList.forEach((MarketingSyncReport report) -> {
-            whereStr.append("(applet_date = '").append(report.getAppletDate()).append("' and user_type='").append(report.getUserType()).append("') or");
+            reportStr.append("(applet_date = '").append(report.getAppletDate()).append("' and user_type='").append(report.getUserType()).append("') or");
         });
-        whereStr.replace(whereStr.length() - 3, whereStr.length(), "");
-        whereStr.append(")");
-        List<Map<String, Object>> groupNumList = syncReportMapper.selectGroupCounttikv_(field.append(whereStr).append(groupStr).toString());
+        reportStr.replace(reportStr.length() - 3, reportStr.length(), "");
+        reportStr.append(")");
+        List<Map<String, Object>> groupNumList = syncReportMapper.selectGroupCounttikv_(field.append(whereStr).append(reportStr).append(groupStr).toString());
         JSONObject ruleJson = rule.getGroupNum();
+        Map<String, Set<String>> appletDateMap = reportList.stream().collect(Collectors.groupingBy(
+                MarketingSyncReport::getUserType, Collectors.mapping(MarketingSyncReport::getAppletDate, Collectors.toSet())));
         groupNumList.forEach(map -> {
             int count = Integer.valueOf(map.get("num").toString());
             JSONObject ruleNew = new JSONObject();
@@ -600,15 +605,60 @@ public class DataGroupHandlerServiceImpl implements DataGroupHandlerService {
                     currentIndex++;
                 }
             }
-            // 遍历并删除num为0的
+            // 解析任务插入任务详情表
+            Long indexId = null;
             for (Map.Entry<String, Object> entry : ruleNew.entrySet()) {
-                if ((int) entry.getValue() == 0) {
-                    ruleNew.remove(entry.getKey());
+                String groupFieldValue = entry.getKey();
+                int groupNum = (int) entry.getValue();
+                if (groupNum == 0) {
+                    continue;
                 }
+                StringBuilder sqlWhere = new StringBuilder();
+                StringBuilder appletDateWhere = new StringBuilder();
+                sqlWhere.append("status =1 and is_repeat in (1, 2) ");
+                appletDateWhere.append(" and applet_date");
+                String userType = (String) map.get("userType");
+                //有user_type，获取user_type对应的appletDate
+                if (StringUtils.isNotEmpty(userType)) {
+                    List<String> appletDates = Lists.newArrayList(appletDateMap.get(userType));
+                    if (appletDates.size() == 1) {
+                        appletDateWhere.append(" = '").append(appletDates.get(0)).append("'");
+                    } else {
+                        appletDateWhere.append(" in (").append(appletDates.stream().map(item -> "'" + item + "'").collect(Collectors.joining(",")
+                        )).append(")");
+                    }
+                    sqlWhere.append(" and user_type =").append(userType).append(appletDateWhere);
+                } else {
+                    sqlWhere.append(reportStr);
+                }
+                String extendField = rule.getExtendField();
+                String extendVaule = ((String) map.get(extendField));
+                if (StringUtils.isNotEmpty(extendField)) {
+                    sqlWhere.append(" and  reserve_field1->'$.").append(rule.getExtendField()).append("'='").append(extendVaule.replace("\"",
+                            "")).append("'");
+                }
+                Long start = System.currentTimeMillis();
+                Map<String, Long> maxMinId = syncReportMapper.selectGroupMaxMinId(apiCode, indexId, groupNum, sqlWhere.toString());
+                Long minId = maxMinId.get("minId");
+                Long maxId = maxMinId.get("maxId");
+                indexId = maxId;
+                DataGroupTaskDetail taskDetail = new DataGroupTaskDetail();
+                taskDetail.setApiCode(apiCode);
+                taskDetail.setGroupField(rule.getGroupField());
+                taskDetail.setGroupTaskId(taskId);
+                taskDetail.setGroupFieldValue(groupFieldValue);
+                taskDetail.setExtendField(extendField);
+                taskDetail.setExtendFieldValue(StringUtils.isNotEmpty(extendVaule) ? extendVaule.replace("\"", "") : null);
+                taskDetail.setGroupNum(groupNum);
+                taskDetail.setGroupMaxId(maxId);
+                taskDetail.setGroupMinId(minId);
+                taskDetail.setUserType(userType);
+                taskDetail.setUpdateCondition(sqlWhere.toString());
+                taskDetail.setCreateTime(new Date());
+                taskDetail.setUpdateTime(new Date());
+                dataGroupTaskDetailMapper.insertSelective(taskDetail);
+                log.warn("数据分组任务解析，耗时{}s", (System.currentTimeMillis() - start) / 1000);  
             }
-            map.put("rule", ruleNew);
         });
-
-        return groupNumList;
     }
 }

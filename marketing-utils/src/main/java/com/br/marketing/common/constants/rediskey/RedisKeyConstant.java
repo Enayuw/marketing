@@ -290,5 +290,10 @@ public class RedisKeyConstant {
      * 客户标签
      */
     public static final String CUSTOMERTAGS = prefix.concat("customer:tags");
+    /**
+     * 数据分组结果量级
+     */
+    public static final String DATA_GROUP_RESULT_NUM = prefix.concat("data:group:resultnum");
+
 
 }
