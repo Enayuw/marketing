@@ -856,7 +856,7 @@ public class PushRosterLockingDataToZhongAnHandle extends IMonkeyDataHandle<Zhon
                 }
             }
         }catch (Exception e){
-            log.warn("redis查询众安当天拨打记录黑名单异常");
+            log.error("redis查询众安当天拨打记录黑名单异常");
             processTodayZhongaAnBlackDataFromDb(custNumMap,custNumBlackListSet,nowDayStr);
         }
     }
