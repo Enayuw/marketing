@@ -24,6 +24,7 @@ import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.MergeFieldService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
 import lombok.extern.slf4j.Slf4j;
@@ -255,7 +256,8 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                         pushMarketingUserDetailDTO.setCaseNumber(transferUser.getCustNum());
                         pushMarketingUserDetailDTO.setPhone(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(cell).getBytes()));
                         JSONObject varDto = new JSONObject();
-                        mergeFieldService.mergeUploadAndTransfer(varDto, transferUser, marketingSyncUser);
+                        mergeFieldService.mergeUploadAndTransfer(varDto, transferUser, marketingSyncUser
+                                , CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
                         varDto.put("status",status);
                         pushMarketingUserDetailDTO.setVariables(varDto);
                         list.add(pushMarketingUserDetailDTO);

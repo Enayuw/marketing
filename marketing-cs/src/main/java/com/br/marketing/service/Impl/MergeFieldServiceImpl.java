@@ -7,8 +7,10 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.service.MergeFieldService;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -23,24 +25,25 @@ import java.util.Set;
 @Service
 public class MergeFieldServiceImpl implements MergeFieldService {
 
-    public static final Set<String> FILTER_KEY_SET = new HashSet<>(Arrays.asList("id","reserveField1","reserveField2"
-            ,"createTime","updateTime"));
+    public static final Set<String> FILTER_KEY_SET = new HashSet<>(Arrays.asList("id","apiCode","reserveField1","reserveField2"
+            ,"createTime","updateTime","status","failType","isTask","taskTime","isRepeat","cid","tCid"));
     public static final Set<String> THREE_KEY_SET = new HashSet<>(Arrays.asList("idCard","name","cell"));
 
     public static final String SSS = ":000";
 
     @Override
-    public void mergeUploadAndTransfer(JSONObject result, MarketingTransferSyncUser transfer, MarketingSyncUser syncUser) {
+    public void mergeUploadAndTransfer(JSONObject result, MarketingTransferSyncUser transfer, MarketingSyncUser syncUser
+            , Integer encryptionType) {
         try{
             JSONObject transferObject = (JSONObject)JSON.toJSON(transfer);
             JSONObject syncUserObject =(JSONObject)JSON.toJSON(syncUser);
             if(null != transferObject && !transferObject.isEmpty()){
-                mergeJSONObject(result, transferObject);
+                mergeJSONObject(result, transferObject, encryptionType);
                 mergeReserveField1(result, transferObject);
             }
             if(null != syncUserObject && !syncUserObject.isEmpty()){
                 mergeReserveField1(result, syncUserObject);
-                mergeJSONObject(result, syncUserObject);
+                mergeJSONObject(result, syncUserObject, encryptionType);
             }
         }catch (Exception e){
             log.warn("transfer and marketingSyncUser merge error,transfer:{}--marketingSyncUser:{}--"
@@ -64,14 +67,13 @@ public class MergeFieldServiceImpl implements MergeFieldService {
             }
         }
     }
-    private void mergeJSONObject(JSONObject result, JSONObject jsonObject){
+    private void mergeJSONObject(JSONObject result, JSONObject jsonObject, Integer encryptionType){
         for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
             if(!FILTER_KEY_SET.contains(key)){
                 if(THREE_KEY_SET.contains(key) && null != value){
-                    String decode = BrCipherMaker.getInstance().decode(value.toString());
-                    result.put(key,decode);
+                    result.put(key,get3keyValue(value.toString(), encryptionType));
                 }else{
                     if(null != result.get(key)){
                         if(null != value && StringUtils.isNotBlank(value.toString())){
@@ -116,6 +118,19 @@ public class MergeFieldServiceImpl implements MergeFieldService {
         if(StringUtils.isNotBlank(transfer.getInsertTime())){
             transfer.setInsertTime(transfer.getInsertTime().replace(SSS,""));
         }
+    }
+    @Override
+    public String get3keyValue(String content, Integer encryptionType) {
+        if (StringUtils.isBlank(content)) {
+            return content;
+        }
+        String decode = BrCipherMaker.getInstance().decode(content);
+        if (CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue().equals(encryptionType)) {
+            return StringUtils.isNotBlank(decode) ? DigestUtils.md5DigestAsHex(decode.getBytes()) : content;
+        }else if(CustomerTagsValue.PushJc3keyTypeEnum.INIT.getValue().equals(encryptionType)){
+            return content;
+        }
+        return content;
     }
 
 }

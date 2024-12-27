@@ -17,6 +17,7 @@ import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.MergeFieldService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -85,7 +86,8 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
         transfer.setApiCode(apiCode);
         JSONObject variables = new JSONObject();
-        mergeFieldService.mergeUploadAndTransfer(variables, transfer, marketingSyncUser);
+        mergeFieldService.mergeUploadAndTransfer(variables, transfer, marketingSyncUser
+                , CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
         variables.put("apiCode", apiCode);
         pushMarketingUserDetailByRuleDTO.setVariables(variables);
         String reserveField1 = transfer.getReserveField1();
