@@ -11,10 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 
 /**
@@ -57,7 +54,9 @@ public class MqConsumerShutdown {
                                     log.warn("rocketMQ消费者开始暂停订阅[{}]-[{}]，信息:{}", consumer.getConsumerGroup()
                                             , containerThreadName, consumer);
                                     consumer.suspend();
-                                    dlc.stop();
+                                    TimeUnit.SECONDS.sleep(3);
+                                    consumer.shutdown();
+                                    dlc.destroy();
                                     long endTime = System.currentTimeMillis();
                                     log.warn("rocketMQ消费者组下线成功[{}]-[{}]，耗时：{}s，信息:{}", dlc.getConsumerGroup()
                                             , containerThreadName, ((endTime - startTime) / 1000), dlc);
