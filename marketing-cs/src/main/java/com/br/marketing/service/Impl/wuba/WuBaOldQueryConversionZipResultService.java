@@ -279,7 +279,8 @@ public class WuBaOldQueryConversionZipResultService {
                 taskCount = completedTaskCount;
             }
         } catch (InterruptedException e) {
-            Thread.interrupted();
+            log.warn(TITLE + "Interrupted!", e);
+            Thread.currentThread().interrupt();
         } catch (Throwable e) {
             log.warn(TITLE + "ThreadPoolManager shutdown executor has error : ", e);
         }
