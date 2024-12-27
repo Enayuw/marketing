@@ -484,7 +484,7 @@
     />
     <job:simple id="【monkey】-WuBaOldCollidingDataQueryResultJob"
                 class="com.br.marketing.monkey.job.wuba.WuBaOldCollidingDataQueryResultJob"
-                cron="0 0/30 10-21 * * ?"
+                cron="0 0/5 10-21 * * ?"
                 description="58老客查询撞库结果作业"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
