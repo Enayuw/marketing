@@ -106,7 +106,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
             marketingPreUserDetailDTO.setCustNum(nameValueDTO.getCidMd5());
             JSONObject reserveField1 = new JSONObject();
             reserveField1.put("userType", userType);
-            reserveField1.put("registerTime", nameValueDTO.getRegisterDatetime());
+            reserveField1.put("registerTime", nameValueDTO.getRegisterDateTime());
             if (nameValueDTO.getExtendFields() != null && !nameValueDTO.getExtendFields().isEmpty()) {
                 reserveField1.putAll(nameValueDTO.getExtendFields());
             }
