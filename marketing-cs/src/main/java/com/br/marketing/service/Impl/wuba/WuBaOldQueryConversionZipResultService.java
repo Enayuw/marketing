@@ -100,7 +100,8 @@ public class WuBaOldQueryConversionZipResultService {
             }
 
             String ftpRelativePath = marketingCommonConfig.getWuBaOldQueryConversionZipResultInnerFtpRelativePath();
-            ftpRelativePath = ftpRelativePath.concat(bizDate);
+            String dateDir = bizDate.replace("-", "");
+            ftpRelativePath = ftpRelativePath.concat(dateDir);
             Result pushResult = pushToInnerSftpService.push(zipFileName, ftpRelativePath, zipFilePath);
             if(pushResult == null || !pushResult.isSuccess()){
                 log.error(TITLE + "推送内部SFTP异常");
