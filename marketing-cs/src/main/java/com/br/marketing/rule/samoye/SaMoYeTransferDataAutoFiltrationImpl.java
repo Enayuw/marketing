@@ -6,7 +6,6 @@ import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
-import com.br.marketing.client.dassservice.input.transfer.ConversionDataSoleDTO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.common.utils.DateHelper;
@@ -18,8 +17,10 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
+import com.br.marketing.vo.TransferSyncUserToRobotAiVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,7 @@ import java.util.Map;
 @Service
 @Slf4j
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
-public class SaMoYeTransferDataAutoFiltrationImpl implements AssembleData<ConversionDataSoleDTO> {
+public class SaMoYeTransferDataAutoFiltrationImpl implements AssembleData<ConversionData> {
 
     /**
      * 是否已转化 0 客服接口字段对应关系
@@ -43,7 +44,7 @@ public class SaMoYeTransferDataAutoFiltrationImpl implements AssembleData<Conver
     private final static String INVERSION_STATUS_0="0";
 
     @Override
-    public ConversionDataSoleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
+    public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
         MarketingTransferSyncUser marketingTransferSyncUser = (MarketingTransferSyncUser) transmitFact;
         String custNum = marketingTransferSyncUser.getCustNum();
         String userType = marketingTransferSyncUser.getUserType();
@@ -64,7 +65,9 @@ public class SaMoYeTransferDataAutoFiltrationImpl implements AssembleData<Conver
         List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
         conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUsers.get(0).getCell()));
         conversionData.setGroupType(syncUsers.get(0).getUserType());
-
+        TransferSyncUserToRobotAiVO vo = new TransferSyncUserToRobotAiVO();
+        BeanUtils.copyProperties(marketingTransferSyncUser, vo);
+        conversionData.setInversionInfo(JSON.toJSONString(vo));
         // 去重参数设置(有效期内一个phone推一次)
         conversionData.setSoleField(SoleFieldEnum.CELL_SOLE.getValue());
         conversionData.setSoleType(-1);
@@ -73,9 +76,7 @@ public class SaMoYeTransferDataAutoFiltrationImpl implements AssembleData<Conver
         conversionData.setExpireEndDate(periodOfValidityBO.getEnDateStr());
         conversionData.setExpireDate(periodOfValidityBO.getEndOfDayTimeStr());
 
-        ConversionDataSoleDTO dataSoleDTO = new ConversionDataSoleDTO();
-        dataSoleDTO.setConversionData(conversionData);
-        return dataSoleDTO;
+        return conversionData;
     }
 
     @Override
