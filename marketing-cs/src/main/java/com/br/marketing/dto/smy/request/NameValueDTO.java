@@ -9,7 +9,6 @@ import lombok.Data;
 @Data
 public class NameValueDTO implements Serializable {
     private static final long serialVersionUID = -6958499637324020866L;
-
     @ApiModelProperty("32位小写md5加密客户号")
     @JsonProperty("cid_md5")
     private String cidMd5;
