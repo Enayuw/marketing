@@ -187,7 +187,6 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
             WubaCollidingData data = new WubaCollidingData();
             data.setCell(t.getString(MOBILE_ENCRYPT));
             data.setStatus("1");
-            data.setExtend(JSON.toJSONString(t));
             return data;
         }).collect(Collectors.toList());
         return trueDatas;

@@ -9,7 +9,7 @@
     <select id="selectCollidingDataResult" resultType="com.br.marketing.entity.WubaOldCollidingDataBatchNo">
         select id, batch_no, api_code, data_source_type
         from b_wuba_old_colliding_data_batch_no
-        where query_status = 0 and batch_type = 1 and api_code = #{apiCode} and is_deleted = 0
+        where query_status = 0 and api_code = #{apiCode} and is_deleted = 0
         <![CDATA[ and push_time < #{pushTime} ]]>
         order by id limit #{pageSize}
     </select>
