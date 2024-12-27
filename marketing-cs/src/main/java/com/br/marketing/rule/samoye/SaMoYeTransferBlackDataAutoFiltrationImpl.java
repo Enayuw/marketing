@@ -57,11 +57,7 @@ public class SaMoYeTransferBlackDataAutoFiltrationImpl implements AssembleData<C
         conversionData.setInversionStatus(INVERSION_STATUS_2);
         MarketingSyncUser syncUser = marketingSyncUserMapper.selectSynsUserByCustNumLastWithStatus(apiCode, custNum);
         if (syncUser == null || StringUtils.isEmpty(syncUser.getCell())) {
-            String message = String.format("萨摩耶黑名单自动化过滤未查询到手机号apiCode:[%s]和cid:[%s]和custNum:[%s]"
-                    , apiCode, cid, custNum);
-            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.SAMOYE_TRANSFER_PHONE_NOT_FIND.getCode(),
-                    message));
-            return null;
+            conversionData.setPhone("");
         } else {
             conversionData.setPhone(BrCipherMaker.getInstance().decode(syncUser.getCell()));
         }
