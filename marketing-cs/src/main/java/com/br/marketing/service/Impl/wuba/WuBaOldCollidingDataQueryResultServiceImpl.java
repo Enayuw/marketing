@@ -30,9 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -156,7 +153,11 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
             List<WubaCollidingData> trueDatas = getTrueDatas(jsonArray);
 
             // 更新log表撞库结果，并返回其他不可营销数据
-            updateLogResultAndGetOtherFalseCells(apiCode, batchNo, jsonArray);
+            updateLogResult(apiCode, batchNo, jsonArray);
+
+            if (CollectionUtils.isEmpty(trueDatas)) {
+                return;
+            }
 
             // 保存到上传清洗表
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
@@ -189,8 +190,8 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
         return trueDatas;
     }
 
-    private void updateLogResultAndGetOtherFalseCells(String apiCode, String batchNo,
-                                                      JSONArray jsonArray) {
+    private void updateLogResult(String apiCode, String batchNo,
+                                 JSONArray jsonArray) {
         // 更新status=1撞得log
         List<WubaOldCollidingDataLog> trueLogs = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
                 .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), 1)).map((JSONObject t) -> {
@@ -203,7 +204,9 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
                     return log;
                 }).collect(Collectors.toList());
 
-        wubaOldCollidingDataLogMapper.batchSaveByBatchNo(trueLogs);
+        if (!CollectionUtils.isEmpty(trueLogs)){
+            wubaOldCollidingDataLogMapper.batchSaveByBatchNo(trueLogs);
+        }
 
         // 更新status=1撞得log
         List<WubaOldCollidingDataLog> falseLogs = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
@@ -217,7 +220,9 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
                     return log;
                 }).collect(Collectors.toList());
 
-        wubaOldCollidingDataLogMapper.batchSaveByBatchNo(falseLogs);
+        if (!CollectionUtils.isEmpty(falseLogs)){
+            wubaOldCollidingDataLogMapper.batchSaveByBatchNo(falseLogs);
+        }
     }
 
     private void updateTaskCleanStatusById(Long taskId) {
