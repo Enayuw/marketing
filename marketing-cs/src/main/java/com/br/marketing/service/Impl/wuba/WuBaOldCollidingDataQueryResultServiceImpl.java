@@ -13,6 +13,7 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.WubaCollidingData;
 import com.br.marketing.entity.WubaOldCollidingDataBatchNo;
+import com.br.marketing.entity.WubaOldCollidingDataLog;
 import com.br.marketing.entity.WubaOldCollidingDataSyncClean;
 import com.br.marketing.entity.WubaOldCollidingDataSyncCleanExample;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
@@ -68,12 +69,8 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         marketingCommonConfig.getWubaOldCollidingApiCodes().forEach((String apiCode) -> {
-            Integer waitMinutes = marketingCommonConfig.getWuBaOldCollidingQueryResultWaitMinutes();
-            LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(waitMinutes);
-            Date pushTime = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
             Integer pageSize = marketingCommonConfig.getWuBaOldCollidingQueryResultPageSize();
-
-            List<WubaOldCollidingDataBatchNo> wubaCollidingBatchNos = wubaOldCollidingBatchNoMapper.selectCollidingDataResult(pushTime, pageSize,
+            List<WubaOldCollidingDataBatchNo> wubaCollidingBatchNos = wubaOldCollidingBatchNoMapper.selectCollidingDataResult(pageSize,
                     apiCode);
             if (CollectionUtils.isEmpty(wubaCollidingBatchNos)) {
                 return;
@@ -159,7 +156,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
             List<WubaCollidingData> trueDatas = getTrueDatas(jsonArray);
 
             // 更新log表撞库结果，并返回其他不可营销数据
-            updateLogResultAndGetOtherFalseCells(trueDatas, batchNo, jsonArray);
+            updateLogResultAndGetOtherFalseCells(apiCode, batchNo, jsonArray);
 
             // 保存到上传清洗表
             List<CompletableFuture<Void>> futures = Lists.newArrayList();
@@ -192,25 +189,35 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
         return trueDatas;
     }
 
-    private void updateLogResultAndGetOtherFalseCells(List<WubaCollidingData> trueDatas, String batchNo,
+    private void updateLogResultAndGetOtherFalseCells(String apiCode, String batchNo,
                                                       JSONArray jsonArray) {
         // 更新status=1撞得log
-        trueDatas.parallelStream().forEach((WubaCollidingData t) -> {
-            wubaOldCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), true, t.getStatus(), t.getExtend());
-        });
-
-        // 更新status非1数据log
-        List<WubaCollidingData> otherDatas = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
-                .filter((JSONObject t) -> !Objects.equals(t.getInteger("status"), 1)).map((JSONObject t) -> {
-                    WubaCollidingData data = new WubaCollidingData();
-                    data.setCell(t.getString(MOBILE_ENCRYPT));
-                    data.setStatus(String.valueOf(t.getInteger("status")));
-                    data.setExtend(JSON.toJSONString(t));
-                    return data;
+        List<WubaOldCollidingDataLog> trueLogs = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), 1)).map((JSONObject t) -> {
+                    WubaOldCollidingDataLog log = new WubaOldCollidingDataLog();
+                    log.setCell(t.getString(MOBILE_ENCRYPT));
+                    log.setBatchNo(batchNo);
+                    log.setApiCode(apiCode);
+                    log.setResult(true);
+                    log.setStatus(String.valueOf(t.getInteger("status")));
+                    return log;
                 }).collect(Collectors.toList());
-        otherDatas.parallelStream().forEach((WubaCollidingData t) -> {
-            wubaOldCollidingDataLogMapper.updateByBatchNoAndCell(batchNo, t.getCell(), false, t.getStatus(), t.getExtend());
-        });
+
+        wubaOldCollidingDataLogMapper.batchSaveByBatchNo(trueLogs);
+
+        // 更新status=1撞得log
+        List<WubaOldCollidingDataLog> falseLogs = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                .filter((JSONObject t) -> !Objects.equals(t.getInteger("status"), 1)).map((JSONObject t) -> {
+                    WubaOldCollidingDataLog log = new WubaOldCollidingDataLog();
+                    log.setCell(t.getString(MOBILE_ENCRYPT));
+                    log.setBatchNo(batchNo);
+                    log.setApiCode(apiCode);
+                    log.setResult(false);
+                    log.setStatus(String.valueOf(t.getInteger("status")));
+                    return log;
+                }).collect(Collectors.toList());
+
+        wubaOldCollidingDataLogMapper.batchSaveByBatchNo(falseLogs);
     }
 
     private void updateTaskCleanStatusById(Long taskId) {

@@ -1931,11 +1931,6 @@ public class MarketingCommonConfig {
     private Integer wuBaOldCollidingQueryResultPageSize;
 
     /**
-     * 58老客查询撞库结果等待时长（分钟）
-     */
-    private Integer wuBaOldCollidingQueryResultWaitMinutes;
-
-    /**
      * 58老客撞库接口参数配置
      */
     private JSONObject wuBaOldCollidingUrlConfig;

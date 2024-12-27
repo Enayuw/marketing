@@ -11,7 +11,6 @@ public interface WubaOldCollidingBatchNoMapper extends WubaOldCollidingDataBatch
     void saveDataByBatchNo(@Param("batchNo") String batchNo, @Param("batchType") Integer type, @Param("apiCode") String apiCode, @Param(
             "dataSourceType") String dataSourceType);
 
-    List<WubaOldCollidingDataBatchNo> selectCollidingDataResult(@Param("pushTime") Date pushTime,
-                                                                @Param("pageSize") Integer pageSize,
+    List<WubaOldCollidingDataBatchNo> selectCollidingDataResult(@Param("pageSize") Integer pageSize,
                                                                 @Param("apiCode") String apiCode);
 }
