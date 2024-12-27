@@ -41,10 +41,11 @@ public class SmyUploadDataService {
      * @author Sion Cheng
      * @date 2024/12/18
      */
-    public SmyResponseDTO receiveSmyUploadData(SmyUploadRequestDTO dto, HttpServletRequest request) {
+    public SmyResponseDTO receiveSmyUploadData(String jsonData, HttpServletRequest request) {
         SmyResponseDTO smyResponseDTO = new SmyResponseDTO();
         smyResponseDTO.success();
         try {
+            SmyUploadRequestDTO dto = JSONObject.parseObject(jsonData, SmyUploadRequestDTO.class);
             CustomizeUploadDataSmy customizeUploadDataSmy = new CustomizeUploadDataSmy();
             JSONObject smyCustomizeDataConfig = marketingCommonConfig.getSmyCustomizeDataConfig();
             String testApiCode = request.getHeader("Test-ApiCode");
@@ -78,17 +79,17 @@ public class SmyUploadDataService {
                 customizeUploadDataSmy.setStatus(0);
                 smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_PARAM_ERROR, errorMessage.toString());
             }
-            customizeUploadDataSmy.setBizDataNumber(dto.getTotal());
+            customizeUploadDataSmy.setBizDataNumber(dto.getNameList().size());
             customizeUploadDataSmy.setResponseCode(String.valueOf(smyResponseDTO.getCode()));
             customizeUploadDataSmy.setResponseData(smyResponseDTO.getMessage());
             int i = customizeUploadDataSmyMapper.insertSelective(customizeUploadDataSmy);
             if (i != 1) {
-                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "dto:" + dto,
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "jsonData:" + jsonData,
                         "萨摩耶定制上传数据入库失败！！！"));
             }
         } catch (Exception e) {
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
-                    "dtoJson:" + JSONObject.toJSONString(dto), "萨摩耶定制上传数据接入异常！！！"));
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "jsonData:" + jsonData,
+                    "萨摩耶定制上传数据接入异常！！！"));
             smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_SYSTEM_ERROR);
         }
         return smyResponseDTO;
