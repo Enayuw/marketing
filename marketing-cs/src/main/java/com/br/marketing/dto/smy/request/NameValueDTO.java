@@ -18,7 +18,7 @@ public class NameValueDTO implements Serializable {
     private String midMd5;
     @ApiModelProperty("注册时间")
     @JsonProperty("register_datetime")
-    private String registerDatetime;
+    private String registerDateTime;
     @ApiModelProperty("json扩展字段 注：建议全部存储")
     @JsonProperty("extend_fields")
     private JSONObject extendFields;

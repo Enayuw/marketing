@@ -545,6 +545,12 @@ public interface MarketingTransferSyncUserMapper extends MarketingTransferSyncUs
                                                               @Param("requestEndDate") String requestEndDate,
                                                               @Param("indexId") Long indexId,
                                                               @Param("querySql") String querySql);
+    int getTransferSyncUserEventTypeCount(@Param("tCid") String tCid,
+                 @Param("apiCode") String apiCode,
+                 @Param("custNum") String custNum,
+                 @Param("userType") String userType,
+                 @Param("requestStartDate") String requestStartDate,
+                 @Param("requestEndDate") String requestEndDate);
 
     /**
      * 2024-03-08 9:29

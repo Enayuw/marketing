@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class XiechengCollidingDataPackageRuleExample {
+public class DataGroupTaskDetailExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public XiechengCollidingDataPackageRuleExample() {
-        oredCriteria = new ArrayList<Criteria>();
+    public DataGroupTaskDetailExample() {
+        oredCriteria = new ArrayList<>();
     }
 
     public void setOrderByClause(String orderByClause) {
@@ -69,7 +69,7 @@ public class XiechengCollidingDataPackageRuleExample {
 
         protected GeneratedCriteria() {
             super();
-            criteria = new ArrayList<Criterion>();
+            criteria = new ArrayList<>();
         }
 
         public boolean isValid() {
@@ -235,563 +235,593 @@ public class XiechengCollidingDataPackageRuleExample {
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdIsNull() {
-            addCriterion("package_id is null");
+        public Criteria andGroupTaskIdIsNull() {
+            addCriterion("group_task_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdIsNotNull() {
-            addCriterion("package_id is not null");
+        public Criteria andGroupTaskIdIsNotNull() {
+            addCriterion("group_task_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdEqualTo(Long value) {
-            addCriterion("package_id =", value, "packageId");
+        public Criteria andGroupTaskIdEqualTo(Long value) {
+            addCriterion("group_task_id =", value, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdNotEqualTo(Long value) {
-            addCriterion("package_id <>", value, "packageId");
+        public Criteria andGroupTaskIdNotEqualTo(Long value) {
+            addCriterion("group_task_id <>", value, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdGreaterThan(Long value) {
-            addCriterion("package_id >", value, "packageId");
+        public Criteria andGroupTaskIdGreaterThan(Long value) {
+            addCriterion("group_task_id >", value, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("package_id >=", value, "packageId");
+        public Criteria andGroupTaskIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("group_task_id >=", value, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdLessThan(Long value) {
-            addCriterion("package_id <", value, "packageId");
+        public Criteria andGroupTaskIdLessThan(Long value) {
+            addCriterion("group_task_id <", value, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdLessThanOrEqualTo(Long value) {
-            addCriterion("package_id <=", value, "packageId");
+        public Criteria andGroupTaskIdLessThanOrEqualTo(Long value) {
+            addCriterion("group_task_id <=", value, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdIn(List<Long> values) {
-            addCriterion("package_id in", values, "packageId");
+        public Criteria andGroupTaskIdIn(List<Long> values) {
+            addCriterion("group_task_id in", values, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdNotIn(List<Long> values) {
-            addCriterion("package_id not in", values, "packageId");
+        public Criteria andGroupTaskIdNotIn(List<Long> values) {
+            addCriterion("group_task_id not in", values, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdBetween(Long value1, Long value2) {
-            addCriterion("package_id between", value1, value2, "packageId");
+        public Criteria andGroupTaskIdBetween(Long value1, Long value2) {
+            addCriterion("group_task_id between", value1, value2, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andPackageIdNotBetween(Long value1, Long value2) {
-            addCriterion("package_id not between", value1, value2, "packageId");
+        public Criteria andGroupTaskIdNotBetween(Long value1, Long value2) {
+            addCriterion("group_task_id not between", value1, value2, "groupTaskId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdIsNull() {
-            addCriterion("colliding_data_task_id is null");
+        public Criteria andUserTypeIsNull() {
+            addCriterion("user_type is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdIsNotNull() {
-            addCriterion("colliding_data_task_id is not null");
+        public Criteria andUserTypeIsNotNull() {
+            addCriterion("user_type is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdEqualTo(Long value) {
-            addCriterion("colliding_data_task_id =", value, "collidingDataTaskId");
+        public Criteria andUserTypeEqualTo(String value) {
+            addCriterion("user_type =", value, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdNotEqualTo(Long value) {
-            addCriterion("colliding_data_task_id <>", value, "collidingDataTaskId");
+        public Criteria andUserTypeNotEqualTo(String value) {
+            addCriterion("user_type <>", value, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdGreaterThan(Long value) {
-            addCriterion("colliding_data_task_id >", value, "collidingDataTaskId");
+        public Criteria andUserTypeGreaterThan(String value) {
+            addCriterion("user_type >", value, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("colliding_data_task_id >=", value, "collidingDataTaskId");
+        public Criteria andUserTypeGreaterThanOrEqualTo(String value) {
+            addCriterion("user_type >=", value, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdLessThan(Long value) {
-            addCriterion("colliding_data_task_id <", value, "collidingDataTaskId");
+        public Criteria andUserTypeLessThan(String value) {
+            addCriterion("user_type <", value, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdLessThanOrEqualTo(Long value) {
-            addCriterion("colliding_data_task_id <=", value, "collidingDataTaskId");
+        public Criteria andUserTypeLessThanOrEqualTo(String value) {
+            addCriterion("user_type <=", value, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdIn(List<Long> values) {
-            addCriterion("colliding_data_task_id in", values, "collidingDataTaskId");
+        public Criteria andUserTypeLike(String value) {
+            addCriterion("user_type like", value, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdNotIn(List<Long> values) {
-            addCriterion("colliding_data_task_id not in", values, "collidingDataTaskId");
+        public Criteria andUserTypeNotLike(String value) {
+            addCriterion("user_type not like", value, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdBetween(Long value1, Long value2) {
-            addCriterion("colliding_data_task_id between", value1, value2, "collidingDataTaskId");
+        public Criteria andUserTypeIn(List<String> values) {
+            addCriterion("user_type in", values, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdNotBetween(Long value1, Long value2) {
-            addCriterion("colliding_data_task_id not between", value1, value2, "collidingDataTaskId");
+        public Criteria andUserTypeNotIn(List<String> values) {
+            addCriterion("user_type not in", values, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberIsNull() {
-            addCriterion("colliding_back_number is null");
+        public Criteria andUserTypeBetween(String value1, String value2) {
+            addCriterion("user_type between", value1, value2, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberIsNotNull() {
-            addCriterion("colliding_back_number is not null");
+        public Criteria andUserTypeNotBetween(String value1, String value2) {
+            addCriterion("user_type not between", value1, value2, "userType");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberEqualTo(Integer value) {
-            addCriterion("colliding_back_number =", value, "collidingBackNumber");
+        public Criteria andExtendFieldIsNull() {
+            addCriterion("extend_field is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberNotEqualTo(Integer value) {
-            addCriterion("colliding_back_number <>", value, "collidingBackNumber");
+        public Criteria andExtendFieldIsNotNull() {
+            addCriterion("extend_field is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberGreaterThan(Integer value) {
-            addCriterion("colliding_back_number >", value, "collidingBackNumber");
+        public Criteria andExtendFieldEqualTo(String value) {
+            addCriterion("extend_field =", value, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberGreaterThanOrEqualTo(Integer value) {
-            addCriterion("colliding_back_number >=", value, "collidingBackNumber");
+        public Criteria andExtendFieldNotEqualTo(String value) {
+            addCriterion("extend_field <>", value, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberLessThan(Integer value) {
-            addCriterion("colliding_back_number <", value, "collidingBackNumber");
+        public Criteria andExtendFieldGreaterThan(String value) {
+            addCriterion("extend_field >", value, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberLessThanOrEqualTo(Integer value) {
-            addCriterion("colliding_back_number <=", value, "collidingBackNumber");
+        public Criteria andExtendFieldGreaterThanOrEqualTo(String value) {
+            addCriterion("extend_field >=", value, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberIn(List<Integer> values) {
-            addCriterion("colliding_back_number in", values, "collidingBackNumber");
+        public Criteria andExtendFieldLessThan(String value) {
+            addCriterion("extend_field <", value, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberNotIn(List<Integer> values) {
-            addCriterion("colliding_back_number not in", values, "collidingBackNumber");
+        public Criteria andExtendFieldLessThanOrEqualTo(String value) {
+            addCriterion("extend_field <=", value, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberBetween(Integer value1, Integer value2) {
-            addCriterion("colliding_back_number between", value1, value2, "collidingBackNumber");
+        public Criteria andExtendFieldLike(String value) {
+            addCriterion("extend_field like", value, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingBackNumberNotBetween(Integer value1, Integer value2) {
-            addCriterion("colliding_back_number not between", value1, value2, "collidingBackNumber");
+        public Criteria andExtendFieldNotLike(String value) {
+            addCriterion("extend_field not like", value, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeIsNull() {
-            addCriterion("colliding_start_time is null");
+        public Criteria andExtendFieldIn(List<String> values) {
+            addCriterion("extend_field in", values, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeIsNotNull() {
-            addCriterion("colliding_start_time is not null");
+        public Criteria andExtendFieldNotIn(List<String> values) {
+            addCriterion("extend_field not in", values, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeEqualTo(Date value) {
-            addCriterion("colliding_start_time =", value, "collidingStartTime");
+        public Criteria andExtendFieldBetween(String value1, String value2) {
+            addCriterion("extend_field between", value1, value2, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeNotEqualTo(Date value) {
-            addCriterion("colliding_start_time <>", value, "collidingStartTime");
+        public Criteria andExtendFieldNotBetween(String value1, String value2) {
+            addCriterion("extend_field not between", value1, value2, "extendField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeGreaterThan(Date value) {
-            addCriterion("colliding_start_time >", value, "collidingStartTime");
+        public Criteria andExtendFieldValueIsNull() {
+            addCriterion("extend_field_value is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("colliding_start_time >=", value, "collidingStartTime");
+        public Criteria andExtendFieldValueIsNotNull() {
+            addCriterion("extend_field_value is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeLessThan(Date value) {
-            addCriterion("colliding_start_time <", value, "collidingStartTime");
+        public Criteria andExtendFieldValueEqualTo(String value) {
+            addCriterion("extend_field_value =", value, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeLessThanOrEqualTo(Date value) {
-            addCriterion("colliding_start_time <=", value, "collidingStartTime");
+        public Criteria andExtendFieldValueNotEqualTo(String value) {
+            addCriterion("extend_field_value <>", value, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeIn(List<Date> values) {
-            addCriterion("colliding_start_time in", values, "collidingStartTime");
+        public Criteria andExtendFieldValueGreaterThan(String value) {
+            addCriterion("extend_field_value >", value, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeNotIn(List<Date> values) {
-            addCriterion("colliding_start_time not in", values, "collidingStartTime");
+        public Criteria andExtendFieldValueGreaterThanOrEqualTo(String value) {
+            addCriterion("extend_field_value >=", value, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeBetween(Date value1, Date value2) {
-            addCriterion("colliding_start_time between", value1, value2, "collidingStartTime");
+        public Criteria andExtendFieldValueLessThan(String value) {
+            addCriterion("extend_field_value <", value, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeNotBetween(Date value1, Date value2) {
-            addCriterion("colliding_start_time not between", value1, value2, "collidingStartTime");
+        public Criteria andExtendFieldValueLessThanOrEqualTo(String value) {
+            addCriterion("extend_field_value <=", value, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeIsNull() {
-            addCriterion("colliding_end_time is null");
+        public Criteria andExtendFieldValueLike(String value) {
+            addCriterion("extend_field_value like", value, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeIsNotNull() {
-            addCriterion("colliding_end_time is not null");
+        public Criteria andExtendFieldValueNotLike(String value) {
+            addCriterion("extend_field_value not like", value, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeEqualTo(Date value) {
-            addCriterion("colliding_end_time =", value, "collidingEndTime");
+        public Criteria andExtendFieldValueIn(List<String> values) {
+            addCriterion("extend_field_value in", values, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeNotEqualTo(Date value) {
-            addCriterion("colliding_end_time <>", value, "collidingEndTime");
+        public Criteria andExtendFieldValueNotIn(List<String> values) {
+            addCriterion("extend_field_value not in", values, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeGreaterThan(Date value) {
-            addCriterion("colliding_end_time >", value, "collidingEndTime");
+        public Criteria andExtendFieldValueBetween(String value1, String value2) {
+            addCriterion("extend_field_value between", value1, value2, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("colliding_end_time >=", value, "collidingEndTime");
+        public Criteria andExtendFieldValueNotBetween(String value1, String value2) {
+            addCriterion("extend_field_value not between", value1, value2, "extendFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeLessThan(Date value) {
-            addCriterion("colliding_end_time <", value, "collidingEndTime");
+        public Criteria andGroupFieldIsNull() {
+            addCriterion("group_field is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeLessThanOrEqualTo(Date value) {
-            addCriterion("colliding_end_time <=", value, "collidingEndTime");
+        public Criteria andGroupFieldIsNotNull() {
+            addCriterion("group_field is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeIn(List<Date> values) {
-            addCriterion("colliding_end_time in", values, "collidingEndTime");
+        public Criteria andGroupFieldEqualTo(String value) {
+            addCriterion("group_field =", value, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeNotIn(List<Date> values) {
-            addCriterion("colliding_end_time not in", values, "collidingEndTime");
+        public Criteria andGroupFieldNotEqualTo(String value) {
+            addCriterion("group_field <>", value, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeBetween(Date value1, Date value2) {
-            addCriterion("colliding_end_time between", value1, value2, "collidingEndTime");
+        public Criteria andGroupFieldGreaterThan(String value) {
+            addCriterion("group_field >", value, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeNotBetween(Date value1, Date value2) {
-            addCriterion("colliding_end_time not between", value1, value2, "collidingEndTime");
+        public Criteria andGroupFieldGreaterThanOrEqualTo(String value) {
+            addCriterion("group_field >=", value, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesIsNull() {
-            addCriterion("start_times is null");
+        public Criteria andGroupFieldLessThan(String value) {
+            addCriterion("group_field <", value, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesIsNotNull() {
-            addCriterion("start_times is not null");
+        public Criteria andGroupFieldLessThanOrEqualTo(String value) {
+            addCriterion("group_field <=", value, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesEqualTo(String value) {
-            addCriterion("start_times =", value, "startTimes");
+        public Criteria andGroupFieldLike(String value) {
+            addCriterion("group_field like", value, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesNotEqualTo(String value) {
-            addCriterion("start_times <>", value, "startTimes");
+        public Criteria andGroupFieldNotLike(String value) {
+            addCriterion("group_field not like", value, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesGreaterThan(String value) {
-            addCriterion("start_times >", value, "startTimes");
+        public Criteria andGroupFieldIn(List<String> values) {
+            addCriterion("group_field in", values, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesGreaterThanOrEqualTo(String value) {
-            addCriterion("start_times >=", value, "startTimes");
+        public Criteria andGroupFieldNotIn(List<String> values) {
+            addCriterion("group_field not in", values, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesLessThan(String value) {
-            addCriterion("start_times <", value, "startTimes");
+        public Criteria andGroupFieldBetween(String value1, String value2) {
+            addCriterion("group_field between", value1, value2, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesLessThanOrEqualTo(String value) {
-            addCriterion("start_times <=", value, "startTimes");
+        public Criteria andGroupFieldNotBetween(String value1, String value2) {
+            addCriterion("group_field not between", value1, value2, "groupField");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesLike(String value) {
-            addCriterion("start_times like", value, "startTimes");
+        public Criteria andGroupFieldValueIsNull() {
+            addCriterion("group_field_value is null");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesNotLike(String value) {
-            addCriterion("start_times not like", value, "startTimes");
+        public Criteria andGroupFieldValueIsNotNull() {
+            addCriterion("group_field_value is not null");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesIn(List<String> values) {
-            addCriterion("start_times in", values, "startTimes");
+        public Criteria andGroupFieldValueEqualTo(String value) {
+            addCriterion("group_field_value =", value, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesNotIn(List<String> values) {
-            addCriterion("start_times not in", values, "startTimes");
+        public Criteria andGroupFieldValueNotEqualTo(String value) {
+            addCriterion("group_field_value <>", value, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesBetween(String value1, String value2) {
-            addCriterion("start_times between", value1, value2, "startTimes");
+        public Criteria andGroupFieldValueGreaterThan(String value) {
+            addCriterion("group_field_value >", value, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesNotBetween(String value1, String value2) {
-            addCriterion("start_times not between", value1, value2, "startTimes");
+        public Criteria andGroupFieldValueGreaterThanOrEqualTo(String value) {
+            addCriterion("group_field_value >=", value, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesIsNull() {
-            addCriterion("colliding_times is null");
+        public Criteria andGroupFieldValueLessThan(String value) {
+            addCriterion("group_field_value <", value, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesIsNotNull() {
-            addCriterion("colliding_times is not null");
+        public Criteria andGroupFieldValueLessThanOrEqualTo(String value) {
+            addCriterion("group_field_value <=", value, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesEqualTo(Integer value) {
-            addCriterion("colliding_times =", value, "collidingTimes");
+        public Criteria andGroupFieldValueLike(String value) {
+            addCriterion("group_field_value like", value, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesNotEqualTo(Integer value) {
-            addCriterion("colliding_times <>", value, "collidingTimes");
+        public Criteria andGroupFieldValueNotLike(String value) {
+            addCriterion("group_field_value not like", value, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesGreaterThan(Integer value) {
-            addCriterion("colliding_times >", value, "collidingTimes");
+        public Criteria andGroupFieldValueIn(List<String> values) {
+            addCriterion("group_field_value in", values, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesGreaterThanOrEqualTo(Integer value) {
-            addCriterion("colliding_times >=", value, "collidingTimes");
+        public Criteria andGroupFieldValueNotIn(List<String> values) {
+            addCriterion("group_field_value not in", values, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesLessThan(Integer value) {
-            addCriterion("colliding_times <", value, "collidingTimes");
+        public Criteria andGroupFieldValueBetween(String value1, String value2) {
+            addCriterion("group_field_value between", value1, value2, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesLessThanOrEqualTo(Integer value) {
-            addCriterion("colliding_times <=", value, "collidingTimes");
+        public Criteria andGroupFieldValueNotBetween(String value1, String value2) {
+            addCriterion("group_field_value not between", value1, value2, "groupFieldValue");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesIn(List<Integer> values) {
-            addCriterion("colliding_times in", values, "collidingTimes");
+        public Criteria andGroupNumIsNull() {
+            addCriterion("group_num is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesNotIn(List<Integer> values) {
-            addCriterion("colliding_times not in", values, "collidingTimes");
+        public Criteria andGroupNumIsNotNull() {
+            addCriterion("group_num is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesBetween(Integer value1, Integer value2) {
-            addCriterion("colliding_times between", value1, value2, "collidingTimes");
+        public Criteria andGroupNumEqualTo(Integer value) {
+            addCriterion("group_num =", value, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesNotBetween(Integer value1, Integer value2) {
-            addCriterion("colliding_times not between", value1, value2, "collidingTimes");
+        public Criteria andGroupNumNotEqualTo(Integer value) {
+            addCriterion("group_num <>", value, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchIsNull() {
-            addCriterion("colliding_switch is null");
+        public Criteria andGroupNumGreaterThan(Integer value) {
+            addCriterion("group_num >", value, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchIsNotNull() {
-            addCriterion("colliding_switch is not null");
+        public Criteria andGroupNumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("group_num >=", value, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchEqualTo(Integer value) {
-            addCriterion("colliding_switch =", value, "collidingSwitch");
+        public Criteria andGroupNumLessThan(Integer value) {
+            addCriterion("group_num <", value, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchNotEqualTo(Integer value) {
-            addCriterion("colliding_switch <>", value, "collidingSwitch");
+        public Criteria andGroupNumLessThanOrEqualTo(Integer value) {
+            addCriterion("group_num <=", value, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchGreaterThan(Integer value) {
-            addCriterion("colliding_switch >", value, "collidingSwitch");
+        public Criteria andGroupNumIn(List<Integer> values) {
+            addCriterion("group_num in", values, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchGreaterThanOrEqualTo(Integer value) {
-            addCriterion("colliding_switch >=", value, "collidingSwitch");
+        public Criteria andGroupNumNotIn(List<Integer> values) {
+            addCriterion("group_num not in", values, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchLessThan(Integer value) {
-            addCriterion("colliding_switch <", value, "collidingSwitch");
+        public Criteria andGroupNumBetween(Integer value1, Integer value2) {
+            addCriterion("group_num between", value1, value2, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchLessThanOrEqualTo(Integer value) {
-            addCriterion("colliding_switch <=", value, "collidingSwitch");
+        public Criteria andGroupNumNotBetween(Integer value1, Integer value2) {
+            addCriterion("group_num not between", value1, value2, "groupNum");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchIn(List<Integer> values) {
-            addCriterion("colliding_switch in", values, "collidingSwitch");
+        public Criteria andGroupMinIdIsNull() {
+            addCriterion("group_min_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchNotIn(List<Integer> values) {
-            addCriterion("colliding_switch not in", values, "collidingSwitch");
+        public Criteria andGroupMinIdIsNotNull() {
+            addCriterion("group_min_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchBetween(Integer value1, Integer value2) {
-            addCriterion("colliding_switch between", value1, value2, "collidingSwitch");
+        public Criteria andGroupMinIdEqualTo(Long value) {
+            addCriterion("group_min_id =", value, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingSwitchNotBetween(Integer value1, Integer value2) {
-            addCriterion("colliding_switch not between", value1, value2, "collidingSwitch");
+        public Criteria andGroupMinIdNotEqualTo(Long value) {
+            addCriterion("group_min_id <>", value, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageIsNull() {
-            addCriterion("error_message is null");
+        public Criteria andGroupMinIdGreaterThan(Long value) {
+            addCriterion("group_min_id >", value, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageIsNotNull() {
-            addCriterion("error_message is not null");
+        public Criteria andGroupMinIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("group_min_id >=", value, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageEqualTo(String value) {
-            addCriterion("error_message =", value, "errorMessage");
+        public Criteria andGroupMinIdLessThan(Long value) {
+            addCriterion("group_min_id <", value, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageNotEqualTo(String value) {
-            addCriterion("error_message <>", value, "errorMessage");
+        public Criteria andGroupMinIdLessThanOrEqualTo(Long value) {
+            addCriterion("group_min_id <=", value, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageGreaterThan(String value) {
-            addCriterion("error_message >", value, "errorMessage");
+        public Criteria andGroupMinIdIn(List<Long> values) {
+            addCriterion("group_min_id in", values, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageGreaterThanOrEqualTo(String value) {
-            addCriterion("error_message >=", value, "errorMessage");
+        public Criteria andGroupMinIdNotIn(List<Long> values) {
+            addCriterion("group_min_id not in", values, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageLessThan(String value) {
-            addCriterion("error_message <", value, "errorMessage");
+        public Criteria andGroupMinIdBetween(Long value1, Long value2) {
+            addCriterion("group_min_id between", value1, value2, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageLessThanOrEqualTo(String value) {
-            addCriterion("error_message <=", value, "errorMessage");
+        public Criteria andGroupMinIdNotBetween(Long value1, Long value2) {
+            addCriterion("group_min_id not between", value1, value2, "groupMinId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageLike(String value) {
-            addCriterion("error_message like", value, "errorMessage");
+        public Criteria andGroupMaxIdIsNull() {
+            addCriterion("group_max_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageNotLike(String value) {
-            addCriterion("error_message not like", value, "errorMessage");
+        public Criteria andGroupMaxIdIsNotNull() {
+            addCriterion("group_max_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageIn(List<String> values) {
-            addCriterion("error_message in", values, "errorMessage");
+        public Criteria andGroupMaxIdEqualTo(Long value) {
+            addCriterion("group_max_id =", value, "groupMaxId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageNotIn(List<String> values) {
-            addCriterion("error_message not in", values, "errorMessage");
+        public Criteria andGroupMaxIdNotEqualTo(Long value) {
+            addCriterion("group_max_id <>", value, "groupMaxId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageBetween(String value1, String value2) {
-            addCriterion("error_message between", value1, value2, "errorMessage");
+        public Criteria andGroupMaxIdGreaterThan(Long value) {
+            addCriterion("group_max_id >", value, "groupMaxId");
             return (Criteria) this;
         }
 
-        public Criteria andErrorMessageNotBetween(String value1, String value2) {
-            addCriterion("error_message not between", value1, value2, "errorMessage");
+        public Criteria andGroupMaxIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("group_max_id >=", value, "groupMaxId");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupMaxIdLessThan(Long value) {
+            addCriterion("group_max_id <", value, "groupMaxId");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupMaxIdLessThanOrEqualTo(Long value) {
+            addCriterion("group_max_id <=", value, "groupMaxId");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupMaxIdIn(List<Long> values) {
+            addCriterion("group_max_id in", values, "groupMaxId");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupMaxIdNotIn(List<Long> values) {
+            addCriterion("group_max_id not in", values, "groupMaxId");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupMaxIdBetween(Long value1, Long value2) {
+            addCriterion("group_max_id between", value1, value2, "groupMaxId");
+            return (Criteria) this;
+        }
+
+        public Criteria andGroupMaxIdNotBetween(Long value1, Long value2) {
+            addCriterion("group_max_id not between", value1, value2, "groupMaxId");
             return (Criteria) this;
         }
 
@@ -915,69 +945,80 @@ public class XiechengCollidingDataPackageRuleExample {
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteIsNull() {
-            addCriterion("is_delete is null");
+        public Criteria andUpdateConditionIsNull() {
+            addCriterion("update_condition is null");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteIsNotNull() {
-            addCriterion("is_delete is not null");
+        public Criteria andUpdateConditionIsNotNull() {
+            addCriterion("update_condition is not null");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteEqualTo(Integer value) {
-            addCriterion("is_delete =", value, "isDelete");
+        public Criteria andUpdateConditionEqualTo(String value) {
+            addCriterion("update_condition =", value, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteNotEqualTo(Integer value) {
-            addCriterion("is_delete <>", value, "isDelete");
+        public Criteria andUpdateConditionNotEqualTo(String value) {
+            addCriterion("update_condition <>", value, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteGreaterThan(Integer value) {
-            addCriterion("is_delete >", value, "isDelete");
+        public Criteria andUpdateConditionGreaterThan(String value) {
+            addCriterion("update_condition >", value, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteGreaterThanOrEqualTo(Integer value) {
-            addCriterion("is_delete >=", value, "isDelete");
+        public Criteria andUpdateConditionGreaterThanOrEqualTo(String value) {
+            addCriterion("update_condition >=", value, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteLessThan(Integer value) {
-            addCriterion("is_delete <", value, "isDelete");
+        public Criteria andUpdateConditionLessThan(String value) {
+            addCriterion("update_condition <", value, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteLessThanOrEqualTo(Integer value) {
-            addCriterion("is_delete <=", value, "isDelete");
+        public Criteria andUpdateConditionLessThanOrEqualTo(String value) {
+            addCriterion("update_condition <=", value, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteIn(List<Integer> values) {
-            addCriterion("is_delete in", values, "isDelete");
+        public Criteria andUpdateConditionLike(String value) {
+            addCriterion("update_condition like", value, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteNotIn(List<Integer> values) {
-            addCriterion("is_delete not in", values, "isDelete");
+        public Criteria andUpdateConditionNotLike(String value) {
+            addCriterion("update_condition not like", value, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteBetween(Integer value1, Integer value2) {
-            addCriterion("is_delete between", value1, value2, "isDelete");
+        public Criteria andUpdateConditionIn(List<String> values) {
+            addCriterion("update_condition in", values, "updateCondition");
             return (Criteria) this;
         }
 
-        public Criteria andIsDeleteNotBetween(Integer value1, Integer value2) {
-            addCriterion("is_delete not between", value1, value2, "isDelete");
+        public Criteria andUpdateConditionNotIn(List<String> values) {
+            addCriterion("update_condition not in", values, "updateCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateConditionBetween(String value1, String value2) {
+            addCriterion("update_condition between", value1, value2, "updateCondition");
+            return (Criteria) this;
+        }
+
+        public Criteria andUpdateConditionNotBetween(String value1, String value2) {
+            addCriterion("update_condition not between", value1, value2, "updateCondition");
             return (Criteria) this;
         }
     }
 
+    /**
+     */
     public static class Criteria extends GeneratedCriteria {
-
         protected Criteria() {
             super();
         }

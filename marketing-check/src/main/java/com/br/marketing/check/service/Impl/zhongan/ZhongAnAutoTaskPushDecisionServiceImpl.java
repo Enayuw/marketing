@@ -3,6 +3,7 @@ package com.br.marketing.check.service.Impl.zhongan;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.bo.JobPushDecisionParameterBO;
+import com.br.marketing.bo.PeriodOfValidityBO;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.check.service.AutomatedPushDecisionService;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDetailByRuleDTO;
@@ -196,6 +197,43 @@ public class ZhongAnAutoTaskPushDecisionServiceImpl implements AutomatedPushDeci
             marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
             //推送决策
             pushPolicy(marketingTransferSyncUserList, periodBOMap, "e", "7", strategyCode.get("e"));
+        }
+        //情况f处理 众安_首借_断点
+        indexId = null;
+        while (true) {
+            List<MarketingTransferSyncUser> marketingTransferSyncUserList = marketingTransferSyncUserMapper.getTransferSyncUserByPage(tcId, apiCode,
+                    null, null, indexId, "user_type =4 " +
+                            " and (reserve_field1->'$.eventType' = 'APP_LAUNCH' or reserve_field1->'$.eventType' = 'APP_LOGIN') " +
+                            " and request_data in (" + requestDateSql + ")");
+            if (marketingTransferSyncUserList.isEmpty()) {
+                break;
+            }
+            indexId = marketingTransferSyncUserList.get(marketingTransferSyncUserList.size() - 1).getId();
+            Set<String> custNumSets = marketingTransferSyncUserList.stream()
+                    .map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> periodBOMap =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndUserType(custNumSets, "4", apiCode,
+                            LocalDate.now());
+            marketingTransferSyncUserList.removeIf(transfer -> Objects.isNull(periodBOMap.get(transfer.getCustNum())));
+            // sql查询custNum对应数据是否有变更记录
+            Set<String> custNumSetInPeriod = marketingTransferSyncUserList.stream()
+                    .map(MarketingTransferSyncUser::getCustNum).collect(Collectors.toSet());
+            for (String custNumKey: custNumSetInPeriod) {
+                SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = periodBOMap.get(custNumKey);
+                List<PeriodOfValidityBO.Builder> builderList = syncUserValidityPeriodsBO.getBuilders();
+                for(PeriodOfValidityBO.Builder builder: builderList){
+                    PeriodOfValidityBO builder1 = builder.addDateTimeString().builder();
+                    String beginDateTimeStr = builder1.getBeginDateTimeStr();
+                    String enDateTimeStr = builder1.getEnDateTimeStr();
+                    int count = marketingTransferSyncUserMapper.getTransferSyncUserEventTypeCount(tcId, apiCode, custNumKey, "4",
+                            beginDateTimeStr, enDateTimeStr);
+                    if(count>0){
+                        marketingTransferSyncUserList.removeIf(transfer -> transfer.getCustNum().equalsIgnoreCase(custNumKey));
+                    }
+                }
+            }
+            //推送决策
+            pushPolicy(marketingTransferSyncUserList, periodBOMap, "f", "4", strategyCode.get("f"));
         }
         TransferActionFront actionFrontUpdate = new TransferActionFront();
         actionFrontUpdate.setId(actionFront.getId());

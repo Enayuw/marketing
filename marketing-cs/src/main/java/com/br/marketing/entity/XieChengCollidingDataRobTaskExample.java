@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class XiechengCollidingDataPackageRuleStagingExample {
+public class XieChengCollidingDataRobTaskExample {
     protected String orderByClause;
 
     protected boolean distinct;
 
     protected List<Criteria> oredCriteria;
 
-    public XiechengCollidingDataPackageRuleStagingExample() {
+    public XieChengCollidingDataRobTaskExample() {
         oredCriteria = new ArrayList<Criteria>();
     }
 
@@ -165,76 +165,6 @@ public class XiechengCollidingDataPackageRuleStagingExample {
             return (Criteria) this;
         }
 
-        public Criteria andApiCodeIsNull() {
-            addCriterion("api_code is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeIsNotNull() {
-            addCriterion("api_code is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeEqualTo(String value) {
-            addCriterion("api_code =", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeNotEqualTo(String value) {
-            addCriterion("api_code <>", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeGreaterThan(String value) {
-            addCriterion("api_code >", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeGreaterThanOrEqualTo(String value) {
-            addCriterion("api_code >=", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeLessThan(String value) {
-            addCriterion("api_code <", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeLessThanOrEqualTo(String value) {
-            addCriterion("api_code <=", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeLike(String value) {
-            addCriterion("api_code like", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeNotLike(String value) {
-            addCriterion("api_code not like", value, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeIn(List<String> values) {
-            addCriterion("api_code in", values, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeNotIn(List<String> values) {
-            addCriterion("api_code not in", values, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeBetween(String value1, String value2) {
-            addCriterion("api_code between", value1, value2, "apiCode");
-            return (Criteria) this;
-        }
-
-        public Criteria andApiCodeNotBetween(String value1, String value2) {
-            addCriterion("api_code not between", value1, value2, "apiCode");
-            return (Criteria) this;
-        }
-
         public Criteria andPackageIdIsNull() {
             addCriterion("package_id is null");
             return (Criteria) this;
@@ -295,63 +225,63 @@ public class XiechengCollidingDataPackageRuleStagingExample {
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdIsNull() {
-            addCriterion("colliding_data_task_id is null");
+        public Criteria andRuleIdIsNull() {
+            addCriterion("rule_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdIsNotNull() {
-            addCriterion("colliding_data_task_id is not null");
+        public Criteria andRuleIdIsNotNull() {
+            addCriterion("rule_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdEqualTo(Long value) {
-            addCriterion("colliding_data_task_id =", value, "collidingDataTaskId");
+        public Criteria andRuleIdEqualTo(Long value) {
+            addCriterion("rule_id =", value, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdNotEqualTo(Long value) {
-            addCriterion("colliding_data_task_id <>", value, "collidingDataTaskId");
+        public Criteria andRuleIdNotEqualTo(Long value) {
+            addCriterion("rule_id <>", value, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdGreaterThan(Long value) {
-            addCriterion("colliding_data_task_id >", value, "collidingDataTaskId");
+        public Criteria andRuleIdGreaterThan(Long value) {
+            addCriterion("rule_id >", value, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdGreaterThanOrEqualTo(Long value) {
-            addCriterion("colliding_data_task_id >=", value, "collidingDataTaskId");
+        public Criteria andRuleIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("rule_id >=", value, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdLessThan(Long value) {
-            addCriterion("colliding_data_task_id <", value, "collidingDataTaskId");
+        public Criteria andRuleIdLessThan(Long value) {
+            addCriterion("rule_id <", value, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdLessThanOrEqualTo(Long value) {
-            addCriterion("colliding_data_task_id <=", value, "collidingDataTaskId");
+        public Criteria andRuleIdLessThanOrEqualTo(Long value) {
+            addCriterion("rule_id <=", value, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdIn(List<Long> values) {
-            addCriterion("colliding_data_task_id in", values, "collidingDataTaskId");
+        public Criteria andRuleIdIn(List<Long> values) {
+            addCriterion("rule_id in", values, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdNotIn(List<Long> values) {
-            addCriterion("colliding_data_task_id not in", values, "collidingDataTaskId");
+        public Criteria andRuleIdNotIn(List<Long> values) {
+            addCriterion("rule_id not in", values, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdBetween(Long value1, Long value2) {
-            addCriterion("colliding_data_task_id between", value1, value2, "collidingDataTaskId");
+        public Criteria andRuleIdBetween(Long value1, Long value2) {
+            addCriterion("rule_id between", value1, value2, "ruleId");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingDataTaskIdNotBetween(Long value1, Long value2) {
-            addCriterion("colliding_data_task_id not between", value1, value2, "collidingDataTaskId");
+        public Criteria andRuleIdNotBetween(Long value1, Long value2) {
+            addCriterion("rule_id not between", value1, value2, "ruleId");
             return (Criteria) this;
         }
 
@@ -415,253 +345,313 @@ public class XiechengCollidingDataPackageRuleStagingExample {
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeIsNull() {
-            addCriterion("colliding_start_time is null");
+        public Criteria andPackageCollidingCountIsNull() {
+            addCriterion("package_colliding_count is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeIsNotNull() {
-            addCriterion("colliding_start_time is not null");
+        public Criteria andPackageCollidingCountIsNotNull() {
+            addCriterion("package_colliding_count is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeEqualTo(Date value) {
-            addCriterion("colliding_start_time =", value, "collidingStartTime");
+        public Criteria andPackageCollidingCountEqualTo(Integer value) {
+            addCriterion("package_colliding_count =", value, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeNotEqualTo(Date value) {
-            addCriterion("colliding_start_time <>", value, "collidingStartTime");
+        public Criteria andPackageCollidingCountNotEqualTo(Integer value) {
+            addCriterion("package_colliding_count <>", value, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeGreaterThan(Date value) {
-            addCriterion("colliding_start_time >", value, "collidingStartTime");
+        public Criteria andPackageCollidingCountGreaterThan(Integer value) {
+            addCriterion("package_colliding_count >", value, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("colliding_start_time >=", value, "collidingStartTime");
+        public Criteria andPackageCollidingCountGreaterThanOrEqualTo(Integer value) {
+            addCriterion("package_colliding_count >=", value, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeLessThan(Date value) {
-            addCriterion("colliding_start_time <", value, "collidingStartTime");
+        public Criteria andPackageCollidingCountLessThan(Integer value) {
+            addCriterion("package_colliding_count <", value, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeLessThanOrEqualTo(Date value) {
-            addCriterion("colliding_start_time <=", value, "collidingStartTime");
+        public Criteria andPackageCollidingCountLessThanOrEqualTo(Integer value) {
+            addCriterion("package_colliding_count <=", value, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeIn(List<Date> values) {
-            addCriterion("colliding_start_time in", values, "collidingStartTime");
+        public Criteria andPackageCollidingCountIn(List<Integer> values) {
+            addCriterion("package_colliding_count in", values, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeNotIn(List<Date> values) {
-            addCriterion("colliding_start_time not in", values, "collidingStartTime");
+        public Criteria andPackageCollidingCountNotIn(List<Integer> values) {
+            addCriterion("package_colliding_count not in", values, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeBetween(Date value1, Date value2) {
-            addCriterion("colliding_start_time between", value1, value2, "collidingStartTime");
+        public Criteria andPackageCollidingCountBetween(Integer value1, Integer value2) {
+            addCriterion("package_colliding_count between", value1, value2, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingStartTimeNotBetween(Date value1, Date value2) {
-            addCriterion("colliding_start_time not between", value1, value2, "collidingStartTime");
+        public Criteria andPackageCollidingCountNotBetween(Integer value1, Integer value2) {
+            addCriterion("package_colliding_count not between", value1, value2, "packageCollidingCount");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeIsNull() {
-            addCriterion("colliding_end_time is null");
+        public Criteria andTaskStatusIsNull() {
+            addCriterion("task_status is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeIsNotNull() {
-            addCriterion("colliding_end_time is not null");
+        public Criteria andTaskStatusIsNotNull() {
+            addCriterion("task_status is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeEqualTo(Date value) {
-            addCriterion("colliding_end_time =", value, "collidingEndTime");
+        public Criteria andTaskStatusEqualTo(Integer value) {
+            addCriterion("task_status =", value, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeNotEqualTo(Date value) {
-            addCriterion("colliding_end_time <>", value, "collidingEndTime");
+        public Criteria andTaskStatusNotEqualTo(Integer value) {
+            addCriterion("task_status <>", value, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeGreaterThan(Date value) {
-            addCriterion("colliding_end_time >", value, "collidingEndTime");
+        public Criteria andTaskStatusGreaterThan(Integer value) {
+            addCriterion("task_status >", value, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeGreaterThanOrEqualTo(Date value) {
-            addCriterion("colliding_end_time >=", value, "collidingEndTime");
+        public Criteria andTaskStatusGreaterThanOrEqualTo(Integer value) {
+            addCriterion("task_status >=", value, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeLessThan(Date value) {
-            addCriterion("colliding_end_time <", value, "collidingEndTime");
+        public Criteria andTaskStatusLessThan(Integer value) {
+            addCriterion("task_status <", value, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeLessThanOrEqualTo(Date value) {
-            addCriterion("colliding_end_time <=", value, "collidingEndTime");
+        public Criteria andTaskStatusLessThanOrEqualTo(Integer value) {
+            addCriterion("task_status <=", value, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeIn(List<Date> values) {
-            addCriterion("colliding_end_time in", values, "collidingEndTime");
+        public Criteria andTaskStatusIn(List<Integer> values) {
+            addCriterion("task_status in", values, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeNotIn(List<Date> values) {
-            addCriterion("colliding_end_time not in", values, "collidingEndTime");
+        public Criteria andTaskStatusNotIn(List<Integer> values) {
+            addCriterion("task_status not in", values, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeBetween(Date value1, Date value2) {
-            addCriterion("colliding_end_time between", value1, value2, "collidingEndTime");
+        public Criteria andTaskStatusBetween(Integer value1, Integer value2) {
+            addCriterion("task_status between", value1, value2, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingEndTimeNotBetween(Date value1, Date value2) {
-            addCriterion("colliding_end_time not between", value1, value2, "collidingEndTime");
+        public Criteria andTaskStatusNotBetween(Integer value1, Integer value2) {
+            addCriterion("task_status not between", value1, value2, "taskStatus");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesIsNull() {
-            addCriterion("start_times is null");
+        public Criteria andStartTimeIsNull() {
+            addCriterion("start_time is null");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesIsNotNull() {
-            addCriterion("start_times is not null");
+        public Criteria andStartTimeIsNotNull() {
+            addCriterion("start_time is not null");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesEqualTo(String value) {
-            addCriterion("start_times =", value, "startTimes");
+        public Criteria andStartTimeEqualTo(Date value) {
+            addCriterion("start_time =", value, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesNotEqualTo(String value) {
-            addCriterion("start_times <>", value, "startTimes");
+        public Criteria andStartTimeNotEqualTo(Date value) {
+            addCriterion("start_time <>", value, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesGreaterThan(String value) {
-            addCriterion("start_times >", value, "startTimes");
+        public Criteria andStartTimeGreaterThan(Date value) {
+            addCriterion("start_time >", value, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesGreaterThanOrEqualTo(String value) {
-            addCriterion("start_times >=", value, "startTimes");
+        public Criteria andStartTimeGreaterThanOrEqualTo(Date value) {
+            addCriterion("start_time >=", value, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesLessThan(String value) {
-            addCriterion("start_times <", value, "startTimes");
+        public Criteria andStartTimeLessThan(Date value) {
+            addCriterion("start_time <", value, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesLessThanOrEqualTo(String value) {
-            addCriterion("start_times <=", value, "startTimes");
+        public Criteria andStartTimeLessThanOrEqualTo(Date value) {
+            addCriterion("start_time <=", value, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesLike(String value) {
-            addCriterion("start_times like", value, "startTimes");
+        public Criteria andStartTimeIn(List<Date> values) {
+            addCriterion("start_time in", values, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesNotLike(String value) {
-            addCriterion("start_times not like", value, "startTimes");
+        public Criteria andStartTimeNotIn(List<Date> values) {
+            addCriterion("start_time not in", values, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesIn(List<String> values) {
-            addCriterion("start_times in", values, "startTimes");
+        public Criteria andStartTimeBetween(Date value1, Date value2) {
+            addCriterion("start_time between", value1, value2, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesNotIn(List<String> values) {
-            addCriterion("start_times not in", values, "startTimes");
+        public Criteria andStartTimeNotBetween(Date value1, Date value2) {
+            addCriterion("start_time not between", value1, value2, "startTime");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesBetween(String value1, String value2) {
-            addCriterion("start_times between", value1, value2, "startTimes");
+        public Criteria andIsDeleteIsNull() {
+            addCriterion("is_delete is null");
             return (Criteria) this;
         }
 
-        public Criteria andStartTimesNotBetween(String value1, String value2) {
-            addCriterion("start_times not between", value1, value2, "startTimes");
+        public Criteria andIsDeleteIsNotNull() {
+            addCriterion("is_delete is not null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesIsNull() {
-            addCriterion("colliding_times is null");
+        public Criteria andIsDeleteEqualTo(Integer value) {
+            addCriterion("is_delete =", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesIsNotNull() {
-            addCriterion("colliding_times is not null");
+        public Criteria andIsDeleteNotEqualTo(Integer value) {
+            addCriterion("is_delete <>", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesEqualTo(Integer value) {
-            addCriterion("colliding_times =", value, "collidingTimes");
+        public Criteria andIsDeleteGreaterThan(Integer value) {
+            addCriterion("is_delete >", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesNotEqualTo(Integer value) {
-            addCriterion("colliding_times <>", value, "collidingTimes");
+        public Criteria andIsDeleteGreaterThanOrEqualTo(Integer value) {
+            addCriterion("is_delete >=", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesGreaterThan(Integer value) {
-            addCriterion("colliding_times >", value, "collidingTimes");
+        public Criteria andIsDeleteLessThan(Integer value) {
+            addCriterion("is_delete <", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesGreaterThanOrEqualTo(Integer value) {
-            addCriterion("colliding_times >=", value, "collidingTimes");
+        public Criteria andIsDeleteLessThanOrEqualTo(Integer value) {
+            addCriterion("is_delete <=", value, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesLessThan(Integer value) {
-            addCriterion("colliding_times <", value, "collidingTimes");
+        public Criteria andIsDeleteIn(List<Integer> values) {
+            addCriterion("is_delete in", values, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesLessThanOrEqualTo(Integer value) {
-            addCriterion("colliding_times <=", value, "collidingTimes");
+        public Criteria andIsDeleteNotIn(List<Integer> values) {
+            addCriterion("is_delete not in", values, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesIn(List<Integer> values) {
-            addCriterion("colliding_times in", values, "collidingTimes");
+        public Criteria andIsDeleteBetween(Integer value1, Integer value2) {
+            addCriterion("is_delete between", value1, value2, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesNotIn(List<Integer> values) {
-            addCriterion("colliding_times not in", values, "collidingTimes");
+        public Criteria andIsDeleteNotBetween(Integer value1, Integer value2) {
+            addCriterion("is_delete not between", value1, value2, "isDelete");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesBetween(Integer value1, Integer value2) {
-            addCriterion("colliding_times between", value1, value2, "collidingTimes");
+        public Criteria andExtendIsNull() {
+            addCriterion("extend is null");
             return (Criteria) this;
         }
 
-        public Criteria andCollidingTimesNotBetween(Integer value1, Integer value2) {
-            addCriterion("colliding_times not between", value1, value2, "collidingTimes");
+        public Criteria andExtendIsNotNull() {
+            addCriterion("extend is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendEqualTo(String value) {
+            addCriterion("extend =", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotEqualTo(String value) {
+            addCriterion("extend <>", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThan(String value) {
+            addCriterion("extend >", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendGreaterThanOrEqualTo(String value) {
+            addCriterion("extend >=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThan(String value) {
+            addCriterion("extend <", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLessThanOrEqualTo(String value) {
+            addCriterion("extend <=", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendLike(String value) {
+            addCriterion("extend like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotLike(String value) {
+            addCriterion("extend not like", value, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendIn(List<String> values) {
+            addCriterion("extend in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotIn(List<String> values) {
+            addCriterion("extend not in", values, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendBetween(String value1, String value2) {
+            addCriterion("extend between", value1, value2, "extend");
+            return (Criteria) this;
+        }
+
+        public Criteria andExtendNotBetween(String value1, String value2) {
+            addCriterion("extend not between", value1, value2, "extend");
             return (Criteria) this;
         }
 
@@ -782,66 +772,6 @@ public class XiechengCollidingDataPackageRuleStagingExample {
 
         public Criteria andUpdateTimeNotBetween(Date value1, Date value2) {
             addCriterion("update_time not between", value1, value2, "updateTime");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteIsNull() {
-            addCriterion("is_delete is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteIsNotNull() {
-            addCriterion("is_delete is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteEqualTo(Integer value) {
-            addCriterion("is_delete =", value, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteNotEqualTo(Integer value) {
-            addCriterion("is_delete <>", value, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteGreaterThan(Integer value) {
-            addCriterion("is_delete >", value, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteGreaterThanOrEqualTo(Integer value) {
-            addCriterion("is_delete >=", value, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteLessThan(Integer value) {
-            addCriterion("is_delete <", value, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteLessThanOrEqualTo(Integer value) {
-            addCriterion("is_delete <=", value, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteIn(List<Integer> values) {
-            addCriterion("is_delete in", values, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteNotIn(List<Integer> values) {
-            addCriterion("is_delete not in", values, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteBetween(Integer value1, Integer value2) {
-            addCriterion("is_delete between", value1, value2, "isDelete");
-            return (Criteria) this;
-        }
-
-        public Criteria andIsDeleteNotBetween(Integer value1, Integer value2) {
-            addCriterion("is_delete not between", value1, value2, "isDelete");
             return (Criteria) this;
         }
     }
