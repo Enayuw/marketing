@@ -201,6 +201,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
                     log.setApiCode(apiCode);
                     log.setResult(true);
                     log.setStatus(String.valueOf(t.getInteger("status")));
+                    log.setExtend(JSON.toJSONString(t));
                     return log;
                 }).collect(Collectors.toList());
 
@@ -217,6 +218,7 @@ public class WuBaOldCollidingDataQueryResultServiceImpl implements WuBaOldCollid
                     log.setApiCode(apiCode);
                     log.setResult(false);
                     log.setStatus(String.valueOf(t.getInteger("status")));
+                    log.setExtend(JSON.toJSONString(t));
                     return log;
                 }).collect(Collectors.toList());
 
