@@ -34,7 +34,6 @@ public class SmyCustomizeController {
     @PostMapping("/upload")
     @PrometheusTimeMethod(buckets = {0.05d, 0.1d, 0.2d, 0.5d}, methodType = MethodType.ACCESS, to = 0)
     public SmyResponseDTO receiveSmyUploadData(@RequestBody String jsonData) {
-
         return smyUploadDataService.receiveSmyUploadData(jsonData);
     }
 
