@@ -15,6 +15,7 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.MergeFieldService;
 import com.br.marketing.service.PushRuleService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -48,6 +49,8 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
 
     @Resource
     private PushRuleService pushRuleService;
+    @Resource
+    private MergeFieldService mergeFieldService;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -80,16 +83,10 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         String cell = marketingSyncUser.getCell();
         pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
-        JSONObject variables = new JSONObject();
         transfer.setApiCode(apiCode);
-        variables.putAll((JSONObject) JSON.toJSON(transfer));
-        variables.remove("reserveField1");
-        variables.remove("id");
-        variables.remove("createTime");
-        variables.remove("updateTime");
-        variables.remove("requestData");
-        variables.remove("requestTime");
-        variables.remove("tCid");
+        JSONObject variables = new JSONObject();
+        mergeFieldService.mergeUploadAndTransfer(variables, transfer, marketingSyncUser);
+        variables.put("apiCode", apiCode);
         pushMarketingUserDetailByRuleDTO.setVariables(variables);
         String reserveField1 = transfer.getReserveField1();
         if (JSON.isValidObject(reserveField1)) {

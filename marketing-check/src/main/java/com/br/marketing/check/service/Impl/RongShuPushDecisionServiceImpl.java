@@ -22,6 +22,7 @@ import com.br.marketing.mapper.TransferActionFrontMapper;
 import com.br.marketing.service.IRongShuPushDaasService;
 import com.br.marketing.service.Impl.DynamicParameterServiceImpl;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
+import com.br.marketing.service.MergeFieldService;
 import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.MethodRetryHandlerService;
@@ -69,6 +70,8 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
     RedisChgService redisChgService;
     @Resource
     DynamicParameterServiceImpl dynamicParameterService;
+    @Resource
+    private MergeFieldService mergeFieldService;
 
     @Override
     public CustomerPushDecisionActionEnum customerAction() {
@@ -251,10 +254,10 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                         PushMarketingUserDetailDTO pushMarketingUserDetailDTO = new PushMarketingUserDetailDTO();
                         pushMarketingUserDetailDTO.setCaseNumber(transferUser.getCustNum());
                         pushMarketingUserDetailDTO.setPhone(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(cell).getBytes()));
-                        JSONObject jb = new JSONObject();
-                        jb.put("userType", userType);
-                        jb.put("status",status);
-                        pushMarketingUserDetailDTO.setVariables(jb);
+                        JSONObject varDto = new JSONObject();
+                        mergeFieldService.mergeUploadAndTransfer(varDto, transferUser, marketingSyncUser);
+                        varDto.put("status",status);
+                        pushMarketingUserDetailDTO.setVariables(varDto);
                         list.add(pushMarketingUserDetailDTO);
                     }
                     if(list.size()<1){
