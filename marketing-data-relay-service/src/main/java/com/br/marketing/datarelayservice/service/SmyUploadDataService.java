@@ -62,7 +62,7 @@ public class SmyUploadDataService {
             customizeUploadDataSmy.setTCid(tCid);
             customizeUploadDataSmy.setRequestId(dto.getRequestNo());
             customizeUploadDataSmy.setReceiveDate(LocalDate.now().toString());
-            customizeUploadDataSmy.setRequestJsonData(JSONObject.toJSONString(dto));
+            customizeUploadDataSmy.setRequestJsonData(jsonData);
             customizeUploadDataSmy.setStatus(1);
             //Check Field
             StringBuilder errorMessage = new StringBuilder();
@@ -89,7 +89,7 @@ public class SmyUploadDataService {
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(), "jsonData:" + jsonData,
-                    "萨摩耶定制上传数据接入异常！！！"));
+                    "萨摩耶定制上传数据接入异常！！！"), e);
             smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_SYSTEM_ERROR);
         }
         return smyResponseDTO;

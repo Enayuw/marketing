@@ -50,7 +50,7 @@ public class SmyTransferDataService {
             customizeTransferDataSmy.setApiCode(smyCustomizeDataConfig == null ? null : smyCustomizeDataConfig.getString("transferApiCode"));
             customizeTransferDataSmy.setRequestId(UUID.fastUUID().toString(true));
             customizeTransferDataSmy.setReceiveDate(LocalDate.now().toString());
-            customizeTransferDataSmy.setRequestJsonData(JSONObject.toJSONString(dto));
+            customizeTransferDataSmy.setRequestJsonData(jsonData);
             customizeTransferDataSmy.setStatus(1);
             // Check Field
             StringBuilder errorMessage = new StringBuilder();
