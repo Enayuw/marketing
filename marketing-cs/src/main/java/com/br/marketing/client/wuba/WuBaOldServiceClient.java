@@ -77,9 +77,10 @@ public class WuBaOldServiceClient {
         HashMap<String, String> resMap;
 
         // 调用客户接口
-        if (mockService.checkMockSwitch(MockInterfaceCodeEnum.ITF_WUBA_02.getCode())) {
-            resMap = mockService.getMockContent(MockInterfaceCodeEnum.ITF_WUBA_02.getCode());
-            resMap = getMock(batchNo, resMap);
+        if(marketingCommonConfig.getWuBaOldMock().getBoolean("switch")){
+            resMap = new HashMap<>();
+            resMap.put("httpcode", "200");
+            resMap.put("content", JSONObject.toJSONString(marketingCommonConfig.getWuBaOldMock().getJSONObject("mock")));
         } else {
             String queryCredentialStuffingResultUrl = marketingCommonConfig.getWuBaOldCollidingUrlConfig().getString(
                     "queryCredentialStuffingResultUrl");

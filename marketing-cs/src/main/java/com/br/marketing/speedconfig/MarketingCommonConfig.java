@@ -1936,6 +1936,11 @@ public class MarketingCommonConfig {
     private JSONObject wuBaOldCollidingUrlConfig;
 
     /**
+    *  58老客查询撞库结果挡板
+    */
+    private JSONObject wuBaOldMock;
+
+    /**
      * 58撞库提交撞库apiCode集合
      */
     private List<String> wubaCollidingApiCodes;
