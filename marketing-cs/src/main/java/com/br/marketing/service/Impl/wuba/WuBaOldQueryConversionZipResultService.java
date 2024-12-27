@@ -72,7 +72,9 @@ public class WuBaOldQueryConversionZipResultService {
 
             // wuBaServiceClient
             String dirPath = marketingCommonConfig.getWuBaOldQueryConversionZipResultFilePath();
-            String zipFileName = "bairong_" + bizDate + ".csv.zip";
+            Map<String, String> urlConfig = marketingCommonConfig.getWuBaOldQueryConversionZipResultUrlConfig();
+            String orgCode = urlConfig.get("orgCode");
+            String zipFileName = orgCode+"_" + bizDate + ".csv.zip";
             String zipFilePath = dirPath.concat(zipFileName);
             Result callResult = wuBaServiceClient.queryOldConversionZipResult(bizDate, zipFilePath);
             if (callResult == null || !callResult.isSuccess()) {
