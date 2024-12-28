@@ -1921,11 +1921,6 @@ public class MarketingCommonConfig {
     private Integer wubaOldCollidingDataSyncThreadNum;
 
     /**
-     * 58老客提交撞库开关(true:开启，false关闭)
-     */
-    private Boolean wuBaOldCollidingDataSwitch;
-
-    /**
      * 58老客查询撞库结果分页条数
      */
     private Integer wuBaOldCollidingQueryResultPageSize;
