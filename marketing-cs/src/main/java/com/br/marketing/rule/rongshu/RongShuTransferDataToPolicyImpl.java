@@ -86,14 +86,10 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
         transfer.setApiCode(apiCode);
         JSONObject variables = new JSONObject();
-        mergeFieldService.mergeUploadAndTransfer(variables, transfer, marketingSyncUser
-                , CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
         variables.put("apiCode", apiCode);
-        pushMarketingUserDetailByRuleDTO.setVariables(variables);
         String reserveField1 = transfer.getReserveField1();
         if (JSON.isValidObject(reserveField1)) {
             JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-            variables.putAll(jsonObject);
             String finalState = jsonObject.getString("finalState");
             if (StringUtils.isNotBlank(finalState)) {
                 JSONObject strategyCodeObject = strategyCodeMap.get(apiCode);
@@ -118,6 +114,10 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
             return null;
         }
         variables.put("status", status);
+        // 上传明细和转化明细合并
+        mergeFieldService.mergeUploadAndTransfer(variables, transfer, marketingSyncUser
+                , CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
+        pushMarketingUserDetailByRuleDTO.setVariables(variables);
         pushMarketingUserDetailByRuleDTO.setBatchNumber(
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + apiCode);
         //去重参数设置

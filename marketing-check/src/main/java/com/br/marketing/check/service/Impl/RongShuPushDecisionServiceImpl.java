@@ -256,6 +256,7 @@ public class RongShuPushDecisionServiceImpl implements AutomatedPushDecisionServ
                         pushMarketingUserDetailDTO.setCaseNumber(transferUser.getCustNum());
                         pushMarketingUserDetailDTO.setPhone(DigestUtils.md5DigestAsHex(BrCipherMaker.getInstance().decode(cell).getBytes()));
                         JSONObject varDto = new JSONObject();
+                        // 上传明细和转化明细合并
                         mergeFieldService.mergeUploadAndTransfer(varDto, transferUser, marketingSyncUser
                                 , CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
                         varDto.put("status",status);
