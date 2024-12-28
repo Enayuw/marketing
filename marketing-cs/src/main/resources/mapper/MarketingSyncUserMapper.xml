@@ -253,7 +253,8 @@
 
     <select id="getSyncUserLastByCustNumsAndStatus" resultType="com.br.marketing.entity.MarketingSyncUser">
         select b.id, b.cus_batch, b.cust_num, b.id_card, b.name, b.cell, b.user_type, b.reserve_field1,
-        b.reserve_field2, b.create_time,b.update_time, b.applet_date, b.applet_time from
+        b.reserve_field2, b.request_batch, b.cell_md5, b.cell_sha256, b.group_type, b.operate_type, b.register_date,
+        b.create_time,b.update_time, b.applet_date, b.applet_time from
         (select cust_num,max(applet_time) as applet_time
         from b_marketing_sync_${apiCode}
         where cust_num in
