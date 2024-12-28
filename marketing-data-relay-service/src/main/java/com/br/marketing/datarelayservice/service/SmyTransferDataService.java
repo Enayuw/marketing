@@ -80,7 +80,7 @@ public class SmyTransferDataService {
             }
         } catch (Exception e) {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_TRANSFER_SERVICEERROR.getCode(), "jsonData:" + jsonData,
-                    "萨摩耶定制转化数据接入异常！！！"));
+                    "萨摩耶定制转化数据接入异常！！！"), e);
             smyResponseDTO = smyResponseDTO.failed(SmyResponseDTO.ResultEnum.FAILED_SYSTEM_ERROR);
         }
         return smyResponseDTO;
