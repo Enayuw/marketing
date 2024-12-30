@@ -23,6 +23,7 @@ public enum SftpFileTypeEnum {
     ,XIECHENG_ACTIVATE("xiecheng_activate")
     ,DD("didi")
     , GUO_MEI_DATA_CALLBACK("guo_mei_data_callback")
-    ,SHUNFENG_COMPANY("shunfeng_company");
+    ,SHUNFENG_COMPANY("shunfeng_company")
+    ,SMY_PUSH_BLACK_LIST("smy_black_list");
    private String value;
 }
