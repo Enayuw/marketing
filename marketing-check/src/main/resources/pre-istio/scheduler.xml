@@ -1055,7 +1055,7 @@
     />
     <job:simple id="【check】-SmyCustomizedUploadDataCleanJob"
                 class="com.br.marketing.check.job.smy.SmyCustomizedUploadDataCleanJob"
-                cron="0 0/30 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="萨摩耶定制上传数据清洗"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
@@ -1070,7 +1070,7 @@
     />
     <job:simple id="【check】-SmyCustomizedTransferDataCleanJob"
                 class="com.br.marketing.check.job.smy.SmyCustomizedTransferDataCleanJob"
-                cron="0 0/5 * * * ?"
+                cron="0 0 18 29 9 ? 2050-2050"
                 description="萨摩耶定制转化数据清洗"
                 registry-center-ref="regCenter"
                 sharding-total-count="1"
