@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.br.marketing.mapper.datagroup.DataGroupTaskDetailMapperBase">
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.DataGroupTaskDetail">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="api_code" jdbcType="VARCHAR" property="apiCode" />
+    <result column="group_task_id" jdbcType="BIGINT" property="groupTaskId" />
+    <result column="user_type" jdbcType="VARCHAR" property="userType" />
+    <result column="extend_field" jdbcType="VARCHAR" property="extendField" />
+    <result column="extend_field_value" jdbcType="VARCHAR" property="extendFieldValue" />
+    <result column="group_field" jdbcType="VARCHAR" property="groupField" />
+    <result column="group_field_value" jdbcType="VARCHAR" property="groupFieldValue" />
+    <result column="group_num" jdbcType="INTEGER" property="groupNum" />
+    <result column="group_min_id" jdbcType="BIGINT" property="groupMinId" />
+    <result column="group_max_id" jdbcType="BIGINT" property="groupMaxId" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="update_condition" jdbcType="VARCHAR" property="updateCondition" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, api_code, group_task_id, user_type, extend_field, extend_field_value, group_field, 
+    group_field_value, group_num, group_min_id, group_max_id, create_time, update_time, 
+    update_condition
+  </sql>
+  <select id="selectByExample" parameterType="com.br.marketing.entity.DataGroupTaskDetailExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_data_group_task_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from b_data_group_task_detail
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from b_data_group_task_detail
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.DataGroupTaskDetailExample">
+    delete from b_data_group_task_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.DataGroupTaskDetail" useGeneratedKeys="true">
+    insert into b_data_group_task_detail (api_code, group_task_id, user_type, 
+      extend_field, extend_field_value, group_field, 
+      group_field_value, group_num, group_min_id, 
+      group_max_id, create_time, update_time, 
+      update_condition)
+    values (#{apiCode,jdbcType=VARCHAR}, #{groupTaskId,jdbcType=BIGINT}, #{userType,jdbcType=VARCHAR}, 
+      #{extendField,jdbcType=VARCHAR}, #{extendFieldValue,jdbcType=VARCHAR}, #{groupField,jdbcType=VARCHAR}, 
+      #{groupFieldValue,jdbcType=VARCHAR}, #{groupNum,jdbcType=INTEGER}, #{groupMinId,jdbcType=BIGINT}, 
+      #{groupMaxId,jdbcType=BIGINT}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{updateCondition,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.br.marketing.entity.DataGroupTaskDetail" useGeneratedKeys="true">
+    insert into b_data_group_task_detail
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        api_code,
+      </if>
+      <if test="groupTaskId != null">
+        group_task_id,
+      </if>
+      <if test="userType != null">
+        user_type,
+      </if>
+      <if test="extendField != null">
+        extend_field,
+      </if>
+      <if test="extendFieldValue != null">
+        extend_field_value,
+      </if>
+      <if test="groupField != null">
+        group_field,
+      </if>
+      <if test="groupFieldValue != null">
+        group_field_value,
+      </if>
+      <if test="groupNum != null">
+        group_num,
+      </if>
+      <if test="groupMinId != null">
+        group_min_id,
+      </if>
+      <if test="groupMaxId != null">
+        group_max_id,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="updateCondition != null">
+        update_condition,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="apiCode != null">
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="groupTaskId != null">
+        #{groupTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="userType != null">
+        #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="extendField != null">
+        #{extendField,jdbcType=VARCHAR},
+      </if>
+      <if test="extendFieldValue != null">
+        #{extendFieldValue,jdbcType=VARCHAR},
+      </if>
+      <if test="groupField != null">
+        #{groupField,jdbcType=VARCHAR},
+      </if>
+      <if test="groupFieldValue != null">
+        #{groupFieldValue,jdbcType=VARCHAR},
+      </if>
+      <if test="groupNum != null">
+        #{groupNum,jdbcType=INTEGER},
+      </if>
+      <if test="groupMinId != null">
+        #{groupMinId,jdbcType=BIGINT},
+      </if>
+      <if test="groupMaxId != null">
+        #{groupMaxId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateCondition != null">
+        #{updateCondition,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.DataGroupTaskDetailExample" resultType="java.lang.Long">
+    select count(*) from b_data_group_task_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update b_data_group_task_detail
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null">
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.groupTaskId != null">
+        group_task_id = #{record.groupTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="record.userType != null">
+        user_type = #{record.userType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extendField != null">
+        extend_field = #{record.extendField,jdbcType=VARCHAR},
+      </if>
+      <if test="record.extendFieldValue != null">
+        extend_field_value = #{record.extendFieldValue,jdbcType=VARCHAR},
+      </if>
+      <if test="record.groupField != null">
+        group_field = #{record.groupField,jdbcType=VARCHAR},
+      </if>
+      <if test="record.groupFieldValue != null">
+        group_field_value = #{record.groupFieldValue,jdbcType=VARCHAR},
+      </if>
+      <if test="record.groupNum != null">
+        group_num = #{record.groupNum,jdbcType=INTEGER},
+      </if>
+      <if test="record.groupMinId != null">
+        group_min_id = #{record.groupMinId,jdbcType=BIGINT},
+      </if>
+      <if test="record.groupMaxId != null">
+        group_max_id = #{record.groupMaxId,jdbcType=BIGINT},
+      </if>
+      <if test="record.createTime != null">
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null">
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateCondition != null">
+        update_condition = #{record.updateCondition,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update b_data_group_task_detail
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      group_task_id = #{record.groupTaskId,jdbcType=BIGINT},
+      user_type = #{record.userType,jdbcType=VARCHAR},
+      extend_field = #{record.extendField,jdbcType=VARCHAR},
+      extend_field_value = #{record.extendFieldValue,jdbcType=VARCHAR},
+      group_field = #{record.groupField,jdbcType=VARCHAR},
+      group_field_value = #{record.groupFieldValue,jdbcType=VARCHAR},
+      group_num = #{record.groupNum,jdbcType=INTEGER},
+      group_min_id = #{record.groupMinId,jdbcType=BIGINT},
+      group_max_id = #{record.groupMaxId,jdbcType=BIGINT},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      update_condition = #{record.updateCondition,jdbcType=VARCHAR}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.DataGroupTaskDetail">
+    update b_data_group_task_detail
+    <set>
+      <if test="apiCode != null">
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="groupTaskId != null">
+        group_task_id = #{groupTaskId,jdbcType=BIGINT},
+      </if>
+      <if test="userType != null">
+        user_type = #{userType,jdbcType=VARCHAR},
+      </if>
+      <if test="extendField != null">
+        extend_field = #{extendField,jdbcType=VARCHAR},
+      </if>
+      <if test="extendFieldValue != null">
+        extend_field_value = #{extendFieldValue,jdbcType=VARCHAR},
+      </if>
+      <if test="groupField != null">
+        group_field = #{groupField,jdbcType=VARCHAR},
+      </if>
+      <if test="groupFieldValue != null">
+        group_field_value = #{groupFieldValue,jdbcType=VARCHAR},
+      </if>
+      <if test="groupNum != null">
+        group_num = #{groupNum,jdbcType=INTEGER},
+      </if>
+      <if test="groupMinId != null">
+        group_min_id = #{groupMinId,jdbcType=BIGINT},
+      </if>
+      <if test="groupMaxId != null">
+        group_max_id = #{groupMaxId,jdbcType=BIGINT},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateCondition != null">
+        update_condition = #{updateCondition,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.DataGroupTaskDetail">
+    update b_data_group_task_detail
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      group_task_id = #{groupTaskId,jdbcType=BIGINT},
+      user_type = #{userType,jdbcType=VARCHAR},
+      extend_field = #{extendField,jdbcType=VARCHAR},
+      extend_field_value = #{extendFieldValue,jdbcType=VARCHAR},
+      group_field = #{groupField,jdbcType=VARCHAR},
+      group_field_value = #{groupFieldValue,jdbcType=VARCHAR},
+      group_num = #{groupNum,jdbcType=INTEGER},
+      group_min_id = #{groupMinId,jdbcType=BIGINT},
+      group_max_id = #{groupMaxId,jdbcType=BIGINT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      update_condition = #{updateCondition,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
