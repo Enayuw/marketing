@@ -2089,6 +2089,43 @@ public class MarketingCommonConfig {
      */
     private Integer wuBaQueryConversionZipResultPartitionSize;
 
+
+    /**
+     * 58老客-营销转化结果zip包查询-开关，1-开，0-关
+     */
+    private String wuBaOldQueryConversionZipResultSwitch;
+
+    /**
+     * 58老客-营销转化结果zip包查询-条件参数
+     */
+    private List<Map<String, String>> wuBaOldQueryConversionZipResultParams;
+
+    /**
+     * 58老客-营销转化结果zip包查询-查询URL
+     */
+    private Map<String, String> wuBaOldQueryConversionZipResultUrlConfig;
+
+    /**
+     * 58老客-营销转化结果zip包查询-文件路径
+     */
+    private String wuBaOldQueryConversionZipResultFilePath;
+
+    /**
+     * 58老客-营销转化结果zip包查询-内部ftp相对文件路径
+     */
+    private String wuBaOldQueryConversionZipResultInnerFtpRelativePath;
+
+    /**
+     * 58老客-营销转化结果zip包查询-表头映射配置
+     */
+    private Map<String, String> wuBaOldQueryConversionZipResultHeaderMapping;
+
+    /**
+     * 58老客-营销转化结果zip包查询-分页配置
+     */
+    private Integer wuBaOldQueryConversionZipResultPartitionSize;
+
+
     /**
      * 通用清洗线程池
      */

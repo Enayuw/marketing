@@ -231,6 +231,30 @@ public class WuBaServiceClient {
         return result.success();
     }
 
+    public Result queryOldConversionZipResult(String collectDate, String targetPath) {
+        Result result = new Result().failure();
+        Map<String, String> urlConfig = marketingCommonConfig.getWuBaOldQueryConversionZipResultUrlConfig();
+        String url = urlConfig.get("url");
+        String orgCode = urlConfig.get("orgCode");
+        String password = urlConfig.get("password");
+
+        String queryUrl = url.concat("?")
+                .concat("orgCode=").concat(orgCode)
+                .concat("&collectDate=").concat(collectDate)
+                .concat("&password=").concat(password);
+        // 调用客户接口
+        try {
+            Result callResult = zipFileClient.downloadZipFile(queryUrl, targetPath, true);
+            if(callResult == null || !callResult.isSuccess()){
+                return result.failure();
+            }
+        } catch (Exception e){
+            log.warn("queryOldConversionZipResult error", e);
+            return result.failure();
+        }
+        return result.success();
+    }
+
     private HashMap<String, String> getWuBaServerQueryResult(String url, String batchNo) {
         String param = "batchNo=" + batchNo;
         String urlConcatParam = url + "?" + param;
