@@ -2430,9 +2430,15 @@ public class MarketingCommonConfig {
     private Map<String,Integer> dataGroupPageSize;
     /**
      * 萨摩耶客制化传输数据配置
-     * {"uploadApiCode":"7491637","transferApiCode":"7491637"}
+     * {"uploadApiCode":"3710196","transferApiCode":"3710196"}
      */
     private JSONObject smyCustomizeDataConfig;
+
+    /**
+     * 萨摩耶客制化数据清洗配置
+     * {"uploadThread":10,"transferThread":10}
+     */
+    private JSONObject smyCustomizeDataCleanConfig;
 
 }
 

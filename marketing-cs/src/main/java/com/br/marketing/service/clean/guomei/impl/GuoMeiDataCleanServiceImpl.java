@@ -1,4 +1,4 @@
-package com.br.marketing.service.guomei.impl;
+package com.br.marketing.service.clean.guomei.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson.JSON;
@@ -21,7 +21,7 @@ import com.br.marketing.entity.CustomizeUploadData;
 import com.br.marketing.mapper.CustomizeBlackDataMapper;
 import com.br.marketing.mapper.CustomizeUploadDataMapper;
 import com.br.marketing.service.PushInfoService;
-import com.br.marketing.service.guomei.GuoMeiDataCleanService;
+import com.br.marketing.service.clean.guomei.GuoMeiDataCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import java.util.List;

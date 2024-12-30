@@ -1,4 +1,4 @@
-package com.br.marketing.datarelayservice.dto.smy.request;
+package com.br.marketing.dto.smy.request;
 
 import java.io.Serializable;
 

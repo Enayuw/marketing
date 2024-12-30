@@ -1,4 +1,4 @@
-package com.br.marketing.service.guomei;
+package com.br.marketing.service.clean.guomei;
 
 import com.br.marketing.common.commondto.Result;
 
