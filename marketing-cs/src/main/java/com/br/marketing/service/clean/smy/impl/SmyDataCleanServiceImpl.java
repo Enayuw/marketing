@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -71,6 +72,8 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                 mark = Boolean.FALSE;
                 continue;
             }
+            List<Long> ids = uploadDataSmyList.stream().map(CustomizeUploadDataSmy::getId).collect(Collectors.toList());
+            customizeUploadDataSmyMapper.updateSyncStatusByIds(tCid, ids, 1);
             minId = uploadDataSmyList.get(uploadDataSmyList.size() - 1).getId();
             threadPool.submit(() -> {
                 for (CustomizeUploadDataSmy customizeUploadDataSmy : uploadDataSmyList) {
@@ -86,7 +89,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                         uploadDataDTO.setApiCode(apiCode);
                         uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
                         pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                        customizeUploadDataSmyMapper.updateSyncStatusById(tCid, customizeUploadDataSmy.getId(), 1);
+                        customizeUploadDataSmyMapper.updateSyncStatusById(tCid, customizeUploadDataSmy.getId(), 2);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
                                 "萨摩耶定制上传数据清洗，子线程处理异常，前置表id：" + customizeUploadDataSmy.getId()), e);
@@ -137,6 +140,8 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                 mark = Boolean.FALSE;
                 continue;
             }
+            List<Long> ids = transferDataSmyList.stream().map(CustomizeTransferDataSmy::getId).collect(Collectors.toList());
+            customizeTransferDataSmyMapper.updateSyncStatusByIds(tCid, ids, 1);
             minId = transferDataSmyList.get(transferDataSmyList.size() - 1).getId();
             threadPool.submit(() -> {
                 for (CustomizeTransferDataSmy customizeTransferDataSmy : transferDataSmyList) {
@@ -151,7 +156,7 @@ public class SmyDataCleanServiceImpl implements SmyDataCleanService {
                         dto.setApiCode(apiCode);
                         dto.setJsonData(JSON.toJSONString(transferDataDTO));
                         pushInfoService.pushTransferByRetry(dto, null);
-                        customizeTransferDataSmyMapper.updateSyncStatusById(tCid, customizeTransferDataSmy.getId(), 1);
+                        customizeTransferDataSmyMapper.updateSyncStatusById(tCid, customizeTransferDataSmy.getId(), 2);
                     } catch (Exception e) {
                         log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.SAMOYE_CUSTOMIZE_UPLOAD_SERVICEERROR.getCode(),
                                 "萨摩耶定制转化数据清洗，子线程处理异常，前置表id：" + customizeTransferDataSmy.getId()), e);

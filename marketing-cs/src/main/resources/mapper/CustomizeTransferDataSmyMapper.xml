@@ -136,4 +136,13 @@
         set sync_status = #{syncStatus}
         where id = #{id}
     </update>
+
+    <update id="updateSyncStatusByIds">
+        update b_customize_transfer_data_${tCid}
+        set sync_status=#{syncStatus}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
 </mapper>
