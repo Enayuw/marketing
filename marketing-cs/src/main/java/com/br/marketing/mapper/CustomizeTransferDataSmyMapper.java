@@ -15,5 +15,7 @@ public interface CustomizeTransferDataSmyMapper {
                                                                        @Param("date") String date, @Param("minId") Long minId,
                                                                        @Param("limit") Integer limit);
 
+    void updateSyncStatusByIds(@Param("tCid") String tCid, @Param("ids") List<Long> ids, @Param("syncStatus") int syncStatus);
+
     void updateSyncStatusById(@Param("tCid") String tCid, @Param("id") Long id, @Param("syncStatus") int syncStatus);
 }
