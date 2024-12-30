@@ -15,7 +15,9 @@ import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.enums.ScoreThreeKeyEncryptEnum;
 import com.br.marketing.rule.AssembleData;
+import com.br.marketing.service.MergeFieldService;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.service.customertagsprocess.valobj.CustomerTagsValue;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +50,8 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
 
     @Resource
     private PushRuleService pushRuleService;
+    @Resource
+    private MergeFieldService mergeFieldService;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) {
@@ -80,21 +84,11 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
         String cell = marketingSyncUser.getCell();
         pushMarketingUserDetailByRuleDTO.setPhone(pushRuleService.encrypt3k(encType, BrCipherMaker.getInstance().decode(cell)));
         pushMarketingUserDetailByRuleDTO.setCell(BrCipherMaker.getInstance().decode(cell));
-        JSONObject variables = new JSONObject();
         transfer.setApiCode(apiCode);
-        variables.putAll((JSONObject) JSON.toJSON(transfer));
-        variables.remove("reserveField1");
-        variables.remove("id");
-        variables.remove("createTime");
-        variables.remove("updateTime");
-        variables.remove("requestData");
-        variables.remove("requestTime");
-        variables.remove("tCid");
-        pushMarketingUserDetailByRuleDTO.setVariables(variables);
+        JSONObject variables = new JSONObject();
         String reserveField1 = transfer.getReserveField1();
         if (JSON.isValidObject(reserveField1)) {
             JSONObject jsonObject = JSONObject.parseObject(reserveField1);
-            variables.putAll(jsonObject);
             String finalState = jsonObject.getString("finalState");
             if (StringUtils.isNotBlank(finalState)) {
                 JSONObject strategyCodeObject = strategyCodeMap.get(apiCode);
@@ -119,6 +113,10 @@ public class RongShuTransferDataToPolicyImpl implements AssembleData<PushMarketi
             return null;
         }
         variables.put("status", status);
+        // 上传明细和转化明细合并
+        mergeFieldService.mergeUploadAndTransfer(variables, transfer, marketingSyncUser
+                , CustomerTagsValue.PushJc3keyTypeEnum.MD5_ALL.getValue());
+        pushMarketingUserDetailByRuleDTO.setVariables(variables);
         pushMarketingUserDetailByRuleDTO.setBatchNumber(
                 LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + "_" + status + "_" + apiCode);
         //去重参数设置
