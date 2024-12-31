@@ -45,6 +45,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -90,6 +91,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
     @Resource
     ErrorMarkMapper errorMarkMapper;
 
+
     /**
      * 携程撞库数据推决策
      *
@@ -132,10 +134,32 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         if(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
                 .equals(customerInfoPushMain.getmStatus())){
 
+            ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+            errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                    .andRetryStatusEqualTo(0).andFilterTypeEqualTo(1);
+            List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
+
+            List<ErrorMark> policyErrorList = errorMarks.stream()
+                    .filter(errorMark -> errorMark.getType() == 1)
+                    .collect(Collectors.toList());
+
+            List<ErrorMark> esErrorList = errorMarks.stream()
+                    .filter(errorMark -> errorMark.getType() == 0)
+                    .collect(Collectors.toList());
+
             // 补推 推决策失败数据
-            repushPolicyData(customerInfoPushMain.getId());
+            if(!CollectionUtils.isEmpty(policyErrorList)){
+                for (ErrorMark errorMark : policyErrorList) {
+                    resList.add(threadPool.submit(
+                            () -> repushPolicyData(errorMark)));
+                }
+            }
+
             // 补推 查询ES失败数据：
-            repushQueryEsData(numList, fileIds, customerInfoPushMain, threeEncrypt,resList,threadPool);
+            if(!CollectionUtils.isEmpty(esErrorList)){
+                repushQueryEsData(esErrorList,numList, fileIds, customerInfoPushMain, threeEncrypt,resList,threadPool);
+            }
+
         }else {
             while (true) {
                 List<XieChengCollidingDataLoopCycle> list = dataLoopCycleMapper.selectCycleDataByCondition(minId, condition, pageSize);
@@ -170,27 +194,18 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         }
 
         try {
-            // 查询该任务下是否还存在异常待补推数据
-            ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-            errorMarkExample.createCriteria().andMIdEqualTo(id)
-                    .andRetryStatusEqualTo(0).andFilterTypeEqualTo(1);
-            int i = errorMarkMapper.countByExample(errorMarkExample);
-            if(i > 0){
-                // 更新任务状态为异常待补推
-                main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
-            }
-
             Integer count = 0;
             for (Future<Result<Integer>> pushFuture : resList) {
                 Result<Integer> pushRes = pushFuture.get();
                 if (ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())
-                        || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(pushRes.getCode()) || i > 0) {
+                        || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(pushRes.getCode())) {
                     main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
-                }else if (!ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
-                    main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                    count ++;
-                } else {
+                } else if (ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
+                    main.setmStatus(PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
                     realTotalNum += pushRes.getData();
+                } else {
+                    main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                    count++;
                 }
             }
             if(count > 0){
@@ -262,15 +277,41 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             }
             //兼容数据重复的情况
             queryBaseBean.setPageSize(2000);
-            //根据跑分条件查询ES，符合条件的数据即为要推送数据
-            Long queryStart = System.currentTimeMillis();
-            List<MarketingHistory> marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
-            log.warn("【携程撞库推决策查询es】，耗时：{}，量级={}", System.currentTimeMillis() - queryStart, marketingHistories.size());
+            List<MarketingHistory> marketingHistories;
+            // 模拟es异常
+            if(mockSwitch(customerInfoPushMain.getmApiCode(),"esRetry")){
+                marketingHistories = null;
+            }else {
+                //根据跑分条件查询ES，符合条件的数据即为要推送数据
+                Long queryStart = System.currentTimeMillis();
+                marketingHistories = marketingHistoryEsService.builderMarketingWithList(queryBaseBean);
+                log.warn("【携程撞库推决策查询es】，耗时：{}，量级={}", System.currentTimeMillis() - queryStart, marketingHistories.size());
+            }
+
             //查询ES异常
             if(marketingHistories == null){
-                insertNewErrorMark(customerInfoPushMain, JSONObject.toJSONString(list));
-                return result.setCode(ResultCode.TIME_OUT.getValue()).setDate(0);
-            }else if (CollectionUtils.isEmpty(marketingHistories)) {
+                // 已存在补推记录
+                if(errorMark.getId() != null){
+                    if(errorMark.getRetryTotalAttempts() >= 3){
+                        return result.setCode(ResultCode.FAIL.getValue()).setDate(0);
+                    }else {
+                        errorMark.setRetryTotalAttempts(errorMark.getRetryTotalAttempts() + 1);
+                        errorMark.setUpdateTime(new Date());
+                        errorMarkMapper.updateByPrimaryKeySelective(errorMark);
+                        return result.setCode(ResultCode.TIME_OUT.getValue()).setDate(0);
+                    }
+                }else {
+                    insertNewErrorMark(customerInfoPushMain, JSONObject.toJSONString(list));
+                    return result.setCode(ResultCode.TIME_OUT.getValue()).setDate(0);
+                }
+            }else if(errorMark.getId() != null){
+                ErrorMark errorMark1 = new ErrorMark();
+                errorMark1.setId(errorMark.getId());
+                errorMark1.setRetryStatus(1);
+                errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
+            }
+
+            if (CollectionUtils.isEmpty(marketingHistories)) {
                 return result.setCode(ResultCode.SUCCESS.getValue()).setDate(0);
             }
 
@@ -300,36 +341,25 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             pushMarketingUserDTO.setApiCode(customerInfoPushMain.getmApiCode());
             pushMarketingUserDTO.setPlatApiCode(customerInfoPushMain.getmApiCode());
             pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
-            result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                    pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
-            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+
+            // 模拟推决策异常
+            if(mockSwitch(pushMarketingUserDTO.getApiCode(),"policyRetry")){
+                result.setCode(ResultCode.TIME_OUT.getValue());
+            }else {
                 result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, customerInfoPushMain.getId(),
                         pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
+                if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+                    result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, customerInfoPushMain.getId(),
+                            pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
+                }
             }
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 log.error("推送决策重试失败 accessNumber:{}", pushMarketingUserTaskInfoDTO.getAccessNumber());
             }
             if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
                     || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                if (errorMark != null) {
-                    int retryAttempts = errorMark.getRetryTotalAttempts();
-                    if (retryAttempts >= 3) {
-                        log.error("跑分异常补推es已重试3次，请手动处理，errorMarkId：{}", errorMark.getId());
-                    } else {
-                        errorMark.setRetryTotalAttempts(retryAttempts+1);
-                        errorMark.setUpdateTime(new Date());
-                        errorMarkMapper.updateByPrimaryKeySelective(errorMark);
-                    }
-                } else {
-                    insertErrorMark(pushMarketingUserDTO, customerInfoPushMain.getId(),
-                            pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
-                }
-            } else if (ResultCode.SUCCESS.getValue().equals(result.getCode()) && errorMark != null) {
-                ErrorMark updateErrorMark = new ErrorMark();
-                updateErrorMark.setId(errorMark.getId());
-                updateErrorMark.setRetryStatus(1);
-                updateErrorMark.setUpdateTime(new Date());
-                errorMarkMapper.updateByPrimaryKeySelective(updateErrorMark);
+                insertErrorMark(pushMarketingUserDTO, customerInfoPushMain.getId(),
+                        pushMarketingUserTaskInfoDTO.getAccessNumber(), userDetailDTOS.size());
             }
             result.setDate(userDetailDTOS.size());
         } catch (Exception e) {
@@ -338,48 +368,37 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         return result;
     }
 
-    private void repushPolicyData(Long id) {
-        // mid+待补推状态 + 携程跑分类型 + 推决策异常类型
-        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-        errorMarkExample.createCriteria().andMIdEqualTo(id)
-                .andRetryStatusEqualTo(0).andFilterTypeEqualTo(1).andTypeEqualTo(1);
-        List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
+    private Result<Integer> repushPolicyData(ErrorMark errorMark) {
+        PushMarketingUserDTO pushMarketingUserDTO = JSON.parseObject(errorMark.getPolicyCondition(), new TypeReference<PushMarketingUserDTO>() {
+        }.getType());
 
-        for (ErrorMark errorMark : errorMarks) {
-            PushMarketingUserDTO pushMarketingUserDTO = JSON.parseObject(errorMark.getPolicyCondition(), new TypeReference<PushMarketingUserDTO>() {
-            }.getType());
+        Result<Integer> result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, errorMark.getmId(),
+                errorMark.getAccessNumber(), errorMark.getPushSize());
 
-            Result<Integer> result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, errorMark.getmId(),
-                    errorMark.getAccessNumber(), errorMark.getPushSize());
-
-            if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
-                    || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                int retryAttempts = errorMark.getRetryTotalAttempts();
-                if (retryAttempts >= 3) {
-                    log.error("携程跑分异常补推es已重试3次，请手动处理，errorMarkId：{}", errorMark.getId());
-                } else {
-                    ErrorMark errorMark1 = new ErrorMark();
-                    errorMark1.setId(errorMark.getId());
-                    errorMark1.setRetryTotalAttempts(retryAttempts + 1);
-                    errorMark1.setUpdateTime(new Date());
-                    errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
-                }
-            } else if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                ErrorMark updateErrorMark = new ErrorMark();
-                updateErrorMark.setId(errorMark.getId());
-                updateErrorMark.setRetryStatus(1);
-                updateErrorMark.setUpdateTime(new Date());
-                errorMarkMapper.updateByPrimaryKeySelective(updateErrorMark);
+        if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
+                || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+            int retryAttempts = errorMark.getRetryTotalAttempts();
+            if (retryAttempts >= 3) {
+                log.error("携程跑分异常补推决策已重试3次，请手动处理，errorMarkId：{}", errorMark.getId());
+                return result.setCode(ResultCode.FAIL.getValue()).setDate(0);
+            } else {
+                errorMark.setRetryTotalAttempts(retryAttempts + 1);
+                errorMark.setUpdateTime(new Date());
+                errorMarkMapper.updateByPrimaryKeySelective(errorMark);
             }
+        } else if (ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            errorMark.setRetryStatus(1);
+            errorMark.setUpdateTime(new Date());
+            errorMarkMapper.updateByPrimaryKeySelective(errorMark);
         }
+        return result;
     }
-    private void repushQueryEsData(List<String> numList, List<Long> fileIds, CustomerInfoPushMain customerInfoPushMain,
-                                   Integer threeEncrypt, List<Future<Result<Integer>>> resList, ThreadPoolExecutor threadPool) {
-        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-        errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                .andRetryStatusEqualTo(0).andFilterTypeEqualTo(1).andTypeEqualTo(0);
-        List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-        for (ErrorMark errorMark : errorMarks) {
+
+    private void repushQueryEsData(List<ErrorMark> esErrorList, List<String> numList, List<Long> fileIds,
+                                   CustomerInfoPushMain customerInfoPushMain, Integer threeEncrypt,
+                                   List<Future<Result<Integer>>> resList, ThreadPoolExecutor threadPool) {
+
+        for (ErrorMark errorMark : esErrorList) {
 
             List<XieChengCollidingDataLoopCycle> dataLoopCycleList = JSON.parseObject(errorMark.getEsCondition(),
                     new TypeReference<List<XieChengCollidingDataLoopCycle>>() {}.getType());
@@ -496,6 +515,16 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             dto1.setVariables(varObject);
             userDetailDTOS.add(dto1);
         }
+    }
+
+    private boolean mockSwitch(String apiCode,String type) {
+        boolean o = Boolean.FALSE;
+        HashMap<String, JSONObject> policyRetrySwitch = marketingCommonConfig.getPolicyRetrySwitch();
+        JSONObject jsonObject = policyRetrySwitch.get(apiCode);
+        if(jsonObject != null){
+            o = jsonObject.getJSONObject("xiecheng").getBooleanValue(type);
+        }
+        return o;
     }
 
     private void markForCell(JSONObject varObject, JSONObject fields) {

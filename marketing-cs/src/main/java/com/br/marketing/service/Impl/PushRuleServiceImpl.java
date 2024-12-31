@@ -1200,7 +1200,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
         }
 
-        // 是否包含ES异常
+        // 是否包含已经推送3次的ES异常
         ErrorMarkExample errorMarkExample = new ErrorMarkExample();
         errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
                 .andRetryStatusEqualTo(0).andFilterTypeEqualTo(0).andTypeEqualTo(0);
@@ -1388,8 +1388,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                     //查询ES异常
                     if(marketingHistories == null){
                         // 已存在补推记录
-                        if(errorMark.getId() != null && errorMark.getRetryTotalAttempts() > 3){
-                            updateErrorMark(errorMark,errorMark.getRetryTotalAttempts() + 1);
+                        if(errorMark.getId() != null){
+                            if(errorMark.getRetryTotalAttempts() < 3){
+                                updateErrorMark(errorMark,errorMark.getRetryTotalAttempts() + 1);
+                            }
                         }else {
                             insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
                         }
@@ -1568,7 +1570,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         @Override
         public Result<Integer> call() {
             Result<Integer> result = new Result<>();
-            // 模拟es异常
+            // 模拟推决策异常
             if(mockSwitch(pushMarketingUserDTO.getApiCode(),"policyRetry")){
                 result.setCode(ResultCode.TIME_OUT.getValue());
             }else {
