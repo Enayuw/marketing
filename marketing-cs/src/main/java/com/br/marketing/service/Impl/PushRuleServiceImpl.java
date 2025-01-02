@@ -1059,6 +1059,10 @@ public class PushRuleServiceImpl implements PushRuleService {
             if(CollectionUtils.isEmpty(esErrorList)){
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
+            // 补推决策处理完，恢复补推状态 补推ES异常数据
+            customerInfoPushMain.setmStatus(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue());
+            customerInfoPushMain.setId(customerInfoPushMain.getId());
+            customerInfoPushMainMapper.updateByPrimaryKeySelective(customerInfoPushMain);
         }
 
         List<String> numList = new ArrayList<>();
@@ -1157,26 +1161,36 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , fileIds, numList, i.toString(), _3kEncrypt, isSigle, partDataNum.get(i), markWithEsFlag, lableObject)));
         }
         log.warn("推送决策 任务id：{}；获取所有分组数据耗时：{}", customerInfoPushMain.getId(), System.currentTimeMillis() - startTime);
+
         try {
-            Integer count = 0;
-            for (Future<List<Future<Result<Integer>>>> actionFuture : res) {
-                List<Future<Result<Integer>>> futures = actionFuture.get();
-                for (Future<Result<Integer>> pushFuture : futures) {
-                    Result<Integer> pushRes = pushFuture.get();
-                    if (ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())
-                            || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(pushRes.getCode())) {
-                        main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
-                        timeOutTotalNum += pushRes.getData();
-                    } else if (ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
-                        main.setmStatus(PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
-                        realTotalNum += pushRes.getData();
-                    } else {
-                        main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                        count++;
+            int retryCount = 0;
+            int failCount = 0;
+            try {
+                for (Future<List<Future<Result<Integer>>>> actionFuture : res) {
+                    List<Future<Result<Integer>>> futures = actionFuture.get();
+                    for (Future<Result<Integer>> pushFuture : futures) {
+                        Result<Integer> pushRes = pushFuture.get();
+                        if (ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())
+                                || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(pushRes.getCode())) {
+                            retryCount++;
+                        } else if (ResultCode.FAIL.getValue().equals(pushRes.getCode())) {
+                            failCount++;
+                        }
                     }
                 }
+                if(retryCount > 0){
+                    main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
+                }else if(failCount > 0){
+                    main.setmStatus(PushRuleStatusEnum.CONFIRMED_FAIL.getValue());
+                }else {
+                    main.setmStatus(PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
+                }
+            } catch (Exception ex) {
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
+                main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
             }
-            if (count > 0) {
+            log.warn("规则中心推送决策结果：retryCount：" + retryCount + ",failCount:" + failCount);
+            if (failCount > 0) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("推送决策失败：\n");
                 sb.append("apiCode：" + customerInfoPushMain.getmApiCode());
@@ -1232,6 +1246,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
     private void repushPolicyData(CustomerInfoPushMain customerInfoPushMain,List<ErrorMark> policyErrorList) {
 
+        CustomerInfoPushMain main = new CustomerInfoPushMain();
+
         List<Future<Result<Integer>>> resList = new ArrayList<>();
 
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 50);
@@ -1256,24 +1272,32 @@ public class PushRuleServiceImpl implements PushRuleService {
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), "补推决策线程池关闭！异常"), ex);
             Thread.currentThread().interrupt();
         }
+        int retryCount = 0;
+        int failCount = 0;
         try {
             for (Future<Result<Integer>> pushFuture : resList) {
                 Result<Integer> pushRes = pushFuture.get();
                 if (ResultCode.TIME_OUT.getValue().equals(pushRes.getCode())
                         || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(pushRes.getCode())) {
-                    customerInfoPushMain.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
-                } else if (ResultCode.SUCCESS.getValue().equals(pushRes.getCode())) {
-                    customerInfoPushMain.setmStatus(PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
-                } else {
-                    customerInfoPushMain.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                    retryCount++;
+                } else if (ResultCode.FAIL.getValue().equals(pushRes.getCode())) {
+                    failCount++;
                 }
+            }
+            if(retryCount > 0){
+                main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
+            }else if(failCount > 0){
+                main.setmStatus(PushRuleStatusEnum.CONFIRMED_FAIL.getValue());
+            }else {
+                main.setmStatus(PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
             }
         } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
-            customerInfoPushMain.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+            main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
         }
-        customerInfoPushMain.setId(customerInfoPushMain.getId());
-        customerInfoPushMainMapper.updateByPrimaryKeySelective(customerInfoPushMain);
+        log.warn("规则中心推送决策结果(补推)：retryCount：" + retryCount + ",failCount:" + failCount);
+        main.setId(customerInfoPushMain.getId());
+        customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
     }
 
     class actionEs implements Callable<List<Future<Result<Integer>>>> {
