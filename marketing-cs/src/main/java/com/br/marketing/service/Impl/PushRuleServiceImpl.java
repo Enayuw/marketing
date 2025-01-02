@@ -2224,7 +2224,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> pushCustomerApiCodes = marketingCommonConfig.getApiCodeOfpushCustomer();
         List<String> haluoApiCodes = marketingCommonConfig.getApiCodeOfpushHaluoByTransfer();
         List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
-        List<String> mrpUniversalProcessApiCode = marketingCommonConfig.getMrpUniversalProcessApiCode();
+        List<String> mrpUniversalProcessApiCode = marketingCommonConfig.getMrpTransferDataPushMqApiCodes();
         Integer soleNumTrans = marketingCommonConfig.getSoleNumTrans();
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
