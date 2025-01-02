@@ -82,7 +82,7 @@ public class MarketingCommonConfig {
     /**
      * 断点自动分发通用apiCode（智能规则编排）
      */
-    private List<String> mrpUniversalProcessApiCode;
+    private List<String> mrpTransferDataPushMqApiCodes;
 
     /**
      * 众安推送黑名单定时任务执行时间
