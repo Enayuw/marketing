@@ -1357,8 +1357,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                         while (flag){
                             ErrorMarkExample errorMarkExample = new ErrorMarkExample();
                             errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                                    .andPartEqualTo(part).andPageSizeEqualTo(i).andSearchAfterEqualTo(searchAfterStr)
-                                    .andRetryStatusEqualTo(0).andFilterTypeEqualTo(0).andTypeEqualTo(0);
+                                    .andPartEqualTo(part).andPageSizeEqualTo(i).andRetryStatusEqualTo(0)
+                                    .andFilterTypeEqualTo(0).andTypeEqualTo(0);
                             List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
                             // 当前页不是待补推数据 则进入下一页
                             if(CollectionUtils.isEmpty(errorMarks)){
@@ -1369,7 +1369,11 @@ public class PushRuleServiceImpl implements PushRuleService {
                             searchAfterStr = errorMark.getSearchAfter();
                             flag = Boolean.FALSE;
                         }
+                        if(flag){
+                            continue;
+                        }
                     }
+
                     String sn = String.valueOf(i);
                     if (i == totalPage && totalYuShu > 0) {
                         queryBaseBean.setPageSize(totalYuShu);
@@ -1395,7 +1399,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                         }else {
                             insertNewErrorMark(customerInfoPushMain, part, i, searchAfterStr, JSONObject.toJSONString(queryBaseBean));
                         }
-                        break;
+                        return resList;
                     }else if(errorMark.getId() != null){
                         ErrorMark errorMark1 = new ErrorMark();
                         errorMark1.setId(errorMark.getId());
