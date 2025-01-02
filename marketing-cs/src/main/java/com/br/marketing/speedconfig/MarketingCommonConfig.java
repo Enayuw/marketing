@@ -80,6 +80,11 @@ public class MarketingCommonConfig {
     private List<String> universalProcessApiCode;
 
     /**
+     * 断点自动分发通用apiCode（智能规则编排）
+     */
+    private List<String> mrpUniversalProcessApiCode;
+
+    /**
      * 众安推送黑名单定时任务执行时间
      */
     private String zhongAnPushBlackDataExecuteTime;
