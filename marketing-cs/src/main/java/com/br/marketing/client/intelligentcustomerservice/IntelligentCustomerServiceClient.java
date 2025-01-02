@@ -156,6 +156,32 @@ public class IntelligentCustomerServiceClient {
         return result;
     }
 
+    @PrometheusTimeMethod(buckets = {0.02d, 0.05d, 0.2d, 0.5d, 1d}, methodType = MethodType.REMOTE)
+    public Result getReachStrategy(PushMarketingUserDTO dto) {
+        dto.setPlatApiCode(customerServiceApiCode);
+        Result result = new Result();
+        try {
+            ThirdApiResultTransfer transfer = new ApiCaller(restTemplate).setUrl(pushUrl)
+                    .setContentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .setEncode(Boolean.TRUE)
+                    .setRequestParam(dto).postTransferStr();
+            JSONObject jsonObject = JSON.parseObject(transfer.getResult());
+            if (transfer.getHttpCode() != 200) {
+                throw new RuntimeException(String.format("接口状态返回非200 是%d", transfer.getHttpCode()));
+            }
+            if ("00".equals(jsonObject.getString("code"))
+                    || "900031".equals(jsonObject.getString("code"))) {
+                result.setDate(jsonObject);
+                result.setCode(ResultCode.SUCCESS.getValue());
+            } else {
+                result.setCode(ResultCode.FAIL.getValue()).setMessage(jsonObject.getString("message"));
+            }
+        } catch (Exception e){
+
+        }
+        return result;
+    }
+
     public Result<String> getUserStatus(PushMarketingUserDTO dto) {
         dto.setPlatApiCode(customerServiceApiCode);
         Result<String> result = new Result();
