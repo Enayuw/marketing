@@ -215,6 +215,8 @@ public class PushRuleServiceImpl implements PushRuleService {
     @Resource
     ErrorMarkMapper errorMarkMapper;
 
+    private static final String TITLE = "【通用跑分文件推决策】";
+
     @Override
     public Result<Map<String, Object>> getCompanyAndModule(String apiCode) {
         String companyMsg = RpcClientProxy.getCompanyMsg(apiCode);
@@ -1042,9 +1044,16 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             ErrorMarkExample errorMarkExample = new ErrorMarkExample();
             errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                    .andRetryStatusEqualTo(0).andFilterTypeEqualTo(0);
+                    .andRetryStatusEqualTo(0).andFilterTypeEqualTo(0).andRetryTotalAttemptsLessThan(3);
             List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
 
+            if(CollectionUtils.isEmpty(errorMarks)){
+                customerInfoPushMain.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                customerInfoPushMain.setId(customerInfoPushMain.getId());
+                customerInfoPushMainMapper.updateByPrimaryKeySelective(customerInfoPushMain);
+                log.warn(TITLE + "，未查询到待补推数据！");
+                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+            }
             List<ErrorMark> policyErrorList = errorMarks.stream()
                     .filter(errorMark -> errorMark.getType() == 1)
                     .collect(Collectors.toList());
@@ -1406,7 +1415,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     }
                     queryBaseBean.setSearchAfter(searchAfterStr);
 
-                    List<MarketingHistory> marketingHistories = new ArrayList<>();
+                    List<MarketingHistory> marketingHistories;
                     // 模拟es异常
                     if(mockSwitch(customerInfoPushMain.getmApiCode(),"esRetry")){
                         marketingHistories = null;
@@ -1500,8 +1509,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                         }
                         userDetailDTOS.add(dto1);
                     }
-//                    log.warn("营销推决策组装数据展示-main.id-dtos："
-//                            + customerInfoPushMain.getId().toString() + "-" + JSON.toJSONString(userDetailDTOS));
                     //推送任务基础信息
                     PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
                     pushMarketingUserTaskInfoDTO.setMethod("caseAdd");
