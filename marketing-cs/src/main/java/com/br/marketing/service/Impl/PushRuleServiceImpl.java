@@ -1192,7 +1192,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }else if(failCount > 0){
                     main.setmStatus(PushRuleStatusEnum.CONFIRMED_FAIL.getValue());
                 }else {
-                    main.setmStatus(PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
+                    main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
                 }
             } catch (Exception ex) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
@@ -1298,7 +1298,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             }else if(failCount > 0){
                 main.setmStatus(PushRuleStatusEnum.CONFIRMED_FAIL.getValue());
             }else {
-                main.setmStatus(PushRuleStatusEnum.CONFIRMED_SUCCESS.getValue());
+                main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
             }
         } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
