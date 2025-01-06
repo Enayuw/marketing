@@ -385,11 +385,21 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
     }
 
     private Result<Integer> repushPolicyData(ErrorMark errorMark) {
+        Result<Integer> result = new Result<>();
         PushMarketingUserDTO pushMarketingUserDTO = JSON.parseObject(errorMark.getPolicyCondition(), new TypeReference<PushMarketingUserDTO>() {
         }.getType());
 
-        Result<Integer> result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, errorMark.getmId(),
-                errorMark.getAccessNumber(), errorMark.getPushSize());
+        // 模拟推决策异常
+        if(mockSwitch(pushMarketingUserDTO.getApiCode(),"policyRetry")){
+            result.setCode(ResultCode.TIME_OUT.getValue());
+        }else {
+            result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, errorMark.getmId(),
+                    errorMark.getAccessNumber(), errorMark.getPushSize());
+            if (ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
+                result = intelligentCustomerServiceClient.pushRuleCenterToPolicy(pushMarketingUserDTO, errorMark.getmId(),
+                        errorMark.getAccessNumber(), errorMark.getPushSize());
+            }
+        }
 
         if (ResultCode.TIME_OUT.getValue().equals(result.getCode())
                 || ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
