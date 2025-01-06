@@ -43,6 +43,7 @@ public class HengChangDataCleanServiceImpl implements HengChangDataCleanService 
 
     @Override
     public Result<Boolean> cleanData(String message) {
+        log.warn("恒昌数据接入：" +message);
         JSONObject jsonObject = JSONObject.parseObject(message);
         String tCid = jsonObject.getString("tCid");
         String sourceId = jsonObject.getString("sourceId");
