@@ -1,27 +1,27 @@
 package com.br.marketing.api.customer.upload.service.hengchang.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.upload.adapter.BaseUploadDataAdaptee;
 import com.br.marketing.api.customer.upload.handler.CustomerUploadHandlerEnum;
 import com.br.marketing.api.customer.upload.service.hengchang.HengChangCustomizeUploadDataService;
+import com.br.marketing.api.customer.upload.service.hengchang.dto.HengChangUploadJsonDTO;
 import com.br.marketing.api.customer.upload.service.hengchang.dto.HengChangUploadResponseDTO;
 import com.br.marketing.common.constants.MarketingErrorInfo;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.MQConstants;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.CustomerResponseDTO;
 import com.br.marketing.dto.MarketingPreUserDTO;
-import com.br.marketing.entity.MarketingCustomer;
 import com.br.marketing.mapper.MarketingCustomerMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,9 +32,6 @@ import java.util.Set;
 @Service
 @Slf4j
 public class HengChangCustomizeUploadDataServiceImpl implements HengChangCustomizeUploadDataService {
-
-    @Resource
-    private MarketingCustomerMapper marketingCustomerService;
 
     @Resource
     private RabbitMqProducter rabbitMqProducter;
@@ -66,38 +63,21 @@ public class HengChangCustomizeUploadDataServiceImpl implements HengChangCustomi
      */
     @Override
     public BaseUploadDataAdaptee<MarketingPreUserDTO> parseObject(String jsonData) {
-        return new BaseUploadDataAdaptee<MarketingPreUserDTO>() {
-            private static final long serialVersionUID = 8794287668420049112L;
-            @Override
-            protected MarketingPreUserDTO adapteeRequest(String apiCode, String jsonData) {
-                return null;
-            }
-        };
+        HengChangUploadJsonDTO hengChangUploadJsonDTO = JSONObject.parseObject(jsonData, new TypeReference<HengChangUploadJsonDTO>() {
+        }.getType());
+
+        String requestNo = hengChangUploadJsonDTO.getTaskCode() + "_"
+                .concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
+
+        hengChangUploadJsonDTO.setRequestNo(requestNo);
+
+        return hengChangUploadJsonDTO;
     }
 
     @Override
     public CustomerResponseDTO verifyFields(BaseUploadDataAdaptee adaptee) {
         HengChangUploadResponseDTO HengChangUploadResponseDTO = new HengChangUploadResponseDTO();
         HengChangUploadResponseDTO.success();
-        List<MarketingCustomer> nameList = null;
-        try {
-            nameList = marketingCustomerService.getNameByApiCodeList(adaptee.getApiCode());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        String name;
-        String shortName;
-        if (CollectionUtils.isEmpty(nameList)) {
-            name = customer().getName();
-            shortName = name;
-        } else {
-            MarketingCustomer customer = nameList.get(0);
-            name = customer.getName();
-            shortName = customer.getShortName();
-        }
-        String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode(),
-                "定制化上传接口接收到“" + shortName + "”编号“" + adaptee.getApiCode().concat("”的数据\n请及时与该“").concat(name).concat("”沟通确认^_^"), "通用定制化上传接口未知请求通知");
-        log.warn(msg);
         return new CustomerResponseDTO(HengChangUploadResponseDTO, CustomerResponseDTO.StatusEnum.VALID, HengChangUploadResponseDTO.getCode());
     }
 
@@ -112,12 +92,19 @@ public class HengChangCustomizeUploadDataServiceImpl implements HengChangCustomi
      */
     @Override
     public String getRequestId(String apiCode, BaseUploadDataAdaptee adaptee) {
-        return apiCode.concat("_br_").concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
+        HengChangUploadJsonDTO uploadJsonDTO = (HengChangUploadJsonDTO)adaptee;
+        String requestNo = uploadJsonDTO.getRequestNo();
+        if(StringUtils.isEmpty(requestNo)){
+           return apiCode.concat("_" + uploadJsonDTO.getTaskCode() + "_")
+                    .concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
+        }
+        return apiCode.concat("_")+requestNo;
     }
 
     @Override
     public int countBizDataNumber(BaseUploadDataAdaptee adaptee) {
-        return countBizDataNumber(adaptee.getJsonData());
+        HengChangUploadJsonDTO uploadJsonDTO = (HengChangUploadJsonDTO)adaptee;
+        return uploadJsonDTO.getUserInfoList() != null ? uploadJsonDTO.getUserInfoList().size() : 0;
     }
 
     @Override

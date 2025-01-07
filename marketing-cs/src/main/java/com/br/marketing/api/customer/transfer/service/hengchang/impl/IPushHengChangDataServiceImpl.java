@@ -53,27 +53,6 @@ public class IPushHengChangDataServiceImpl implements IPushHengChangDataService 
     public CustomerResponseDTO verifyFields(TransferDataAdaptee adaptee) {
         HengChangResponseDTO HengChangResponseDTO = new HengChangResponseDTO();
         HengChangResponseDTO.success();
-        List<MarketingCustomer> nameList = null;
-        try {
-            nameList = marketingCustomerService.getNameByApiCodeList(adaptee.getApiCode());
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        String name;
-        String shortName;
-        if (CollectionUtils.isEmpty(nameList)) {
-            name = customer().getName();
-            shortName = name;
-        } else {
-            MarketingCustomer customer = nameList.get(0);
-            name = customer.getName();
-            shortName = customer.getShortName();
-        }
-        String msg = AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_USUAL_NOTICE.getCode()
-                , "定制化转化接口接收到“" + shortName + "”编号“" + adaptee.getApiCode()
-                        .concat("”的数据\n请及时与该“").concat(name).concat("”沟通确认^_^")
-                , "通用定制化转化接口未知请求通知");
-        log.warn(msg);
         return new CustomerResponseDTO(HengChangResponseDTO
                 , CustomerResponseDTO.StatusEnum.VALID, HengChangResponseDTO.getCode());
     }

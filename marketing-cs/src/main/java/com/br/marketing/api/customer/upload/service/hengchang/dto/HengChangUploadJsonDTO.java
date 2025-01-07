@@ -37,6 +37,8 @@ public class HengChangUploadJsonDTO extends BaseUploadDataAdaptee<MarketingPreUs
      */
     private String marketingTime;
 
+    private String requestNo;
+
     /**
      * 客户名单列表
      * uniqueId	String	是	用户唯一标识
