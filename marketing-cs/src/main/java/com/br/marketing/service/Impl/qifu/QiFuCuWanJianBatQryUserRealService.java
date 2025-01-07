@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl.qifu;
 
 import com.br.common.log.AlertLog;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
@@ -8,11 +9,13 @@ import com.br.marketing.dto.qifu.QiFuCuWanJianBatQryUserRealDto;
 import com.br.marketing.dto.qifu.QiFuCuWanJianBatQryUserRealParamsDto;
 import com.br.marketing.entity.MarketingSyncInfo;
 import com.br.marketing.entity.MarketingSyncUser;
+import com.br.marketing.entity.MarketingTransferSyncUser;
 import com.br.marketing.entity.SynInfoQueryAction;
 import com.br.marketing.mapper.MarketingSyncInfoMapper;
 import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.mapper.SynInfoQueryActionMapper;
 import com.br.marketing.monkeydata.entity.commonobj.Page2Condition;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -22,12 +25,10 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * QiFuCuWanJianBatQryUserRealService
@@ -63,6 +64,9 @@ public class QiFuCuWanJianBatQryUserRealService {
 
     @Resource
     private QiFuCuWanJianBatQryUserRealTransService qiFuCuWanJianBatQryUserRealTransService;
+
+    @Resource
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     public Result<Map<String, Object>> action(Page2Condition<QiFuCuWanJianBatQryUserRealDto> condition) {
         return scanData(condition);
@@ -137,6 +141,14 @@ public class QiFuCuWanJianBatQryUserRealService {
             // marketingSyncUserList
             List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode, requestBatch);
 
+            // 查询在有效期内的数据
+            Set<String> custNumSet = marketingSyncUserList.stream().map(MarketingSyncUser::getCustNum).collect(Collectors.toSet());
+            Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
+                    transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode, new Date());
+            marketingSyncUserList.removeIf(marketingSyncUser -> Objects.isNull(validityPeriodsByCustNum.get(marketingSyncUser.getCustNum())));
+            if(CollectionUtils.isEmpty(marketingSyncUserList)){
+                return result;
+            }
             // actionDataList
             Result<Map<String, Object>> actionResult = actionDetailList(apiCode, taskId, marketingSyncUserList);
 
