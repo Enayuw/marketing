@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaOldCollidingDataLogMapper">
+    <insert id="batchSaveByBatchNo">
+        insert into b_wuba_old_colliding_data_log (cell,batch_no,api_code,result,status,extend)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.cell},#{item.batchNo},#{item.apiCode},#{item.result},#{item.status},#{item.extend})
+        </foreach>
+    </insert>
+
+    <update id="batchUpdateResultById">
+        update b_wuba_old_colliding_data_log set result = #{result}
+        where id in
+        <foreach collection="logs" item="log" open="(" separator="," close=")">
+            #{log.id}
+        </foreach>
+    </update>
+
+    <update id="updateByBatchNoAndCell">
+        update b_wuba_old_colliding_data_log set result = #{result}, extend = #{extend}, status = #{status}
+        where batch_no = #{batchNo} and cell = #{cell}
+    </update>
+</mapper>

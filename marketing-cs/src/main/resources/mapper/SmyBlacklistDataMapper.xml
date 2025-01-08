@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.SmyBlacklistDataMapper" >
+    <select id="getBlacklistDataListByLocalId" resultType="com.br.marketing.entity.smy.SmyBlacklistData">
+        select
+        *
+        from b_shunfeng_company_data
+        where local_id = #{localId}
+        and status =1 and push_status =1
+        <if test="indexId != null and indexId>0">
+            and id > #{indexId}
+        </if>
+        <if test="createTime !=null and createTime!=''">
+            <![CDATA[  and create_time >=#{createTime} ]]>
+            <![CDATA[  and create_time <=#{createTime} ]]>
+        </if>
+        order by id asc limit 1000;
+
+    </select>
+</mapper>

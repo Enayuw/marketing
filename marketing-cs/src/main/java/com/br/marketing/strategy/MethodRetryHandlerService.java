@@ -49,6 +49,8 @@ import com.br.marketing.client.robotaiapi.output.ReqBlackPhoneVO;
 import com.br.marketing.client.robotaiapi.output.RobotOutboundVo;
 import com.br.marketing.client.robotaiapi.output.TransferRobotDataVO;
 import com.br.marketing.client.robotaiapi.output.TransferRobotOutboundVO;
+import com.br.marketing.client.smy.SmyClient;
+import com.br.marketing.client.smy.input.SmyCommReqDto;
 import com.br.marketing.client.zbank.ZbankClient;
 import com.br.marketing.client.zbank.ZbankResponse;
 import com.br.marketing.client.zhongan.ZhongAnClient;
@@ -190,6 +192,9 @@ public class MethodRetryHandlerService {
 
     @Resource
     private GuoMeiClient guoMeiClient;
+
+    @Resource
+    private SmyClient smyClient;
 
     /**
      * 渠道唯一标识（由众邦银行提供）
@@ -1412,5 +1417,24 @@ public class MethodRetryHandlerService {
         }
         return guoMeiClient.sendMarketingResultCallBack(resultCallBackRequest, Object.class);
     }
+
+
+    /**
+     * 推送萨摩耶接口
+     *
+     * @param commReqDto  封装的数据
+     * @param retry 是否重试
+     */
+    @RetryMethod(retryNowNum = 3)
+    public Result<?> sendSmyBlackList(SmyCommReqDto commReqDto, Integer retry) {
+        // 萨摩耶推送Mock挡板，1：开启，0：关闭
+        Object mock = marketingCommonConfig.getSmyBlacklistConfig().get("mock");
+        if("1".equals(mock)){
+            log.warn("【萨摩耶黑名单传输】挡板开启, {}", mock);
+            return new Result().setCode(ResultCode.SUCCESS.getValue());
+        }
+        return smyClient.sendSmyBlackList(commReqDto);
+    }
+
 
 }

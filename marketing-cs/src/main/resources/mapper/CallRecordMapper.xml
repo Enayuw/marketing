@@ -82,4 +82,16 @@
         and <![CDATA[ call_start_time <= '${bizDate} 23:59:59' ]]>
         group by case_num having count(*)>0
     </select>
+    <select id="getOneDayBlackListByCreateTime" resultType="java.lang.String">
+        select
+        case_num
+        from b_call_record
+        where call_status='12'
+        and case_num in
+        <foreach collection="custNumSet" item="key" open="(" separator="," close=")">
+            #{key}
+        </foreach>
+        and date(create_time) = #{nowDate}
+        group by case_num
+    </select>
 </mapper>

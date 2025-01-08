@@ -80,6 +80,11 @@ public class MarketingCommonConfig {
     private List<String> universalProcessApiCode;
 
     /**
+     * 断点自动分发通用apiCode（智能规则编排）
+     */
+    private List<String> mrpTransferDataPushMqApiCodes;
+
+    /**
      * 众安推送黑名单定时任务执行时间
      */
     private String zhongAnPushBlackDataExecuteTime;
@@ -1910,9 +1915,33 @@ public class MarketingCommonConfig {
      */
     private String SuShangTransferFileExecuteTime;
 
+    /**
+     * 58老客撞库提交撞库apiCode集合
+     */
+    private List<String> wubaOldCollidingApiCodes;
 
     /**
-     * 58同程撞库提交撞库apiCode集合
+     * 58老客撞库数据落库线程数
+     */
+    private Integer wubaOldCollidingDataSyncThreadNum;
+
+    /**
+     * 58老客查询撞库结果分页条数
+     */
+    private Integer wuBaOldCollidingQueryResultPageSize;
+
+    /**
+     * 58老客撞库接口参数配置
+     */
+    private JSONObject wuBaOldCollidingUrlConfig;
+
+    /**
+    *  58老客查询撞库结果挡板
+    */
+    private JSONObject wuBaOldMock;
+
+    /**
+     * 58撞库提交撞库apiCode集合
      */
     private List<String> wubaCollidingApiCodes;
 
@@ -2088,6 +2117,43 @@ public class MarketingCommonConfig {
      * 58新客-营销转化结果zip包查询-分页配置
      */
     private Integer wuBaQueryConversionZipResultPartitionSize;
+
+
+    /**
+     * 58老客-营销转化结果zip包查询-开关，1-开，0-关
+     */
+    private String wuBaOldQueryConversionZipResultSwitch;
+
+    /**
+     * 58老客-营销转化结果zip包查询-条件参数
+     */
+    private List<Map<String, String>> wuBaOldQueryConversionZipResultParams;
+
+    /**
+     * 58老客-营销转化结果zip包查询-查询URL
+     */
+    private Map<String, String> wuBaOldQueryConversionZipResultUrlConfig;
+
+    /**
+     * 58老客-营销转化结果zip包查询-文件路径
+     */
+    private String wuBaOldQueryConversionZipResultFilePath;
+
+    /**
+     * 58老客-营销转化结果zip包查询-内部ftp相对文件路径
+     */
+    private String wuBaOldQueryConversionZipResultInnerFtpRelativePath;
+
+    /**
+     * 58老客-营销转化结果zip包查询-表头映射配置
+     */
+    private Map<String, String> wuBaOldQueryConversionZipResultHeaderMapping;
+
+    /**
+     * 58老客-营销转化结果zip包查询-分页配置
+     */
+    private Integer wuBaOldQueryConversionZipResultPartitionSize;
+
 
     /**
      * 通用清洗线程池
@@ -2425,8 +2491,12 @@ public class MarketingCommonConfig {
 
 
     /**
+     * 数据分组分页大小
+     */
+    private Map<String,Integer> dataGroupPageSize;
+    /**
      * 萨摩耶客制化传输数据配置
-     * {"uploadApiCode":"7491637","transferApiCode":"7491637"}
+     * {"uploadApiCode":"3710196","transferApiCode":"3710196"}
      */
     private JSONObject smyCustomizeDataConfig;
 
@@ -2442,5 +2512,17 @@ public class MarketingCommonConfig {
      */
     private HashMap<String, JSONObject> policyRetrySwitch;
 
+    /**
+     * 萨摩耶客制化数据清洗配置
+     * {"uploadThread":10,"transferThread":10}
+     */
+    private JSONObject smyCustomizeDataCleanConfig;
+
+    /**
+     * 萨摩耶黑名单推送配置
+     * eg:{"mock":"1","poolCoreSize":"10","poolMaxSize":"20"}
+     * mock 1 开启
+     */
+    private Map<String, Object> smyBlacklistConfig = new HashMap<>();
 }
 

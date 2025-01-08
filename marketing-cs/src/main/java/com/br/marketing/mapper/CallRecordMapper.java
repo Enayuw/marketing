@@ -4,7 +4,10 @@ package com.br.marketing.mapper;
 import com.br.marketing.entity.CallRecord;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface CallRecordMapper extends CallRecordMapperBase {
     List<CallRecord> getLastCallRecordByCustNum(@Param("custNums") Collection<String> custNums, @Param("cid") String cid);
@@ -45,4 +48,6 @@ public interface CallRecordMapper extends CallRecordMapperBase {
                                   @Param("convType") String convType, @Param("lineName") String lineName);
 
     List<CallRecord> getBlackListSetNewtikv_(@Param("custNumMap") Map<String, String> custNumMap, @Param("bizDate") String bizDate);
+
+    List<String> getOneDayBlackListByCreateTime(@Param("custNumSet") Set<String> custNumSet, @Param("nowDate") String nowDate);
 }

@@ -53,6 +53,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.monitor.PrometheusMonitorUtils;
 import com.br.marketing.origin.CaffeineCache;
 import com.br.marketing.origin.MqFact;
+import com.br.marketing.origin.MrpMqFact;
 import com.br.marketing.origin.TransferSource;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -95,6 +96,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -610,16 +612,16 @@ public class PushRuleServiceImpl implements PushRuleService {
         // 查询Doris
         try {
             total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
-        }            catch (Exception e) {
+        } catch (Exception e) {
             log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
         }
         return total;
     }
 
     /**
-     * @description 黑名单剔除类型校验
      * @param blacklistDelete
      * @return boolean
+     * @description 黑名单剔除类型校验
      * @author hedongshuo
      * @date 2024/11/7 21:51
      **/
@@ -897,12 +899,12 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     /**
-     * @description 生成预估量级的sql：true剔除、false动态补充包剔除、黑名单剔除
      * @param jsonObject
      * @param batchNumberList
      * @param cleanTime
      * @param xcProcessTaskEnum
      * @return java.lang.String
+     * @description 生成预估量级的sql：true剔除、false动态补充包剔除、黑名单剔除
      * @author hedongshuo
      * @date 2024/11/10 14:28
      **/
@@ -972,9 +974,9 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     /**
-     * @description 剔除量级展示，result = true 或 info = NULL（动态补充包剔除）
      * @param dto
      * @return com.br.marketing.common.commondto.Result<java.lang.Integer>
+     * @description 剔除量级展示，result = true 或 info = NULL（动态补充包剔除）
      * @author hedongshuo
      * @date 2024/11/8 18:08
      **/
@@ -1620,7 +1622,7 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
-                                , "推送决策重试失败 accessNumber:" + accessNumber + " - " + JSON.toJSONString(result)));
+                        , "推送决策重试失败 accessNumber:" + accessNumber + " - " + JSON.toJSONString(result)));
             }
 
             if (ResultCode.TIME_OUT.getValue().equals(result.getCode()) ||
@@ -2499,6 +2501,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<String> pushCustomerApiCodes = marketingCommonConfig.getApiCodeOfpushCustomer();
         List<String> haluoApiCodes = marketingCommonConfig.getApiCodeOfpushHaluoByTransfer();
         List<String> universalProcessApiCode = marketingCommonConfig.getUniversalProcessApiCode();
+        List<String> mrpUniversalProcessApiCode = marketingCommonConfig.getMrpTransferDataPushMqApiCodes();
         Integer soleNumTrans = marketingCommonConfig.getSoleNumTrans();
         Boolean isContinue = Boolean.FALSE;
         MarketingTransferInfo transferInfo = marketingTransferInfoMapper.selectByPrimaryKey(id);
@@ -2659,6 +2662,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             mqFact.setSourceId(id);
             mqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
             producter.sendToUniversalTransferQueue(mqFact);
+        }
+
+        if (!CollectionUtils.isEmpty(mrpUniversalProcessApiCode) && mrpUniversalProcessApiCode.contains(transferInfo.getApiCode())) {
+            MrpMqFact mrpMqFact = new MrpMqFact();
+            mrpMqFact.setSourceId(id);
+            mrpMqFact.setSource(TransferSource.UNIVERSAL_TRANSFER_PROCESS.getCode());
+            mrpMqFact.setApiCode(transferInfo.getApiCode());
+            producter.sendToUniversalTransferQueue(mrpMqFact);
         }
         return new Result().setCode(ResultCode.SUCCESS.getValue()).setDate(isContinue).setMessage("成功");
     }

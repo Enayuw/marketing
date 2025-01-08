@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.WubaOldCollidingBatchNoMapper">
+    <insert id="saveDataByBatchNo">
+        insert into b_wuba_old_colliding_data_batch_no(batch_no, batch_type, push_time, api_code, data_source_type)
+        values (#{batchNo}, #{batchType}, now(), #{apiCode}, #{dataSourceType})
+    </insert>
+
+    <select id="selectCollidingDataResult" resultType="com.br.marketing.entity.WubaOldCollidingDataBatchNo">
+        select id, batch_no, api_code, data_source_type
+        from b_wuba_old_colliding_data_batch_no
+        where query_status = 0 and api_code = #{apiCode} and is_deleted = 0
+        order by id limit #{pageSize}
+    </select>
+</mapper>
