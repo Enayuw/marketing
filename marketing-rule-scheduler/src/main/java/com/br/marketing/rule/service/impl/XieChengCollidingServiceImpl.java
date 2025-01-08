@@ -1,5 +1,6 @@
 package com.br.marketing.rule.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -129,43 +130,23 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         List<Future<Result<Integer>>> resList = new ArrayList<>();
         Integer realTotalNum = 0;
 
-        // 补推
+
+        // 补推逻辑
         if(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
                 .equals(customerInfoPushMain.getmStatus())){
-
+            // 推决策重试
+            retryPolicyData(customerInfoPushMain,resList);
+            // ES重试
             ErrorMarkExample errorMarkExample = new ErrorMarkExample();
             errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                    .andRetryStatusEqualTo(0).andFilterTypeEqualTo(1).andRetryTotalAttemptsLessThan(3);
-            List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-
-            if(CollectionUtils.isEmpty(errorMarks)){
-                main.setId(customerInfoPushMain.getId());
-                main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
-                log.warn(TITLE + "未查询到待补推数据！");
-                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-            }
-
-            List<ErrorMark> policyErrorList = errorMarks.stream()
-                    .filter(errorMark -> errorMark.getType() == 1)
-                    .collect(Collectors.toList());
-
-            List<ErrorMark> esErrorList = errorMarks.stream()
-                    .filter(errorMark -> errorMark.getType() == 0)
-                    .collect(Collectors.toList());
-
-            // 补推 推决策失败数据
-            if(!CollectionUtils.isEmpty(policyErrorList)){
-                for (ErrorMark errorMark : policyErrorList) {
-                    resList.add(threadPool.submit(
-                            () -> repushPolicyData(errorMark)));
-                }
-            }
-            // 补推 查询ES失败数据：
+                    .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                    .andFilterTypeEqualTo(FilterTypeEnum.CREDENTIAL_STUFFING.getValue())
+                    .andTypeEqualTo(ErrorMarkTypeEnum.ES_ERROR.getValue())
+                    .andRetryTotalAttemptsLessThan(3);
+            List<ErrorMark> esErrorList = errorMarkMapper.selectByExample(errorMarkExample);
             if(!CollectionUtils.isEmpty(esErrorList)){
                 repushQueryEsData(esErrorList,numList, fileIds, customerInfoPushMain, threeEncrypt,resList,threadPool);
             }
-
         }else {
             while (true) {
                 List<XieChengCollidingDataLoopCycle> list = dataLoopCycleMapper.selectCycleDataByCondition(minId, condition, pageSize);
@@ -327,7 +308,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             if(errorMark != null){
                 ErrorMark errorMark1 = new ErrorMark();
                 errorMark1.setId(errorMark.getId());
-                errorMark1.setRetryStatus(1);
+                errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
                 errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
             }
 
@@ -460,9 +441,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         errorMark.setApiCode(customerInfoPushMain.getmApiCode());
         errorMark.setmId(customerInfoPushMain.getId());
         errorMark.setEsCondition(esCondition);
-        errorMark.setRetryTotalAttempts(0);
-        errorMark.setRetryStatus(0);
-        errorMark.setFilterType(1);
+        errorMark.setFilterType(FilterTypeEnum.CREDENTIAL_STUFFING.getValue());
         errorMark.setAppletDate(LocalDate.now().toString());
         errorMark.setCreateTime(new Date());
         errorMark.setUpdateTime(new Date());
@@ -476,14 +455,53 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         errorMark.setAccessNumber(accessNumber);
         errorMark.setPushSize(size);
         errorMark.setPolicyCondition(JSONObject.toJSONString(pushMarketingUserDTO));
-        errorMark.setRetryTotalAttempts(0);
-        errorMark.setRetryStatus(0);
-        errorMark.setFilterType(1);
-        errorMark.setType(1);
+        errorMark.setFilterType(FilterTypeEnum.CREDENTIAL_STUFFING.getValue());
+        errorMark.setType(ErrorMarkTypeEnum.POLICY_ERROR.getValue());
         errorMark.setAppletDate(LocalDate.now().toString());
         errorMark.setCreateTime(new Date());
         errorMark.setUpdateTime(new Date());
         errorMarkMapper.insertSelective(errorMark);
+    }
+
+    private void retryPolicyData(CustomerInfoPushMain customerInfoPushMain,List<Future<Result<Integer>>> resList) {
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 50);
+
+        Long minId = null;
+        boolean isContiue = Boolean.TRUE;
+        while (isContiue) {
+            ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+            errorMarkExample.setOrderByClause(" id limit 2000");
+
+            ErrorMarkExample.Criteria criteria = errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                    .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                    .andFilterTypeEqualTo(FilterTypeEnum.CREDENTIAL_STUFFING.getValue())
+                    .andTypeEqualTo(ErrorMarkTypeEnum.POLICY_ERROR.getValue())
+                    .andRetryTotalAttemptsLessThan(3);
+
+            if (minId != null) {
+                criteria.andIdGreaterThan(minId);
+            }
+            List<ErrorMark> policyErrorList = errorMarkMapper.selectByExample(errorMarkExample);
+            if (CollectionUtil.isEmpty(policyErrorList)) {
+                isContiue = Boolean.FALSE;
+                continue;
+            }
+            minId = policyErrorList.get(policyErrorList.size() - 1).getId();
+            for (ErrorMark errorMark : policyErrorList) {
+                resList.add(threadPool.submit(
+                        () -> repushPolicyData(errorMark)));
+            }
+        }
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn("补推决策线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), "补推决策线程池关闭！异常"), ex);
+            Thread.currentThread().interrupt();
+        }
     }
 
     private void assmbleUserDetail(List<MarketingHistory> marketingHistories, List<PushMarketingUserDetailDTO> userDetailDTOS,

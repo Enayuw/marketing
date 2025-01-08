@@ -1,6 +1,7 @@
 package com.br.marketing.service.Impl;
 import java.util.Date;
 
+import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
@@ -1040,41 +1041,13 @@ public class PushRuleServiceImpl implements PushRuleService {
         List<CustomerInfoPushBatch> customerInfoPushBatches = customerInfoPushBatchMapper.selectByExample(searchPushBatch);
         int total = customerInfoPushMain.getmRealyNum();
 
-        // 补推 推决策失败数据
+        // 补推逻辑
         if(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
                 .equals(customerInfoPushMain.getmStatus())){
-
-            ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-            errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                    .andRetryStatusEqualTo(0).andFilterTypeEqualTo(FilterTypeEnum.RUNNING_SCORES.getValue()).andRetryTotalAttemptsLessThan(3);
-            List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-
-            if(CollectionUtils.isEmpty(errorMarks)){
-                customerInfoPushMain.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                customerInfoPushMain.setId(customerInfoPushMain.getId());
-                customerInfoPushMainMapper.updateByPrimaryKeySelective(customerInfoPushMain);
-                log.warn(TITLE + "，未查询到待补推数据！");
-                return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
-            }
-            List<ErrorMark> policyErrorList = errorMarks.stream()
-                    .filter(errorMark -> errorMark.getType() == 1)
-                    .collect(Collectors.toList());
-
-            List<ErrorMark> esErrorList = errorMarks.stream()
-                    .filter(errorMark -> errorMark.getType() == 0)
-                    .collect(Collectors.toList());
-
-            if(!CollectionUtils.isEmpty(policyErrorList)){
-                repushPolicyData(customerInfoPushMain,policyErrorList);
-            }
-
-            if(CollectionUtils.isEmpty(esErrorList)){
-                Long id1 = customerInfoPushMain.getId();
-                CustomerInfoPushMain main = new CustomerInfoPushMain();
-                main.setId(id1);
-                // 是否包含已经推送3次的ES异常
-                queryExistError(main,id1);
-                customerInfoPushMainMapper.updateByPrimaryKeySelective(customerInfoPushMain);
+            // 推决策重试
+            retryPolicyData(customerInfoPushMain);
+            // ES重试
+            if(retryEsData(customerInfoPushMain)){
                 return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
             }
         }
@@ -1229,8 +1202,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
 
         // 是否包含已经推送3次的ES异常
-        queryExistError(main,customerInfoPushMain.getId());
-
+        main.setmStatus(queryExistError(customerInfoPushMain.getId()));
         log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
                 , customerInfoPushMain.getId()
                 , System.currentTimeMillis() - startTime
@@ -1242,10 +1214,71 @@ public class PushRuleServiceImpl implements PushRuleService {
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
-    private void queryExistError(CustomerInfoPushMain main, Long id) {
+    private boolean retryEsData(CustomerInfoPushMain customerInfoPushMain) {
+        // 查询ES重试数据
+        boolean isContiue = Boolean.FALSE;
+        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+        errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                .andFilterTypeEqualTo(FilterTypeEnum.RUNNING_SCORES.getValue())
+                .andTypeEqualTo(ErrorMarkTypeEnum.ES_ERROR.getValue())
+                .andRetryTotalAttemptsLessThan(3);
+        List<ErrorMark> esErrorList = errorMarkMapper.selectByExample(errorMarkExample);
+        if(CollectionUtils.isEmpty(esErrorList)){
+            isContiue = Boolean.TRUE;
+            CustomerInfoPushMain main = new CustomerInfoPushMain();
+            main.setId(customerInfoPushMain.getId());
+            main.setmStatus(queryExistError(customerInfoPushMain.getId()));
+            customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
+            return isContiue;
+        }
+        return isContiue;
+    }
+
+    private void retryPolicyData(CustomerInfoPushMain customerInfoPushMain) {
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 50);
+
+        Long minId = null;
+        boolean isContiue = Boolean.TRUE;
+        while (isContiue) {
+            ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+            errorMarkExample.setOrderByClause(" id limit 2000");
+
+            ErrorMarkExample.Criteria criteria = errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
+                    .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                    .andFilterTypeEqualTo(FilterTypeEnum.RUNNING_SCORES.getValue())
+                    .andTypeEqualTo(ErrorMarkTypeEnum.POLICY_ERROR.getValue())
+                    .andRetryTotalAttemptsLessThan(3);
+
+            if (minId != null) {
+                criteria.andIdGreaterThan(minId);
+            }
+            List<ErrorMark> policyErrorList = errorMarkMapper.selectByExample(errorMarkExample);
+            if (CollectionUtil.isEmpty(policyErrorList)) {
+                isContiue = Boolean.FALSE;
+                continue;
+            }
+            minId = policyErrorList.get(policyErrorList.size() - 1).getId();
+            repushPolicyData(policyErrorList,threadPool);
+        }
+        threadPool.shutdown();
+        try {
+            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
+                log.warn("补推决策线程池关闭");
+            }
+        } catch (InterruptedException ex) {
+            threadPool.shutdownNow();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), "补推决策线程池关闭！异常"), ex);
+            Thread.currentThread().interrupt();
+        }
+
+    }
+
+    private Integer queryExistError(Long id) {
         ErrorMarkExample errorMarkExample = new ErrorMarkExample();
         errorMarkExample.createCriteria().andMIdEqualTo(id)
-                .andRetryStatusEqualTo(0).andFilterTypeEqualTo(0).andTypeEqualTo(0);
+                .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                .andFilterTypeEqualTo(FilterTypeEnum.RUNNING_SCORES.getValue());
         List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
         if(!CollectionUtils.isEmpty(errorMarks)){
             List<Integer> retryTotalAttemptsList = errorMarks.stream()
@@ -1257,42 +1290,26 @@ public class PushRuleServiceImpl implements PushRuleService {
             if(allGreaterOrEqualThree){
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
                         , "推送决策重试3次失败 mid:" + id));
-                main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
+                return PushRuleStatusEnum.PUSH_FAIL.getValue();
             }else {
-                main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
+                return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
             }
         }else{
-            main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
+            return PushRuleStatusEnum.TO_BE_CONFIRMED.getValue();
         }
     }
 
-    private void repushPolicyData(CustomerInfoPushMain customerInfoPushMain,List<ErrorMark> policyErrorList) {
+    private void repushPolicyData(List<ErrorMark> policyErrorList,ThreadPoolExecutor threadPool) {
 
-        CustomerInfoPushMain main = new CustomerInfoPushMain();
-
-        List<Future<Result<Integer>>> resList = new ArrayList<>();
-
-        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(5, 5, 50);
         for (ErrorMark errorMark : policyErrorList) {
             PushMarketingUserDTO pushMarketingUserDTO = JSON.parseObject(errorMark.getPolicyCondition(), new TypeReference<PushMarketingUserDTO>() {
             }.getType());
 
-            resList.add(threadPool.submit(new PushJcAction(pushMarketingUserDTO
+            threadPool.submit(new PushJcAction(pushMarketingUserDTO
                     , errorMark.getAccessNumber()
                     , errorMark.getmId()
                     , errorMark.getPushSize()
-                    ,errorMark)));
-
-        }
-        threadPool.shutdown();
-        try {
-            while (!threadPool.awaitTermination(10L, TimeUnit.SECONDS)) {
-                log.warn("补推决策线程池关闭");
-            }
-        } catch (InterruptedException ex) {
-            threadPool.shutdownNow();
-            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.ES_RETRY_DATAERROR.getCode(), "补推决策线程池关闭！异常"), ex);
-            Thread.currentThread().interrupt();
+                    ,errorMark));
         }
     }
 
@@ -1366,9 +1383,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                     , total
                     , totalPage);
             List<Future<Result<Integer>>> resList = new ArrayList<>();
-            //boolean flag = Boolean.TRUE;
-            ErrorMark errorMark = new ErrorMark();
 
+            ErrorMark errorMark = new ErrorMark();
             int i1 = 1;
             // 判断该任务是否为异常待补推任务
             if(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
@@ -1376,10 +1392,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                 // 查询待补推数据
                 ErrorMarkExample errorMarkExample = new ErrorMarkExample();
                 errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                        .andPartEqualTo(part).andRetryStatusEqualTo(0)
-                        .andFilterTypeEqualTo(0).andTypeEqualTo(0);
+                        .andPartEqualTo(part)
+                        .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                        .andFilterTypeEqualTo(FilterTypeEnum.RUNNING_SCORES.getValue())
+                        .andTypeEqualTo(ErrorMarkTypeEnum.ES_ERROR.getValue());
                 List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-                // 当前页不是待补推数据 则进入下一页
+                // 查询当前part下的异常数据
                 if(!CollectionUtils.isEmpty(errorMarks)){
                     errorMark = errorMarks.get(0);
                     i1 = errorMark.getPageSize();
@@ -1389,30 +1407,6 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             for (int i = i1; i <= totalPage; i++) {
                 try {
-                    // 判断该任务是否为异常待补推任务
-                    //if(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue()
-                    //        .equals(customerInfoPushMain.getmStatus())){
-                    //    // 查询待补推数据
-                    //    while (flag){
-                    //        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-                    //        errorMarkExample.createCriteria().andMIdEqualTo(customerInfoPushMain.getId())
-                    //                .andPartEqualTo(part).andPageSizeEqualTo(i).andRetryStatusEqualTo(0)
-                    //                .andFilterTypeEqualTo(0).andTypeEqualTo(0);
-                    //        List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-                    //        // 当前页不是待补推数据 则进入下一页
-                    //        if(CollectionUtils.isEmpty(errorMarks)){
-                    //            break;
-                    //        }
-                    //        errorMark = errorMarks.get(0);
-                    //        i = errorMark.getPageSize();
-                    //        searchAfterStr = errorMark.getSearchAfter();
-                    //        flag = Boolean.FALSE;
-                    //    }
-                    //    if(flag){
-                    //        continue;
-                    //    }
-                    //}
-
                     String sn = String.valueOf(i);
                     if (i == totalPage && totalYuShu > 0) {
                         queryBaseBean.setPageSize(totalYuShu);
@@ -1441,10 +1435,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                         return resList;
                     }
 
-                    if (errorMark != null) {
+                    if (errorMark.getId() != null) {
                         ErrorMark errorMark1 = new ErrorMark();
                         errorMark1.setId(errorMark.getId());
-                        errorMark1.setRetryStatus(1);
+                        errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
                         errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
                     }
 
@@ -1559,8 +1553,7 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorMark.setPageSize(pageSize);
         errorMark.setSearchAfter(searchAfterStr);
         errorMark.setEsCondition(esCondition);
-        errorMark.setRetryTotalAttempts(0);
-        errorMark.setRetryStatus(0);
+        errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
         errorMark.setAppletDate(LocalDate.now().toString());
         errorMark.setCreateTime(new Date());
         errorMark.setUpdateTime(new Date());
@@ -1652,7 +1645,7 @@ public class PushRuleServiceImpl implements PushRuleService {
             if (ResultCode.SUCCESS.getValue().equals(result.getCode()) && errorMark != null) {
                 ErrorMark updateErrorMark = new ErrorMark();
                 updateErrorMark.setId(errorMark.getId());
-                updateErrorMark.setRetryStatus(1);
+                updateErrorMark.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
                 updateErrorMark.setUpdateTime(new Date());
                 errorMarkMapper.updateByPrimaryKeySelective(updateErrorMark);
             }
@@ -1677,9 +1670,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         errorMark.setAccessNumber(accessNumber);
         errorMark.setPushSize(size);
         errorMark.setPolicyCondition(JSONObject.toJSONString(pushMarketingUserDTO));
-        errorMark.setRetryTotalAttempts(0);
-        errorMark.setRetryStatus(0);
-        errorMark.setType(1);
+        errorMark.setRetryStatus(RetryStatusEnum.AWAIT_COMPLETE.getValue());
+        errorMark.setType(ErrorMarkTypeEnum.POLICY_ERROR.getValue());
         errorMark.setAppletDate(LocalDate.now().toString());
         errorMark.setCreateTime(new Date());
         errorMark.setUpdateTime(new Date());
