@@ -15,7 +15,6 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.mapper.*;
-import com.br.marketing.service.Impl.PushRuleServiceImpl;
 import com.br.marketing.util.GeneScriptUtil;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
@@ -45,7 +44,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -324,7 +322,9 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                     errorMarkMapper.updateByPrimaryKeySelective(errorMark);
                     return result.setCode(ResultCode.TIME_OUT.getValue()).setDate(0);
                 }
-            }else if(errorMark != null){
+            }
+
+            if(errorMark != null){
                 ErrorMark errorMark1 = new ErrorMark();
                 errorMark1.setId(errorMark.getId());
                 errorMark1.setRetryStatus(1);
