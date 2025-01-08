@@ -2,24 +2,18 @@ package com.br.marketing.api.customer.transfer.service.hengchang.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.br.common.log.AlertLog;
 import com.br.marketing.api.customer.transfer.adapter.TransferDataAdaptee;
 import com.br.marketing.api.customer.transfer.handler.CustomerHandlerEnum;
 import com.br.marketing.api.customer.transfer.service.hengchang.IPushHengChangDataService;
 import com.br.marketing.api.customer.transfer.service.hengchang.dto.HengChangResponseDTO;
 import com.br.marketing.api.customer.transfer.service.hengchang.dto.HengChangTransferJsonDTO;
 import com.br.marketing.common.constants.MarketingErrorInfo;
-import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.dto.CustomerResponseDTO;
-import com.br.marketing.entity.MarketingCustomer;
-import com.br.marketing.mapper.MarketingCustomerMapper;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,9 +26,7 @@ import java.util.Set;
 @Slf4j
 public class IPushHengChangDataServiceImpl implements IPushHengChangDataService {
     @Resource
-    private MarketingCustomerMapper marketingCustomerService;
-    @Resource
-    private MarketingSyncUserMapper marketingSyncUserMapper;
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
     public CustomerHandlerEnum customer() {
@@ -45,7 +37,7 @@ public class IPushHengChangDataServiceImpl implements IPushHengChangDataService 
     public TransferDataAdaptee parseObject(String jsonData) {
         HengChangTransferJsonDTO object = JSONObject.parseObject(jsonData, new TypeReference<HengChangTransferJsonDTO>() {
         }.getType());
-        object.setMarketingSyncInfoMapper(marketingSyncUserMapper);
+        object.setTransferDataValidityPeriodService(transferDataValidityPeriodService);
         return object;
     }
 

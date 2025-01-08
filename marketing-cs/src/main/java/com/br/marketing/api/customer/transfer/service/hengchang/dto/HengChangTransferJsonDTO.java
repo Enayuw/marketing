@@ -4,19 +4,19 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.api.customer.transfer.adapter.TransferDataAdaptee;
+import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.dto.TransferDataDTO;
 import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.mapper.MarketingSyncUserMapper;
+import com.br.marketing.service.TransferDataValidityPeriodService;
 import lombok.Data;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @ClassName HengChangTransferJsonDTO
@@ -61,12 +61,12 @@ public class HengChangTransferJsonDTO extends TransferDataAdaptee {
      */
     private JSONArray userTransferInfoList;
 
-    private MarketingSyncUserMapper marketingSyncInfoMapper;
+    private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
     @Override
     protected TransferDataDTO<TransferDataItemDTO> adapteeRequest(String apiCode
             , TransferDataDTO<TransferDataItemDTO> transferDataDTO) {
 
-        System.out.println(marketingSyncInfoMapper.toString());
         //requestId：yyyymmdd_apicde_五位随机数加毫秒级时间戳
         long timestamp = System.currentTimeMillis();
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(DateHelper.SHORT_DATE_FORMAT));
@@ -83,9 +83,14 @@ public class HengChangTransferJsonDTO extends TransferDataAdaptee {
             if(jsonObject.getString("uniqueId") != null){
                 String custNum = jsonObject.getString("uniqueId");
                 dto.setCustNum(custNum);
-                MarketingSyncUser marketingSyncUser = this.marketingSyncInfoMapper.selectSynsUserByCustNumLastWithStatus(apiCode, custNum);
-                if(marketingSyncUser != null){
-                    dto.setUserType(marketingSyncUser.getUserType());
+                Set<String> custNumSet = new HashSet<>();
+                custNumSet.add(custNum);
+                Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndTaskId =
+                        transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
+                SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNumAndTaskId.get(custNum);
+                if(syncUserValidityPeriodsBO != null){
+                    List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
+                    dto.setUserType(syncUsers.get(0).getUserType());
                 }
             }
             dto.setLoginTime(jsonObject.getString("lastLoginTime"));

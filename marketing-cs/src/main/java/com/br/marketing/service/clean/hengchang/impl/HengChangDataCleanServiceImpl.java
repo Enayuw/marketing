@@ -57,9 +57,7 @@ public class HengChangDataCleanServiceImpl implements HengChangDataCleanService 
             Result<Boolean> result;
             MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
             userDTO.setTaskId(uploadJson.getTaskCode());
-            String requestNo = data.getApiCode().concat("_" + uploadJson.getTaskCode() + "_")
-                    .concat(Md5Utils.cell32(RandomStringUtils.randomAlphabetic(32).concat("&") + System.nanoTime()));
-            userDTO.setRequestId(requestNo);
+            userDTO.setRequestId(uploadJson.getRequestNo());
             userDTO.setLast("0");
             userDTO.setTotal("0");
             List<MarketingPreUserDetailDTO> dataUploadItems = buildUploadDataItems(uploadJson);
