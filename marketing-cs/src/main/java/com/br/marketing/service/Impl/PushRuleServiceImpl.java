@@ -1190,7 +1190,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 if(retryCount > 0){
                     main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
                 }else if(failCount > 0){
-                    main.setmStatus(PushRuleStatusEnum.CONFIRMED_FAIL.getValue());
+                    main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
                 }else {
                     main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
                 }

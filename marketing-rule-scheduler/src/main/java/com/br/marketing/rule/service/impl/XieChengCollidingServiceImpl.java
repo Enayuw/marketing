@@ -217,7 +217,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 if(retryCount > 0){
                     main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
                 }else if(failCount > 0){
-                    main.setmStatus(PushRuleStatusEnum.CONFIRMED_FAIL.getValue());
+                    main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
                 }else {
                     main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
                 }
@@ -379,6 +379,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             }
             result.setDate(userDetailDTOS.size());
         } catch (Exception e) {
+            result.setCode(ResultCode.FAIL.getValue());
             log.error(TITLE + "异常", e);
         }
         return result;
