@@ -258,5 +258,5 @@ public interface MarketingTaskMapper extends MarketingTaskMapperBase {
                                              @Param("createTimeEnd")String createTimeEnd);
 
 
-
+    MarketingTaskVO getByFileId(@Param("fileId") Long fileId);
 }

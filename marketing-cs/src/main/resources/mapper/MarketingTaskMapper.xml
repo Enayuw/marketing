@@ -267,7 +267,8 @@
                context_id,
                task_type,
                product_info,
-               is_online
+               is_online,
+               score_separator
         FROM b_marketing_task
         WHERE batch_number = #{batchNumber}
     </select>
@@ -634,6 +635,7 @@
         when shf.status = 9 then 1
         when shf.status = 10 then 4
         when shf.status = 11 then 5
+        when shf.status = 12 then 1
         else shf.status end                                as taskStatus,
         bmt.start_date                              as startDate,
         bmt.close_date                              as closeDate,
@@ -681,7 +683,7 @@
             and shf.status = 2
         </if>
         <if test="taskStatus==1 ">
-            and shf.status in(1,3,4,5,6,7,9)
+            and shf.status in(1,3,4,5,6,7,9,12)
         </if>
         <if test="taskStatus==3 ">
             and shf.status =0
@@ -892,5 +894,19 @@
             <![CDATA[  and bmt.create_time <#{createTimeEnd} ]]>
         </if>
         order by bmt.create_time desc,bmt.id desc
+    </select>
+    <select id="getByFileId" resultType="com.br.marketing.vo.MarketingTaskVO">
+        select
+            bmt.id,
+            shf.id                  as `hisFileId`,
+            bmt.api_code,
+            bmt.batch_number        as `batchNumber`,
+            bmt.task_number         as `taskNumber`,
+            bmt.monitor_type        as `execType`,
+            bmt.is_online           as `isOnline`
+        from b_marketing_task bmt
+                 left join stra_his_file shf on shf.batch_number = bmt.batch_number
+        where shf.id = #{fileId}
+        order by shf.create_time desc;
     </select>
 </mapper>

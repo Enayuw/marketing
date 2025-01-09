@@ -1,4 +1,5 @@
 package com.br.marketing.service.Impl;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -6,7 +7,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.RedisChgService;
+import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
+import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserTaskInfoDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
@@ -23,14 +30,15 @@ import com.br.marketing.mapper.ScoreSearchConditionMapper;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.service.PushDecisionsService;
 import com.br.marketing.vo.PushDecisionsDetailVO;
+import com.br.marketing.vo.ReachStrategyVO;
 import com.br.marketing.vo.TaskTemplateVO;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +65,9 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
 
     @Autowired
     RedisChgService redisChgService;
+
+    @Autowired
+    IntelligentCustomerServiceClient intelligentCustomerServiceClient;
 
     @Override
     public Result<Long> savePushDecisions(PushDecisionsDTO dto) {
@@ -265,6 +276,36 @@ public class PushDecisionsServiceImpl implements PushDecisionsService {
 
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(sortedFiles);
 
+    }
+
+    @Override
+    public Result<List<ReachStrategyVO>> getReachStrategyByApiCode(String apiCode) {
+        //基础信息
+        PushMarketingUserTaskInfoDTO pushMarketingUserTaskInfoDTO = new PushMarketingUserTaskInfoDTO();
+        pushMarketingUserTaskInfoDTO.setMethod("getAISTR");
+        //传输参数信息
+        PushMarketingUserDTO pushMarketingUserDTO = new PushMarketingUserDTO();
+        pushMarketingUserDTO.setApiCode(apiCode);
+        pushMarketingUserDTO.setJsonData(pushMarketingUserTaskInfoDTO);
+        Result result = intelligentCustomerServiceClient.getReachStrategy(pushMarketingUserDTO);
+        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("查询触发策略有误，请重试！："+apiCode);
+        }
+        List<ReachStrategyVO> list = new ArrayList<>();
+        JSONObject data = (JSONObject) result.getData();
+        if(data.isEmpty()){
+            new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(list);
+        }
+        String jsonString = data.getString("data");
+        JSONArray jsonArray = JSONArray.parseArray(jsonString);
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JSONObject jsonObject = jsonArray.getJSONObject(i);
+            ReachStrategyVO reachStrategyVO = new ReachStrategyVO();
+            reachStrategyVO.setAistrName(jsonObject.getString("aistrName"));
+            reachStrategyVO.setAistrNum(jsonObject.getString("aistrNum"));
+            list.add(reachStrategyVO);
+        }
+        return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(list);
     }
 
     String buildConditionNumber(String apiCode) {

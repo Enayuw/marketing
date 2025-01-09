@@ -238,4 +238,10 @@ public class MarketingCustomerListVO {
     @ApiModelProperty(value = "校验类型 1-通用校验；2-不校验")
     private Integer checkType;
 
+    /**
+     * 跑分分隔符,默认,
+     */
+    @ApiModelProperty(value = "跑分分隔符")
+    private String scoreSeparator;
+
 }

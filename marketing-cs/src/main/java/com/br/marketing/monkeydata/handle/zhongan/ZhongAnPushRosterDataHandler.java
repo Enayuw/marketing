@@ -17,10 +17,7 @@ import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
-import com.br.marketing.entity.CallRecord;
-import com.br.marketing.entity.MarketingSyncUser;
-import com.br.marketing.entity.ZhonganRosterLockingData;
-import com.br.marketing.entity.ZhonganRosterLockingDataExample;
+import com.br.marketing.entity.*;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.ZhonganMarketingBanMapper;
 import com.br.marketing.mapper.ZhonganRosterLockingDataMapper;
@@ -44,6 +41,8 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.*;
@@ -508,18 +507,8 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         if (CollectionUtils.isEmpty(pageList)) {
             return Collections.emptySet();
         }
-        Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<String, String> ob = iterator.next();
-            // 众安客服拨打明细custnum今日黑名单实时缓存
-            Boolean sismember = redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday, ob.getKey());
-            String nowDayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            if (nowDayStr.equals(ob.getValue()) && sismember) {
-                iterator.remove();
-                // key: custNum+yyyy-MM-dd
-                custNumBlackListSet.add(ob.getKey() + nowDayStr);
-            }
-        }
+        String nowDayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        processTodayZhongaAnBlackData(custNumMap,custNumBlackListSet, nowDayStr);
         if (!CollectionUtils.isEmpty(custNumMap)) {
             // 客服拨打记录表  callStatus≠12 12-黑名单
             List<String> bizDates = pageList.stream()
@@ -679,5 +668,47 @@ public class ZhongAnPushRosterDataHandler extends IMonkeyDataHandle<ZhonganRoste
         pool.setMaximumPoolSize(poolSize);
         pushPool.setCorePoolSize(pushPoolSize);
         pushPool.setMaximumPoolSize(pushPoolSize);
+    }
+
+    /**
+     * 循环处理在当天拨打记录黑名单中,实时缓存
+     */
+    public void processTodayZhongaAnBlackData(Map<String,String> custNumMap,Set custNumBlackListSet,String nowDayStr){
+        try{
+            Iterator<Map.Entry<String, String>> iterator = custNumMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, String> ob = iterator.next();
+                if (nowDayStr.equals(ob.getValue()) && redisChgService.sismember(RedisKeyConstant.zhongAnblackCusNumToday,ob.getKey())) {
+                    iterator.remove();
+                    custNumBlackListSet.add(ob.getKey() + nowDayStr);
+                }
+            }
+        }catch (Exception e){
+            log.error("redis查询众安当天拨打记录黑名单异常");
+            processTodayZhongaAnBlackDataFromDb(custNumMap,custNumBlackListSet,nowDayStr);
+        }
+    }
+
+    /**
+     * 兼容redis不可用场景，查询db判断众安当天拨打记录黑名单
+     */
+    public void processTodayZhongaAnBlackDataFromDb(Map<String,String> custNumMap,Set custNumBlackListSet,String nowDayStr){
+        if (CollectionUtils.isEmpty(custNumMap)) {
+            return ;
+        }
+        Set<String> querySet = custNumMap.entrySet().stream()
+                .filter(entry -> nowDayStr.equals(entry.getValue())).map(Map.Entry::getKey).collect(Collectors.toSet());
+        if (CollectionUtils.isEmpty(querySet)) {
+            return ;
+        }
+        long startMillis = System.currentTimeMillis();
+        List<String> custNumList = callRecordMapper.getOneDayBlackListByCreateTime(querySet,nowDayStr);
+        if(!CollectionUtils.isEmpty(custNumList)){
+            custNumList.stream().forEach((String key) -> {
+                custNumMap.remove(key);
+                custNumBlackListSet.add(key + nowDayStr);
+            });
+        }
+        log.warn("查询众安当天拨打记录黑名单总耗时:{}ms,数据{}条",System.currentTimeMillis() - startMillis,CollectionUtils.isEmpty(custNumList) ? 0 : custNumList.size());
     }
 }

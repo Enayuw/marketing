@@ -24,6 +24,7 @@ import com.br.marketing.dto.TransferDataItemDTO;
 import com.br.marketing.entity.CustomerTransferDataReceive;
 import com.br.marketing.mapper.CustomerTransferDataReceiveMapper;
 import com.br.marketing.service.PushRuleService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.br.marketing.util.ApiFieldCheckUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -34,6 +35,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -49,6 +52,9 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
 
     @Resource
     private CustomerDataHandleSingleton customerDataHandleSingleton;
+
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Resource
     private PushRuleService pushRuleService;
@@ -146,6 +152,15 @@ public class CustomerTransferDataServiceImpl implements CustomerTransferDataServ
     }
 
     private String getRequestId(String apiCode, String requestId) {
+
+        Map<String, List<String>> customerHandlerEnumConfigMap = marketingCommonConfig.getCustomerHandlerEnumConfigMap();
+        if (customerHandlerEnumConfigMap.containsKey(CustomerHandlerEnum.T_HENGCHANG.toString())) {
+            List<String> apiCodes = customerHandlerEnumConfigMap.get(CustomerHandlerEnum.T_HENGCHANG.toString());
+            if (apiCodes.contains(apiCode)) {
+                return requestId;
+            }
+        }
+
         return (StringUtils.isBlank(requestId) ? getRequestId(apiCode) : apiCode.concat("_").concat(requestId));
     }
 

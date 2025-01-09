@@ -129,7 +129,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
-    public Result<String> getCurrentBaseHeadInfoByTaskId(Long taskId) {
+    public Result<String> getCurrentBaseHeadInfoByTaskId(Long taskId,String sep) {
         MarketingTaskExtendExample taskExtendExample = new MarketingTaskExtendExample();
         taskExtendExample.createCriteria().andTaskIdEqualTo(taskId).andIsDelEqualTo(1);
         List<MarketingTaskExtend> marketingTaskExtends = marketingTaskExtendMapper.selectByExample(taskExtendExample);
@@ -138,7 +138,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
             if(StringUtils.isNotBlank(taskExtend.getExtendShowTitle())){
                 BaseHeadConfigVO o = JSON.parseObject(taskExtend.getExtendShowTitle(), new TypeReference<BaseHeadConfigVO>() {
                 }.getType());
-                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Joiner.on(",").join(o.getShowBaseHead()));
+                return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(Joiner.on(sep).join(o.getShowBaseHead()));
             }
             return new Result<>().setCode(ResultCode.FAIL.getValue());
         }
@@ -206,14 +206,14 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
     }
 
     @Override
-    public Result<String> getFieldsStrInfo(String apiCode,String batchNumber) {
+    public Result<String> getFieldsStrInfo(String apiCode,String batchNumber,String sep) {
         Result<List<String>> fieldsInfo = this.getFieldsInfo(apiCode,batchNumber);
         if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
             if(CollectionUtils.isEmpty(fieldsInfo.getData())){
                 return new Result<String>().setCode(ResultCode.FAIL.getValue());
             }
             return new Result<String>().setCode(fieldsInfo.getCode())
-                    .setDate(Joiner.on(",").join(fieldsInfo.getData()));
+                    .setDate(Joiner.on(sep).join(fieldsInfo.getData()));
         }else{
             return new Result<String>().setCode(fieldsInfo.getCode())
                     .setMessage(fieldsInfo.getMessage());
@@ -357,15 +357,15 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
 
         boolean isOffLine = new Integer(2).equals(task.getIsOnline());
 
-        Result<String> baseHeadInfoByTaskId = getCurrentBaseHeadInfoByTaskId(Long.valueOf(task.getId().toString()));
+        Result<String> baseHeadInfoByTaskId = getCurrentBaseHeadInfoByTaskId(Long.valueOf(task.getId().toString()),sep);
         String baseHeadInfo = "";
         if(ResultCode.SUCCESS.getValue().equals(baseHeadInfoByTaskId.getCode())){
             baseHeadInfo = baseHeadInfoByTaskId.getData();
         }
         if(isOffLine){
-            List<String> heads = Arrays.stream(baseHeadInfo.split(",")).collect(Collectors.toList());
+            List<String> heads = Arrays.stream(baseHeadInfo.split(sep)).collect(Collectors.toList());
             offLineHeadComplete(heads,null);
-            baseHeadInfo = Joiner.on(",").join(heads);
+            baseHeadInfo = Joiner.on(sep).join(heads);
         }
 
         head.append("request_time").append(sep).append("batch_number").append(sep).append("cus_num")
@@ -377,7 +377,7 @@ public class ProductResultByConfigSimpleServiceImpl implements IProductResultSim
         Integer taskType=task.getTaskType();
         if((taskType.compareTo(new Integer(0))==0 ||taskType.compareTo(new Integer(2))==0)
                 && !isOffLine){
-            Result<String> fieldsInfo = getFieldsStrInfo(task.getApiCode(),task.getBatchNumber());
+            Result<String> fieldsInfo = getFieldsStrInfo(task.getApiCode(), task.getBatchNumber(), sep);
             if(ResultCode.SUCCESS.getValue().equals(fieldsInfo.getCode())){
                 dataInfo = fieldsInfo.getData();
             }

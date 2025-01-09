@@ -35,4 +35,7 @@ public class CollidingRuleConfirmParam implements Serializable {
 
     @ApiModelProperty("一天内的撞库次数")
     private Integer collidingTimes;
+
+    @ApiModelProperty("一天内撞库时间点")
+    private String startTimes;
 }

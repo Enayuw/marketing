@@ -1,13 +1,13 @@
 package com.br.marketing.entity;
 
-import java.util.Date;
-
 import lombok.Data;
+
+import java.util.Date;
 
 @Data
 public class XiechengCollidingDataPackageRule {
     /**
-     * 
+     *
      */
     private Long id;
 
@@ -32,14 +32,19 @@ public class XiechengCollidingDataPackageRule {
     private Integer collidingBackNumber;
 
     /**
-     * 撞库开始时间
+     * 规则开启时间
      */
     private Date collidingStartTime;
 
     /**
-     * 撞库结束时间
+     * 规则结束时间
      */
     private Date collidingEndTime;
+
+    /**
+     * 撞库开始时间（多个时间以逗号分割，格式HH:mm）
+     */
+    private String startTimes;
 
     /**
      * 一天内的撞库次数
@@ -57,12 +62,12 @@ public class XiechengCollidingDataPackageRule {
     private String errorMessage;
 
     /**
-     * 
+     *
      */
     private Date createTime;
 
     /**
-     * 
+     *
      */
     private Date updateTime;
 
@@ -70,5 +75,4 @@ public class XiechengCollidingDataPackageRule {
      * 0 正常，1删除
      */
     private Integer isDelete;
-
 }

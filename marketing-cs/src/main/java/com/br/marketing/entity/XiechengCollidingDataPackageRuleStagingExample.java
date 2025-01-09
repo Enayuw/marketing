@@ -535,6 +535,76 @@ public class XiechengCollidingDataPackageRuleStagingExample {
             return (Criteria) this;
         }
 
+        public Criteria andStartTimesIsNull() {
+            addCriterion("start_times is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesIsNotNull() {
+            addCriterion("start_times is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesEqualTo(String value) {
+            addCriterion("start_times =", value, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesNotEqualTo(String value) {
+            addCriterion("start_times <>", value, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesGreaterThan(String value) {
+            addCriterion("start_times >", value, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesGreaterThanOrEqualTo(String value) {
+            addCriterion("start_times >=", value, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesLessThan(String value) {
+            addCriterion("start_times <", value, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesLessThanOrEqualTo(String value) {
+            addCriterion("start_times <=", value, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesLike(String value) {
+            addCriterion("start_times like", value, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesNotLike(String value) {
+            addCriterion("start_times not like", value, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesIn(List<String> values) {
+            addCriterion("start_times in", values, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesNotIn(List<String> values) {
+            addCriterion("start_times not in", values, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesBetween(String value1, String value2) {
+            addCriterion("start_times between", value1, value2, "startTimes");
+            return (Criteria) this;
+        }
+
+        public Criteria andStartTimesNotBetween(String value1, String value2) {
+            addCriterion("start_times not between", value1, value2, "startTimes");
+            return (Criteria) this;
+        }
+
         public Criteria andCollidingTimesIsNull() {
             addCriterion("colliding_times is null");
             return (Criteria) this;

@@ -97,6 +97,7 @@
         FROM b_xiecheng_colliding_data_rob
         WHERE package_id = #{packageId,jdbcType=BIGINT}
           AND is_delete = 0
+          AND retry_count =0
           AND colliding_count <![CDATA[ < ]]> #{collidingTimes,jdbcType=INTEGER};
     </select>
 
@@ -207,10 +208,11 @@
         </foreach>
     </update>
 
-    <select id="selectCountByRoundPackages" resultType="java.lang.Long">
+    <select id="selectCountByRoundPackagestiflash_" resultType="java.lang.Long">
         select count(1)
         from b_xiecheng_colliding_data_rob
-        where is_delete = 0 and colliding_count = 0 and package_id in
+        where is_delete = 0 and colliding_count = 0 and retry_count = 0
+        and package_id in
         <foreach collection="list" item="item" open="(" close=")" separator=",">
             #{item.id}
         </foreach>
@@ -269,4 +271,20 @@
         select count(0) from b_xiecheng_colliding_data_rob where extend = #{extend}
     </select>
 
+    <select id="getFirstRobDataPush" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
+        select * from b_xiecheng_colliding_data_rob where is_delete =0  and package_id = #{packageId}
+        and (push_time is null or date(now()) > date(push_time)) and retry_count =0 order by push_time asc
+        limit #{pageSize,jdbcType=INTEGER}
+    </select>
+
+    <select id="getMoreRobDataPush" resultType="com.br.marketing.entity.XieChengCollidingDataRob">
+        select * from b_xiecheng_colliding_data_rob where is_delete =0  and package_id = #{packageId}
+        and #{collidingCount} > colliding_count  and retry_count =0  order by push_time asc
+        limit #{pageSize,jdbcType=INTEGER}
+    </select>
+
+    <select id="getPackageCounttiflash_" resultType="int">
+        select count(1) from b_xiecheng_colliding_data_rob where is_delete = 1 and push_time > date(now())
+        and package_id  =#{packageId}
+    </select>
 </mapper>

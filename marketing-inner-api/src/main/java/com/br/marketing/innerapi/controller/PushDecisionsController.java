@@ -6,6 +6,7 @@ import com.br.marketing.dto.*;
 import com.br.marketing.mysqlInterceptor.AddDataAuthBusiness;
 import com.br.marketing.service.PushDecisionsService;
 import com.br.marketing.vo.PushDecisionsDetailVO;
+import com.br.marketing.vo.ReachStrategyVO;
 import com.br.marketing.vo.TaskTemplateVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -78,6 +79,12 @@ public class PushDecisionsController {
     @PostMapping("/getRunTaskByTemplate")
     public ApiResult<List<TaskTemplateVO>> getRunTaskByTemplate(@RequestBody RunTaskDTO dto) {
         return new ApiResult<List<TaskTemplateVO>>().fromResult(pushDecisionsService.getRunTaskByTemplate(dto), CODE_1);
+    }
+
+    @ApiOperation(value = "根据apiCode查询触达策略")
+    @GetMapping("/getReachStrategyByApiCode")
+    public ApiResult<List<ReachStrategyVO>> getReachStrategyByApiCode(@RequestParam String apiCode) {
+        return new ApiResult<List<ReachStrategyVO>>().fromResult(pushDecisionsService.getReachStrategyByApiCode(apiCode), CODE_1);
     }
 
 }

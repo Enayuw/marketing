@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.encryption.Sha256Util;
+import com.br.common.log.AlertLog;
 import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodBO;
@@ -295,20 +296,25 @@ public class PushDataServiceImpl implements PushDataService {
                 minId = phoneSale.getId();
 
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    Result result = dassServiceClient.postHermesUserData(dto);
-                    if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
-                        RetryMainLog mainLog = new RetryMainLog();
-                        mainLog.setRetryType(1);
-                        mainLog.setRetryParam(JSON.toJSONString(dto));
-                        mainLog.setRetryParamType(dto.getClass().getName());
-                        mainLog.setRetryService("dassServiceClient");
-                        mainLog.setRetryMethod("postHermesUserData");
-                        mainLog.setRetryNum(0);
-                        mainLog.setRetryMaxNum(3);
-                        mainLog.setRetryStatus(1);
-                        mainLog.setCreateTime(new Date());
-                        mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
-                        retryMainLogMapper.insertSelective(mainLog);
+                    try {
+                        Result result = dassServiceClient.postHermesUserData(dto);
+                        if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                            RetryMainLog mainLog = new RetryMainLog();
+                            mainLog.setRetryType(1);
+                            mainLog.setRetryParam(JSON.toJSONString(dto));
+                            mainLog.setRetryParamType(dto.getClass().getName());
+                            mainLog.setRetryService("dassServiceClient");
+                            mainLog.setRetryMethod("postHermesUserData");
+                            mainLog.setRetryNum(0);
+                            mainLog.setRetryMaxNum(3);
+                            mainLog.setRetryStatus(1);
+                            mainLog.setCreateTime(new Date());
+                            mainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                            retryMainLogMapper.insertSelective(mainLog);
+                        }
+                    } catch (Exception e) {
+                        log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DAASERROR.getCode(),
+                                "sftp文件推送Dass子线程异常，异常日志：" + e.getMessage()), e);
                     }
                 }, pushDassThreadPool);
                 futures.add(future);

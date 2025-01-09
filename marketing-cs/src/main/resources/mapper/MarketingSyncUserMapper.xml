@@ -253,7 +253,8 @@
 
     <select id="getSyncUserLastByCustNumsAndStatus" resultType="com.br.marketing.entity.MarketingSyncUser">
         select b.id, b.cus_batch, b.cust_num, b.id_card, b.name, b.cell, b.user_type, b.reserve_field1,
-        b.reserve_field2, b.create_time,b.update_time, b.applet_date, b.applet_time from
+        b.reserve_field2, b.request_batch, b.cell_md5, b.cell_sha256, b.group_type, b.operate_type, b.register_date,
+        b.create_time,b.update_time, b.applet_date, b.applet_time from
         (select cust_num,max(applet_time) as applet_time
         from b_marketing_sync_${apiCode}
         where cust_num in
@@ -523,6 +524,26 @@
             And user_type = #{userType}
             AND status=1
             order by id asc limit 2000;
+        </where>
+    </select>
+
+    <select id="getCustNumByAppletDateAndUserTypetikv_" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select sync.id as id,
+               sync.cust_num as custNum,
+               sync.cell as cell,
+               reserve_field1
+        from b_marketing_sync_${apiCode} sync
+        left join b_third_partner_data_pass_back_log passLog on sync.id = passLog.sync_user_id
+            AND passLog.task_id = #{taskId}
+            AND passLog.status in (0,1)
+        <where>
+            sync.api_code = #{apiCode}
+            AND sync.applet_date = #{appletDate}
+            AND sync.user_type = #{userType}
+            AND sync.status = 1
+            AND sync.is_repeat in (1,2)
+            AND passLog.id is null
+            limit #{pageSize}
         </where>
     </select>
 
@@ -955,6 +976,12 @@
         where cus_batch=#{cusBatch} and api_code = #{apiCode} and applet_date = #{appletDate}
           and user_type =#{userType}
         and status =1 and is_repeat in (1,2) limit 1
+    </select>
+    <select id="getMarketingSyncByAppletDateAndUserType" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select * From b_marketing_sync_${apiCode}
+        where api_code = #{apiCode} and applet_date = #{appletDate}
+          and user_type =#{userType}
+          and status =1 and is_repeat in (1,2) limit 1
     </select>
 
     <select id="getCustNumSetByAppletDateInterval" resultType="String">
