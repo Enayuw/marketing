@@ -281,6 +281,9 @@ public enum AlarmSendCodeEnum {
     SMY_SERVICEERROR("6050001", "萨摩耶黑名单传输业务异常"),
     //萨摩耶接口调用失败,阶梯推送
     SMY_INTERFACEERROR("6050002", "萨摩耶接口调用失败"),
+
+    //恒昌业务异常,立即推送
+    HENGCHANG_SERVICEERROR("6051001", "恒昌业务异常"),
     ;
 
     /**
