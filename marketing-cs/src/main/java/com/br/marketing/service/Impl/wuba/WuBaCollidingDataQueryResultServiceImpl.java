@@ -13,8 +13,6 @@ import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.WubaCollidingData;
 import com.br.marketing.entity.WubaCollidingDataBatchNo;
-import com.br.marketing.entity.WubaCollidingDataFront;
-import com.br.marketing.entity.WubaCollidingDataFrontExample;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.entity.WubaCollidingDataSyncClean;
@@ -194,8 +192,15 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             // 更新log表撞库结果，并返回其他不可营销数据
             List<String> otherFalseCells = updateLogResultAndGetOtherFalseCells(trueDatas, reavedDatas, batchNo, jsonArray, apiCode);
 
+            // 根据sourceType对非金融撞得数据赋值子场景
+            List<WubaCollidingData> nonFinancialDatasWithCustomNameType = setCustomNameTypeBySourceType(sourceType, nonFinancialDatas);
+
+            // 根据sourceType对金融撞得数据赋值子场景
+            List<WubaCollidingData> financialDatasWithCustomNameType = setCustomNameTypeBySourceType(sourceType, financialDatas);
+
             // 根据sourceType处理数据
-            List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatas, financialDatas, reavedCells,
+            List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatasWithCustomNameType,
+                    financialDatasWithCustomNameType, reavedCells,
                     otherFalseCells, apiCode, batchNo, taskId);
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         }
@@ -445,6 +450,46 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                     }
                 }, pool))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 根据sourceType对撞得数据赋值子场景
+     * @param trueData
+     * @return List<WubaCollidingData>
+     */
+    private List<WubaCollidingData> setCustomNameTypeBySourceType(String sourceType, List<WubaCollidingData> trueData) {
+        if (CollectionUtils.isEmpty(trueData)) {
+            return trueData;
+        }
+
+        String customNameType = "";
+        switch (sourceType) {
+            case "T":
+            case "S":
+                customNameType = "period";
+                break;
+            case "H":
+                customNameType = "top";
+                break;
+            case "F":
+                customNameType = "sup";
+                break;
+            case "J":
+            case "Q":
+            case "K":
+                customNameType = "reaved";
+                break;
+            default:
+                break;
+        }
+
+        String finalCustomNameType = customNameType;
+        return trueData.stream().map(t -> {
+            JSONObject json = JSON.parseObject(t.getExtend());
+            json.put("customNameType", finalCustomNameType);
+            t.setExtend(JSON.toJSONString(json));
+            return t;
+        }).collect(Collectors.toList());
     }
 
     /**
