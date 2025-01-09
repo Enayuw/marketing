@@ -1165,13 +1165,12 @@ public class PushRuleServiceImpl implements PushRuleService {
                         }
                     }
                 }
-                if(retryCount > 0){
-                    main.setmStatus(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue());
-                }else if(failCount > 0){
+               if(failCount > 0){
                     main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
-                }else {
-                    main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
-                }
+                }else{
+                   // 是否包含已经推送3次的异常
+                   main.setmStatus(queryExistError(customerInfoPushMain.getId()));
+               }
             } catch (Exception ex) {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
                 main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
@@ -1200,9 +1199,6 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
         }
-
-        // 是否包含已经推送3次的ES异常
-        main.setmStatus(queryExistError(customerInfoPushMain.getId()));
         log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
                 , customerInfoPushMain.getId()
                 , System.currentTimeMillis() - startTime
