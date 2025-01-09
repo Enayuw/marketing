@@ -226,10 +226,37 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             log.error(TITLE + "日志保存线程池结束异常！", ex);
             Thread.currentThread().interrupt();
         }
+        // 是否包含已经推送3次的ES异常
+        main.setmStatus(queryExistError(customerInfoPushMain.getId()));
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         log.warn(TITLE + "完成，推送数据量num={}", realTotalNum);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+    }
+
+    private Integer queryExistError(Long id) {
+        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
+        errorMarkExample.createCriteria().andMIdEqualTo(id)
+                .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
+                .andFilterTypeEqualTo(FilterTypeEnum.CREDENTIAL_STUFFING.getValue());
+        List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
+        if(!CollectionUtils.isEmpty(errorMarks)){
+            List<Integer> retryTotalAttemptsList = errorMarks.stream()
+                    .map(ErrorMark::getRetryTotalAttempts)
+                    .collect(Collectors.toList());
+            // 判断是否每页都已补推3次
+            boolean allGreaterOrEqualThree = retryTotalAttemptsList.stream()
+                    .allMatch(retryAttempts -> retryAttempts >= 3);
+            if(allGreaterOrEqualThree){
+                log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
+                        , TITLE + "重试3次失败 mid:" + id));
+                return PushRuleStatusEnum.PUSH_FAIL.getValue();
+            }else {
+                return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
+            }
+        }else{
+            return PushRuleStatusEnum.TO_BE_CONFIRMED.getValue();
+        }
     }
 
     private Result<Integer> pushPolicy(List<XieChengCollidingDataLoopCycle> list, List<String> numList, List<Long> fileIds,

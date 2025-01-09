@@ -1289,7 +1289,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     .allMatch(retryAttempts -> retryAttempts >= 3);
             if(allGreaterOrEqualThree){
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
-                        , "推送决策重试3次失败 mid:" + id));
+                        , TITLE+"重试3次失败 mid:" + id));
                 return PushRuleStatusEnum.PUSH_FAIL.getValue();
             }else {
                 return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
