@@ -1217,8 +1217,8 @@ public class PushRuleServiceImpl implements PushRuleService {
                 .andFilterTypeEqualTo(FilterTypeEnum.RUNNING_SCORES.getValue())
                 .andTypeEqualTo(ErrorMarkTypeEnum.ES_ERROR.getValue())
                 .andRetryTotalAttemptsLessThan(3);
-        List<ErrorMark> esErrorList = errorMarkMapper.selectByExample(errorMarkExample);
-        if(CollectionUtils.isEmpty(esErrorList)){
+        int i = errorMarkMapper.countByExample(errorMarkExample);
+        if(i == 0){
             isContiue = Boolean.TRUE;
             CustomerInfoPushMain main = new CustomerInfoPushMain();
             main.setId(customerInfoPushMain.getId());
