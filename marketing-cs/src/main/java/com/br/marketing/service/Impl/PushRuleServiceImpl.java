@@ -1175,7 +1175,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
                 main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
             }
-            log.warn("规则中心推送决策结果：retryCount：" + retryCount + ",failCount:" + failCount);
+            log.warn(TITLE + "规则中心推送决策结果：retryCount：" + retryCount + ",failCount:" + failCount);
             if (failCount > 0) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("推送决策失败：\n");

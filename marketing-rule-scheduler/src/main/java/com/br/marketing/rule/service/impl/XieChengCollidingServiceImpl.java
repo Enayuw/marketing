@@ -203,6 +203,7 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), "推送决策 获取线程结果异常!"), ex);
                 main.setmStatus(PushRuleStatusEnum.PUSH_FAIL.getValue());
             }
+            log.warn(TITLE + "规则中心推送决策结果：retryCount：" + retryCount + ",failCount:" + failCount);
             if(failCount > 0){
                 StringBuilder sb = new StringBuilder();
                 sb.append("携程推送决策失败：\n");
