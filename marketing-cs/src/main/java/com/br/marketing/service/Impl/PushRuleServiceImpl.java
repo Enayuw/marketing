@@ -1103,8 +1103,6 @@ public class PushRuleServiceImpl implements PushRuleService {
             parNum = 1;
             getEsNum = 1;
         }
-        Integer realTotalNum = 0;
-        Integer timeOutTotalNum = 0;
         CustomerInfoPushMain main = new CustomerInfoPushMain();
         main.setmStatus(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue());
         ThreadPoolExecutor actionEs = BrExecutors.getThreadPool(getEsNum, getEsNum, 50);
@@ -1199,11 +1197,11 @@ public class PushRuleServiceImpl implements PushRuleService {
         } catch (Exception ex) {
             log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
         }
-        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}；实际数量：{}；超时条数{}"
+        log.warn("推送决策 任务id：{}；查询推送耗时：{}；整体耗时：{}；计划数量：{}"
                 , customerInfoPushMain.getId()
                 , System.currentTimeMillis() - startTime
                 , System.currentTimeMillis() - initTime
-                , customerInfoPushMain.getmRealyNum(), realTotalNum, timeOutTotalNum);
+                , customerInfoPushMain.getmRealyNum());
         main.setId(customerInfoPushMain.getId());
         customerInfoPushMainMapper.updateByPrimaryKeySelective(main);
         //endregion
@@ -1271,16 +1269,11 @@ public class PushRuleServiceImpl implements PushRuleService {
     }
 
     private Integer queryExistError(Long id) {
-        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-        errorMarkExample.createCriteria().andMIdEqualTo(id)
-                .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
-                .andFilterTypeEqualTo(FilterTypeEnum.RUNNING_SCORES.getValue());
-        List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-        if(!CollectionUtils.isEmpty(errorMarks)){
-            List<Integer> retryTotalAttemptsList = errorMarks.stream()
-                    .map(ErrorMark::getRetryTotalAttempts)
-                    .collect(Collectors.toList());
-            // 判断是否每页都已补推3次
+        List<Integer> retryTotalAttemptsList = errorMarkMapper.queryRetryTotalAttempts(id, RetryStatusEnum.AWAIT_COMPLETE.getValue(),
+                FilterTypeEnum.RUNNING_SCORES.getValue());
+
+        if(!CollectionUtils.isEmpty(retryTotalAttemptsList)){
+            // 判断是否都已补推3次
             boolean allGreaterOrEqualThree = retryTotalAttemptsList.stream()
                     .allMatch(retryAttempts -> retryAttempts >= 3);
             if(allGreaterOrEqualThree){
@@ -1628,8 +1621,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                     if (retryAttempts >= 3) {
                         log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
                                 , "跑分异常补推决策已重试3次，请手动处理，errorMarkId：" + errorMark.getId()));
-
-                        result.setCode(ResultCode.FAIL.getValue());
                     } else {
                         updateErrorMark(errorMark, retryAttempts+1);
                     }

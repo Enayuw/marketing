@@ -231,23 +231,17 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
         log.warn(TITLE + "完成，推送数据量num={}", realTotalNum);
         return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
-
     private Integer queryExistError(Long id) {
-        ErrorMarkExample errorMarkExample = new ErrorMarkExample();
-        errorMarkExample.createCriteria().andMIdEqualTo(id)
-                .andRetryStatusEqualTo(RetryStatusEnum.AWAIT_COMPLETE.getValue())
-                .andFilterTypeEqualTo(FilterTypeEnum.CREDENTIAL_STUFFING.getValue());
-        List<ErrorMark> errorMarks = errorMarkMapper.selectByExample(errorMarkExample);
-        if(!CollectionUtils.isEmpty(errorMarks)){
-            List<Integer> retryTotalAttemptsList = errorMarks.stream()
-                    .map(ErrorMark::getRetryTotalAttempts)
-                    .collect(Collectors.toList());
-            // 判断是否每页都已补推3次
+        List<Integer> retryTotalAttemptsList = errorMarkMapper.queryRetryTotalAttempts(id, RetryStatusEnum.AWAIT_COMPLETE.getValue(),
+                FilterTypeEnum.CREDENTIAL_STUFFING.getValue());
+
+        if(!CollectionUtils.isEmpty(retryTotalAttemptsList)){
+            // 判断是否都已补推3次
             boolean allGreaterOrEqualThree = retryTotalAttemptsList.stream()
                     .allMatch(retryAttempts -> retryAttempts >= 3);
             if(allGreaterOrEqualThree){
                 log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode()
-                        , TITLE + "重试3次失败 mid:" + id));
+                        , TITLE+"重试3次失败 mid:" + id));
                 return PushRuleStatusEnum.PUSH_FAIL.getValue();
             }else {
                 return PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue();
@@ -413,7 +407,6 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
             int retryAttempts = errorMark.getRetryTotalAttempts();
             if (retryAttempts >= 3) {
                 log.error(TITLE + "异常补推 已重试3次，请手动处理，errorMarkId：{}", errorMark.getId());
-                return result.setCode(ResultCode.FAIL.getValue()).setDate(0);
             } else {
                 errorMark.setRetryTotalAttempts(retryAttempts + 1);
                 errorMark.setUpdateTime(new Date());
