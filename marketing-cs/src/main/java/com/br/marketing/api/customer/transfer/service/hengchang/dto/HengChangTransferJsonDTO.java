@@ -113,6 +113,8 @@ public class HengChangTransferJsonDTO extends TransferDataAdaptee {
             jsonObject1.put("creditChannelCode",jsonObject.getString("creditChannelCode"));
             jsonObject1.put("loanChannelCode",jsonObject.getString("loanChannelCode"));
             jsonObject1.put("isBlack",jsonObject.getString("complaintFlag"));
+            jsonObject1.put("taskCode",this.taskCode);
+            jsonObject1.put("batchId",this.batchId);
 
             if (StringUtils.isNotEmpty(jsonObject.getString("extra"))) {
                 JSONObject jsonObject2 = JSONObject.parseObject(jsonObject.getString("extra"));
