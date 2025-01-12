@@ -38,7 +38,12 @@ public enum CustomerUploadHandlerEnum {
     /**
      * 携程促活
      */
-    B_XIECHENG_ACTIVATE("携程促活", Boolean.FALSE ,"7410950"),;
+    B_XIECHENG_ACTIVATE("携程促活", Boolean.FALSE ,"7410950"),
+
+    /**
+     * 恒昌定制上传
+     */
+    U_HENGCHANG("恒昌定制上传", Boolean.FALSE ,"7491580");
 
     /**
      * 2023-10-18 17:25 名称
