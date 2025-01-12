@@ -2,8 +2,8 @@ package com.br.marketing.enums;
 
 public enum FilterTypeEnum {
 
-    RUNNING_SCORES(0,"跑分数据推决策"),
-    CREDENTIAL_STUFFING(1,"跑分及撞库结果筛选推决策");
+    GENERAL_POLICY(0,"通用推决策"),
+    XIECHENG_POLICY(1,"携程撞库结果推决策");
 
     FilterTypeEnum(Integer value, String desc) {
         this.value = value;

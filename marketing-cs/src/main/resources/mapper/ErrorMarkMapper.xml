@@ -5,7 +5,6 @@
     <select id="queryRetryTotalAttempts" resultType="java.lang.Integer">
         select retry_total_attempts from b_marketing_error_mark
         where m_id = ${id} and retry_status=${retryStatus} and filter_type=${filterType}
-        <![CDATA[  and retry_total_attempts <=3 ]]>
     </select>
 
 </mapper>
