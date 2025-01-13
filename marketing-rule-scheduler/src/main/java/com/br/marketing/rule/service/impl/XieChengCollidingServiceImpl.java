@@ -293,25 +293,21 @@ public class XieChengCollidingServiceImpl implements XieChengCollidingService {
                 return result.setCode(ResultCode.SUCCESS.getValue()).setDate(0);
             }
             //查询ES异常
+            ErrorMark errorMark1 = new ErrorMark();
             if(marketingHistories == null){
                 // 非补推异常
                 if(errorMark == null){
                     insertEsErrorMark(customerInfoPushMain, JSONObject.toJSONString(list));
-                    return result.setCode(ResultCode.TIME_OUT.getValue()).setDate(0);
-                }
-                // 补推异常
-                if(errorMark.getRetryTotalAttempts() >= 3){
-                    return result.setCode(ResultCode.FAIL.getValue()).setDate(0);
                 }else {
-                    errorMark.setRetryTotalAttempts(errorMark.getRetryTotalAttempts() + 1);
-                    errorMark.setUpdateTime(new Date());
-                    errorMarkMapper.updateByPrimaryKeySelective(errorMark);
-                    return result.setCode(ResultCode.TIME_OUT.getValue()).setDate(0);
+                    errorMark1.setId(errorMark.getId());
+                    errorMark1.setRetryTotalAttempts(errorMark.getRetryTotalAttempts() + 1);
+                    errorMark1.setUpdateTime(new Date());
+                    errorMarkMapper.updateByPrimaryKeySelective(errorMark1);
                 }
+                return result.setCode(ResultCode.TIME_OUT.getValue()).setDate(0);
             }
 
             if(errorMark != null){
-                ErrorMark errorMark1 = new ErrorMark();
                 errorMark1.setId(errorMark.getId());
                 errorMark1.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
                 errorMarkMapper.updateByPrimaryKeySelective(errorMark1);

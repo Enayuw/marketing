@@ -1454,6 +1454,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , StringUtils.isBlank(part) ? "" : part
                             , i);
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), error), ex);
+
                 }
             }
             return resList;
@@ -1535,22 +1536,8 @@ public class PushRuleServiceImpl implements PushRuleService {
 
             if (ResultCode.TIME_OUT.getValue().equals(result.getCode()) ||
                     ResultCode.INTERNAL_SERVER_ERROR.getValue().equals(result.getCode())) {
-                if (errorMark != null) {
-                    int retryAttempts = errorMark.getRetryTotalAttempts();
-                    updateErrorMark(errorMark, retryAttempts+1);
-                } else {
-                    insertErrorMark(pushMarketingUserDTO, mainId, accessNumber, size);
-                }
+                insertErrorMark(pushMarketingUserDTO, mainId, accessNumber, size);
             }
-
-            if (ResultCode.SUCCESS.getValue().equals(result.getCode()) && errorMark != null) {
-                ErrorMark updateErrorMark = new ErrorMark();
-                updateErrorMark.setId(errorMark.getId());
-                updateErrorMark.setRetryStatus(RetryStatusEnum.PUSH_COMPLETE.getValue());
-                updateErrorMark.setUpdateTime(new Date());
-                errorMarkMapper.updateByPrimaryKeySelective(updateErrorMark);
-            }
-
             result.setDate(size);
             return result;
         }
