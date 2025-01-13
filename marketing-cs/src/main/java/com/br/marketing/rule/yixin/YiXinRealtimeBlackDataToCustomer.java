@@ -67,7 +67,7 @@ public class YiXinRealtimeBlackDataToCustomer implements AssembleData<Conversion
             conversionData.setTransformType(transformType);
         }
         MarketingSyncUser syncUser = marketingSyncUserMapper.getCellLatestByCustNum(apiCode, custNum);
-        String cell = syncUser.getCell();
+        String cell = ObjectUtil.isEmpty(syncUser) ? "" : syncUser.getCell();
         if (ObjectUtil.isNotEmpty(cell)) {
             conversionData.setPhone(BrCipherMaker.getInstance().decode(cell));
         } else {
