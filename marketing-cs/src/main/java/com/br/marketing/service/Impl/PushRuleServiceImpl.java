@@ -1454,7 +1454,10 @@ public class PushRuleServiceImpl implements PushRuleService {
                             , StringUtils.isBlank(part) ? "" : part
                             , i);
                     log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), error), ex);
-
+                    Result<Integer> result = new Result<>();
+                    result.setCode(ResultCode.FAIL.getValue());
+                    Callable<Result<Integer>> resultCallable = (Callable) () -> result;
+                    resList.add(pushJcPool.submit(resultCallable));
                 }
             }
             return resList;
