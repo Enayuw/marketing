@@ -10,4 +10,12 @@
             #{cell}
         </foreach>
     </select>
+
+    <insert id="batchSaveDataByStatusAndPushTime">
+        INSERT IGNORE INTO b_wuba_colliding_data_eliminate (cell, biz_type, push_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.cell}, 1, now())
+        </foreach>
+    </insert>
 </mapper>

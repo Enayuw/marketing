@@ -1,15 +1,19 @@
 package com.br.marketing.service.Impl.wuba;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
+import com.br.marketing.client.robotaiapi.input.ConversionData;
 import com.br.marketing.client.wuba.WuBaServiceClient;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.StringUtils;
+import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.WubaCollidingData;
 import com.br.marketing.entity.WubaCollidingDataBatchNo;
@@ -19,12 +23,13 @@ import com.br.marketing.entity.WubaCollidingDataSyncClean;
 import com.br.marketing.entity.WubaCollidingDataSyncCleanExample;
 import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
-import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
+import com.br.marketing.mapper.WubaCollidingDataEliminateMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
-import com.br.marketing.mapper.WubaCollidingDataRobMapper;
 import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
 import com.br.marketing.service.DataCleaningAutoService;
+import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
+import com.br.marketing.strategy.CustomerTransferHandler;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -76,11 +81,9 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     @Autowired
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
     @Resource
-    WuBaCollidingDataSynchronismService wuBaCollidingDataSynchronismService;
+    WubaCollidingDataEliminateMapper wubaCollidingDataEliminateMapper;
     @Resource
-    WubaCollidingDataFrontMapper wubaCollidingDataFrontMapper;
-    @Resource
-    WubaCollidingDataRobMapper wubaCollidingDataRobMapper;
+    private TableCreateServiceImpl tableCreateService;
 
     private final static int PARTATION_SIZE = 50;
 
@@ -198,11 +201,71 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             // 根据sourceType对金融撞得数据赋值子场景
             List<WubaCollidingData> financialDatasWithCustomNameType = setCustomNameTypeBySourceType(sourceType, financialDatas);
 
+            // 撞得status=-1数据，写入eliminate表，推送外呼
+            CompletableFuture.runAsync(() -> saveEliminateAndPushToRobot(jsonArray, apiCode, wubaCollidingBatchNo)).exceptionally(e -> null);
+
             // 根据sourceType处理数据
             List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatasWithCustomNameType,
                     financialDatasWithCustomNameType, reavedCells,
                     otherFalseCells, apiCode, batchNo, taskId);
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        }
+    }
+
+    private void saveEliminateAndPushToRobot(JSONArray jsonArray, String apiCode, WubaCollidingDataBatchNo wubaCollidingBatchNo) {
+        List<WubaCollidingData> eliminateData = new ArrayList<>();
+        try {
+            Stream<JSONObject> stream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
+                    .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), -1));
+            eliminateData = stream.map((JSONObject t) -> {
+                WubaCollidingData data = new WubaCollidingData();
+                data.setCell(t.getString(MOBILE_ENCRYPT));
+                return data;
+            }).collect(Collectors.toList());
+
+            if (CollectionUtils.isEmpty(eliminateData)) {
+                return;
+            }
+
+            wubaCollidingDataEliminateMapper.batchSaveDataByStatusAndPushTime(eliminateData);
+        } catch (Exception e) {
+            String title = "58查询撞库结果作业，status-1数据入库失败";
+            String msg = e.getMessage();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
+        }
+
+        try {
+            // 推送外呼
+            String tCid = tableCreateService.getTcId(apiCode);
+            List<ConversionData> conversionDataList = new ArrayList<>(eliminateData.size());
+            for (WubaCollidingData eliminateDatum : eliminateData) {
+                ConversionData conversionData = new ConversionData();
+                conversionData.setCaseNum(eliminateDatum.getCell());
+                String expireDate = DateUtil.formatDateTime(DateUtil.endOfDay(new Date()));
+                conversionData.setExpireDate(expireDate);
+                String buildDataId = System.currentTimeMillis() + RandomUtil.randomNumbers(10);
+                conversionData.setDataId(buildDataId);
+                conversionData.setCid(tCid);
+                conversionData.setPartnerProcessDate(DateUtil.now());
+                conversionData.setInversionStatus("2");
+                conversionData.setInversionInfo(JSON.toJSONString(new JSONObject()));
+
+                conversionDataList.add(conversionData);
+            }
+
+            ProcessHandlerContext context = new ProcessHandlerContext();
+            context.setApiCode(apiCode);
+            context.setTransferInfoId(wubaCollidingBatchNo.getId());
+            CustomerTransferHandler customerTransferHandler = new CustomerTransferHandler();
+            customerTransferHandler.call(conversionDataList, context);
+        } catch (Exception e) {
+            String title = "58查询撞库结果作业，status-1数据推送外呼失败";
+            String msg = e.getMessage();
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
+            wuBaServiceClient.sendDingDingAlert(title, msg);
         }
     }
 
