@@ -34,4 +34,14 @@
             #{cell}
         </foreach>
     </update>
+
+    <select id="selectDuplicateData" resultType="java.lang.String">
+        select cell
+        from b_wuba_colliding_data_second_loop_cycle
+        where is_deleted = 0 and api_code = #{apiCode}
+        and cell in
+        <foreach collection="list" item="cell" open="(" close=")" separator=",">
+            #{cell}
+        </foreach>
+    </select>
 </mapper>

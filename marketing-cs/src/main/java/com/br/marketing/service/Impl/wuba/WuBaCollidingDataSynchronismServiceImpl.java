@@ -9,7 +9,11 @@ import com.br.marketing.entity.LocalFile;
 import com.br.marketing.entity.LocalFileExample;
 import com.br.marketing.entity.WubaCollidingDataFront;
 import com.br.marketing.mapper.LocalFileMapper;
+import com.br.marketing.mapper.WubaCollidingDataEliminateMapper;
 import com.br.marketing.mapper.WubaCollidingDataFrontMapper;
+import com.br.marketing.mapper.WubaCollidingDataLoopCycleMapper;
+import com.br.marketing.mapper.WubaCollidingDataRobMapper;
+import com.br.marketing.mapper.WubaCollidingDataSecondLoopCycleMapper;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.google.common.base.Joiner;
@@ -40,6 +44,10 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDataSynchronismService {
+    public static final String T = "T";
+    public static final String S = "S";
+    public static final String ELIMINATE = "eliminate";
+
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -47,9 +55,17 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
     @Resource
     WubaCollidingDataFrontMapper wubaCollidingDataFrontMapper;
     @Resource
+    WubaCollidingDataLoopCycleMapper wubaCollidingDataLoopCycleMapper;
+    @Resource
+    WubaCollidingDataSecondLoopCycleMapper wubaCollidingDataSecondLoopCycleMapper;
+    @Resource
+    WubaCollidingDataEliminateMapper wubaCollidingDataEliminateMapper;
+    @Resource
+    WubaCollidingDataRobMapper wubaCollidingDataRobMapper;
+    @Resource
     WuBaCollidingDataBusinessService wuBaCollidingDataBusinessService;
 
-    private final static int PARTATION_SIZE = 50;
+    private final static int PARTATION_SIZE = 500;
 
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
@@ -82,30 +98,12 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
         ThreadPoolExecutor pool = BrExecutors.getThreadPool(marketingCommonConfig.getWubaCollidingDataSyncThreadNum(),
                 marketingCommonConfig.getWubaCollidingDataSyncThreadNum());
 
-        // 查询高价值文件id
-        List<Long> highValueIdList = getHighValueFileIds(apiCode);
-        String highValueIds = Objects.isNull(highValueIdList) ? "(\"\")" : "(" + Joiner.on(",").join(highValueIdList) + ")";
-        // 查询-2的文件id
-        String reavedFileIds = getWubaCollidingReavedFileIds();
-        log.warn("58撞库数据同步作业，开启撞库的status=-2文件ids：{}", reavedFileIds);
         Long minId = null;
         while (true) {
             Integer pageSize = marketingCommonConfig.getWuBaCollidingDataSyncPageSize();
-
-            // local_id and status =1 and push_status =1，去重逻辑：
-            // 1.与该文件本身数据去重
-            // 2.与当天已上传数据去重
-            // 3.与高价值数据去重
-            // 4.与周期非金融数据去重
-            // 5.与周期金融数据去重
-            // 6.与周期非金融status=-2包去重
-            // 7.与周期金融status=-2包去重
-            // 8.与补包status=-2包去重
-            Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
-            Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-
-            List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByCurDatetikv_(localFile.getId(),
-                    apiCode, minId, pageSize, today, tomorrow, highValueIds, reavedFileIds);
+            // local_id and status =1 and push_status =1，与该文件本身数据去重
+            List<WubaCollidingDataFront> wubaCollidingDataFronts = wubaCollidingDataFrontMapper.selectNoDupDataByLocalIdtikv_(localFile.getId(),
+                    apiCode, minId, pageSize);
             if (CollectionUtils.isEmpty(wubaCollidingDataFronts)) {
                 break;
             }
@@ -115,28 +113,12 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
 
             List<List<WubaCollidingDataFront>> partitions = Lists.partition(wubaCollidingDataFronts, PARTATION_SIZE);
             for (List<WubaCollidingDataFront> partition : partitions) {
-                pool.submit(() -> wuBaCollidingDataBusinessService.insertToRobAndUpdateFront(partition, localFile));
+                List<WubaCollidingDataFront> list = new ArrayList<>(partition);
+                pool.submit(() -> removeDuplicateAndInsertToRob(list, localFile, apiCode));
             }
         }
 
         threadPoolShutDown(pool);
-    }
-
-    private String getWubaCollidingReavedFileIds() {
-        List<Long> reavedFileIds = new ArrayList<>();
-        HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
-        for (Map.Entry<String, JSONObject> mapEntry : map.entrySet()) {
-            for (Map.Entry<String, Object> booleanEntry : mapEntry.getValue().entrySet()) {
-                if ((Boolean) booleanEntry.getValue()) {
-                    reavedFileIds.add(Long.valueOf(booleanEntry.getKey()));
-                }
-            }
-        }
-
-        if (CollectionUtils.isEmpty(reavedFileIds)) {
-            return "(\"\")";
-        }
-        return "(" + Joiner.on(",").join(reavedFileIds) + ")";
     }
 
     @Override
@@ -180,5 +162,93 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
     private void updatePushStatus(LocalFile localFile, String pushStatus) {
         localFile.setPushStatus(pushStatus);
         localFileMapper.updateByPrimaryKeySelective(localFile);
+    }
+
+    private void removeDuplicateAndInsertToRob(List<WubaCollidingDataFront> list, LocalFile localFile, String apiCode) {
+        List<WubaCollidingDataFront> insertToRobData = removeDuplicateData(list, apiCode);
+        if (CollectionUtils.isEmpty(insertToRobData)) {
+            return;
+        }
+        wuBaCollidingDataBusinessService.insertToRobAndUpdateFront(insertToRobData, localFile);
+    }
+
+    /**
+     * 1.与周期非金融数据去重
+     * 2.与周期金融数据去重
+     * 3.与status=-1历史数据去重
+     * 4.与周期非金融status=-2包去重、与周期金融status=-2包去重、与补包status=-2包去重
+     * 5.与高价值数据去重
+     * 6.与当天已入库数据去重
+     * @param list
+     * @param apiCode
+     */
+    private List<WubaCollidingDataFront> removeDuplicateData(List<WubaCollidingDataFront> list, String apiCode) {
+        try {
+            List<String> cells = list.stream().map(WubaCollidingDataFront::getCell).collect(Collectors.toList());
+            // 与周期非金融数据去重
+            if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(T)) {
+                List<String> loopCycleData = wubaCollidingDataLoopCycleMapper.selectDuplicateData(cells, apiCode);
+                cells.removeAll(loopCycleData);
+            }
+            if (CollectionUtils.isEmpty(cells)) {
+                return new ArrayList<>();
+            }
+
+            // 与周期金融数据去重
+            if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(S)) {
+                List<String> secondCycleData = wubaCollidingDataSecondLoopCycleMapper.selectDuplicateData(cells, apiCode);
+                cells.removeAll(secondCycleData);
+            }
+            if (CollectionUtils.isEmpty(cells)) {
+                return new ArrayList<>();
+            }
+
+            // 与status=-1历史数据去重
+            if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(ELIMINATE)) {
+                List<String> secondCycleData = wubaCollidingDataEliminateMapper.selectDuplicateData(cells);
+                cells.removeAll(secondCycleData);
+            }
+            if (CollectionUtils.isEmpty(cells)) {
+                return new ArrayList<>();
+            }
+
+            // 与周期非金融status=-2包去重、与周期金融status=-2包去重、与补包status=-2包去重、与高价值数据去重
+            List<Long> fileIds = new ArrayList<>();
+            HashMap<String, JSONObject> map = marketingCommonConfig.getWubaCollidingReavedFileIds();
+            for (Map.Entry<String, JSONObject> mapEntry : map.entrySet()) {
+                for (Map.Entry<String, Object> booleanEntry : mapEntry.getValue().entrySet()) {
+                    if ((Boolean) booleanEntry.getValue()) {
+                        fileIds.add(Long.valueOf(booleanEntry.getKey()));
+                    }
+                }
+            }
+            List<Long> highValueIdList = getHighValueFileIds(apiCode);
+            if (Objects.nonNull(highValueIdList)) {
+                fileIds.addAll(highValueIdList);
+            }
+            String highValueAndReavedFileIds = CollectionUtils.isEmpty(fileIds) ? "(\"\")" : "(" + Joiner.on(",").join(fileIds) + ")";
+            List<String> highValueAndReavedDuplicateData = wubaCollidingDataRobMapper.selectDuplicateDataByFileId(cells, apiCode,
+                    highValueAndReavedFileIds);
+            cells.removeAll(highValueAndReavedDuplicateData);
+            if (CollectionUtils.isEmpty(cells)) {
+                return new ArrayList<>();
+            }
+
+            // 与当天已入库数据去重
+            Date today = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date tomorrow = Date.from(LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+            List<String> duplicateDataByCreateTime = wubaCollidingDataRobMapper.selectDuplicateDataByCreateTime(cells, apiCode, today, tomorrow);
+            cells.removeAll(duplicateDataByCreateTime);
+            if (CollectionUtils.isEmpty(cells)) {
+                return new ArrayList<>();
+            }
+
+            return list.stream().filter(t -> cells.contains(t.getCell())).collect(Collectors.toList());
+        } catch (Exception e) {
+            String subject = "58同步撞库数据作业，数据去重，子线程处理异常！";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), e.getMessage()
+                    , subject), e);
+            return new ArrayList<>();
+        }
     }
 }

@@ -1,0 +1,9 @@
+package com.br.marketing.mapper;
+
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+public interface WubaCollidingDataEliminateMapper extends WubaCollidingDataEliminateMapperBase {
+    List<String> selectDuplicateData(@Param("list") List<String> list);
+}
