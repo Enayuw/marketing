@@ -86,6 +86,7 @@ public class XieChengEsJsonHandler {
         Map<String, Object> couponCode = collidingFilterDTO.getCoupon_code();
         Map<String, Object> couponDesc = collidingFilterDTO.getCoupon_desc();
         String customerGroup = collidingFilterDTO.getCustomerGroup();
+        String info = collidingFilterDTO.getInfo();
 
         if (!CollectionUtils.isEmpty(releaseTime)) {
             Object value = releaseTime.get("value");
@@ -115,6 +116,12 @@ public class XieChengEsJsonHandler {
                 zkTrueCondition.append(" and ");
             }
             zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("customer_group", "=", customerGroup));
+        }
+        if (StringUtils.isNotEmpty(info)) {
+            if (StringUtils.isNotEmpty(zkTrueCondition.toString())) {
+                zkTrueCondition.append(" and ");
+            }
+            zkTrueCondition.append(EsConditionTransferSqlUtil.assemblefiled("info", "=", info));
         }
         return zkTrueCondition.toString();
     }

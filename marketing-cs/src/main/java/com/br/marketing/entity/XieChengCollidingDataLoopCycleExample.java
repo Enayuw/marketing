@@ -425,76 +425,6 @@ public class XieChengCollidingDataLoopCycleExample {
             return (Criteria) this;
         }
 
-        public Criteria andMarketCouponListIsNull() {
-            addCriterion("market_coupon_list is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListIsNotNull() {
-            addCriterion("market_coupon_list is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListEqualTo(String value) {
-            addCriterion("market_coupon_list =", value, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListNotEqualTo(String value) {
-            addCriterion("market_coupon_list <>", value, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListGreaterThan(String value) {
-            addCriterion("market_coupon_list >", value, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListGreaterThanOrEqualTo(String value) {
-            addCriterion("market_coupon_list >=", value, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListLessThan(String value) {
-            addCriterion("market_coupon_list <", value, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListLessThanOrEqualTo(String value) {
-            addCriterion("market_coupon_list <=", value, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListLike(String value) {
-            addCriterion("market_coupon_list like", value, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListNotLike(String value) {
-            addCriterion("market_coupon_list not like", value, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListIn(List<String> values) {
-            addCriterion("market_coupon_list in", values, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListNotIn(List<String> values) {
-            addCriterion("market_coupon_list not in", values, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListBetween(String value1, String value2) {
-            addCriterion("market_coupon_list between", value1, value2, "marketCouponList");
-            return (Criteria) this;
-        }
-
-        public Criteria andMarketCouponListNotBetween(String value1, String value2) {
-            addCriterion("market_coupon_list not between", value1, value2, "marketCouponList");
-            return (Criteria) this;
-        }
-
         public Criteria andCouponCodeIsNull() {
             addCriterion("coupon_code is null");
             return (Criteria) this;
@@ -692,6 +622,76 @@ public class XieChengCollidingDataLoopCycleExample {
 
         public Criteria andCustomerGroupNotBetween(Integer value1, Integer value2) {
             addCriterion("customer_group not between", value1, value2, "customerGroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoIsNull() {
+            addCriterion("info is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoIsNotNull() {
+            addCriterion("info is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoEqualTo(String value) {
+            addCriterion("info =", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoNotEqualTo(String value) {
+            addCriterion("info <>", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoGreaterThan(String value) {
+            addCriterion("info >", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoGreaterThanOrEqualTo(String value) {
+            addCriterion("info >=", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoLessThan(String value) {
+            addCriterion("info <", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoLessThanOrEqualTo(String value) {
+            addCriterion("info <=", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoLike(String value) {
+            addCriterion("info like", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoNotLike(String value) {
+            addCriterion("info not like", value, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoIn(List<String> values) {
+            addCriterion("info in", values, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoNotIn(List<String> values) {
+            addCriterion("info not in", values, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoBetween(String value1, String value2) {
+            addCriterion("info between", value1, value2, "info");
+            return (Criteria) this;
+        }
+
+        public Criteria andInfoNotBetween(String value1, String value2) {
+            addCriterion("info not between", value1, value2, "info");
             return (Criteria) this;
         }
 
