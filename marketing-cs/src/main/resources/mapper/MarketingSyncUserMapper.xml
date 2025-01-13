@@ -1085,4 +1085,17 @@
         and b.reserve_field1->>'$.planId'='${planId}'
     </select>
 
+    <select id="getCellLatestByCustNum" resultType="com.br.marketing.entity.MarketingSyncUser">
+        select b.cell,b.cust_num
+        from
+        (select cust_num,max(applet_time) as applet_time
+        from b_marketing_sync_${apiCode}
+        where cust_num = #{custNum}
+        and status=1
+        and is_repeat in (1,2)
+        group by cust_num
+        ) as a
+        left join b_marketing_sync_${apiCode} b on a.cust_num = b.cust_num and a.applet_time = b.applet_time
+    </select>
+
 </mapper>

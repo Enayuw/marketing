@@ -1,16 +1,22 @@
 package com.br.marketing.rule.yixin;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.br.common.log.AlertLog;
+import com.br.common.util.BrCipherMaker;
 import com.br.common.util.DateUtils;
 import com.br.marketing.bo.SyncUserValidityPeriodsBO;
 import com.br.marketing.client.robotaiapi.input.ConversionData;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.SoleFieldEnum;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.context.RuleDataCollectionEnum;
 import com.br.marketing.context.impl.YiXinRuleCollectDataImpl;
+import com.br.marketing.entity.MarketingSyncUser;
 import com.br.marketing.entity.MarketingTransferSyncUser;
+import com.br.marketing.mapper.MarketingSyncUserMapper;
 import com.br.marketing.rule.AssembleData;
 import com.br.marketing.service.IMarketingSyncUserService;
 import com.br.marketing.strategy.InterfaceHandlerEnum;
@@ -21,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Resource;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,13 +44,18 @@ import java.util.Date;
 @Slf4j
 public class YiXinRealtimeBlackDataToCustomer implements AssembleData<ConversionData> {
 
+    @Resource
+    MarketingSyncUserMapper marketingSyncUserMapper;
+
     @Override
     public ConversionData assemble(Object transmitFact, ProcessHandlerContext context) {
         MarketingTransferSyncUser transfer = (MarketingTransferSyncUser)transmitFact;
+        String custNum = transfer.getCustNum();
+        String apiCode = transfer.getApiCode();
         ConversionData conversionData = new ConversionData();
         conversionData.setDataId(transfer.getId().toString());
         conversionData.setCid(transfer.getCid());
-        conversionData.setCaseNum(transfer.getCustNum());
+        conversionData.setCaseNum(custNum);
         conversionData.setInversionStatus("2");
         conversionData.setGroupType(transfer.getUserType());
         conversionData.setInversionDate(transfer.getTransformTime());
@@ -53,6 +65,15 @@ public class YiXinRealtimeBlackDataToCustomer implements AssembleData<Conversion
             String transformType = json.getString("transformType");
             transformType = StringUtils.isEmpty(transformType) ? "" :transformType;
             conversionData.setTransformType(transformType);
+        }
+        MarketingSyncUser syncUser = marketingSyncUserMapper.getCellLatestByCustNum(apiCode, custNum);
+        String cell = syncUser.getCell();
+        if (ObjectUtil.isNotEmpty(cell)) {
+            conversionData.setPhone(BrCipherMaker.getInstance().decode(cell));
+        } else {
+            conversionData.setPhone("");
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.YIXIN_SERVICEERROR.getCode()
+                    , "宜信实时转化黑名单推客服上传手机号为空！custNum：" + custNum));
         }
         conversionData.setTaskId(context.getTransferInfoId().toString());
         conversionData.setEffectiveDate(transfer.getRequestTime());
@@ -99,6 +120,6 @@ public class YiXinRealtimeBlackDataToCustomer implements AssembleData<Conversion
 
     @Override
     public Integer ruleDataCollection() {
-        return RuleDataCollectionEnum.YI_XIN_DATA_COLLECTION.getCode();
+        return null;
     }
 }
