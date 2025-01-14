@@ -100,8 +100,8 @@ public class RongShuFileCleanUploadDateJob extends AbstractSimpleElasticJob {
             apiCode = "4004643";
         }
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("token", "1f32618dafd2d2126f5564aaf57a35867c8775baf78777140990c16d56edc457");
-        jsonObject.put("secret", "SEC4d2d8a91842ad25136e92213a852ebe5cf1c22ddaf49dcfd352d5a9323eb1ca7");
+        jsonObject.put("token", "7f32618dafd2d2126f5564aaf57a35867c8775baf78777140990c16d56edc457");
+        jsonObject.put("secret", "SEC4d2d8a91842ad25136e92213a852ebe5cf1c22ddaf49dcfd352d5a9323eb1ca8");
         JSONObject map = marketingCommonConfig.getDingDingWebHookInfo().getOrDefault(
                 DingDingAlarmFunctionEnum.RONGSHU_FILE_CLEAN_UPLOAD_READFILE.toString(), jsonObject);
         LocalDateTime localDateTime = LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toLocalDateTime();
