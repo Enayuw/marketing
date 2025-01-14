@@ -1,0 +1,343 @@
+package com.br.marketing.entity;
+
+import java.util.Date;
+
+public class CarClueInfo {
+    /**
+     * 
+     */
+    private Long id;
+
+    /**
+     * 
+     */
+    private String cid;
+
+    /**
+     * 
+     */
+    private String apiCode;
+
+    /**
+     * 案件
+     */
+    private String custNum;
+
+    /**
+     * 手机号
+     */
+    private String cell;
+
+    /**
+     * 意向
+     */
+    private String intention;
+
+    /**
+     * 原品牌信息
+     */
+    private String brand;
+
+    /**
+     * 原车系信息
+     */
+    private String series;
+
+    /**
+     * 线索匹配品牌
+     */
+    private String clueMatchBrand;
+
+    /**
+     * 线索匹配车系
+     */
+    private String clueMatchSeries;
+
+    /**
+     * 省份
+     */
+    private String province;
+
+    /**
+     * 城市
+     */
+    private String city;
+
+    /**
+     * 录音地址
+     */
+    private String recordingpath;
+
+    /**
+     * 线索id
+     */
+    private String clueId;
+
+    /**
+     * 线索推送渠道
+     */
+    private String cluePushChannel;
+
+    /**
+     * 线索状态：0-待清洗；1-有效线索；2-异常线索；3-缺失线索；4-无效线索；
+     */
+    private Integer clueDataStatus;
+
+    /**
+     * 线索补全状态：0-无需补全；1-系统补全；2-缺失线索手动补全；3-异常线索手动补全
+     */
+    private Integer clueCompleteStatus;
+
+    /**
+     * 线索推送状态：0-待推送；1-推送成功；2-推送失败
+     */
+    private Integer cluePushStatus;
+
+    /**
+     * 回调状态：0-待回调；1-回调成功；2-回调失败
+     */
+    private Integer clueCallbackStatus;
+
+    /**
+     * 回调结果
+     */
+    private String clueCallbackResult;
+
+    /**
+     * 扩展信息字段
+     */
+    private String extendInfo;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 清洗时间
+     */
+    private Date cleanTime;
+
+    /**
+     * 推送时间
+     */
+    private Date pushTime;
+
+    /**
+     * 回调时间
+     */
+    private Date callBackTime;
+
+    /**
+     * 修改时间
+     */
+    private Date updateTime;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCid() {
+        return cid;
+    }
+
+    public void setCid(String cid) {
+        this.cid = cid == null ? null : cid.trim();
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getCustNum() {
+        return custNum;
+    }
+
+    public void setCustNum(String custNum) {
+        this.custNum = custNum == null ? null : custNum.trim();
+    }
+
+    public String getCell() {
+        return cell;
+    }
+
+    public void setCell(String cell) {
+        this.cell = cell == null ? null : cell.trim();
+    }
+
+    public String getIntention() {
+        return intention;
+    }
+
+    public void setIntention(String intention) {
+        this.intention = intention == null ? null : intention.trim();
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand == null ? null : brand.trim();
+    }
+
+    public String getSeries() {
+        return series;
+    }
+
+    public void setSeries(String series) {
+        this.series = series == null ? null : series.trim();
+    }
+
+    public String getClueMatchBrand() {
+        return clueMatchBrand;
+    }
+
+    public void setClueMatchBrand(String clueMatchBrand) {
+        this.clueMatchBrand = clueMatchBrand == null ? null : clueMatchBrand.trim();
+    }
+
+    public String getClueMatchSeries() {
+        return clueMatchSeries;
+    }
+
+    public void setClueMatchSeries(String clueMatchSeries) {
+        this.clueMatchSeries = clueMatchSeries == null ? null : clueMatchSeries.trim();
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province == null ? null : province.trim();
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city == null ? null : city.trim();
+    }
+
+    public String getRecordingpath() {
+        return recordingpath;
+    }
+
+    public void setRecordingpath(String recordingpath) {
+        this.recordingpath = recordingpath == null ? null : recordingpath.trim();
+    }
+
+    public String getClueId() {
+        return clueId;
+    }
+
+    public void setClueId(String clueId) {
+        this.clueId = clueId == null ? null : clueId.trim();
+    }
+
+    public String getCluePushChannel() {
+        return cluePushChannel;
+    }
+
+    public void setCluePushChannel(String cluePushChannel) {
+        this.cluePushChannel = cluePushChannel == null ? null : cluePushChannel.trim();
+    }
+
+    public Integer getClueDataStatus() {
+        return clueDataStatus;
+    }
+
+    public void setClueDataStatus(Integer clueDataStatus) {
+        this.clueDataStatus = clueDataStatus;
+    }
+
+    public Integer getClueCompleteStatus() {
+        return clueCompleteStatus;
+    }
+
+    public void setClueCompleteStatus(Integer clueCompleteStatus) {
+        this.clueCompleteStatus = clueCompleteStatus;
+    }
+
+    public Integer getCluePushStatus() {
+        return cluePushStatus;
+    }
+
+    public void setCluePushStatus(Integer cluePushStatus) {
+        this.cluePushStatus = cluePushStatus;
+    }
+
+    public Integer getClueCallbackStatus() {
+        return clueCallbackStatus;
+    }
+
+    public void setClueCallbackStatus(Integer clueCallbackStatus) {
+        this.clueCallbackStatus = clueCallbackStatus;
+    }
+
+    public String getClueCallbackResult() {
+        return clueCallbackResult;
+    }
+
+    public void setClueCallbackResult(String clueCallbackResult) {
+        this.clueCallbackResult = clueCallbackResult == null ? null : clueCallbackResult.trim();
+    }
+
+    public String getExtendInfo() {
+        return extendInfo;
+    }
+
+    public void setExtendInfo(String extendInfo) {
+        this.extendInfo = extendInfo == null ? null : extendInfo.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Date getCleanTime() {
+        return cleanTime;
+    }
+
+    public void setCleanTime(Date cleanTime) {
+        this.cleanTime = cleanTime;
+    }
+
+    public Date getPushTime() {
+        return pushTime;
+    }
+
+    public void setPushTime(Date pushTime) {
+        this.pushTime = pushTime;
+    }
+
+    public Date getCallBackTime() {
+        return callBackTime;
+    }
+
+    public void setCallBackTime(Date callBackTime) {
+        this.callBackTime = callBackTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+}
