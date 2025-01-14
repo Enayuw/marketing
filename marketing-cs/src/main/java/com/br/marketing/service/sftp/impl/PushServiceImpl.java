@@ -52,7 +52,7 @@ public class PushServiceImpl implements PushService {
 
     }
 
-    public void pushToSftp(List<LoanFile> files) throws Exception {
+    private void pushToSftp(List<LoanFile> files) throws Exception {
         String apiCode=files.get(0).getApiCode();
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {

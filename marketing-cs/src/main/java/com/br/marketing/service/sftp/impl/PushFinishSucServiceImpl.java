@@ -8,7 +8,7 @@ import com.br.marketing.entity.SyncConfig;
 import com.br.marketing.mapper.StraHisFileMapper;
 import com.br.marketing.mapper.SyncConfigMapper;
 import com.br.marketing.service.SyncConfigService;
-import com.br.marketing.service.sftp.PushFinishService;
+import com.br.marketing.service.sftp.PushFinishSucService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,7 @@ import java.io.IOException;
 
 @Slf4j
 @Service
-public class PushFinishServiceImpl implements PushFinishService {
+public class PushFinishSucServiceImpl implements PushFinishSucService {
     @Autowired
     SyncConfigService syncConfigService;
     @Value("${otherConfig.warning.sftpHost:00}")

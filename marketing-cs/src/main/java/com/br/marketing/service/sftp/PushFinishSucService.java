@@ -1,6 +1,6 @@
 package com.br.marketing.service.sftp;
 
-public interface PushFinishService {
+public interface PushFinishSucService {
 
     void pushFinish(Long fileId);
 }

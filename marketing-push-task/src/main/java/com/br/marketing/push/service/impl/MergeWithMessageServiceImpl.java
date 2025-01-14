@@ -28,7 +28,7 @@ import com.br.marketing.mapper.*;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.MarketingTaskService;
-import com.br.marketing.service.sftp.PushFinishService;
+import com.br.marketing.service.sftp.PushFinishSucService;
 import com.br.marketing.service.sftp.PushService;
 import com.br.marketing.service.sftp.PushToSftpService;
 import com.br.marketing.service.sftp.impl.PushToSftpServiceImpl;
@@ -98,9 +98,6 @@ public class MergeWithMessageServiceImpl {
 
     @Autowired
     MarketingTaskService marketingTaskService;
-
-    @Autowired
-    PushFinishService pushFinishService;
 
     @Autowired
     PushService pushService;
