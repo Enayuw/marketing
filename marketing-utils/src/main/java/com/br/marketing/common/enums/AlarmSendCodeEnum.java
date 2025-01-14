@@ -284,6 +284,9 @@ public enum AlarmSendCodeEnum {
 
     //恒昌业务异常,立即推送
     HENGCHANG_SERVICEERROR("6051001", "恒昌业务异常"),
+
+    //车线索业务异常,立即推送
+    CARCLUE_SERVICEERROR("6052001", "车线索业务异常"),
     ;
 
     /**

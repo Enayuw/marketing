@@ -2,6 +2,7 @@ package com.br.marketing.mapper;
 
 
 import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.CustomizeUploadDataSmy;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
@@ -50,4 +51,14 @@ public interface CallRecordMapper extends CallRecordMapperBase {
     List<CallRecord> getBlackListSetNewtikv_(@Param("custNumMap") Map<String, String> custNumMap, @Param("bizDate") String bizDate);
 
     List<String> getOneDayBlackListByCreateTime(@Param("custNumSet") Set<String> custNumSet, @Param("nowDate") String nowDate);
+
+    Long cleanDataOfMinId(@Param("apiCode") String apiCode, @Param("date") String date);
+
+    List<CallRecord> cleanDataByMinId(@Param("apiCode") String apiCode, @Param("date") String date,
+                                                  @Param("minId") Long minId, @Param("limit") Integer limit);
+
+    void updateSyncStatusByIds(@Param("ids") List<Long> ids, @Param("syncStatus") int syncStatus);
+
+    void updateSyncStatusById(@Param("id") Long id, @Param("syncStatus") int syncStatus);
+
 }

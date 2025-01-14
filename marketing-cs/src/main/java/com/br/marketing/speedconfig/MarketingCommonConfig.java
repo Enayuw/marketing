@@ -2512,5 +2512,20 @@ public class MarketingCommonConfig {
      * mock 1 开启
      */
     private Map<String, Object> smyBlacklistConfig = new HashMap<>();
+
+    /**
+     * 车线索入库apiCode
+     */
+    private List<String> carClueApiCodes;
+
+    /**
+     * 车线索入库意向
+     */
+    private List<String> carClueIntentionGrades;
+
+    /**
+     * 车线索数据清洗配置
+     */
+    private JSONObject carClueDataCleanConfig;
 }
 
