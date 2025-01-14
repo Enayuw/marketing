@@ -12,11 +12,15 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.BrExecutors;
+import com.br.marketing.common.utils.MQConstants;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.WubaCollidingData;
 import com.br.marketing.entity.WubaCollidingDataBatchNo;
+import com.br.marketing.entity.WubaCollidingDataBatchNoExample;
+import com.br.marketing.entity.WubaCollidingDataEliminate;
+import com.br.marketing.entity.WubaCollidingDataEliminateExample;
 import com.br.marketing.entity.WubaCollidingDataLog;
 import com.br.marketing.entity.WubaCollidingDataLogExample;
 import com.br.marketing.entity.WubaCollidingDataSyncClean;
@@ -26,6 +30,7 @@ import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaCollidingDataEliminateMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
+import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -82,6 +87,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
     @Resource
     WubaCollidingDataEliminateMapper wubaCollidingDataEliminateMapper;
+    @Resource
+    private RabbitMqProducter rabbitMqProducter;
     @Resource
     private TableCreateServiceImpl tableCreateService;
 
@@ -180,10 +187,14 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             JSONArray jsonArray = JSONArray.parseArray(JSON.toJSONString(result.getData()));
 
             // 撞得status=1数据
-            List<WubaCollidingData> trueDatas = getTrueDatas(jsonArray);
+            List<WubaCollidingData> trueDatas = getResultDataByStatus(jsonArray, 1);
+
+            // 撞得status=-1数据
+            List<WubaCollidingData> eliminateDatas = getResultDataByStatus(jsonArray, -1);
+            List<String> eliminateCells = eliminateDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
 
             // 撞得status=-2数据
-            List<WubaCollidingData> reavedDatas = getReavedDatas(jsonArray);
+            List<WubaCollidingData> reavedDatas = getResultDataByStatus(jsonArray, -2);
             List<String> reavedCells = reavedDatas.stream().map(WubaCollidingData::getCell).collect(Collectors.toList());
 
             // 撞得的非金融场景数据
@@ -201,98 +212,93 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             // 根据sourceType对金融撞得数据赋值子场景
             List<WubaCollidingData> financialDatasWithCustomNameType = setCustomNameTypeBySourceType(sourceType, financialDatas);
 
-            // 撞得status=-1数据，写入eliminate表，推送外呼
-            CompletableFuture.runAsync(() -> saveEliminateAndPushToRobot(jsonArray, apiCode, wubaCollidingBatchNo)).exceptionally(e -> null);
-
             // 根据sourceType处理数据
             List<CompletableFuture<Void>> futures = handleDataBySourceType(sourceType, nonFinancialDatasWithCustomNameType,
-                    financialDatasWithCustomNameType, reavedCells,
+                    financialDatasWithCustomNameType, reavedCells, eliminateCells,
                     otherFalseCells, apiCode, batchNo, taskId);
+
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+            // status=-1发送mq，推送外呼
+            if (!CollectionUtils.isEmpty(eliminateCells)) {
+                sendEliminateDataToMq(batchNo);
+            }
         }
     }
 
-    private void saveEliminateAndPushToRobot(JSONArray jsonArray, String apiCode, WubaCollidingDataBatchNo wubaCollidingBatchNo) {
-        List<WubaCollidingData> eliminateData = new ArrayList<>();
+    private void sendEliminateDataToMq(String batchNo) {
         try {
-            Stream<JSONObject> stream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
-                    .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), -1));
-            eliminateData = stream.map((JSONObject t) -> {
-                WubaCollidingData data = new WubaCollidingData();
-                data.setCell(t.getString(MOBILE_ENCRYPT));
-                return data;
-            }).collect(Collectors.toList());
-
-            if (CollectionUtils.isEmpty(eliminateData)) {
-                return;
-            }
-
-            wubaCollidingDataEliminateMapper.batchSaveDataByStatusAndPushTime(eliminateData);
+            rabbitMqProducter.send(MQConstants.ROUTING_KEY_MARKETING_WUBA_COLLIDING_ELIMINATE, batchNo);
+            log.warn("58查询撞库结果作业 status-1发送mq，batchNo:{}", batchNo);
         } catch (Exception e) {
-            String title = "58查询撞库结果作业，status-1数据入库失败";
+            String title = "58查询撞库结果作业，status-1数据发送mq失败";
             String msg = e.getMessage();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , title));
             wuBaServiceClient.sendDingDingAlert(title, msg);
         }
+    }
 
+    @Override
+    public Result<Boolean> buildEliminateAndPushToRobot(String batchNo) {
+        WubaCollidingDataEliminateExample example = new WubaCollidingDataEliminateExample();
+        example.createCriteria().andBatchNoEqualTo(batchNo).andIsDeletedEqualTo(0);
+        List<WubaCollidingDataEliminate> eliminateList = wubaCollidingDataEliminateMapper.selectByExample(example);
+        if (CollectionUtils.isEmpty(eliminateList)) {
+            String title = "58撞库status=-1数据消费端，查询异常";
+            String msg = "根据batchNo查询数据为空";
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                    , title));
+            return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
+        }
+
+        String apiCode = eliminateList.get(0).getApiCode();
+        String tCid = tableCreateService.getTcId(eliminateList.get(0).getApiCode());
+        List<ConversionData> conversionDataList = eliminateList.stream().map(t -> {
+            ConversionData conversionData = new ConversionData();
+            conversionData.setCaseNum(t.getCell());
+            // 构造dataId
+            String buildDataId = System.currentTimeMillis() + RandomUtil.randomNumbers(4);
+            conversionData.setDataId(buildDataId);
+            conversionData.setCid(tCid);
+            conversionData.setPartnerProcessDate(DateUtil.now());
+            conversionData.setInversionStatus("2");
+            conversionData.setInversionInfo(JSON.toJSONString(new JSONObject()));
+
+            return conversionData;
+        }).collect(Collectors.toList());
+
+        WubaCollidingDataBatchNoExample batchNoExample = new WubaCollidingDataBatchNoExample();
+        batchNoExample.createCriteria().andBatchNoEqualTo(batchNo);
+        List<WubaCollidingDataBatchNo> batchNos = wubaCollidingBatchNoMapper.selectByExample(batchNoExample);
+        ProcessHandlerContext context = new ProcessHandlerContext();
+        context.setTransferInfoId(batchNos.get(0).getId());
+        context.setApiCode(apiCode);
+        CustomerTransferHandler customerTransferHandler = new CustomerTransferHandler();
         try {
-            // 推送外呼
-            String tCid = tableCreateService.getTcId(apiCode);
-            List<ConversionData> conversionDataList = new ArrayList<>(eliminateData.size());
-            for (WubaCollidingData eliminateDatum : eliminateData) {
-                ConversionData conversionData = new ConversionData();
-                conversionData.setCaseNum(eliminateDatum.getCell());
-                String expireDate = DateUtil.formatDateTime(DateUtil.endOfDay(new Date()));
-                conversionData.setExpireDate(expireDate);
-                String buildDataId = System.currentTimeMillis() + RandomUtil.randomNumbers(10);
-                conversionData.setDataId(buildDataId);
-                conversionData.setCid(tCid);
-                conversionData.setPartnerProcessDate(DateUtil.now());
-                conversionData.setInversionStatus("2");
-                conversionData.setInversionInfo(JSON.toJSONString(new JSONObject()));
-
-                conversionDataList.add(conversionData);
-            }
-
-            ProcessHandlerContext context = new ProcessHandlerContext();
-            context.setApiCode(apiCode);
-            context.setTransferInfoId(wubaCollidingBatchNo.getId());
-            CustomerTransferHandler customerTransferHandler = new CustomerTransferHandler();
             customerTransferHandler.call(conversionDataList, context);
         } catch (Exception e) {
-            String title = "58查询撞库结果作业，status-1数据推送外呼失败";
+            String title = "58撞库status=-1数据消费端，推送外呼异常";
             String msg = e.getMessage();
             log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
                     , title));
             wuBaServiceClient.sendDingDingAlert(title, msg);
         }
+
+        return new Result<Boolean>().setCode(ResultCode.SUCCESS.getValue()).setDate(Boolean.FALSE);
     }
 
-    private List<WubaCollidingData> getTrueDatas(JSONArray jsonArray) {
+    private List<WubaCollidingData> getResultDataByStatus(JSONArray jsonArray, Integer status) {
         Stream<JSONObject> trueDataStream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
-                .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), 1));
+                .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), status));
         List<WubaCollidingData> trueDatas = trueDataStream.map((JSONObject t) -> {
             WubaCollidingData data = new WubaCollidingData();
             data.setCell(t.getString(MOBILE_ENCRYPT));
-            data.setStatus("1");
+            data.setStatus(String.valueOf(status));
             data.setExtend(JSON.toJSONString(t));
             return data;
         }).collect(Collectors.toList());
         return trueDatas;
-    }
-
-    private List<WubaCollidingData> getReavedDatas(JSONArray jsonArray) {
-        Stream<JSONObject> reavedDataStream = jsonArray.stream().map((Object t) -> JSONObject.parseObject(JSON.toJSONString(t)))
-                .filter((JSONObject t) -> Objects.equals(t.getInteger("status"), -2));
-        List<WubaCollidingData> reavedDatas = reavedDataStream.map((JSONObject t) -> {
-            WubaCollidingData data = new WubaCollidingData();
-            data.setCell(t.getString(MOBILE_ENCRYPT));
-            data.setStatus("-2");
-            data.setExtend(JSON.toJSONString(t));
-            return data;
-        }).collect(Collectors.toList());
-        return reavedDatas;
     }
 
     private List<WubaCollidingData> filterNonFinancialByUserType(JSONArray jsonArray) {
@@ -404,6 +410,10 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
 
         // 保存到上传清洗表
         wubaCollidingDataSyncCleanMapper.batchSaveData(nonFinancialDatas, batchNo, apiCode, taskId);
+    }
+
+    private void batchSaveEliminate(List<String> data, String apiCode, String batchNo) {
+        wubaCollidingDataEliminateMapper.batchSaveDataByBatchNoAndPushTime(data, apiCode, batchNo);
     }
 
     private void updateTaskCleanStatusById(Long taskId) {
@@ -560,8 +570,13 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
      */
     private List<CompletableFuture<Void>> handleDataBySourceType(String sourceType, List<WubaCollidingData> nonFinancialDatas,
                                                                  List<WubaCollidingData> financialDatas, List<String> reavedCells,
+                                                                 List<String> eliminateCells,
                                                                  List<String> otherFalseCells, String apiCode, String batchNo, Long taskId) {
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
+        futures.addAll(batchHandleFalseBusinessAsync(eliminateCells,
+                (List<String> data) -> batchSaveEliminate(data, apiCode, batchNo),
+                "status=-1数据保存到剔除表"));
+
         // 根据sourceType获取-2包id，结果可为空
         Long reavedPackageId = getReavedPackageIdFromSpeed(sourceType);
         switch (sourceType) {

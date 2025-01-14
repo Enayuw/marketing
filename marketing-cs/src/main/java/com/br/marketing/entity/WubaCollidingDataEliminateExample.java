@@ -225,6 +225,146 @@ public class WubaCollidingDataEliminateExample {
             return (Criteria) this;
         }
 
+        public Criteria andApiCodeIsNull() {
+            addCriterion("api_code is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIsNotNull() {
+            addCriterion("api_code is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeEqualTo(String value) {
+            addCriterion("api_code =", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotEqualTo(String value) {
+            addCriterion("api_code <>", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeGreaterThan(String value) {
+            addCriterion("api_code >", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeGreaterThanOrEqualTo(String value) {
+            addCriterion("api_code >=", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLessThan(String value) {
+            addCriterion("api_code <", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLessThanOrEqualTo(String value) {
+            addCriterion("api_code <=", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeLike(String value) {
+            addCriterion("api_code like", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotLike(String value) {
+            addCriterion("api_code not like", value, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeIn(List<String> values) {
+            addCriterion("api_code in", values, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotIn(List<String> values) {
+            addCriterion("api_code not in", values, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeBetween(String value1, String value2) {
+            addCriterion("api_code between", value1, value2, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andApiCodeNotBetween(String value1, String value2) {
+            addCriterion("api_code not between", value1, value2, "apiCode");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoIsNull() {
+            addCriterion("batch_no is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoIsNotNull() {
+            addCriterion("batch_no is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoEqualTo(String value) {
+            addCriterion("batch_no =", value, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoNotEqualTo(String value) {
+            addCriterion("batch_no <>", value, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoGreaterThan(String value) {
+            addCriterion("batch_no >", value, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoGreaterThanOrEqualTo(String value) {
+            addCriterion("batch_no >=", value, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoLessThan(String value) {
+            addCriterion("batch_no <", value, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoLessThanOrEqualTo(String value) {
+            addCriterion("batch_no <=", value, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoLike(String value) {
+            addCriterion("batch_no like", value, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoNotLike(String value) {
+            addCriterion("batch_no not like", value, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoIn(List<String> values) {
+            addCriterion("batch_no in", values, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoNotIn(List<String> values) {
+            addCriterion("batch_no not in", values, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoBetween(String value1, String value2) {
+            addCriterion("batch_no between", value1, value2, "batchNo");
+            return (Criteria) this;
+        }
+
+        public Criteria andBatchNoNotBetween(String value1, String value2) {
+            addCriterion("batch_no not between", value1, value2, "batchNo");
+            return (Criteria) this;
+        }
+
         public Criteria andCellIsNull() {
             addCriterion("cell is null");
             return (Criteria) this;

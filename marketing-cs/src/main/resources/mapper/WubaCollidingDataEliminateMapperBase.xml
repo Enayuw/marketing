@@ -4,6 +4,8 @@
   <resultMap id="BaseResultMap" type="com.br.marketing.entity.WubaCollidingDataEliminate" >
     <id column="id" property="id" jdbcType="BIGINT" />
     <result column="biz_type" property="bizType" jdbcType="INTEGER" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="batch_no" property="batchNo" jdbcType="VARCHAR" />
     <result column="cell" property="cell" jdbcType="VARCHAR" />
     <result column="push_time" property="pushTime" jdbcType="TIMESTAMP" />
     <result column="extend" property="extend" jdbcType="VARCHAR" />
@@ -70,7 +72,8 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, biz_type, cell, push_time, extend, is_deleted, create_time, update_time
+    id, biz_type, api_code, batch_no, cell, push_time, extend, is_deleted, create_time, 
+    update_time
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.WubaCollidingDataEliminateExample" >
     select
@@ -106,12 +109,14 @@
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
       SELECT LAST_INSERT_ID()
     </selectKey>
-    insert into b_wuba_colliding_data_eliminate (biz_type, cell, push_time, 
-      extend, is_deleted, create_time, 
-      update_time)
-    values (#{bizType,jdbcType=INTEGER}, #{cell,jdbcType=VARCHAR}, #{pushTime,jdbcType=TIMESTAMP}, 
-      #{extend,jdbcType=VARCHAR}, #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP})
+    insert into b_wuba_colliding_data_eliminate (biz_type, api_code, batch_no, 
+      cell, push_time, extend, 
+      is_deleted, create_time, update_time
+      )
+    values (#{bizType,jdbcType=INTEGER}, #{apiCode,jdbcType=VARCHAR}, #{batchNo,jdbcType=VARCHAR}, 
+      #{cell,jdbcType=VARCHAR}, #{pushTime,jdbcType=TIMESTAMP}, #{extend,jdbcType=VARCHAR}, 
+      #{isDeleted,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.br.marketing.entity.WubaCollidingDataEliminate" >
     <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
@@ -121,6 +126,12 @@
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="bizType != null" >
         biz_type,
+      </if>
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="batchNo != null" >
+        batch_no,
       </if>
       <if test="cell != null" >
         cell,
@@ -144,6 +155,12 @@
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="bizType != null" >
         #{bizType,jdbcType=INTEGER},
+      </if>
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNo != null" >
+        #{batchNo,jdbcType=VARCHAR},
       </if>
       <if test="cell != null" >
         #{cell,jdbcType=VARCHAR},
@@ -180,6 +197,12 @@
       <if test="record.bizType != null" >
         biz_type = #{record.bizType,jdbcType=INTEGER},
       </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.batchNo != null" >
+        batch_no = #{record.batchNo,jdbcType=VARCHAR},
+      </if>
       <if test="record.cell != null" >
         cell = #{record.cell,jdbcType=VARCHAR},
       </if>
@@ -207,6 +230,8 @@
     update b_wuba_colliding_data_eliminate
     set id = #{record.id,jdbcType=BIGINT},
       biz_type = #{record.bizType,jdbcType=INTEGER},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      batch_no = #{record.batchNo,jdbcType=VARCHAR},
       cell = #{record.cell,jdbcType=VARCHAR},
       push_time = #{record.pushTime,jdbcType=TIMESTAMP},
       extend = #{record.extend,jdbcType=VARCHAR},
@@ -222,6 +247,12 @@
     <set >
       <if test="bizType != null" >
         biz_type = #{bizType,jdbcType=INTEGER},
+      </if>
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="batchNo != null" >
+        batch_no = #{batchNo,jdbcType=VARCHAR},
       </if>
       <if test="cell != null" >
         cell = #{cell,jdbcType=VARCHAR},
@@ -247,6 +278,8 @@
   <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.WubaCollidingDataEliminate" >
     update b_wuba_colliding_data_eliminate
     set biz_type = #{bizType,jdbcType=INTEGER},
+      api_code = #{apiCode,jdbcType=VARCHAR},
+      batch_no = #{batchNo,jdbcType=VARCHAR},
       cell = #{cell,jdbcType=VARCHAR},
       push_time = #{pushTime,jdbcType=TIMESTAMP},
       extend = #{extend,jdbcType=VARCHAR},

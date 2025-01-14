@@ -11,11 +11,11 @@
         </foreach>
     </select>
 
-    <insert id="batchSaveDataByStatusAndPushTime">
-        INSERT IGNORE INTO b_wuba_colliding_data_eliminate (cell, biz_type, push_time)
+    <insert id="batchSaveDataByBatchNoAndPushTime">
+        INSERT IGNORE INTO b_wuba_colliding_data_eliminate (cell, biz_type, api_code, batch_no, push_time)
         VALUES
-        <foreach collection="list" item="item" separator=",">
-            (#{item.cell}, 1, now())
+        <foreach collection="list" item="cell" separator=",">
+            (#{cell}, 1, #{apiCode}, #{batchNo}, now())
         </foreach>
     </insert>
 </mapper>

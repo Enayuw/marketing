@@ -14,6 +14,16 @@ public class WubaCollidingDataEliminate {
     private Integer bizType;
 
     /**
+     * 客户编号
+     */
+    private String apiCode;
+
+    /**
+     * 批次号
+     */
+    private String batchNo;
+
+    /**
      * md5手机号
      */
     private String cell;
@@ -57,6 +67,22 @@ public class WubaCollidingDataEliminate {
 
     public void setBizType(Integer bizType) {
         this.bizType = bizType;
+    }
+
+    public String getApiCode() {
+        return apiCode;
+    }
+
+    public void setApiCode(String apiCode) {
+        this.apiCode = apiCode == null ? null : apiCode.trim();
+    }
+
+    public String getBatchNo() {
+        return batchNo;
+    }
+
+    public void setBatchNo(String batchNo) {
+        this.batchNo = batchNo == null ? null : batchNo.trim();
     }
 
     public String getCell() {
