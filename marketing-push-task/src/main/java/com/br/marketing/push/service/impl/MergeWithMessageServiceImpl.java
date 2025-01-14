@@ -25,12 +25,13 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
-import com.br.marketing.monkeydata.handle.zhongan.ZhongAnPushBlackDataHandle;
-import com.br.marketing.push.service.PushFinishService;
-import com.br.marketing.push.service.PushService;
 import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.MarketingTaskService;
+import com.br.marketing.service.sftp.PushFinishService;
+import com.br.marketing.service.sftp.PushService;
+import com.br.marketing.service.sftp.PushToSftpService;
+import com.br.marketing.service.sftp.impl.PushToSftpServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -105,9 +106,10 @@ public class MergeWithMessageServiceImpl {
     PushService pushService;
     @Autowired
     RedisChgService redisChgService;
+    @Autowired
+    PushToSftpService pushToSftpService;
     @Resource
     RetryMainLogMapper retryMainLogMapper;
-
 
     public Result<Boolean> consumerInitFileMsg(Long fileId) {
         Boolean res = Boolean.FALSE;
@@ -119,13 +121,13 @@ public class MergeWithMessageServiceImpl {
         Customer customer = customerMapper.getCustomerByApiCode(file.getApiCode());
         List<LoanFile> pushList = mergeService.process(loanFiles, customer);
         if (pushList != null && pushList.size() > 0) {
-            Result result = this.pushFiles(pushList);
+            Result result = pushToSftpService.pushFiles(pushList);
             if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
                 RetryMainLog retryMainLog = new RetryMainLog();
                 retryMainLog.setRetryType(1);
                 retryMainLog.setRetryParam(JSON.toJSONString(pushList));
                 retryMainLog.setRetryParamType(List.class.getName());
-                retryMainLog.setRetryService("mergeWithMessageServiceImpl");
+                retryMainLog.setRetryService(PushToSftpServiceImpl.class.getName());
                 retryMainLog.setRetryMethod("pushFiles");
                 retryMainLog.setServiceType(2);
                 retryMainLog.setRetryNum(0);
@@ -138,19 +140,6 @@ public class MergeWithMessageServiceImpl {
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
-
-    public Result pushFiles(List<LoanFile> pushList) {
-        try {
-            pushService.push(pushList);
-        }catch (Exception e){
-            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("推送文件至SFTP失败！");
-        }
-        for (LoanFile loanFile : pushList) {
-            pushFinishService.pushFinish(loanFile.getId());
-        }
-        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("推送文件至SFTP成功");
-    }
-
 
     /**
      * 消费文件合并信息

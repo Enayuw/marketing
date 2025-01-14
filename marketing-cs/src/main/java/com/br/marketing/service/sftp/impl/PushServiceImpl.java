@@ -1,17 +1,12 @@
-package com.br.marketing.push.service.impl;
+package com.br.marketing.service.sftp.impl;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import com.br.marketing.client.SftpClient;
-import com.br.marketing.common.utils.Constants;
 import com.br.marketing.common.utils.DateHelper;
-import com.br.marketing.common.utils.file.FtpUtil2;
-import com.br.marketing.entity.*;
+import com.br.marketing.entity.LoanFile;
 import com.br.marketing.mapper.LoanFileMapper;
-import com.br.marketing.mapper.TaskStatusMapper;
-import com.br.marketing.push.service.PushService;
-import com.br.marketing.push.service.ZipFileCheckService;
 import com.br.marketing.service.SyncConfigService;
+import com.br.marketing.service.sftp.PushService;
+import com.br.marketing.service.sftp.ZipFileCheckService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
