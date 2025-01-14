@@ -10,6 +10,7 @@ import com.br.marketing.service.Impl.ConsumerService;
 import com.br.marketing.service.Impl.wuba.WuBaCollidingDataQueryResultService;
 import com.br.marketing.service.Impl.xc.XieChengRobDataCollidingService;
 import com.br.marketing.service.clean.guomei.GuoMeiDataCleanService;
+import com.br.marketing.service.clean.hengchang.HengChangDataCleanService;
 import com.br.marketing.service.clean.weiju.WeiJuDataCleanService;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
@@ -64,6 +65,8 @@ public class ConsumerApp {
     private WeiJuDataCleanService weiJuDataCleanService;
     @Resource
     private GuoMeiDataCleanService guoMeiDataCleanService;
+    @Resource
+    private HengChangDataCleanService hengChangDataCleanService;
     @Autowired
     XieChengSmsPushToTransferService xieChengSmsPushToTransferService;
     @Resource
@@ -334,6 +337,18 @@ public class ConsumerApp {
             , key = MQConstants.ROUTING_KEY_MARKETING_GUOMEI_BLACK_DATA_CLEAN)}, containerFactory = "concurrentContainerFactory")
     public void consumerGuoMeiBlackDataClean(Channel channel, Message message) {
         consumerService.consumerRun(channel, message, guoMeiDataCleanService::cleanBlackData, new String(message.getBody(), StandardCharsets.UTF_8), null);
+    }
+
+    /**
+     * 消费 恒昌数据清洗消费端
+     * @param channel 通道
+     * @param message 消息体
+     */
+    @RabbitListener(bindings = {@QueueBinding(value = @Queue(value = MQConstants.MARKETING_HENGCHANG_DATA_CLEAN_QUEUE, durable = "true")
+            , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
+            , key = MQConstants.ROUTING_KEY_MARKETING_HENGCHANG_DATA_CLEAN)}, containerFactory = "concurrentContainerFactory")
+    public void consumerHengChangDataClean(Channel channel, Message message) {
+        consumerService.consumerRun(channel, message, hengChangDataCleanService::cleanData, new String(message.getBody(), StandardCharsets.UTF_8), null);
     }
 
     /**

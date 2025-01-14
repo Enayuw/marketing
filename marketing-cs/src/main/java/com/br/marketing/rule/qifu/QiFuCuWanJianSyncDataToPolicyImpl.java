@@ -10,7 +10,9 @@ import javax.annotation.Resource;
 import com.br.common.encryption.Md5Utils;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.halo.EncryptUtil;
+import com.br.marketing.service.Impl.qifu.QiFuDataValidityPeriodService;
 import com.github.pagehelper.util.StringUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson.JSONObject;
@@ -44,6 +46,9 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
     private MarketingCommonConfig marketingCommonConfig;
     @Resource
     private MarketingCustomizeDataValidConfigMapper customizeDataValidConfigMapper;
+
+    @Autowired
+    private QiFuDataValidityPeriodService qiFuDataValidityPeriodService;
 
     @Override
     public PushMarketingUserDetailByRuleDTO assemble(Object transmitFact, ProcessHandlerContext context) throws Exception {
@@ -89,7 +94,12 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
         if (syncUser.getStatus() != 1) {
             return false;
         }
-        List<MarketingCustomizeDataValidConfig> configList = getValidConfigList(syncUser);
+
+        if(qiFuDataValidityPeriodService.syncDetailValidityPeriod(syncUser,new Date())){
+            return true;
+        }
+        
+        /*List<MarketingCustomizeDataValidConfig> configList = getValidConfigList(syncUser);
         if (CollectionUtil.isEmpty(configList)) {
             log.error("奇富360促完件上传数据推决策，未查询到该条上传数据有效期配置：apiCode:{},appletDate:{},userType:{},taskId:{}", syncUser.getApiCode(),
                 syncUser.getAppletDate(), syncUser.getUserType(), syncUser.getCusBatch());
@@ -102,7 +112,7 @@ public class QiFuCuWanJianSyncDataToPolicyImpl implements AssembleData<PushMarke
             if (currentDate.isAfterOrEquals(startDate) && currentDate.isBeforeOrEquals(endDate)) {
                 return true;
             }
-        }
+        }*/
         return false;
     }
 

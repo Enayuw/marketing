@@ -19,6 +19,7 @@ import com.br.marketing.service.TransferDataValidityPeriodService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -67,6 +68,9 @@ public class QiFuCuWanJianBatQryUserRealService {
 
     @Resource
     private TransferDataValidityPeriodService transferDataValidityPeriodService;
+
+    @Autowired
+    private QiFuDataValidityPeriodService qiFuDataValidityPeriodService;
 
     public Result<Map<String, Object>> action(Page2Condition<QiFuCuWanJianBatQryUserRealDto> condition) {
         return scanData(condition);
@@ -137,18 +141,23 @@ public class QiFuCuWanJianBatQryUserRealService {
         try {
             // saveAction
             SynInfoQueryAction queryAction = saveAction(dataId, apiCode, actionDate);
+            // 查询在有效期内的数据
+            if (!qiFuDataValidityPeriodService.syncInfoValidityPeriod(marketingSyncInfo, new Date())) {
+                log.warn(TITLE + "360数据不在有效期, taskId: {}", taskId);
+                return result;
+            }
 
             // marketingSyncUserList
             List<MarketingSyncUser> marketingSyncUserList = marketingSyncUserMapper.getSyncUserByCondition(apiCode, requestBatch);
 
-            // 查询在有效期内的数据
+            /*// 查询在有效期内的数据
             Set<String> custNumSet = marketingSyncUserList.stream().map(MarketingSyncUser::getCustNum).collect(Collectors.toSet());
             Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNum =
                     transferDataValidityPeriodService.getValidityPeriodsByCustNumAndTaskId(custNumSet, apiCode, new Date());
             marketingSyncUserList.removeIf(marketingSyncUser -> Objects.isNull(validityPeriodsByCustNum.get(marketingSyncUser.getCustNum())));
             if(CollectionUtils.isEmpty(marketingSyncUserList)){
                 return result;
-            }
+            }*/
             // actionDataList
             Result<Map<String, Object>> actionResult = actionDetailList(apiCode, taskId, marketingSyncUserList);
 
