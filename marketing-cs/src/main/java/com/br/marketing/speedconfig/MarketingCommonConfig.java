@@ -2512,6 +2512,18 @@ public class MarketingCommonConfig {
     private JSONObject smyCustomizeDataConfig;
 
     /**
+     * 模拟跑分推决策异常开关 true:开启挡板。false:关闭挡板
+     * {"7410950":{"general":{"esRetry":true,"policyRetry":false},"xiecheng":{"esRetry":true,"policyRetry":false}}}
+     * general：通用推决策
+     *     esRetry：es查询异常
+     *     policyRetry：推决策异常
+     * xiecheng：携程推决策
+     *     esRetry：es查询异常
+     *     policyRetry：推决策异常
+     */
+    private HashMap<String, JSONObject> policyRetrySwitch;
+
+    /**
      * 萨摩耶客制化数据清洗配置
      * {"uploadThread":10,"transferThread":10}
      */

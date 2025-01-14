@@ -3,11 +3,13 @@ package com.br.marketing.innerapi.controller;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.intelligentcustomerservice.IntelligentCustomerServiceClient;
 import com.br.marketing.client.intelligentcustomerservice.input.PushMarketingUserDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.service.IProductResultSimpleService;
 import com.br.marketing.service.Impl.ProductResultByConfigSimpleServiceImpl;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("redis")
@@ -41,6 +44,22 @@ public class RedisController {
     public String testM(String msg){
         Result<Boolean> booleanResult = userCenterHandler.handleDataUserCenter(msg);
         return JSONObject.toJSONString(booleanResult);
+    }
+
+    @GetMapping("testNX")
+    public String testNX(String taskId){
+        try {
+            String taskByPushRuleGetLock = RedisKeyConstant.TASK_PUSH_RULE_GET_LOCK.concat(":" + taskId);
+            UUID uuid = UUID.randomUUID();
+            Boolean setnx = redisChgService.setnx(taskByPushRuleGetLock, uuid.toString(), 3);
+            if (!setnx) {
+                return null;
+            }
+            return uuid.toString();
+        } catch (Exception ex) {
+            log.warn(AlertLog.buildErrorMessage(AlarmSendCodeEnum.PUSHING_DECISIONERROR.getCode(), ex.getMessage()), ex);
+            return null;
+        }
     }
 
     @GetMapping("get")
