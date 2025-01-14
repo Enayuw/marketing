@@ -19,7 +19,8 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CarClueInfoVo {
-
+    @ApiModelProperty(value = "id")
+    private Long id;
     @ApiModelProperty(value = "客户编号")
     private String apiCode;
     @ApiModelProperty(value = "案件编号")

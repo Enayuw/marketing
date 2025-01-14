@@ -2,6 +2,7 @@ package com.br.marketing.service.Impl;
 
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
+import com.br.marketing.entity.CallRecordLog;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.vo.CarClueInfoVo;
@@ -26,14 +27,12 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     CarClueInfoMapper carClueInfoMapper;
 
     @Resource
-    private MarketingSyncUserMapper marketingSyncUserMapper;
+    private CallRecordLogMapper callRecordLogMapper;
 
     @Override
     public PageResultReturn getReportList(CarClueReportDTO request) {
         Integer current = request.getCurrent();
         Integer size = request.getSize();
-        // 数据入库状态
-        Integer status = request.getStatus();
 
         Map params = new HashMap();
         params.put("createTimeStart", request.getCreateTimeStart());
@@ -51,13 +50,11 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
         PageHelper.startPage(current, size);
         List<CarClueInfoVo> list = carClueInfoMapper.selectList(params);
-        for (CarClueInfoVo carClueInfo : list) {
-            String apiCode = carClueInfo.getApiCode();
-            String custNum = carClueInfo.getCustNum();
-            String appletDate = carClueInfo.getAppletDate();
-            // 匹配入库状态
-
-        }
+        list.forEach((CarClueInfoVo carClueInfoVo) -> {
+            CallRecordLog callRecordLog = callRecordLogMapper.selectByrecordId(carClueInfoVo.getId());
+            // 设置到对象中
+            carClueInfoVo.setStatus(callRecordLog.getInboundStatus().toString());
+        });
 
         return PageResultReturn.setPageResult(list, current, size);
     }

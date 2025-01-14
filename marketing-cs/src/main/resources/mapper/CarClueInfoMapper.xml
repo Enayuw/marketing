@@ -3,7 +3,7 @@
 <mapper namespace="com.br.marketing.mapper.CarClueInfoMapper" >
 
     <select id="selectList" resultType="com.br.marketing.vo.CarClueInfoVo">
-        select api_code
+        select id, api_code
         , cust_num as custNum
         , DATE_FORMAT(bcci.create_time,'%Y-%m-%d %H:%i:%s') as appletDate
         , clue_id as clueId
