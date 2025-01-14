@@ -91,6 +91,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     private RabbitMqProducter rabbitMqProducter;
     @Resource
     private TableCreateServiceImpl tableCreateService;
+    @Resource
+    CustomerTransferHandler customerTransferHandler;
 
     private final static int PARTATION_SIZE = 50;
 
@@ -273,7 +275,6 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         ProcessHandlerContext context = new ProcessHandlerContext();
         context.setTransferInfoId(batchId);
         context.setApiCode(apiCode);
-        CustomerTransferHandler customerTransferHandler = new CustomerTransferHandler();
         try {
             customerTransferHandler.call(conversionDataList, context);
         } catch (Exception e) {
