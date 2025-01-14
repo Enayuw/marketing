@@ -76,14 +76,21 @@ public class XieChengServiceNew {
                 dataMap.put("releaseTime", DateUtil.formatDateTime(DateUtil.offsetDay(new Date(),7)));
                 dataMap.put("releaseDate", null);
                 dataMap.put("hitRequestNo", RandomUtil.randomString(29).toUpperCase());
+                Random random = new Random();
+                int randomNumber = random.nextInt(5);
+                if (randomNumber == 0) {
+                    dataMap.put("info", "退订用户，不可短信营销");
+                } else {
+                    dataMap.put("info","测试info");
+                }
             }else {
                 dataMap.put("result",false);
                 dataMap.put("hitRequestNo", null);
                 dataMap.put("releaseDate", DateUtil.formatDate(DateUtil.offsetDay(new Date(), RandomUtil.getRandom().nextInt(7)+1)));
+                dataMap.put("info","测试info");
             }
             dataMap.put("orgChannel","测试orgChannel");
             dataMap.put("mktLevel","测试mktLevel");
-            dataMap.put("info","测试info");
             if (marketingCommonConfig.getXieChengSmsCollidingRetrySwitch().get(3)) {
                 switch (i % 3) {
                     case 0:
