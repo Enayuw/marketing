@@ -361,8 +361,7 @@ public class ConsumerApp {
             , exchange = @Exchange(type = "topic", value = MQConstants.MARKETINGEXCHANGER_NAME, durable = "true")
             , key = MQConstants.ROUTING_KEY_MARKETING_WUBA_COLLIDING_ELIMINATE)}, containerFactory = "concurrentContainerFactory")
     public void consumerWuBaCollidingEliminate(Channel channel, Message message) {
-        String batchNo = new String(message.getBody(), StandardCharsets.UTF_8);
-        consumerService.consumerRun(channel, message, wuBaCollidingDataQueryResultService::buildEliminateAndPushToRobot, batchNo, null);
+        String batchIdStr = new String(message.getBody(), StandardCharsets.UTF_8);
+        consumerService.consumerRun(channel, message, wuBaCollidingDataQueryResultService::buildEliminateAndPushToRobot, batchIdStr, null);
     }
-
 }

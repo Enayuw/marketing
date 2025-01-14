@@ -19,9 +19,9 @@ public class WubaCollidingDataEliminate {
     private String apiCode;
 
     /**
-     * 批次号
+     * 撞库批次号表id
      */
-    private String batchNo;
+    private Long batchId;
 
     /**
      * md5手机号
@@ -77,12 +77,12 @@ public class WubaCollidingDataEliminate {
         this.apiCode = apiCode == null ? null : apiCode.trim();
     }
 
-    public String getBatchNo() {
-        return batchNo;
+    public Long getBatchId() {
+        return batchId;
     }
 
-    public void setBatchNo(String batchNo) {
-        this.batchNo = batchNo == null ? null : batchNo.trim();
+    public void setBatchId(Long batchId) {
+        this.batchId = batchId;
     }
 
     public String getCell() {

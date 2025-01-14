@@ -6,5 +6,5 @@ import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 public interface WuBaCollidingDataQueryResultService {
     void process(JobExecutionMultipleShardingContext context);
 
-    Result<Boolean> buildEliminateAndPushToRobot(String batchNo);
+    Result<Boolean> buildEliminateAndPushToRobot(String batchIdStr);
 }

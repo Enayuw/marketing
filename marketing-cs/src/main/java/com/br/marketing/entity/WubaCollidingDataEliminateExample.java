@@ -295,73 +295,63 @@ public class WubaCollidingDataEliminateExample {
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoIsNull() {
-            addCriterion("batch_no is null");
+        public Criteria andBatchIdIsNull() {
+            addCriterion("batch_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoIsNotNull() {
-            addCriterion("batch_no is not null");
+        public Criteria andBatchIdIsNotNull() {
+            addCriterion("batch_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoEqualTo(String value) {
-            addCriterion("batch_no =", value, "batchNo");
+        public Criteria andBatchIdEqualTo(Long value) {
+            addCriterion("batch_id =", value, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoNotEqualTo(String value) {
-            addCriterion("batch_no <>", value, "batchNo");
+        public Criteria andBatchIdNotEqualTo(Long value) {
+            addCriterion("batch_id <>", value, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoGreaterThan(String value) {
-            addCriterion("batch_no >", value, "batchNo");
+        public Criteria andBatchIdGreaterThan(Long value) {
+            addCriterion("batch_id >", value, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoGreaterThanOrEqualTo(String value) {
-            addCriterion("batch_no >=", value, "batchNo");
+        public Criteria andBatchIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("batch_id >=", value, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoLessThan(String value) {
-            addCriterion("batch_no <", value, "batchNo");
+        public Criteria andBatchIdLessThan(Long value) {
+            addCriterion("batch_id <", value, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoLessThanOrEqualTo(String value) {
-            addCriterion("batch_no <=", value, "batchNo");
+        public Criteria andBatchIdLessThanOrEqualTo(Long value) {
+            addCriterion("batch_id <=", value, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoLike(String value) {
-            addCriterion("batch_no like", value, "batchNo");
+        public Criteria andBatchIdIn(List<Long> values) {
+            addCriterion("batch_id in", values, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoNotLike(String value) {
-            addCriterion("batch_no not like", value, "batchNo");
+        public Criteria andBatchIdNotIn(List<Long> values) {
+            addCriterion("batch_id not in", values, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoIn(List<String> values) {
-            addCriterion("batch_no in", values, "batchNo");
+        public Criteria andBatchIdBetween(Long value1, Long value2) {
+            addCriterion("batch_id between", value1, value2, "batchId");
             return (Criteria) this;
         }
 
-        public Criteria andBatchNoNotIn(List<String> values) {
-            addCriterion("batch_no not in", values, "batchNo");
-            return (Criteria) this;
-        }
-
-        public Criteria andBatchNoBetween(String value1, String value2) {
-            addCriterion("batch_no between", value1, value2, "batchNo");
-            return (Criteria) this;
-        }
-
-        public Criteria andBatchNoNotBetween(String value1, String value2) {
-            addCriterion("batch_no not between", value1, value2, "batchNo");
+        public Criteria andBatchIdNotBetween(Long value1, Long value2) {
+            addCriterion("batch_id not between", value1, value2, "batchId");
             return (Criteria) this;
         }
 

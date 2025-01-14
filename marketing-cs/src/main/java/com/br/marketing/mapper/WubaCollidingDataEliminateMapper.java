@@ -7,5 +7,5 @@ import java.util.List;
 public interface WubaCollidingDataEliminateMapper extends WubaCollidingDataEliminateMapperBase {
     List<String> selectDuplicateData(@Param("list") List<String> list);
 
-    void batchSaveDataByBatchNoAndPushTime(@Param("list") List<String> list, @Param("apiCode") String apiCode, @Param("batchNo") String batchNo);
+    void batchSaveDataByBatchNoAndPushTime(@Param("list") List<String> list, @Param("apiCode") String apiCode, @Param("batchId") Long batchId);
 }
