@@ -5,11 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.util.BrCipherMaker;
 import com.br.marketing.client.FtpClient;
+import com.br.marketing.client.RedisChgService;
 import com.br.marketing.client.bi.BiApiClient;
 import com.br.marketing.client.bi.input.OffLineScoreDTO;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.common.constants.RegexConstants;
+import com.br.marketing.common.constants.rediskey.RedisKeyConstant;
 import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.common.utils.StringUtils;
@@ -23,6 +25,7 @@ import com.br.marketing.es.bean.MarketingHistory;
 import com.br.marketing.es.service.MarketingHistoryEsService;
 import com.br.marketing.es.util.UuidUtils;
 import com.br.marketing.mapper.*;
+import com.br.marketing.monkeydata.handle.zhongan.ZhongAnPushBlackDataHandle;
 import com.br.marketing.push.service.PushFinishService;
 import com.br.marketing.push.service.PushService;
 import com.br.marketing.rpcclient.RpcClientProxy;
@@ -100,6 +103,11 @@ public class MergeWithMessageServiceImpl {
 
     @Autowired
     PushService pushService;
+    @Autowired
+    RedisChgService redisChgService;
+    @Resource
+    RetryMainLogMapper retryMainLogMapper;
+
 
     public Result<Boolean> consumerInitFileMsg(Long fileId) {
         Boolean res = Boolean.FALSE;
@@ -111,13 +119,38 @@ public class MergeWithMessageServiceImpl {
         Customer customer = customerMapper.getCustomerByApiCode(file.getApiCode());
         List<LoanFile> pushList = mergeService.process(loanFiles, customer);
         if (pushList != null && pushList.size() > 0) {
-            pushService.push(pushList);
-            for (LoanFile loanFile : pushList) {
-                pushFinishService.pushFinish(loanFile.getId());
+            Result result = this.pushFiles(pushList);
+            if (!ResultCode.SUCCESS.getValue().equals(result.getCode())) {
+                RetryMainLog retryMainLog = new RetryMainLog();
+                retryMainLog.setRetryType(1);
+                retryMainLog.setRetryParam(JSON.toJSONString(pushList));
+                retryMainLog.setRetryParamType(List.class.getName());
+                retryMainLog.setRetryService("mergeWithMessageServiceImpl");
+                retryMainLog.setRetryMethod("pushFiles");
+                retryMainLog.setServiceType(2);
+                retryMainLog.setRetryNum(0);
+                retryMainLog.setRetryStatus(1);
+                retryMainLog.setCreateTime(new Date());
+                retryMainLog.setIncrId(redisChgService.incr(RedisKeyConstant.retryid));
+                retryMainLog.setRetryMaxNum(3);
+                retryMainLogMapper.insertSelective(retryMainLog);
             }
         }
         return new Result<>().setCode(ResultCode.SUCCESS.getValue()).setDate(res);
     }
+
+    public Result pushFiles(List<LoanFile> pushList) {
+        try {
+            pushService.push(pushList);
+        }catch (Exception e){
+            return new Result().setCode(ResultCode.FAIL.getValue()).setMessage("推送文件至SFTP失败！");
+        }
+        for (LoanFile loanFile : pushList) {
+            pushFinishService.pushFinish(loanFile.getId());
+        }
+        return new Result().setCode(ResultCode.SUCCESS.getValue()).setMessage("推送文件至SFTP成功");
+    }
+
 
     /**
      * 消费文件合并信息

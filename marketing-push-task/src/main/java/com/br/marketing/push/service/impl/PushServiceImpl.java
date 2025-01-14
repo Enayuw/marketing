@@ -44,10 +44,9 @@ public class PushServiceImpl implements PushService {
     ZipFileCheckService zipFileCheckServiceImpl;
 
     @Override
-    public void push(List<LoanFile> files) {
+    public void push(List<LoanFile> files) throws Exception {
         checkZipFile(files);
         pushToSftp(files);
-
     }
     private void checkZipFile(List<LoanFile> files){
         for(LoanFile blf:files){
@@ -58,7 +57,7 @@ public class PushServiceImpl implements PushService {
 
     }
 
-    public void pushToSftp(List<LoanFile> files){
+    public void pushToSftp(List<LoanFile> files) throws Exception {
         String apiCode=files.get(0).getApiCode();
         SftpClient sftpClient = new SftpClient(sftpHost,sftpPort,sftpUsername,sftpPwd);
         try {
@@ -87,6 +86,7 @@ public class PushServiceImpl implements PushService {
 
         } catch (Exception e) {
             log.error("Exception",e);
+            throw e;
         }finally {
             try {
                 sftpClient.disconnect();
