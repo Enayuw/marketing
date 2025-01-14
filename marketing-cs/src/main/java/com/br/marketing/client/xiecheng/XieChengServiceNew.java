@@ -80,6 +80,10 @@ public class XieChengServiceNew {
                 int randomNumber = random.nextInt(5);
                 if (randomNumber == 0) {
                     dataMap.put("info", "退订用户，不可短信营销");
+                } else if (randomNumber == 1) {
+                    dataMap.put("info", null);
+                } else if (randomNumber == 2) {
+
                 } else {
                     dataMap.put("info","测试info");
                 }
