@@ -1,12 +1,6 @@
 package com.br.marketing.check.job.carclue;
 
-import com.br.marketing.common.enums.SftpFileTypeEnum;
-import com.br.marketing.entity.CallRecordExample;
-import com.br.marketing.entity.LocalFile;
-import com.br.marketing.entity.LocalFileExample;
-import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.service.clean.CarClue.CarCluesDataCleanService;
-import com.br.marketing.service.clean.smy.SmyDataCleanService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
 import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;

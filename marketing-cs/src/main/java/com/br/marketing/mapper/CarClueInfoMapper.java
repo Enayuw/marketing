@@ -1,6 +1,5 @@
 package com.br.marketing.mapper;
 
-import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.vo.CarClueInfoVo;
 import org.apache.ibatis.annotations.Param;
