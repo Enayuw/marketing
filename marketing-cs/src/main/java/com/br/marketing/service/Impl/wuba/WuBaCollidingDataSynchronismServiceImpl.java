@@ -46,8 +46,6 @@ import java.util.stream.Collectors;
 public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDataSynchronismService {
     public static final String T = "T";
     public static final String S = "S";
-    public static final String ELIMINATE = "eliminate";
-
     @Autowired
     MarketingCommonConfig marketingCommonConfig;
     @Resource
@@ -204,10 +202,8 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
             }
 
             // 与status=-1历史数据去重
-            if (marketingCommonConfig.getWuBaCollidingDataSwitch().get(ELIMINATE)) {
-                List<String> secondCycleData = wubaCollidingDataEliminateMapper.selectDuplicateData(cells);
-                cells.removeAll(secondCycleData);
-            }
+            List<String> secondCycleData = wubaCollidingDataEliminateMapper.selectDuplicateData(cells);
+            cells.removeAll(secondCycleData);
             if (CollectionUtils.isEmpty(cells)) {
                 return new ArrayList<>();
             }

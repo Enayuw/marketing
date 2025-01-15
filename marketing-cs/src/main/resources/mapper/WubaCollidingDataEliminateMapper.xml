@@ -12,7 +12,7 @@
     </select>
 
     <insert id="batchSaveDataByBatchNoAndPushTime">
-        INSERT IGNORE INTO b_wuba_colliding_data_eliminate (cell, biz_type, api_code, batch_id, push_time)
+        INSERT INTO b_wuba_colliding_data_eliminate (cell, biz_type, api_code, batch_id, push_time)
         VALUES
         <foreach collection="list" item="cell" separator=",">
             (#{cell}, 1, #{apiCode}, #{batchId}, now())

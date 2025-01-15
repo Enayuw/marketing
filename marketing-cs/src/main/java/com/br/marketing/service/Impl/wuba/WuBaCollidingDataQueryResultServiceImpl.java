@@ -261,9 +261,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         List<ConversionData> conversionDataList = eliminateList.stream().map(t -> {
             ConversionData conversionData = new ConversionData();
             conversionData.setCaseNum(t.getCell());
-            // 构造dataId
-            String buildDataId = System.currentTimeMillis() + RandomUtil.randomNumbers(4);
-            conversionData.setDataId(buildDataId);
+            conversionData.setDataId(String.valueOf(t.getId()));
             conversionData.setCid(tCid);
             conversionData.setPartnerProcessDate(DateUtil.now());
             conversionData.setInversionStatus("2");
