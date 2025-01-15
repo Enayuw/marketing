@@ -1,0 +1,22 @@
+package com.br.marketing.monkey.job.carclue;
+
+import com.dangdang.ddframe.job.api.JobExecutionMultipleShardingContext;
+import com.dangdang.ddframe.job.plugin.job.type.simple.AbstractSimpleElasticJob;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+/**
+ * @ClassName CarCluePushDataJob
+ * @Description 车线索推送
+ * @Author kongbx
+ * @Date 2025/1/15 15:18
+ */
+@Component
+@Slf4j
+public class CarCluePushDataJob extends AbstractSimpleElasticJob {
+
+    @Override
+    public void process(JobExecutionMultipleShardingContext context) {
+
+    }
+}
