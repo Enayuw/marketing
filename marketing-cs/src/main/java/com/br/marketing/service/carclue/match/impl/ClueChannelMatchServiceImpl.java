@@ -1,9 +1,7 @@
 package com.br.marketing.service.carclue.match.impl;
 
 import com.br.marketing.common.commondto.Result;
-import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.CarClueInfo;
-import com.br.marketing.enums.carclue.CarClueDataStatusEnum;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.carclue.clueenums.ChannelConfigTypeEnum;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;

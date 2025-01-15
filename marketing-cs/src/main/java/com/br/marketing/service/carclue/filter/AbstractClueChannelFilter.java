@@ -3,8 +3,8 @@ package com.br.marketing.service.carclue.filter;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.CarClueInfo;
-import com.br.marketing.enums.carclue.CarClueDataStatusEnum;
 import com.br.marketing.mapper.CarClueInfoMapper;
+import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
