@@ -25,8 +25,6 @@ import java.util.Set;
 @Service
 @Slf4j
 public class IPushHengChangDataServiceImpl implements IPushHengChangDataService {
-    @Resource
-    private TransferDataValidityPeriodService transferDataValidityPeriodService;
 
     @Override
     public CustomerHandlerEnum customer() {
@@ -37,7 +35,6 @@ public class IPushHengChangDataServiceImpl implements IPushHengChangDataService 
     public TransferDataAdaptee parseObject(String jsonData) {
         HengChangTransferJsonDTO object = JSONObject.parseObject(jsonData, new TypeReference<HengChangTransferJsonDTO>() {
         }.getType());
-        object.setTransferDataValidityPeriodService(transferDataValidityPeriodService);
         return object;
     }
 
@@ -51,7 +48,8 @@ public class IPushHengChangDataServiceImpl implements IPushHengChangDataService 
 
     @Override
     public int countBizDataNumber(TransferDataAdaptee adaptee) {
-        return countBizDataNumber(adaptee.getJsonData());
+        HengChangTransferJsonDTO hengChangTransferJsonDTO = (HengChangTransferJsonDTO) adaptee;
+        return hengChangTransferJsonDTO.getUserTransferInfoList() != null ? hengChangTransferJsonDTO.getUserTransferInfoList().size() : 0;
     }
 
     @Override

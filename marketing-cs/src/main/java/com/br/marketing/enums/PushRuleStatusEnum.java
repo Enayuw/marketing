@@ -9,7 +9,9 @@ public enum PushRuleStatusEnum {
     PUSH_FAIL(3,"推送失败"),
     CONFIRMED_SUCCESS(4,"确认成功"),
     CONFIRMED_FAIL(5,"确认失败"),
-    CONFIRMED_TIME_OUT(6,"超时待确认");
+    CONFIRMED_TIME_OUT(6,"超时待确认"),
+    EXCEPTIONS_TO_REFILLED(7,"异常待补推"),
+    EXCEPTIONS_RUNNING(8,"异常补推中");
 
     PushRuleStatusEnum(Integer value, String desc) {
         this.value = value;
