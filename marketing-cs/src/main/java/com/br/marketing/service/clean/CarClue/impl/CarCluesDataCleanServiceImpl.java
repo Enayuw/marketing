@@ -107,7 +107,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                         marketingPreUserDetailDTO.setCell(callRecord.getCaseNum());
                         marketingPreUserDetailDTO.setCustNum(callRecord.getCaseNum());
                         JSONObject reserveField1 = new JSONObject();
-                        reserveField1.put("userType", callRecord.getIntentionGrade());
+                        reserveField1.put("userType", intentionGrade);
                         reserveField1.put("recordingPath", callRecord.getRecordingPath());
                         reserveField1.put("intentionGrade", intentionGrade);
                         marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());

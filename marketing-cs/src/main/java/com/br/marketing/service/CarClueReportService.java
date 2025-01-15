@@ -6,6 +6,8 @@ import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.br.marketing.vo.SyncConfigEditVO;
 
+import java.util.List;
+
 /**
  * 车线索列表
  * return null
@@ -30,6 +32,6 @@ public interface CarClueReportService {
      * @param vo
      * @return
      */
-    ApiResult<Boolean> editCarClue(CarClueInfoVo vo);
+    ApiResult<Boolean> editCarClues(List<CarClueInfoVo> voList);
 
 }

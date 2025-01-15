@@ -1,6 +1,8 @@
 package com.br.marketing.innerapi.controller;
 
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 
 
 /**
@@ -50,13 +53,14 @@ public class CarClueReportController {
     }
 
 
-    @ApiOperation(value = "编辑车线索信息", notes = "编辑车线索信息")
-    @PostMapping("/editCarClue")
-    public ApiResult<Boolean> editCarClue(@RequestBody @Validated CarClueInfoVo vo) {
+    @ApiOperation(value = "批量编辑车线索信息", notes = "批量编辑车线索信息")
+    @PostMapping("/editCarClues")
+    public ApiResult<Boolean> editCarClues(@RequestBody @Validated List<CarClueInfoVo> voList) {
         try {
-            return carClueReportService.editCarClue(vo);
+            return carClueReportService.editCarClues(voList);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "批量编辑车线索接口错误！错误信息：" + ex.getMessage()), ex);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
     }
