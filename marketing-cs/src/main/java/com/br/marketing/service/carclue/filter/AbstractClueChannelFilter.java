@@ -3,6 +3,7 @@ package com.br.marketing.service.carclue.filter;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
 import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.enums.carclue.CarClueDataStatusEnum;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,12 @@ public abstract class AbstractClueChannelFilter {
     @Resource
     CarClueInfoMapper carClueInfoMapper;
 
+    /**
+     * 过滤的规则的调用入口
+     * code 1-命中过滤规则 0-没命中过滤规则
+     * @param carClueInfo
+     * @return
+     */
     public Result filter(CarClueInfo carClueInfo) {
         Result action = action(carClueInfo);
         if (action.isSuccess()) {
@@ -25,13 +32,11 @@ public abstract class AbstractClueChannelFilter {
     }
 
     void updateClueStatus(Long id) {
-        String filterLabel = filterLabel();
         CarClueInfo updateEntity = new CarClueInfo();
         updateEntity.setId(id);
-        //todo 等李震的枚举值创建进行赋值
-//        updateEntity.setClueDataStatus();
+        updateEntity.setClueDataStatus(CarClueDataStatusEnum.INVALID_CLUE.getValue());
         StringBuilder sb = new StringBuilder();
-        sb.append("【").append(filterLabel()).append("】");
+        sb.append("【").append(label()).append("】");
         updateEntity.setClueErrorReason(sb.toString());
         carClueInfoMapper.updateByPrimaryKeySelective(updateEntity);
     }
@@ -50,5 +55,5 @@ public abstract class AbstractClueChannelFilter {
      * 过滤规则的名称
      * @return
      */
-    abstract String filterLabel();
+    abstract String label();
 }

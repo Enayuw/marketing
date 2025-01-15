@@ -1,5 +1,7 @@
 package com.br.marketing.entity;
 
+import io.swagger.models.auth.In;
+
 import java.util.Date;
 
 public class CarChannelConfig {
@@ -26,7 +28,7 @@ public class CarChannelConfig {
     /**
      * 渠道商优先级
      */
-    private String order;
+    private Integer order;
 
     /**
      * 渠道商配置更新实现
@@ -100,12 +102,12 @@ public class CarChannelConfig {
         this.name = name == null ? null : name.trim();
     }
 
-    public String getOrder() {
+    public Integer getOrder() {
         return order;
     }
 
-    public void setOrder(String order) {
-        this.order = order == null ? null : order.trim();
+    public void setOrder(Integer order) {
+        this.order = order == null ? null : order;
     }
 
     public String getStrategyConfigInfo() {

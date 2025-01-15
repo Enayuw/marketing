@@ -1,4 +1,4 @@
-package com.br.marketing.enums.carclue;
+package com.br.marketing.service.carclue.clueenums;
 
 import lombok.Getter;
 
