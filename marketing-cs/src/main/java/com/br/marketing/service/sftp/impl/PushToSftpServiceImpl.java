@@ -1,5 +1,6 @@
 package com.br.marketing.service.sftp.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.RedisChgService;
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.common.commondto.ResultCode;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -33,6 +35,17 @@ public class PushToSftpServiceImpl implements PushToSftpService {
 
     @Override
     public Result pushFiles(List<LoanFile> pushList) {
+
+        //重试方法 这里反序列化过来的不是 LoanFile类型
+        if (!(pushList.get(0) instanceof LoanFile)) {
+            List<LoanFile> list = new ArrayList<>();
+            for (int i = 0; i < pushList.size(); i++) {
+                if (pushList.get(i) != null) {
+                    list.add(JSON.parseObject(JSON.toJSONString(pushList.get(i)), LoanFile.class));
+                }
+            }
+            pushList = list;
+        }
 
         try {
             pushService.push(pushList);

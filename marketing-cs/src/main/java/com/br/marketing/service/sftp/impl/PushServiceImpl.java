@@ -45,16 +45,6 @@ public class PushServiceImpl implements PushService {
 
     @Override
     public void push(List<LoanFile> files) throws Exception {
-        //重试方法 这里反序列化过来的不是 LoanFile类型
-        if (!(files.get(0) instanceof LoanFile)) {
-            List<LoanFile> list = new ArrayList<>();
-            for (int i = 0; i < files.size(); i++) {
-                if (files.get(i) != null) {
-                    list.add(JSON.parseObject(JSON.toJSONString(files.get(i)), LoanFile.class));
-                }
-            }
-            files = list;
-        }
         checkZipFile(files);
         pushToSftp(files);
     }
