@@ -61,8 +61,6 @@ public class HengChangTransferJsonDTO extends TransferDataAdaptee {
      */
     private JSONArray userTransferInfoList;
 
-    private TransferDataValidityPeriodService transferDataValidityPeriodService;
-
     @Override
     protected TransferDataDTO<TransferDataItemDTO> adapteeRequest(String apiCode
             , TransferDataDTO<TransferDataItemDTO> transferDataDTO) {
@@ -79,20 +77,8 @@ public class HengChangTransferJsonDTO extends TransferDataAdaptee {
             JSONObject jsonObject = data.getJSONObject(i);
             TransferDataItemDTO dto = new TransferDataItemDTO();
             dto.setApiCode(apiCode);
-            // 根据uniqueId找上传数据有效期内最新的一条custNum对应的userType
-            if(jsonObject.getString("uniqueId") != null){
-                String custNum = jsonObject.getString("uniqueId");
-                dto.setCustNum(custNum);
-                Set<String> custNumSet = new HashSet<>();
-                custNumSet.add(custNum);
-                Map<String, SyncUserValidityPeriodsBO> validityPeriodsByCustNumAndTaskId =
-                        transferDataValidityPeriodService.getValidityPeriodsByCustNum(custNumSet, apiCode, new Date());
-                SyncUserValidityPeriodsBO syncUserValidityPeriodsBO = validityPeriodsByCustNumAndTaskId.get(custNum);
-                if(syncUserValidityPeriodsBO != null){
-                    List<MarketingSyncUser> syncUsers = syncUserValidityPeriodsBO.getSyncUsers();
-                    dto.setUserType(syncUsers.get(0).getUserType());
-                }
-            }
+            dto.setCustNum(jsonObject.getString("uniqueId"));
+
             dto.setLoginTime(jsonObject.getString("lastLoginTime"));
             dto.setApplyDt(jsonObject.getString("creditGrantingTime"));
             dto.setApplyResult(jsonObject.getString("creditResult"));
