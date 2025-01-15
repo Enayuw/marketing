@@ -5,7 +5,7 @@
     <select id="selectList" resultType="com.br.marketing.vo.CarClueInfoVo">
         select id, api_code
         , cust_num as custNum
-        , DATE_FORMAT(bcci.create_time,'%Y-%m-%d %H:%i:%s') as appletDate
+        , DATE_FORMAT(bcci.create_time,'%Y-%m-%d') as appletDate
         , clue_id as clueId
         , clue_data_status as clueDataStatus
         , intention

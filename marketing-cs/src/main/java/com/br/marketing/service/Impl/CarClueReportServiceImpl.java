@@ -1,5 +1,6 @@
 package com.br.marketing.service.Impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import com.br.marketing.common.commondto.ApiResult;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
@@ -21,6 +22,7 @@ import java.util.*;
 
 /**
  * 车线索列表
+ *
  * @author guangxiu.li
  * @date 2025/1/14
  * @description
@@ -58,8 +60,8 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         List<CarClueInfoVo> list = carClueInfoMapper.selectList(params);
         list.forEach((CarClueInfoVo carClueInfoVo) -> {
             CallRecordLog callRecordLog = callRecordLogMapper.selectByrecordId(carClueInfoVo.getId());
-            // 设置到对象中
-            carClueInfoVo.setStatus(callRecordLog.getInboundStatus().toString());
+            String status = ObjectUtil.isNotEmpty(callRecordLog) ? callRecordLog.getInboundStatus().toString() : "0";
+            carClueInfoVo.setStatus(status);
         });
 
         return PageResultReturn.setPageResult(list, current, size);
@@ -69,7 +71,6 @@ public class CarClueReportServiceImpl implements CarClueReportService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public ApiResult<Boolean> editCarClue(CarClueInfoVo vo) {
-        CarClueInfo carClueInfo = carClueInfoMapper.selectByPrimaryKey(vo.getId());
         CarClueInfo clueInfo = new CarClueInfo();
 
         try {
