@@ -1,7 +1,10 @@
 package com.br.marketing.service.Impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.br.common.log.AlertLog;
 import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
+import com.br.marketing.common.enums.ServiceResultEnum;
 import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
@@ -69,24 +72,41 @@ public class CarClueReportServiceImpl implements CarClueReportService {
 
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public ApiResult<Boolean> editCarClue(CarClueInfoVo vo) {
-        CarClueInfo clueInfo = new CarClueInfo();
+    public ApiResult<Boolean> editCarClues(List<CarClueInfoVo> voList) {
+        if (voList == null || voList.isEmpty()) {
+            return new ApiResult<Boolean>().fail(false, "更新列表不能为空");
+        }
+
+        List<CarClueInfo> clueInfoList = new ArrayList<>();
+        for (CarClueInfoVo vo : voList) {
+            CarClueInfo clueInfo = new CarClueInfo();
+            try {
+                BeanUtils.copyProperties(clueInfo, vo);
+                clueInfo.setBrand(vo.getBrand());
+                clueInfo.setSeries(vo.getSeries());
+                clueInfo.setUpdateTime(new Date());
+                clueInfoList.add(clueInfo);
+            } catch (Exception e) {
+                log.warn(AlertLog.buildWarnMessage(
+                        AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                        "编辑车线索信息失败！voId: " + vo.getId()), e);
+            }
+        }
 
         try {
-            BeanUtils.copyProperties(clueInfo, vo);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            int updatedRows = carClueInfoMapper.batchUpdate(clueInfoList);
+            if (updatedRows <= 0) {
+                log.warn(AlertLog.buildWarnMessage(
+                        AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                        "批量编辑车线索信息失败！更新行数为0"));
+                return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
+            }
+            return new ApiResult<Boolean>().success(true);
+        } catch (Exception e) {
+            log.warn(AlertLog.buildWarnMessage(
+                    AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                    "批量编辑车线索信息失败！"), e);
+            return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
-        clueInfo.setBrand(vo.getBrand());
-        clueInfo.setSeries(vo.getSeries());
-        clueInfo.setUpdateTime(new Date());
-        int update = carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
-        if (StringUtils.isEmpty(update) || update <= 0) {
-            log.error("编辑车线索信息失败！");
-        }
-        return new ApiResult<Boolean>().success(true);
     }
 }
