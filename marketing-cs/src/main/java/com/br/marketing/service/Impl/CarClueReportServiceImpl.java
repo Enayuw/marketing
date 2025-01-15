@@ -1,16 +1,22 @@
 package com.br.marketing.service.Impl;
 
+import com.br.marketing.common.commondto.ApiResult;
+import com.br.marketing.common.utils.StringUtils;
 import com.br.marketing.commonentity.PageResultReturn;
 import com.br.marketing.dto.CarClueReportDTO;
 import com.br.marketing.entity.CallRecordLog;
+import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -57,5 +63,29 @@ public class CarClueReportServiceImpl implements CarClueReportService {
         });
 
         return PageResultReturn.setPageResult(list, current, size);
+    }
+
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public ApiResult<Boolean> editCarClue(CarClueInfoVo vo) {
+        CarClueInfo carClueInfo = carClueInfoMapper.selectByPrimaryKey(vo.getId());
+        CarClueInfo clueInfo = new CarClueInfo();
+
+        try {
+            BeanUtils.copyProperties(clueInfo, vo);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        clueInfo.setBrand(vo.getBrand());
+        clueInfo.setSeries(vo.getSeries());
+        clueInfo.setUpdateTime(new Date());
+        int update = carClueInfoMapper.updateByPrimaryKeySelective(clueInfo);
+        if (StringUtils.isEmpty(update) || update <= 0) {
+            log.error("编辑车线索信息失败！");
+        }
+        return new ApiResult<Boolean>().success(true);
     }
 }
