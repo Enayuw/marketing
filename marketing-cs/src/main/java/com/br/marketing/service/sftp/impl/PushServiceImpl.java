@@ -76,9 +76,9 @@ public class PushServiceImpl implements PushService {
             for(LoanFile blf:files){
                 String zipFilePathAndName=blf.getFilePath().concat("/").concat(blf.getZipFileName());
                 File file = new File(zipFilePathAndName);
-                checkMockSwitch();
                 if(file.exists()){
                     log.warn("push zip to sftp :{}",blf.getZipFileName());
+                    checkMockSwitch();
                     boolean flag= sftpClient.uploadFile(remotePath, blf.getZipFileName(), zipFilePathAndName);
                     if(flag){
                         String completeFileaName=apiCode+"_"+blf.getBatchNumber()+"_"+DateHelper.getDateAddYyMmDd(0)+".complete";
@@ -107,12 +107,11 @@ public class PushServiceImpl implements PushService {
         }
     }
 
-    public boolean checkMockSwitch() throws Exception {
+    public void checkMockSwitch() throws Exception {
         Boolean uploadFileSftp = marketingCommonConfig.getUploadFileSftp();
         if(uploadFileSftp){
             throw new Exception();
         }
-        return false;
     }
 
 }
