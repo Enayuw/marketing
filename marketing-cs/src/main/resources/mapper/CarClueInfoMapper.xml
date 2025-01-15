@@ -1,4 +1,132 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.br.marketing.mapper.CarClueInfoMapper" >
+
+    <select id="selectList" resultType="com.br.marketing.vo.CarClueInfoVo">
+        select id, api_code
+        , cust_num as custNum
+        , DATE_FORMAT(bcci.create_time,'%Y-%m-%d') as appletDate
+        , clue_id as clueId
+        , clue_data_status as clueDataStatus
+        , intention
+        , brand
+        , series
+        , city
+        , cell
+        , DATE_FORMAT(bcci.clean_time,'%Y-%m-%d %H:%i:%s') as cleanTime
+        ,DATE_FORMAT(bcci.update_time,'%Y-%m-%d %H:%i:%s') as updateTime
+        , clue_push_channel as cluePushChannel
+        , clue_push_status as cluePushStatus
+        , DATE_FORMAT(bcci.push_time,'%Y-%m-%d %H:%i:%s') as pushTime
+        , DATE_FORMAT(bcci.call_back_time,'%Y-%m-%d %H:%i:%s') as callBackTime
+        from b_car_clue_info bcci
+        <where>
+            <if test="createTimeStart !=null and createTimeStart!=''">
+                <![CDATA[  and bcci.create_time >=#{createTimeStart} ]]>
+            </if>
+            <if test="createTimeEnd !=null and createTimeEnd!=''">
+                <![CDATA[  and bcci.create_time <#{createTimeEnd} ]]>
+            </if>
+            <if test="intention !=null and intention!=''">
+                and bcci.intention =  #{intention}
+            </if>
+            <if test="clueDataStatus !=null and clueDataStatus!=''">
+                and bcci.clue_data_status =  #{clueDataStatus}
+            </if>
+            <if test="updateTimeStart !=null and updateTimeStart!=''">
+                <![CDATA[  and bcci.update_time >=#{updateTimeStart} ]]>
+            </if>
+            <if test="updateTimeEnd !=null and updateTimeEnd!=''">
+                <![CDATA[  and bcci.update_time <#{updateTimeEnd} ]]>
+            </if>
+            <if test="cluePushChannel !=null and cluePushChannel!=''">
+                and bcci.clue_push_channel =  #{cluePushChannel}
+            </if>
+            <if test="cluePushStatus !=null and cluePushStatus!=''">
+                and bcci.clue_push_status =  #{cluePushStatus}
+            </if>
+            <if test="pushTimeStart !=null and pushTimeStart!=''">
+                <![CDATA[  and bcci.push_time >=#{pushTimeStart} ]]>
+            </if>
+            <if test="pushTimeEnd !=null and pushTimeEnd!=''">
+                <![CDATA[  and bcci.push_time <#{pushTimeEnd} ]]>
+            </if>
+            <if test="callBackTimeStart !=null and callBackTimeStart!=''">
+                <![CDATA[  and bcci.call_back_time >=#{callBackTimeStart} ]]>
+            </if>
+            <if test="callBackTimeEnd !=null and callBackTimeEnd!=''">
+                <![CDATA[  and bcci.call_back_time <#{callBackTimeEnd} ]]>
+            </if>
+        </where>
+        order by bcci.create_time desc
+    </select>
+
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO b_car_clue_info (
+        cid,
+        api_code,
+        cust_num,
+        cell,
+        intention,
+        brand,
+        series,
+        clue_match_brand,
+        clue_match_series,
+        province,
+        city,
+        recording_path,
+        clue_id,
+        clue_push_channel,
+        clue_data_status,
+        clue_complete_status,
+        clue_push_status,
+        clue_callback_status,
+        clue_callback_result,
+        extend_info,
+        create_time,
+        clean_time,
+        push_time,
+        call_back_time
+        )
+        VALUES
+        <foreach collection="carClueInfoList" item="item" separator=",">
+            (
+            <if test="item.cid != null and item.cid != ''">#{item.cid, jdbcType=VARCHAR},</if>
+            <if test="item.apiCode != null and item.apiCode != ''">#{item.apiCode, jdbcType=VARCHAR},</if>
+            <if test="item.custNum != null and item.custNum != ''">#{item.custNum, jdbcType=VARCHAR},</if>
+            <if test="item.cell != null and item.cell != ''">#{item.cell, jdbcType=VARCHAR},</if>
+            <if test="item.intention != null and item.intention != ''">#{item.intention, jdbcType=VARCHAR},</if>
+            <if test="item.brand != null and item.brand != ''">#{item.brand, jdbcType=VARCHAR},</if>
+            <if test="item.series != null and item.series != ''">#{item.series, jdbcType=VARCHAR},</if>
+            <if test="item.clueMatchBrand != null and item.clueMatchBrand != ''">
+                #{item.clueMatchBrand, jdbcType=VARCHAR},
+            </if>
+            <if test="item.clueMatchSeries != null and item.clueMatchSeries != ''">
+                #{item.clueMatchSeries, jdbcType=VARCHAR},
+            </if>
+            <if test="item.province != null and item.province != ''">#{item.province, jdbcType=VARCHAR},</if>
+            <if test="item.city != null and item.city != ''">#{item.city, jdbcType=VARCHAR},</if>
+            <if test="item.recordingPath != null and item.recordingPath != ''">
+                #{item.recordingPath, jdbcType=VARCHAR},
+            </if>
+            <if test="item.clueId != null and item.clueId != ''">#{item.clueId, jdbcType=VARCHAR},</if>
+            <if test="item.cluePushChannel != null and item.cluePushChannel != ''">
+                #{item.cluePushChannel, jdbcType=VARCHAR},
+            </if>
+            <if test="item.clueDataStatus != null">#{item.clueDataStatus, jdbcType=INTEGER},</if>
+            <if test="item.clueCompleteStatus != null">#{item.clueCompleteStatus, jdbcType=INTEGER},</if>
+            <if test="item.cluePushStatus != null">#{item.cluePushStatus, jdbcType=INTEGER},</if>
+            <if test="item.clueCallbackStatus != null">#{item.clueCallbackStatus, jdbcType=INTEGER},</if>
+            <if test="item.clueCallbackResult != null and item.clueCallbackResult != ''">
+                #{item.clueCallbackResult, jdbcType=VARCHAR},
+            </if>
+            <if test="item.extendInfo != null and item.extendInfo != ''">#{item.extendInfo, jdbcType=VARCHAR},</if>
+            <if test="item.createTime != null">#{item.createTime, jdbcType=TIMESTAMP},</if>
+            <if test="item.cleanTime != null">#{item.cleanTime, jdbcType=TIMESTAMP},</if>
+            <if test="item.pushTime != null">#{item.pushTime, jdbcType=TIMESTAMP},</if>
+            <if test="item.callBackTime != null">#{item.callBackTime, jdbcType=TIMESTAMP}</if>
+            )
+        </foreach>
+    </insert>
+
 </mapper>
