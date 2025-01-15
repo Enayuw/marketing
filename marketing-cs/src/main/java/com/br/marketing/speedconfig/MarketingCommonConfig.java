@@ -2512,5 +2512,10 @@ public class MarketingCommonConfig {
      * mock 1 开启
      */
     private Map<String, Object> smyBlacklistConfig = new HashMap<>();
+    /**
+     * 上传文件至远程sftp服务器是否异常开关
+     */
+    private Boolean uploadFileSftp;
+
 }
 

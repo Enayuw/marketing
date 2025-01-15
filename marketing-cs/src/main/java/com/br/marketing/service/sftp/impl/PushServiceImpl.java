@@ -1,5 +1,6 @@
 package com.br.marketing.service.sftp.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.br.marketing.client.SftpClient;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.LoanFile;
@@ -7,6 +8,7 @@ import com.br.marketing.mapper.LoanFileMapper;
 import com.br.marketing.service.SyncConfigService;
 import com.br.marketing.service.sftp.PushService;
 import com.br.marketing.service.sftp.ZipFileCheckService;
+import com.br.marketing.speedconfig.MarketingCommonConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,9 +40,21 @@ public class PushServiceImpl implements PushService {
     private String sftpPwd;
     @Resource
     ZipFileCheckService zipFileCheckServiceImpl;
+    @Resource
+    private MarketingCommonConfig marketingCommonConfig;
 
     @Override
     public void push(List<LoanFile> files) throws Exception {
+        //重试方法 这里反序列化过来的不是 LoanFile类型
+        if (!(files.get(0) instanceof LoanFile)) {
+            List<LoanFile> list = new ArrayList<>();
+            for (int i = 0; i < files.size(); i++) {
+                if (files.get(i) != null) {
+                    list.add(JSON.parseObject(JSON.toJSONString(files.get(i)), LoanFile.class));
+                }
+            }
+            files = list;
+        }
         checkZipFile(files);
         pushToSftp(files);
     }
@@ -61,6 +76,7 @@ public class PushServiceImpl implements PushService {
             for(LoanFile blf:files){
                 String zipFilePathAndName=blf.getFilePath().concat("/").concat(blf.getZipFileName());
                 File file = new File(zipFilePathAndName);
+                checkMockSwitch();
                 if(file.exists()){
                     log.warn("push zip to sftp :{}",blf.getZipFileName());
                     boolean flag= sftpClient.uploadFile(remotePath, blf.getZipFileName(), zipFilePathAndName);
@@ -91,6 +107,12 @@ public class PushServiceImpl implements PushService {
         }
     }
 
-
+    public boolean checkMockSwitch() throws Exception {
+        Boolean uploadFileSftp = marketingCommonConfig.getUploadFileSftp();
+        if(uploadFileSftp){
+            throw new Exception();
+        }
+        return false;
+    }
 
 }
