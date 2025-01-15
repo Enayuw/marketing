@@ -51,7 +51,8 @@ public class IPushHengChangDataServiceImpl implements IPushHengChangDataService 
 
     @Override
     public int countBizDataNumber(TransferDataAdaptee adaptee) {
-        return countBizDataNumber(adaptee.getJsonData());
+        HengChangTransferJsonDTO hengChangTransferJsonDTO = (HengChangTransferJsonDTO) adaptee;
+        return hengChangTransferJsonDTO.getUserTransferInfoList() != null ? hengChangTransferJsonDTO.getUserTransferInfoList().size() : 0;
     }
 
     @Override

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ErrorMarkMapper" >
+
+    <select id="queryRetryTotalAttempts" resultType="java.lang.Integer">
+        select retry_total_attempts from b_marketing_error_mark
+        where m_id = ${id} and retry_status=${retryStatus} and filter_type=${filterType}
+    </select>
+
+</mapper>

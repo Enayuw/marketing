@@ -53,7 +53,9 @@ public class PushInfoListVO {
     private String batchName;
 
     public String getmStatusDesc() {
-        if (mStatus.equals(PushRuleStatusEnum.RUNNING.getValue())) {
+        if (mStatus.equals(PushRuleStatusEnum.RUNNING.getValue())
+                || mStatus.equals(PushRuleStatusEnum.EXCEPTIONS_TO_REFILLED.getValue())
+                || mStatus.equals(PushRuleStatusEnum.EXCEPTIONS_RUNNING.getValue())) {
             return PushRuleStatusEnum.RUNNING.getDesc();
         } else if (mStatus.equals(PushRuleStatusEnum.TO_BE_CONFIRMED.getValue())) {
             return PushRuleStatusEnum.TO_BE_CONFIRMED.getDesc();
