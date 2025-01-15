@@ -29,7 +29,7 @@ public class CallRecordLog {
     private String intentionGrade;
 
     /**
-     * 入库状态：0-入库中、1-已入库、2-入库失败
+     * 入库状态：0-未入库、1-入库中、2-入库成功、3-入库失败
      */
     private Integer inboundStatus;
 

@@ -10,12 +10,15 @@ import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.dto.MarketingPreUserDTO;
 import com.br.marketing.dto.MarketingPreUserDetailDTO;
 import com.br.marketing.entity.CallRecord;
+import com.br.marketing.entity.CallRecordLog;
+import com.br.marketing.entity.CallRecordLogExample;
 import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.mapper.CallRecordLogMapper;
 import com.br.marketing.mapper.CallRecordMapper;
 import com.br.marketing.mapper.CarClueInfoMapper;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.service.PushInfoService;
-import com.br.marketing.service.clean.CarClue.CarCluesDataCleanService;
+import com.br.marketing.service.clean.CarClue.CarCluesDataToDBService;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +35,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class CarCluesDataCleanServiceImpl implements CarCluesDataCleanService {
+public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
     @Resource
     private MarketingCommonConfig marketingCommonConfig;
 
@@ -44,6 +47,9 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataCleanService {
 
     @Resource
     private CallRecordMapper callRecordMapper;
+
+    @Resource
+    private CallRecordLogMapper callRecordLogMapper;
 
     @Resource
     private TableCreateServiceImpl tableCreateService;
@@ -79,44 +85,46 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataCleanService {
                 continue;
             }
             List<Long> ids = callRecords.stream().map(CallRecord::getId).collect(Collectors.toList());
-            // todo 插入日志表
-
+            // 插入日志表
+            callRecordLogMapper.batchInsert(callRecords);
 
             minId = callRecords.get(callRecords.size() - 1).getId();
             String requestId = apiCode + System.currentTimeMillis() + UUID.randomUUID();
-
+            String taskId = apiCode + "_" + LocalDate.now();
             // 封装明细数据入上传 部分入线索
             threadPool.submit(() -> {
                 try {
                     MarketingPreUserDTO userDTO = new MarketingPreUserDTO();
-                    userDTO.setTaskId(apiCode + "_" + LocalDate.now());
+                    userDTO.setTaskId(taskId);
                     userDTO.setRequestId(requestId);
                     List<MarketingPreUserDetailDTO> dataItems = Lists.newArrayList();
                     List<CarClueInfo> carClueInfos = Lists.newArrayList();
+                    List<Long> recordIds = Lists.newArrayList();
 
                     for (CallRecord callRecord : callRecords) {
-                            String intentionGrade = callRecord.getIntentionGrade();
-                            MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
-                            marketingPreUserDetailDTO.setCell(callRecord.getCaseNum());
-                            marketingPreUserDetailDTO.setCustNum(callRecord.getCaseNum());
-                            JSONObject reserveField1 = new JSONObject();
-                            reserveField1.put("userType", callRecord.getIntentionGrade());
-                            reserveField1.put("recordingPath", callRecord.getRecordingPath());
-                            reserveField1.put("intentionGrade", intentionGrade);
-                            marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
-                            dataItems.add(marketingPreUserDetailDTO);
-                            if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
-                                CarClueInfo carClueInfo = new CarClueInfo();
-                                carClueInfo.setCid(cid);
-                                carClueInfo.setApiCode(apiCode);
-                                carClueInfo.setCustNum(callRecord.getCaseNum());
-                                carClueInfo.setCell(callRecord.getCaseNum());
-                                carClueInfo.setIntention(intentionGrade);
-                                carClueInfo.setRecordingpath(callRecord.getRecordingPath());
-                                carClueInfo.setCreateTime(new Date());
-                                carClueInfo.setCleanTime(new Date());
-                                carClueInfos.add(carClueInfo);
-                            }
+                        String intentionGrade = callRecord.getIntentionGrade();
+                        MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
+                        marketingPreUserDetailDTO.setCell(callRecord.getCaseNum());
+                        marketingPreUserDetailDTO.setCustNum(callRecord.getCaseNum());
+                        JSONObject reserveField1 = new JSONObject();
+                        reserveField1.put("userType", callRecord.getIntentionGrade());
+                        reserveField1.put("recordingPath", callRecord.getRecordingPath());
+                        reserveField1.put("intentionGrade", intentionGrade);
+                        marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
+                        dataItems.add(marketingPreUserDetailDTO);
+                        if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
+                            CarClueInfo carClueInfo = new CarClueInfo();
+                            carClueInfo.setCid(cid);
+                            carClueInfo.setApiCode(apiCode);
+                            carClueInfo.setCustNum(callRecord.getCaseNum());
+                            carClueInfo.setCell(callRecord.getCaseNum());
+                            carClueInfo.setIntention(intentionGrade);
+                            carClueInfo.setRecordingpath(callRecord.getRecordingPath());
+                            carClueInfo.setCreateTime(new Date());
+                            carClueInfo.setCleanTime(new Date());
+                            carClueInfos.add(carClueInfo);
+                        }
+                        recordIds.add(callRecord.getId());
                     }
                     userDTO.setDataItems(dataItems);
                     UploadDataDTO uploadDataDTO = new UploadDataDTO();
@@ -124,11 +132,21 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataCleanService {
                     uploadDataDTO.setJsonData(JSONObject.toJSONString(userDTO));
                     // 所有数据入上传
                     pushInfoService.pushUploadByRetry(uploadDataDTO, null);
-                    // todo 高意向入线索表
+                    // 高意向入线索表
                     carClueInfoMapper.batchInsert(carClueInfos);
-                    // todo 更新日志表状态
-
+                    // 更新日志表状态
+                    CallRecordLog callRecordLog = new CallRecordLog();
+                    callRecordLog.setInboundStatus(2);
+                    CallRecordLogExample callRecordLogExample = new CallRecordLogExample();
+                    callRecordLogExample.createCriteria().andRecordIdIn(recordIds);
+                    callRecordLogMapper.updateByExample(callRecordLog,callRecordLogExample);
                 } catch (Exception e) {
+                    // 更新日志表状态
+                    CallRecordLog callRecordLog = new CallRecordLog();
+                    callRecordLog.setInboundStatus(3);
+                    CallRecordLogExample callRecordLogExample = new CallRecordLogExample();
+                    callRecordLogExample.createCriteria().andRecordIdIn(ids);
+                    callRecordLogMapper.updateByExample(callRecordLog,callRecordLogExample);
                     log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
                             "车线索数据清洗，子线程处理异常"), e);
                 }
