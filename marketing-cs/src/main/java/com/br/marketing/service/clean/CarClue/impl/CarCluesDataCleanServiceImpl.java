@@ -62,7 +62,6 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataCleanService {
         JSONObject carClueDataCleanConfig = marketingCommonConfig.getCarClueDataCleanConfig();
         Integer limit = carClueDataCleanConfig.getInteger("limit");
         Integer threadNum = carClueDataCleanConfig.getInteger("threadNum");
-        String userType = carClueDataCleanConfig.getString("userType");
         ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(threadNum, threadNum,
                 "CAR_CLUE_DATA_CLEAN_THREAD_POOL", 200);
         boolean mark = Boolean.TRUE;
@@ -73,6 +72,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataCleanService {
         }
         minId = minId - 1;
         while (mark) {
+            // 获取待清洗数据
             List<CallRecord> callRecords = callRecordMapper.cleanDataByMinId(apiCode, date, minId, limit);
             if (callRecords.size() <= 0) {
                 mark = Boolean.FALSE;
