@@ -65,10 +65,13 @@ public class CarClueReportServiceImpl implements CarClueReportService {
             CallRecordLog callRecordLog = callRecordLogMapper.selectByrecordId(carClueInfoVo.getId());
             String status = ObjectUtil.isNotEmpty(callRecordLog) ? callRecordLog.getInboundStatus().toString() : "0";
             carClueInfoVo.setStatus(status);
+            String encryptCell = encryptCell(carClueInfoVo.getCell());
+            carClueInfoVo.setCell(encryptCell);
         });
 
         return PageResultReturn.setPageResult(list, current, size);
     }
+
 
 
     @Override
@@ -108,5 +111,17 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                     "批量编辑车线索信息失败！"), e);
             return new ApiResult<Boolean>().fail(false, ServiceResultEnum.FAILED);
         }
+    }
+
+
+
+    public String encryptCell(String cell) {
+        if (cell == null || cell.isEmpty()) {
+            return "";
+        }
+        if (cell.length() < 7) {
+            return cell;
+        }
+        return cell.substring(0, 3) + "****" + cell.substring(7);
     }
 }
