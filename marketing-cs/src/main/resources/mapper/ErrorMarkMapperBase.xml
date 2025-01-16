@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.br.marketing.mapper.ErrorMarkMapper" >
+  <resultMap id="BaseResultMap" type="com.br.marketing.entity.ErrorMark" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="api_code" property="apiCode" jdbcType="VARCHAR" />
+    <result column="m_id" property="mId" jdbcType="BIGINT" />
+    <result column="part" property="part" jdbcType="VARCHAR" />
+    <result column="page_size" property="pageSize" jdbcType="INTEGER" />
+    <result column="search_after" property="searchAfter" jdbcType="VARCHAR" />
+    <result column="es_condition" property="esCondition" jdbcType="VARCHAR" />
+    <result column="access_number" property="accessNumber" jdbcType="VARCHAR" />
+    <result column="push_size" property="pushSize" jdbcType="INTEGER" />
+    <result column="policy_condition" property="policyCondition" jdbcType="VARCHAR" />
+    <result column="retry_total_attempts" property="retryTotalAttempts" jdbcType="INTEGER" />
+    <result column="retry_status" property="retryStatus" jdbcType="INTEGER" />
+    <result column="filter_type" property="filterType" jdbcType="INTEGER" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="applet_date" property="appletDate" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, api_code, m_id, `part`, page_size, search_after, es_condition, access_number, 
+    push_size, policy_condition, retry_total_attempts, retry_status, filter_type, `type`, 
+    applet_date, create_time, update_time
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.br.marketing.entity.ErrorMarkExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from b_marketing_error_mark
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from b_marketing_error_mark
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from b_marketing_error_mark
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.br.marketing.entity.ErrorMarkExample" >
+    delete from b_marketing_error_mark
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.br.marketing.entity.ErrorMark" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_error_mark (api_code, m_id, `part`, 
+      page_size, search_after, es_condition, 
+      access_number, push_size, policy_condition, 
+      retry_total_attempts, retry_status, filter_type, 
+      `type`, applet_date, create_time, 
+      update_time)
+    values (#{apiCode,jdbcType=VARCHAR}, #{mId,jdbcType=BIGINT}, #{part,jdbcType=VARCHAR}, 
+      #{pageSize,jdbcType=INTEGER}, #{searchAfter,jdbcType=VARCHAR}, #{esCondition,jdbcType=VARCHAR}, 
+      #{accessNumber,jdbcType=VARCHAR}, #{pushSize,jdbcType=INTEGER}, #{policyCondition,jdbcType=VARCHAR}, 
+      #{retryTotalAttempts,jdbcType=INTEGER}, #{retryStatus,jdbcType=INTEGER}, #{filterType,jdbcType=INTEGER}, 
+      #{type,jdbcType=INTEGER}, #{appletDate,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.br.marketing.entity.ErrorMark" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into b_marketing_error_mark
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        api_code,
+      </if>
+      <if test="mId != null" >
+        m_id,
+      </if>
+      <if test="part != null" >
+        `part`,
+      </if>
+      <if test="pageSize != null" >
+        page_size,
+      </if>
+      <if test="searchAfter != null" >
+        search_after,
+      </if>
+      <if test="esCondition != null" >
+        es_condition,
+      </if>
+      <if test="accessNumber != null" >
+        access_number,
+      </if>
+      <if test="pushSize != null" >
+        push_size,
+      </if>
+      <if test="policyCondition != null" >
+        policy_condition,
+      </if>
+      <if test="retryTotalAttempts != null" >
+        retry_total_attempts,
+      </if>
+      <if test="retryStatus != null" >
+        retry_status,
+      </if>
+      <if test="filterType != null" >
+        filter_type,
+      </if>
+      <if test="type != null" >
+        `type`,
+      </if>
+      <if test="appletDate != null" >
+        applet_date,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="apiCode != null" >
+        #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="mId != null" >
+        #{mId,jdbcType=BIGINT},
+      </if>
+      <if test="part != null" >
+        #{part,jdbcType=VARCHAR},
+      </if>
+      <if test="pageSize != null" >
+        #{pageSize,jdbcType=INTEGER},
+      </if>
+      <if test="searchAfter != null" >
+        #{searchAfter,jdbcType=VARCHAR},
+      </if>
+      <if test="esCondition != null" >
+        #{esCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="accessNumber != null" >
+        #{accessNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="pushSize != null" >
+        #{pushSize,jdbcType=INTEGER},
+      </if>
+      <if test="policyCondition != null" >
+        #{policyCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="retryTotalAttempts != null" >
+        #{retryTotalAttempts,jdbcType=INTEGER},
+      </if>
+      <if test="retryStatus != null" >
+        #{retryStatus,jdbcType=INTEGER},
+      </if>
+      <if test="filterType != null" >
+        #{filterType,jdbcType=INTEGER},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="appletDate != null" >
+        #{appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.br.marketing.entity.ErrorMarkExample" resultType="java.lang.Integer" >
+    select count(*) from b_marketing_error_mark
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update b_marketing_error_mark
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.apiCode != null" >
+        api_code = #{record.apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mId != null" >
+        m_id = #{record.mId,jdbcType=BIGINT},
+      </if>
+      <if test="record.part != null" >
+        `part` = #{record.part,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pageSize != null" >
+        page_size = #{record.pageSize,jdbcType=INTEGER},
+      </if>
+      <if test="record.searchAfter != null" >
+        search_after = #{record.searchAfter,jdbcType=VARCHAR},
+      </if>
+      <if test="record.esCondition != null" >
+        es_condition = #{record.esCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.accessNumber != null" >
+        access_number = #{record.accessNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pushSize != null" >
+        push_size = #{record.pushSize,jdbcType=INTEGER},
+      </if>
+      <if test="record.policyCondition != null" >
+        policy_condition = #{record.policyCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="record.retryTotalAttempts != null" >
+        retry_total_attempts = #{record.retryTotalAttempts,jdbcType=INTEGER},
+      </if>
+      <if test="record.retryStatus != null" >
+        retry_status = #{record.retryStatus,jdbcType=INTEGER},
+      </if>
+      <if test="record.filterType != null" >
+        filter_type = #{record.filterType,jdbcType=INTEGER},
+      </if>
+      <if test="record.type != null" >
+        `type` = #{record.type,jdbcType=INTEGER},
+      </if>
+      <if test="record.appletDate != null" >
+        applet_date = #{record.appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createTime != null" >
+        create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updateTime != null" >
+        update_time = #{record.updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update b_marketing_error_mark
+    set id = #{record.id,jdbcType=BIGINT},
+      api_code = #{record.apiCode,jdbcType=VARCHAR},
+      m_id = #{record.mId,jdbcType=BIGINT},
+      `part` = #{record.part,jdbcType=VARCHAR},
+      page_size = #{record.pageSize,jdbcType=INTEGER},
+      search_after = #{record.searchAfter,jdbcType=VARCHAR},
+      es_condition = #{record.esCondition,jdbcType=VARCHAR},
+      access_number = #{record.accessNumber,jdbcType=VARCHAR},
+      push_size = #{record.pushSize,jdbcType=INTEGER},
+      policy_condition = #{record.policyCondition,jdbcType=VARCHAR},
+      retry_total_attempts = #{record.retryTotalAttempts,jdbcType=INTEGER},
+      retry_status = #{record.retryStatus,jdbcType=INTEGER},
+      filter_type = #{record.filterType,jdbcType=INTEGER},
+      `type` = #{record.type,jdbcType=INTEGER},
+      applet_date = #{record.appletDate,jdbcType=VARCHAR},
+      create_time = #{record.createTime,jdbcType=TIMESTAMP},
+      update_time = #{record.updateTime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.br.marketing.entity.ErrorMark" >
+    update b_marketing_error_mark
+    <set >
+      <if test="apiCode != null" >
+        api_code = #{apiCode,jdbcType=VARCHAR},
+      </if>
+      <if test="mId != null" >
+        m_id = #{mId,jdbcType=BIGINT},
+      </if>
+      <if test="part != null" >
+        `part` = #{part,jdbcType=VARCHAR},
+      </if>
+      <if test="pageSize != null" >
+        page_size = #{pageSize,jdbcType=INTEGER},
+      </if>
+      <if test="searchAfter != null" >
+        search_after = #{searchAfter,jdbcType=VARCHAR},
+      </if>
+      <if test="esCondition != null" >
+        es_condition = #{esCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="accessNumber != null" >
+        access_number = #{accessNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="pushSize != null" >
+        push_size = #{pushSize,jdbcType=INTEGER},
+      </if>
+      <if test="policyCondition != null" >
+        policy_condition = #{policyCondition,jdbcType=VARCHAR},
+      </if>
+      <if test="retryTotalAttempts != null" >
+        retry_total_attempts = #{retryTotalAttempts,jdbcType=INTEGER},
+      </if>
+      <if test="retryStatus != null" >
+        retry_status = #{retryStatus,jdbcType=INTEGER},
+      </if>
+      <if test="filterType != null" >
+        filter_type = #{filterType,jdbcType=INTEGER},
+      </if>
+      <if test="type != null" >
+        `type` = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="appletDate != null" >
+        applet_date = #{appletDate,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.br.marketing.entity.ErrorMark" >
+    update b_marketing_error_mark
+    set api_code = #{apiCode,jdbcType=VARCHAR},
+      m_id = #{mId,jdbcType=BIGINT},
+      `part` = #{part,jdbcType=VARCHAR},
+      page_size = #{pageSize,jdbcType=INTEGER},
+      search_after = #{searchAfter,jdbcType=VARCHAR},
+      es_condition = #{esCondition,jdbcType=VARCHAR},
+      access_number = #{accessNumber,jdbcType=VARCHAR},
+      push_size = #{pushSize,jdbcType=INTEGER},
+      policy_condition = #{policyCondition,jdbcType=VARCHAR},
+      retry_total_attempts = #{retryTotalAttempts,jdbcType=INTEGER},
+      retry_status = #{retryStatus,jdbcType=INTEGER},
+      filter_type = #{filterType,jdbcType=INTEGER},
+      `type` = #{type,jdbcType=INTEGER},
+      applet_date = #{appletDate,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
