@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl.wuba;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.RandomUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -18,7 +17,6 @@ import com.br.marketing.context.ProcessHandlerContext;
 import com.br.marketing.entity.MarketingCleanDataTask;
 import com.br.marketing.entity.WubaCollidingData;
 import com.br.marketing.entity.WubaCollidingDataBatchNo;
-import com.br.marketing.entity.WubaCollidingDataBatchNoExample;
 import com.br.marketing.entity.WubaCollidingDataEliminate;
 import com.br.marketing.entity.WubaCollidingDataEliminateExample;
 import com.br.marketing.entity.WubaCollidingDataLog;
@@ -29,6 +27,7 @@ import com.br.marketing.mapper.MarketingCleanDataTaskMapper;
 import com.br.marketing.mapper.WubaCollidingBatchNoMapper;
 import com.br.marketing.mapper.WubaCollidingDataEliminateMapper;
 import com.br.marketing.mapper.WubaCollidingDataLogMapper;
+import com.br.marketing.mapper.WubaCollidingDataRobMapper;
 import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
 import com.br.marketing.service.DataCleaningAutoService;
@@ -87,6 +86,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
     MarketingCleanDataTaskMapper marketingCleanDataTaskMapper;
     @Resource
     WubaCollidingDataEliminateMapper wubaCollidingDataEliminateMapper;
+    @Resource
+    WubaCollidingDataRobMapper wubaCollidingDataRobMapper;
     @Resource
     private RabbitMqProducter rabbitMqProducter;
     @Resource
@@ -411,8 +412,9 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         wubaCollidingDataSyncCleanMapper.batchSaveData(nonFinancialDatas, batchNo, apiCode, taskId);
     }
 
-    private void batchSaveEliminate(List<String> data, String apiCode, Long batchNoId) {
+    private void batchSaveEliminateAndDeleteRob(List<String> data, String apiCode, Long batchNoId) {
         wubaCollidingDataEliminateMapper.batchSaveDataByBatchNoAndPushTime(data, apiCode, batchNoId);
+        wubaCollidingDataRobMapper.batchDeleteByCell(data, apiCode);
     }
 
     private void updateTaskCleanStatusById(Long taskId) {
@@ -574,8 +576,8 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
                                                                  Long taskId) {
         List<CompletableFuture<Void>> futures = Lists.newArrayList();
         futures.addAll(batchHandleFalseBusinessAsync(eliminateCells,
-                (List<String> data) -> batchSaveEliminate(data, apiCode, batchNoId),
-                "status=-1数据保存到剔除表"));
+                (List<String> data) -> batchSaveEliminateAndDeleteRob(data, apiCode, batchNoId),
+                "status=-1数据保存到剔除表，并从非周期表删除"));
 
         // 根据sourceType获取-2包id，结果可为空
         Long reavedPackageId = getReavedPackageIdFromSpeed(sourceType);

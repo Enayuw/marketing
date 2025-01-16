@@ -222,7 +222,10 @@ public class WuBaCollidingDataSynchronismServiceImpl implements WuBaCollidingDat
             if (Objects.nonNull(highValueIdList)) {
                 fileIds.addAll(highValueIdList);
             }
-            String highValueAndReavedFileIds = CollectionUtils.isEmpty(fileIds) ? "(\"\")" : "(" + Joiner.on(",").join(fileIds) + ")";
+            if (CollectionUtils.isEmpty(fileIds)) {
+                return new ArrayList<>();
+            }
+            String highValueAndReavedFileIds = "(" + Joiner.on(",").join(fileIds) + ")";
             List<String> highValueAndReavedDuplicateData = wubaCollidingDataRobMapper.selectDuplicateDataByFileId(cells, apiCode,
                     highValueAndReavedFileIds);
             cells.removeAll(highValueAndReavedDuplicateData);
