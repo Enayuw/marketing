@@ -37,5 +37,5 @@ public abstract class AbstractClueChannelCallBack {
      *
      * @return
      */
-    abstract String label();
+    public abstract String label();
 }

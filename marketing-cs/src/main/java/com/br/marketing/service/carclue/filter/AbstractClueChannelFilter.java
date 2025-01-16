@@ -55,5 +55,5 @@ public abstract class AbstractClueChannelFilter {
      * 过滤规则的名称
      * @return
      */
-    abstract String label();
+    public abstract String label();
 }

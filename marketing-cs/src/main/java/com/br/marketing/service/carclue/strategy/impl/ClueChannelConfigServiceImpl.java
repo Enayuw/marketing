@@ -8,8 +8,11 @@ import com.br.marketing.common.utils.Constants;
 import com.br.marketing.entity.CarChannelConfig;
 import com.br.marketing.entity.CarChannelConfigExample;
 import com.br.marketing.mapper.CarChannelConfigMapper;
+import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
 import com.br.marketing.service.carclue.clueenums.ChannelConfigTypeEnum;
+import com.br.marketing.service.carclue.filter.AbstractClueChannelFilter;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
+import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
 import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,14 +35,48 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
     @Resource
     Map<String, AbstractClueChannelMatch> abstractClueChannelMatchMap;
 
-    Map<String, AbstractClueChannelMatch> clueChannelMatchMap;
+    Map<String, AbstractClueChannelMatch> clueChannelMatchMapByLabel;
+
+    @Resource
+    Map<String, AbstractClueChannelFilter> abstractClueChannelFilterMap;
+
+    Map<String, AbstractClueChannelFilter> clueChannelFilterMapByLabel;
+
+    @Resource
+    Map<String, AbstractClueChannelPush> abstractClueChannelPushMap;
+
+    Map<String, AbstractClueChannelPush> clueChannelPushMapByLabel;
+
+    @Resource
+    Map<String, AbstractClueChannelCallBack> abstractClueChannelCallBackMap;
+
+    Map<String, AbstractClueChannelCallBack> clueChannelCallBackMapByLabel;
+
 
     @PostConstruct
     void init() {
-        clueChannelMatchMap = new HashMap<>();
+        clueChannelMatchMapByLabel = new HashMap<>();
         for (Map.Entry<String, AbstractClueChannelMatch> stringAbstractClueChannelMatchEntry : abstractClueChannelMatchMap.entrySet()) {
             AbstractClueChannelMatch value = stringAbstractClueChannelMatchEntry.getValue();
-            clueChannelMatchMap.put(value.label(), value);
+            clueChannelMatchMapByLabel.put(value.label(), value);
+        }
+
+        clueChannelFilterMapByLabel = new HashMap<>();
+        for (Map.Entry<String, AbstractClueChannelFilter> stringAbstractClueChannelFilterEntry : abstractClueChannelFilterMap.entrySet()) {
+            AbstractClueChannelFilter value = stringAbstractClueChannelFilterEntry.getValue();
+            clueChannelFilterMapByLabel.putIfAbsent(value.label(), value);
+        }
+
+        clueChannelPushMapByLabel = new HashMap<>();
+        for (Map.Entry<String, AbstractClueChannelPush> stringAbstractClueChannelPushEntry : abstractClueChannelPushMap.entrySet()) {
+            AbstractClueChannelPush value = stringAbstractClueChannelPushEntry.getValue();
+            clueChannelPushMapByLabel.putIfAbsent(value.label(), value);
+        }
+
+        clueChannelCallBackMapByLabel = new HashMap<>();
+        for (Map.Entry<String, AbstractClueChannelCallBack> stringAbstractClueChannelCallBackEntry : abstractClueChannelCallBackMap.entrySet()) {
+            AbstractClueChannelCallBack value = stringAbstractClueChannelCallBackEntry.getValue();
+            clueChannelCallBackMapByLabel.putIfAbsent(value.label(), value);
         }
     }
 
@@ -66,13 +104,45 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
     public List<AbstractClueChannelMatch> getChannelMatch() {
         ArrayList<AbstractClueChannelMatch> matchs = new ArrayList<>();
         List<CarChannelConfig> configs = getChannelConfig();
-        configs.sort(Comparator.comparingInt(t->t.getOrder()));
+        configs.sort(Comparator.comparingInt(t -> t.getOrder()));
         for (CarChannelConfig config : configs) {
-            if(clueChannelMatchMap.containsKey(config.getStrategyMatch())){
-                matchs.add(clueChannelMatchMap.get(config.getStrategyMatch()));
+            if (clueChannelMatchMapByLabel.containsKey(config.getStrategyMatch())) {
+                matchs.add(clueChannelMatchMapByLabel.get(config.getStrategyMatch()));
             }
         }
         return matchs;
+    }
+
+
+    @Override
+    public List<AbstractClueChannelFilter> getChannelFilter(String apiCodeChannel) {
+        List<CarChannelConfig> configs = getChannelConfig();
+        List<String> filterLabels = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
+                .flatMap(t -> Arrays.stream(t.getStrategyFitler().split(",")))
+                .collect(Collectors.toList());
+        List<AbstractClueChannelFilter> filters = clueChannelFilterMapByLabel
+                .entrySet()
+                .stream()
+                .filter(t -> filterLabels.contains(t.getKey()))
+                .map(t -> t.getValue())
+                .collect(Collectors.toList());
+        return filters;
+    }
+
+    @Override
+    public AbstractClueChannelPush getChannelPushImpl(String apiCodeChannel) {
+        List<CarChannelConfig> configs = getChannelConfig();
+        Optional<String> pushOpt = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
+                .map(t -> t.getStrategyPush()).findFirst();
+        return pushOpt.isPresent() ? clueChannelPushMapByLabel.get(pushOpt.get()) : null;
+    }
+
+    @Override
+    public AbstractClueChannelCallBack getChannelCallBackImpl(String apiCodeChannel) {
+        List<CarChannelConfig> configs = getChannelConfig();
+        Optional<String> callOpt = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
+                .map(t -> t.getStrategyCallback()).findFirst();
+        return callOpt.isPresent() ? clueChannelCallBackMapByLabel.get(callOpt.get()) : null;
     }
 
     private List<CarChannelConfig> getChannelConfig() {
