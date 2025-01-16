@@ -12,7 +12,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * 车线索数据入上传表
+ * 车线索明细数据入库
  * @author guangxiu.li
  * @date 2025/1/14
  * @description

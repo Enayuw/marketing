@@ -2,6 +2,7 @@ package com.br.marketing.service.clean.CarClue.impl;
 
 
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.br.common.log.AlertLog;
 import com.br.marketing.client.marketingapi.input.UploadDataDTO;
@@ -102,14 +103,36 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                     List<Long> recordIds = Lists.newArrayList();
 
                     for (CallRecord callRecord : callRecords) {
+                        String userProperties = callRecord.getUserProperties();
+                        JSONObject jsonObject = JSON.parseObject(userProperties);
+                        if (ObjectUtil.isEmpty(jsonObject) || ObjectUtil.isEmpty(jsonObject.getString("phone"))){
+                            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.CARCLUE_SERVICEERROR.getCode(),
+                                    "车线索数据入库异常：明细用户信息或手机号为空！"));
+                            continue;
+                        }
+                        String phone = ObjectUtil.isNotEmpty(jsonObject.getString("phone")) ? jsonObject.getString("phone") : "";
+                        String carBrand = ObjectUtil.isNotEmpty(jsonObject.getString("carBrand")) ? jsonObject.getString("carBrand") : "";
+                        String carSeries = ObjectUtil.isNotEmpty(jsonObject.getString("carSeries")) ? jsonObject.getString("carSeries") : "";
+                        String province = ObjectUtil.isNotEmpty(jsonObject.getString("province")) ? jsonObject.getString("province") : "";
+                        String city = ObjectUtil.isNotEmpty(jsonObject.getString("city")) ? jsonObject.getString("city") : "";
+                        String resourceType = ObjectUtil.isNotEmpty(jsonObject.getString("resourceType")) ? jsonObject.getString("resourceType") : "";
+
                         String intentionGrade = callRecord.getIntentionGrade();
                         MarketingPreUserDetailDTO marketingPreUserDetailDTO = new MarketingPreUserDetailDTO();
-                        marketingPreUserDetailDTO.setCell(callRecord.getCaseNum());
+                        if (ObjectUtil.isEmpty(phone)){
+                            continue;
+                        }
+                        marketingPreUserDetailDTO.setCell(phone);
                         marketingPreUserDetailDTO.setCustNum(callRecord.getCaseNum());
                         JSONObject reserveField1 = new JSONObject();
-                        reserveField1.put("userType", intentionGrade);
+                        reserveField1.put("userType", "新车");
                         reserveField1.put("recordingPath", callRecord.getRecordingPath());
                         reserveField1.put("intentionGrade", intentionGrade);
+                        reserveField1.put("brand", carBrand);
+                        reserveField1.put("series", carSeries);
+                        reserveField1.put("province", province);
+                        reserveField1.put("city", city);
+                        reserveField1.put("cluePushChannel", resourceType);
                         marketingPreUserDetailDTO.setReserveField1(reserveField1.toJSONString());
                         dataItems.add(marketingPreUserDetailDTO);
                         if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
@@ -120,8 +143,14 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                             carClueInfo.setCell(callRecord.getCaseNum());
                             carClueInfo.setIntention(intentionGrade);
                             carClueInfo.setRecordingpath(callRecord.getRecordingPath());
+                            carClueInfo.setBrand(carBrand);
+                            carClueInfo.setSeries(carSeries);
+                            carClueInfo.setCell(phone);
+                            carClueInfo.setProvince(province);
+                            carClueInfo.setCity(city);
+                            carClueInfo.setCluePushChannel(resourceType);
                             carClueInfo.setCreateTime(new Date());
-                            carClueInfo.setCleanTime(new Date());
+                            carClueInfo.setUpdateTime(new Date());
                             carClueInfos.add(carClueInfo);
                         }
                         recordIds.add(callRecord.getId());
