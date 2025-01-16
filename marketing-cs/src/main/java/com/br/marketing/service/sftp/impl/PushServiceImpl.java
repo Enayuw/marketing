@@ -1,7 +1,8 @@
 package com.br.marketing.service.sftp.impl;
 
-import com.alibaba.fastjson.JSON;
+import com.br.common.log.AlertLog;
 import com.br.marketing.client.SftpClient;
+import com.br.marketing.common.enums.AlarmSendCodeEnum;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.entity.LoanFile;
 import com.br.marketing.mapper.LoanFileMapper;
@@ -16,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -86,13 +86,15 @@ public class PushServiceImpl implements PushService {
             }
 
         } catch (Exception e) {
-            log.error("Exception",e);
+            log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
+                    "跑分文件推送SFTP异常，apiCode："+apiCode), e);
             throw e;
         }finally {
             try {
                 sftpClient.disconnect();
             } catch (Exception e) {
-                log.error("Exception",e);
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.PUSH_TO_SFTP.getCode(),
+                        "跑分文件推送SFTP异常，apiCode："+apiCode), e);
             }
         }
     }
