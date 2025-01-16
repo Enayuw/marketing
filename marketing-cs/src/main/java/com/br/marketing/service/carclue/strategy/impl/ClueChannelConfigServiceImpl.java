@@ -130,11 +130,11 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
     }
 
     @Override
-    public AbstractClueChannelPush getChannelPushImpl(String apiCodeChannel) {
+    public AbstractClueChannelMatch getChannelMatchImpl(String apiCodeChannel) {
         List<CarChannelConfig> configs = getChannelConfig();
         Optional<String> pushOpt = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
                 .map(t -> t.getStrategyPush()).findFirst();
-        return pushOpt.isPresent() ? clueChannelPushMapByLabel.get(pushOpt.get()) : null;
+        return pushOpt.isPresent() ? clueChannelMatchMapByLabel.get(pushOpt.get()) : null;
     }
 
     @Override
@@ -143,6 +143,14 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
         Optional<String> callOpt = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
                 .map(t -> t.getStrategyCallback()).findFirst();
         return callOpt.isPresent() ? clueChannelCallBackMapByLabel.get(callOpt.get()) : null;
+    }
+
+    @Override
+    public AbstractClueChannelPush getChannelPushImpl(String apiCodeChannel) {
+        List<CarChannelConfig> configs = getChannelConfig();
+        Optional<String> pushOpt = configs.stream().filter(t -> apiCodeChannel.equals(t.getApiCode()))
+                .map(t -> t.getStrategyPush()).findFirst();
+        return pushOpt.isPresent() ? clueChannelPushMapByLabel.get(pushOpt.get()) : null;
     }
 
     private List<CarChannelConfig> getChannelConfig() {

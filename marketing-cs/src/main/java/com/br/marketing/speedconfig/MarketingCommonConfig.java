@@ -2539,5 +2539,11 @@ public class MarketingCommonConfig {
      * 车线索数据清洗配置
      */
     private JSONObject carClueDataCleanConfig;
+
+
+    /**
+     * 车线索黑名单配置
+     */
+    private Map<String, List<String>> carClueBlackListConfig;
 }
 
