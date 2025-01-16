@@ -425,6 +425,76 @@ public class XieChengCollidingDataLoopCycleExample {
             return (Criteria) this;
         }
 
+        public Criteria andMarketCouponListIsNull() {
+            addCriterion("market_coupon_list is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListIsNotNull() {
+            addCriterion("market_coupon_list is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListEqualTo(String value) {
+            addCriterion("market_coupon_list =", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListNotEqualTo(String value) {
+            addCriterion("market_coupon_list <>", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListGreaterThan(String value) {
+            addCriterion("market_coupon_list >", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListGreaterThanOrEqualTo(String value) {
+            addCriterion("market_coupon_list >=", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListLessThan(String value) {
+            addCriterion("market_coupon_list <", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListLessThanOrEqualTo(String value) {
+            addCriterion("market_coupon_list <=", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListLike(String value) {
+            addCriterion("market_coupon_list like", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListNotLike(String value) {
+            addCriterion("market_coupon_list not like", value, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListIn(List<String> values) {
+            addCriterion("market_coupon_list in", values, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListNotIn(List<String> values) {
+            addCriterion("market_coupon_list not in", values, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListBetween(String value1, String value2) {
+            addCriterion("market_coupon_list between", value1, value2, "marketCouponList");
+            return (Criteria) this;
+        }
+
+        public Criteria andMarketCouponListNotBetween(String value1, String value2) {
+            addCriterion("market_coupon_list not between", value1, value2, "marketCouponList");
+            return (Criteria) this;
+        }
+
         public Criteria andCouponCodeIsNull() {
             addCriterion("coupon_code is null");
             return (Criteria) this;
