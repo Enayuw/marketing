@@ -30,6 +30,7 @@ import com.br.marketing.mapper.WubaCollidingDataLogMapper;
 import com.br.marketing.mapper.WubaCollidingDataRobMapper;
 import com.br.marketing.mapper.WubaCollidingDataSyncCleanMapper;
 import com.br.marketing.rabbitmq.RabbitMqProducter;
+import com.br.marketing.rpcclient.RpcClientProxy;
 import com.br.marketing.service.DataCleaningAutoService;
 import com.br.marketing.service.Impl.TableCreateServiceImpl;
 import com.br.marketing.speedconfig.MarketingCommonConfig;
@@ -262,7 +263,18 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
         List<ConversionData> conversionDataList = eliminateList.stream().map(t -> {
             ConversionData conversionData = new ConversionData();
             conversionData.setCaseNum(t.getCell());
-            conversionData.setPhone(t.getCell());
+            String phone;
+            // md5解密
+            try {
+                phone = RpcClientProxy.decode(t.getCell(), "cell", "md5", "");
+            } catch (Exception e) {
+                String title = "58撞库status=-1数据消费端，手机号md5解密异常！";
+                String msg = t.getCell();
+                log.warn(AlertLog.buildWarnMessage(AlarmSendCodeEnum.EXCEPTION_WUBA.getCode(), msg
+                        , title));
+                return null;
+            }
+            conversionData.setPhone(phone);
             conversionData.setDataId(String.valueOf(t.getId()));
             conversionData.setCid(tCid);
             conversionData.setPartnerProcessDate(DateUtil.now());
@@ -270,7 +282,7 @@ public class WuBaCollidingDataQueryResultServiceImpl implements WuBaCollidingDat
             conversionData.setInversionInfo(JSON.toJSONString(new JSONObject()));
 
             return conversionData;
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
 
         ProcessHandlerContext context = new ProcessHandlerContext();
         context.setTransferInfoId(batchId);
