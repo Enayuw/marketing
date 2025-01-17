@@ -11,6 +11,7 @@ import com.br.marketing.entity.CallRecordLog;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.*;
 import com.br.marketing.service.*;
+import com.br.marketing.service.carclue.clueenums.CarClueDataStatusEnum;
 import com.br.marketing.vo.CarClueInfoVo;
 import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +85,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                 BeanUtils.copyProperties(clueInfo, vo);
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
-                clueInfo.setClueDataStatus(0);
+                clueInfo.setClueDataStatus(CarClueDataStatusEnum.READY.getValue());
                 clueInfo.setUpdateTime(new Date());
                 clueInfoList.add(clueInfo);
             } catch (Exception e) {
