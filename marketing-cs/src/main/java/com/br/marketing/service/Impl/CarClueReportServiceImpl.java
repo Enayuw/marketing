@@ -87,6 +87,7 @@ public class CarClueReportServiceImpl implements CarClueReportService {
                 BeanUtils.copyProperties(clueInfo, vo);
                 clueInfo.setBrand(vo.getBrand());
                 clueInfo.setSeries(vo.getSeries());
+                clueInfo.setClueDataStatus(0);
                 clueInfo.setUpdateTime(new Date());
                 clueInfoList.add(clueInfo);
             } catch (Exception e) {
