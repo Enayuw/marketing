@@ -4,8 +4,10 @@ import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.CarChannelConfig;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.CarClueInfoMapper;
+import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
 import com.br.marketing.service.carclue.filter.AbstractClueChannelFilter;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;
+import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
 import com.br.marketing.service.carclue.strategy.ClueChannelConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +51,28 @@ public class CarClueServiceImpl implements CarClueService {
         //更新线索状态
         carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
 
+    }
+
+    @Override
+    public void pushCarClueHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelPush channelPushImpl) {
+
+        for (CarClueInfo carClueInfo : carClueInfoList) {
+            Result pushResult = channelPushImpl.push(carClueInfo);
+            if (pushResult.isSuccess()) {
+                carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
+            }
+        }
+
+    }
+
+    @Override
+    public void carClueCallBackHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelCallBack channelCallBackImpl) {
+        for (CarClueInfo carClueInfo : carClueInfoList) {
+            Result callbackResult = channelCallBackImpl.callback(carClueInfo);
+            if (callbackResult.isSuccess()) {
+                carClueInfoMapper.updateByPrimaryKeySelective(carClueInfo);
+            }
+        }
     }
 
     private Boolean isFilterHandler(CarClueInfo carClueInfo, String apiCode, List<AbstractClueChannelFilter> channelFilterList) {

@@ -2,9 +2,15 @@ package com.br.marketing.service.Impl.carclue;
 
 import com.br.marketing.entity.CarChannelConfig;
 import com.br.marketing.entity.CarClueInfo;
+import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
+import com.br.marketing.service.carclue.push.AbstractClueChannelPush;
 
 import java.util.List;
 
 public interface CarClueService {
     void carClueCleanHandler(CarClueInfo carClueInfo, Object brandCitycConfig, List<CarChannelConfig> channelConfigList);
+
+    void pushCarClueHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelPush channelPushImpl);
+
+    void carClueCallBackHandler(List<CarClueInfo> carClueInfoList, AbstractClueChannelCallBack channelCallBackImpl);
 }

@@ -61,6 +61,19 @@
         order by bcci.create_time desc
     </select>
 
+    <select id="queryApiCodes" resultType="java.lang.String">
+        select api_code
+        from b_car_clue_info
+        where
+        <if test="pushStatus != null">
+            clue_push_status =  #{pushStatus}
+        </if>
+        <if test="cluePushStatus != null">
+            clue_push_status = #{cluePushStatus}
+        </if>
+        group by api_code
+    </select>
+
     <insert id="batchInsert" parameterType="list">
         INSERT INTO b_car_clue_info (
         cid,
