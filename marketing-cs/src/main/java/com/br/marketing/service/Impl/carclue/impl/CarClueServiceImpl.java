@@ -1,9 +1,10 @@
-package com.br.marketing.service.Impl.carclue;
+package com.br.marketing.service.Impl.carclue.impl;
 
 import com.br.marketing.common.commondto.Result;
 import com.br.marketing.entity.CarChannelConfig;
 import com.br.marketing.entity.CarClueInfo;
 import com.br.marketing.mapper.CarClueInfoMapper;
+import com.br.marketing.service.Impl.carclue.CarClueService;
 import com.br.marketing.service.carclue.callback.AbstractClueChannelCallBack;
 import com.br.marketing.service.carclue.filter.AbstractClueChannelFilter;
 import com.br.marketing.service.carclue.match.AbstractClueChannelMatch;

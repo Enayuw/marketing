@@ -20,6 +20,7 @@ import com.br.marketing.mapper.CarClueProvincesInformationMapper;
 import com.br.marketing.mapper.CarClueRelationalMappingMapper;
 import com.br.marketing.mapper.CarClueSeriesInformationMapper;
 import com.br.marketing.service.Impl.carclue.ChannelRelationalService;
+import com.br.marketing.service.carclue.clueenums.ProvincesTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -43,14 +44,19 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
     CarClueSeriesInformationMapper carClueSeriesInformationMapper;
     CarClueInitMappingMapper carClueInitMappingMapper;
 
+    private static final String YCKATASK = "7-1";
+    private static final String YCMEMBERTASK = "6+";
+
     @Override
     public void getProvinceAndCity() {
         //省市信息
         buildZjCity();
-        buildYcCity();
+        buildYcCity(YCKATASK, String.valueOf(ProvincesTypeEnum.YCKA.getValue()));
+        buildYcCity(YCMEMBERTASK,"1");
         //车辆信息
         buildZjCar();
-        buildYcCar();
+        buildYcCar(YCKATASK);
+        buildYcCar(YCMEMBERTASK);
     }
 
     private void buildZjCity() {
@@ -89,8 +95,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         }
     }
 
-    private void buildYcCity() {
-        Result<JSONArray> ycCityResult = carClueClient.getYcCity();
+    private void buildYcCity(String task,String provincesType) {
+        Result<JSONArray> ycCityResult = carClueClient.getYcCity(task);
         JSONArray jsonArray = new JSONArray();
         if (ResultCode.SUCCESS.getValue().equals(ycCityResult.getCode())) {
             jsonArray = ycCityResult.getData();
@@ -145,8 +151,8 @@ public class ChannelRelationalServiceImpl implements ChannelRelationalService {
         }
     }
 
-    private void buildYcCar() {
-        Result<JSONArray> ycCarResult = carClueClient.getYcCar();
+    private void buildYcCar(String task) {
+        Result<JSONArray> ycCarResult = carClueClient.getYcCar(task);
 
         JSONArray jsonArray = new JSONArray();
         if (ResultCode.SUCCESS.getValue().equals(ycCarResult.getCode())) {
