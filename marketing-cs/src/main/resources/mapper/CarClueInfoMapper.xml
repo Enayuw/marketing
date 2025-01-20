@@ -114,6 +114,7 @@
         create_time,
         clean_time,
         push_time,
+        member,
         call_back_time
         )
         VALUES
@@ -152,6 +153,7 @@
             <if test="item.createTime != null">#{item.createTime, jdbcType=TIMESTAMP},</if>
             <if test="item.cleanTime != null">#{item.cleanTime, jdbcType=TIMESTAMP},</if>
             <if test="item.pushTime != null">#{item.pushTime, jdbcType=TIMESTAMP},</if>
+            <if test="item.member != null">#{item.member, jdbcType=VARCHAR},</if>
             <if test="item.callBackTime != null">#{item.callBackTime, jdbcType=TIMESTAMP}</if>
             )
         </foreach>

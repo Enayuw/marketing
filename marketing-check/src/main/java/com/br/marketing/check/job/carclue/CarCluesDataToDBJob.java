@@ -32,10 +32,10 @@ public class CarCluesDataToDBJob extends AbstractSimpleElasticJob {
         Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
         List<String> carClueApiCodes = carClueStorageConfig.get("carClueApiCodes");
         String date = LocalDate.now().toString();
-        log.warn("车线索数据入上传表清洗开始");
+        log.warn("车线索数据入库清洗开始");
         long start = System.currentTimeMillis();
         carCluesDataCleanService.cleanCallDetailsData(carClueApiCodes, date);
         long end = System.currentTimeMillis();
-        log.warn("车线索数据入上传表清洗结束，耗时：" + (end - start));
+        log.warn("车线索数据入库清洗结束，耗时：" + (end - start));
     }
 }

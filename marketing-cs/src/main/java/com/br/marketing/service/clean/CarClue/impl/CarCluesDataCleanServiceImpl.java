@@ -108,6 +108,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                         String province = getPhoneFromJsonObject(jsonObject, "province");
                         String city = getPhoneFromJsonObject(jsonObject, "city");
                         String resourceType = getPhoneFromJsonObject(jsonObject, "resourceType");
+                        String member = getPhoneFromJsonObject(jsonObject, "member");
                         String intentionGrade = callRecord.getIntentionGrade();
                         if (ObjectUtil.isNotEmpty(carClueIntentionGrades) && carClueIntentionGrades.contains(intentionGrade)) {
                             CarClueInfo carClueInfo = new CarClueInfo();
@@ -124,6 +125,7 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
                             carClueInfo.setProvince(province);
                             carClueInfo.setCity(city);
                             carClueInfo.setCluePushChannel(resourceType);
+                            carClueInfo.setMember(member);
                             carClueInfo.setCreateTime(new Date());
                             carClueInfo.setUpdateTime(new Date());
                             carClueInfos.add(carClueInfo);
