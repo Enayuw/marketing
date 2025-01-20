@@ -2545,5 +2545,12 @@ public class MarketingCommonConfig {
      * 车线索黑名单配置
      */
     private Map<String, List<String>> carClueBlackListConfig;
+
+    /**
+     * 车线索apiCode映射：0-易车，1-海星之家
+     * eg:{"7410xxx":0,"7410xxx":1}
+     */
+    private Map<String, Integer> carClueApiCodeMapping = new HashMap<>();
+
 }
 
