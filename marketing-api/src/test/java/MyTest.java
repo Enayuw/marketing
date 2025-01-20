@@ -236,8 +236,10 @@ public class MyTest {
 
     @Test
     public void test09() {
-        String strategyCodeOriginal = "CASTR032137";
-        String substring = strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
+        String strategyCodeOriginal = "12345CASTR0321371";
+        String substring = strategyCodeOriginal.length() < 12
+                ? strategyCodeOriginal
+                : strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12);
         String substring1 = strategyCodeOriginal.substring(0, strategyCodeOriginal.length() - 12);
         System.out.println(substring);
         System.out.println(substring1);
