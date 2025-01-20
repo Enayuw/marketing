@@ -9,6 +9,26 @@ import java.util.stream.Collectors;
 
 public class MatchPatternCommon {
 
+
+    /**
+     * 精确/完全匹配方法
+     *
+     * @param content  匹配值
+     * @param listData 匹配集合
+     * @return Boolean true：匹配成功 false：未匹配
+     */
+    public static Boolean completeMatch(String content, List<String> listData) {
+        if (StringUtils.isEmpty(content)) {
+            return Boolean.FALSE;
+        }
+        if (listData.contains(content)) {
+            return Boolean.TRUE;
+        }
+        return Boolean.FALSE;
+
+    }
+
+
     /**
      * 模糊匹配方法
      *

@@ -153,7 +153,7 @@ public class ClueChannelConfigServiceImpl implements ClueChannelConfigService {
         return pushOpt.isPresent() ? clueChannelPushMapByLabel.get(pushOpt.get()) : null;
     }
 
-    private List<CarChannelConfig> getChannelConfig() {
+    public List<CarChannelConfig> getChannelConfig() {
         try {
             if (redisChgService.exists(RedisKeyConstant.CLUE_CONFIG)) {
                 String s = redisChgService.get(RedisKeyConstant.CLUE_CONFIG);
