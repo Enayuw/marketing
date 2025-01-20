@@ -2536,6 +2536,11 @@ public class MarketingCommonConfig {
     private Boolean xcFalsePackageDynaPushPreviewOptFlag;
 
     /**
+     * 携程true包推送决策量级预览优化开关
+     */
+    private Boolean xcTruePushCustomerPushPreviewOptFlag;
+
+    /**
      * 携程规则中心false包操作优化线程数
      */
     private Integer xcFalsePackageOptSoleNum;

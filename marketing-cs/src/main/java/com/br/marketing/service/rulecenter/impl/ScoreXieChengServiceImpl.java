@@ -3,6 +3,7 @@ package com.br.marketing.service.rulecenter.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.br.marketing.common.utils.BrExecutors;
 import com.br.marketing.common.utils.DateHelper;
 import com.br.marketing.dto.rulecenter.XieChengCollidingFilterDTO;
 import com.br.marketing.entity.XiechengCollidingDataPackageRule;
@@ -23,7 +24,11 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,11 +65,18 @@ public class ScoreXieChengServiceImpl {
     public int getXieChengDataNum(String mRuleCondition, List<String> batchNumberList, PushViewVO pushViewVO) {
         int total = 0;
         String querySql = "";
+        List<String> querySqls = new ArrayList<>();
         JSONObject jsonObject = JSON.parseObject(mRuleCondition);
         XieChengCollidingFilterDTO collidingFilterDTO = new XieChengCollidingFilterDTO();
         XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
         pushViewVO.setResult(collidingFilterDTO.getResult());
         if ("true".equals(collidingFilterDTO.getResult())) {
+            Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
+            if (xcTruePushCustomerPushPreviewOptFlag) {
+                cycleDataQueryOpt(jsonObject, batchNumberList, collidingFilterDTO, querySqls);
+            } else {
+                querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+            }
             querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
         } else {
             querySql = falseDataQuery(jsonObject, batchNumberList, collidingFilterDTO.getCleanTime());
@@ -72,11 +84,74 @@ public class ScoreXieChengServiceImpl {
         log.warn("规则中心携程={} 的试算量级sql={}",collidingFilterDTO.getResult(),querySql);
         // 查询Doris
         try {
-            total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
+            if (CollectionUtils.isEmpty(querySqls)) {
+                log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
+                total = scoreRecordMapper.getXieChengDataNumdoris_(querySql);
+            } else {
+                log.warn("规则中心携程={} 的试算量级样例sql={}", collidingFilterDTO.getResult(), querySqls.get(0));
+                total = getTotalOpt(querySqls, marketingCommonConfig.getXcFalsePackageOptSoleNum());
+            }
         } catch (Exception e) {
-            log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
+            if (CollectionUtils.isEmpty(querySqls)) {
+                log.error("规则中心-携程撞库筛选查询Doris异常,sql={}", querySql, e);
+            } else {
+                log.error("规则中心-携程撞库筛选查询Doris异常,sqls={}", String.join("", querySqls), e);
+            }
         }
         return total;
+    }
+
+    /**
+     * @param querySqls
+     * @param xcFalsePackageOptSoleNum
+     * @return int
+     * @description 多线程获取量级
+     * @author hedongshuo
+     * @date 2025/1/7 16:01
+     **/
+    private int getTotalOpt(List<String> querySqls, Integer xcFalsePackageOptSoleNum) {
+        AtomicInteger batchCount = new AtomicInteger(0);
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        ThreadPoolExecutor threadPool = BrExecutors.getThreadPool(xcFalsePackageOptSoleNum, xcFalsePackageOptSoleNum);
+        for (String sql : querySqls) {
+            futures.add(CompletableFuture.runAsync(() -> {
+                batchCount.addAndGet(scoreRecordMapper.getXieChengDataNumdoris_(sql));
+            }, threadPool));
+        }
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        return batchCount.get();
+    }
+
+    /**
+     * 跑分数据和周期表数据交集量级预览
+     *
+     * @param jsonObject
+     * @param batchNumberList
+     * @param collidingFilterDTO
+     * @param querySqls
+     */
+    private void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
+        //True关联查询
+        //true筛选字段处理
+        String condition = XieChengEsJsonHandler.zkTrueCondition(collidingFilterDTO);
+        if (StringUtils.isNotEmpty(condition)) {
+            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + condition
+                    + " and is_delete=0";
+        }
+        String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        for(String batchNumber : batchNumberList){
+            if(StringUtils.isNotEmpty(batchNumber)){
+                continue;
+            }
+            String scoreSql = "select id,cell from b_xiecheng_colliding_".concat(batchNumber)
+                    .concat(" where ").concat(sqlCondition).concat(" and is_delete=0");
+            StringBuilder cycleAndScoreSql = new StringBuilder();
+            cycleAndScoreSql.append("select count(1) from (").append(scoreSql).append(") score inner join (").append(cycleSql).append(") cycle on " +
+                    "score.cell = cycle.cell;");
+            querySqls.add(cycleAndScoreSql.toString());
+        }
     }
 
     public String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
@@ -91,7 +166,7 @@ public class ScoreXieChengServiceImpl {
                     + " and is_delete=0";
         }
         StringBuilder cycleAndscoreSql = new StringBuilder();
-        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
+        cycleAndscoreSql.append("select count(1) from (").append(scoreSql).append(") score inner join (").append(cycleSql).append(") cycle on " +
                 "score.cell = cycle.cell;");
         return cycleAndscoreSql.toString();
     }

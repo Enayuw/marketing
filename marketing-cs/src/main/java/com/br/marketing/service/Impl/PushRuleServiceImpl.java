@@ -1,7 +1,6 @@
 package com.br.marketing.service.Impl;
 import java.util.Date;
 
-import cn.hutool.core.collection.CollectionUtil;
 import com.alibaba.fastjson.*;
 import com.br.arch.geo.pulsar.ProductPulsarClientManager;
 import com.br.arch.geo.pulsar.ProductPulsarProducer;
@@ -489,7 +488,14 @@ public class PushRuleServiceImpl implements PushRuleService {
             XieChengEsJsonHandler.handlerJson(jsonObject, collidingFilterDTO);
             pushNum = dto.getmPrePlanNum();
             customerInfoPushMain.setFilterType(1);
-            customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO));
+            Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
+            if (!xcTruePushCustomerPushPreviewOptFlag) {
+                customerInfoPushMain.setExtend(cycleDataQuery(jsonObject, dto.getBatchNumberList(), collidingFilterDTO));
+            } else {
+                List<String> querySqls = new ArrayList<>();
+                cycleDataQueryOpt(jsonObject, dto.getBatchNumberList(), collidingFilterDTO, querySqls);
+                customerInfoPushMain.setExtend(String.join(";", querySqls));
+            }
         } else {
             Result<PushViewVO> totalRes = getTotal(dto);
             if (!ResultCode.SUCCESS.getValue().equals(totalRes.getCode())) {
@@ -595,7 +601,12 @@ public class PushRuleServiceImpl implements PushRuleService {
         if ("true".equals(collidingFilterDTO.getResult())) {
             if (StringUtils.isEmpty(collidingFilterDTO.getCleanTime())) {
                 //推决策
-                querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+                Boolean xcTruePushCustomerPushPreviewOptFlag = marketingCommonConfig.getXcTruePushCustomerPushPreviewOptFlag();
+                if (xcTruePushCustomerPushPreviewOptFlag) {
+                    cycleDataQueryOpt(jsonObject, batchNumberList, collidingFilterDTO, querySqls);
+                } else {
+                    querySql = cycleDataQuery(jsonObject, batchNumberList, collidingFilterDTO);
+                }
             } else {
                 //true包剔除
                 querySql = cycleDataQueryForDelete(jsonObject, batchNumberList, collidingFilterDTO);
@@ -624,7 +635,6 @@ public class PushRuleServiceImpl implements PushRuleService {
                 }
             }
         }
-        log.warn("规则中心携程={} 的试算量级sql={}", collidingFilterDTO.getResult(), querySql);
         // 查询Doris
         try {
             if (CollectionUtils.isEmpty(querySqls)) {
@@ -643,6 +653,8 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         return total;
     }
+
+
 
     /**
      * @param querySqls
@@ -672,33 +684,31 @@ public class PushRuleServiceImpl implements PushRuleService {
         }
         String xcDynaFalsePackageIdString = xcDynaFalsePackageIds.stream()
                 .collect(Collectors.joining(",", "(", ")"));
-        String dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where is_delete = 0 and package_id in "
-                + xcDynaFalsePackageIdString;
         String conditions = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
         for (String batchNumber : batchNumberList) {
             if (StringUtils.isEmpty(batchNumber)) {
                 continue;
             }
-            int total = getQueryRuleScoreCountSql(batchNumber);
-            if (total > 40000000) {
-                for (int i = 0; i < total / 30000000; i++) {
-                    sqlCollect(querySqls, isPreview, dynaDataSql, conditions, batchNumber, i);
-                }
-            }
-            sqlCollect(querySqls, isPreview, dynaDataSql, conditions, batchNumber, null);
+            sqlCollect(querySqls, isPreview, xcDynaFalsePackageIdString, conditions, batchNumber);
         }
     }
 
-    private static void sqlCollect(List<String> querySqls, boolean isPreview, String dynaDataSql, String conditions, String batchNumber, Integer pageIndex) {
+    private static void sqlCollect(List<String> querySqls, boolean isPreview, String xcDynaFalsePackageId, String conditions, String batchNumber) {
+        String dynaDataSql = null;
+        if (isPreview) {
+            dynaDataSql = "select cell_sha256_code_list as cell,id from b_xiecheng_colliding_data_rob where is_delete = 0 and package_id in "
+                    + xcDynaFalsePackageId;
+        } else {
+            dynaDataSql = "select rob.cell_sha256_code_list as cell, rob.id as id from b_xiecheng_colliding_data_rob rob inner join b_xiecheng_colliding_"
+                    + batchNumber + " batch on rob.cell_sha256_code_list = batch.cell and rob.is_delete = 0 and rob.is_delete = 0 and rob.package_id in "
+                    + xcDynaFalsePackageId;
+        }
         StringBuilder scoreSql = new StringBuilder();
         scoreSql.append("select id, cell from b_xiecheng_colliding_")
                 .append(batchNumber)
                 .append(" where ")
                 .append(conditions)
                 .append(" and is_delete = 0");
-        if (pageIndex != null) {
-            scoreSql.append(" order by id limit ").append(pageIndex * 30000000).append(", 30000000");
-        }
         StringBuilder condition = new StringBuilder();
         condition.append("select count(0) from (")
                 .append(dynaDataSql).append(") dyna left join (")
@@ -862,6 +872,38 @@ public class PushRuleServiceImpl implements PushRuleService {
         return falseAndscoreSql.append(whereSql).toString();
     }
 
+    /**
+     * 跑分数据和周期表数据交集量级预览
+     *
+     * @param jsonObject
+     * @param batchNumberList
+     * @param collidingFilterDTO
+     * @param querySqls
+     */
+    private void cycleDataQueryOpt(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO collidingFilterDTO, List<String> querySqls) {
+        String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
+                "DATE_ADD(CURDATE(), INTERVAL 1 DAY)  and  release_time< DATE_ADD(CURDATE(), INTERVAL 7 DAY) and is_delete=0";
+        //True关联查询
+        //true筛选字段处理
+        String condition = XieChengEsJsonHandler.zkTrueCondition(collidingFilterDTO);
+        if (StringUtils.isNotEmpty(condition)) {
+            cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where " + condition
+                    + " and is_delete=0";
+        }
+        String sqlCondition = EsConditionTransferSqlUtil.jsonTransferSql(jsonObject, "");
+        for(String batchNumber : batchNumberList){
+            if(StringUtils.isNotEmpty(batchNumber)){
+                continue;
+            }
+            String scoreSql = "select id,cell from b_xiecheng_colliding_".concat(batchNumber)
+                    .concat(" where ").concat(sqlCondition).concat(" and is_delete=0");
+            StringBuilder cycleAndScoreSql = new StringBuilder();
+            cycleAndScoreSql.append("select count(1) from (").append(scoreSql).append(") score inner join (").append(cycleSql).append(") cycle on " +
+                    "score.cell = cycle.cell;");
+            querySqls.add(cycleAndScoreSql.toString());
+        }
+    }
+
     private String cycleDataQuery(JSONObject jsonObject, List<String> batchNumberList, XieChengCollidingFilterDTO xieChengCollidingFilterDTO) {
         String scoreSql = scoreSql(jsonObject, batchNumberList);
         String cycleSql = "select  cell_sha256_code_list as cell from  b_xiecheng_colliding_data_loop_cycle where release_time>= " +
@@ -874,7 +916,7 @@ public class PushRuleServiceImpl implements PushRuleService {
                     + " and is_delete=0";
         }
         StringBuilder cycleAndscoreSql = new StringBuilder();
-        cycleAndscoreSql.append("select count(1) from (").append(cycleSql).append(") cycle inner join (").append(scoreSql).append(") score on " +
+        cycleAndscoreSql.append("select count(1) from (").append(scoreSql).append(") score inner join (").append(cycleSql).append(") cycle on " +
                 "score.cell = cycle.cell;");
         return cycleAndscoreSql.toString();
     }

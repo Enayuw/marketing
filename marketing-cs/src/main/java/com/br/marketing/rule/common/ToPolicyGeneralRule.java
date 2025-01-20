@@ -46,8 +46,14 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
             String batchNumber = ObjectUtil.isNotEmpty(jsonObject.getString("batchNumber"))
                     ? jsonObject.getString("batchNumber")
                     : (appletDate + "_" + apiCode);
-            String strategyCode = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
+            String strategyCodeOriginal = ObjectUtil.isNotEmpty(jsonObject.getString("strategyCode"))
                     ? jsonObject.getString("strategyCode")
+                    : "";
+            String strategyCode = StringUtils.isNotEmpty(strategyCodeOriginal)
+                    ?  strategyCodeOriginal.substring(strategyCodeOriginal.length() - 12)
+                    : "";
+            String userType  = StringUtils.isNotEmpty(strategyCodeOriginal)
+                    ?  strategyCodeOriginal.substring(0, strategyCodeOriginal.length() - 12)
                     : "";
             String batchName = ObjectUtil.isNotEmpty(jsonObject.getString("batchName"))
                     ? jsonObject.getString("batchName")
@@ -68,6 +74,9 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
             pushData.setBatchNumber(batchNumber);
             pushData.setBatchName(batchName);
             jsonObject.put("batchName", batchName);
+            if(StringUtils.isNotEmpty(userType)){
+                jsonObject.put("userType", userType);
+            }
         }
         if (ObjectUtil.isEmpty(jsonObject)) {
             jsonObject = new JSONObject();
@@ -111,7 +120,7 @@ public class ToPolicyGeneralRule implements AssembleData<PushMarketingUserDetail
         jsonObject.put("idCard", emptyDefault(get3keyValue(syncUser.getIdCard(), "idCard", pushJc3keyType)));
         jsonObject.put("name", emptyDefault(get3keyValue(syncUser.getName(), "name", pushJc3keyType)));
         jsonObject.put("groupType", emptyDefault(syncUser.getGroupType()));
-        jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
+//        jsonObject.put("userType", emptyDefault(syncUser.getUserType()));
         jsonObject.put("operateType", emptyDefault(syncUser.getOperateType()));
         jsonObject.put("registerDate", emptyDefault(syncUser.getRegisterDate()));
         jsonObject.put("appletDate", emptyDefault(syncUser.getAppletDate()));
