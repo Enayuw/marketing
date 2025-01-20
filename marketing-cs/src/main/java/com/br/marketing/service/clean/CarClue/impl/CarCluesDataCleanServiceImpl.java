@@ -29,6 +29,7 @@ import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -64,7 +65,8 @@ public class CarCluesDataCleanServiceImpl implements CarCluesDataToDBService {
 
     public void clean(String apiCode, String date) {
         String cid = tableCreateService.getCId(apiCode);
-        List<String> carClueIntentionGrades = marketingCommonConfig.getCarClueIntentionGrades();
+        Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
+        List<String> carClueIntentionGrades = carClueStorageConfig.get("carClueIntentionGrades");
         JSONObject carClueDataCleanConfig = marketingCommonConfig.getCarClueDataCleanConfig();
         Integer limit = carClueDataCleanConfig.getInteger("limit");
         Integer threadNum = carClueDataCleanConfig.getInteger("threadNum");

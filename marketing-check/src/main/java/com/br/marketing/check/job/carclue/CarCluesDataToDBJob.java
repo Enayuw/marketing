@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 车线索明细数据入库
@@ -28,7 +29,8 @@ public class CarCluesDataToDBJob extends AbstractSimpleElasticJob {
     @Override
     public void process(JobExecutionMultipleShardingContext context) {
         // 通话明细apiCode
-        List<String> carClueApiCodes = marketingCommonConfig.getCarClueApiCodes();
+        Map<String, List<String>> carClueStorageConfig = marketingCommonConfig.getCarClueStorageConfig();
+        List<String> carClueApiCodes = carClueStorageConfig.get("carClueApiCodes");
         String date = LocalDate.now().toString();
         log.warn("车线索数据入上传表清洗开始");
         long start = System.currentTimeMillis();
