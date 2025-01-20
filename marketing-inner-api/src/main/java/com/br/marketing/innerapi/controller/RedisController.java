@@ -183,7 +183,7 @@ public class RedisController {
                 hxClueCommitDTO.setChannelId("umOFo6Lmtx7z8Xpk");
                 hxClueCommitDTO.setPhone("13000000000");
                 hxClueCommitDTO.setMember("马");
-                hxClueCommitDTO.setProvence("贵州省");
+                hxClueCommitDTO.setProvince("贵州省");
                 hxClueCommitDTO.setCity("贵阳");
                 hxClueCommitDTO.setBrand("东风奕派");
                 hxClueCommitDTO.setSeries("eπ007");
